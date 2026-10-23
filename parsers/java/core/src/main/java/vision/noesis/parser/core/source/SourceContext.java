@@ -72,12 +72,21 @@ final class SourceContext {
         return dependencyOf(element).map(ArtifactDependency::id).orElse(null);
     }
 
+    /**
+     * A platform module is labelled with the release the sources were bound against, which is not the requested one
+     * when javac does not support that ({@code NS1009}).
+     */
     private Optional<ArtifactDependency> locate(TypeElement top) {
         ModuleElement module = javac.elements().getModuleOf(top);
         if (module != null && !module.isUnnamed()) {
-            return Optional.of(session.classpath().platform(module.getQualifiedName().toString(), input.release()));
+            return Optional.of(session.classpath().platform(module.getQualifiedName().toString(), javac.release()));
         }
-        URI location = javac.classFileOf(javac.elements().getBinaryName(top).toString());
+        String binaryName = javac.elements().getBinaryName(top).toString();
+        URI location = javac.classFileOf(binaryName);
+        // No module at all: a release before modules, whose platform classes are not on the classpath.
+        if (location == null && module == null) {
+            return javac.platformModuleOf(binaryName).map(name -> session.classpath().platform(name, javac.release()));
+        }
         return session.classpath().dependencyOf(location);
     }
 

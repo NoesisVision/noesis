@@ -1,6 +1,7 @@
 package vision.noesis.parser.core;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -9,12 +10,16 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import vision.noesis.parser.model.ArtifactKind;
 import vision.noesis.parser.model.CodeModelFile;
+import vision.noesis.parser.model.Diagnostic;
+import vision.noesis.parser.model.DiagnosticSeverity;
 import vision.noesis.parser.model.Edge;
 
 /** Class directories the fixtures do not have, compiled here and read by the bytecode engine as a module of their own. */
@@ -92,8 +97,73 @@ class BytecodeEdgeCaseTest {
         assertEquals(List.of("M:p.Outer#make() -> M:p.Outer+Nested#.ctor()", "M:p.Outer#make(int) -> M:p.Outer+Nested#.ctor(int)"), calls);
         AgreementRules rules = new AgreementRules(List.of(models.source()));
         rules.compare(models.source(), models.bytecode());
-        // At release 8 the source engine names no artifact for platform stubs; the bytecode engine says java.base@8.
-        assertEquals(List.of(), rules.differences().stream().filter(difference -> !difference.contains("stub differs")).toList());
+        assertEquals(List.of(), rules.differences());
+    }
+
+    /**
+     * Release 8 has no modules, but ct.sym files its classes by the module that holds them from 9 on; both engines name
+     * that module for a platform stub and list it as a platform dependency.
+     */
+    @Test
+    void aPlatformClassBeforeModulesIsStubbedInItsLaterModule() throws IOException {
+        Models models = parseBoth(8, Map.of("p/C.java", "package p;\npublic class C { java.sql.Connection connection; String name; }\n"));
+
+        for (CodeModelFile model : List.of(models.source(), models.bytecode())) {
+            String engine = model.artifact().languageSpecific().get("java.engine").toString();
+            assertEquals(Optional.of("A:java.sql@8"), model.stubs().stream().filter(stub -> stub.id().value().equals("T:java.sql.Connection")).map(stub -> String.valueOf(stub.artifact())).findFirst(), engine);
+            assertEquals(Optional.of("A:java.base@8"), model.stubs().stream().filter(stub -> stub.id().value().equals("T:java.lang.String")).map(stub -> String.valueOf(stub.artifact())).findFirst(), engine);
+            List<String> platform = model.artifact().dependencies().stream().filter(dependency -> dependency.kind() == ArtifactKind.PLATFORM).map(dependency -> dependency.id().value()).toList();
+            assertEquals(List.of("A:java.base@8", "A:java.sql@8"), platform, engine);
+        }
+    }
+
+    /**
+     * A release newer than the running JDK: javac binds the sources against the running JDK's ({@code NS1009}) and the
+     * bytecode engine reads the running JDK's classes ({@code NS1008}); the platform is labelled with that release.
+     */
+    @Test
+    void aReleaseNewerThanTheRunningJdkLabelsThePlatformWithTheRunningOne() throws IOException {
+        int running = Runtime.version().feature();
+        Path sources = write(Map.of("p/C.java", "package p;\npublic class C { String name; }\n"));
+        Path classes = root.resolve("classes");
+        compile(running, sources, classes);
+
+        for (EngineKind engine : List.of(EngineKind.SOURCE, EngineKind.BYTECODE)) {
+            CodeModelFile model = parse(engine, running + 1, sources, classes);
+            assertEquals(Optional.of("A:java.base@" + running), model.stubs().stream().filter(stub -> stub.id().value().equals("T:java.lang.String")).map(stub -> String.valueOf(stub.artifact())).findFirst(), engine.id());
+        }
+    }
+
+    /**
+     * Overloads that differ only in a type parameter's bound share an id. Both engines keep the first declared and warn
+     * with an {@code NS1004} naming both; members of local and anonymous classes, met once each, are no duplicates.
+     */
+    @Test
+    void overloadsThatShareAnIdAreReportedAndTheFirstDeclaredIsKept() throws IOException {
+        Models models = parseBoth(17, Map.of("r/G.java", """
+                package r;
+                public class G {
+                    public <T extends Number> void put(T v) {}
+                    public <T extends CharSequence> void put(T v) {}
+                    void f() {
+                        class Local { void g() {} }
+                        new Runnable() { public void run() {} }.run();
+                    }
+                    public G() {}
+                    public G(int x) {}
+                }
+                """));
+
+        AgreementRules rules = new AgreementRules(List.of(models.source()));
+        rules.compare(models.source(), models.bytecode());
+        assertEquals(List.of(), rules.differences());
+        List<Diagnostic> duplicates = models.bytecode().diagnostics().stream().filter(d -> d.code().equals(Diagnostics.DUPLICATE_ID)).toList();
+        assertEquals(1, duplicates.size(), duplicates.toString());
+        Diagnostic duplicate = duplicates.get(0);
+        assertEquals(DiagnosticSeverity.WARNING, duplicate.severity());
+        assertTrue(duplicate.message().startsWith("Declared twice: M:r.G#put`1(!!0), by r.G.put(java.lang.Number) at ")
+                && duplicate.message().contains(" and r.G.put(java.lang.CharSequence) at "), duplicate.message());
+        assertEquals(List.of("r/G.java", 4), List.of(duplicate.location().file().substring(duplicate.location().file().length() - "r/G.java".length()), duplicate.location().startLine()));
     }
 
     /** Parses the sources with both engines, asserts they agree, and returns the bytecode model's edges of a kind. */

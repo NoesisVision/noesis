@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import vision.noesis.parser.core.Diagnostics;
 import vision.noesis.parser.core.java.JavaIds;
 import vision.noesis.parser.core.java.JavaModifiers;
 import vision.noesis.parser.core.java.Literals;
@@ -54,6 +55,8 @@ final class BytecodeDeclarations {
     private final BytecodeContext c;
     private final Set<NodeId> namespaces = new HashSet<>();
     private final Map<NodeId, JavaPackage> packagesById = new LinkedHashMap<>();
+    /** The code unit each id was emitted for, to tell the same unit met again from another that shares its id. */
+    private final Map<NodeId, JavaCodeUnit> emittedCodeUnits = new HashMap<>();
 
     BytecodeDeclarations(BytecodeContext context) {
         this.c = context;
@@ -134,7 +137,8 @@ final class BytecodeDeclarations {
         members.addAll(type.getFields());
         members.addAll(type.getConstructors());
         members.addAll(type.getMethods());
-        members.sort(Comparator.comparing(JavaMember::getName).thenComparing(JavaMember::getDescriptor));
+        // Overloads in declaration order, so of two that share an id the first declared keeps it, as in the source engine.
+        members.sort(Comparator.comparing(JavaMember::getName).thenComparingInt(member -> positionOf(member, type)).thenComparing(JavaMember::getDescriptor));
         for (JavaMember member : members) {
             if (isSynthetic(member)) continue;
             NodeId memberId = member instanceof JavaField field ? emitField(field, type, componentNames) : emitCodeUnit((JavaCodeUnit) member, type, componentNames);
@@ -146,6 +150,12 @@ final class BytecodeDeclarations {
         });
         addInterfaceMemberEdges(type, id);
         return id;
+    }
+
+    private int positionOf(JavaMember member, JavaClass owner) {
+        if (!(member instanceof JavaCodeUnit unit)) return 0;
+        ClassFileDetails.MethodDetails details = c.details.method(owner.getName(), unit.getName(), unit.getDescriptor());
+        return details == null ? Integer.MAX_VALUE : details.position();
     }
 
     static boolean isSynthetic(JavaMember member) {
@@ -209,7 +219,12 @@ final class BytecodeDeclarations {
 
     NodeId emitCodeUnit(JavaCodeUnit unit, JavaClass owner, Set<String> componentNames) {
         NodeId id = c.ids.member(unit);
-        if (c.builder.hasNode(id)) return null;
+        if (c.builder.hasNode(id)) {
+            JavaCodeUnit first = emittedCodeUnits.get(id);
+            if (first != null && !first.equals(unit)) reportDuplicate(id, first, unit, owner);
+            return null;
+        }
+        emittedCodeUnits.put(id, unit);
         MemberFlags flags = flagsOf(unit.getModifiers());
         boolean constructor = unit instanceof JavaConstructor;
         boolean generated = isImplicitEnumMethod(unit, owner);
@@ -230,6 +245,22 @@ final class BytecodeDeclarations {
                 flags.isAbstract() || flags.isNative()));
         if (!constructor && !flags.isStatic() && !flags.isPrivate()) addOverridesEdge((JavaMethod) unit, owner, id);
         return id;
+    }
+
+    /**
+     * Two code units the id grammar cannot tell apart, such as overloads that differ only in a type parameter's bound:
+     * the first keeps the id, the second is dropped, and the drop is reported as the source engine reports it.
+     */
+    private void reportDuplicate(NodeId id, JavaCodeUnit first, JavaCodeUnit second, JavaClass owner) {
+        c.builder.diagnostic(Diagnostics.warning(Diagnostics.DUPLICATE_ID, "Declared twice: " + id + ", by " + describe(first, owner) + " and " + describe(second, owner)
+                + "; the second is missing from the model.", c.lineOf(owner, second.getSourceCodeLocation().getLineNumber())));
+    }
+
+    /** The unit's full name and, when it has code, the line of its first instruction: the class file has no declaration line. */
+    private String describe(JavaCodeUnit unit, JavaClass owner) {
+        int line = unit.getSourceCodeLocation().getLineNumber();
+        String file = c.sourceFileOf(owner);
+        return file == null || line == 0 ? unit.getFullName() : unit.getFullName() + " at " + file + ":" + line;
     }
 
     /**

@@ -78,16 +78,25 @@ final class BytecodeContext {
         URI uri = source.get().getUri();
         if (release != null) {
             Optional<String> module = release.moduleOf(uri);
-            if (module.isPresent()) return Optional.of(session.classpath().platform(module.get(), input.release()));
+            if (module.isPresent()) return Optional.of(session.classpath().platform(module.get(), platformRelease()));
         }
         if ("jrt".equals(uri.getScheme())) {
             String path = uri.getPath() == null ? "" : uri.getPath();
             int start = path.startsWith("/") ? 1 : 0;
             int end = path.indexOf('/', start);
             String module = end < 0 ? path.substring(start) : path.substring(start, end);
-            return Optional.of(session.classpath().platform(module, input.release()));
+            return Optional.of(session.classpath().platform(module, platformRelease()));
         }
         return session.classpath().dependencyOf(uri);
+    }
+
+    /**
+     * The release a platform module is labelled with: that of the JDK classes the parse resolved against, the running
+     * JDK's when it has no signatures of the module's release ({@code NS1008}), as the source engine names the release
+     * javac bound the sources against.
+     */
+    private int platformRelease() {
+        return release != null ? release.release() : Runtime.version().feature();
     }
 
     /**

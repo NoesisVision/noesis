@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
@@ -34,6 +35,7 @@ import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 import vision.noesis.parser.core.ArtifactInput;
 import vision.noesis.parser.core.ClasspathEntry;
+import vision.noesis.parser.core.java.ReleaseClassFiles;
 
 /** One javac run over an artifact's sources: parsed and attributed trees, the symbol tables, the compiler's diagnostics. */
 final class JavacSession implements AutoCloseable {
@@ -48,6 +50,9 @@ final class JavacSession implements AutoCloseable {
     private final Elements elements;
     private final Types types;
     private final int release;
+    /** The release's JDK class files, opened on the first platform class of a release without modules; null until then or without them. */
+    private ReleaseClassFiles releaseClassFiles;
+    private boolean releaseClassFilesOpened;
 
     private JavacSession(StandardJavaFileManager fileManager, JavacTask task, DiagnosticCollector<JavaFileObject> diagnostics, List<CompilationUnitTree> units, int release) {
         this.release = release;
@@ -208,6 +213,19 @@ final class JavacSession implements AutoCloseable {
         }
     }
 
+    /**
+     * The JDK module a top-level platform class of a release without modules belongs to. javac names no module before
+     * release 9, but binds the platform from {@code ct.sym}, which files every class under the module that holds it
+     * from 9 on: the module the bytecode engine names too. Empty for a class the release's platform lacks.
+     */
+    Optional<String> platformModuleOf(String binaryName) {
+        if (!releaseClassFilesOpened) {
+            releaseClassFilesOpened = true;
+            releaseClassFiles = ReleaseClassFiles.open(release).orElse(null);
+        }
+        return releaseClassFiles == null ? Optional.empty() : releaseClassFiles.moduleOfClass(binaryName);
+    }
+
     String sourceText(CompilationUnitTree unit) {
         try {
             return unit.getSourceFile().getCharContent(true).toString();
@@ -218,6 +236,7 @@ final class JavacSession implements AutoCloseable {
 
     @Override
     public void close() throws IOException {
+        if (releaseClassFiles != null) releaseClassFiles.close();
         fileManager.close();
     }
 }

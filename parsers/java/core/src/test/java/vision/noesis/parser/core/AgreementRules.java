@@ -54,7 +54,7 @@ import vision.noesis.parser.model.TypeUseRole;
  *   <li>{@code ACCESSES}: read and write merged, a source {@code readWrite} counted as the two accesses bytecode has; accesses to enum constants excluded (a {@code case} label reads none in bytecode); accesses to external fields are a superset in bytecode ({@code int.class} reads {@code Integer.TYPE}).</li>
  *   <li>{@code USES_TYPE}: only {@code typeTest} is in bytecode.</li>
  *   <li>Stubs: the source engine's are a subset of bytecode's, which also stubs the targets of compiler-inserted calls.</li>
- *   <li>Diagnostics: not compared.</li>
+ *   <li>Diagnostics: not compared, but for {@code NS1004}, by the id it names: an id two declarations share is dropped from both models alike; the messages differ, since bytecode has no declaration lines.</li>
  * </ul>
  */
 final class AgreementRules {
@@ -88,6 +88,7 @@ final class AgreementRules {
         compareStructure(artifact, source, bytecode, cctorOnlyInBytecode, sourceNodes.keySet());
         compareBodies(artifact, source, bytecode, sourceNodes);
         compareStubs(artifact, source, bytecode);
+        compareDuplicates(artifact, source, bytecode);
     }
 
     // --- Nodes -------------------------------------------------------------------------------------------------------
@@ -318,6 +319,24 @@ final class AgreementRules {
                 differences.add(artifact + ": stub differs: " + stub + " vs " + other);
             }
         }
+    }
+
+    // --- Diagnostics -------------------------------------------------------------------------------------------------
+
+    private void compareDuplicates(String artifact, CodeModelFile source, CodeModelFile bytecode) {
+        List<String> left = duplicateIds(source);
+        List<String> right = duplicateIds(bytecode);
+        if (!left.equals(right)) differences.add(artifact + ": " + Diagnostics.DUPLICATE_ID + " differs: source=" + left + " bytecode=" + right);
+    }
+
+    /** The ids the {@code NS1004} warnings name, from their common prefix {@code Declared twice: <id>, by ...}. */
+    private static List<String> duplicateIds(CodeModelFile model) {
+        String prefix = "Declared twice: ";
+        return model.diagnostics().stream().filter(d -> d.code().equals(Diagnostics.DUPLICATE_ID)).map(d -> {
+            String message = d.message();
+            int end = message.indexOf(", by ");
+            return end < 0 ? message : message.substring(prefix.length(), end);
+        }).sorted().collect(Collectors.toList());
     }
 
     private static Map<NodeId, DeclarationNode> byId(CodeModelFile model) {

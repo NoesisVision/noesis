@@ -50,7 +50,8 @@ model document stays the contract.
    coordinates on the dependency, because the artifactId alone (`core`,
    `api`) is not unique. A JDK module is a platform artifact
    `A:<module>@<release>` (`A:java.base@17`), labelled with the release the
-   sources were bound against.
+   sources were bound against. A release without modules (8) names the module
+   that holds the class from 9 on, as `ct.sym` files it (`A:java.sql@8`).
 7. **The implicit `super()` call is an edge.** Every constructor without an
    explicit constructor call invokes its superclass constructor; the bytecode
    has the `invokespecial`, so the source engine emits the same `INVOKES`,

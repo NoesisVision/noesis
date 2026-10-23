@@ -223,7 +223,8 @@ final class SourceDeclarations {
 
     private void addBaseEdges(TypeElement type, NodeId id) {
         TypeMirror superclass = type.getSuperclass();
-        if (superclass.getKind() == TypeKind.DECLARED && !isObject(superclass)) {
+        // A superclass javac could not bind is an error type: unresolved, as a missing interface is.
+        if (superclass.getKind() == TypeKind.ERROR || superclass.getKind() == TypeKind.DECLARED && !isObject(superclass)) {
             c.builder.edge(new Edge.Extends(id, c.types.of(superclass)));
         }
         boolean isInterface = type.getKind().isInterface();

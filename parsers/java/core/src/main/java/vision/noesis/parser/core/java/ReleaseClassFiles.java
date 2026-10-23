@@ -121,6 +121,15 @@ public final class ReleaseClassFiles implements Closeable {
         }
     }
 
+    /**
+     * The JDK module of a top-level class of this release by its binary name ({@code java.lang.Object}); empty for a class
+     * the release lacks. {@code ct.sym} files even release 8's classes by the module that holds them from 9 on.
+     */
+    public Optional<String> moduleOfClass(String binaryName) {
+        Entry entry = index.get(binaryName.replace('.', '/'));
+        return entry == null ? Optional.empty() : Optional.of(entry.module());
+    }
+
     /** The JDK module of a class file extracted here, by its URI; empty for any other URI. */
     public Optional<String> moduleOf(URI uri) {
         if (!"file".equals(uri.getScheme())) return Optional.empty();

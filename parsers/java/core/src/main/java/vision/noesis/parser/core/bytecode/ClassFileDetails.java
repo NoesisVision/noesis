@@ -21,8 +21,9 @@ final class ClassFileDetails {
     /**
      * @param parameterNames null when the class file has no {@code MethodParameters} attribute ({@code -parameters} not given)
      * @param parameterFlags the attribute's access flags per descriptor parameter, null without the attribute
+     * @param position the method's index in its class file, which javac writes in declaration order
      */
-    record MethodDetails(List<String> parameterNames, List<Integer> parameterFlags, boolean varargs) {
+    record MethodDetails(List<String> parameterNames, List<Integer> parameterFlags, boolean varargs, int position) {
 
         /**
          * A parameter the source does not spell: the locals a local or anonymous class captures and an enum constructor's
@@ -76,10 +77,12 @@ final class ClassFileDetails {
     private ClassVisitor visitor() {
         return new ClassVisitor(Opcodes.ASM9) {
             private String className;
+            private int methodCount;
 
             @Override
             public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
                 className = name.replace('/', '.');
+                methodCount = 0;
             }
 
             @Override
@@ -96,6 +99,7 @@ final class ClassFileDetails {
                 List<String> names = new ArrayList<>();
                 List<Integer> flags = new ArrayList<>();
                 String key = className + "#" + name + descriptor;
+                int position = methodCount++;
                 return new MethodVisitor(Opcodes.ASM9) {
                     @Override
                     public void visitParameter(String parameterName, int parameterAccess) {
@@ -108,7 +112,7 @@ final class ClassFileDetails {
                         boolean present = names.size() == parameterCount && parameterCount > 0;
                         boolean named = present && names.stream().noneMatch(String::isEmpty);
                         if (parameterCount > 0 && !named && !synthetic && !name.equals("<clinit>")) parameterNamesMissing = true;
-                        methods.put(key, new MethodDetails(named ? List.copyOf(names) : null, present ? List.copyOf(flags) : null, varargs));
+                        methods.put(key, new MethodDetails(named ? List.copyOf(names) : null, present ? List.copyOf(flags) : null, varargs, position));
                     }
                 };
             }

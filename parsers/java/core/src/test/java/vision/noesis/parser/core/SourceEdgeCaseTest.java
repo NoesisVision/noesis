@@ -27,6 +27,7 @@ import vision.noesis.parser.model.DiagnosticSource;
 import vision.noesis.parser.model.Edge;
 import vision.noesis.parser.model.PackageReference;
 import vision.noesis.parser.model.SourceSpan;
+import vision.noesis.parser.model.TypeRef;
 import vision.noesis.parser.model.TypeUseRole;
 
 /**
@@ -257,6 +258,23 @@ class SourceEdgeCaseTest {
         String message = duplicates.get(0).message();
         assertTrue(message.contains("M:p.C#put`1(!!0)") && message.contains("C.java:3") && message.contains("C.java:4"), message);
         assertEquals(4, duplicates.get(0).location().startLine());
+    }
+
+    /** javac gives a superclass it cannot bind an error type, as it does a missing interface; both are unresolved bases. */
+    @Test
+    void aSuperclassJavacCannotBindIsAnUnresolvedExtends() throws IOException {
+        CodeModelFile model = parse(17, """
+                package p;
+                public class C extends Missing implements AlsoMissing {}
+                """);
+
+        assertParsed(model);
+        List<TypeRef> extended = model.edges().stream().filter(Edge.Extends.class::isInstance).map(Edge.Extends.class::cast)
+                .filter(edge -> edge.from().value().equals("T:p.C")).map(Edge.Extends::to).toList();
+        List<TypeRef> implemented = model.edges().stream().filter(Edge.Implements.class::isInstance).map(Edge.Implements.class::cast)
+                .filter(edge -> edge.from().value().equals("T:p.C")).map(Edge.Implements::to).toList();
+        assertEquals(List.of(new TypeRef.Unresolved("Missing")), extended);
+        assertEquals(List.of(new TypeRef.Unresolved("AlsoMissing")), implemented);
     }
 
     @Test
