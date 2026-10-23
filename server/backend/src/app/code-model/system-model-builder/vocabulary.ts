@@ -5,10 +5,10 @@ import type {
 import type { Language, NodeId } from '../code-model';
 
 /*
- * What the projection knows about one language: which annotation types mean
+ * What the system model builder knows about one language: which annotation types mean
  * what, which platform types are the model's primitives, which hold
- * collections. Everything the projection does with an annotation goes through
- * a role, so a second language is a second table, not a second projection.
+ * collections. Everything the builder does with an annotation goes through
+ * a role, so a second language is a second table, not a second builder.
  * See docs/plans/code-model-to-system-model.md, section 2.
  */
 
@@ -55,7 +55,7 @@ export interface AnnotationVocabulary {
   readonly collections: ReadonlySet<NodeId>;
   /** Type ids of key-value collections; the model cannot express them yet. */
   readonly dictionaries: ReadonlySet<NodeId>;
-  /** Type ids the projection looks through to their type argument (`Task<T>`). */
+  /** Type ids the builder looks through to their type argument (`Task<T>`). */
   readonly wrappers: ReadonlySet<NodeId>;
   /** Type ids that mark their type argument optional (`Nullable<T>`). */
   readonly optionalWrappers: ReadonlySet<NodeId>;

@@ -1,13 +1,21 @@
 import type { Handler } from '#backend/app/handler';
 import { ScanFailedError } from './scan-failed-error';
-import type { ScannerFactory } from './scanner-factory';
 import type { SystemModel } from './system-model';
 import type { SystemModelsRepository } from './system-models.repository';
 
 export type ScanSystemModelHandler = Handler<void, SystemModel>;
 
+/**
+ * Builds the scanner the repository's settings name, anew at every scan.
+ * Typed apart from SourceCodeScanner: the handler is reachable from AppType,
+ * which must not reach the builder's Node imports.
+ */
+export interface Scanners {
+  create(): Promise<{ scan(): Promise<SystemModel> }>;
+}
+
 export function scanSystemModelHandler(
-  scanners: Pick<ScannerFactory, 'create'>,
+  scanners: Scanners,
   systemModels: SystemModelsRepository,
 ): ScanSystemModelHandler {
   return {

@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { readdir } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
-import { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
+import { CSharpCodeParser } from '#backend/adapters/out/parsers/csharp-code-parser';
+import { NamespaceConfig } from '#backend/app/code-model/system-model-builder/namespace-config';
+import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import {
@@ -11,15 +12,17 @@ import {
   UNREACHED,
   behaviour as invocation,
 } from '../support/csharp-fixture-expectations';
+import { scannerOver } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
- * The C# scanner runs `noesis-scan-csharp` and projects what it wrote. Here
+ * The C# parser runs `noesis-scan-csharp`; the scanner builds the system
+ * model of what it wrote. Here
  * the tool is a bun script (test/support/fake-scan-csharp.ts) that copies the
  * .NET scanner's golden code model of the fixture solution under
  * scanners/dotnet/test/fixtures into `--out`, so the whole chain runs without
  * .NET. The real tool runs over the same fixture in
- * test/e2e/csharp-scanner.e2e.spec.ts.
+ * test/e2e-toolchain/csharp-scanner.e2e.spec.ts.
  */
 
 const REPOSITORY = join(import.meta.dir, '..', '..', '..', '..');
@@ -36,24 +39,27 @@ const FAKE_TOOL = join(import.meta.dir, '..', 'support', 'fake-scan-csharp.ts');
 const SOURCES = 'scanners/dotnet/test/fixtures/CSharpSyntax/Projection';
 
 let t: TestNoesis;
-let scanner: CSharpSourceCodeScanner;
+let scanner: SourceCodeScanner;
 
 /** The fixture's own namespace settings. */
 const FIXTURE_NAMESPACES = NamespaceConfig.of(
   await Bun.file(join(FIXTURE, '.noesis', 'settings.json')).json(),
 );
 
-/** A scanner whose first stage is the fake tool with `flags` of its own. */
+/** A scanner whose parser runs the fake tool with `flags` of its own. */
 const scannerWith = (
   flags: string[],
   namespaces: NamespaceConfig = FIXTURE_NAMESPACES,
 ) =>
-  new CSharpSourceCodeScanner({
-    noesis: t.noesis,
-    now: () => NOW,
+  scannerOver(
+    t.noesis,
+    new CSharpCodeParser({
+      noesis: t.noesis,
+      command: ['bun', FAKE_TOOL, ...flags],
+    }),
     namespaces,
-    command: ['bun', FAKE_TOOL, ...flags],
-  });
+    () => NOW,
+  );
 
 beforeEach(async () => {
   t = await testNoesis();
@@ -67,7 +73,7 @@ const block = (name: string) => `building_block|Projection.Blocks.${name}`;
 const form = (name: string) =>
   `behavior|Projection.Behaviours.BehaviourForms.${name}`;
 
-describe('The C# scanner', () => {
+describe('Scanning through the C# parser', () => {
   it('runs the first stage into a fresh .noesis/tmp/<uuid>/, over the repository root, named after it', async () => {
     const record = join(t.root, 'fake-scan-args.json');
     await scannerWith(['--golden', GOLDEN, '--record', record]).scan();
@@ -94,7 +100,7 @@ describe('The C# scanner', () => {
     );
   });
 
-  it('projects the code model the first stage wrote onto a system model', async () => {
+  it('builds the system model of the code model the parser wrote', async () => {
     const model = SystemModel.parse(await scanner.scan());
 
     expect<unknown>(SystemModelId.safeParse(model.id).success).toBe(true);
@@ -405,12 +411,15 @@ describe('The C# scanner', () => {
   });
 
   it('fails when the tool is not installed', async () => {
-    const missing = new CSharpSourceCodeScanner({
-      noesis: t.noesis,
-      now: () => NOW,
-      namespaces: FIXTURE_NAMESPACES,
-      command: ['noesis-scan-csharp-that-does-not-exist'],
-    });
+    const missing = scannerOver(
+      t.noesis,
+      new CSharpCodeParser({
+        noesis: t.noesis,
+        command: ['noesis-scan-csharp-that-does-not-exist'],
+      }),
+      FIXTURE_NAMESPACES,
+      () => NOW,
+    );
 
     await expect<unknown>(missing.scan()).rejects.toThrow('Cannot run');
   });

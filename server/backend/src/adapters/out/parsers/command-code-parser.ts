@@ -1,73 +1,42 @@
 import { randomUUID } from 'node:crypto';
 import { readdir, rm } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
-import type { Now } from '#backend/app/clock';
 import {
   type CodeModelFile,
   CodeModelFile as CodeModelFileSchema,
   type Diagnostic,
-  type Language,
   ScanManifest,
 } from '#backend/app/code-model/code-model';
-import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.vocabulary';
-import { JAVA_VOCABULARY } from '#backend/app/code-model/projection/java.vocabulary';
-import type { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
-import {
-  type ProjectionDiagnostic,
-  projectSystemModel,
-} from '#backend/app/code-model/projection/project-system-model';
-import type { AnnotationVocabulary } from '#backend/app/code-model/projection/vocabulary';
-import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
-import type { SystemModel } from '#backend/app/system-model/system-model';
-import { SystemModelId } from '#backend/app/system-model/system-model-id';
+import type {
+  CodeParser,
+  ParsedCode,
+} from '#backend/app/code-model/code-parser';
 import { readJsonFile } from '#backend/platform/files/json-file';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/logging';
-import { headCommit } from './head-commit';
 
 const OUTPUT_TAIL = 4000;
 const CODE_MODEL_DIR = 'code-model';
 const MANIFEST_FILE = 'manifest.json';
 
-/** The languages the projection has a vocabulary for; chosen by the manifest's `language`. */
-const VOCABULARIES: Partial<Record<Language, AnnotationVocabulary>> = {
-  csharp: CSHARP_VOCABULARY,
-  java: JAVA_VOCABULARY,
-};
-
-export interface CodeModelScannerDeps {
-  noesis: NoesisDir;
-  now: Now;
-  /** How namespaces map to modules, from the repository's settings. */
-  namespaces: NamespaceConfig;
-  /** The first stage's command and leading arguments; the preset's default tool unless given. */
-  command?: readonly string[];
-}
-
 /**
- * A scanner in two stages: a tool of the repository's language writes the
- * common code model into a fresh `.noesis/tmp/<uuid>/`, removed once read,
- * and the projection
- * (app/code-model/projection) turns it into the system model by the
- * vocabulary of the language the manifest names. Rules in
- * docs/plans/code-model-to-system-model.md. A subclass says only which
- * command line to run, and what to tell someone who cannot run it; every
- * tool that writes the model is scanned the same way.
+ * A parser that runs a tool of the repository's language, which writes the
+ * common code model into a fresh `.noesis/tmp/<uuid>/`, removed once read.
+ * A subclass says only which command line to run, and what to tell someone
+ * who cannot run it; every tool that writes the model is read the same way.
  */
-export abstract class CodeModelScanner implements SourceCodeScanner {
+export abstract class CommandCodeParser implements CodeParser {
   private readonly log;
 
   protected constructor(
     protected readonly noesis: NoesisDir,
-    protected readonly now: Now,
-    private readonly namespaces: NamespaceConfig,
     name: string,
   ) {
     this.log = serverLogger('scanner', name);
   }
 
   /** The whole command line that scans `root` into `outDir` as `name`, run from `root`. */
-  protected abstract firstStage(
+  protected abstract commandLine(
     root: string,
     name: string,
     outDir: string,
@@ -76,64 +45,26 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
   /** What to do when the tool cannot be started. */
   protected abstract installHint(): string;
 
-  /** Mints the id as the scan starts, so the newest scan has the highest id. */
-  async scan(): Promise<SystemModel> {
-    const id = SystemModelId.mint();
-    const scannedAt = this.now();
-    const root = this.noesis.root;
-    const name = basename(root);
-    const commit = await headCommit(root);
-
-    const started = performance.now();
-    const { manifest, files } = await this.runFirstStage(root, name);
-    const scanned = performance.now();
-    // The message is a property, not the template: javac's messages may hold braces.
-    for (const { level, message } of scannerDiagnostics(manifest, files)) {
-      this.log[level]('{message}', { message });
-    }
-    const { model, diagnostics } = projectSystemModel({
-      manifest,
-      files,
-      vocabulary: vocabularyOf(manifest.language),
-      config: this.namespaces,
-    });
-    const projected = performance.now();
-    this.logDiagnostics(diagnostics);
-    this.log.info(
-      'Scanned {name}: {artifacts} {language} artifacts in {scanMs} ms, projected {blocks} building blocks and {behaviours} behaviours in {projectMs} ms',
-      {
-        name,
-        artifacts: files.length,
-        language: manifest.language,
-        scanMs: Math.round(scanned - started),
-        blocks: model.buildingBlocks.length,
-        behaviours: model.behaviours.length,
-        projectMs: Math.round(projected - scanned),
-      },
-    );
-    return { id, name, scanned_at: scannedAt, commit, ...model };
-  }
-
   /** Runs the tool into a fresh tmp directory, reads what it wrote and removes it. */
-  private async runFirstStage(
-    root: string,
-    name: string,
-  ): Promise<{ manifest: ScanManifest; files: CodeModelFile[] }> {
+  async parse(): Promise<ParsedCode> {
     const outDir = this.noesis.resolve('tmp', randomUUID());
     try {
-      return await this.runTool(root, name, outDir);
+      const code = await this.runTool(outDir);
+      this.logToolDiagnostics(code);
+      return code;
     } finally {
       await rm(outDir, { recursive: true, force: true });
     }
   }
 
-  private async runTool(
-    root: string,
-    name: string,
-    outDir: string,
-  ): Promise<{ manifest: ScanManifest; files: CodeModelFile[] }> {
+  private async runTool(outDir: string): Promise<ParsedCode> {
+    const root = this.noesis.root;
     const codeModelDir = join(outDir, CODE_MODEL_DIR);
-    const [executable, ...args] = await this.firstStage(root, name, outDir);
+    const [executable, ...args] = await this.commandLine(
+      root,
+      basename(root),
+      outDir,
+    );
     if (executable === undefined) {
       throw new Error('The code model scanner has no command to run.');
     }
@@ -173,13 +104,10 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
     return { exitCode, text: `${stdout}${stderr}` };
   }
 
-  private logDiagnostics(diagnostics: readonly ProjectionDiagnostic[]): void {
-    for (const { level, message, source } of diagnostics) {
-      const where = source === null ? '' : ` ({path}:{line})`;
-      this.log[level](`${message}${where}`, {
-        path: source?.path,
-        line: source?.line,
-      });
+  private logToolDiagnostics({ manifest, files }: ParsedCode): void {
+    // The message is a property, not the template: javac's messages may hold braces.
+    for (const { level, message } of scannerDiagnostics(manifest, files)) {
+      this.log[level]('{message}', { message });
     }
   }
 }
@@ -250,16 +178,6 @@ export function fillCommand(
   );
 }
 
-function vocabularyOf(language: Language): AnnotationVocabulary {
-  const vocabulary = VOCABULARIES[language];
-  if (vocabulary === undefined) {
-    throw new Error(
-      `The projection has no annotation vocabulary for ${language} yet; the code model was read but cannot be projected.`,
-    );
-  }
-  return vocabulary;
-}
-
 /** The one `code-model/<language>/manifest.json` the tool wrote; the language is the tool's to say. */
 async function manifestIn(
   codeModelDir: string,
@@ -288,9 +206,7 @@ async function manifestIn(
   return manifests[0] ?? join(codeModelDir, '<language>', MANIFEST_FILE);
 }
 
-async function readCodeModel(
-  manifestPath: string,
-): Promise<{ manifest: ScanManifest; files: CodeModelFile[] }> {
+async function readCodeModel(manifestPath: string): Promise<ParsedCode> {
   const manifest = (await readJsonFile(manifestPath, ScanManifest)).match(
     (value) => value,
     (message) => {

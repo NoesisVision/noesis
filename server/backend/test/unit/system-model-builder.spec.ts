@@ -16,18 +16,18 @@ import type {
   TypeRef,
   Visibility,
 } from '#backend/app/code-model/code-model';
-import { unquote } from '#backend/app/code-model/projection/annotations';
-import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.vocabulary';
-import { JAVA_VOCABULARY } from '#backend/app/code-model/projection/java.vocabulary';
+import { unquote } from '#backend/app/code-model/system-model-builder/annotations';
+import {
+  type BuiltSystemModel,
+  buildSystemModel,
+} from '#backend/app/code-model/system-model-builder/build-system-model';
+import { CSHARP_VOCABULARY } from '#backend/app/code-model/system-model-builder/csharp.vocabulary';
+import { JAVA_VOCABULARY } from '#backend/app/code-model/system-model-builder/java.vocabulary';
 import {
   NamespaceConfig,
   type NamespaceConfigInput,
-} from '#backend/app/code-model/projection/namespace-config';
-import {
-  type Projection,
-  projectSystemModel,
-} from '#backend/app/code-model/projection/project-system-model';
-import type { AnnotationVocabulary } from '#backend/app/code-model/projection/vocabulary';
+} from '#backend/app/code-model/system-model-builder/namespace-config';
+import type { AnnotationVocabulary } from '#backend/app/code-model/system-model-builder/vocabulary';
 import { SystemModel } from '#backend/app/system-model/system-model';
 
 /*
@@ -500,12 +500,12 @@ const artifact = (
   options?: { annotations?: Annotation[]; dependsOn?: string[] },
 ) => new ArtifactBuilder(name, options);
 
-/** Projects the artifacts in the given (dependency) order. */
-function project(
+/** Builds the system model of the artifacts in the given (dependency) order. */
+function buildFrom(
   artifacts: ArtifactBuilder[],
   config: NamespaceConfigInput = {},
   vocabulary: AnnotationVocabulary = CSHARP_VOCABULARY,
-): Projection {
+): BuiltSystemModel {
   const files = artifacts.map((a) => a.build());
   const manifest: ScanManifest = {
     schemaVersion: 1,
@@ -519,25 +519,25 @@ function project(
     })),
     diagnostics: [],
   };
-  const projection = projectSystemModel({
+  const built = buildSystemModel({
     manifest,
     files,
     vocabulary,
     config: NamespaceConfig.of(config),
   });
-  // Whatever the projection yields must be a system model.
+  // Whatever the builder yields must be a system model.
   SystemModel.parse({
     id: '019a0000-0000-7000-8000-000000000000',
     name: 'spec',
     scanned_at: '2026-10-21T00:00:00.000Z',
-    ...projection.model,
+    ...built.model,
   });
-  return projection;
+  return built;
 }
 
 const ids = (items: readonly { id: string }[]) => items.map((item) => item.id);
-const messages = (projection: Projection, level?: 'info' | 'debug') =>
-  projection.diagnostics
+const messages = (built: BuiltSystemModel, level?: 'info' | 'debug') =>
+  built.diagnostics
     .filter((d) => level === undefined || d.level === level)
     .map((d) => d.message);
 
@@ -566,7 +566,7 @@ describe('2. the annotation vocabulary', () => {
   });
 
   it('matches an annotation by the id of its type alone: the package base type is no role', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.A', {
           annotations: [attr('Domain.DomainObjectAttribute', { name: 'A' })],
@@ -583,7 +583,7 @@ describe('2. the annotation vocabulary', () => {
   });
 
   it('takes an argument whose literal is null as absent', () => {
-    const { model, diagnostics } = project([
+    const { model, diagnostics } = buildFrom([
       artifact('Sales').type('T:Sales.Order', {
         annotations: [aggregate(null)],
       }),
@@ -615,7 +615,7 @@ describe('3. scope', () => {
       // An excluded type: no block, but its calls are stepped through (R3.3).
       .type('T:Sales.Audit', { annotations: [domainService(), exclude()] })
       .method('M:Sales.Audit#Run()', { invokes: ['M:Sales.Order#Total()'] });
-    const { model } = project([technical, sales]);
+    const { model } = buildFrom([technical, sales]);
     expect<unknown>(ids(model.modules)).toEqual(['module|Sales']);
     expect<unknown>(ids(model.buildingBlocks)).toEqual([
       'building_block|Sales.Order',
@@ -627,7 +627,7 @@ describe('3. scope', () => {
   });
 
   it('R3.2 drops a namespace .noesis/settings.json excludes, with everything in it', () => {
-    const { model, diagnostics } = project(
+    const { model, diagnostics } = buildFrom(
       [
         artifact('Sales')
           .type('T:Sales.Orders.Order', { annotations: [aggregate()] })
@@ -650,7 +650,7 @@ describe('3. scope', () => {
   });
 
   it('R3.3 drops an excluded type, method or property, and nothing else with it', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .type('T:Sales.Orders.Draft', { annotations: [aggregate(), exclude()] })
         .method('M:Sales.Orders.Order#Place()')
@@ -677,7 +677,7 @@ describe('3. scope', () => {
   });
 
   it('R3.4 never makes a generated member a behaviour or a property', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#<Clone>$()', { origin: 'generated' })
         .method('M:Sales.Orders.Order#Place()')
@@ -695,7 +695,7 @@ describe('3. scope', () => {
   });
 
   it('R3.5 never makes a stub an element, however it is referenced', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .stub('T:External.Entity')
         .type('T:Sales.Orders.Line', {
@@ -717,7 +717,7 @@ describe('3. scope', () => {
 
 describe('4. building blocks', () => {
   it('R4.1 takes a class, struct, interface or enum with its own annotation, never a delegate', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.A', { kind: 'class', annotations: [aggregate()] })
         .type('T:Sales.B', { kind: 'struct', annotations: [valueObject()] })
@@ -735,7 +735,7 @@ describe('4. building blocks', () => {
   });
 
   it('R4.1 inherits nothing: a type deriving from a block is no block without its own annotation', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .type('T:Sales.Orders.SpecialOrder', {
           extends: [named('T:Sales.Orders.Order')],
@@ -755,19 +755,19 @@ describe('4. building blocks', () => {
   });
 
   it('R4.1 lets the first of two block annotations win, with a diagnostic', () => {
-    const projection = project([
+    const built = buildFrom([
       artifact('Sales').type('T:Sales.Order', {
         annotations: [entity(), aggregate()],
       }),
     ]);
-    expect<unknown>(projection.model.buildingBlocks[0]?.type).toBe('entity');
-    expect<unknown>(messages(projection, 'info')).toEqual([
+    expect<unknown>(built.model.buildingBlocks[0]?.type).toBe('entity');
+    expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining('2 building block annotations'),
     ]);
   });
 
   it('R4.2 names a block by its annotation, else by the code, enclosing types first', () => {
-    const projection = project([
+    const built = buildFrom([
       artifact('Sales')
         .type('T:Sales.Order', { annotations: [aggregate('Customer order')] })
         .type('T:Sales.Order+Repository`1', {
@@ -779,32 +779,32 @@ describe('4. building blocks', () => {
         .type('T:Sales.Order+Line', { annotations: [entity('Order line')] })
         .type('T:Sales.Bad', { annotations: [valueObject('Sales.Bad|x')] }),
     ]);
-    expect<unknown>(ids(projection.model.buildingBlocks)).toEqual([
+    expect<unknown>(ids(built.model.buildingBlocks)).toEqual([
       'building_block|Sales.Bad',
       'building_block|Sales.Customer order',
       'building_block|Sales.Order Item Detail',
       'building_block|Sales.Order Repository',
       'building_block|Sales.Order line',
     ]);
-    expect<unknown>(messages(projection, 'info')).toEqual([
+    expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining('"Sales.Bad|x" is no element name'),
     ]);
   });
 
   it("R4.3 places a block in the module of its namespace, the outermost type's for a nested one, and keeps the first of two with one id", () => {
-    const projection = project([
+    const built = buildFrom([
       artifact('Sales')
         .type('T:Sales.Orders.Order', { annotations: [aggregate()] })
         .type('T:Sales.Orders.Order+Line', { annotations: [entity('Line')] })
         .type('T:Sales.Orders.Line', { annotations: [valueObject()] })
         .type('T:Loose', { annotations: [aggregate()] }),
     ]);
-    expect<unknown>(ids(projection.model.buildingBlocks)).toEqual([
+    expect<unknown>(ids(built.model.buildingBlocks)).toEqual([
       'building_block|Sales.Orders.Line',
       ORDER,
     ]);
-    expect<unknown>(projection.model.buildingBlocks[0]?.type).toBe('entity');
-    expect<unknown>(messages(projection, 'info')).toEqual([
+    expect<unknown>(built.model.buildingBlocks[0]?.type).toBe('entity');
+    expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining(
         'T:Sales.Orders.Line in A:Sales has the id of T:Sales.Orders.Order+Line',
       ),
@@ -813,7 +813,7 @@ describe('4. building blocks', () => {
   });
 
   it('R4.4 lists the blocks among the direct supertypes, type arguments ignored, sorted and unique', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.IRepository`1', {
           kind: 'interface',
@@ -841,7 +841,7 @@ describe('4. building blocks', () => {
   });
 
   it('R4.5 describes a block by its ShortDescription, else its doc comment', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.A', {
           annotations: [aggregate(), description('*Short*')],
@@ -858,7 +858,7 @@ describe('4. building blocks', () => {
   });
 
   it('R4.6 points a block at its first location', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales').type('T:Sales.Order', {
         annotations: [aggregate()],
         file: 'Sales/Orders/Order.cs',
@@ -872,7 +872,7 @@ describe('4. building blocks', () => {
   });
 
   it('R4.7 takes the Scenario annotations on a type as its scenarios, by title only, and has no rules', () => {
-    const projection = project([
+    const built = buildFrom([
       artifact('Sales').type('T:Sales.Order', {
         annotations: [
           aggregate(),
@@ -882,11 +882,11 @@ describe('4. building blocks', () => {
         ],
       }),
     ]);
-    expect<unknown>(projection.model.buildingBlocks[0]).toMatchObject({
+    expect<unknown>(built.model.buildingBlocks[0]).toMatchObject({
       rules: [],
       scenarios: [{ name: 'Order is placed', description: null, steps: [] }],
     });
-    expect<unknown>(messages(projection, 'info')).toHaveLength(2);
+    expect<unknown>(messages(built, 'info')).toHaveLength(2);
   });
 });
 
@@ -894,7 +894,7 @@ describe('4. building blocks', () => {
 
 describe('5. properties', () => {
   it('R5.1 takes public instance properties and fields; not static, event, indexer, enum member or constant ones', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .property('P:Sales.Orders.Order.Total', prim('decimal'))
         .field('F:Sales.Orders.Order.Count', prim('int'))
@@ -933,7 +933,7 @@ describe('5. properties', () => {
   });
 
   it('R5.2 makes a field and a property of one name one property, the property winning', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .field('F:Sales.Orders.Order._total', prim('int'))
         .property('P:Sales.Orders.Order.Total', prim('decimal')),
@@ -949,22 +949,22 @@ describe('5. properties', () => {
   });
 
   it('R5.3 leaves out a member whose type has no word in the model, with a debug diagnostic', () => {
-    const projection = project([
+    const built = buildFrom([
       sales()
         .stub('T:Sales.Clock')
         .property('P:Sales.Orders.Order.Clock', named('T:Sales.Clock'))
         .property('P:Sales.Orders.Order.Total', prim('decimal')),
     ]);
     expect<unknown>(
-      projection.model.buildingBlocks[0]?.properties.map((p) => p.name),
+      built.model.buildingBlocks[0]?.properties.map((p) => p.name),
     ).toEqual(['Total']);
-    expect<unknown>(messages(projection, 'debug')).toEqual([
+    expect<unknown>(messages(built, 'debug')).toEqual([
       expect.stringContaining('P:Sales.Orders.Order.Clock'),
     ]);
   });
 
   it('R5.4 marks a nullable or Nullable<T> member optional', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .property('P:Sales.Orders.Order.A', nullable(prim('string')))
         .property('P:Sales.Orders.Order.B', named(SYS.nullableOf, prim('int')))
@@ -985,7 +985,7 @@ describe('5. properties', () => {
   });
 
   it('R5.5 orders properties by location, then name', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .property('P:Sales.Orders.Order.Z', prim('int'), {
           file: 'b.cs',
@@ -1010,7 +1010,7 @@ describe('5. properties', () => {
   });
 
   it("R5.7 takes a Java record's components as properties although their fields are private, and their accessors as no behaviours", () => {
-    const { model } = project(
+    const { model } = buildFrom(
       [
         artifact('shop')
           .type('T:com.acme.Money', {
@@ -1053,15 +1053,15 @@ describe('5. properties', () => {
     visibility: 'private',
     modifiers: ['readonly'],
   };
-  const javaProjection = (built: ArtifactBuilder) =>
-    project([built], {}, JAVA_VOCABULARY).model;
-  const propertiesOfOffer = (model: Projection['model']) =>
+  const javaModel = (artifact: ArtifactBuilder) =>
+    buildFrom([artifact], {}, JAVA_VOCABULARY).model;
+  const propertiesOfOffer = (model: BuiltSystemModel['model']) =>
     model.buildingBlocks
       .find((b) => b.name === 'Offer')
       ?.properties.map((p) => [p.name, p.type]);
 
   it("R5.8 takes a Java field behind Lombok's generated getter as a property, described by the field, else the getter", () => {
-    const model = javaProjection(
+    const model = javaModel(
       offer()
         .field('F:com.acme.Offer.products', named(JAVA.list, prim('long')), {
           ...privateField,
@@ -1097,7 +1097,7 @@ describe('5. properties', () => {
   });
 
   it('R5.8 takes a Java field behind a hand-written getter as a property, and the getter as no behaviour', () => {
-    const model = javaProjection(
+    const model = javaModel(
       offer()
         .field('F:com.acme.Offer.total', prim('long'), privateField)
         .method('M:com.acme.Offer#getTotal()', { returns: prim('long') })
@@ -1110,7 +1110,7 @@ describe('5. properties', () => {
   });
 
   it('R5.8 takes isX() as the getter of a boolean or Boolean field, and only of one', () => {
-    const model = javaProjection(
+    const model = javaModel(
       offer()
         .field('F:com.acme.Offer.paid', prim('boolean'), privateField)
         .field('F:com.acme.Offer.signed', named(JAVA.boolean), privateField)
@@ -1129,7 +1129,7 @@ describe('5. properties', () => {
   });
 
   it("R5.8 takes Lombok's fluent accessor x() as the getter of x", () => {
-    const model = javaProjection(
+    const model = javaModel(
       offer()
         .field('F:com.acme.Offer.total', prim('long'), privateField)
         .method('M:com.acme.Offer#total()', {
@@ -1143,7 +1143,7 @@ describe('5. properties', () => {
   });
 
   it("R5.8 takes no getter whose return type is not the field's, nor one that is static, takes parameters or is not public", () => {
-    const model = javaProjection(
+    const model = javaModel(
       offer()
         .field('F:com.acme.Offer.total', prim('long'), privateField)
         .field('F:com.acme.Offer.code', prim('int'), privateField)
@@ -1172,7 +1172,7 @@ describe('5. properties', () => {
   });
 
   it('R5.8 takes no static field, constant or excluded field for a property, getter or not', () => {
-    const model = javaProjection(
+    const model = javaModel(
       offer()
         .field('F:com.acme.Offer.instances', prim('long'), {
           visibility: 'private',
@@ -1193,7 +1193,7 @@ describe('5. properties', () => {
   });
 
   it('R5.8 leaves C# alone: a private field behind a getter method is no property, the method a behaviour', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .field('F:Sales.Orders.Order.total', prim('decimal'), {
           visibility: 'private',
@@ -1209,7 +1209,7 @@ describe('5. properties', () => {
   });
 
   it('R5.6 describes a property by its doc comment', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales().property('P:Sales.Orders.Order.Total', prim('decimal'), {
         documentation: 'What is owed.',
       }),
@@ -1224,7 +1224,7 @@ describe('5. properties', () => {
 
 describe('6. modules', () => {
   it('R6.1 maps a namespace through .noesis/settings.json: skipped parts wherever they occur', () => {
-    const { model } = project(
+    const { model } = buildFrom(
       [
         artifact('Sales')
           .type('T:MyCompany.Sales.Orders.Order', {
@@ -1245,7 +1245,7 @@ describe('6. modules', () => {
   });
 
   it('R6.1 drops a block whose namespace is skipped to nothing, with a diagnostic', () => {
-    const projection = project(
+    const built = buildFrom(
       [
         artifact('Sales').type('T:MyCompany.Order', {
           annotations: [aggregate()],
@@ -1253,14 +1253,14 @@ describe('6. modules', () => {
       ],
       { namespacePartsToSkip: ['MyCompany'] },
     );
-    expect<unknown>(projection.model.buildingBlocks).toEqual([]);
-    expect<unknown>(messages(projection, 'info')).toEqual([
+    expect<unknown>(built.model.buildingBlocks).toEqual([]);
+    expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining('maps to no module'),
     ]);
   });
 
   it("R6.2 makes a module per prefix of a block's module path and none for an empty namespace", () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales')
         .namespace('Sales.Empty.Deep')
         .type('T:Sales.Orders.Order', { annotations: [aggregate()] })
@@ -1273,7 +1273,7 @@ describe('6. modules', () => {
   });
 
   it('R6.3 names a module by the last segment of its path', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales').type('T:Sales.Orders.Order', {
         annotations: [aggregate()],
       }),
@@ -1292,7 +1292,7 @@ describe('6. modules', () => {
       'T:MyCompany.Sales.Orders.Deep.Order',
       { annotations: [aggregate()], file: 'Sales/Orders/Deep/Order.cs' },
     );
-    const { model } = project([technical, sales], {
+    const { model } = buildFrom([technical, sales], {
       namespacePartsToSkip: ['MyCompany'],
     });
     expect<unknown>(model.modules.map((m) => [m.id, m.source])).toEqual([
@@ -1304,7 +1304,7 @@ describe('6. modules', () => {
       ],
     ]);
     // A prefix only skipping creates: the directory above the descendant's file.
-    const { model: skipped } = project(
+    const { model: skipped } = buildFrom(
       [
         artifact('Sales').type('T:Sales.Skip.Orders.Order', {
           annotations: [aggregate()],
@@ -1319,7 +1319,7 @@ describe('6. modules', () => {
   });
 
   it('R6.5 gives a module no description and no rules', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales').type('T:Sales.Order', { annotations: [aggregate()] }),
     ]);
     expect<unknown>(model.modules[0]).toMatchObject({
@@ -1339,7 +1339,7 @@ function resolved(
   const builder = extend(
     artifact('Sales').type('T:Sales.Order', { annotations: [aggregate()] }),
   ).property('P:Sales.Order.Probe', type);
-  const { model } = project([builder]);
+  const { model } = buildFrom([builder]);
   const property = model.buildingBlocks
     .find((b) => b.id === 'building_block|Sales.Order')
     ?.properties.find((p) => p.name === 'Probe');
@@ -1407,7 +1407,7 @@ describe('7. resolving a type reference', () => {
     expect<unknown>(
       resolved(named(SYS.list, named(SYS.cancellation))),
     ).toBeUndefined();
-    const projection = project([
+    const built = buildFrom([
       artifact('Sales')
         .type('T:Sales.Order', { annotations: [aggregate()] })
         .property(
@@ -1415,8 +1415,8 @@ describe('7. resolving a type reference', () => {
           named(SYS.dictionary, prim('string'), prim('int')),
         ),
     ]);
-    expect<unknown>(projection.model.buildingBlocks[0]?.properties).toEqual([]);
-    expect<unknown>(messages(projection, 'debug')).toEqual([
+    expect<unknown>(built.model.buildingBlocks[0]?.properties).toEqual([]);
+    expect<unknown>(messages(built, 'debug')).toEqual([
       expect.stringContaining('key-value pairs'),
       expect.stringContaining('P:Sales.Order.Tags'),
     ]);
@@ -1433,7 +1433,7 @@ describe('7. resolving a type reference', () => {
         'P:Sales.Order.Repo',
         named('T:Shared.IRepository`1', named('T:Sales.Order')),
       );
-    const { model } = project([shared, sales]);
+    const { model } = buildFrom([shared, sales]);
     expect<unknown>(
       model.buildingBlocks.find((b) => b.name === 'Order')?.properties[0]?.type,
     ).toBe('building_block|Shared.IRepository');
@@ -1511,7 +1511,7 @@ describe('8. resolving ids across artifacts', () => {
     const billing = artifact('Billing', { dependsOn: ['A:Shared'] })
       .type('T:Billing.Invoice', { annotations: [aggregate()] })
       .property('P:Billing.Invoice.Total', named('T:Common.Money'));
-    const { model } = project([shared, sales, billing]);
+    const { model } = buildFrom([shared, sales, billing]);
     expect<unknown>(
       model.buildingBlocks.find((b) => b.name === 'Order')?.properties[0]?.type,
     ).toBe('building_block|Common.Sales money');
@@ -1528,7 +1528,7 @@ describe('8. resolving ids across artifacts', () => {
     const b = artifact('B').type('T:Sales.Orders.Line', {
       annotations: [entity()],
     });
-    const { model } = project([a, b]);
+    const { model } = buildFrom([a, b]);
     expect<unknown>(ids(model.modules)).toEqual([
       'module|Sales',
       'module|Sales.Orders',
@@ -1541,7 +1541,7 @@ describe('8. resolving ids across artifacts', () => {
 
 describe('9. behaviours', () => {
   it('R9.1 takes the public methods of a block, static ones too; not constructors, operators, technical or non-public ones', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#.ctor()', { methodKind: 'constructor' })
         .method(
@@ -1568,7 +1568,7 @@ describe('9. behaviours', () => {
   });
 
   it('R9.1 takes a method with a behaviour annotation whatever its visibility or name, as a private behaviour when not public', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#Audit()', {
           visibility: 'private',
@@ -1587,7 +1587,7 @@ describe('9. behaviours', () => {
   });
 
   it('R9.2 names a behaviour by the annotation on the method, else on the member it implements or overrides, else the code', () => {
-    const projection = project([
+    const built = buildFrom([
       sales()
         .type('T:Sales.Orders.IOrder', {
           kind: 'interface',
@@ -1609,21 +1609,21 @@ describe('9. behaviours', () => {
           annotations: [behaviour('Ship it')],
         }),
     ]);
-    expect<unknown>(ids(projection.model.behaviours)).toEqual([
+    expect<unknown>(ids(built.model.behaviours)).toEqual([
       'behavior|Sales.Orders.IOrder.Cancel',
       'behavior|Sales.Orders.IOrder.Place order',
       'behavior|Sales.Orders.Order.Cancel',
       'behavior|Sales.Orders.Order.Place order',
       'behavior|Sales.Orders.Order.Ship it',
     ]);
-    expect<unknown>(messages(projection, 'info')).toEqual([
+    expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining('"Sales.Cancel" is no element name'),
       expect.stringContaining('"Sales.Cancel" is no element name'),
     ]);
   });
 
   it('R9.3 collapses overloads into one behaviour that the overload with the most parameters stands for, the first declared of those', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#Add(int)', {
           parameters: [{ name: 'quantity', type: prim('int') }],
@@ -1650,7 +1650,7 @@ describe('9. behaviours', () => {
   });
 
   it("R9.4 types a behaviour by TriggeredBy on its own or an implemented member's annotation; a Command without one", () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .type('T:Sales.Orders.IHandler', {
           kind: 'interface',
@@ -1688,7 +1688,7 @@ describe('9. behaviours', () => {
   });
 
   it('R9.4 takes the type a Java handler annotation fixes itself, which carries no argument', () => {
-    const { model } = project(
+    const { model } = buildFrom(
       [
         artifact('shop')
           .type('T:com.acme.Orders', {
@@ -1721,7 +1721,7 @@ describe('9. behaviours', () => {
   });
 
   it('R9.5 collects the actors of the method, the members it implements and its type, sorted and unique', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.IOrder', {
           kind: 'interface',
@@ -1745,7 +1745,7 @@ describe('9. behaviours', () => {
   });
 
   it('R9.6 reads the input in declaration order, optional for a default or a nullable type, leaving out what has no word', () => {
-    const projection = project([
+    const built = buildFrom([
       sales()
         .stub(SYS.cancellation)
         .method(
@@ -1760,7 +1760,7 @@ describe('9. behaviours', () => {
           },
         ),
     ]);
-    expect<unknown>(projection.model.behaviours[0]?.input).toEqual([
+    expect<unknown>(built.model.behaviours[0]?.input).toEqual([
       { name: 'other', type: ORDER, description: null, optional: false },
       {
         name: 'note',
@@ -1775,13 +1775,13 @@ describe('9. behaviours', () => {
         optional: true,
       },
     ]);
-    expect<unknown>(messages(projection, 'debug')).toEqual([
+    expect<unknown>(messages(built, 'debug')).toEqual([
       expect.stringContaining('parameter token'),
     ]);
   });
 
   it('R9.7 gives no output for void, Task and ValueTask, and one result otherwise, optional when nullable', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#A()')
         .method('M:Sales.Orders.Order#B()', { returns: named(SYS.task) })
@@ -1805,7 +1805,7 @@ describe('9. behaviours', () => {
   });
 
   it("R9.8 describes a behaviour by its ShortDescription, its doc comment, or an overload's", () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#A()', {
           annotations: [description('Short')],
@@ -1829,7 +1829,7 @@ describe('9. behaviours', () => {
   });
 
   it("R9.9 takes the Scenario annotations on every overload as the behaviour's scenarios, by title only", () => {
-    const projection = project([
+    const built = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#Place()', {
           annotations: [scenario('Placed empty')],
@@ -1839,17 +1839,17 @@ describe('9. behaviours', () => {
           annotations: [scenario('Placed with lines'), scenario(null)],
         }),
     ]);
-    expect<unknown>(projection.model.behaviours[0]?.scenarios).toEqual([
+    expect<unknown>(built.model.behaviours[0]?.scenarios).toEqual([
       { name: 'Placed empty', description: null, steps: [] },
       { name: 'Placed with lines', description: null, steps: [] },
     ]);
-    expect<unknown>(messages(projection, 'info')).toEqual([
+    expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining('without a name'),
     ]);
   });
 
   it('R9.10 points a behaviour at the chosen overload', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#Place()', { file: 'a.cs' })
         .method('M:Sales.Orders.Order#Place(int)', {
@@ -1864,15 +1864,15 @@ describe('9. behaviours', () => {
   });
 
   it('R9.11 drops a behaviour annotation on a method of a type that is no block, with a diagnostic', () => {
-    const projection = project([
+    const built = buildFrom([
       artifact('Sales')
         .type('T:Sales.Helpers', { modifiers: ['static'] })
         .method('M:Sales.Helpers#Count()', {
           annotations: [behaviour('Count things')],
         }),
     ]);
-    expect<unknown>(projection.model.behaviours).toEqual([]);
-    expect<unknown>(messages(projection, 'info')).toEqual([
+    expect<unknown>(built.model.behaviours).toEqual([]);
+    expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining(
         'M:Sales.Helpers#Count() is marked a behaviour but its type is no building block',
       ),
@@ -1896,8 +1896,8 @@ describe('10. order and determinism', () => {
         .method('M:Sales.Alpha#Act()')
         .method('M:Sales.Zed#Make()'),
     ];
-    const first = project(build());
-    const second = project(build());
+    const first = buildFrom(build());
+    const second = buildFrom(build());
     expect<unknown>(first).toEqual(second);
     expect<unknown>(ids(first.model.buildingBlocks)).toEqual([
       'building_block|Sales.Alpha',
@@ -1919,7 +1919,7 @@ describe('10. order and determinism', () => {
 
 describe('11. relations derived from invocations', () => {
   it("R11.1 attributes a call to the behaviours of the calling method and of the members it implements or overrides; an initialiser's call to nothing", () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.IOrderRepository', {
           kind: 'interface',
@@ -1989,14 +1989,14 @@ describe('11. relations derived from invocations', () => {
         visibility: 'private',
         invokes: ['M:Sales.Order#Loop()'],
       });
-    const { model } = project([technical, sales]);
+    const { model } = buildFrom([technical, sales]);
     expect<unknown>(
       model.behaviours.find((b) => b.name === 'Place')?.invokes,
     ).toEqual(['behavior|Sales.Order.Total']);
   });
 
   it('R11.2 resolves the target through the members it implements: a call to the implementation reaches the interface behaviour', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.IOrderRepository', {
           kind: 'interface',
@@ -2020,7 +2020,7 @@ describe('11. relations derived from invocations', () => {
   });
 
   it('R11.3 lists the invoked behaviours sorted, unique and never the behaviour itself', () => {
-    const { model } = project([
+    const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.Order', { annotations: [aggregate()] })
         .method('M:Sales.Order#Place()', {

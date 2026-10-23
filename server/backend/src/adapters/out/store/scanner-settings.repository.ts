@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
   NamespaceConfig,
   NamespaceConfigSchema,
-} from '#backend/app/code-model/projection/namespace-config';
+} from '#backend/app/code-model/system-model-builder/namespace-config';
 import {
   CodeModelToolSettings,
   RepositoryScannerName,

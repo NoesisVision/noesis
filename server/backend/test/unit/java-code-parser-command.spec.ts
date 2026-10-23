@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { chmod, readdir, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { ConfiguredCodeModelScanner } from '#backend/adapters/out/scanners/configured-code-model.scanner';
-import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
+import { JavaCodeParser } from '#backend/adapters/out/parsers/java-code-parser';
 import { SystemModel } from '#backend/app/system-model/system-model';
-import { settingsScanner } from '../support/settings-scanner';
+import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
  * The `code-model` scanner runs whatever command line .noesis/settings.json
- * gives and projects what it wrote, by the language the manifest names. Here
+ * gives, and the scanner builds the system model of what it wrote by the
+ * language the manifest names. Here
  * the command is a fake tool copying a committed code model: the Java shop's
  * (test/support/fake-code-model-tool.ts), then the .NET scanner's golden one
  * (test/support/fake-scan-csharp.ts), with the one settings file telling them
@@ -53,7 +53,7 @@ const csharpLike = () => [
 ];
 
 let t: TestNoesis;
-let scanner: SourceCodeScanner;
+let scanner: ReturnType<typeof settingsScanner>;
 
 const configure = (config: Record<string, unknown>) =>
   writeFile(
@@ -94,13 +94,12 @@ beforeEach(async () => {
   t = await testNoesis();
   scanner = settingsScanner(
     t.noesis,
-    ({ namespaces, codeModel }) =>
-      new ConfiguredCodeModelScanner({
+    ({ codeModel }) =>
+      new JavaCodeParser({
         noesis: t.noesis,
-        now: () => NOW,
-        namespaces,
         codeModel,
       }),
+    () => NOW,
   );
 });
 
@@ -130,7 +129,7 @@ describe('The code-model scanner configured in .noesis/settings.json', () => {
     ]);
   });
 
-  it('projects a Java code model by the Java vocabulary, as the Maven preset does', async () => {
+  it('builds a Java code model by the Java vocabulary, as the Maven preset does', async () => {
     await configure({
       codeModel: { command: gradleLike(JAVA_SHOP) },
       namespacePartsToSkip: ['com.acme'],
@@ -148,7 +147,7 @@ describe('The code-model scanner configured in .noesis/settings.json', () => {
     ).toBe('Query');
   });
 
-  it('projects a C# code model by the C# vocabulary: the manifest, not the settings, names the language', async () => {
+  it('builds a C# code model by the C# vocabulary: the manifest, not the settings, names the language', async () => {
     await configure({
       codeModel: { command: csharpLike() },
       namespacePartsToSkip: ['CSharpSyntax'],

@@ -10,7 +10,7 @@ TypeScript server, once for every language, and knows a language only through
 its **annotation vocabulary**: which annotation types mean what, which
 platform types are the model's primitives, which are collections.
 
-This document states the rules of the projection. Section 12 records the
+This document states the rules of the system model builder. Section 12 records the
 decisions taken on the first draft, section 13 the implementation. The old
 .NET scanner (`Noesis-old/Sources/Scanner/Scanner/Analysis/Domain`) is the
 source of the general rules on generics and invocations; it is not followed
@@ -38,7 +38,7 @@ is a `named` `TypeRef` whose `type` is a node or stub id) and their
 **arguments by parameter name** (`name`, `TriggeredBy`, `markdownText`). A
 vocabulary maps annotation ids to the roles below; everything the stage does
 with an annotation goes through a role, so Java's
-`vision.noesis.annotations` is a second table, not a second projection.
+`vision.noesis.annotations` is a second table, not a second builder.
 
 | Role            | Meaning                                                                                                             | C# (`NoesisVision.Annotations`)                                                                                                                                                                                                                                                                                                                                                                                                               |
 | --------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -254,7 +254,7 @@ first that fits decides.
 Ids are unique within one artifact file. A reference from artifact A to id
 X is looked up in A's own nodes, then in A's dependencies of kind `source`
 in the manifest's order, each with its own dependencies after it, then in
-A's stubs. The projection keeps one index per artifact and one global list of
+A's stubs. The builder keeps one index per artifact and one global list of
 blocks keyed by (artifact, node id), so two projects that both declare
 `Sales.Domain.Order` are two candidates for one block id and R4.3 decides.
 Namespaces merge by dotted name across artifacts: `N:Sales.Domain` in two
@@ -398,32 +398,38 @@ them.
 
 ## 13. Implementation
 
-**Where.** `server/backend/src/app/code-model/projection/`: pure functions
-over the two contracts, in the app layer because they are domain logic that
-both the C# and a future Java adapter call.
+**Where.** `server/backend/src/app/code-model/system-model-builder/`: the
+system model builder, pure functions over the two contracts, in the app layer
+because they are domain logic every parser's code model goes through.
 
-| File                      | What                                                                                               |
-| ------------------------- | -------------------------------------------------------------------------------------------------- |
-| `vocabulary.ts`           | The `AnnotationVocabulary` interface: roles by annotation id, primitives, collections, wrappers    |
-| `csharp.vocabulary.ts`    | Section 2's C# table                                                                               |
-| `annotations.ts`          | Reading an annotation's arguments: literals unquoted, `null` as absent, enum members               |
-| `code-model-index.ts`     | Per-artifact lookup of nodes, stubs and edges; cross-artifact resolution (section 8)               |
-| `namespace-config.ts`     | `NamespaceConfig` (moved from the C# adapter; the file reading stays in the adapter) and R6.1      |
-| `type-resolution.ts`      | Section 7                                                                                          |
-| `project-system-model.ts` | Sections 3 to 6, 9 to 11: `projectSystemModel(files, vocabulary, config) → { model, diagnostics }` |
+| File                      | What                                                                                                         |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `vocabulary.ts`           | The `AnnotationVocabulary` interface: roles by annotation id, primitives, collections, wrappers              |
+| `csharp.vocabulary.ts`    | Section 2's C# table                                                                                         |
+| `java.vocabulary.ts`      | The Java table                                                                                               |
+| `annotations.ts`          | Reading an annotation's arguments: literals unquoted, `null` as absent, enum members                         |
+| `code-model-index.ts`     | Per-artifact lookup of nodes, stubs and edges; cross-artifact resolution (section 8)                         |
+| `namespace-config.ts`     | `NamespaceConfig` (moved from the C# adapter; the file reading stays in the adapter) and R6.1                |
+| `type-resolution.ts`      | Section 7                                                                                                    |
+| `build-system-model.ts`   | Sections 3 to 6, 9 to 11: `buildSystemModel(manifest, files, vocabulary, config) → { model, diagnostics }`   |
+| `system-model-builder.ts` | `SystemModelBuilder`: picks the vocabulary by the manifest's language and builds over the namespace settings |
 
-The C# adapter (`adapters/out/scanners/csharp/csharp.scanner.ts`) runs the
-first stage, reads and validates the files with the `code-model.ts` schemas,
-calls the projection, logs the diagnostics and returns the `SystemModel`.
+The scan itself is domain logic too: `SourceCodeScanner`
+(`app/system-model/source-code-scanner.ts`) takes a `CodeParser`
+(`app/code-model/code-parser.ts`) and a `SystemModelBuilder`, runs the parser,
+builds the system model of what it read, reports the diagnostics through the
+`ScanLog` port and returns the `SystemModel`. The adapters are only parsers:
+`CSharpCodeParser` and `JavaCodeParser` (`adapters/out/parsers/`) run their
+tool, and read and validate the files it wrote with the `code-model.ts` schemas.
 
-**Tests.** `server/backend/test/unit/code-model-projection.spec.ts`: one
+**Tests.** `server/backend/test/unit/system-model-builder.spec.ts`: one
 `describe` per section above, one `it` per rule, over a small builder that
-makes a `CodeModelFile` in a few lines. `test/unit/csharp-scanner.spec.ts`
-projects the .NET scanner's golden code model of the fixture solution under
+makes a `CodeModelFile` in a few lines. `test/unit/csharp-code-parser.spec.ts`
+scans the .NET scanner's golden code model of the fixture solution under
 `scanners/dotnet/test/fixtures/` (`CSharpSyntax/Projection` holds the
 annotated types; `scanners/dotnet/test/Noesis.Scanner.Tests/golden/` is
 regenerated with `NOESIS_UPDATE_GOLDEN=1 dotnet test`) and checks the whole
-chain without .NET. `test/e2e/csharp-scanner.e2e.spec.ts` builds the .NET
-scanner, scans the same fixture through the adapter and asserts the model
+chain without .NET. `test/e2e-toolchain/csharp-scanner.e2e.spec.ts` builds the .NET
+scanner, scans the same fixture through the parser and asserts the model
 and the time each stage took. The expected `invokes` of every chain in the
 fixture are in `test/support/csharp-fixture-expectations.ts`, shared by both.

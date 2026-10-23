@@ -1,36 +1,32 @@
-import {
-  CodeModelScanner,
-  type CodeModelScannerDeps,
-} from '../code-model-scanner';
+import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { CommandCodeParser } from './command-code-parser';
 
 /** The `dotnet tool`, on the PATH of the machine the server runs on. */
 const DEFAULT_COMMAND = ['noesis-scan-csharp'];
 /** Under `.noesis/`: the tool's model cache, a ring per project; scanners/dotnet/README.md. */
 const CACHE_DIR = ['cache', 'scanner', 'csharp'] as const;
 
-export type CSharpScannerDeps = CodeModelScannerDeps;
+export interface CSharpCodeParserDeps {
+  noesis: NoesisDir;
+  /** The tool's command and leading arguments; `noesis-scan-csharp` unless given. */
+  command?: readonly string[];
+}
 
 /**
- * The C# scanner: `noesis-scan-csharp` (scanners/dotnet) reads the solution
+ * The C# parser: `noesis-scan-csharp` (scanners/dotnet) reads the solution
  * with Roslyn and writes the code model, reusing the cached model of every
- * project whose inputs did not change (`.noesis/cache/scanner/csharp/`); the
- * projection turns it into the system model by the NoesisVision.Annotations
- * vocabulary. The cache in scanners/dotnet/README.md.
+ * project whose inputs did not change (`.noesis/cache/scanner/csharp/`). The
+ * cache in scanners/dotnet/README.md.
  */
-export class CSharpSourceCodeScanner extends CodeModelScanner {
+export class CSharpCodeParser extends CommandCodeParser {
   private readonly command: readonly string[];
 
-  constructor({
-    noesis,
-    now,
-    namespaces,
-    command = DEFAULT_COMMAND,
-  }: CSharpScannerDeps) {
-    super(noesis, now, namespaces, 'csharp');
+  constructor({ noesis, command = DEFAULT_COMMAND }: CSharpCodeParserDeps) {
+    super(noesis, 'csharp');
     this.command = command;
   }
 
-  protected override async firstStage(
+  protected override async commandLine(
     root: string,
     name: string,
     outDir: string,

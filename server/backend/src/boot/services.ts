@@ -1,3 +1,5 @@
+import { GitSourceRepository } from '#backend/adapters/out/git/git-source-repository';
+import { ServerScanLog } from '#backend/adapters/out/logging/server-scan-log';
 import { ChangeOwnedFileRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { ChangesFileRepository } from '#backend/adapters/out/store/changes.repository';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
@@ -25,7 +27,7 @@ import { findNewestSystemModelHandler } from '#backend/app/system-model/find-new
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
 import { ScannerFactory } from '#backend/app/system-model/scanner-factory';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import { scannerBuilders } from './scanners';
+import { codeParsers } from './code-parsers';
 
 /**
  * Wires the file repositories under `.noesis/` and the scanners to the
@@ -90,7 +92,12 @@ export function createServices(
     scanSystemModel: scanSystemModelHandler(
       new ScannerFactory(
         new ScannerSettingsFileRepository(noesis),
-        scannerBuilders(noesis, now),
+        codeParsers(noesis),
+        {
+          repository: new GitSourceRepository(noesis.root),
+          now,
+          log: new ServerScanLog(),
+        },
       ),
       systemModels,
     ),

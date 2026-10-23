@@ -2,7 +2,7 @@ import type { Annotation, AnnotationValue } from '../code-model';
 import type { AnnotationRole, AnnotationVocabulary } from './vocabulary';
 
 /*
- * Reading annotations the way the projection needs them: by role, and by the
+ * Reading annotations the way the system model builder needs them: by role, and by the
  * name of an argument. A literal comes as the compiler spelled it (`"Forex"`,
  * `null`), so it is unquoted here, and `null` — an optional parameter the
  * code left out — counts as absent.

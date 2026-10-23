@@ -6,7 +6,7 @@ Today a scan has two contracts. The first is the **code model**: the files a
 scanner writes (`scanners/code-model/`, described in
 [`docs/arch/code-model.md`](../arch/code-model.md)).
 The second is an **annotation vocabulary** per language, in the service
-(`server/backend/src/app/code-model/projection/{java,csharp}.vocabulary.ts`),
+(`server/backend/src/app/code-model/system-model-builder/{java,csharp}.vocabulary.ts`),
 plus a few rules of the projection that read one language's facts
 ([`code-model-to-system-model.md`](code-model-to-system-model.md), the
 "projection rules" below). Whenever a scanner learns something about its
@@ -256,7 +256,7 @@ the scanner to update.
 ## 7. Tests
 
 - **The projection names no language.** A unit test reads the sources under
-  `server/backend/src/app/code-model/projection/` and fails on `java`,
+  `server/backend/src/app/code-model/system-model-builder/` and fails on `java`,
   `csharp`, a `T:`/`M:` id literal or a `languageSpecific` key; it is the
   guard that keeps section 2 true.
 - **Projection rules on neutral facts.** `code-model-projection.spec.ts`

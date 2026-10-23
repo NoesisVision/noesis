@@ -3,7 +3,7 @@
 // scanner's golden model files (manifest and one model per artifact) into
 // `--out`'s code-model/csharp/, `--fail <code>` exits with that code instead,
 // `--record <file>` writes the arguments there. The real tool runs in
-// test/e2e/csharp-scanner.e2e.spec.ts.
+// test/e2e-toolchain/csharp-scanner.e2e.spec.ts.
 import { cp, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 

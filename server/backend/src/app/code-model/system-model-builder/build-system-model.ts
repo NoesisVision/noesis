@@ -43,14 +43,14 @@ import { type ResolutionScope, resolveTypeRef } from './type-resolution';
 import type { AnnotationVocabulary } from './vocabulary';
 
 /*
- * The second stage of the scanner: the code model of one scan projected onto
+ * The second stage of the scanner: the code model of one scan built into
  * the system model. docs/plans/code-model-to-system-model.md states every
  * rule; the comments here name the rules they implement (R4.2, R9.3, ...).
- * The projection is a pure function of its inputs and reports what it
+ * The builder is a pure function of its inputs and reports what it
  * dropped or fell back on as diagnostics rather than logging.
  */
 
-export interface ProjectionInput {
+export interface SystemModelBuildInput {
   readonly manifest: ScanManifest;
   /** The manifest's files, each parsed; order does not matter. */
   readonly files: readonly CodeModelFile[];
@@ -58,21 +58,21 @@ export interface ProjectionInput {
   readonly config: NamespaceConfig;
 }
 
-export interface ProjectionDiagnostic {
+export interface BuildDiagnostic {
   /** `info`: an element or override was dropped; `debug`: a member's type has no word in the model. */
   readonly level: 'info' | 'debug';
   readonly message: string;
   readonly source: SourceLocation | null;
 }
 
-type ProjectedModel = Pick<
+type BuiltModel = Pick<
   SystemModel,
   'modules' | 'buildingBlocks' | 'behaviours'
 >;
 
-export interface Projection {
-  readonly model: ProjectedModel;
-  readonly diagnostics: readonly ProjectionDiagnostic[];
+export interface BuiltSystemModel {
+  readonly model: BuiltModel;
+  readonly diagnostics: readonly BuildDiagnostic[];
 }
 
 const BLOCK_TYPE_KINDS = new Set(['class', 'struct', 'interface', 'enum']);
@@ -95,15 +95,17 @@ interface Behaviour {
   readonly overloads: readonly Located<MethodNode>[];
 }
 
-export function projectSystemModel(input: ProjectionInput): Projection {
-  return new Projector(input).project();
+export function buildSystemModel(
+  input: SystemModelBuildInput,
+): BuiltSystemModel {
+  return new ModelAssembly(input).assemble();
 }
 
-class Projector {
+class ModelAssembly {
   private readonly vocabulary: AnnotationVocabulary;
   private readonly config: NamespaceConfig;
   private readonly index: CodeModelIndex;
-  private readonly diagnostics: ProjectionDiagnostic[] = [];
+  private readonly diagnostics: BuildDiagnostic[] = [];
   private readonly blocks = new Map<GlobalId, Block>();
   private readonly behaviours = new Map<BehaviorId, Behaviour>();
   /** Every overload's behaviour, by the method's global id. */
@@ -113,17 +115,17 @@ class Projector {
   /** R5.8: each block's fields a getter exposes, with the getter, by field id. */
   private readonly getters = new Map<GlobalId, Map<NodeId, MethodNode>>();
 
-  constructor({ manifest, files, vocabulary, config }: ProjectionInput) {
+  constructor({ manifest, files, vocabulary, config }: SystemModelBuildInput) {
     this.vocabulary = vocabulary;
     this.config = config;
     this.index = new CodeModelIndex(manifest, files);
   }
 
-  project(): Projection {
+  assemble(): BuiltSystemModel {
     this.collectBlocks();
     this.collectBehaviours();
     const invokes = this.collectInvocations();
-    const model: ProjectedModel = {
+    const model: BuiltModel = {
       modules: this.modules(),
       buildingBlocks: [...this.blocks.values()]
         .map((block) => this.toBuildingBlock(block))

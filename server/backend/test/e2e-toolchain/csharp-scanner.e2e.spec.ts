@@ -1,20 +1,20 @@
 // The C# scanner end to end: the real `noesis-scan-csharp` (built from
 // scanners/dotnet) over the fixture solution under scanners/dotnet/test/fixtures,
-// then the projection. Needs the .NET SDK. Besides the model, the test measures
+// then the system model builder. Needs the .NET SDK. Besides the model, the test measures
 // both stages against a budget, so a performance regression in either fails
 // here and the timings are printed for the record.
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
+import { CSharpCodeParser } from '#backend/adapters/out/parsers/csharp-code-parser';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import {
   CodeModelFile,
   ScanManifest,
 } from '#backend/app/code-model/code-model';
-import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.vocabulary';
-import { projectSystemModel } from '#backend/app/code-model/projection/project-system-model';
+import { buildSystemModel } from '#backend/app/code-model/system-model-builder/build-system-model';
+import { CSHARP_VOCABULARY } from '#backend/app/code-model/system-model-builder/csharp.vocabulary';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import {
@@ -22,6 +22,7 @@ import {
   MODULES,
   UNREACHED,
 } from '../support/csharp-fixture-expectations';
+import { scannerOver } from '../support/test-scanner';
 
 const REPOSITORY = resolve(import.meta.dir, '../../../..');
 const FIXTURE = join(REPOSITORY, 'scanners', 'dotnet', 'test', 'fixtures');
@@ -35,8 +36,8 @@ const CLI_PROJECT = join(
 
 /** Generous: the first stage restores packages and loads MSBuild; a cold run takes ~20 s here. */
 const FIRST_STAGE_BUDGET_MS = 180_000;
-/** The projection is in-memory over a few thousand nodes; it takes ~10 ms here. */
-const PROJECTION_BUDGET_MS = 2_000;
+/** The builder is in-memory over a few thousand nodes; it takes ~10 ms here. */
+const BUILD_BUDGET_MS = 2_000;
 
 let command: string[];
 
@@ -78,18 +79,18 @@ beforeAll(async () => {
 
 describe('the fixture solution through the C# scanner (e2e)', () => {
   it(
-    'scans the solution with noesis-scan-csharp and projects the system model within budget',
+    'scans the solution with noesis-scan-csharp and builds the system model within budget',
     async () => {
       const noesis = new NoesisDir(FIXTURE);
       const { namespaces: config } = await new ScannerSettingsFileRepository(
         noesis,
       ).repositorySettings();
-      const scanner = new CSharpSourceCodeScanner({
+      const scanner = scannerOver(
         noesis,
-        now: () => new Date().toISOString(),
-        namespaces: config,
-        command,
-      });
+        new CSharpCodeParser({ noesis, command }),
+        config,
+        () => new Date().toISOString(),
+      );
 
       // The first stage alone, into a directory of the test's own: the
       // scanner removes its tmp directory once it has read it.
@@ -142,27 +143,27 @@ describe('the fixture solution through the C# scanner (e2e)', () => {
       } finally {
         await rm(outDir, { recursive: true, force: true });
       }
-      const projectionStart = performance.now();
-      const { model: projected } = projectSystemModel({
+      const buildStart = performance.now();
+      const { model: built } = buildSystemModel({
         manifest,
         files,
         vocabulary: CSHARP_VOCABULARY,
         config,
       });
-      const projection = performance.now() - projectionStart;
+      const building = performance.now() - buildStart;
 
       // Both stages through the scanner, which leaves no tmp directory behind.
       const model = SystemModel.parse(await scanner.scan());
       expect<unknown>(await readdir(noesis.resolve('tmp'))).toEqual([]);
 
       console.log(
-        `[e2e] fixture: first stage ${Math.round(firstStage)} ms, projection alone ${projection.toFixed(1)} ms, ${files.length} artifacts, ${model.buildingBlocks.length} blocks, ${model.behaviours.length} behaviours`,
+        `[e2e] fixture: first stage ${Math.round(firstStage)} ms, builder alone ${building.toFixed(1)} ms, ${files.length} artifacts, ${model.buildingBlocks.length} blocks, ${model.behaviours.length} behaviours`,
       );
       expect<unknown>(firstStage).toBeLessThan(FIRST_STAGE_BUDGET_MS);
-      expect<unknown>(projection).toBeLessThan(PROJECTION_BUDGET_MS);
-      expect<unknown>(projected.buildingBlocks).toEqual(model.buildingBlocks);
+      expect<unknown>(building).toBeLessThan(BUILD_BUDGET_MS);
+      expect<unknown>(built.buildingBlocks).toEqual(model.buildingBlocks);
 
-      // What the real scan gives the projection, by the rules; the unit test
+      // What the real scan gives the builder, by the rules; the unit test
       // over the golden model checks the same expectations in full.
       expect<unknown>(model.name).toBe('fixtures');
       expect<unknown>(manifest.artifacts.map((a) => a.id)).toEqual([
@@ -208,6 +209,6 @@ describe('the fixture solution through the C# scanner (e2e)', () => {
         'Equals',
       );
     },
-    FIRST_STAGE_BUDGET_MS + PROJECTION_BUDGET_MS,
+    FIRST_STAGE_BUDGET_MS + BUILD_BUDGET_MS,
   );
 });

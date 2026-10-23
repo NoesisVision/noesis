@@ -1,11 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { cp, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { ConfiguredCodeModelScanner } from '#backend/adapters/out/scanners/configured-code-model.scanner';
-import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
+import { JavaCodeParser } from '#backend/adapters/out/parsers/java-code-parser';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
-import { settingsScanner } from '../support/settings-scanner';
+import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
@@ -13,7 +12,7 @@ import { NOW, type TestNoesis, testNoesis } from './test-noesis';
  * it through the `code-model` scanner (test/fixtures/java/shop/.noesis/settings.json).
  * Here the build is a bun script (test/support/fake-code-model-tool.ts) that
  * copies the committed code model of the fixture into `-Dnoesis.out`, so the
- * Java projection runs without a JDK. The real build runs in
+ * Java system model is built without a JDK. The real build runs in
  * test/e2e-toolchain/java-scanner.e2e.spec.ts.
  */
 
@@ -26,17 +25,15 @@ const FAKE_TOOL = join(
 );
 
 let t: TestNoesis;
-let scanner: SourceCodeScanner;
+let scanner: ReturnType<typeof settingsScanner>;
 
 beforeEach(async () => {
   t = await testNoesis();
   scanner = settingsScanner(
     t.noesis,
-    ({ namespaces }) =>
-      new ConfiguredCodeModelScanner({
+    () =>
+      new JavaCodeParser({
         noesis: t.noesis,
-        now: () => NOW,
-        namespaces,
         codeModel: {
           command: [
             'bun',
@@ -47,6 +44,7 @@ beforeEach(async () => {
           ],
         },
       }),
+    () => NOW,
   );
   await cp(
     join(FIXTURE, '.noesis', 'settings.json'),
@@ -59,7 +57,7 @@ afterEach(() => t.cleanup());
 const ids = (items: readonly { id: string }[]) => items.map((item) => item.id);
 
 describe('A Java repository scanned through its Maven plugin', () => {
-  it('projects the code model the plugin wrote onto a system model by the Java vocabulary', async () => {
+  it('builds the system model of the code model the plugin wrote by the Java vocabulary', async () => {
     const model = SystemModel.parse(await scanner.scan());
 
     expect<unknown>(SystemModelId.safeParse(model.id).success).toBe(true);

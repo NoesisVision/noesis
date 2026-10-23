@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
+import type { NamespaceConfig } from '#backend/app/code-model/system-model-builder/namespace-config';
 
 /**
  * The scanners a repository can name: `code-model` runs the command line of
