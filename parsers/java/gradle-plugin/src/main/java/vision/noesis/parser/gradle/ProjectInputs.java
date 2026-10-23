@@ -30,29 +30,35 @@ final class ProjectInputs {
 
     private ProjectInputs() {}
 
-    /** Lazy, so the project is read after it is configured and its compile classpath resolved only when the parse runs. */
+    /**
+     * Lazy, so the project is read after it is configured and its compile classpath resolved only when the parse runs.
+     * The project is read in a provider of its own, which the configuration cache evaluates and stores as a value; the
+     * classpath, which sibling projects' tasks produce, is joined to it by a function that holds no project.
+     */
     static Provider<ModuleInputs> of(Project project) {
         Provider<Set<ResolvedArtifactResult>> artifacts = project.getConfigurations()
                 .getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
                 .getIncoming()
                 .getArtifacts()
                 .getResolvedArtifacts();
-        return artifacts.map(resolved -> read(project, resolved));
+        return project.provider(() -> read(project)).zip(artifacts, ProjectInputs::withClasspath);
     }
 
-    private static ModuleInputs read(Project project, Set<ResolvedArtifactResult> resolved) {
-        JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-        SourceSet main = java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        JavaCompile compile = project.getTasks().named(main.getCompileJavaTaskName(), JavaCompile.class).get();
-        List<File> sourceRoots = new ArrayList<>();
-        for (File root : main.getJava().getSrcDirs()) {
-            if (root.isDirectory()) sourceRoots.add(root);
-        }
-        File generated = compile.getOptions().getGeneratedSourceOutputDirectory().getAsFile().getOrNull();
-        if (generated != null && generated.isDirectory() && !sourceRoots.contains(generated)) sourceRoots.add(generated);
+    private static ModuleInputs withClasspath(ModuleInputs module, Set<ResolvedArtifactResult> resolved) {
         List<ClasspathElement> classpath = new ArrayList<>();
         for (ResolvedArtifactResult artifact : resolved) classpath.add(elementOf(artifact));
         classpath.sort((a, b) -> a.file().getPath().compareTo(b.file().getPath()));
+        return module.withClasspath(classpath);
+    }
+
+    /** The project without its classpath. */
+    private static ModuleInputs read(Project project) {
+        JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
+        SourceSet main = java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        JavaCompile compile = project.getTasks().named(main.getCompileJavaTaskName(), JavaCompile.class).get();
+        List<File> sourceRoots = new ArrayList<>(main.getJava().getSrcDirs());
+        File generated = compile.getOptions().getGeneratedSourceOutputDirectory().getAsFile().getOrNull();
+        if (generated != null && !sourceRoots.contains(generated)) sourceRoots.add(generated);
         String version = project.getVersion().toString();
         return new ModuleInputs(
                 project.getPath(),
@@ -63,7 +69,7 @@ final class ProjectInputs {
                 project.getBuildFile().isFile() ? project.getBuildFile() : null,
                 sourceRoots,
                 main.getJava().getClassesDirectory().get().getAsFile(),
-                classpath,
+                List.of(),
                 releaseOf(java, compile),
                 encodingOf(compile),
                 project.getPluginManager().hasPlugin("war") ? "war" : "jar",

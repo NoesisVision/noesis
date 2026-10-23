@@ -271,4 +271,15 @@ class InvocationFactsTest {
         one(Models.invokes(model, "M:" + LOCAL_FUNCTIONS + "#recursiveLocalFunction(int)"), to("M:" + LOCAL_FUNCTIONS + "#recursiveLocalFunction(int)"), "recursion");
         one(Models.invokes(model, "M:" + LOCAL_FUNCTIONS + "#callingStaticFromLocalClass()"), to(STATIC, TYPE), "static call from the local class");
     }
+
+    @ParameterizedTest
+    @EnumSource(EngineKind.class)
+    void callsCompiledAgainstAVisibilityBridgeBindTheInheritedMethod(EngineKind engine) {
+        CodeModelFile model = Models.syntax(engine);
+        String bridges = SYNTAX + "invocations.VisibilityBridges";
+        one(Models.invokes(model, "M:" + bridges + "#ownModule(" + bridges + "+Exposed)"), to("M:" + bridges + "+HiddenBase#inherited()"), "exposed.inherited()");
+        List<Edge.Invokes> platform = Models.invokes(model, "M:" + bridges + "#platform(java.lang.StringBuilder)");
+        one(platform, to("M:java.lang.AbstractStringBuilder#setLength(int)"), "builder.setLength(0)");
+        one(platform, to("M:java.lang.AbstractStringBuilder#length()"), "builder.length()");
+    }
 }

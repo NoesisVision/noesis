@@ -56,6 +56,8 @@ final class BytecodeAccesses {
     private void walk(JavaCodeUnit unit, NodeId from, JavaClass type) {
         for (JavaMethodCall call : unit.getMethodCallsFromSelf()) {
             Optional<JavaMethod> target = call.getTargetOwner().isArray() ? arrayMemberTarget(call) : call.getTarget().resolveMember();
+            // A call javac compiled against a bridge is a call to the method the bridge stands for.
+            if (target.isPresent() && target.get().getModifiers().contains(JavaModifier.BRIDGE)) target = BytecodeDeclarations.bridgedMethod(target.get());
             if (target.isPresent() && BytecodeDeclarations.isSynthetic(target.get())) continue;
             NodeId to = target.map(c.ids::member).orElseGet(() -> unresolved(call.getTarget()));
             boolean isStatic = target.map(method -> method.getModifiers().contains(JavaModifier.STATIC)).orElse(false);

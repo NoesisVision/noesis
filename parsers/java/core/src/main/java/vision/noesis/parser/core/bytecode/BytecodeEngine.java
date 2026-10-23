@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import vision.noesis.parser.core.ArtifactInput;
@@ -70,7 +71,10 @@ public final class BytecodeEngine implements Engine {
         ClassLoader previous = thread.getContextClassLoader();
         try {
             thread.setContextClassLoader(loader);
-            return new ClassFileImporter().importPath(input.outputDirectory());
+            Path versions = ClassFileDetails.versionsDirectory(input.outputDirectory().toAbsolutePath().normalize());
+            return new ClassFileImporter()
+                    .withImportOption(location -> !"file".equals(location.asURI().getScheme()) || !Path.of(location.asURI()).normalize().startsWith(versions))
+                    .importPath(input.outputDirectory());
         } finally {
             thread.setContextClassLoader(previous);
         }

@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import vision.noesis.parser.model.AccessKind;
 import vision.noesis.parser.model.CodeModelFile;
 import vision.noesis.parser.model.DeclarationNode;
@@ -54,9 +56,8 @@ final class MergeInputs {
         for (DeclarationNode node : source.nodes()) {
             DeclarationNode repaired = node;
             if (node instanceof MethodNode method && method.id().value().contains("<unresolved:")) {
-                List<MethodNode> candidates = compiledByNameAndArity.getOrDefault(nameAndArity(method), List.of());
-                if (candidates.size() == 1) {
-                    MethodNode match = candidates.get(0);
+                MethodNode match = compiledMatch(method, compiledByNameAndArity.getOrDefault(nameAndArity(method), List.of()));
+                if (match != null) {
                     renamed.put(method.id(), match.id());
                     repaired = withTypesOf(method, match, match.id());
                 }
@@ -70,6 +71,48 @@ final class MergeInputs {
         List<Edge> edges = new ArrayList<>(source.edges().size());
         for (Edge edge : source.edges()) edges.add(renamed.isEmpty() ? edge : renamed(edge, renamed));
         return CodeModelFile.sorted(source.generator(), source.artifact(), nodes, edges, source.stubs(), source.diagnostics());
+    }
+
+    /**
+     * The compiled method an unresolved source method is: the one of its name and arity, or, among overloads, the one
+     * whose parameters agree with it position by position. A resolved parameter must be the same type; an unresolved
+     * one must name the compiled type ({@code <unresolved:A.ABuilder>} is {@code p.A+ABuilder}). Null when not exactly one.
+     */
+    private static MethodNode compiledMatch(MethodNode method, List<MethodNode> candidates) {
+        if (candidates.size() <= 1) return candidates.isEmpty() ? null : candidates.get(0);
+        List<Pattern> parameters = new ArrayList<>();
+        for (Parameter parameter : method.signature().parameters()) parameters.add(patternOf(parameter.type().canonical()));
+        MethodNode found = null;
+        for (MethodNode candidate : candidates) {
+            List<Parameter> compiled = candidate.signature().parameters();
+            boolean agrees = true;
+            for (int i = 0; i < parameters.size() && agrees; i++) agrees = parameters.get(i).matcher(compiled.get(i).type().canonical()).matches();
+            if (!agrees) continue;
+            if (found != null) return null;
+            found = candidate;
+        }
+        return found;
+    }
+
+    private static final Pattern UNRESOLVED = Pattern.compile("<unresolved:([^<>]*)>");
+
+    /** A source type's canonical string as a pattern over compiled ones: literal, with each unresolved name matching the types it can name. */
+    private static Pattern patternOf(String canonical) {
+        StringBuilder pattern = new StringBuilder();
+        Matcher unresolved = UNRESOLVED.matcher(canonical);
+        int at = 0;
+        while (unresolved.find()) {
+            pattern.append(Pattern.quote(canonical.substring(at, unresolved.start())));
+            String name = unresolved.group(1);
+            int arguments = name.indexOf('<');
+            if (arguments >= 0) name = name.substring(0, arguments);
+            StringBuilder qualified = new StringBuilder();
+            for (String part : name.trim().split("\\.")) qualified.append(qualified.isEmpty() ? "" : "[.+]").append(Pattern.quote(part));
+            // Any qualifier before the name as written; the compiled type's arity and arguments after it.
+            pattern.append("(?:[^\\[\\],]*[.+])?").append(qualified).append("(?:`\\d+)?(?:\\[[^\\[\\]]*\\])?");
+            at = unresolved.end();
+        }
+        return Pattern.compile(pattern.append(Pattern.quote(canonical.substring(at))).toString());
     }
 
     /** {@code T:p.T|name|arity}: a method's declaring type, name and parameter count, which its unresolved id keeps. */

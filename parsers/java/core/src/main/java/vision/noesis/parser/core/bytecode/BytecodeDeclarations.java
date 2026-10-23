@@ -464,6 +464,26 @@ final class BytecodeDeclarations {
     }
 
     /**
+     * The method a call compiled against a bridge lands on. javac compiles calls against the visibility bridge a public
+     * class gets for each public method of a package-private superclass ({@code StringBuilder#length()}); the method it
+     * stands for is the one its body calls, else the superclass method of the same erasure (a classpath class has no
+     * calls imported), else the method of its own class a generic bridge delegates to. The bridge itself when none is found.
+     */
+    static Optional<JavaMethod> bridgedMethod(JavaMethod bridge) {
+        for (JavaMethodCall call : bridge.getMethodCallsFromSelf()) {
+            Optional<JavaMethod> target = call.getTarget().resolveMember();
+            if (target.isPresent() && !isSynthetic(target.get())) return target;
+        }
+        String erasure = erasureOf(bridge);
+        for (JavaClass superclass = bridge.getOwner().getRawSuperclass().orElse(null); superclass != null; superclass = superclass.getRawSuperclass().orElse(null)) {
+            JavaMethod inherited = methodWithErasure(superclass, erasure);
+            if (inherited != null) return Optional.of(inherited);
+        }
+        JavaMethod delegate = bridgeTarget(bridge, bridge.getOwner());
+        return Optional.of(delegate != null ? delegate : bridge);
+    }
+
+    /**
      * The method a bridge delegates to: its one call into the same class, or, when ArchUnit imported no calls for the
      * class (a classpath class), the one non-bridge method of the same name and arity.
      */

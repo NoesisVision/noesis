@@ -34,6 +34,14 @@ final class ClassFileDetails {
         }
     }
 
+    /**
+     * Where a multi-release module keeps the classes it compiled for later releases. They have the names of the base
+     * classes, so reading them too would give one name two class files; the model is the base classes'.
+     */
+    static Path versionsDirectory(Path classDirectory) {
+        return classDirectory.resolve("META-INF").resolve("versions");
+    }
+
     private final Map<String, MethodDetails> methods = new HashMap<>();
     private final Map<String, Object> constants = new HashMap<>();
     private boolean parameterNamesMissing;
@@ -42,7 +50,8 @@ final class ClassFileDetails {
         ClassFileDetails details = new ClassFileDetails();
         if (!Files.isDirectory(classDirectory)) return details;
         try (Stream<Path> files = Files.walk(classDirectory)) {
-            for (Path file : files.filter(path -> path.toString().endsWith(".class")).sorted().toList()) {
+            Path versions = versionsDirectory(classDirectory);
+            for (Path file : files.filter(path -> path.toString().endsWith(".class") && !path.startsWith(versions)).sorted().toList()) {
                 try (InputStream in = Files.newInputStream(file)) {
                     new ClassReader(in).accept(details.visitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
                 }

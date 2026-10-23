@@ -118,6 +118,11 @@ public class GeneratedMemberCallers {
         return builder.build().getName();
     }
 
+    /** An overload of the same name and arity, its processor-declared type inside a type argument: each overload takes its own compiled id. */
+    public String describeBuilder(List<Built.BuiltBuilder> builders) {
+        return builders.isEmpty() ? "" : describeBuilder(builders.get(0));
+    }
+
     /** A call to that method. */
     public String callDescribeBuilder() {
         return describeBuilder(pending);

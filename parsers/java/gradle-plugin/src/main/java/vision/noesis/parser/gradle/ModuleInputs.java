@@ -78,6 +78,10 @@ public class ModuleInputs implements Serializable {
         this.mainClass = mainClass;
     }
 
+    ModuleInputs withClasspath(List<ClasspathElement> classpath) {
+        return new ModuleInputs(projectPath, group, name, version, rootDirectory, buildFile, sourceRoots, outputDirectory, classpath, release, encoding, packaging, mainClass);
+    }
+
     @Input
     public String getProjectPath() {
         return projectPath;
@@ -109,7 +113,11 @@ public class ModuleInputs implements Serializable {
         return buildFile == null ? null : buildFile.getAbsolutePath();
     }
 
-    /** Source roots that exist; the model records every declaration in them, so their contents are inputs. */
+    /**
+     * Every configured source root, generated sources included; the model records every declaration in them, so their
+     * contents are inputs. Roots that do not exist are dropped only when the parse runs: checking at configuration time
+     * would make the configuration cache depend on a directory the compile task creates.
+     */
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     public List<File> getSourceRoots() {
@@ -183,7 +191,9 @@ public class ModuleInputs implements Serializable {
 
     ArtifactInput toArtifactInput(Integer releaseOverride, Map<String, String> uniqueNames) {
         List<Path> roots = new ArrayList<>(sourceRoots.size());
-        for (File root : sourceRoots) roots.add(root.toPath());
+        for (File root : sourceRoots) {
+            if (root.isDirectory()) roots.add(root.toPath());
+        }
         List<ClasspathEntry> entries = new ArrayList<>(classpath.size());
         for (ClasspathElement element : classpath) entries.add(new ClasspathEntry(element.file().toPath(), element.dependency(uniqueNames)));
         return new ArtifactInput(group, name, version, rootDirectory.toPath(), buildFile == null ? null : buildFile.toPath(), roots,

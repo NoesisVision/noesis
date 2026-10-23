@@ -254,6 +254,20 @@ class HybridEngineTest {
     }
 
     @Test
+    void overloadsThatNameAGeneratedTypeEachTakeTheirOwnCompiledId() {
+        String single = "M:" + CALLERS + "#describeBuilder(" + MEMBERS + "+Built+BuiltBuilder)";
+        String list = "M:" + CALLERS + "#describeBuilder(java.util.List`1[" + MEMBERS + "+Built+BuiltBuilder])";
+        CodeModelFile hybrid = Models.lombok(EngineKind.HYBRID);
+        List<MethodNode> overloads = hybrid.nodes().stream()
+                .filter(node -> node instanceof MethodNode method && method.id().value().startsWith("M:" + CALLERS + "#describeBuilder("))
+                .map(MethodNode.class::cast)
+                .toList();
+        assertEquals(List.of(list, single), overloads.stream().map(method -> method.id().value()).sorted().toList(), "one node per overload, none unresolved");
+        assertTrue(overloads.stream().allMatch(method -> method.origin() == Origin.DECLARED), "both are written in the source");
+        assertEquals(1, Models.invokesTo(hybrid, list, single).size(), "the call between them follows both ids");
+    }
+
+    @Test
     void aFieldOnlyBytecodeReachesIsStubbedWithItsType() {
         CodeModelFile hybrid = Models.lombok(EngineKind.HYBRID);
         String caller = "M:" + CALLERS + "#primitiveClassOnAnUnboundLine()";

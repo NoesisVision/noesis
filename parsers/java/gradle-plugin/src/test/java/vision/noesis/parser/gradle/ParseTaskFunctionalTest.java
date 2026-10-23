@@ -105,12 +105,34 @@ class ParseTaskFunctionalTest {
         assertEquals(TaskOutcome.UP_TO_DATE, rerun.task(":noesisParse").getOutcome());
     }
 
+    @Test
+    void theTaskRunsUnderTheConfigurationCache(@TempDir Path cachedDir) throws IOException {
+        copy(Path.of(System.getProperty("noesis.fixturesDir"), "multi-project"), cachedDir);
+        BuildResult stored = runner(cachedDir, "--configuration-cache").build();
+        assertEquals(TaskOutcome.SUCCESS, stored.task(":noesisParse").getOutcome());
+        assertTrue(stored.getOutput().contains("Configuration cache entry stored"), stored.getOutput());
+        Path manifest = cachedDir.resolve("build/noesis/code-model/java/manifest.json");
+        Files.delete(manifest);
+        BuildResult reused = runner(cachedDir, "--configuration-cache").build();
+        assertEquals(TaskOutcome.SUCCESS, reused.task(":noesisParse").getOutcome());
+        assertTrue(reused.getOutput().contains("Configuration cache entry reused"), reused.getOutput());
+        assertEquals(List.of("A:a", "A:b"), texts(JSON.readTree(manifest.toFile()).get("artifacts"), "id"));
+        JsonNode b = JSON.readTree(cachedDir.resolve("build/noesis/code-model/java/b.code-model.json").toFile());
+        assertNotNull(find(b.at("/artifact/dependencies"), d -> d.get("id").asText().equals("A:a")), "the classpath survives the cache");
+    }
+
     private static GradleRunner runner() {
+        return runner(projectDir);
+    }
+
+    private static GradleRunner runner(Path dir, String... extra) {
+        List<String> arguments = new ArrayList<>(List.of("noesisParse", "-Pnoesis.out=build/noesis", "-Pnoesis.repository=multi-project", "-Pnoesis.revision=0123456789abcdef",
+                "--warning-mode", "all", "--stacktrace"));
+        arguments.addAll(List.of(extra));
         return GradleRunner.create()
-                .withProjectDir(projectDir.toFile())
+                .withProjectDir(dir.toFile())
                 .withPluginClasspath()
-                .withArguments("noesisParse", "-Pnoesis.out=build/noesis", "-Pnoesis.repository=multi-project", "-Pnoesis.revision=0123456789abcdef",
-                        "--warning-mode", "all", "--stacktrace");
+                .withArguments(arguments);
     }
 
     private static void copy(Path from, Path to) throws IOException {

@@ -29004,6 +29004,244 @@
     },
     {
       "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges#.ctor()",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 7,
+          "startColumn": 0,
+          "endLine": 7,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges#ownModule(vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed)",
+      "name": "ownModule",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 19,
+          "startColumn": 0,
+          "endLine": 19,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "exposed",
+            "type": {
+              "kind": "named",
+              "type": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "primitive",
+          "name": "int",
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges#platform(java.lang.StringBuilder)",
+      "name": "platform",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 23,
+          "startColumn": 0,
+          "endLine": 23,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "builder",
+            "type": {
+              "kind": "named",
+              "type": "T:java.lang.StringBuilder",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "primitive",
+          "name": "int",
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed#.ctor()",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 15,
+          "startColumn": 0,
+          "endLine": 15,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase#.ctor()",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 9,
+          "startColumn": 0,
+          "endLine": 9,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "namespace",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase#inherited()",
+      "name": "inherited",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 11,
+          "startColumn": 0,
+          "endLine": 11,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "primitive",
+          "name": "int",
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:vision.noesis.fixture.syntax.javadoc.DocumentedTypes#.ctor()",
       "name": ".ctor",
       "origin": "declared",
@@ -63190,6 +63428,85 @@
     },
     {
       "kind": "type",
+      "id": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges",
+      "name": "VisibilityBridges",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed",
+      "name": "Exposed",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [
+        "static"
+      ],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase",
+      "name": "HiddenBase",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "namespace",
+      "modifiers": [
+        "static"
+      ],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
       "id": "T:vision.noesis.fixture.syntax.javadoc.DocumentedTypes",
       "name": "DocumentedTypes",
       "origin": "declared",
@@ -79418,6 +79735,11 @@
     },
     {
       "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.syntax.invocations",
+      "to": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges"
+    },
+    {
+      "kind": "CONTAINS",
       "from": "N:vision.noesis.fixture.syntax.javadoc",
       "to": "T:vision.noesis.fixture.syntax.javadoc.DocumentedTypes"
     },
@@ -82835,6 +83157,46 @@
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.syntax.invocations.InvocationTargets",
       "to": "M:vision.noesis.fixture.syntax.invocations.InvocationTargets#platform()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges",
+      "to": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges",
+      "to": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges#ownModule(vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges",
+      "to": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges#platform(java.lang.StringBuilder)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges",
+      "to": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges",
+      "to": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed",
+      "to": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase",
+      "to": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase",
+      "to": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase#inherited()"
     },
     {
       "kind": "CONTAINS",
@@ -88586,6 +88948,17 @@
     },
     {
       "kind": "EXTENDS",
+      "from": "T:java.lang.StringBuilder",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.AbstractStringBuilder",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
       "from": "T:java.lang.annotation.ElementType",
       "to": {
         "kind": "named",
@@ -90022,6 +90395,17 @@
     },
     {
       "kind": "EXTENDS",
+      "from": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed",
+      "to": {
+        "kind": "named",
+        "type": "T:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
       "from": "T:vision.noesis.fixture.syntax.localvariables.LocalVariableForms+1",
       "to": {
         "kind": "named",
@@ -91167,6 +91551,28 @@
     },
     {
       "kind": "IMPLEMENTS",
+      "from": "T:java.lang.AbstractStringBuilder",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Appendable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.AbstractStringBuilder",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.CharSequence",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
       "from": "T:java.lang.Boolean",
       "to": {
         "kind": "named",
@@ -91518,6 +91924,47 @@
         "kind": "named",
         "type": "T:java.lang.constant.ConstantDesc",
         "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.StringBuilder",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.Serializable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.StringBuilder",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.CharSequence",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.lang.StringBuilder",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Comparable`1",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:java.lang.StringBuilder",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
         "unbound": false,
         "nullable": false
       }
@@ -116658,6 +117105,120 @@
     },
     {
       "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges#.ctor()",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 7,
+          "startColumn": 0,
+          "endLine": 7,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges#ownModule(vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed)",
+      "to": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase#inherited()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 19,
+          "startColumn": 0,
+          "endLine": 19,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges#platform(java.lang.StringBuilder)",
+      "to": "M:java.lang.AbstractStringBuilder#length()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 24,
+          "startColumn": 0,
+          "endLine": 24,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges#platform(java.lang.StringBuilder)",
+      "to": "M:java.lang.AbstractStringBuilder#setLength(int)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 23,
+          "startColumn": 0,
+          "endLine": 23,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges+Exposed#.ctor()",
+      "to": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 15,
+          "startColumn": 0,
+          "endLine": 15,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.invocations.VisibilityBridges+HiddenBase#.ctor()",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/invocations/VisibilityBridges.java",
+          "startLine": 9,
+          "startColumn": 0,
+          "endLine": 9,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
       "from": "M:vision.noesis.fixture.syntax.javadoc.DocumentedTypes#.ctor()",
       "to": "M:java.lang.Object#.ctor()",
       "typeArguments": [],
@@ -133228,6 +133789,20 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "M:java.lang.AbstractStringBuilder#length()",
+      "kind": "method",
+      "name": "length",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.AbstractStringBuilder#setLength(int)",
+      "kind": "method",
+      "name": "setLength",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "M:java.lang.AutoCloseable#close()",
       "kind": "method",
       "name": "close",
@@ -135706,6 +136281,13 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "T:java.lang.AbstractStringBuilder",
+      "kind": "type",
+      "name": "AbstractStringBuilder",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "T:java.lang.Appendable",
       "kind": "type",
       "name": "Appendable",
@@ -135898,6 +136480,13 @@
       "id": "T:java.lang.String",
       "kind": "type",
       "name": "String",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.StringBuilder",
+      "kind": "type",
+      "name": "StringBuilder",
       "typeKind": "class",
       "artifact": "A:java.base@17"
     },
