@@ -32,9 +32,9 @@ model document stays the contract.
    service runs it through the command line a repository configures (section
    5a).
 3. **The service gets a second Java scanner.** The regex-based TypeScript
-   scanner stays as `scanner: "java"`; the code-model path is
-   `scanner: "java-maven"`, an adapter beside `csharp` that runs Maven, reads
-   the files and projects them with a Java annotation vocabulary.
+   scanner stayed as `scanner: "java"` (since removed); the code-model path
+   is `scanner: "java-maven"`, an adapter beside `csharp` that runs Maven,
+   reads the files and projects them with a Java annotation vocabulary.
 4. **`vision.noesis.annotations` is unchanged.** The DDD graph the previous
    scanner derived (`detect/`, `derive/`, `graph.json`) is gone; its rules are
    the projection's now, with the Java annotations as a second vocabulary
@@ -469,7 +469,8 @@ vocabulary is `app/code-model/projection/java.vocabulary.ts`; it needed two
 small projection rules the C# one did not: a `behaviour` role may fix the
 behaviour type itself (R9.4, for the argument-less handler annotations) and a
 record component's private field is a property while its accessor is not a
-behaviour (R5.7). The regex-based `java` scanner stays for Gradle builds.
+behaviour (R5.7). The regex-based `java` scanner, kept for Gradle builds
+until the Gradle plugin covered them, has since been removed.
 
 ## 6. Testing
 
