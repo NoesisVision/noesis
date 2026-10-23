@@ -1074,10 +1074,31 @@ function usePlacement(
     [land, direction, setNodes],
   );
 
+  // What was last placed, known at once rather than on the next render: run
+  // again with nothing changed — as React runs it twice on mounting in
+  // development — the effect leaves the cards where they stand, so a
+  // diagram opened where it was left is not placed anew over it.
+  const settled = useRef<{
+    graph: ExplorationGraph;
+    algorithm: LayoutAlgorithm;
+    direction: LayoutDirection;
+    asked: number;
+  } | null>(null);
   useEffect(() => {
+    const was = settled.current;
+    if (
+      was !== null &&
+      was.graph === graph &&
+      was.algorithm === algorithm &&
+      was.direction === direction &&
+      was.asked === asked
+    )
+      return;
     let current = true;
-    const done = (local: boolean) =>
+    const done = (local: boolean) => {
+      settled.current = { graph, algorithm, direction, asked };
       setPlaced({ graph, algorithm, direction, asked, local });
+    };
 
     // A step gone back to stands as it stood.
     const back = restoring.current;
