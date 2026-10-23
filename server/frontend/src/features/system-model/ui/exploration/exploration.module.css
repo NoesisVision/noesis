@@ -77,6 +77,39 @@
 }
 
 /* The frame's name is its button; the rest of the frame is a backdrop. */
+/*
+ * A frame's top, by its name, is where it is taken to be dragged, and says
+ * so with its cursor; the rest of it is room for what it holds, and does not.
+ */
+.container {
+  cursor: default;
+
+  /* Its room dragged, the view moves with it, as the canvas's does. */
+  &[data-panning] {
+    cursor: grabbing;
+  }
+}
+
+.frameTop {
+  /* As tall as a frame's room above what it holds (PADDING.top). */
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-start;
+  box-sizing: border-box;
+  height: 60px;
+  cursor: grab;
+}
+
+.exploration .frameTop .containerLabel {
+  cursor: grab;
+}
+
+.exploration :global(.react-flow__node.dragging) .frameTop,
+.exploration :global(.react-flow__node.dragging) .frameTop .containerLabel {
+  cursor: grabbing;
+}
+
 .exploration .containerLabel {
   display: flex;
   flex-direction: column;
@@ -120,18 +153,10 @@
   visibility: hidden;
 }
 
+/* Each relation in its own colour (relation-colors.ts), as well as its word. */
 .edge :global(.react-flow__edge-path) {
-  stroke: var(--noesis-architecture-edge);
+  stroke: var(--relation-color, var(--noesis-architecture-edge));
   stroke-width: 1.5px;
-}
-
-.edge.uses :global(.react-flow__edge-path) {
-  stroke: var(--mantine-color-brand-filled);
-}
-
-/* A call, apart from a use by its colour as well as its word. */
-.edge.invokes :global(.react-flow__edge-path) {
-  stroke: var(--mantine-color-grape-filled);
 }
 
 /* The selection's own relations stand out; the rest step back. */
@@ -570,11 +595,6 @@
   }
 }
 
-.reachCount {
-  font-variant-numeric: tabular-nums;
-  opacity: 0.8;
-}
-
 /* A card being dragged: greyed where it stands, its outline following the pointer. */
 .exploration :global(.react-flow__node).held {
   opacity: 0.35;
@@ -609,4 +629,11 @@
 /* A card dragged as it is goes over every other, whichever frame it is in. */
 .exploration :global(.react-flow__node.dragging) {
   z-index: 2000 !important;
+}
+
+/* A card's own menu: its name set apart, in the text's own colour and weight. */
+.nodeMenu .nodeMenuTitle {
+  color: var(--mantine-color-text);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 700;
 }

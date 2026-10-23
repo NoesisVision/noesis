@@ -32,6 +32,7 @@ import {
   movedTo,
   placeLocally,
 } from '../src/features/system-model/ui/exploration/place-locally';
+import { borderTowards } from '../src/features/system-model/ui/exploration/relation-edge';
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
 import { MantineProvider } from '../src/shared/design-system/provider';
 
@@ -204,6 +205,39 @@ describe('the exploration of a system model', () => {
     ).toEqual(['behavior|shop.orders.Order.place']);
   });
 
+  it('draws no edge between a card and the frame it is drawn inside', () => {
+    // The order's place takes an order: it uses the block it belongs to.
+    const own = explorationOf({
+      ...model,
+      behaviours: [
+        {
+          ...model.behaviours[0]!,
+          input: [
+            {
+              name: 'order',
+              type: 'building_block|shop.orders.Order',
+              description: null,
+              optional: false,
+            },
+          ],
+        },
+      ],
+    } as unknown as SystemModel);
+    const id =
+      'uses:behavior|shop.orders.Order.place->building_block|shop.orders.Order';
+    const nested = graphOf(own, {
+      hidden: new Set(),
+      relations: new Set(['contains', 'uses']),
+    });
+    expect(nested.relations.map(({ id }) => id)).not.toContain(id);
+    // Not nested, the two are cards apart, and the edge is drawn.
+    const apart = graphOf(own, {
+      hidden: new Set(),
+      relations: new Set(['uses']),
+    });
+    expect(apart.relations.map(({ id }) => id)).toContain(id);
+  });
+
   it('groups what may be hidden by kind of element', () => {
     expect(elementSectionsOf(exploration)).toEqual([
       { title: 'Modules', groups: [{ group: 'module', count: 2 }] },
@@ -293,23 +327,36 @@ describe('placing the exploration', () => {
     expect(at(across, LINE).x).toBeGreaterThan(at(across, ORDER).x);
   });
 
-  it("routes every edge at right angles, across containers, in the canvas's pixels", async () => {
-    const { routes } = await place('vertical');
-    const route = routes.get(`uses:${ORDER}->${LINE}`)!;
-    expect(routes.size).toBe(2);
-    expect(route.length).toBeGreaterThanOrEqual(2);
-    for (const [index, point] of route.slice(1).entries()) {
-      const before = route[index]!;
-      expect(point.x === before.x || point.y === before.y).toBe(true);
+  it('places with every algorithm', async () => {
+    for (const algorithm of ['tree', 'force', 'compact'] as const) {
+      const { elements } = await place('vertical', algorithm);
+      expect(elements).toHaveLength(5);
     }
   });
+});
 
-  it('places with every algorithm, and only the layered one routes', async () => {
-    for (const algorithm of ['tree', 'force', 'compact'] as const) {
-      const { elements, routes } = await place('vertical', algorithm);
-      expect(elements).toHaveLength(5);
-      expect(routes.size).toBe(0);
-    }
+describe('a floating edge', () => {
+  // As React Flow keeps a card: where it stands on the canvas, and its size.
+  const card = (x: number, y: number, width = 100, height = 50) =>
+    ({
+      internals: { positionAbsolute: { x, y } },
+      measured: { width, height },
+    }) as unknown as Parameters<typeof borderTowards>[0];
+
+  it('meets a card where the line between the two centres crosses its border', () => {
+    const left = card(0, 0);
+    // Straight across: the middle of the facing sides.
+    expect(borderTowards(left, card(300, 0))).toEqual({ x: 100, y: 25 });
+    expect(borderTowards(card(300, 0), left)).toEqual({ x: 300, y: 25 });
+    // Straight down: the middle of the bottom.
+    expect(borderTowards(left, card(0, 200))).toEqual({ x: 50, y: 50 });
+  });
+
+  it('meets it at a corner when the other lies along its diagonal', () => {
+    expect(borderTowards(card(0, 0), card(200, 100))).toEqual({
+      x: 100,
+      y: 50,
+    });
   });
 });
 

@@ -1,29 +1,20 @@
-import {
-  IconArrowBarToLeft,
-  IconArrowBarToRight,
-  IconArrowLeft,
-  IconArrowRight,
-  IconCaretDown,
-  IconDots,
-  IconCornerLeftUp,
-  IconPlus,
-  IconX,
-} from '@tabler/icons-react';
+import { IconDots, IconPlus, IconX } from '@tabler/icons-react';
 import {
   Handle,
   type Node,
   type NodeProps,
   Position,
   useReactFlow,
+  useStoreApi,
 } from '@xyflow/react';
-import { type MouseEvent, useState } from 'react';
+import { type MouseEvent, type PointerEvent, useState } from 'react';
 import { KindIcon } from '#/features/design-docs/element-reader.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Menu } from '#/shared/design-system/menu.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { IconBroom, IconFrameX } from '#/shared/ui/icons/icons.ts';
+import { IconFrameX } from '#/shared/ui/icons/icons.ts';
 import {
   addressOf,
   type DrawnElement,
@@ -58,15 +49,6 @@ export type ExplorationNode = Node<{
   /** Taken off the diagram, and drawn a moment longer to leave it. */
   leaving?: boolean;
 }>;
-
-const REACH_ICON = {
-  contains: IconCaretDown,
-  isPartOf: IconCornerLeftUp,
-  uses: IconArrowRight,
-  usedBy: IconArrowLeft,
-  invokes: IconArrowBarToRight,
-  invokedBy: IconArrowBarToLeft,
-} as const satisfies Record<Reach, unknown>;
 
 /** What the round button says it brings, of how many. */
 const containsLabel = (name: string, count: number) =>
@@ -133,7 +115,7 @@ function Contains({
         className={`nowheel ${classes.reachMenu}`}
         onContextMenu={keepInMenu}
       >
-        <Menu.Label>{`What ${name} contains`}</Menu.Label>
+        <Menu.Label>Contains:</Menu.Label>
         <ReachItems id={id} reach="contains" missing={missing} />
       </Menu.Dropdown>
     </Menu>
@@ -151,7 +133,7 @@ function useAdd(id: string, reach: Reach, at: CanvasPoint | null = null) {
       : onShow(ids, true, id, reach === 'contains');
 }
 
-/** What a reach's menu offers: all of them at once, then each by name and kind. */
+/** What a reach's menu offers: all of them at once, when more than one, then each by name and kind. */
 function ReachItems({
   id,
   reach,
@@ -168,13 +150,18 @@ function ReachItems({
   const add = useAdd(id, reach, at);
   return (
     <>
-      <Menu.Item
-        leftSection={<IconPlus size={14} stroke={1.8} aria-hidden />}
-        onClick={() => add(missing)}
-      >
-        {missing.length === 1 ? 'Add it' : `Add all ${missing.length}`}
-      </Menu.Item>
-      <Menu.Divider />
+      {/* With one, the element itself is all there is to pick. */}
+      {missing.length > 1 && (
+        <>
+          <Menu.Item
+            leftSection={<IconPlus size={14} stroke={1.8} aria-hidden />}
+            onClick={() => add(missing)}
+          >
+            {`Add all ${missing.length}`}
+          </Menu.Item>
+          <Menu.Divider />
+        </>
+      )}
       {missing.map((other) => {
         const element = elements.get(other);
         if (element === undefined) return null;
@@ -218,14 +205,14 @@ const keepInMenu = (event: MouseEvent) => {
   event.stopPropagation();
 };
 
-/** What the card's own menu calls each way, in plain words. */
+/** What the card's own menu calls each way, under its "Add" heading. */
 const REACH_ACTION = {
-  contains: "Add what's inside",
-  isPartOf: 'Add its parent',
-  uses: 'Add what it uses',
-  usedBy: 'Add what uses it',
-  invokes: 'Add what it calls',
-  invokedBy: 'Add what calls it',
+  contains: 'Contains',
+  isPartOf: 'Part of',
+  uses: 'Uses',
+  usedBy: 'Used by',
+  invokes: 'Invokes',
+  invokedBy: 'Invoked by',
 } as const satisfies Record<Reach, string>;
 
 /*
@@ -248,20 +235,21 @@ function NodeMenuDropdown({
   const { onArrange } = useCardActions();
   const missing = useMissing(id) ?? [];
   return (
-    <Menu.Dropdown className="nowheel" onContextMenu={keepInMenu}>
-      <Menu.Label>{name}</Menu.Label>
+    <Menu.Dropdown
+      className={`nowheel ${classes.nodeMenu}`}
+      onContextMenu={keepInMenu}
+    >
+      {/* Whose menu it is, set apart from what it offers. */}
+      <Menu.Label className={classes.nodeMenuTitle}>{name}</Menu.Label>
+      <Menu.Divider />
       {/* A frame's own first: setting out again what it holds. */}
       {holds && (
         <>
-          <Menu.Item
-            leftSection={<IconBroom size={14} stroke={1.8} aria-hidden />}
-            onClick={() => onArrange(id)}
-          >
-            {TIDY_UP}
-          </Menu.Item>
+          <Menu.Item onClick={() => onArrange(id)}>{TIDY_UP}</Menu.Item>
           <Menu.Divider />
         </>
       )}
+      <Menu.Label>Add</Menu.Label>
       {missing.length === 0 && (
         <Menu.Item disabled>Nothing more to add</Menu.Item>
       )}
@@ -284,20 +272,17 @@ function NodeMenuEntry({
   at: CanvasPoint | null;
 }) {
   const add = useAdd(id, reach, at);
-  const Icon = REACH_ICON[reach];
-  const icon = <Icon size={14} stroke={1.8} aria-hidden />;
   if (reach === 'isPartOf' && missing.length === 1)
     return (
-      <Menu.Item leftSection={icon} onClick={() => add(missing)}>
-        {REACH_ACTION[reach]}
+      <Menu.Item onClick={() => add(missing)}>
+        {`${REACH_ACTION[reach]}: 1`}
       </Menu.Item>
     );
   return (
     <Menu.Sub>
       <Menu.Sub.Target>
-        <Menu.Sub.Item leftSection={icon}>
-          {REACH_ACTION[reach]}{' '}
-          <span className={classes.reachCount}>{missing.length}</span>
+        <Menu.Sub.Item>
+          {`${REACH_ACTION[reach]}: ${missing.length}`}
         </Menu.Sub.Item>
       </Menu.Sub.Target>
       <Menu.Sub.Dropdown className={`nowheel ${classes.reachMenu}`}>
@@ -403,6 +388,56 @@ function Remove({
   );
 }
 
+/*
+ * A frame's room for what it holds is the canvas's, to the reader: pressed
+ * and dragged, it moves the view, and double-clicked it zooms in round the
+ * pointer, as the empty canvas does. React Flow keeps both from a node it
+ * drags, frames included, though a frame is dragged by its top alone; so
+ * they are done here, on the room itself and nothing in it.
+ */
+function useViewingFromFrame() {
+  const { getViewport, setViewport } = useReactFlow();
+  const store = useStoreApi();
+  const onPointerDown = (event: PointerEvent<HTMLElement>) => {
+    if (event.button !== 0 || event.target !== event.currentTarget) return;
+    const room = event.currentTarget;
+    const from = { x: event.clientX, y: event.clientY, view: getViewport() };
+    room.setPointerCapture(event.pointerId);
+    room.dataset.panning = '';
+    const move = (to: globalThis.PointerEvent) =>
+      void setViewport({
+        ...from.view,
+        x: from.view.x + to.clientX - from.x,
+        y: from.view.y + to.clientY - from.y,
+      });
+    const end = () => {
+      delete room.dataset.panning;
+      room.removeEventListener('pointermove', move);
+      room.removeEventListener('pointerup', end);
+      room.removeEventListener('pointercancel', end);
+    };
+    room.addEventListener('pointermove', move);
+    room.addEventListener('pointerup', end);
+    room.addEventListener('pointercancel', end);
+  };
+  const onDoubleClick = (event: MouseEvent<HTMLElement>) => {
+    if (event.target !== event.currentTarget) return;
+    const canvas = event.currentTarget.closest('.react-flow');
+    if (canvas === null) return;
+    const box = canvas.getBoundingClientRect();
+    const at = { x: event.clientX - box.left, y: event.clientY - box.top };
+    const view = getViewport();
+    // Twice as close, the point under the pointer staying under it.
+    const zoom = Math.min(store.getState().maxZoom, view.zoom * 2);
+    const by = zoom / view.zoom;
+    void setViewport(
+      { x: at.x - (at.x - view.x) * by, y: at.y - (at.y - view.y) * by, zoom },
+      { duration: 250 },
+    );
+  };
+  return { onPointerDown, onDoubleClick };
+}
+
 /** What a card is to the selection, for a reader who cannot see its border. */
 const withState = (label: string, state: 'selected' | 'related' | undefined) =>
   state === 'related' ? `${label}, related to the selection` : label;
@@ -414,6 +449,7 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
   // Where a frame was right-clicked, on the canvas.
   const [at, setAt] = useState<CanvasPoint | null>(null);
   const { screenToFlowPosition } = useReactFlow();
+  const viewing = useViewingFromFrame();
   const [into, outOf] =
     data.direction === 'vertical'
       ? [Position.Top, Position.Bottom]
@@ -459,18 +495,24 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
                 : null,
             )
           }
+          {...(holds ? viewing : {})}
           className={holds ? classes.container : classes.holder}
           data-kind={element.kind}
           data-state={holds ? state : undefined}
           data-leaving={data.leaving || undefined}
         >
+          {/* Where React Flow has an edge start and end; the edge itself
+              meets the card wherever the line between them crosses its
+              border (relation-edge.tsx). */}
           <Handle
             type="target"
             position={into}
             isConnectable={false}
             className={classes.handle}
           />
-          {button}
+          {/* A frame is taken by its top, where its name is: the rest is
+              room for what it holds. */}
+          {holds ? <div className={classes.frameTop}>{button}</div> : button}
           <Contains element={element} holds={holds} />
           <Remove id={element.id} name={element.name} holds={holds} />
           <Handle

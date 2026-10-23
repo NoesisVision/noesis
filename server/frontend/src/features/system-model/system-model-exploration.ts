@@ -56,7 +56,7 @@ export const RELATION_WORD = {
   invokes: 'invokes',
 } as const satisfies Partial<Record<RelationKind, string>>;
 
-type DrawnRelationKind = keyof typeof RELATION_WORD;
+export type DrawnRelationKind = keyof typeof RELATION_WORD;
 
 const parentPath = (path: string) =>
   path.includes('.') ? path.slice(0, path.lastIndexOf('.')) : '';
@@ -347,10 +347,25 @@ export function graphOf(
   // Containment, either way round, is drawn as cards inside their container.
   const nested = relations.has('contains') || relations.has('isPartOf');
 
+  // Whether one is drawn inside the other, at any depth: an edge between
+  // them would only run from a card to the border round it, and the
+  // nesting already shows they belong together.
+  const inside = (id: string, around: string): boolean => {
+    for (let at = byId.get(id); at !== undefined;) {
+      const holder = containerOf(at);
+      if (holder === null) return false;
+      if (holder === around) return true;
+      at = byId.get(holder);
+    }
+    return false;
+  };
+  const apart = (one: string, other: string) =>
+    !nested || (!inside(one, other) && !inside(other, one));
+
   const drawn: DrawnRelation[] = [];
   if (relations.has('uses'))
     for (const [source, target] of exploration.uses)
-      if (isShown.has(source) && isShown.has(target))
+      if (isShown.has(source) && isShown.has(target) && apart(source, target))
         drawn.push({
           id: `uses:${source}->${target}`,
           kind: 'uses',
@@ -359,7 +374,7 @@ export function graphOf(
         });
   if (relations.has('invokes'))
     for (const [source, target] of exploration.invokes)
-      if (isShown.has(source) && isShown.has(target))
+      if (isShown.has(source) && isShown.has(target) && apart(source, target))
         drawn.push({
           id: `invokes:${source}->${target}`,
           kind: 'invokes',

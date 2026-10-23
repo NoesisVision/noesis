@@ -4,7 +4,7 @@ import {
   type RelationKind,
 } from '../../system-model-exploration.ts';
 import type { ExplorationNode } from './element-node.tsx';
-import type { EdgeRoutes, LayoutDirection } from './layout-exploration.ts';
+import type { LayoutDirection } from './layout-exploration.ts';
 
 /** The diagram as one step left it, enough to put it back as it stood. */
 export interface DiagramStep {
@@ -12,7 +12,6 @@ export interface DiagramStep {
   relations: ReadonlySet<RelationKind>;
   direction: LayoutDirection;
   nodes: ExplorationNode[];
-  routes: EdgeRoutes;
 }
 
 /** How the edges are drawn: kept with the diagram, but not a step of it. */
@@ -77,7 +76,6 @@ interface StoredStep {
   relations: RelationKind[];
   direction: LayoutDirection;
   nodes: ExplorationNode[];
-  routes: [string, { x: number; y: number }[]][];
 }
 
 const storedOf = ({
@@ -85,14 +83,12 @@ const storedOf = ({
   relations,
   direction,
   nodes,
-  routes,
 }: DiagramStep): StoredStep => ({
   added: [...choice.picks.added],
   removed: [...choice.picks.removed],
   relations: [...relations],
   direction,
   nodes,
-  routes: [...routes],
 });
 
 export function rememberSteps(modelId: string, steps: DiagramSteps): void {
@@ -146,7 +142,6 @@ export function recallSteps(modelId: string): DiagramSteps | null {
       relations: new Set(step.relations),
       direction: step.direction,
       nodes: step.nodes,
-      routes: new Map(step.routes),
     })),
   };
 }
@@ -183,16 +178,6 @@ function isNode(value: unknown): value is ExplorationNode {
   );
 }
 
-const isPoints = (value: unknown): value is { x: number; y: number }[] =>
-  Array.isArray(value) &&
-  value.every(
-    (point: unknown) =>
-      typeof point === 'object' &&
-      point !== null &&
-      isNumber(field(point, 'x')) &&
-      isNumber(field(point, 'y')),
-  );
-
 function isEdgeLook(value: unknown): value is EdgeLook {
   return (
     typeof value === 'object' &&
@@ -205,8 +190,8 @@ function isEdgeLook(value: unknown): value is EdgeLook {
 function isStep(value: unknown): value is StoredStep {
   if (typeof value !== 'object' || value === null) return false;
   const relations = field(value, 'relations');
+  // A step saved with the routes edges once ran is read without them.
   const nodes = field(value, 'nodes');
-  const routes = field(value, 'routes');
   const direction = field(value, 'direction');
   return (
     isNames(field(value, 'added')) &&
@@ -215,14 +200,7 @@ function isStep(value: unknown): value is StoredStep {
     relations.every(isRelation) &&
     (direction === 'vertical' || direction === 'horizontal') &&
     Array.isArray(nodes) &&
-    nodes.every(isNode) &&
-    Array.isArray(routes) &&
-    routes.every(
-      (route: unknown) =>
-        Array.isArray(route) &&
-        typeof route[0] === 'string' &&
-        isPoints(route[1]),
-    )
+    nodes.every(isNode)
   );
 }
 
