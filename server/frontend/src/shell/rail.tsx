@@ -54,16 +54,20 @@ export function Rail({ collapsed, onToggle, onNavigate }: RailProps) {
       ) : (
         <RailList onNavigate={onNavigate} />
       )}
-      <Tooltip label={label} position="right">
-        <UnstyledButton
-          className={classes.toggle}
-          aria-label={label}
-          aria-expanded={!collapsed}
-          onClick={onToggle}
-        >
-          <Icon size={14} stroke={2} aria-hidden />
-        </UnstyledButton>
-      </Tooltip>
+      {/* The strip along the rail's edge, between the card and the border:
+          the toggle comes up in full when the pointer is in it. */}
+      <Box className={classes.edge}>
+        <Tooltip label={label} position="right">
+          <UnstyledButton
+            className={classes.toggle}
+            aria-label={label}
+            aria-expanded={!collapsed}
+            onClick={onToggle}
+          >
+            <Icon size={12} stroke={2} aria-hidden />
+          </UnstyledButton>
+        </Tooltip>
+      </Box>
     </Box>
   );
 }

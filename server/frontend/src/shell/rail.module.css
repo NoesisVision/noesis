@@ -5,28 +5,50 @@
 }
 
 /*
- * The toggle sits astride the rail's right edge, so it reads as belonging to
- * the edge it moves. Not on a phone, where the
- * rail is the whole screen and always open.
+ * The strip along the rail's right edge: the gap between the change's card
+ * and the border, and a little past it. The toggle sits in its middle,
+ * astride the border, so it reads as belonging to the edge it moves; faint
+ * until the pointer comes into the strip. Not on a phone, where the rail is
+ * the whole screen and always open.
  */
-.toggle.toggle {
+.edge {
   position: absolute;
-  /* Level with the change's tile, the first thing on the rail either way. */
-  top: 36px;
-  right: -12px;
+  top: 0;
+  right: -8px;
+  bottom: 0;
   z-index: 2;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  @media (max-width: 61.99em) {
+    display: none;
+  }
+}
+
+.toggle.toggle {
+  /* A tall rounded tab on the edge, its long side along the border. */
+  width: 16px;
+  height: 40px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--noesis-secondary-text);
   background-color: var(--noesis-rail-surface);
   box-shadow:
-    0 1px 3px rgba(16, 24, 40, 0.12),
+    0 1px 2px rgba(16, 24, 40, 0.08),
     0 0 0 1px var(--noesis-rail-border);
-  transition: color 0.1s ease;
+  opacity: 0.4;
+  transition:
+    opacity 0.15s ease,
+    color 0.1s ease;
+
+  .edge:hover &,
+  &:focus-visible {
+    opacity: 1;
+  }
 
   &:hover {
     color: var(--mantine-color-text);
@@ -37,12 +59,9 @@
     outline-offset: 2px;
   }
 
-  .frame[data-collapsed] & {
-    top: 22px;
-  }
-
-  @media (max-width: 61.99em) {
-    display: none;
+  /* Without a pointer that hovers, there is no coming up: always shown. */
+  @media (hover: none) {
+    opacity: 1;
   }
 }
 
@@ -55,9 +74,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px 12px;
+  /* No room above: the change's card starts level with the page's sheet. */
+  padding: 0 12px 14px;
   background-color: var(--noesis-rail-background);
-  box-shadow: inset -1px 0 0 var(--noesis-rail-border);
 }
 
 /* Shared by every row: a rounded line of icon and label. */
@@ -335,9 +354,8 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 12px 0;
+  padding: 0 0 12px;
   background-color: var(--noesis-rail-background);
-  box-shadow: inset -1px 0 0 var(--noesis-rail-border);
 }
 
 /* An icon on the rail itself, lifted as its open row is. */

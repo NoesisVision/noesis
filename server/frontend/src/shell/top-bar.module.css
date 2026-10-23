@@ -1,7 +1,6 @@
-/* The same tinted surface as the rail beneath it, ruled off from the page. */
+/* The same tinted surface as the rail beneath it, running on into it. */
 .bar {
   background-color: var(--noesis-rail-background);
-  box-shadow: inset 0 -1px 0 var(--noesis-rail-border);
 }
 
 /*
