@@ -17,6 +17,7 @@ export function ElementPanel({
   title,
   onSelectElement,
   onClear,
+  onMinimize,
 }: {
   id: string;
   document: DesignDocumentInput;
@@ -25,6 +26,8 @@ export function ElementPanel({
   onSelectElement: (id: string) => void;
   /** Clears the selection; without it the panel has no close button. */
   onClear?: () => void;
+  /** Shrinks the panel out of the way; without it there is no such button. */
+  onMinimize?: () => void;
 }) {
   const modelTree = useMemo(
     () =>
@@ -42,6 +45,7 @@ export function ElementPanel({
       modelTree={modelTree}
       onSelectElement={onSelectElement}
       onClear={onClear}
+      onMinimize={onMinimize}
       glance
       eyebrow={eyebrow}
       title={title}

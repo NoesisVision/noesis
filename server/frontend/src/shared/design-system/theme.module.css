@@ -99,3 +99,14 @@
 .splitterHandle:focus-visible .splitterThumb {
   box-shadow: 0 0 0 2px var(--mantine-primary-color-filled);
 }
+
+/* A menu's or a list's dropdown: its rows 6px in from its rounded edge. */
+.dropdown.dropdown {
+  --combobox-padding: 6px;
+  padding: 6px;
+}
+
+/* A row in it, rounded to sit concentric in the dropdown's corners. */
+.dropdownRow.dropdownRow {
+  border-radius: 12px;
+}

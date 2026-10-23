@@ -102,6 +102,7 @@ function RailList({ onNavigate }: RailListProps) {
                 className={classes.row}
                 classNames={ROW_PARTS}
                 label={overview.label}
+                data-page-tone={overview.tone}
                 leftSection={<overview.icon size={17} stroke={1.7} />}
                 disabled={activeChange === null}
                 onClick={onNavigate}
@@ -124,6 +125,7 @@ function RailList({ onNavigate }: RailListProps) {
                   className={classes.row}
                   classNames={ROW_PARTS}
                   label={item.name}
+                  data-page-tone={DOCUMENTS_NAV.tone}
                   leftSection={<IconFileText size={17} stroke={1.7} />}
                   onClick={onNavigate}
                   renderRoot={(props) => (

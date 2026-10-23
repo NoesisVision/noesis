@@ -407,6 +407,7 @@ describe('the selection', () => {
                 related: new Set([line.id]),
                 path: new Set(),
                 onSelect: () => {},
+                onLetGo: () => {},
                 drawn: new Set([line.id]),
                 neighbours: neighboursOf(exploration),
                 elements: new Map(
@@ -676,6 +677,26 @@ describe('placing a change from one card', () => {
     const added = placed.find(({ element: { id } }) => id === 'B')!;
     expect(added.x + added.width / 2).toBe(600);
     expect(added.y + added.height / 2).toBe(400);
+  });
+
+  it('puts a card asked for outside its module among what that holds, not out at the point', () => {
+    const mod = element('Module');
+    const held = element('Held', 'Module');
+    const kid = element('Kid', 'Module');
+    const placed = placeLocally(
+      [at(mod, 0, 0, 400, 200, true), at(held, 24, 60)],
+      graphOf(mod, held, kid),
+      { x: 1500, y: 900 },
+    )!;
+    const byId = new Map(placed.map((each) => [each.element.id, each]));
+    const frame = byId.get('Module')!;
+    // Positions inside a module are its own: the new card stands beside
+    // the one already there, and the module grows only to hold it.
+    const added = byId.get('Kid')!;
+    expect(apart(added, byId.get('Held')!)).toBe(true);
+    expect(Math.hypot(added.x - 24, added.y - 60)).toBeLessThan(300);
+    expect(frame.width).toBeLessThan(600);
+    expect(frame.height).toBeLessThan(400);
   });
 
   it('moves a card asked for where another stands to beside it', () => {

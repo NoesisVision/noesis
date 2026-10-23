@@ -47,12 +47,12 @@ such as where an element sits on screen — **stop and ask the developer**
 whether they want a TypeScript solution, before writing one. Put the
 trade-off in front of them, in this case's terms:
 
-| CSS                                                                                                    | A hook or other script (`useElementSize`, a `ResizeObserver`, measuring in an effect)                                                                                |
-| ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Laid out before the first paint, in the browser's own layout pass: no flash, no lag while resizing.     | Runs after layout: the first frame can show the wrong state, and every resize or scroll it follows costs a re-render.                                              |
-| Holds in every render — server markup, tests, a disabled script — with nothing to clean up.             | Absent in `renderToStaticMarkup` and tests (`bun run` reads CSS modules as `{}` too), and needs listeners and observers set up and torn down without leaking.        |
-| Lives with the rest of the look, where a designer and `/design-sync` see it.                            | Splits one visual rule between a stylesheet and a component, and adds React state the component did not otherwise need.                                             |
-| Bounded by what CSS knows: it cannot read positions or sizes from elsewhere on the page.               | Can do exactly what was asked — e.g. centre on the window rather than on the scrolling panel.                                                                        |
+| CSS                                                                                                 | A hook or other script (`useElementSize`, a `ResizeObserver`, measuring in an effect)                                                                         |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Laid out before the first paint, in the browser's own layout pass: no flash, no lag while resizing. | Runs after layout: the first frame can show the wrong state, and every resize or scroll it follows costs a re-render.                                         |
+| Holds in every render — server markup, tests, a disabled script — with nothing to clean up.         | Absent in `renderToStaticMarkup` and tests (`bun run` reads CSS modules as `{}` too), and needs listeners and observers set up and torn down without leaking. |
+| Lives with the rest of the look, where a designer and `/design-sync` see it.                        | Splits one visual rule between a stylesheet and a component, and adds React state the component did not otherwise need.                                       |
+| Bounded by what CSS knows: it cannot read positions or sizes from elsewhere on the page.            | Can do exactly what was asked — e.g. centre on the window rather than on the scrolling panel.                                                                 |
 
 Often the honest answer is a near miss in CSS (centred on the visible panel
 rather than the window) against the exact result in script. Offer both and
@@ -82,6 +82,45 @@ component. Add it the way Mantine defines its own, with a
   that says what it is for and where its value comes from, as the brand
   entries there do. That is what lets the IDE complete it and stop flagging it
   as unknown in a CSS module.
+
+## Folding content uses `Collapse`
+
+Anything the reader can fold away and open again in place — a rule's
+description, the shortcut legend — slides shut in `Collapse` from
+`src/shared/design-system/collapse.tsx`, never `{open && …}` or a class that
+hides it. The toggle says what it does and points at what it folds:
+
+```tsx
+const body = useId();
+<ActionIcon
+  aria-label={open ? 'Collapse the details' : 'Expand the details'}
+  aria-expanded={open}
+  aria-controls={body}
+  onClick={() => setOpen(!open)}
+>…</ActionIcon>
+<Collapse id={body} expanded={open}>…</Collapse>
+```
+
+What stays in view when folded (a heading, the toggle itself) sits outside
+the `Collapse`. Shut, `Collapse` leaves what it holds out of the page
+(React's `Activity`), so a render-to-markup test sees none of it; a short
+list that should still be in the page, only not shown — the architecture
+legend — passes `keepMountedMode="display-none"`.
+
+Content that is there or not for another reason — no data, no permission —
+is still rendered conditionally; `Collapse` is for the reader's own open and
+shut.
+
+Two exceptions:
+
+- The model tree: an ARIA tree renders only its expanded subtrees
+  (`tree-item.tsx`), as mounting every folded one would mount the whole
+  model.
+- A floating panel minimized into a button — the exploration's details —
+  is not folded but shrunk: the panel scales into its corner with a CSS
+  `transform` and fades as the button comes up there, both always rendered
+  and swapped by a `data-` attribute, the hidden one `inert`. Scaled whole,
+  nothing in it reflows on the way.
 
 ## Every modal uses `ModalFrame`
 

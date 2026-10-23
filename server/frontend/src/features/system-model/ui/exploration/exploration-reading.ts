@@ -20,6 +20,8 @@ export interface ExplorationReading {
   path: ReadonlySet<string>;
   /** Takes an element in hand alone, or — adding — into the hand or out of it. */
   onSelect: (id: string, adding: boolean) => void;
+  /** Lets go of everything in hand, as a click on the empty canvas does. */
+  onLetGo: () => void;
   /** Whether each element is drawn, and whom the model joins it to. */
   drawn: ReadonlySet<string>;
   neighbours: ReadonlyMap<string, Neighbours>;
@@ -48,6 +50,7 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   related: new Set(),
   path: new Set(),
   onSelect: () => {},
+  onLetGo: () => {},
   drawn: new Set(),
   neighbours: new Map(),
   elements: new Map(),
@@ -68,7 +71,7 @@ export function useCardActions() {
  * the way to it, or none of these.
  */
 export function useSelectionState(id: string) {
-  const { selected, related, path, onSelect } = useContext(
+  const { selected, related, path, onSelect, onLetGo } = useContext(
     ExplorationReadingContext,
   );
   // A frame the selection is drawn in reads as the way to it, though what
@@ -80,7 +83,7 @@ export function useSelectionState(id: string) {
       : related.has(id)
         ? ('related' as const)
         : undefined;
-  return { state, onSelect };
+  return { state, onSelect, onLetGo };
 }
 
 /** The frames each element in `ids` is drawn inside, out to the outermost. */

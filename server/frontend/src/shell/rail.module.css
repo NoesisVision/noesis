@@ -120,6 +120,24 @@
   }
 }
 
+/* A row of a section — overview, a document, a design doc — draws its icon
+   in that section's colour, open or not; what it is open says by its ground.
+   Folded to icons, they are gray until pointed at or open. */
+.row.row[data-page-tone] svg {
+  color: var(--noesis-tone-6);
+}
+
+.iconRow.iconRow[data-page-tone] {
+  & svg {
+    color: var(--mantine-color-gray-6);
+  }
+
+  &:hover svg,
+  &[aria-current='page'] svg {
+    color: var(--noesis-tone-6);
+  }
+}
+
 /* Inside the card: tinted, not lifted, while it is the page. */
 .row,
 .view {

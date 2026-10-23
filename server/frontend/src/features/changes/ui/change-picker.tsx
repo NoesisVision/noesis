@@ -1,4 +1,4 @@
-import { IconSelector } from '@tabler/icons-react';
+import { IconCheck, IconSelector } from '@tabler/icons-react';
 import { useNavigate } from '@tanstack/react-router';
 import { Box } from '#/shared/design-system/box';
 import { Group } from '#/shared/design-system/group';
@@ -8,16 +8,18 @@ import { Text } from '#/shared/design-system/text';
 import { ThemeIcon } from '#/shared/design-system/theme-icon';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button';
 import { titleCase } from '#/shared/ui/title-case.ts';
-import type { Change } from '#backend/app/changes/change.ts';
+import type { ChangeWithEntries } from '#backend/app/changes/change-entry.ts';
 import {
   CHANGE_STAGES,
   CHANGE_STATUS_META,
   CHANGE_TYPE_META,
+  changeAge,
   changeInitials,
-  changeSwatch,
   changeSwatchColor,
 } from '../changes.model.ts';
 import classes from './change-picker.module.css';
+
+type Change = ChangeWithEntries;
 
 interface ChangePickerProps {
   changes: Change[];
@@ -27,14 +29,31 @@ interface ChangePickerProps {
   compact?: boolean;
 }
 
-function detailLine(change: Change): string {
+/** What a change in the list says under its name: its kind, then its stage. */
+function kindLine(change: Change): string {
   return [
     change.key,
-    CHANGE_TYPE_META[change.type].label,
-    CHANGE_STATUS_META[change.status].label.toLowerCase(),
+    titleCase(CHANGE_TYPE_META[change.type].label),
+    CHANGE_STATUS_META[change.status].label,
   ]
     .filter(Boolean)
     .join(' · ');
+}
+
+/** A change's tile: its initials on its own colour. */
+function ChangeTile({ change, size }: { change: Change | null; size: number }) {
+  return (
+    <ThemeIcon
+      size={size}
+      radius={Math.round(size * 0.3)}
+      variant="light"
+      color={change ? changeSwatchColor(change.id) : 'gray'}
+      className={classes.tile}
+      aria-hidden
+    >
+      {change ? changeInitials(change.name) : '–'}
+    </ThemeIcon>
+  );
 }
 
 /** What the card says under the name: what kind of change, at which stage. */
@@ -68,22 +87,15 @@ export function ChangePicker({
     ? CHANGE_STATUS_META[current.status].color
     : 'gray';
 
-  const tile = (
-    <ThemeIcon
-      size={36}
-      radius={11}
-      variant="light"
-      color={current ? changeSwatchColor(current.id) : 'gray'}
-      className={classes.tile}
-      aria-hidden
-    >
-      {current ? changeInitials(current.name) : '–'}
-    </ThemeIcon>
-  );
+  const tile = <ChangeTile change={current} size={36} />;
+  // The others, newest first: a change's id starts with the day it was made.
+  // Every change, newest first: a change's id starts with the day it was made.
+  const all = changes.toSorted((a, b) => b.id.localeCompare(a.id));
+  const now = new Date();
 
   return (
     <Box miw={0}>
-      <Menu width={320} position="right-start" shadow="md" offset={12}>
+      <Menu width={380} position="right-start" shadow="md" offset={12}>
         <Menu.Target>
           {compact ? (
             <UnstyledButton
@@ -140,32 +152,41 @@ export function ChangePicker({
           )}
         </Menu.Target>
         <Menu.Dropdown>
-          <Menu.Label>
-            {changes.length > 0 ? 'Your changes' : 'No changes yet'}
-          </Menu.Label>
-          {changes.map((change) => (
-            <Menu.Item
-              key={change.id}
-              className={classes.item}
-              classNames={{ itemLabel: classes.itemLabel }}
-              data-current={change.id === current?.id || undefined}
-              leftSection={
-                <Box
-                  className={classes.bar}
-                  h={22}
-                  bg={changeSwatch(change.id)}
-                />
-              }
-              onClick={() => choose(change)}
-            >
-              <Text size="sm" fw={500} lh={1.3} className={classes.name}>
-                {change.name}
-              </Text>
-              <Text size="xs" className={classes.subLabel} truncate lh={1.3}>
-                {detailLine(change)}
-              </Text>
-            </Menu.Item>
-          ))}
+          {all.length === 0 && <Menu.Label>No changes yet</Menu.Label>}
+          {all.map((change) => {
+            const isCurrent = change.id === current?.id;
+            return (
+              <Menu.Item
+                key={change.id}
+                className={classes.item}
+                classNames={{ itemLabel: classes.itemLabel }}
+                aria-current={isCurrent || undefined}
+                leftSection={<ChangeTile change={change} size={36} />}
+                rightSection={
+                  isCurrent ? (
+                    <IconCheck
+                      size={18}
+                      stroke={2}
+                      className={classes.check}
+                      aria-label="Current"
+                    />
+                  ) : (
+                    <Text size="xs" className={classes.age}>
+                      {changeAge(change.id, now)}
+                    </Text>
+                  )
+                }
+                onClick={() => choose(change)}
+              >
+                <Text size="sm" fw={500} lh={1.3} className={classes.name}>
+                  {change.name}
+                </Text>
+                <Text size="xs" className={classes.subLabel} truncate lh={1.4}>
+                  {kindLine(change)}
+                </Text>
+              </Menu.Item>
+            );
+          })}
         </Menu.Dropdown>
       </Menu>
     </Box>

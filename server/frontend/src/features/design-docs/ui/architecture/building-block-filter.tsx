@@ -40,18 +40,19 @@ export function BuildingBlockFilter({
   };
 
   return (
-    <Popover position="bottom-end" shadow="md" trapFocus>
+    // Drawn as the toolbar's other options are (ToolbarOptions).
+    <Popover position="bottom-start" shadow="md" trapFocus>
       <Popover.Target>
         <Button
-          variant={hiddenHere.length > 0 ? 'light' : 'default'}
-          size="xs"
+          variant="subtle"
+          color="gray"
           leftSection={<IconFilter size={16} stroke={1.6} aria-hidden />}
-          rightSection={<IconChevronDown size={16} stroke={1.6} aria-hidden />}
+          rightSection={<IconChevronDown size={14} stroke={1.6} aria-hidden />}
           disabled={all.length === 0}
         >
           Building blocks
           {hiddenHere.length > 0 && (
-            <Badge component="span" size="sm" ml={8} tt="none">
+            <Badge component="span" size="xs" variant="light" ml={6} tt="none">
               {`${all.length - hiddenHere.length} of ${all.length}`}
             </Badge>
           )}

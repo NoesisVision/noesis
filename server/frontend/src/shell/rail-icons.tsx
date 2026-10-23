@@ -3,9 +3,14 @@ import { Link } from '@tanstack/react-router';
 import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
 import { ChangePicker } from '#/features/changes/ui/change-picker.tsx';
+import {
+  DESIGN_DOCS_TONE,
+  DesignDocsIcon,
+} from '#/features/design-docs/design-docs.model.ts';
 import { Box } from '#/shared/design-system/box';
 import { NavLink } from '#/shared/design-system/nav-link';
 import { Tooltip } from '#/shared/design-system/tooltip';
+import type { PageTone } from '#/shared/ui/icon-heading.tsx';
 import {
   ACTIVE_OPTIONS,
   APP_PUBLIC_NAV,
@@ -16,7 +21,6 @@ import {
   type ChangeNavChild,
   useChangeNav,
 } from '#/shell/navigation/use-change-nav.ts';
-import { DesignDocTile } from './rail-parts.tsx';
 import classes from './rail.module.css';
 
 /** An icon-only link: no label box beside the icon, no gap before it. */
@@ -53,6 +57,7 @@ export function RailIcons({ onNavigate }: RailIconsProps) {
               className={clsx(classes.row, classes.iconRow)}
               classNames={ICON_PARTS}
               aria-label={overview.label}
+              data-page-tone={overview.tone}
               leftSection={<overview.icon size={19} stroke={1.7} />}
               disabled={activeChange === null}
               onClick={onNavigate}
@@ -76,6 +81,7 @@ export function RailIcons({ onNavigate }: RailIconsProps) {
             item={item}
             kind={DOCUMENTS_NAV.label}
             icon={<IconFileText size={19} stroke={1.7} />}
+            tone={DOCUMENTS_NAV.tone}
             onNavigate={onNavigate}
           />
         ))}
@@ -86,7 +92,8 @@ export function RailIcons({ onNavigate }: RailIconsProps) {
             key={item.id}
             item={item}
             kind={DESIGN_DOCS_NAV.label}
-            icon={<DesignDocTile open={item.open} size={26} />}
+            icon={<DesignDocsIcon size={19} stroke={1.7} />}
+            tone={DESIGN_DOCS_TONE}
             onNavigate={onNavigate}
           />
         ))}
@@ -122,11 +129,13 @@ interface ItemIconProps {
   /** The section it belongs to, which the tooltip names above it. */
   kind: string;
   icon: ReactNode;
+  /** Its section's colour, which its icon keeps, open or not. */
+  tone?: PageTone;
   onNavigate: (() => void) | undefined;
 }
 
 /** One document or design doc of the change, as an icon linking to it. */
-function ItemIcon({ item, kind, icon, onNavigate }: ItemIconProps) {
+function ItemIcon({ item, kind, icon, tone, onNavigate }: ItemIconProps) {
   return (
     <Tooltip
       label={
@@ -145,6 +154,7 @@ function ItemIcon({ item, kind, icon, onNavigate }: ItemIconProps) {
         className={clsx(classes.row, classes.iconRow)}
         classNames={ICON_PARTS}
         aria-label={item.name}
+        data-page-tone={tone}
         leftSection={icon}
         onClick={onNavigate}
         renderRoot={(props) => (

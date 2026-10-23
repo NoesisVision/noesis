@@ -1,11 +1,13 @@
+import { IconStack2 } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
-import { Group } from '#/shared/design-system/group.tsx';
-import { Switch } from '#/shared/design-system/switch.tsx';
-import { Text } from '#/shared/design-system/text.tsx';
+import {
+  CanvasToolbar,
+  ToolbarDivider,
+  ToolbarOptions,
+} from '#/shared/ui/canvas-toolbar.tsx';
 import type { PlacedElement } from '../../architecture-outline.ts';
 import type { TypeRing } from '../../building-block-types.ts';
 import { BuildingBlockFilter } from './building-block-filter.tsx';
-import classes from './architecture-diagram.module.css';
 
 /** What is drawn over the cards, each for the reader to switch on or off. */
 export interface Overlays {
@@ -21,9 +23,9 @@ const OVERLAYS: { key: keyof Overlays; label: string }[] = [
 ];
 
 /*
- * What the reader draws the hexagons with: which building blocks, which marks
- * over the cards, and how close. Before the controls, a word on what the
- * diagram cannot draw, on a line of its own when they leave it no room.
+ * What the reader draws the hexagons with, as the exploration's toolbar is
+ * laid out: which building blocks, then which marks over the cards, and at
+ * the far end how close. Under them, a word on what the diagram cannot draw.
  */
 export function DiagramToolbar({
   types,
@@ -42,42 +44,34 @@ export function DiagramToolbar({
   onOverlays: (overlays: Overlays) => void;
   /** The elements the hexagons cannot place. */
   unplaced: PlacedElement[];
-  /** The zoom controls, last in the row: the canvas they move is the diagram's. */
+  /** The zoom controls, at the row's far end: the canvas they move is the diagram's. */
   children: ReactNode;
 }) {
   return (
-    // Reversed, so the controls keep the right and the word wraps under them.
-    <Group
-      flex="none"
-      py="sm"
-      px="md"
-      fz="sm"
-      className={`${classes.toolbar} ${classes.toolbarRow}`}
+    <CanvasToolbar
+      end={children}
+      note={
+        unplaced.length > 0
+          ? `Not drawn, as the design leaves their type as it is: ${unplaced.map(({ name }) => name).join(', ')}.`
+          : undefined
+      }
     >
-      <Group fz="sm" className={classes.toolbarControls}>
-        <BuildingBlockFilter
-          rings={types}
-          hidden={hiddenTypes}
-          onHide={onHideTypes}
-        />
-        {OVERLAYS.map(({ key, label }) => (
-          <Switch
-            key={key}
-            size="xs"
-            label={label}
-            checked={overlays[key]}
-            onChange={(event) =>
-              onOverlays({ ...overlays, [key]: event.currentTarget.checked })
-            }
-          />
-        ))}
-        {children}
-      </Group>
-      {unplaced.length > 0 && (
-        <Text fz="xs" flex="1 1 16rem" c="var(--noesis-secondary-text)">
-          {`Not drawn, as the design leaves their type as it is: ${unplaced.map(({ name }) => name).join(', ')}.`}
-        </Text>
-      )}
-    </Group>
+      <BuildingBlockFilter
+        rings={types}
+        hidden={hiddenTypes}
+        onHide={onHideTypes}
+      />
+      <ToolbarDivider />
+      <ToolbarOptions
+        label="Marks"
+        icon={IconStack2}
+        title="What is drawn over the cards"
+        options={OVERLAYS.map(({ key, label }) => ({
+          label,
+          checked: overlays[key],
+          onChange: (checked) => onOverlays({ ...overlays, [key]: checked }),
+        }))}
+      />
+    </CanvasToolbar>
   );
 }

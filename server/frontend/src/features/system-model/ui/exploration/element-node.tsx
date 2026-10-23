@@ -388,6 +388,9 @@ function Remove({
   );
 }
 
+/** How far a pointer may move between press and release and still be a click. */
+const CLICK_SLOP = 4;
+
 /*
  * A frame's room for what it holds is the canvas's, to the reader: pressed
  * and dragged, it moves the view, and double-clicked it zooms in round the
@@ -395,7 +398,7 @@ function Remove({
  * drags, frames included, though a frame is dragged by its top alone; so
  * they are done here, on the room itself and nothing in it.
  */
-function useViewingFromFrame() {
+function useViewingFromFrame(onLetGo: () => void) {
   const { getViewport, setViewport } = useReactFlow();
   const store = useStoreApi();
   const onPointerDown = (event: PointerEvent<HTMLElement>) => {
@@ -410,7 +413,14 @@ function useViewingFromFrame() {
         x: from.view.x + to.clientX - from.x,
         y: from.view.y + to.clientY - from.y,
       });
-    const end = () => {
+    const end = (to: globalThis.PointerEvent) => {
+      // Let go where it was pressed, it was a click on the room, not a pan:
+      // that lets go of the selection, as a click on the empty canvas does.
+      if (
+        to.type === 'pointerup' &&
+        Math.hypot(to.clientX - from.x, to.clientY - from.y) < CLICK_SLOP
+      )
+        onLetGo();
       delete room.dataset.panning;
       room.removeEventListener('pointermove', move);
       room.removeEventListener('pointerup', end);
@@ -451,12 +461,12 @@ const withState = (
 
 export function ElementNode({ data }: NodeProps<ExplorationNode>) {
   const { element, holds } = data.placed;
-  const { state, onSelect } = useSelectionState(element.id);
+  const { state, onSelect, onLetGo } = useSelectionState(element.id);
   const [menu, setMenu] = useState(false);
   // Where a frame was right-clicked, on the canvas.
   const [at, setAt] = useState<CanvasPoint | null>(null);
   const { screenToFlowPosition } = useReactFlow();
-  const viewing = useViewingFromFrame();
+  const viewing = useViewingFromFrame(onLetGo);
   const [into, outOf] =
     data.direction === 'vertical'
       ? [Position.Top, Position.Bottom]

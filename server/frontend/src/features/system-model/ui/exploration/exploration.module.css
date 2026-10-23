@@ -13,34 +13,6 @@
   background-color: var(--mantine-color-body);
 }
 
-.toolbar {
-  padding: 12px 16px;
-  border-bottom: 1px solid
-    light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
-}
-
-/* A group of the toolbar's buttons on a soft grey pill of its own. */
-.pill {
-  padding: 3px;
-  border-radius: 10px;
-  background-color: light-dark(
-    var(--mantine-color-gray-0),
-    var(--mantine-color-dark-6)
-  );
-}
-
-/* The thin rule between groups of controls. */
-.toolbarDivider {
-  flex: none;
-  width: 1px;
-  height: 24px;
-  margin: 0 4px;
-  background-color: light-dark(
-    var(--mantine-color-gray-2),
-    var(--mantine-color-dark-4)
-  );
-}
-
 /* An arrow alone in a segment, centred in it. */
 .segmentIcon {
   display: flex;
@@ -54,17 +26,6 @@
 
   &[data-open] {
     transform: rotate(180deg);
-  }
-}
-
-/* The edges' options, one under another, each its name then its switch. */
-.menuSwitches {
-  display: flex;
-  flex-direction: column;
-  gap: var(--mantine-spacing-sm);
-
-  & :global(.mantine-Switch-body) {
-    justify-content: space-between;
   }
 }
 
@@ -312,11 +273,26 @@
   opacity: 0.2;
 }
 
-/* The panel the selection is read in, on the canvas. */
-.selection {
-  width: 360px;
+/*
+ * The panel a lone card is read in, and the button it is minimized into, in
+ * one corner: minimized, the panel shrinks into that corner as it fades and
+ * the button comes up where it went; opened again, the other way round. The
+ * panel is scaled whole, so nothing in it reflows on the way.
+ */
+.selectionDock {
+  /* No taller or wider than the canvas leaves it; the panel scrolls inside. */
+  display: flex;
+  flex-direction: column;
   max-width: calc(100% - 30px);
   max-height: calc(100% - 30px);
+  /* Only what is shown takes the pointer; the canvas behind is the canvas. */
+  pointer-events: none;
+}
+
+.selection {
+  width: 360px;
+  max-width: 100%;
+  min-height: 0;
   overflow-y: auto;
   border: 1px solid
     light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
@@ -325,6 +301,53 @@
   box-shadow:
     0 12px 32px rgba(16, 24, 40, 0.12),
     0 1px 3px rgba(16, 24, 40, 0.06);
+  pointer-events: auto;
+  transform-origin: top right;
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 180ms ease;
+
+  .selectionDock[data-folded] & {
+    /* About the button's size, where the button is. */
+    transform: scale(0.12);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.selectionIcon.selectionIcon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-color: light-dark(
+    var(--mantine-color-gray-2),
+    var(--mantine-color-dark-4)
+  );
+  background: var(--mantine-color-body);
+  box-shadow:
+    0 12px 32px rgba(16, 24, 40, 0.12),
+    0 1px 3px rgba(16, 24, 40, 0.06);
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+  transition:
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 160ms ease;
+
+  /* Up once the panel is most of the way into the corner. */
+  .selectionDock[data-folded] & {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition-delay: 90ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selection,
+  .selectionIcon.selectionIcon {
+    transition: none;
+  }
 }
 
 /* The filter's dropdown: a head, a fieldset per kind of element. */
@@ -571,42 +594,6 @@
   flex: none;
   width: 320px;
   margin-top: auto;
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
-  border-radius: 14px;
-  background: rgb(from var(--mantine-color-body) r g b / 0.94);
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
-}
-
-.exploration .legendHead {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 14px;
-  color: var(--mantine-color-text);
-
-  &:hover {
-    background: light-dark(
-      var(--mantine-color-gray-0),
-      var(--mantine-color-dark-6)
-    );
-  }
-
-  &:focus-visible {
-    outline: var(--noesis-focus-ring);
-    outline-offset: 2px;
-  }
-}
-
-.legendChevron {
-  transform: rotate(-90deg);
-  transition: transform 120ms ease;
-
-  &[data-open] {
-    transform: none;
-  }
 }
 
 .legendList {
@@ -614,7 +601,6 @@
   flex-direction: column;
   gap: 6px;
   margin: 0;
-  padding: 2px 10px 10px;
 }
 
 .legendRow {
@@ -796,10 +782,4 @@
   color: var(--mantine-color-text);
   font-size: var(--mantine-font-size-sm);
   font-weight: 700;
-}
-
-/* A button that cannot be pressed yet is a faint icon on the pill, not a box. */
-.pill :global(.mantine-ActionIcon-root)[data-disabled] {
-  background-color: transparent;
-  opacity: 0.45;
 }

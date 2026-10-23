@@ -49,11 +49,6 @@ export function changeSwatchColor(id: string): (typeof SWATCH_COLORS)[number] {
   return SWATCH_COLORS[hash % SWATCH_COLORS.length] ?? SWATCH_COLORS[0];
 }
 
-/** The swatch as a CSS colour. */
-export function changeSwatch(id: string): string {
-  return `var(--mantine-color-${changeSwatchColor(id)}-6)`;
-}
-
 /** What a change's tile reads: the first letters of its first two words. */
 export function changeInitials(name: string): string {
   return name
@@ -66,3 +61,26 @@ export function changeInitials(name: string): string {
 
 /** The stages a change goes through, in order: what its progress is drawn from. */
 export const CHANGE_STAGES = Object.keys(CHANGE_STATUS_META) as ChangeStatus[];
+
+const DAY_MS = 86_400_000;
+
+/**
+ * How long ago a change was made, as the picker says it beside its name —
+ * "today", "2d", "1w", "3mo", "1y" — from the date its id starts with: the
+ * one date a change carries.
+ */
+export function changeAge(id: string, now: Date): string {
+  const made = /^(\d{4})-(\d{2})-(\d{2})/.exec(id);
+  if (made === null) return '';
+  const [, year, month, day] = made;
+  const days = Math.floor(
+    (Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) -
+      Date.UTC(Number(year), Number(month) - 1, Number(day))) /
+      DAY_MS,
+  );
+  if (days < 1) return 'today';
+  if (days < 7) return `${days}d`;
+  if (days < 30) return `${Math.floor(days / 7)}w`;
+  if (days < 365) return `${Math.floor(days / 30)}mo`;
+  return `${Math.floor(days / 365)}y`;
+}

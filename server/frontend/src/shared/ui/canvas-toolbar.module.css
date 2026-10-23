@@ -1,0 +1,43 @@
+/* Over the canvas, in the same white card: a hairline between them. */
+.toolbar {
+  padding: 12px 16px;
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+}
+
+.pill {
+  padding: 3px;
+  border-radius: 10px;
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+}
+
+/* A button that cannot be pressed yet is a faint icon on the pill, not a box. */
+.pill :global(.mantine-ActionIcon-root)[data-disabled] {
+  background-color: transparent;
+  opacity: 0.45;
+}
+
+.divider {
+  flex: none;
+  width: 1px;
+  height: 24px;
+  margin: 0 4px;
+  background-color: light-dark(
+    var(--mantine-color-gray-2),
+    var(--mantine-color-dark-4)
+  );
+}
+
+/* Its options, one under another, each its name then its switch. */
+.switches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+
+  & :global(.mantine-Switch-body) {
+    justify-content: space-between;
+  }
+}

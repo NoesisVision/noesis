@@ -14,23 +14,17 @@ import type { ChangeNavChild } from '#/shell/navigation/use-change-nav.ts';
 import classes from './rail.module.css';
 
 /** A design doc's tile: filled in its colour while the doc is open. */
-export function DesignDocTile({
-  open,
-  size = 22,
-}: {
-  open: boolean;
-  size?: number;
-}) {
+export function DesignDocTile({ open }: { open: boolean }) {
   return (
     <ThemeIcon
-      size={size}
-      radius={size > 22 ? 8 : 7}
+      size={22}
+      radius={7}
       variant={open ? 'filled' : 'light'}
       color={DESIGN_DOCS_TONE}
       className={classes.tile}
       aria-hidden
     >
-      <DesignDocsIcon size={size > 22 ? 16 : 14} stroke={1.7} />
+      <DesignDocsIcon size={14} stroke={1.7} />
     </ThemeIcon>
   );
 }

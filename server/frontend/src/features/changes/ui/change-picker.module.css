@@ -44,6 +44,8 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.03em;
+  /* Edged in a fainter line of its own colour. */
+  box-shadow: inset 0 0 0 1px rgb(from currentColor r g b / 0.22);
 }
 
 /* The change's progress: one segment per stage, lit up to the one it is at. */
@@ -66,44 +68,41 @@
   }
 }
 
-.bar {
-  flex: none;
-  width: 8px;
-  border-radius: 2px;
-}
-
 /* Held to the dropdown's width: Mantine's label grows to its text otherwise. */
-.item .itemLabel {
+.itemLabel {
   min-width: 0;
 }
 
-.item {
-  /* A long name runs on to the next line rather than out of the menu. */
-  .name {
-    overflow-wrap: anywhere;
-  }
-  .subLabel {
-    color: light-dark(var(--mantine-color-dark-3), var(--mantine-color-dark-2));
-  }
-  &:hover {
+/* A long name runs on to the next line rather than out of the menu. */
+.name {
+  overflow-wrap: anywhere;
+}
+
+.subLabel {
+  color: light-dark(var(--mantine-color-dark-3), var(--mantine-color-dark-2));
+}
+
+.item.item {
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+
+  &:hover,
+  &[data-hovered] {
     background: light-dark(
-      var(--mantine-color-brand-0),
+      var(--mantine-color-gray-0),
       var(--mantine-color-dark-5)
     );
   }
-  &[data-current] {
-    &,
-    &:hover {
-      background-color: light-dark(
-        var(--mantine-color-brand-1),
-        var(--mantine-color-brand-9)
-      );
-      color: light-dark(
-        var(--mantine-color-dark-9),
-        var(--mantine-color-brand-0)
-      );
-    }
-  }
+}
+
+.check {
+  color: var(--mantine-color-brand-6);
+}
+
+.age {
+  color: var(--mantine-color-dimmed);
+  font-variant-numeric: tabular-nums;
 }
 
 /*

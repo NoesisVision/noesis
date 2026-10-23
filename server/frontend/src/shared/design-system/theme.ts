@@ -1,9 +1,12 @@
 import {
   Card,
-  type CSSVariablesResolver,
+  Combobox,
   createTheme,
+  type CSSVariablesResolver,
   localStorageColorSchemeManager,
+  Menu,
   Modal,
+  Popover,
   SegmentedControl,
   Splitter,
 } from '@mantine/core';
@@ -49,6 +52,17 @@ export const theme = createTheme({
       },
     }),
     Card: Card.extend({ classNames: { root: classes.card } }),
+    // Every dropdown alike: well rounded, its rows rounded inside it to
+    // match, 6px in (18 - 6 = 12).
+    Menu: Menu.extend({
+      defaultProps: { radius: 18 },
+      classNames: { dropdown: classes.dropdown, item: classes.dropdownRow },
+    }),
+    Combobox: Combobox.extend({
+      defaultProps: { radius: 18 },
+      classNames: { dropdown: classes.dropdown, option: classes.dropdownRow },
+    }),
+    Popover: Popover.extend({ defaultProps: { radius: 18 } }),
     // Every split the same: a gap of the page with a slim grip in it.
     Splitter: Splitter.extend({
       defaultProps: { lineSize: 18 },

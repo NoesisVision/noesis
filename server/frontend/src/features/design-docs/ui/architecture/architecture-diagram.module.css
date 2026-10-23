@@ -7,73 +7,30 @@
   min-height: 0;
 }
 
-.toolbar {
-  border-bottom: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-}
-
-/*
- * The controls on the right and the word on what is not drawn before them;
- * reversed, so when the line is too short the word, not the controls, goes
- * under. Named with the toolbar, to win over the group's own rules.
- */
-.toolbar.toolbarRow {
-  flex-direction: row-reverse;
-  gap: 6px 18px;
-}
-
-/* Rows closer than the controls in them. */
-.toolbar .toolbarControls {
-  gap: 8px 18px;
-}
-
+/* The legend: wide enough for its longest kind. */
 .legend {
-  padding: 6px;
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-body);
-  box-shadow: var(--mantine-shadow-sm);
-  font-size: var(--mantine-font-size-xs);
+  min-width: 200px;
 }
 
-.legend .legendList {
+.legendList {
   list-style: none;
-
-  &[hidden] {
-    display: none;
-  }
 }
 
 /*
- * The buttons here are named with what holds them, to win over the unstyled
- * button's own reset, which loads later.
+ * Named with what holds it, to win over the unstyled button's own reset.
+ * Its own padding is taken back out with a margin, so its text lines up
+ * with the legend's other content.
  */
-.legend .legendToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  border-radius: var(--mantine-radius-sm);
-  font-size: inherit;
-
-  &:hover {
-    background: var(--mantine-color-default-hover);
-  }
-
-  &:focus-visible {
-    outline: var(--noesis-focus-ring);
-    outline-offset: 1px;
-  }
-}
-
 .legend .legendEntry {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: calc(100% + 12px);
+  margin: 0 -6px;
+  padding: 3px 6px;
+  font-size: var(--mantine-font-size-xs);
   border-radius: var(--mantine-radius-sm);
   color: var(--mantine-color-text);
-  font-size: inherit;
 
   &:hover {
     background: var(--mantine-color-default-hover);
