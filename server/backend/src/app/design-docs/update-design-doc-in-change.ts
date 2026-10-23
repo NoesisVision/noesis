@@ -1,9 +1,5 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import {
-  type ChangeOwnedRepository,
-  getOwnedOrThrow,
-} from '#backend/app/changes/change-owned.repository';
 import type { ChangesReader } from '#backend/app/changes/changes.repository';
 import type { Now } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
@@ -17,6 +13,10 @@ import {
 import { DesignDocFieldAuthor } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
 import { type DesignDocSummary, summarize } from './design-doc-summary';
+import {
+  type DesignDocsRepository,
+  getDesignDocOrThrow,
+} from './design-docs.repository';
 import { assertDesignDocFollowsRules } from './invalid-design-doc-error';
 
 /**
@@ -37,7 +37,7 @@ export type UpdateDesignDocInChangeHandler = Handler<
 >;
 
 export function updateDesignDocInChangeHandler(
-  designDocs: ChangeOwnedRepository<DesignDocument>,
+  designDocs: DesignDocsRepository,
   changes: ChangesReader,
   systemModels: SystemModelsReader,
   now: Now,
@@ -49,13 +49,7 @@ export function updateDesignDocInChangeHandler(
      * follows against the newest scan. The time it is marked implemented is the server's to keep.
      */
     async handle({ change, id, designDoc, writer }) {
-      const before = await getOwnedOrThrow(
-        designDocs,
-        changes,
-        'design document',
-        change,
-        id,
-      );
+      const before = await getDesignDocOrThrow(designDocs, changes, change, id);
       await assertDesignDocFollowsRules(
         designDoc,
         writer,

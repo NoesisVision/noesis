@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangeOwnedRepository } from '#backend/app/changes/change-owned.repository';
 import {
   type ChangesReader,
   getChangeOrThrow,
@@ -10,6 +9,7 @@ import { NotFoundError } from '#backend/app/not-found-error';
 import { type Document, DocumentContentSchema } from './document';
 import { DocumentId } from './document-id';
 import { type DocumentSummary, summarize } from './document-summary';
+import type { DocumentsRepository } from './documents.repository';
 
 /** A new version of a document. `document` is the working file: the id travels beside it. */
 export const UpdateDocumentInChange = z.object({
@@ -25,7 +25,7 @@ export type UpdateDocumentInChangeHandler = Handler<
 >;
 
 export function updateDocumentInChangeHandler(
-  documents: ChangeOwnedRepository<Document>,
+  documents: DocumentsRepository,
   changes: ChangesReader,
 ): UpdateDocumentInChangeHandler {
   return {

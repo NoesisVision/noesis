@@ -1,13 +1,12 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangeOwnedReader } from '#backend/app/changes/change-owned.repository';
 import {
   type ChangesReader,
   getChangeOrThrow,
 } from '#backend/app/changes/changes.repository';
 import type { Handler } from '#backend/app/handler';
-import type { DesignDocument } from './design-doc';
 import { type DesignDocSummary, summarize } from './design-doc-summary';
+import type { DesignDocsReader } from './design-docs.repository';
 
 /** The design documents of one change. */
 export const ListDesignDocsInChange = z.object({ change: ChangeId });
@@ -19,7 +18,7 @@ export type ListDesignDocsInChangeHandler = Handler<
 >;
 
 export function listDesignDocsInChangeHandler(
-  designDocs: ChangeOwnedReader<DesignDocument>,
+  designDocs: DesignDocsReader,
   changes: ChangesReader,
 ): ListDesignDocsInChangeHandler {
   return {

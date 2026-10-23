@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangeOwnedRepository } from '#backend/app/changes/change-owned.repository';
 import {
   type ChangesReader,
   getChangeOrThrow,
@@ -11,6 +10,7 @@ import { createAtFreeSlugId } from '#backend/app/slug-id';
 import { type Document, DocumentContentSchema } from './document';
 import { DocumentId } from './document-id';
 import { type DocumentSummary, summarize } from './document-summary';
+import type { DocumentsRepository } from './documents.repository';
 
 /** A new document for the change. `document` is the working file: the server mints its id. */
 export const CreateDocumentInChange = z.object({
@@ -25,7 +25,7 @@ export type CreateDocumentInChangeHandler = Handler<
 >;
 
 export function createDocumentInChangeHandler(
-  documents: ChangeOwnedRepository<Document>,
+  documents: DocumentsRepository,
   changes: ChangesReader,
   today: Today,
 ): CreateDocumentInChangeHandler {
