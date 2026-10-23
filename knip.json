@@ -1,14 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  // Prototypes and prior art under docs/ are reference material, not code
-  // (Oxlint skips them too). .design-sync/ holds the Claude Design sync
-  // inputs: previews import a stand-in package only the converter resolves,
-  // and overrides/ is a vendored copy of the converter's own code.
-  "ignore": [
-    "docs/**/prior-art/**",
-    "docs/**/prototypes/**",
-    "server/frontend/.design-sync/**"
-  ],
+  // .design-sync/ holds the Claude Design sync inputs: previews import a
+  // stand-in package only the converter resolves, and overrides/ is a
+  // vendored copy of the converter's own code.
+  "ignore": ["server/frontend/.design-sync/**"],
   "workspaces": {
     ".": {
       // Skill scripts are run by the agent, never imported.

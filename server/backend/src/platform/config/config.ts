@@ -5,14 +5,6 @@ import {
   parseLogLevel,
 } from '#backend/platform/logging/logging';
 
-/**
- * The one scanner the environment may force: `dummy` replays the implemented
- * design documents instead of reading code. Which code scanner reads a
- * repository is the repository's own `noesis-config.json`.
- */
-export const ScannerOverride = z.literal('dummy');
-export type ScannerOverride = z.infer<typeof ScannerOverride>;
-
 // `PORT` pins the otherwise ephemeral port only for a stable URL under
 // `bun run dev`; the plugin's launch never sets it, so two agent sessions
 // cannot collide.
@@ -22,7 +14,6 @@ const envSchema = z.object({
   NOESIS_OPEN_BROWSER: z.string().optional(),
   PORT: z.coerce.number().int().min(0).max(65535).default(0),
   NOESIS_LOG_LEVEL: z.string().optional(),
-  NOESIS_SCANNER: ScannerOverride.optional(),
 });
 
 export interface ServerConfig {
@@ -31,8 +22,6 @@ export interface ServerConfig {
   openBrowser: boolean;
   port: number;
   logLevel: LogLevel;
-  /** `dummy` to replay design documents; unset scans by the repository's configuration. */
-  scanner: ScannerOverride | undefined;
 }
 
 export type ConfigResult =
@@ -58,7 +47,6 @@ export function parseServerConfig(env: NodeJS.ProcessEnv): ConfigResult {
         parsed.data.NOESIS_LOG_LEVEL === undefined
           ? DEFAULT_LOG_LEVEL
           : parseLogLevel(parsed.data.NOESIS_LOG_LEVEL),
-      scanner: parsed.data.NOESIS_SCANNER,
     },
   };
 }

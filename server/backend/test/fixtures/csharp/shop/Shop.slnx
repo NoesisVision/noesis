@@ -1,5 +1,0 @@
-<Solution>
-  <Project Path="Shop.Domain/Shop.Domain.csproj" />
-  <Project Path="Shop.Infrastructure/Shop.Infrastructure.csproj" />
-  <Project Path="Shop.Technical/Shop.Technical.csproj" />
-</Solution>

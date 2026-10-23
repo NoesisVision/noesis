@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis;
+using Noesis.Scanner.CSharp.Caching;
 using Noesis.Scanner.CSharp.Bodies;
 using Noesis.Scanner.CSharp.Declarations;
 using Noesis.Scanner.CSharp.Loading;
@@ -11,16 +12,33 @@ using DiagnosticSeverity = Noesis.Scanner.Model.DiagnosticSeverity;
 
 namespace Noesis.Scanner.CSharp;
 
-/// <summary>One project into one model file: declaration pass, body pass per tree in parallel, external closure.</summary>
-internal sealed class ArtifactScanner(Generator generator, string repositoryRoot, IReadOnlySet<string> sourceAssemblyNames, ScanLog log)
+/// <summary>What scanning one project produced: the model, whether the project loaded, whether the model came from the cache.</summary>
+internal sealed record ArtifactScan(CodeModelFile Model, bool Loaded, bool Cached);
+
+/// <summary>One project into one model file: declaration pass, body pass per tree in parallel, external closure; or the cached model when the inputs are unchanged.</summary>
+internal sealed class ArtifactScanner(Generator generator, string repositoryRoot, IReadOnlySet<string> sourceAssemblyNames, ModelCache cache, CacheKeys keys, ScanLog log)
 {
     private readonly Locations _locations = new(repositoryRoot);
 
-    public async Task<(CodeModelFile Model, bool Loaded)> ScanAsync(Project project, IReadOnlyList<Diagnostic> loadProblems, CancellationToken cancellationToken)
+    /// <param name="fileStem">The artifact's file name without directory and extension, which names its cache directory too.</param>
+    public async Task<ArtifactScan> ScanAsync(Project project, string fileStem, IReadOnlyList<Diagnostic> loadProblems, CancellationToken cancellationToken)
+    {
+        var key = cache.Enabled ? await keys.KeyOf(project, cancellationToken) : null;
+        if (key is not null && cache.TryRead(fileStem, key) is { } cached)
+        {
+            log.Info($"{project.Name}: cached");
+            return new ArtifactScan(cached, Loaded: true, Cached: true);
+        }
+        var scanned = await CompileAndWalkAsync(project, loadProblems, cancellationToken);
+        if (key is not null && scanned.Loaded) cache.Write(fileStem, key, scanned.Model);
+        return scanned;
+    }
+
+    private async Task<ArtifactScan> CompileAndWalkAsync(Project project, IReadOnlyList<Diagnostic> loadProblems, CancellationToken cancellationToken)
     {
         var compilation = await project.GetCompilationAsync(cancellationToken);
         if (compilation is null || FailedToLoad(project, loadProblems))
-            return (EmptyModel(project, loadProblems), false);
+            return new ArtifactScan(EmptyModel(project, loadProblems), Loaded: false, Cached: false);
 
         var context = new ScanContext(compilation, repositoryRoot, sourceAssemblyNames);
         var artifact = ArtifactOf(project, compilation, context);
@@ -37,7 +55,7 @@ internal sealed class ArtifactScanner(Generator generator, string repositoryRoot
             stubs.Stubs,
             loadProblems.Concat(CompilerDiagnostics(compilation, cancellationToken)).Concat(bodyDiagnostics));
         log.Info($"{project.Name}: {model.Nodes.Count} nodes, {model.Edges.Count} edges, {model.Stubs.Count} stubs, {model.Diagnostics.Count} diagnostics");
-        return (model, true);
+        return new ArtifactScan(model, Loaded: true, Cached: false);
     }
 
     /// <summary>A project MSBuild could not evaluate still yields a <see cref="Project"/>, but one without a single source file and with a load error.</summary>

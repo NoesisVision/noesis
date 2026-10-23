@@ -27,4 +27,7 @@ public sealed record ScanRequest
     public string? TargetFramework { get; init; }
 
     public bool NoRestore { get; init; }
+
+    /// <summary>Where cached model files live, `--cache`; null keeps no cache. Layout in docs/plans/code-model-cache.md.</summary>
+    public string? CacheDirectory { get; init; }
 }

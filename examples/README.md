@@ -73,7 +73,7 @@ claude --plugin-dir ../../plugins/claude-code
 
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 `NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
-Each `discounts-*` example names its scanner in `noesis-config.json`
+Each `discounts-*` example names its scanner in `.noesis/settings.json`
 (`"scanner": "java"` or `"csharp"`), which a scan reads every time. `qdoc-java`
 sets `NOESIS_SCANNER=dummy` instead, as does `dev:qdoc-java`: it has no code to
 scan, so a scan replays its implemented design documents.
@@ -85,7 +85,7 @@ design document and document in them must be served.
 
 Only the two `discounts-*` examples have code to build, and neither build is
 needed for the app, only for working on the sample code. Each is its sources,
-its build files, its scanner config (`noesis-config.json`) and the
+its build files, its scanner config (`.noesis/settings.json`) and the
 `.claude/settings.json` that points the plugin at this checkout's service,
 nothing else: no CI, build scripts, IDE settings or notes from the runs.
 

@@ -51,11 +51,14 @@ async function scan(
   id: string,
   { withCreditNote }: { withCreditNote: boolean },
 ) {
-  await new NoesisSystemModelsRepository(t.noesis).create(
+  await new NoesisSystemModelsRepository(t.noesis).save(
     SystemModel.parse({
       id,
       name: 'shop',
-      scanned_at: '2026-09-25T08:00:00.000Z',
+      scanned_at:
+        id === NEWER_SCAN
+          ? '2026-09-25T08:01:00.000Z'
+          : '2026-09-25T08:00:00.000Z',
       buildingBlocks: withCreditNote
         ? [
             {

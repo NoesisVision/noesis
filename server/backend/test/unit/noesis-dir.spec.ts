@@ -13,7 +13,7 @@ beforeEach(async () => {
 afterEach(() => rm(root, { recursive: true, force: true }));
 
 describe('NoesisDir', () => {
-  it('creates .noesis/, sessions/, logs/ and a .gitignore covering both on first run', async () => {
+  it('creates .noesis/, sessions/, logs/, tmp/, cache/ and a .gitignore covering them on first run', async () => {
     const noesis = new NoesisDir(root);
 
     await noesis.ensureInitialized();
@@ -22,8 +22,10 @@ describe('NoesisDir', () => {
     expect(noesis.logDir).toBe(join(root, '.noesis', 'logs'));
     expect((await stat(noesis.resolve('sessions'))).isDirectory()).toBe(true);
     expect((await stat(noesis.logDir)).isDirectory()).toBe(true);
+    expect((await stat(noesis.resolve('tmp'))).isDirectory()).toBe(true);
+    expect((await stat(noesis.resolve('cache'))).isDirectory()).toBe(true);
     expect(await readFile(join(root, '.noesis', '.gitignore'), 'utf8')).toBe(
-      'sessions/\nlogs/\n',
+      'sessions/\nlogs/\ntmp/\ncache/\n',
     );
   });
 
@@ -32,13 +34,13 @@ describe('NoesisDir', () => {
     await noesis.ensureInitialized();
     await writeFile(
       noesis.resolve('.gitignore'),
-      'sessions/\nlogs/\nscratch/\n',
+      'sessions/\nlogs/\ntmp/\ncache/\nscratch/\n',
     );
 
     await noesis.ensureInitialized();
 
     expect(await readFile(noesis.resolve('.gitignore'), 'utf8')).toBe(
-      'sessions/\nlogs/\nscratch/\n',
+      'sessions/\nlogs/\ntmp/\ncache/\nscratch/\n',
     );
   });
 
@@ -50,7 +52,7 @@ describe('NoesisDir', () => {
     await noesis.ensureInitialized();
 
     expect(await readFile(noesis.resolve('.gitignore'), 'utf8')).toBe(
-      'sessions/\nscratch/\nlogs/\n',
+      'sessions/\nscratch/\nlogs/\ntmp/\ncache/\n',
     );
   });
 

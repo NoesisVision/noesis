@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 /*
  * How namespaces map to module paths (section 6 of
- * docs/plans/code-model-to-system-model.md): `noesis-config.json` at the
- * repository root names the dotted sequences to drop wherever they occur
+ * docs/plans/code-model-to-system-model.md): `.noesis/settings.json` in the
+ * repository names the dotted sequences to drop wherever they occur
  * (a company prefix) and the patterns whose namespaces are not in the model
  * at all. The adapter reads the file; this is the rule.
  */

@@ -238,11 +238,17 @@ export const SystemModel = z
     id: SystemModelId,
     name: z.string(),
     scanned_at: z.string(),
+    /** Short hash of the commit scanned; null when the repository has none. */
+    commit: z
+      .string()
+      .regex(/^[0-9a-f]{4,40}$/)
+      .nullable()
+      .default(null),
     modules: z.array(ScannedDomainModule).default([]),
     buildingBlocks: z.array(ScannedBuildingBlock).default([]),
     behaviours: z.array(ScannedBehaviour).default([]),
   })
   .describe(
-    'The implemented model as one scan found it: graph/system-models/<id>.system-model.json. Every scan is kept; the highest id is the newest.',
+    'The implemented model as one scan found it: graph/system-models/YYYY-MM-DD_HH-MM_<commit>.json, the scan minute in UTC. Every scan is kept, except that one in the same minute on the same commit replaces the one before; the highest id is the newest.',
   );
 export type SystemModel = z.infer<typeof SystemModel>;

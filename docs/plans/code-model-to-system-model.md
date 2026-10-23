@@ -19,12 +19,12 @@ namespace-wide annotations).
 
 ## 1. Inputs and output
 
-| Input                        | Where from                                                                                                            |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `ScanManifest` + model files | The first stage's output directory; the manifest lists the files in dependency order and names the language           |
-| Annotation vocabulary        | One per language, in code (section 2); chosen by the manifest's `language`                                            |
-| `noesis-config.json`         | At the repository root: `scanner` (which scanner reads the repository), `namespacePartsToSkip`, `namespacesToExclude` |
-| Clock, repository name       | From the scanner adapter, as today                                                                                    |
+| Input                        | Where from                                                                                                       |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `ScanManifest` + model files | The first stage's output directory; the manifest lists the files in dependency order and names the language      |
+| Annotation vocabulary        | One per language, in code (section 2); chosen by the manifest's `language`                                       |
+| `.noesis/settings.json`      | In the repository: `scanner` (which scanner reads the repository), `namespacePartsToSkip`, `namespacesToExclude` |
+| Clock, repository name       | From the scanner adapter, as today                                                                               |
 
 Output: the `modules`, `buildingBlocks` and `behaviours` of one
 `SystemModel`, plus diagnostics. The stage is a pure function of its inputs;
@@ -75,7 +75,7 @@ attribute.
   (`[assembly: ExcludeFromDocs]` on `TechnicalStuff`). Its nodes are still
   read: a type reference into it, or a call into it, resolves as usual.
 - **R3.2 Excluded namespace.** A `namespacesToExclude` pattern of
-  `noesis-config.json` drops the namespace and everything in it. (An
+  `.noesis/settings.json` drops the namespace and everything in it. (An
   `exclude` role with `ApplyOnNamespace = true` is read as a plain element
   exclusion; the namespace-wide form is not supported yet, section 12.)
 - **R3.3 Excluded element.** A type, method, property or field with an
@@ -137,7 +137,7 @@ attribute.
 ## 6. Modules
 
 - **R6.1 Namespace to module path.** A namespace's dotted name goes through
-  `noesis-config.json` as today: an excluded pattern drops it and everything
+  `.noesis/settings.json` as today: an excluded pattern drops it and everything
   it contains (R3.2); the `namespacePartsToSkip` sequences are removed
   wherever they occur. What is left is the module path; a namespace that is
   left with nothing, and the global namespace, map to no module, and the
@@ -376,10 +376,11 @@ calls the projection, logs the diagnostics and returns the `SystemModel`.
 **Tests.** `server/backend/test/unit/code-model-projection.spec.ts`: one
 `describe` per section above, one `it` per rule, over a small builder that
 makes a `CodeModelFile` in a few lines. `test/unit/csharp-scanner.spec.ts`
-projects the committed code model of the fixture solution under
-`server/backend/test/fixtures/csharp/shop/` (its `code-model/` is the .NET
-scanner's output over its sources, regenerated with the command in the
-fixture's README) and checks the whole chain without .NET.
-`test/e2e/csharp-scanner.e2e.spec.ts` builds the .NET scanner, scans
-`examples/discounts-dotnet` through the adapter and asserts the model and
-the time each stage took.
+projects the .NET scanner's golden code model of the fixture solution under
+`scanners/dotnet/test/fixtures/` (`CSharpSyntax/Projection` holds the
+annotated types; `scanners/dotnet/test/Noesis.Scanner.Tests/golden/` is
+regenerated with `NOESIS_UPDATE_GOLDEN=1 dotnet test`) and checks the whole
+chain without .NET. `test/e2e/csharp-scanner.e2e.spec.ts` builds the .NET
+scanner, scans the same fixture through the adapter and asserts the model
+and the time each stage took. The expected `invokes` of every chain in the
+fixture are in `test/support/csharp-fixture-expectations.ts`, shared by both.
