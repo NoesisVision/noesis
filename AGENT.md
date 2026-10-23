@@ -49,13 +49,13 @@ The agent host starts **one stdio MCP process per session** (`server/backend/src
 
 ### Backend layers (`server/backend/src`, enforced by Oxlint)
 
-| Layer    | Folder                                                                                                          | May import                     |
-| -------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| platform | `platform/` (files, http, logging, config)                                                                      | platform only                  |
-| app      | `app/` (the domain model and its zod schemas, handlers, ports, file contracts)                                  | app                            |
-| adapters | `adapters/` (`out/store/` over `JsonCollection`, `out/scanner/parsers/`, `out/git/`, `out/logging/`, `in/mcp/`) | adapters, app, platform        |
-| ui       | `adapters/in/ui/` (Hono `/ui` and `/internal` routes)                                                           | ui, app, platform              |
-| root     | `main.ts` and `boot/` (the composition root: workspace, handlers, MCP, ui)                                      | everything; nothing imports it |
+| Layer    | Folder                                                                                               | May import                     |
+| -------- | ---------------------------------------------------------------------------------------------------- | ------------------------------ |
+| platform | `platform/` (files, http, logging, config)                                                           | platform only                  |
+| app      | `app/` (the domain model and its zod schemas, handlers, ports, file contracts)                       | app                            |
+| adapters | `adapters/` (`out/store/` over `JsonCollection`, `out/scanner/` (parsers, Git, scan log), `in/mcp/`) | adapters, app, platform        |
+| ui       | `adapters/in/ui/` (Hono `/ui` and `/internal` routes)                                                | ui, app, platform              |
+| root     | `main.ts` and `boot/` (the composition root: workspace, handlers, MCP, ui)                           | everything; nothing imports it |
 
 `adapters` and `ui` never import each other; `import/no-cycle` is an error. Cross-directory imports use the `#backend/*` alias (extensionless), relative only within a directory. There is no contracts barrel — import `#backend/app/<feature>/<file>` directly.
 

@@ -1,5 +1,5 @@
-import { GitSourceRepository } from '#backend/adapters/out/git/git-source-repository';
-import { ServerScanLog } from '#backend/adapters/out/logging/server-scan-log';
+import { GitSourceRepository } from '#backend/adapters/out/scanner/git-source-repository';
+import { ServerScanLog } from '#backend/adapters/out/scanner/server-scan-log';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import type { Now } from '#backend/app/clock';
 import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
