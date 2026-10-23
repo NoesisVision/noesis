@@ -3,15 +3,10 @@ import type { NamespaceConfig } from '#backend/app/code-model/projection/namespa
 
 /**
  * The scanners a repository can name: `code-model` runs the command line of
- * its `codeModel` block; `java-maven`, `java-gradle` and `csharp` are
- * built-in presets of it.
+ * its `codeModel` block, which is how a Java repository runs the Noesis plugin
+ * its build declares; `csharp` is a built-in preset of it.
  */
-export const RepositoryScannerName = z.enum([
-  'java-maven',
-  'java-gradle',
-  'csharp',
-  'code-model',
-]);
+export const RepositoryScannerName = z.enum(['csharp', 'code-model']);
 export type RepositoryScannerName = z.infer<typeof RepositoryScannerName>;
 
 /**
@@ -28,23 +23,12 @@ export const CodeModelToolSettings = z.object({
 });
 export type CodeModelToolSettings = z.infer<typeof CodeModelToolSettings>;
 
-/**
- * Which engine of the Java scanner the `java-maven` and `java-gradle`
- * presets run: `source` (javac over the sources), `bytecode` (the compiled
- * classes) or `hybrid` (the sources, plus what an annotation processor such
- * as Lombok generated, from the classes).
- */
-export const JavaScannerEngine = z.enum(['source', 'bytecode', 'hybrid']);
-export type JavaScannerEngine = z.infer<typeof JavaScannerEngine>;
-
 /** `.noesis/settings.json`: which scanner reads the repository, how, and how its namespaces map to modules. */
 export interface RepositorySettings {
   /** Null when the file names none, or there is no file. */
   readonly scanner: RepositoryScannerName | null;
   /** Null when the file has no `codeModel` block. */
   readonly codeModel: CodeModelToolSettings | null;
-  /** Null when the file names none; the Java presets then run the source engine. */
-  readonly engine: JavaScannerEngine | null;
   readonly namespaces: NamespaceConfig;
 }
 

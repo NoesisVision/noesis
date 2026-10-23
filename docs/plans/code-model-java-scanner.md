@@ -32,9 +32,10 @@ model document stays the contract.
    service runs it through the command line a repository configures (section
    5a).
 3. **The service gets a second Java scanner.** The regex-based TypeScript
-   scanner stayed as `scanner: "java"` (since removed); the code-model path
-   is `scanner: "java-maven"`, an adapter beside `csharp` that runs Maven,
-   reads the files and projects them with a Java annotation vocabulary.
+   scanner stayed as `scanner: "java"` (since removed). A repository now
+   declares the Noesis Maven or Gradle plugin in its build and runs it
+   through `scanner: "code-model"`; the service reads the files and projects
+   them with a Java annotation vocabulary.
 4. **`vision.noesis.annotations` is unchanged.** The DDD graph the previous
    scanner derived (`detect/`, `derive/`, `graph.json`) is gone; its rules are
    the projection's now, with the Java annotations as a second vocabulary
@@ -207,10 +208,16 @@ class directory is missing), `NS1006` (parameter names unavailable), `NS1007`
 for the module's release, so the bytecode engine read its own JDK's classes),
 `NS1009` (a warning: the running JDK's javac does not support the module's
 release, so the source engine bound the sources against the nearest release it
-does, the running JDK's for a newer one). An engine that fails on a module,
-an exception or a `StackOverflowError` included, writes the artifact and the
+does, the running JDK's for a newer one), `NS1010` (the source engine failed
+on one file: an error when the file's declarations are dropped, a warning
+when only its bodies' calls, accesses and type uses are). A failure in one
+file costs that file: whatever the walk of that file added is rolled back, and
+the walk goes on with the next file. Edges from other files into the types of
+a dropped file keep their ids, with no node behind them. An engine that fails
+on a module outside the walk of a file (javac itself, the closure), an
+exception or a `StackOverflowError` included, writes the artifact and the
 `NS1001` alone, never a partial model, and the scan goes on with the next
-module; the service logs every error and warning a scanner wrote, and counts
+module. The service logs every error and warning a scanner wrote, and counts
 the compiler's per artifact.
 
 ## 3. The source engine
@@ -229,7 +236,10 @@ The module's own `target/classes` is removed from the classpath so sources
 bind to sources, never to a stale class. Attributed trees survive errors:
 an error type is `unresolved`, an unbound call is a diagnostic, and a javac
 crash on one module leaves an empty model with `NS1001` while the scan goes
-on. Ids nest (a method id spells its parameter types), so the id cache is
+on. The engine runs on a thread of its own with a 512 MB stack, reserved
+rather than committed, because javac's attribution and the walks recurse
+once per nesting level, and an expression thousands of terms deep overflows
+a build thread's default stack. Ids nest (a method id spells its parameter types), so the id cache is
 filled get-then-put, never with `computeIfAbsent`.
 
 ## 4. The bytecode engine
@@ -427,26 +437,44 @@ the source lines of every building block and, Lombok's accessors being
 
 ## 5a. The service adapter
 
-`scanner: "java-maven"` in `.noesis/settings.json` selects
-`JavaMavenSourceCodeScanner` (`server/backend/src/adapters/out/scanners/java-maven/`),
-which shares its two-stage shape with the C# adapter through
-`code-model-scanner.ts`: run a command line into the session directory, find
-the one `code-model/<language>/manifest.json` it wrote, read it and its files
-with the zod schema, project with the vocabulary of the language the manifest
-names. It runs Maven with the invocation of section 5 (the repository's own
-`mvnw` when it has one), pins the plugin version it was built with, and tells
-someone without Maven or the plugin what to install. `scanner: "code-model"`
-is the same adapter with the command line taken from the file's `codeModel`
-block (`{out}`, `{root}` and `{name}` filled in). `scanner: "java-gradle"`
-(`java-gradle/`) scans a Gradle build without a change to its files: it writes
-an init script into the session directory that applies the
-`vision.noesis.scanner` plugin from the local Maven repository once every
-project is configured, unless the build applies it itself (two class loaders
-would register the task twice), and runs `noesisScan` with the repository's
-`gradlew`, else `gradle`. Both Java presets run the engine the file's
-`"engine"` names (`source`, `bytecode` or `hybrid`; `source` when it names
-none), which no other scanner accepts. A Gradle build can also give its
-command line in full:
+A Java repository declares the Noesis plugin in its build, with what it
+needs (the version, the engine) in the plugin's configuration, and names
+`scanner: "code-model"` in `.noesis/settings.json` with the command that runs
+it in the file's `codeModel` block (`{out}`, `{root}` and `{name}` filled
+in). The `code-model` scanner shares its two-stage shape with the C# adapter
+through `code-model-scanner.ts`: run a command line into the session
+directory, find the one `code-model/<language>/manifest.json` it wrote, read
+it and its files with the zod schema, project with the vocabulary of the
+language the manifest names. The service knows nothing of Maven or Gradle,
+and the repository's own build decides how the plugin runs.
+
+A compile error costs no module its scan. For Maven the command passes
+`-Dmaven.compiler.failOnError=false`, which belongs to the compiler plugin
+and so cannot sit in the Noesis plugin's configuration. The Gradle plugin
+turns `failOnError` off on every `JavaCompile` task itself when `noesisScan`
+is among the requested tasks. Either way the engines read the sources and
+the compiler's errors land in the model. A Maven repository:
+
+```json
+{
+  "scanner": "code-model",
+  "codeModel": {
+    "command": [
+      "./mvnw",
+      "-B",
+      "-q",
+      "-ntp",
+      "-Dnoesis.out={out}",
+      "-Dnoesis.repository={name}",
+      "-Dmaven.compiler.failOnError=false",
+      "process-classes",
+      "noesis:scan"
+    ]
+  }
+}
+```
+
+A Gradle one:
 
 ```json
 {
@@ -517,9 +545,11 @@ until the Gradle plugin covered them, has since been removed.
   `TypeUsageMirrorTests` does.
 - **Service**: `test/fixtures/java/shop` is a two-module Maven build with the
   rules of the C# `shop` fixture in Java and its committed `code-model/`;
-  `test/unit/java-maven-scanner.spec.ts` runs the adapter over a fake tool that
-  copies it and pins the projected model, `test/e2e/java-maven-scanner.e2e.spec.ts`
-  installs the plugin and scans the fixture for real, asserting the same
+  its POM declares the plugin and its `.noesis/settings.json` runs it;
+  `test/unit/java-scanner.spec.ts` runs the `code-model` scanner over a fake
+  build that copies the committed model and pins the projected model,
+  `test/e2e-toolchain/java-scanner.e2e.spec.ts` installs the plugin and scans
+  the fixture for real with the fixture's own settings, asserting the same
   model as the committed files project to.
 - **Plugin**: `maven-plugin/src/it/multi-module` is a two-module reactor
   project (b depends on a, a uses Guava) that `maven-invoker-plugin` builds

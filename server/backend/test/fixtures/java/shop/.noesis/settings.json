@@ -1,5 +1,19 @@
 {
-  "scanner": "java-maven",
+  "scanner": "code-model",
+  "codeModel": {
+    "command": [
+      "mvn",
+      "-B",
+      "-q",
+      "-ntp",
+      "-Dnoesis.out={out}",
+      "-Dnoesis.repository={name}",
+      "-Dmaven.compiler.failOnError=false",
+      "process-classes",
+      "noesis:scan"
+    ],
+    "installHint": "Run the service on a JDK with Maven on the PATH; the build takes noesis-scanner-maven-plugin from the local repository (mvn install in scanners/java)."
+  },
   "namespacePartsToSkip": ["com.acme"],
   "namespacesToExclude": ["*.internal"]
 }
