@@ -3,17 +3,69 @@
  * colours are the architecture diagram's tokens, so the two canvases read
  * alike in both schemes.
  */
+/* One white card: the toolbar over the canvas, a hairline between them. */
 .exploration {
   min-height: 0;
   border: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-md);
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-radius: 16px;
   overflow: hidden;
+  background-color: var(--mantine-color-body);
 }
 
 .toolbar {
+  padding: 12px 16px;
   border-bottom: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+    light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+}
+
+/* A group of the toolbar's buttons on a soft grey pill of its own. */
+.pill {
+  padding: 3px;
+  border-radius: 10px;
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+}
+
+/* The thin rule between groups of controls. */
+.toolbarDivider {
+  flex: none;
+  width: 1px;
+  height: 24px;
+  margin: 0 4px;
+  background-color: light-dark(
+    var(--mantine-color-gray-2),
+    var(--mantine-color-dark-4)
+  );
+}
+
+/* An arrow alone in a segment, centred in it. */
+.segmentIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The visibility panel's chevron turns up while the panel is open. */
+.chevron {
+  transition: transform 0.15s ease;
+
+  &[data-open] {
+    transform: rotate(180deg);
+  }
+}
+
+/* The edges' options, one under another, each its name then its switch. */
+.menuSwitches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-sm);
+
+  & :global(.mantine-Switch-body) {
+    justify-content: space-between;
+  }
 }
 
 /* A leaf element's node: the card fills it. */
@@ -636,4 +688,10 @@
   color: var(--mantine-color-text);
   font-size: var(--mantine-font-size-sm);
   font-weight: 700;
+}
+
+/* A button that cannot be pressed yet is a faint icon on the pill, not a box. */
+.pill :global(.mantine-ActionIcon-root)[data-disabled] {
+  background-color: transparent;
+  opacity: 0.45;
 }

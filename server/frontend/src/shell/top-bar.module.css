@@ -4,11 +4,30 @@
   box-shadow: inset 0 -1px 0 var(--noesis-rail-border);
 }
 
-/* As wide as the rail under it (from `md`, 62em), so the name sits over it. */
+/*
+ * At least as wide as the rail under it (from `md`, 62em), and as wide as the
+ * project's name needs past that; on a phone it gives way, and the name is cut.
+ */
 .brand {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
 
   @media (min-width: 62em) {
-    width: 232px;
+    min-width: 232px;
   }
+}
+
+.app {
+  flex: none;
+}
+
+.slash.slash {
+  flex: none;
+  color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));
+}
+
+/* The project's name gives way, not the app's. */
+.project.project {
+  min-width: 0;
+  color: var(--noesis-secondary-text);
 }

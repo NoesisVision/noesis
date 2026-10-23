@@ -191,7 +191,9 @@ export function Columns({
   if (!wide) {
     return (
       <Stack gap="md" className={classes.stacked}>
-        <Box className={classes.pane}>{outlinePane}</Box>
+        <Box className={classes.pane} data-outline>
+          {outlinePane}
+        </Box>
         <Box className={classes.pane}>{detailPane}</Box>
       </Stack>
     );
@@ -254,12 +256,12 @@ export function Columns({
       attributes={{ handle: { 'aria-label': 'Resize the columns' } }}
       sizes={columns}
       onSizeChange={(sizes) => setColumns(sizes.map(Number))}
-      lineSize={4}
     >
       <Splitter.Pane
         defaultSize={columns[0] ?? DEFAULT_COLUMNS[0]!}
         min="16rem"
         className={classes.pane}
+        data-outline
       >
         {outlinePane}
       </Splitter.Pane>

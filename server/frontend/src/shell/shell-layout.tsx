@@ -6,7 +6,10 @@ import {
   useFullscreenElement,
   useLocalStorage,
 } from '#/shared/design-system/hooks';
-import { ShellFullscreenContext } from '#/shared/ui/shell-fullscreen.tsx';
+import {
+  ExitFullscreenButton,
+  ShellFullscreenContext,
+} from '#/shared/ui/shell-fullscreen.tsx';
 import { useActiveRoute } from './navigation/use-active-route.ts';
 import { Rail } from './rail';
 import { TopBar } from './top-bar';
@@ -22,7 +25,7 @@ export function ShellLayout() {
   });
   // A phone opens the rail as the whole screen, so it is never folded there.
   const collapsed = railCollapsed && !navbarOpened;
-  // The kind of page open, ruled across its top in its colour.
+  // The kind of page open, whose colour everything on it is marked with.
   const { activeItem } = useActiveRoute();
   // The content is what goes full screen, so it stays full screen while the
   // views inside it change; the top bar and the rail are simply not painted.
@@ -67,6 +70,7 @@ export function ShellLayout() {
       >
         <ShellFullscreenContext value={shellFullscreen}>
           <Outlet />
+          <ExitFullscreenButton />
         </ShellFullscreenContext>
       </AppShell.Main>
     </AppShell>

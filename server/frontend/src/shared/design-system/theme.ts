@@ -1,9 +1,13 @@
 import {
+  Card,
   type CSSVariablesResolver,
   createTheme,
   localStorageColorSchemeManager,
   Modal,
+  SegmentedControl,
+  Splitter,
 } from '@mantine/core';
+import classes from './theme.module.css';
 
 /** The noesis.vision palette. */
 export const theme = createTheme({
@@ -36,6 +40,22 @@ export const theme = createTheme({
       // padding ends, so the frame starts in from the left and runs off the
       // right. Pinned to the screen's edge, it sits where it does in the body.
       styles: { inner: { left: 0 } },
+    }),
+    SegmentedControl: SegmentedControl.extend({
+      classNames: {
+        root: classes.segmentedRoot,
+        indicator: classes.segmentedIndicator,
+        label: classes.segmentedLabel,
+      },
+    }),
+    Card: Card.extend({ classNames: { root: classes.card } }),
+    // Every split the same: a gap of the page with a slim grip in it.
+    Splitter: Splitter.extend({
+      defaultProps: { lineSize: 18 },
+      classNames: {
+        handle: classes.splitterHandle,
+        thumb: classes.splitterThumb,
+      },
     }),
   },
 });

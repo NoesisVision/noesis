@@ -3,12 +3,15 @@ import type {
   OutlineKind,
   OutlineNode,
 } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { CHANGE_COLOUR } from '#/features/design-docs/ui/model-tree/outline-change.ts';
+import { Box } from '#/shared/design-system/box.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
+import { titleCase } from '#/shared/ui/title-case.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../../../change-set.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
 import { addressOf } from '../../../../element-id.ts';
-import { ChangeBadge } from '../../change-badge.tsx';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
@@ -105,6 +108,12 @@ function PatternGroup({
   );
 }
 
+/** What a card with no pattern says it is, under its name. */
+const KIND_LABEL: Record<ElementCardsSectionProps['kind'], string> = {
+  module: 'Module',
+  building_block: 'Building block',
+};
+
 function ElementCard({
   node,
   description,
@@ -114,15 +123,19 @@ function ElementCard({
 }) {
   const { has, select } = useElementNavigation();
   const removed = node.change === 'removed' || undefined;
+  const colour = CHANGE_COLOUR[node.change];
+  const opens = has(node.path);
   return (
     // By its address on hover, and what the design gives it.
     <ElementTooltip name={addressOf(node.path)}>
-      <div className={classes.card}>
-        <div className={classes.head}>
-          <span className={classes.icon} aria-hidden="true">
-            <KindIcon kind={node.kind} pattern={node.pattern} />
-          </span>
-          {has(node.path) ? (
+      <div className={classes.card} data-opens={opens || undefined}>
+        <span className={classes.tile} aria-hidden="true">
+          <KindIcon kind={node.kind} pattern={node.pattern} size={18} />
+        </span>
+        <div className={classes.text}>
+          {opens ? (
+            // The name is the card's one link; it stretches over the card,
+            // so the whole card opens the row.
             <UnstyledButton
               className={classes.name}
               data-link
@@ -136,12 +149,24 @@ function ElementCard({
               {node.name}
             </span>
           )}
-          <ChangeBadge change={node.change} />
+          {/* What it is, unless its group's caption already says so. */}
+          {node.patternLabel === null && (
+            <span className={classes.kind}>
+              {KIND_LABEL[node.kind as ElementCardsSectionProps['kind']]}
+            </span>
+          )}
+          {description !== null && (
+            <div className={classes.description}>
+              <MarkdownReading markdown={description} />
+            </div>
+          )}
         </div>
-        {description !== null && (
-          <div className={classes.description}>
-            <MarkdownReading markdown={description} />
-          </div>
+        {colour !== null && (
+          // A dot in the change's colour; the word is there for whoever
+          // cannot see the colour.
+          <Box component="span" className={classes.dot} bg={`${colour}.6`}>
+            <VisuallyHidden>{titleCase(node.change)}</VisuallyHidden>
+          </Box>
         )}
       </div>
     </ElementTooltip>

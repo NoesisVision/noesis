@@ -19,26 +19,6 @@
 }
 
 /*
- * The kind of page open, as a rule in its colour (`page-tone.css`) along the
- * top of the page, under the top bar and beside the rail: it stays put while
- * the page scrolls.
- */
-.main[data-page-tone]::after {
-  content: '';
-  position: fixed;
-  inset: var(--app-shell-header-offset, 0) 0 auto
-    var(--app-shell-navbar-offset, 0);
-  z-index: var(--app-shell-header-z-index, 100);
-  height: 3px;
-  background-color: var(--noesis-tone-filled);
-}
-
-/* Full screen, the page is the whole window: nothing to rule it off from. */
-.main:fullscreen::after {
-  display: none;
-}
-
-/*
  * Full screen, the content is the page: the browser stops painting the
  * top bar and the rail, so there is nothing to offset by, and it scrolls
  * itself.

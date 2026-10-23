@@ -50,9 +50,21 @@
   /* The body scrolls inside the rounded frame rather than through its corners. */
   overflow: hidden;
   border: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-sm);
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-radius: 18px;
   background-color: var(--pane-surface);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05);
+}
+
+/*
+ * The tree sits on the page itself, with no frame: the element beside it is
+ * the surface, the tree is how the reader moves about it.
+ */
+.pane[data-outline] {
+  border: none;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
 }
 
 /* Around a detail that draws its own panes: only the place, not the frame. */
@@ -60,6 +72,7 @@
   border: none;
   border-radius: 0;
   background-color: transparent;
+  box-shadow: none;
 }
 
 /*
@@ -78,23 +91,18 @@
 
 /*
  * Above the rows and outside their scroller, so what is being looked for is
- * still on screen among the results of looking. Edged along the bottom so
- * that a row scrolling up to it reads as going under something rather than
- * simply stopping.
+ * still on screen among the results of looking.
  */
 .searchBar {
   flex: none;
   /* Even all round: the gap above the box came from the pane's gutter and
      the one below it from the gap the outline used to sit at, which is not a
      reason for the two to differ. */
-  padding: var(--mantine-spacing-md);
-  border-bottom: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  padding: 0 2px 10px;
 }
 
 .outlineBody {
-  padding: var(--mantine-spacing-xs) var(--mantine-spacing-xs)
-    var(--mantine-spacing-md) var(--mantine-spacing-xs);
+  padding: 2px 2px var(--mantine-spacing-md);
 }
 
 /*

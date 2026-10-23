@@ -1,0 +1,127 @@
+/*
+ * Prose read as the design reads it, wherever a whole text is read in a card:
+ * a design's overview, a document.
+ */
+
+/* The card's own room around the text; less of it on a phone. */
+.prose.prose {
+  padding: 40px 48px 44px;
+
+  @media (max-width: 47.99em) {
+    padding: 24px 20px;
+  }
+}
+
+/*
+ * Its first paragraph a lede, each section
+ * under a plain heading, points on violet dots and the reading order as
+ * numbered steps on one line.
+ */
+.prose [contenteditable] {
+  & p {
+    font-size: 15.5px;
+    line-height: 1.75;
+  }
+
+  & > p:first-child {
+    font-size: 18px;
+    line-height: 1.7;
+  }
+
+  /* What opens the text sits at the card's own padding, no further down. */
+  & > :first-child {
+    margin-top: 0;
+  }
+
+  /* Scrolled to, a heading stops clear of the page's sticky title. */
+  & :is(h1, h2, h3, h4, h5, h6) {
+    scroll-margin-top: 9rem;
+  }
+
+  & h2,
+  & h3 {
+    margin-top: 34px;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  & ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  & li p {
+    margin: 0;
+  }
+
+  & ul > li {
+    position: relative;
+    padding-left: 18px;
+    font-size: 15.5px;
+    line-height: 1.75;
+  }
+
+  & ul > li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--mantine-color-violet-4);
+  }
+
+  & ol {
+    list-style: none;
+    padding-left: 0;
+    counter-reset: step;
+  }
+
+  & ol > li {
+    position: relative;
+    padding: 0 0 18px 40px;
+    font-size: 15.5px;
+    line-height: 1.75;
+    counter-increment: step;
+  }
+
+  /* The step's number, in a ring. */
+  & ol > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--mantine-color-violet-7);
+    background-color: light-dark(
+      var(--mantine-color-white),
+      var(--mantine-color-dark-7)
+    );
+    box-shadow:
+      0 0 0 1px var(--mantine-color-violet-2),
+      0 1px 2px rgba(16, 24, 40, 0.06);
+  }
+
+  /* The line on to the next step. */
+  & ol > li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 32px;
+    bottom: 4px;
+    width: 1px;
+    background-color: light-dark(
+      var(--mantine-color-violet-1),
+      var(--mantine-color-dark-4)
+    );
+  }
+}

@@ -87,7 +87,7 @@ export function ElementDetail({
   // Measured outside the key below, so the width is known on every element.
   const { ref: bodyRef, width: bodyWidth } = useElementSize();
   const badges = (
-    <Group gap="xs" ml="auto" className={classes.badges}>
+    <Group gap="xs" className={classes.badges}>
       <VisibilityBadge visibility={visibility} />
       <ChangeBadge change={node.change} />
     </Group>
@@ -99,23 +99,21 @@ export function ElementDetail({
       <DetailBreadcrumb path={path} onSelect={onSelect} />
       <header className={classes.header}>
         <span className={classes.tile}>
-          <KindIcon kind={node.kind} pattern={node.pattern} />
+          <KindIcon kind={node.kind} pattern={node.pattern} size={22} />
         </span>
         <div className={classes.heading}>
-          {/* What it is on the left, what the design does to it on the
-              right; with no kind to name, the badges end the name's line
-              and the tile centres on the name alone. */}
+          {/* What it is over the name; what the design does to it right
+              after the name, on its line. */}
           {node.patternLabel !== null && (
             <div className={classes.kind}>
               <span className={classes.pattern}>{node.patternLabel}</span>
-              {badges}
             </div>
           )}
           <div className={classes.title}>
             <Title order={2} className={classes.name}>
               <NodeName node={node} field={designed?.name} />
             </Title>
-            {node.patternLabel === null && badges}
+            {badges}
           </div>
         </div>
       </header>

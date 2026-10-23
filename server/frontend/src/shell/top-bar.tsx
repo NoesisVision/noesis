@@ -7,7 +7,9 @@ import {
   IconSettings,
   IconSun,
 } from '@tabler/icons-react';
+import { useQuery } from '@tanstack/react-query';
 import { use } from 'react';
+import { currentProject } from '#/features/project/project.api.ts';
 import noesisLogo from '#/noesis.png';
 import { ActionIcon } from '#/shared/design-system/action-icon';
 import { Burger } from '#/shared/design-system/burger';
@@ -32,8 +34,8 @@ interface TopBarProps {
 }
 
 /**
- * The app's own controls, apart from the change you are in: the name on the
- * left, over the rail; full screen and settings on the right. Below `md` the
+ * The app's own controls, apart from the change you are in: the app's name
+ * and the project's on the left, over the rail; full screen and settings on the right. Below `md` the
  * burger opens the rail, which is folded away there.
  */
 export function TopBar({ navbarOpened, onToggleNavbar }: TopBarProps) {
@@ -53,15 +55,35 @@ export function TopBar({ navbarOpened, onToggleNavbar }: TopBarProps) {
         size="sm"
         aria-label="Toggle navigation"
       />
-      <Group gap={10} wrap="nowrap" className={classes.brand}>
-        <img src={noesisLogo} alt="" width={22} height={22} />
-        <Text fw={700}>Noesis</Text>
-      </Group>
+      <Brand />
       <Group gap={2} wrap="nowrap" ml="auto">
         <FullscreenTool />
         <DevToolsTool />
         <SettingsTool />
       </Group>
+    </Group>
+  );
+}
+
+/** "Noesis / project": the app, and the project it was started on. */
+function Brand() {
+  const { data: project } = useQuery(currentProject);
+  return (
+    <Group gap={8} wrap="nowrap" className={classes.brand}>
+      <img src={noesisLogo} alt="" width={22} height={22} />
+      <Text fw={700} className={classes.app}>
+        Noesis
+      </Text>
+      {project?.name && (
+        <>
+          <Text component="span" className={classes.slash} aria-hidden>
+            /
+          </Text>
+          <Text fw={300} truncate className={classes.project}>
+            {project.name}
+          </Text>
+        </>
+      )}
     </Group>
   );
 }

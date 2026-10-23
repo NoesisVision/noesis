@@ -1,0 +1,59 @@
+/*
+ * A soft grey tile, the whole of it the link: its kind's icon, its title and
+ * what it is beside that. Under the pointer or the keyboard it is lifted off
+ * the card it sits on, white.
+ */
+.tile {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-md);
+  border-radius: var(--mantine-radius-lg);
+  color: inherit;
+  text-decoration: none;
+  /* A step off the card it sits on, which is dark 6 in the dark. */
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-5)
+  );
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+
+  &:hover {
+    background-color: light-dark(
+      var(--mantine-color-white),
+      var(--mantine-color-dark-4)
+    );
+    box-shadow:
+      0 1px 3px rgba(16, 24, 40, 0.08),
+      0 0 0 1px
+        light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+/* A heading by its place in the page, a line of the tile by its look. */
+.title.title {
+  margin: 0;
+  font-size: var(--mantine-font-size-md);
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 8px;
+  border-radius: 50%;
+}

@@ -1,5 +1,5 @@
 import { Box } from '#/shared/design-system/box.tsx';
-import { IconHeading } from '#/shared/ui/icon-heading.tsx';
+import { PageHeading } from '#/shared/ui/page-heading.tsx';
 import { useActiveRoute } from '#/shell/navigation/use-active-route.ts';
 
 export function ViewHeader() {
@@ -8,12 +8,11 @@ export function ViewHeader() {
 
   return (
     <Box mb="lg">
-      <IconHeading
+      <PageHeading
         title={activeItem.label}
-        icon={activeItem.icon}
-        description={activeItem.description}
-        tone={activeItem.tone}
         eyebrow={activeItem.label}
+        meta={activeItem.description}
+        tone={activeItem.tone}
       />
     </Box>
   );

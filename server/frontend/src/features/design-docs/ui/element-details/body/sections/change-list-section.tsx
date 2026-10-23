@@ -63,19 +63,8 @@ export function ChangeListSection({
 
   return (
     <DetailSection
-      title={
-        // Rules say how many there are, dimmed after the name.
-        kind === 'rule' && items.length > 0 ? (
-          <>
-            {title}
-            <Text span c="dimmed" fw={400}>
-              {items.length}
-            </Text>
-          </>
-        ) : (
-          title
-        )
-      }
+      title={title}
+      count={items.length}
       icon={SECTION_ICONS[kind] ?? <KindIcon kind={kind} pattern={null} />}
     >
       {kind === 'property' ? (

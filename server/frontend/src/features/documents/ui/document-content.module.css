@@ -1,0 +1,46 @@
+/*
+ * The document in its card, and what it is made of and where it points on
+ * the right, as a design's overview is laid out. Where the two do not fit
+ * side by side, the cards go under the document.
+ */
+.layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+  padding-bottom: calc(var(--mantine-spacing-xl) * 2);
+}
+
+/*
+ * Beside the document, it stays in view as the document scrolls: under the
+ * page's sticky title, where a heading scrolled to comes to rest (the prose's
+ * `scroll-margin-top`), and scrolling on its own when it is the taller.
+ */
+.aside {
+  flex: 0 1 270px;
+  min-width: 230px;
+  position: sticky;
+  top: 9rem;
+  max-height: calc(100dvh - 9rem - var(--mantine-spacing-lg));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Room for the cards' own outline, which the scroll box would clip. */
+  padding: 1px;
+
+  /* Under the document rather than beside it: the page's whole width. */
+  @media (max-width: 61.99em) {
+    flex-basis: 100%;
+    position: static;
+    max-height: none;
+  }
+}
+
+.body.body {
+  flex: 1 1 560px;
+  min-width: 0;
+}
+
+/* A section under another sits in from it, as it does in the document. */
+.entry[data-depth='3'] {
+  padding-left: 14px;
+}

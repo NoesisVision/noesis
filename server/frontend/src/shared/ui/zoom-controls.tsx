@@ -27,6 +27,7 @@ export function ZoomControls({
   onActualSize,
   size = 'md',
   disabled = false,
+  quiet = false,
 }: {
   /** The scale the canvas is at; 1 is the size it was drawn. */
   zoom: number;
@@ -38,8 +39,15 @@ export function ZoomControls({
   size?: keyof typeof ICON_SIZE;
   /** While the canvas is not there to be zoomed yet. */
   disabled?: boolean;
+  /**
+   * Quiet buttons on a soft grey pill, as a canvas's toolbar draws a group of
+   * its controls, rather than outlined ones standing on their own.
+   */
+  quiet?: boolean;
 }) {
-  const button = { variant: 'default', size, disabled } as const;
+  const button = quiet
+    ? ({ variant: 'subtle', color: 'gray', size: 'lg', disabled } as const)
+    : ({ variant: 'default', size, disabled } as const);
   const icon = { size: ICON_SIZE[size], stroke: 1.6, 'aria-hidden': true };
   return (
     // A fieldset by its legend, laid out as a group, with nothing a fieldset
@@ -53,6 +61,7 @@ export function ZoomControls({
       bd={0}
       miw={0}
       data-size={size}
+      className={quiet ? classes.pill : undefined}
     >
       <VisuallyHidden component="legend">Zoom</VisuallyHidden>
       <ActionIcon

@@ -3,30 +3,36 @@
   container-type: inline-size;
   display: flex;
   flex-direction: column;
-  gap: var(--mantine-spacing-xs);
+  gap: 12px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* A white card, softly rounded and only just lifted off the panel. */
 .card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 14px;
-  padding: var(--mantine-spacing-md);
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-body);
-  box-shadow: var(--mantine-shadow-xs);
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-7)
+  );
+  box-shadow:
+    0 1px 3px rgba(16, 24, 40, 0.06),
+    0 0 0 1px
+      light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
 }
 
 .mark {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
   background: var(--mantine-color-brand-light);
   color: var(--mantine-color-brand-light-color);
 }
@@ -75,7 +81,7 @@
 
 /* Named with the card, to win over the reset of a button written in place. */
 .card .title {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.35;
   overflow-wrap: anywhere;
@@ -96,10 +102,18 @@
   }
 }
 
+/* What kind of rule, as a quiet tag. */
 .card .classification {
-  font-size: var(--mantine-font-size-xs);
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 7px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--noesis-secondary-text);
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-5)
+  );
 }
 
 .card .needs {
@@ -108,10 +122,17 @@
 }
 
 .card .description {
-  font-size: var(--mantine-font-size-sm);
-  line-height: 1.55;
-  color: var(--noesis-secondary-text);
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--mantine-color-text);
   text-wrap: pretty;
+}
+
+/* What it answers, under a hairline, as the card's last word. */
+.card .needs {
+  padding-top: 12px;
+  border-top: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
 }
 
 /* Named with the list, to win over the anchor's own type and colour. */

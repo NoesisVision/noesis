@@ -1,0 +1,48 @@
+/* The one card the overview is on, down the rest of the page. */
+.card.card {
+  flex: 1;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  max-width: 1040px;
+}
+
+/* What the change is about, quieter than what it holds and kept to a measure. */
+.description {
+  max-width: 760px;
+  color: var(--mantine-color-dimmed);
+  text-wrap: pretty;
+
+  & p {
+    color: inherit;
+  }
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+
+  & > :first-child svg {
+    flex: none;
+    color: var(--mantine-color-dimmed);
+  }
+}
+
+/* A heading by its place in the page, a quiet line by its look. */
+.sectionTitle.sectionTitle {
+  margin: 0;
+  font-size: var(--mantine-font-size-md);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* As many tiles a row as fit, none narrower than 300px. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}

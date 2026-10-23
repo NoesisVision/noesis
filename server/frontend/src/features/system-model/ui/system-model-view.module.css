@@ -1,21 +1,29 @@
 /*
  * The tree and the element in hand scroll apart, as in a design document: the
- * surface is measured against the window, below the view's own heading.
+ * surface, its own heading included, is measured against the window.
  */
 .surface {
   --workbench-gutter: var(--app-shell-padding, var(--mantine-spacing-lg));
 
   display: flex;
   flex-direction: column;
-  gap: var(--mantine-spacing-md);
+  gap: var(--mantine-spacing-lg);
   height: calc(
-    100dvh - var(--app-shell-header-offset, 0rem) - 2 *
-      var(--workbench-gutter) - 6rem
+    100dvh - var(--app-shell-header-offset, 0rem) - 2 * var(--workbench-gutter)
   );
   min-height: 24rem;
 }
 
+/* The title takes the line; where the controls do not fit beside it, they wrap under it. */
 .header {
+  flex: none;
+
+  & > :first-child {
+    flex: 1 1 240px;
+  }
+}
+
+.controls {
   flex: none;
 }
 

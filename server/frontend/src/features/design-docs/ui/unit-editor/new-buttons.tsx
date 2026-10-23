@@ -54,7 +54,9 @@ export function NewRuleButton({ owner }: { owner: PartOwner }) {
   if (draft === null)
     return (
       <UnstyledButton className={classes.ghost} onClick={() => setDraft('')}>
-        <IconPlus size={16} aria-hidden />
+        <span className={classes.tile} aria-hidden>
+          <IconPlus size={16} />
+        </span>
         Add rule
       </UnstyledButton>
     );
@@ -156,7 +158,9 @@ export function NewScenarioButton({
       className={clsx(classes.ghost, classes.inset)}
       onClick={add}
     >
-      <IconPlus size={16} aria-hidden />
+      <span className={classes.tile} aria-hidden>
+        <IconPlus size={16} />
+      </span>
       Add scenario
     </UnstyledButton>
   );

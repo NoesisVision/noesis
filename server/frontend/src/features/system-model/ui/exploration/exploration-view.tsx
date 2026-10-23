@@ -520,6 +520,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         onAutoPlace={autoPlace}
       >
         <ZoomControls
+          quiet
           zoom={zoom}
           disabled={flow === null}
           onZoomOut={() => void flow?.zoomOut()}
@@ -721,9 +722,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                 )}
                 <Background
                   variant={BackgroundVariant.Dots}
-                  gap={16}
+                  gap={20}
                   size={1}
-                  color="light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))"
+                  color="light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))"
                   bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
                 />
               </ReactFlow>
