@@ -419,7 +419,7 @@ The scan itself is domain logic too: `SourceCodeScanner`
 (`app/scanner/code-model/code-parser.ts`) and a `SystemModelBuilder`, runs the parser,
 builds the system model of what it read, reports the diagnostics through the
 `ScanLog` port and returns the `SystemModel`. The adapters are only parsers:
-`CSharpCodeParser` and `JavaCodeParser` (`adapters/out/parsers/`) run their
+`CSharpCodeParser` and `JavaCodeParser` (`adapters/out/scanner/parsers/`) run their
 tool, and read and validate the files it wrote with the `code-model.ts` schemas.
 
 **Tests.** `server/backend/test/unit/system-model-builder.spec.ts`: one

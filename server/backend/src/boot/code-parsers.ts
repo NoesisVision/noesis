@@ -1,5 +1,5 @@
-import { CSharpCodeParser } from '#backend/adapters/out/parsers/csharp-code-parser';
-import { JavaCodeParser } from '#backend/adapters/out/parsers/java-code-parser';
+import { CSharpCodeParser } from '#backend/adapters/out/scanner/parsers/csharp-code-parser';
+import { JavaCodeParser } from '#backend/adapters/out/scanner/parsers/java-code-parser';
 import type { CodeParsers } from '#backend/app/scanner/system-model/scanner-factory';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 

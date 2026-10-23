@@ -7,7 +7,7 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { CSharpCodeParser } from '#backend/adapters/out/parsers/csharp-code-parser';
+import { CSharpCodeParser } from '#backend/adapters/out/scanner/parsers/csharp-code-parser';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import {
   CodeModelFile,

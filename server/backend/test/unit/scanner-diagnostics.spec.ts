@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { scannerDiagnostics } from '#backend/adapters/out/parsers/command-code-parser';
+import { scannerDiagnostics } from '#backend/adapters/out/scanner/parsers/command-code-parser';
 import type {
   CodeModelFile,
   Diagnostic,
