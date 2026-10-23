@@ -1,5 +1,5 @@
 {
-  "scanner": "code-model",
+  "parser": "code-model",
   "codeModel": {
     "command": [
       "mvn",
@@ -10,9 +10,9 @@
       "-Dnoesis.repository={name}",
       "-Dmaven.compiler.failOnError=false",
       "process-classes",
-      "noesis:scan"
+      "noesis:parse"
     ],
-    "installHint": "Run the service on a JDK with Maven on the PATH; the build takes noesis-scanner-maven-plugin from the local repository (mvn install in scanners/java)."
+    "installHint": "Run the service on a JDK with Maven on the PATH; the build takes noesis-parser-maven-plugin from the local repository (mvn install in parsers/java)."
   },
   "namespacePartsToSkip": ["com.acme"],
   "namespacesToExclude": ["*.internal"]

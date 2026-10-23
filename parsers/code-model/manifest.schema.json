@@ -1,0 +1,180 @@
+{
+  "$comment": "Generated from its zod schema by @noesis-vision/noesis 0.1.0-beta.4. Do not edit: change the schema and regenerate.",
+  "title": "Noesis code model: the manifest of a parse",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "generator": {
+      "$ref": "#/$defs/Generator"
+    },
+    "language": {
+      "type": "string",
+      "enum": [
+        "csharp",
+        "java",
+        "typescript",
+        "php"
+      ]
+    },
+    "repository": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "revision"
+      ],
+      "additionalProperties": false
+    },
+    "root": {
+      "type": "string"
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/NodeId"
+          },
+          "file": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "file"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "diagnostics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Diagnostic"
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "generator",
+    "language",
+    "repository",
+    "root",
+    "artifacts",
+    "diagnostics"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Generator": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "NodeId": {
+      "type": "string",
+      "pattern": "^[ANTMPF]:"
+    },
+    "Diagnostic": {
+      "type": "object",
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warning",
+            "info"
+          ]
+        },
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceSpan"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "compiler",
+            "parser"
+          ]
+        }
+      },
+      "required": [
+        "severity",
+        "code",
+        "message",
+        "location",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "SourceSpan": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string"
+        },
+        "startLine": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "startColumn": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "endColumn": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "file",
+        "startLine",
+        "startColumn",
+        "endLine",
+        "endColumn"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

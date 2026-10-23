@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Noesis.Parser.Model/Noesis.Parser.Model.csproj" />
+    <Project Path="src/Noesis.Parser.CSharp/Noesis.Parser.CSharp.csproj" />
+    <Project Path="src/Noesis.Parser.Cli/Noesis.Parser.Cli.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Noesis.Parser.Tests/Noesis.Parser.Tests.csproj" />
+  </Folder>
+</Solution>

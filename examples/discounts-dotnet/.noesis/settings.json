@@ -1,5 +1,5 @@
 {
-  "scanner": "csharp",
+  "parser": "csharp",
   "namespacePartsToSkip": ["MyCompany.ECommerce"],
   "namespacesToExclude": ["*.TechnicalStuff.*"]
 }

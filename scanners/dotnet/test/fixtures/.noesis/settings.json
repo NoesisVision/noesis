@@ -1,5 +1,0 @@
-{
-  "scanner": "csharp",
-  "namespacePartsToSkip": ["CSharpSyntax"],
-  "namespacesToExclude": ["*.ExcludedNamespace"]
-}

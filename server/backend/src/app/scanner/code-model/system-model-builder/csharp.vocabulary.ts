@@ -8,7 +8,7 @@ import type {
 /*
  * The C# vocabulary: the `NoesisVision.Annotations` package
  * (https://github.com/NoesisVision/noesis-dotnet-annotations) and the .NET
- * platform types, by the ids the Roslyn scanner writes. Section 2 of
+ * platform types, by the ids the Roslyn parser writes. Section 2 of
  * docs/plans/code-model-to-system-model.md is the reference.
  */
 

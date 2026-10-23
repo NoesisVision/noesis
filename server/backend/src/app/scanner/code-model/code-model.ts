@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 /**
- * The common code model every scanner writes: one manifest and one file per
+ * The common code model every parser writes: one manifest and one file per
  * artifact under `<output root>/code-model/<language>/`. Described in
- * docs/arch/code-model.md; the .NET scanner keeps a
+ * docs/arch/code-model.md; the .NET parser keeps a
  * C# copy of these shapes and its golden files are checked against this schema.
  * Objects are strict so a field added on one side fails the other.
  *
  * `bun run generate` writes these shapes as JSON Schema into
- * `scanners/code-model/`, the file a scanner in any language reads; a schema
+ * `parsers/code-model/`, the file a parser in any language reads; a schema
  * named here with `.meta({ id })` becomes a `$defs` entry under that name.
  */
 
@@ -332,7 +332,7 @@ export const Diagnostic = z
     code: z.string(),
     message: z.string(),
     location: SourceSpan.nullable(),
-    source: z.enum(['compiler', 'scanner']),
+    source: z.enum(['compiler', 'parser']),
   })
   .meta({ id: 'Diagnostic' });
 export type Diagnostic = z.infer<typeof Diagnostic>;
@@ -549,7 +549,7 @@ const generator = z
   .strictObject({ name: z.string(), version: z.string() })
   .meta({ id: 'Generator' });
 
-export const ScanManifest = z.strictObject({
+export const ParseManifest = z.strictObject({
   schemaVersion: z.literal(1),
   generator,
   language: Language,
@@ -558,7 +558,7 @@ export const ScanManifest = z.strictObject({
   artifacts: z.array(z.strictObject({ id: NodeId, file: z.string() })),
   diagnostics: z.array(Diagnostic),
 });
-export type ScanManifest = z.infer<typeof ScanManifest>;
+export type ParseManifest = z.infer<typeof ParseManifest>;
 
 export const CodeModelFile = z.strictObject({
   schemaVersion: z.literal(1),

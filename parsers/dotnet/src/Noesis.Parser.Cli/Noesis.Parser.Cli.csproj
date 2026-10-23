@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Noesis.Parser.Cli</RootNamespace>
+    <AssemblyName>noesis-parse-csharp</AssemblyName>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>noesis-parse-csharp</ToolCommandName>
+    <PackageId>Noesis.Parser</PackageId>
+    <Version>0.1.0</Version>
+    <RollForward>Major</RollForward>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Noesis.Parser.CSharp/Noesis.Parser.CSharp.csproj" />
+  </ItemGroup>
+
+</Project>

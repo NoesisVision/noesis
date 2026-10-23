@@ -3,24 +3,24 @@ import { join } from 'node:path';
 import {
   CodeModelFile,
   type Language,
-  ScanManifest,
+  ParseManifest,
 } from '#backend/app/scanner/code-model/code-model';
 
-const scanners = join(import.meta.dir, '../../../../scanners');
+const parsers = join(import.meta.dir, '../../../../parsers');
 
-/** Each scanner's committed golden files: the model it writes for its syntax fixture. */
+/** Each parser's committed golden files: the model it writes for its syntax fixture. */
 const GOLDENS: Record<
   string,
   { language: Language; directory: string; artifacts: string[] }
 > = {
   '.NET': {
     language: 'csharp',
-    directory: join(scanners, 'dotnet/test/Noesis.Scanner.Tests/golden'),
+    directory: join(parsers, 'dotnet/test/Noesis.Parser.Tests/golden'),
     artifacts: ['A:CSharpSyntax.OtherProject', 'A:CSharpSyntax'],
   },
   'Java (source engine)': {
     language: 'java',
-    directory: join(scanners, 'java/core/src/test/resources/golden/source'),
+    directory: join(parsers, 'java/core/src/test/resources/golden/source'),
     artifacts: ['A:java-syntax-other', 'A:java-syntax'],
   },
 };
@@ -30,10 +30,10 @@ async function readJson(file: string): Promise<unknown> {
 }
 
 describe.each(Object.entries(GOLDENS))(
-  'the code model schema and the %s scanner',
-  (_scanner, golden) => {
+  'the code model schema and the %s parser',
+  (_parser, golden) => {
     test('accepts the manifest', async () => {
-      const manifest = ScanManifest.parse(
+      const manifest = ParseManifest.parse(
         await readJson(join(golden.directory, 'manifest.json')),
       );
       expect(manifest.language).toBe(golden.language);
@@ -43,7 +43,7 @@ describe.each(Object.entries(GOLDENS))(
     });
 
     test('round-trips every model file the manifest lists', async () => {
-      const manifest = ScanManifest.parse(
+      const manifest = ParseManifest.parse(
         await readJson(join(golden.directory, 'manifest.json')),
       );
       for (const artifact of manifest.artifacts) {
@@ -58,7 +58,7 @@ describe.each(Object.entries(GOLDENS))(
     });
 
     test('refuses a field the schema does not know', async () => {
-      const manifest = ScanManifest.parse(
+      const manifest = ParseManifest.parse(
         await readJson(join(golden.directory, 'manifest.json')),
       );
       const first = manifest.artifacts[0]!.file;

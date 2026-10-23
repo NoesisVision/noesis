@@ -1,8 +1,8 @@
-import type { CodeModelFile, ScanManifest } from './code-model';
+import type { CodeModelFile, ParseManifest } from './code-model';
 
 /** The code model of one repository: the manifest and every file it lists. */
 export interface ParsedCode {
-  readonly manifest: ScanManifest;
+  readonly manifest: ParseManifest;
   readonly files: readonly CodeModelFile[];
 }
 

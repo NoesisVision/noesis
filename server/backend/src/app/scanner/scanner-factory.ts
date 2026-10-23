@@ -1,7 +1,7 @@
 import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
 import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
 import {
-  RepositoryScannerName,
+  ParserName,
   type RepositorySettings,
   type ScannerSettingsRepository,
 } from './scanner-settings.repository';
@@ -12,7 +12,7 @@ import {
 
 /** How each scanner's parser is built, by name, from the repository's settings. */
 export type CodeParsers = Record<
-  RepositoryScannerName,
+  ParserName,
   (settings: RepositorySettings) => CodeParser
 >;
 
@@ -41,14 +41,14 @@ export class ScannerFactory {
 
   async create(): Promise<SourceCodeScanner> {
     const settings = await this.settings.repositorySettings();
-    if (settings.scanner === null) {
+    if (settings.parser === null) {
       throw new Error(
-        `.noesis/settings.json names no scanner. Set "scanner" to one of: ${RepositoryScannerName.options.join(', ')}.`,
+        `.noesis/settings.json names no parser. Set "parser" to one of: ${ParserName.options.join(', ')}.`,
       );
     }
     return new SourceCodeScanner({
       ...this.scanning,
-      parser: this.parsers[settings.scanner](settings),
+      parser: this.parsers[settings.parser](settings),
       builder: new SystemModelBuilder(settings.namespaces),
     });
   }

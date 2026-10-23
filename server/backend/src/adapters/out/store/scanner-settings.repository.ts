@@ -5,7 +5,7 @@ import {
 } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 import {
   CodeModelToolSettings,
-  RepositoryScannerName,
+  ParserName,
   type RepositorySettings,
   type ScannerSettingsRepository,
 } from '#backend/app/scanner/scanner-settings.repository';
@@ -14,7 +14,7 @@ import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 const SETTINGS_FILE = 'settings.json';
 
 const RepositorySettingsSchema = NamespaceConfigSchema.extend({
-  scanner: RepositoryScannerName.optional(),
+  parser: ParserName.optional(),
   codeModel: CodeModelToolSettings.optional(),
 });
 
@@ -33,22 +33,22 @@ export class ScannerSettingsFileRepository implements ScannerSettingsRepository 
     const file = Bun.file(this.noesis.resolve(SETTINGS_FILE));
     if (!(await file.exists())) {
       return {
-        scanner: null,
+        parser: null,
         codeModel: null,
         namespaces: NamespaceConfig.of({}),
       };
     }
     const raw: unknown = await file.json();
-    refuseJavaPresets(raw, file.name ?? SETTINGS_FILE);
+    refuseRetiredSettings(raw, file.name ?? SETTINGS_FILE);
     const parsed = RepositorySettingsSchema.safeParse(raw);
     if (!parsed.success) {
       throw new Error(
         `Invalid ${file.name}:\n${z.prettifyError(parsed.error)}`,
       );
     }
-    const { scanner, codeModel, ...namespaces } = parsed.data;
+    const { parser, codeModel, ...namespaces } = parsed.data;
     return {
-      scanner: scanner ?? null,
+      parser: parser ?? null,
       codeModel: codeModel ?? null,
       namespaces: NamespaceConfig.of(namespaces),
     };
@@ -56,15 +56,15 @@ export class ScannerSettingsFileRepository implements ScannerSettingsRepository 
 }
 
 /**
- * A file written for the Java presets says how to move to the build's own
- * plugin: the schema would refuse the scanner without saying so, and would
- * drop an `engine` unread, so the scan would run another engine.
+ * A file written for an older service says what to change: the schema would
+ * drop a `scanner` or an `engine` unread, so the scan would run no parser or
+ * another engine. A Java preset moves to the build's own plugin.
  */
-function refuseJavaPresets(raw: unknown, file: string): void {
+function refuseRetiredSettings(raw: unknown, file: string): void {
   if (typeof raw !== 'object' || raw === null) return;
   const settings = raw as { scanner?: unknown; engine?: unknown };
   const move =
-    'Declare the Noesis Maven or Gradle plugin in the build, with the engine in its configuration, and run it with "scanner": "code-model" and a "codeModel" command (scanners/java/README.md).';
+    'Declare the Noesis Maven or Gradle plugin in the build, with the engine in its configuration, and run it with "parser": "code-model" and a "codeModel" command (parsers/java/README.md).';
   if (
     typeof settings.scanner === 'string' &&
     JAVA_PRESETS.includes(settings.scanner)
@@ -73,9 +73,14 @@ function refuseJavaPresets(raw: unknown, file: string): void {
       `${file} names the "${settings.scanner}" scanner, which the service no longer has. ${move}`,
     );
   }
+  if ('scanner' in settings) {
+    throw new Error(
+      `${file} sets "scanner", which is now "parser": rename the key, keeping its value.`,
+    );
+  }
   if ('engine' in settings) {
     throw new Error(
-      `${file} sets "engine", which no scanner reads any more. ${move}`,
+      `${file} sets "engine", which no parser reads any more. ${move}`,
     );
   }
 }

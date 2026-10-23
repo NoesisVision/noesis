@@ -119,17 +119,18 @@ Both land on the same service layer. Neither bypasses it.
   change — including changes Noesis did not make, such as a `git checkout` or a branch switch.
 - **Source code scanner** reads the project source and projects the implemented model into the
   system model files, when an agent calls `scan_system_model` or a person presses Scan on the
-  System model page. At every scan `ScannerFactory` picks the scanner the repository names in
-  `.noesis/settings.json` (`"scanner"`), read through `ScannerSettingsRepository`. `code-model`
-  runs the command line of the file's `codeModel` block (a Gradle build's `noesisScan` task, say)
-  and projects the code model it wrote onto the system model by the vocabulary of the language the
-  manifest names, with the rules in `docs/plans/code-model-to-system-model.md`. A Java repository
-  scans this way: its build declares the Noesis Maven or Gradle plugin, with the engine in the
-  plugin's configuration, and the command runs it. `csharp` (the .NET scanner,
-  `noesis-scan-csharp` on the PATH) is a fixed command line of the same kind. The service knows
+  System model page. At every scan `ScannerFactory` picks the parser the repository names in
+  `.noesis/settings.json` (`"parser"`), read through `ScannerSettingsRepository`. `code-model`
+  runs the command line of the file's `codeModel` block (a Gradle build's `noesisParse` task, say)
+  and `SystemModelBuilder` projects the code model it wrote onto the system model by the
+  vocabulary of the language the manifest names, with the rules in
+  `docs/plans/code-model-to-system-model.md`. A Java repository
+  is parsed this way: its build declares the Noesis Maven or Gradle plugin, with the engine in the
+  plugin's configuration, and the command runs it. `csharp` (the .NET parser,
+  `noesis-parse-csharp` on the PATH) is a fixed command line of the same kind. The service knows
   no build tool; a new tool is a new settings file, not a new adapter. The C# tool keeps a cache of model files under
-  `.noesis/cache/scanner/csharp/` and compiles only the projects whose inputs changed
-  (`scanners/dotnet/README.md`). Projecting into the graph waits for the graph.
+  `.noesis/cache/parser/csharp/` and compiles only the projects whose inputs changed
+  (`parsers/dotnet/README.md`). Projecting into the graph waits for the graph.
 
 ## Source of truth
 
@@ -160,10 +161,10 @@ All knowledge graph files live under `.noesis/` at the repository root:
 ```
 <project>/.noesis/
 ├── .gitignore                  written by the service on first run; contains `sessions/`, `logs/`, `tmp/`
-├── settings.json               repository settings: which scanner, how namespaces map to modules
+├── settings.json               repository settings: which parser, how namespaces map to modules
 ├── sessions/<session>/         scratch space between the agent and the service — never versioned;
 │                               one subdirectory per service process, removed when it exits
-├── tmp/<uuid>/                 the service's own scratch, e.g. the C# scanner's code model —
+├── tmp/<uuid>/                 the service's own scratch, e.g. the C# parser's code model —
 │                               never versioned; removed once used
 └── graph/
     ├── changes/

@@ -1,14 +1,14 @@
 # Design: C# type name resolution without a compiler
 
-> **Status: superseded.** The scanner uses Roslyn, see
-> [`scanners/dotnet`](../../scanners/dotnet/README.md).
+> **Status: superseded.** The C# parser uses Roslyn, see
+> [`parsers/dotnet`](../../parsers/dotnet/README.md).
 > This document remains the inventory of everything that influences type
 > resolution in C# and the design of the Roslyn-based test oracle.
 
-The next C# scanner has to know which type a name in the source refers to:
+The next C# parser has to know which type a name in the source refers to:
 `Order` in `Order Create()` may be `Sales.Order`, `Sales.Legacy.Order`, a
 nested `Service.Order`, a type parameter, or the alias
-`using Order = Shipping.Parcel;`. Today the scanner reads text and keeps the
+`using Order = Shipping.Parcel;`. Today the parser reads text and keeps the
 short name, so two building blocks with the same name collide and relations
 cannot be derived. This document designs `resolveTypeName`, a pure
 TypeScript function that maps a type name at a source position to a unique,
@@ -39,7 +39,7 @@ Two claims are kept apart on purpose:
 | Project model         | Supplied as a `CompilationModel`. Preferred source: `obj/project.assets.json` and the generated `obj/**/*.GlobalUsings.g.cs`, `*.AssemblyInfo.cs` when present (restore output, exact). Fallback: a documented csproj evaluator with listed limits.                                                                                                                                         |
 | Preprocessor          | Source is parsed with the compilation's `DefineConstants`; inactive `#if` regions contribute no declarations and no usings. This is the parser's job; the resolver sees only active syntax.                                                                                                                                                                                                 |
 | Stability             | `ResolutionApi.version = 1`. Additive changes keep the version; a breaking change bumps it and the old `resolve` stays callable for one release. All unions are closed and have a `kind` discriminator.                                                                                                                                                                                     |
-| Oracle                | The `../../scanners/dotnet/test/fixtures` solution plus a Roslyn harness that dumps every type reference's bound symbol to a golden file. The TypeScript implementation must reproduce the golden file byte for byte.                                                                                                                                                                       |
+| Oracle                | The `../../parsers/dotnet/test/fixtures` solution plus a Roslyn harness that dumps every type reference's bound symbol to a golden file. The TypeScript implementation must reproduce the golden file byte for byte.                                                                                                                                                                        |
 
 ## 2. What affects type resolution in C#
 
@@ -542,7 +542,7 @@ are the spec's accessibility domains, reduced to what type lookup needs:
 Containing types narrow the domain: a `public` type nested in an `internal`
 type is `internal` for this purpose. "Derived from" uses the same memoised
 base-type resolution as section 4. Skipped matches are reported in
-`unresolved.nearest` so a scanner can still show "there is a type of that
+`unresolved.nearest` so a parser can still show "there is a type of that
 name, but you cannot see it".
 
 ## 6. Building the compilation model
@@ -578,7 +578,7 @@ constants come from `<DefineConstants>` plus the SDK's implicit set (`DEBUG`,
 
 - a bundled JSON per framework reference pack (`Microsoft.NETCore.App.Ref`
   for each supported `net*` TFM), generated once by a .NET tool at build
-  time of the scanner and shipped with it;
+  time of the parser and shipped with it;
 - an ECMA-335 metadata reader in TypeScript for NuGet packages and project
   outputs (`TypeDef`, `NestedClass`, `ExportedType`, `Assembly`,
   `CustomAttribute` for `InternalsVisibleTo`, `TypeRef`/`TypeSpec` enough to
@@ -586,7 +586,7 @@ constants come from `<DefineConstants>` plus the SDK's implicit set (`DEBUG`,
   it is bounded: no IL, no signatures beyond base types.
 
 Project references resolve to the referenced project's _source_ model, not
-its built assembly, so the whole solution scans from source and project
+its built assembly, so the whole solution is parsed from source and project
 reference aliases behave like assembly aliases.
 
 ## 7. Boundaries and later layers
@@ -596,7 +596,7 @@ reference aliases behave like assembly aliases.
   extension), then types and namespaces, with the `Color Color` rule. This
   design reserves `lookupSimpleName(compilation, site, identifier, arity)`
   returning the type/namespace candidates in order; the expression binder
-  of the next scanner layer combines it with its member tables.
+  of the next parser layer combines it with its member tables.
 - **Member and method resolution**, overload resolution, extension member
   lookup: not here. The identity scheme gives them a stable key for types.
 - **Generic inference, `var` types, lambdas**: `inferred` is reported; the
@@ -608,11 +608,11 @@ reference aliases behave like assembly aliases.
 
 Accuracy is proven, not argued:
 
-1. A small .NET tool (kept in `../../scanners/dotnet/test/fixtures`, run only in CI and
-   by whoever updates the fixtures) opens `../../scanners/dotnet/test/fixtures`
+1. A small .NET tool (kept in `../../parsers/dotnet/test/fixtures`, run only in CI and
+   by whoever updates the fixtures) opens `../../parsers/dotnet/test/fixtures`
    with Roslyn, walks every `TypeSyntax` node of every file, and writes
    `file:line:column`, the written text, and the bound symbol's canonical
-   string (or the error code) to `../../scanners/dotnet/test/fixtures`.
+   string (or the error code) to `../../parsers/dotnet/test/fixtures`.
 2. The TypeScript test parses the same files, builds the compilation model
    from `obj/project.assets.json`, calls `resolveTypeName` at every recorded
    position and compares `canonicalString(result)` with the golden line.
@@ -628,7 +628,7 @@ builds, which turns every real C# project into a regression test for free.
 
 | Question                                                  | Proposal                                                                                                                                                                                                    |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Where the module lives                                    | `server/backend/src/adapters/out/scanners/csharp/type-resolution/` next to the present scanner, as a pure library with no I/O, so it can later move to `scanners/dotnet` unchanged.                         |
+| Where the module lives                                    | `server/backend/src/adapters/out/scanners/csharp/type-resolution/` next to the present scanner, as a pure library with no I/O, so it can later move to `parsers/dotnet` unchanged.                          |
 | Reference-pack JSON size                                  | One file per TFM, ~2 MB gzipped for `net10.0`; loaded lazily per compilation. Acceptable; revisit if several TFMs ship.                                                                                     |
 | Source generators                                         | Their output is in `obj/` only after a build, not after restore. Generated types are therefore invisible unless `obj/` holds them; names bound to generator output resolve to `notFound`. Documented limit. |
 | `global using` in multiple files with conflicting aliases | The compiler reports CS1537; the model validation rejects the compilation with the same diagnostic rather than resolving against a broken set.                                                              |

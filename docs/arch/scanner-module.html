@@ -5471,7 +5471,7 @@
           <h3>Adapters only implement ports</h3>
         </div>
         <ul>
-          <li>&bull; Parsers run noesis-scan-csharp or the configured command</li>
+          <li>&bull; Parsers run noesis-parse-csharp or the configured command</li>
           <li>&bull; Git reads the commit, ServerScanLog logs via LogTape</li>
           <li>&bull; File stores read settings and save system models</li>
         </ul>
@@ -5483,7 +5483,7 @@
           <h3>Wiring</h3>
         </div>
         <ul>
-          <li>&bull; boot/code-parsers.ts maps scanner names to parsers</li>
+          <li>&bull; boot/code-parsers.ts maps parser names to parsers</li>
           <li>&bull; boot/services.ts injects Git, log and stores</li>
           <li>&bull; JavaCodeParser also reads the CodeModelToolSettings type</li>
         </ul>

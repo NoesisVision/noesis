@@ -16,27 +16,32 @@ import { scannerOver } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
- * The C# parser runs `noesis-scan-csharp`; the scanner builds the system
+ * The C# parser runs `noesis-parse-csharp`; the scanner builds the system
  * model of what it wrote. Here
- * the tool is a bun script (test/support/fake-scan-csharp.ts) that copies the
- * .NET scanner's golden code model of the fixture solution under
- * scanners/dotnet/test/fixtures into `--out`, so the whole chain runs without
+ * the tool is a bun script (test/support/fake-parse-csharp.ts) that copies the
+ * .NET parser's golden code model of the fixture solution under
+ * parsers/dotnet/test/fixtures into `--out`, so the whole chain runs without
  * .NET. The real tool runs over the same fixture in
- * test/e2e-toolchain/csharp-scanner.e2e.spec.ts.
+ * test/e2e-toolchain/csharp-parser.e2e.spec.ts.
  */
 
 const REPOSITORY = join(import.meta.dir, '..', '..', '..', '..');
-const FIXTURE = join(REPOSITORY, 'scanners', 'dotnet', 'test', 'fixtures');
+const FIXTURE = join(REPOSITORY, 'parsers', 'dotnet', 'test', 'fixtures');
 const GOLDEN = join(
   REPOSITORY,
-  'scanners',
+  'parsers',
   'dotnet',
   'test',
-  'Noesis.Scanner.Tests',
+  'Noesis.Parser.Tests',
   'golden',
 );
-const FAKE_TOOL = join(import.meta.dir, '..', 'support', 'fake-scan-csharp.ts');
-const SOURCES = 'scanners/dotnet/test/fixtures/CSharpSyntax/Projection';
+const FAKE_TOOL = join(
+  import.meta.dir,
+  '..',
+  'support',
+  'fake-parse-csharp.ts',
+);
+const SOURCES = 'parsers/dotnet/test/fixtures/CSharpSyntax/Projection';
 
 let t: TestNoesis;
 let scanner: SourceCodeScanner;
@@ -75,7 +80,7 @@ const form = (name: string) =>
 
 describe('Scanning through the C# parser', () => {
   it('runs the first stage into a fresh .noesis/tmp/<uuid>/, over the repository root, named after it', async () => {
-    const record = join(t.root, 'fake-scan-args.json');
+    const record = join(t.root, 'fake-parse-args.json');
     await scannerWith(['--golden', GOLDEN, '--record', record]).scan();
 
     const args = (await Bun.file(record).json()) as string[];
@@ -93,7 +98,7 @@ describe('Scanning through the C# parser', () => {
       '--repository',
       basename(t.root),
       '--cache',
-      t.noesis.resolve('cache', 'scanner', 'csharp'),
+      t.noesis.resolve('cache', 'parser', 'csharp'),
     ]);
     expect<unknown>(out).toMatch(
       new RegExp(`^${t.noesis.resolve('tmp')}/[0-9a-f-]{36}$`),
@@ -415,7 +420,7 @@ describe('Scanning through the C# parser', () => {
       t.noesis,
       new CSharpCodeParser({
         noesis: t.noesis,
-        command: ['noesis-scan-csharp-that-does-not-exist'],
+        command: ['noesis-parse-csharp-that-does-not-exist'],
       }),
       FIXTURE_NAMESPACES,
       () => NOW,

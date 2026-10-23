@@ -3,7 +3,7 @@ import type {
   DeclarationNode,
   MethodNode,
   NodeId,
-  ScanManifest,
+  ParseManifest,
   StubNode,
   TypeNode,
   TypeRef,
@@ -123,7 +123,7 @@ export class CodeModelIndex {
   /** The artifacts each one looks ids up in, itself first. */
   private readonly lookupOrder = new Map<NodeId, IndexedArtifact[]>();
 
-  constructor(manifest: ScanManifest, files: readonly CodeModelFile[]) {
+  constructor(manifest: ParseManifest, files: readonly CodeModelFile[]) {
     const indexed = new Map(
       files.map((file) => [file.artifact.id, new IndexedArtifact(file)]),
     );

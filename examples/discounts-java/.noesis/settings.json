@@ -1,15 +1,15 @@
 {
-  "scanner": "code-model",
+  "parser": "code-model",
   "codeModel": {
     "command": [
       "./gradlew",
       "-q",
-      "noesisScan",
+      "noesisParse",
       "-Pnoesis.out={out}",
       "-Pnoesis.repositoryRoot={root}",
       "-Pnoesis.repository={name}"
     ],
-    "installHint": "Run the service on a JDK; the build takes the vision.noesis.scanner plugin from mavenLocal (./gradlew publishToMavenLocal in noesis/scanners/java/gradle-plugin, after mvn install in noesis/scanners/java)."
+    "installHint": "Run the service on a JDK; the build takes the vision.noesis.parser plugin from mavenLocal (./gradlew publishToMavenLocal in noesis/parsers/java/gradle-plugin, after mvn install in noesis/parsers/java)."
   },
   "namespacePartsToSkip": ["com.itlibrium"],
   "namespacesToExclude": []

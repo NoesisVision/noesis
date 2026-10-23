@@ -1,7 +1,7 @@
 # Design: projecting the code model onto the system model
 
 The second stage of the scanner. The first stage (one per language, the
-Roslyn scanner for C#) writes the **code model**: declarations, edges and
+Roslyn parser for C#) writes the **code model**: declarations, edges and
 stubs, see [`docs/arch/code-model.md`](../arch/code-model.md).
 This stage reads that model and writes the **system model** the server keeps
 in `.noesis/graph/system-models/`: modules, building blocks and behaviours,
@@ -19,12 +19,12 @@ namespace-wide annotations).
 
 ## 1. Inputs and output
 
-| Input                        | Where from                                                                                                                                                                                                        |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ScanManifest` + model files | The first stage's output directory; the manifest lists the files in dependency order and names the language                                                                                                       |
-| Annotation vocabulary        | One per language, in code (section 2); chosen by the manifest's `language`                                                                                                                                        |
-| `.noesis/settings.json`      | In the repository: `scanner` (which scanner reads the repository), `codeModel` (the command line of the `code-model` scanner), `engine` (the Java presets' engine), `namespacePartsToSkip`, `namespacesToExclude` |
-| Clock, repository name       | From the scanner adapter, as today                                                                                                                                                                                |
+| Input                         | Where from                                                                                                                                                                                                     |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ParseManifest` + model files | The first stage's output directory; the manifest lists the files in dependency order and names the language                                                                                                    |
+| Annotation vocabulary         | One per language, in code (section 2); chosen by the manifest's `language`                                                                                                                                     |
+| `.noesis/settings.json`       | In the repository: `parser` (which parser reads the repository), `codeModel` (the command line of the `code-model` parser), `engine` (the Java presets' engine), `namespacePartsToSkip`, `namespacesToExclude` |
+| Clock, repository name        | From the scanner adapter, as today                                                                                                                                                                             |
 
 Output: the `modules`, `buildingBlocks` and `behaviours` of one
 `SystemModel`, plus diagnostics. The stage is a pure function of its inputs;
@@ -40,15 +40,15 @@ vocabulary maps annotation ids to the roles below; everything the stage does
 with an annotation goes through a role, so Java's
 `vision.noesis.annotations` is a second table, not a second builder.
 
-| Role            | Meaning                                                                                                             | C# (`NoesisVision.Annotations`)                                                                                                                                                                                                                                                                                                                                                                                                               |
-| --------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `buildingBlock` | The type is a building block of the given `BuildingBlockType`; `name` overrides its name                            | `DddAggregate` → aggregate, `DddEntity` → entity, `DddValueObject` → value_object, `DddDomainService` → domain_service, `DddApplicationService` → application_service, `DddRepository` → repository, `DddFactory` → factory, `ExternalSystemIntegration` → external_integration; the messages `Command`, `Query`, `Event`, `DddDomainEvent`, `ReadModel` → value_object (the model has no message types; the Java scanner maps them the same) |
-| `behaviour`     | The method is a behaviour; `name` overrides its name; `TriggeredBy`, or a type the role itself fixes, sets its type | `DomainBehavior`, `EntryPoint` (`TriggeredBy`: `Command`, `Query`, `Event`; `Unspecified` says nothing)                                                                                                                                                                                                                                                                                                                                       |
-| `actor`         | Who calls: `name` goes to the behaviour's `visibility.actors`                                                       | `Actor`                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `description`   | The element's description, Markdown                                                                                 | `ShortDescription` (`markdownText`)                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `scenario`      | A scenario of the block or behaviour, by title only (section 9.9)                                                   | `Scenario` (`name`)                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `exclude`       | The element is not in the system model (section 3)                                                                  | `ExcludeFromDocs`                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| ignored         | Read for nothing in this iteration                                                                                  | `DomainModel`, `NotDomainModel`, `DomainModule`, `DddBoundedContext`, `SkipNamespaceInDomainModulesHierarchy` (section 12: no namespace-wide annotations yet), `DomainObject` alone, `CoreConcept`, `Exemplary`, `PublicContract`, `ExternalContract`, `Process`, everything under `People` except `Actor`, everything under `Technology`                                                                                                     |
+| Role            | Meaning                                                                                                             | C# (`NoesisVision.Annotations`)                                                                                                                                                                                                                                                                                                                                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `buildingBlock` | The type is a building block of the given `BuildingBlockType`; `name` overrides its name                            | `DddAggregate` → aggregate, `DddEntity` → entity, `DddValueObject` → value_object, `DddDomainService` → domain_service, `DddApplicationService` → application_service, `DddRepository` → repository, `DddFactory` → factory, `ExternalSystemIntegration` → external_integration; the messages `Command`, `Query`, `Event`, `DddDomainEvent`, `ReadModel` → value_object (the model has no message types; the Java parser maps them the same) |
+| `behaviour`     | The method is a behaviour; `name` overrides its name; `TriggeredBy`, or a type the role itself fixes, sets its type | `DomainBehavior`, `EntryPoint` (`TriggeredBy`: `Command`, `Query`, `Event`; `Unspecified` says nothing)                                                                                                                                                                                                                                                                                                                                      |
+| `actor`         | Who calls: `name` goes to the behaviour's `visibility.actors`                                                       | `Actor`                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `description`   | The element's description, Markdown                                                                                 | `ShortDescription` (`markdownText`)                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `scenario`      | A scenario of the block or behaviour, by title only (section 9.9)                                                   | `Scenario` (`name`)                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `exclude`       | The element is not in the system model (section 3)                                                                  | `ExcludeFromDocs`                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ignored         | Read for nothing in this iteration                                                                                  | `DomainModel`, `NotDomainModel`, `DomainModule`, `DddBoundedContext`, `SkipNamespaceInDomainModulesHierarchy` (section 12: no namespace-wide annotations yet), `DomainObject` alone, `CoreConcept`, `Exemplary`, `PublicContract`, `ExternalContract`, `Process`, everything under `People` except `Actor`, everything under `Technology`                                                                                                    |
 
 An argument whose literal is `null` (an attribute's optional parameter left
 out, which Roslyn reports as `null`) counts as absent.
@@ -152,9 +152,9 @@ attribute.
   name; name is the key, so two members cannot share one.
 - **R5.6 `description`**: the member's `documentation`, else that of the
   getter that exposes it (R5.8), else null.
-- **R5.7 Record components.** A field the scanner marks
+- **R5.7 Record components.** A field the parser marks
   `java.isRecordComponent` is a candidate although it is private: a Java
-  record's state is its components, read through accessors the scanner marks
+  record's state is its components, read through accessors the parser marks
   the same way, which are therefore not behaviours (R9.1). A C# positional
   record needs no such rule: its components are public properties.
 - **R5.8 Fields behind getters.** In Java (the manifest's language) a field
@@ -193,7 +193,7 @@ attribute.
   order) whose name maps to the module's path: its `file` and `startLine`.
   A module path that no namespace node maps to (a prefix created only by
   skipping) takes the directory of the nearest descendant module's file,
-  `line: null`, as the Java scanner does today.
+  `line: null`, as the Java parser does today.
 - **R6.5 `description`**: null; the annotation package has no description
   for a namespace. `rules`: empty.
 
@@ -278,7 +278,7 @@ projects is one module.
   behaviour too), when it is an `ElementName`; else the node's `name`.
 - **R9.3 Identity.** `behavior|<block id path>.<name>`. Overloads share a
   name and so an id: the overload with the most parameters stands for them,
-  the first in node order when several have as many (the Java scanner's
+  the first in node order when several have as many (the Java parser's
   rule: a design's optional last input becomes an overload without it).
 - **R9.4 Type.** The `TriggeredBy` of the `behaviour` role on the method,
   or on the member it overrides or implements, when it is `Command`, `Query`
@@ -317,7 +317,7 @@ projects is one module.
 
 - **R10.1** `modules`, `buildingBlocks` and `behaviours` are sorted by id
   (code unit order), `implements`, `actors` and `invokes` too; properties by
-  R5.5; input by declaration order. Two scans of one code model give one
+  R5.5; input by declaration order. Two builds from one code model give one
   output.
 - **R10.2** Every drop and every fallback above is a diagnostic: the stage
   returns them beside the model (`{ model, diagnostics }`), the adapter logs
@@ -384,7 +384,7 @@ them.
    keeps its steps.
 10. **`[assembly: DomainModule]`** and a `DomainModule` without
     `ApplyOnNamespace` are ignored, without a log line.
-11. **Running the first stage.** The C# adapter runs `noesis-scan-csharp`
+11. **Running the first stage.** The C# adapter runs `noesis-parse-csharp`
     (from `PATH`, or the command `NOESIS_DOTNET_SCANNER` names) into the
     session directory and projects its output; the regex reader is gone.
     The server's unit tests project a committed code model of an annotated
@@ -425,11 +425,11 @@ tool, and read and validate the files it wrote with the `code-model.ts` schemas.
 **Tests.** `server/backend/test/unit/system-model-builder.spec.ts`: one
 `describe` per section above, one `it` per rule, over a small builder that
 makes a `CodeModelFile` in a few lines. `test/unit/csharp-code-parser.spec.ts`
-scans the .NET scanner's golden code model of the fixture solution under
-`scanners/dotnet/test/fixtures/` (`CSharpSyntax/Projection` holds the
-annotated types; `scanners/dotnet/test/Noesis.Scanner.Tests/golden/` is
+reads the .NET parser's golden code model of the fixture solution under
+`parsers/dotnet/test/fixtures/` (`CSharpSyntax/Projection` holds the
+annotated types; `parsers/dotnet/test/Noesis.Parser.Tests/golden/` is
 regenerated with `NOESIS_UPDATE_GOLDEN=1 dotnet test`) and checks the whole
-chain without .NET. `test/e2e-toolchain/csharp-scanner.e2e.spec.ts` builds the .NET
-scanner, scans the same fixture through the parser and asserts the model
+chain without .NET. `test/e2e-toolchain/csharp-parser.e2e.spec.ts` builds the .NET
+parser, scans the same fixture through `CSharpCodeParser` and asserts the model
 and the time each stage took. The expected `invokes` of every chain in the
 fixture are in `test/support/csharp-fixture-expectations.ts`, shared by both.

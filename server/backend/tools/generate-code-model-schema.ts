@@ -1,4 +1,4 @@
-// The code model is written by scanners in other languages (.NET today,
+// The code model is written by parsers in other languages (.NET today,
 // Java next), which cannot read the zod sources. JSON Schema is the one
 // readable copy they write against; it is committed and `bun run generate`
 // keeps it current, as it does the plugin's version pins.
@@ -8,15 +8,12 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import {
   CodeModelFile,
-  ScanManifest,
+  ParseManifest,
 } from '#backend/app/scanner/code-model/code-model';
 import { contractComment } from './generate-contracts';
 
 const serviceRoot = fileURLToPath(new URL('../', import.meta.url));
-export const defaultDestination = join(
-  serviceRoot,
-  '../../scanners/code-model',
-);
+export const defaultDestination = join(serviceRoot, '../../parsers/code-model');
 
 const SCHEMAS: Record<string, { schema: z.ZodType; title: string }> = {
   'code-model': {
@@ -24,8 +21,8 @@ const SCHEMAS: Record<string, { schema: z.ZodType; title: string }> = {
     title: 'Noesis code model: one artifact of a scan',
   },
   manifest: {
-    schema: ScanManifest,
-    title: 'Noesis code model: the manifest of a scan',
+    schema: ParseManifest,
+    title: 'Noesis code model: the manifest of a parse',
   },
 };
 
@@ -60,7 +57,7 @@ export async function generateCodeModelSchemas(
   return [...files.keys()].sort((a, b) => a.localeCompare(b));
 }
 
-// Always into scanners/code-model: the one place the scanners read the schemas from.
+// Always into parsers/code-model: the one place the parsers read the schemas from.
 if (import.meta.main) {
   const files = await generateCodeModelSchemas(defaultDestination);
   console.log(

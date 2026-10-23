@@ -103,16 +103,16 @@ describe('ScannerFactory', () => {
   it('picks the parser .noesis/settings.json names, read at every scan', async () => {
     const scanners = factory();
 
-    await configure({ scanner: 'csharp' });
+    await configure({ parser: 'csharp' });
     await scanners.create();
-    await configure({ scanner: 'code-model', codeModel: { command: ['x'] } });
+    await configure({ parser: 'code-model', codeModel: { command: ['x'] } });
     await scanners.create();
 
     expect(picked.map(({ name }) => name)).toEqual(['csharp', 'code-model']);
   });
 
   it('hands the parser the repository settings', async () => {
-    await configure({ scanner: 'csharp', namespacePartsToSkip: ['Acme'] });
+    await configure({ parser: 'csharp', namespacePartsToSkip: ['Acme'] });
 
     await factory().create();
 
@@ -121,19 +121,26 @@ describe('ScannerFactory', () => {
     ).toEqual(['Shop', 'Orders']);
   });
 
-  it('refuses a repository that names no scanner, or names one wrongly', async () => {
+  it('refuses a repository that names no parser, or names one wrongly', async () => {
     await expect(factory().create()).rejects.toThrow(
-      /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: csharp, code-model\./,
+      /\.noesis\/settings\.json names no parser\. Set "parser" to one of: csharp, code-model\./,
     );
-    for (const scanner of ['java', 'dummy', 'cobol']) {
-      await configure({ scanner });
+    for (const parser of ['java', 'dummy', 'cobol']) {
+      await configure({ parser });
       await expect(factory().create()).rejects.toThrow(
         /Invalid .*\.noesis\/settings\.json/,
       );
     }
-    await configure({ scanner: 'csharp', namespacePartsToSkip: 'Acme' });
+    await configure({ parser: 'csharp', namespacePartsToSkip: 'Acme' });
     await expect(factory().create()).rejects.toThrow(
       /Invalid .*\.noesis\/settings\.json/,
+    );
+  });
+
+  it('refuses a file that still names its parser under "scanner", saying what to rename', async () => {
+    await configure({ scanner: 'csharp' });
+    await expect(factory().create()).rejects.toThrow(
+      /sets "scanner", which is now "parser"/,
     );
   });
 
@@ -142,14 +149,14 @@ describe('ScannerFactory', () => {
       { scanner: 'java-maven' },
       { scanner: 'java-gradle' },
       {
-        scanner: 'code-model',
+        parser: 'code-model',
         codeModel: { command: ['x'] },
         engine: 'hybrid',
       },
     ]) {
       await configure(settings);
       await expect(factory().create()).rejects.toThrow(
-        /(no longer has|no scanner reads any more)[\s\S]*"scanner": "code-model"/,
+        /(no longer has|no parser reads any more)[\s\S]*"parser": "code-model"/,
       );
     }
   });
@@ -159,7 +166,7 @@ describe('a scan that fails', () => {
   it("fails as a ScanFailedError carrying the scanner's reason", async () => {
     const scan = scanSystemModelHandler(
       always({
-        scan: () => Promise.reject(new Error('noesis-scan-csharp: not found')),
+        scan: () => Promise.reject(new Error('noesis-parse-csharp: not found')),
       }),
       systemModels,
     );
@@ -167,13 +174,13 @@ describe('a scan that fails', () => {
     const failure = await scan.handle().catch((error: unknown) => error);
 
     expect(failure).toBeInstanceOf(ScanFailedError);
-    expect((failure as Error).message).toBe('noesis-scan-csharp: not found');
+    expect((failure as Error).message).toBe('noesis-parse-csharp: not found');
     expect(await systemModels.list()).toEqual([]);
   });
 
   it('fails as a ScanFailedError when no scanner can be picked', async () => {
     const scan = scanSystemModelHandler(
-      { create: () => Promise.reject(new Error('names no scanner')) },
+      { create: () => Promise.reject(new Error('names no parser')) },
       systemModels,
     );
 

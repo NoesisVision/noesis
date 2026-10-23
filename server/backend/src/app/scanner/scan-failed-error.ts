@@ -1,5 +1,5 @@
 /**
- * The scanner could not deliver a model: no scanner configured, the tool
+ * The scanner could not deliver a model: no parser configured, the tool
  * missing, the code model unreadable. The message is the scanner's own, so
  * whoever asked for the scan can read why; the adapters answer it as such.
  */

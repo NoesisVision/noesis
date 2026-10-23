@@ -1,4 +1,0 @@
-// Applied once, at the root: the scan covers every Java project of the build.
-plugins {
-    id 'vision.noesis.scanner'
-}

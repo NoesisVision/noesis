@@ -14,9 +14,9 @@
     "docs/arch/*.html",
     ".agents/",
     "examples/*/",
-    "scanners/dotnet/test/Noesis.Scanner.Tests/golden/",
-    "scanners/java/core/src/test/resources/golden/",
-    "scanners/code-model/*.schema.json",
+    "parsers/dotnet/test/Noesis.Parser.Tests/golden/",
+    "parsers/java/core/src/test/resources/golden/",
+    "parsers/code-model/*.schema.json",
     "server/frontend/.design-sync/"
   ]
 }

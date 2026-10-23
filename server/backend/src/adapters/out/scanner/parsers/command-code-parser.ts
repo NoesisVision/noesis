@@ -5,7 +5,7 @@ import {
   type CodeModelFile,
   CodeModelFile as CodeModelFileSchema,
   type Diagnostic,
-  ScanManifest,
+  ParseManifest,
 } from '#backend/app/scanner/code-model/code-model';
 import type {
   CodeParser,
@@ -66,7 +66,7 @@ export abstract class CommandCodeParser implements CodeParser {
       outDir,
     );
     if (executable === undefined) {
-      throw new Error('The code model scanner has no command to run.');
+      throw new Error('The code-model parser has no command to run.');
     }
     this.log.debug('Running {executable} {args}', { executable, args });
     const output = await this.run(executable, args, root);
@@ -106,14 +106,14 @@ export abstract class CommandCodeParser implements CodeParser {
 
   private logToolDiagnostics({ manifest, files }: ParsedCode): void {
     // The message is a property, not the template: javac's messages may hold braces.
-    for (const { level, message } of scannerDiagnostics(manifest, files)) {
+    for (const { level, message } of parserDiagnostics(manifest, files)) {
       this.log[level]('{message}', { message });
     }
   }
 }
 
 /** What the service logs of the diagnostics the tool wrote. */
-export interface ScannerDiagnosticLine {
+export interface ParserDiagnosticLine {
   level: 'error' | 'warning';
   message: string;
 }
@@ -125,11 +125,11 @@ export interface ScannerDiagnosticLine {
  * The compiler's are many and repeat what the build says, so each artifact
  * gets one line counting them, with the first error. Info is left out.
  */
-export function scannerDiagnostics(
-  manifest: ScanManifest,
+export function parserDiagnostics(
+  manifest: ParseManifest,
   files: readonly CodeModelFile[],
-): ScannerDiagnosticLine[] {
-  const lines: ScannerDiagnosticLine[] = [];
+): ParserDiagnosticLine[] {
+  const lines: ParserDiagnosticLine[] = [];
   for (const diagnostic of manifest.diagnostics) {
     const level = levelOf(diagnostic);
     if (level !== null) lines.push({ level, message: describe(diagnostic) });
@@ -207,11 +207,11 @@ async function manifestIn(
 }
 
 async function readCodeModel(manifestPath: string): Promise<ParsedCode> {
-  const manifest = (await readJsonFile(manifestPath, ScanManifest)).match(
+  const manifest = (await readJsonFile(manifestPath, ParseManifest)).match(
     (value) => value,
     (message) => {
       throw new Error(
-        `The scanner wrote no readable manifest at ${manifestPath}: ${message}`,
+        `The parser wrote no readable manifest at ${manifestPath}: ${message}`,
       );
     },
   );

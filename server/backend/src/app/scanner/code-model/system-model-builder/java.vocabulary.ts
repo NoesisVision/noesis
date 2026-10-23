@@ -7,8 +7,8 @@ import type {
 
 /*
  * The Java vocabulary: the `vision.noesis.annotations` library
- * (scanners/java/annotations) and the JDK's types, by the ids the Java
- * scanner writes. Section 2 of docs/plans/code-model-to-system-model.md is
+ * (parsers/java/annotations) and the JDK's types, by the ids the Java
+ * parser writes. Section 2 of docs/plans/code-model-to-system-model.md is
  * the reference; the Java column is this file.
  */
 

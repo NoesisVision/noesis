@@ -28,7 +28,7 @@ export function scannerOver(
 /**
  * A scanner built anew at every scan from `.noesis/settings.json`, as
  * ScannerFactory builds it, so a spec can change the settings between scans.
- * Unlike the factory, it scans a file that names no scanner.
+ * Unlike the factory, it scans a file that names no parser.
  */
 export function settingsScanner(
   noesis: NoesisDir,

@@ -24,7 +24,7 @@ import type {
   MethodNode,
   NodeId,
   PropertyNode,
-  ScanManifest,
+  ParseManifest,
   SourceSpan,
   TypeNode,
   TypeRef,
@@ -51,7 +51,7 @@ import type { AnnotationVocabulary } from './vocabulary';
  */
 
 export interface SystemModelBuildInput {
-  readonly manifest: ScanManifest;
+  readonly manifest: ParseManifest;
   /** The manifest's files, each parsed; order does not matter. */
   readonly files: readonly CodeModelFile[];
   readonly vocabulary: AnnotationVocabulary;
@@ -848,7 +848,7 @@ function moduleIdOf(path: readonly string[]): ModuleId {
   );
 }
 
-/** The Java scanner marks a record's component field and accessor; the field is the property (R5.7). */
+/** The Java parser marks a record's component field and accessor; the field is the property (R5.7). */
 function isRecordComponent(node: DeclarationNode): boolean {
   return node.languageSpecific['java.isRecordComponent'] === true;
 }

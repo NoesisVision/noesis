@@ -7,12 +7,12 @@ import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
- * The `code-model` scanner runs whatever command line .noesis/settings.json
+ * The `code-model` parser runs whatever command line .noesis/settings.json
  * gives, and the scanner builds the system model of what it wrote by the
  * language the manifest names. Here
  * the command is a fake tool copying a committed code model: the Java shop's
- * (test/support/fake-code-model-tool.ts), then the .NET scanner's golden one
- * (test/support/fake-scan-csharp.ts), with the one settings file telling them
+ * (test/support/fake-code-model-tool.ts), then the .NET parser's golden one
+ * (test/support/fake-parse-csharp.ts), with the one settings file telling them
  * apart. The real tools run in test/e2e.
  */
 
@@ -28,7 +28,7 @@ const FAKE_CSHARP_TOOL = join(
   import.meta.dir,
   '..',
   'support',
-  'fake-scan-csharp.ts',
+  'fake-parse-csharp.ts',
 );
 const CSHARP_GOLDEN = join(
   import.meta.dir,
@@ -36,13 +36,13 @@ const CSHARP_GOLDEN = join(
   '..',
   '..',
   '..',
-  'scanners',
+  'parsers',
   'dotnet',
   'test',
-  'Noesis.Scanner.Tests',
+  'Noesis.Parser.Tests',
   'golden',
 );
-/** A command line writing the .NET scanner's golden C# code model. */
+/** A command line writing the .NET parser's golden C# code model. */
 const csharpLike = () => [
   'bun',
   FAKE_CSHARP_TOOL,
@@ -58,7 +58,7 @@ let scanner: ReturnType<typeof settingsScanner>;
 const configure = (config: Record<string, unknown>) =>
   writeFile(
     t.noesis.resolve('settings.json'),
-    JSON.stringify({ scanner: 'code-model', ...config }),
+    JSON.stringify({ parser: 'code-model', ...config }),
   );
 
 /** A Gradle-shaped command line: the tool's own flags, then the placeholders the service fills. */
@@ -69,7 +69,7 @@ const gradleLike = (source: string, ...flags: string[]) => [
   source,
   ...flags,
   '-q',
-  'noesisScan',
+  'noesisParse',
   '-Pnoesis.out={out}',
   '-Pnoesis.repositoryRoot={root}',
   '-Pnoesis.repository={name}',
@@ -79,7 +79,7 @@ const gradleLike = (source: string, ...flags: string[]) => [
 
 /** The arguments the fake tool was run with, recorded in the repository root. */
 const recordedArgs = async (): Promise<string[]> =>
-  (await Bun.file(join(t.root, 'fake-scan-args.json')).json()) as string[];
+  (await Bun.file(join(t.root, 'fake-parse-args.json')).json()) as string[];
 
 /** The output directory a recorded `--out` names: a fresh `.noesis/tmp/<uuid>/`. */
 const outOf = (args: readonly string[]): string => {
@@ -105,7 +105,7 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-describe('The code-model scanner configured in .noesis/settings.json', () => {
+describe('The code-model parser configured in .noesis/settings.json', () => {
   it('runs the configured command from the repository root with the placeholders filled', async () => {
     await configure({
       codeModel: { command: gradleLike(JAVA_SHOP) },
@@ -120,7 +120,7 @@ describe('The code-model scanner configured in .noesis/settings.json', () => {
       '--source',
       JAVA_SHOP,
       '-q',
-      'noesisScan',
+      'noesisParse',
       `-Pnoesis.out=${out}`,
       `-Pnoesis.repositoryRoot=${t.root}`,
       `-Pnoesis.repository=${basename(t.root)}`,
@@ -181,7 +181,7 @@ describe('The code-model scanner configured in .noesis/settings.json', () => {
     );
     await chmod(wrapper, 0o755);
     await configure({
-      codeModel: { command: ['./gradlew', 'noesisScan', '--out', '{out}'] },
+      codeModel: { command: ['./gradlew', 'noesisParse', '--out', '{out}'] },
     });
 
     const model = await scanner.scan();
@@ -191,7 +191,7 @@ describe('The code-model scanner configured in .noesis/settings.json', () => {
     expect<unknown>(args).toEqual([
       '--source',
       JAVA_SHOP,
-      'noesisScan',
+      'noesisParse',
       '--out',
       outOf(args),
     ]);
@@ -201,7 +201,7 @@ describe('The code-model scanner configured in .noesis/settings.json', () => {
     await configure({});
 
     await expect<unknown>(scanner.scan()).rejects.toThrow(
-      /names the code-model scanner but has no "codeModel"/,
+      /names the code-model parser but has no "codeModel"/,
     );
   });
 
@@ -247,7 +247,7 @@ describe('The code-model scanner configured in .noesis/settings.json', () => {
   it('tells what to install, in the settings file words, when the command cannot start', async () => {
     await configure({
       codeModel: {
-        command: ['gradle-that-does-not-exist', 'noesisScan'],
+        command: ['gradle-that-does-not-exist', 'noesisParse'],
         installHint: 'Install Gradle and publish the Noesis plugin.',
       },
     });

@@ -24,7 +24,7 @@
         "src/app/scanner/code-model/code-model.ts",
         "test/**/*.types.ts",
         "test/support/fake-code-model-tool.ts",
-        "test/support/fake-scan-csharp.ts"
+        "test/support/fake-parse-csharp.ts"
       ]
     },
     "server/frontend": {

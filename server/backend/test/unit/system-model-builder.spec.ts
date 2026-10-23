@@ -8,7 +8,7 @@ import type {
   LanguageBag,
   MethodNode,
   Modifier,
-  ScanManifest,
+  ParseManifest,
   SourceSpan,
   StubNode,
   TypeKind,
@@ -33,7 +33,7 @@ import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 /*
  * One `describe` per section of docs/plans/code-model-to-system-model.md,
  * one `it` per rule, each over the smallest code model that shows it. The
- * builder below writes a `CodeModelFile` the way the .NET scanner does:
+ * builder below writes a `CodeModelFile` the way the .NET parser does:
  * `T:A.B.Order+Line` is a nested type, `M:A.B.Order#Place(…)` a method,
  * `P:A.B.Order.Total` a property; the parent is read off the id.
  */
@@ -507,7 +507,7 @@ function buildFrom(
   vocabulary: AnnotationVocabulary = CSHARP_VOCABULARY,
 ): BuiltSystemModel {
   const files = artifacts.map((a) => a.build());
-  const manifest: ScanManifest = {
+  const manifest: ParseManifest = {
     schemaVersion: 1,
     generator: { name: 'spec', version: '0' },
     language: vocabulary.language,

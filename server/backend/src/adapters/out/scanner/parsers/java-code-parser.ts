@@ -9,9 +9,9 @@ export interface JavaCodeParserDeps {
 }
 
 /**
- * The parser of the `code-model` scanner: runs the command line the
+ * The `code-model` parser: runs the command line the
  * repository's `.noesis/settings.json` gives in its `codeModel` block (a
- * Gradle build's `noesisScan` task, a Maven invocation, any tool that writes
+ * Gradle build's `noesisParse` task, a Maven invocation, any tool that writes
  * the code model). A new tool is a new settings file, not a new adapter; the
  * `csharp` preset is a fixed command line of the same shape. A Java
  * repository declares the Noesis Maven or Gradle plugin in its build and
@@ -32,7 +32,7 @@ export class JavaCodeParser extends CommandCodeParser {
   ): Promise<readonly string[]> {
     if (this.codeModel === null) {
       throw new Error(
-        '.noesis/settings.json names the code-model scanner but has no "codeModel": { "command": [...] } telling it what to run.',
+        '.noesis/settings.json names the code-model parser but has no "codeModel": { "command": [...] } telling it what to run.',
       );
     }
     return fillCommand(this.codeModel.command, { out: outDir, root, name });

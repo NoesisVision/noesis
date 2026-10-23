@@ -13,7 +13,7 @@ import { NOW, type TestNoesis, testNoesis } from './test-noesis';
  * Here the build is a bun script (test/support/fake-code-model-tool.ts) that
  * copies the committed code model of the fixture into `-Dnoesis.out`, so the
  * Java system model is built without a JDK. The real build runs in
- * test/e2e-toolchain/java-scanner.e2e.spec.ts.
+ * test/e2e-toolchain/java-parser.e2e.spec.ts.
  */
 
 const FIXTURE = join(import.meta.dir, '..', 'fixtures', 'java', 'shop');

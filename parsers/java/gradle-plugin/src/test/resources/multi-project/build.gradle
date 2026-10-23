@@ -1,0 +1,4 @@
+// Applied once, at the root: the parse covers every Java project of the build.
+plugins {
+    id 'vision.noesis.parser'
+}

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import type {
   Language,
-  ScanManifest,
+  ParseManifest,
 } from '#backend/app/scanner/code-model/code-model';
 import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
 import { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
@@ -18,7 +18,7 @@ import { NOW } from './test-noesis';
  * their own specs; here the parser is a stub.
  */
 
-const manifestIn = (language: Language): ScanManifest => ({
+const manifestIn = (language: Language): ParseManifest => ({
   schemaVersion: 1,
   generator: { name: 'spec', version: '0' },
   language,
@@ -90,11 +90,11 @@ describe('SourceCodeScanner', () => {
   it('fails with the parser and logs no scan', async () => {
     const { log, summaries } = recordingLog();
     const failing: CodeParser = {
-      parse: () => Promise.reject(new Error('noesis-scan-csharp: not found')),
+      parse: () => Promise.reject(new Error('noesis-parse-csharp: not found')),
     };
 
     await expect<unknown>(scannerWith(failing, log).scan()).rejects.toThrow(
-      'noesis-scan-csharp: not found',
+      'noesis-parse-csharp: not found',
     );
     expect<unknown>(summaries).toEqual([]);
   });

@@ -16,9 +16,9 @@
       "groupName": "Bun runtime"
     },
     {
-      "description": "All Maven bumps for the Java scanner in one weekly PR",
+      "description": "All Maven bumps for the Java parser in one weekly PR",
       "matchManagers": ["maven"],
-      "groupName": "Java scanner (Maven)"
+      "groupName": "Java parser (Maven)"
     }
   ]
 }

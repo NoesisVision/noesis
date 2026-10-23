@@ -7,9 +7,9 @@ import {
   defaultDestination,
 } from '../../tools/generate-code-model-schema';
 
-const scanners = join(import.meta.dir, '../../../../scanners');
-const golden = join(scanners, 'dotnet/test/Noesis.Scanner.Tests/golden');
-const javaGolden = join(scanners, 'java/core/src/test/resources/golden/source');
+const parsers = join(import.meta.dir, '../../../../parsers');
+const golden = join(parsers, 'dotnet/test/Noesis.Parser.Tests/golden');
+const javaGolden = join(parsers, 'java/core/src/test/resources/golden/source');
 
 const { version } = JSON.parse(
   await readFile(join(import.meta.dir, '../../package.json'), 'utf8'),
@@ -74,7 +74,7 @@ describe('the code model JSON Schema', () => {
     }
   });
 
-  it('accepts the .NET scanner manifest', async () => {
+  it('accepts the .NET parser manifest', async () => {
     const schema = z.fromJSONSchema(
       (await committed('manifest.schema.json')) as Parameters<
         typeof z.fromJSONSchema
@@ -90,7 +90,7 @@ describe('the code model JSON Schema', () => {
     join(golden, 'CSharpSyntax.OtherProject.code-model.json'),
     join(javaGolden, 'java-syntax.code-model.json'),
     join(javaGolden, 'java-syntax-other.code-model.json'),
-  ])('accepts the scanner model %s', async (file) => {
+  ])('accepts the parser model %s', async (file) => {
     const schema = z.fromJSONSchema(
       (await committed('code-model.schema.json')) as Parameters<
         typeof z.fromJSONSchema
@@ -100,7 +100,7 @@ describe('the code model JSON Schema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('accepts the Java scanner manifest', async () => {
+  it('accepts the Java parser manifest', async () => {
     const schema = z.fromJSONSchema(
       (await committed('manifest.schema.json')) as Parameters<
         typeof z.fromJSONSchema
