@@ -12,17 +12,21 @@
 
   <artifactId>noesis-scanner-core</artifactId>
   <name>Noesis Scanner Core</name>
-  <description>Build-tool-agnostic scanning engine: class dirs in, building-block graph JSON out</description>
+  <description>Build-tool-agnostic scanning engines: source roots and classpath in, code model files out</description>
 
   <dependencies>
+    <dependency>
+      <groupId>vision.noesis</groupId>
+      <artifactId>noesis-scanner-model</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
+      <groupId>org.ow2.asm</groupId>
+      <artifactId>asm</artifactId>
     </dependency>
 
     <dependency>
@@ -30,18 +34,75 @@
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- ArchUnit logs via slf4j-api; give tests a backend so warnings aren't swallowed. -->
+    <dependency>
+      <groupId>com.networknt</groupId>
+      <artifactId>json-schema-validator</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- ArchUnit logs through slf4j; a binding keeps its warnings visible in the tests. -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- Test fixture domain is annotated with the noesis annotations. -->
+    <!-- The fixture modules the golden tests scan; test-scoped so the reactor builds them first. -->
     <dependency>
-      <groupId>vision.noesis</groupId>
-      <artifactId>noesis-annotations</artifactId>
+      <groupId>vision.noesis.fixtures</groupId>
+      <artifactId>java-syntax</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>vision.noesis.fixtures</groupId>
+      <artifactId>java-syntax-other</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>vision.noesis.fixtures</groupId>
+      <artifactId>java-lombok</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- On the Lombok fixture's scan classpath only, so its annotations resolve; the engines run no processor. -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Exposes each dependency's path as ${groupId:artifactId:jar}, so the tests hand the engines the same classpath Maven resolved. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>properties</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <noesis.repositoryRoot>${project.basedir}/../../..</noesis.repositoryRoot>
+            <noesis.fixturesDir>${project.basedir}/../test-fixtures</noesis.fixturesDir>
+            <noesis.schemaDir>${project.basedir}/../../code-model</noesis.schemaDir>
+            <noesis.classpath.annotations>${vision.noesis:noesis-annotations:jar}</noesis.classpath.annotations>
+            <noesis.classpath.guava>${com.google.guava:guava:jar}</noesis.classpath.guava>
+            <noesis.classpath.other>${vision.noesis.fixtures:java-syntax-other:jar}</noesis.classpath.other>
+            <noesis.classpath.lombok>${org.projectlombok:lombok:jar}</noesis.classpath.lombok>
+            <noesis.version.lombok>${lombok.version}</noesis.version.lombok>
+            <noesis.version.guava>${guava.version}</noesis.version.guava>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

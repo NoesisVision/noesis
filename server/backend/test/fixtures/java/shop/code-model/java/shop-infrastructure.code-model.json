@@ -1,0 +1,672 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "noesis-scan-java",
+    "version": "0.1.0-SNAPSHOT"
+  },
+  "artifact": {
+    "id": "A:shop-infrastructure",
+    "kind": "source",
+    "name": "shop-infrastructure",
+    "version": "1.0",
+    "rootDirectory": "shop-infrastructure",
+    "target": "jdk-17",
+    "executable": false,
+    "dependencies": [
+      {
+        "id": "A:java.base@17",
+        "kind": "platform",
+        "package": null
+      },
+      {
+        "id": "A:shop-domain",
+        "kind": "source",
+        "package": null
+      },
+      {
+        "id": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT",
+        "kind": "library",
+        "package": {
+          "id": "vision.noesis:noesis-annotations",
+          "version": "0.1.0-SNAPSHOT"
+        }
+      }
+    ],
+    "annotations": [],
+    "languageSpecific": {
+      "java.buildFile": "shop-infrastructure/pom.xml",
+      "java.engine": "source",
+      "java.groupId": "com.acme",
+      "java.packaging": "jar"
+    }
+  },
+  "nodes": [
+    {
+      "kind": "method",
+      "id": "M:com.acme.shop.infrastructure.SqlOrderRepository#.ctor()",
+      "name": ".ctor",
+      "origin": "generated",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:com.acme.shop.infrastructure.SqlOrderRepository#getBy(com.acme.shop.orders.OrderId)",
+      "name": "getBy",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 9,
+          "startColumn": 5,
+          "endLine": 12,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:java.lang.Override",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": []
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": ["virtual"],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "id",
+            "type": {
+              "kind": "named",
+              "type": "T:com.acme.shop.orders.OrderId",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "named",
+          "type": "T:com.acme.shop.orders.Order",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:com.acme.shop.infrastructure.SqlOrderRepository#save(com.acme.shop.orders.Order)",
+      "name": "save",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 14,
+          "startColumn": 5,
+          "endLine": 17,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:java.lang.Override",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": []
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": ["virtual"],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "order",
+            "type": {
+              "kind": "named",
+              "type": "T:com.acme.shop.orders.Order",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "namespace",
+      "id": "N:",
+      "name": "",
+      "origin": "declared",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:com",
+      "name": "com",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 12
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:com.acme",
+      "name": "acme",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 17
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:com.acme.shop",
+      "name": "shop",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 22
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
+      "id": "N:com.acme.shop.infrastructure",
+      "name": "infrastructure",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 37
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "type",
+      "id": "T:com.acme.shop.infrastructure.SqlOrderRepository",
+      "name": "SqlOrderRepository",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 7,
+          "startColumn": 1,
+          "endLine": 18,
+          "endColumn": 2
+        }
+      ],
+      "annotations": [],
+      "documentation": "Unannotated: its calls count for the interface's behaviours.",
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    }
+  ],
+  "edges": [
+    {
+      "kind": "ACCESSES",
+      "from": "M:com.acme.shop.infrastructure.SqlOrderRepository#save(com.acme.shop.orders.Order)",
+      "to": "F:java.lang.System.out",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 16,
+          "startColumn": 9,
+          "endLine": 16,
+          "endColumn": 19
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "type"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "A:shop-infrastructure",
+      "to": "N:"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:",
+      "to": "N:com"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:com",
+      "to": "N:com.acme"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:com.acme",
+      "to": "N:com.acme.shop"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:com.acme.shop",
+      "to": "N:com.acme.shop.infrastructure"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:com.acme.shop.infrastructure",
+      "to": "T:com.acme.shop.infrastructure.SqlOrderRepository"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.infrastructure.SqlOrderRepository",
+      "to": "M:com.acme.shop.infrastructure.SqlOrderRepository#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.infrastructure.SqlOrderRepository",
+      "to": "M:com.acme.shop.infrastructure.SqlOrderRepository#getBy(com.acme.shop.orders.OrderId)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.infrastructure.SqlOrderRepository",
+      "to": "M:com.acme.shop.infrastructure.SqlOrderRepository#save(com.acme.shop.orders.Order)"
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:java.io.Closeable",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.AutoCloseable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:java.io.FilterOutputStream",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.OutputStream",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "EXTENDS",
+      "from": "T:java.io.PrintStream",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.FilterOutputStream",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:com.acme.shop.infrastructure.SqlOrderRepository",
+      "to": {
+        "kind": "named",
+        "type": "T:com.acme.shop.orders.Order+Repository",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.io.OutputStream",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.Closeable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.io.OutputStream",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.Flushable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.io.PrintStream",
+      "to": {
+        "kind": "named",
+        "type": "T:java.io.Closeable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS",
+      "from": "T:java.io.PrintStream",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Appendable",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
+      "kind": "IMPLEMENTS_MEMBER",
+      "from": "M:com.acme.shop.infrastructure.SqlOrderRepository#getBy(com.acme.shop.orders.OrderId)",
+      "to": "M:com.acme.shop.orders.Order+Repository#getBy(com.acme.shop.orders.OrderId)",
+      "interface": {
+        "kind": "named",
+        "type": "T:com.acme.shop.orders.Order+Repository",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "declaredOn": "T:com.acme.shop.infrastructure.SqlOrderRepository"
+    },
+    {
+      "kind": "IMPLEMENTS_MEMBER",
+      "from": "M:com.acme.shop.infrastructure.SqlOrderRepository#save(com.acme.shop.orders.Order)",
+      "to": "M:com.acme.shop.orders.Order+Repository#save(com.acme.shop.orders.Order)",
+      "interface": {
+        "kind": "named",
+        "type": "T:com.acme.shop.orders.Order+Repository",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "declaredOn": "T:com.acme.shop.infrastructure.SqlOrderRepository"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.infrastructure.SqlOrderRepository#.ctor()",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 7,
+          "startColumn": 8,
+          "endLine": 7,
+          "endColumn": 8
+        },
+        "viaClosure": false,
+        "languageSpecific": {
+          "java.implicitSuperCall": true
+        }
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.infrastructure.SqlOrderRepository#getBy(com.acme.shop.orders.OrderId)",
+      "to": "M:com.acme.shop.orders.Order#create(com.acme.shop.orders.OrderId)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 11,
+          "startColumn": 16,
+          "endLine": 11,
+          "endColumn": 32
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "type"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.infrastructure.SqlOrderRepository#save(com.acme.shop.orders.Order)",
+      "to": "M:com.acme.shop.orders.Order#total()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 16,
+          "startColumn": 28,
+          "endLine": 16,
+          "endColumn": 41
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "parameter"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.infrastructure.SqlOrderRepository#save(com.acme.shop.orders.Order)",
+      "to": "M:java.io.PrintStream#println(java.lang.Object)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/SqlOrderRepository.java",
+          "startLine": 16,
+          "startColumn": 9,
+          "endLine": 16,
+          "endColumn": 42
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "field"
+    }
+  ],
+  "stubs": [
+    {
+      "id": "F:java.lang.System.out",
+      "kind": "field",
+      "name": "out",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.io.PrintStream#println(java.lang.Object)",
+      "kind": "method",
+      "name": "println",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "M:java.lang.Object#.ctor()",
+      "kind": "method",
+      "name": ".ctor",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java",
+      "kind": "namespace",
+      "name": "java",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java.io",
+      "kind": "namespace",
+      "name": "io",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:java.lang",
+      "kind": "namespace",
+      "name": "lang",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.io.Closeable",
+      "kind": "type",
+      "name": "Closeable",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.io.FilterOutputStream",
+      "kind": "type",
+      "name": "FilterOutputStream",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.io.Flushable",
+      "kind": "type",
+      "name": "Flushable",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.io.OutputStream",
+      "kind": "type",
+      "name": "OutputStream",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.io.PrintStream",
+      "kind": "type",
+      "name": "PrintStream",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.Appendable",
+      "kind": "type",
+      "name": "Appendable",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.AutoCloseable",
+      "kind": "type",
+      "name": "AutoCloseable",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.Object",
+      "kind": "type",
+      "name": "Object",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.Override",
+      "kind": "type",
+      "name": "Override",
+      "typeKind": "interface",
+      "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:java.lang.System",
+      "kind": "type",
+      "name": "System",
+      "typeKind": "class",
+      "artifact": "A:java.base@17"
+    }
+  ],
+  "diagnostics": []
+}

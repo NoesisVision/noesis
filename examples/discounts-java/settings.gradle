@@ -7,6 +7,19 @@
  * in the user manual at https://docs.gradle.org/9.7.1/userguide/multi_project_builds.html
  */
 
+pluginManagement {
+    repositories {
+        // The Noesis scanner plugin, built locally from noesis/scanners/java/gradle-plugin (./gradlew publishToMavenLocal).
+        mavenLocal {
+            content {
+                includeGroup 'vision.noesis'
+                includeGroup 'vision.noesis.scanner'
+            }
+        }
+        gradlePluginPortal()
+    }
+}
+
 plugins {
     // Auto-provisions the JDK declared in the java toolchain when it is not installed locally.
     id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'

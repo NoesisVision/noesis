@@ -27,6 +27,7 @@ import type {
   ScanManifest,
   SourceSpan,
   TypeNode,
+  TypeRef,
 } from '../code-model';
 import { enumArgument, hasRole, rolesOf, stringArgument } from './annotations';
 import {
@@ -109,6 +110,8 @@ class Projector {
   private readonly behaviourOfMethod = new Map<GlobalId, BehaviorId>();
   private readonly memberBehaviours = new Map<GlobalId, Set<BehaviorId>>();
   private readonly callTargets = new Map<GlobalId, Set<BehaviorId>>();
+  /** R5.8: each block's fields a getter exposes, with the getter, by field id. */
+  private readonly getters = new Map<GlobalId, Map<NodeId, MethodNode>>();
 
   constructor({ manifest, files, vocabulary, config }: ProjectionInput) {
     this.vocabulary = vocabulary;
@@ -309,15 +312,16 @@ class Projector {
 
   /* -------------------------------------------------------- properties */
 
-  /** R5.1 to R5.6: the block's public instance properties and fields. */
+  /** R5.1 to R5.8: the block's public instance properties and fields, and Java's fields behind getters. */
   private propertiesOf(block: Block): ScannedProperty[] {
     const { artifact, node } = block;
+    const getters = this.gettersOf(block);
     const candidates = artifact
       .children(node.id)
       .filter(
         (member): member is PropertyNode | FieldNode =>
           (member.kind === 'property' || member.kind === 'field') &&
-          this.isPropertyCandidate(member),
+          this.isPropertyCandidate(member, getters),
       )
       .sort(byLocationThenName);
     // R5.2: a field and a property of one name are one property; the property wins.
@@ -350,16 +354,31 @@ class Projector {
       properties.push({
         name: name.data,
         type: resolved.ref,
-        description: member.documentation,
+        // R5.6, R5.8: the member's doc comment, else its getter's.
+        description:
+          member.documentation ?? getters.get(member.id)?.documentation ?? null,
         optional: resolved.optional,
       });
     }
     return properties;
   }
 
-  private isPropertyCandidate(member: PropertyNode | FieldNode): boolean {
-    if (member.origin === 'generated' || member.visibility !== 'public')
+  /**
+   * R5.1; R5.7: a record component is a property although its field is
+   * private; R5.8: so is a Java field a getter exposes.
+   */
+  private isPropertyCandidate(
+    member: PropertyNode | FieldNode,
+    getters: ReadonlyMap<NodeId, MethodNode>,
+  ): boolean {
+    if (member.origin === 'generated') return false;
+    if (
+      member.visibility !== 'public' &&
+      !isRecordComponent(member) &&
+      !getters.has(member.id)
+    ) {
       return false;
+    }
     if (member.modifiers.includes('static')) return false;
     if (this.excluded(member.annotations)) return false;
     if (member.kind === 'property') {
@@ -371,16 +390,69 @@ class Projector {
     return member.fieldKind === 'field' && member.constantValue === null;
   }
 
+  /**
+   * R5.8: in Java, the block's non-public instance fields that a public,
+   * non-static, parameterless getter of the same type exposes (`getX()`,
+   * `isX()` for a boolean, or Lombok's fluent `x()`), declared or generated,
+   * each with its getter. Empty for every other language.
+   */
+  private gettersOf(block: Block): ReadonlyMap<NodeId, MethodNode> {
+    const key = globalId(block.artifact, block.node.id);
+    const known = this.getters.get(key);
+    if (known !== undefined) return known;
+    const found = new Map<NodeId, MethodNode>();
+    this.getters.set(key, found);
+    if (this.vocabulary.language !== 'java') return found;
+    const members = block.artifact.children(block.node.id);
+    const methods = new Map<string, MethodNode>();
+    for (const member of members) {
+      if (
+        member.kind === 'method' &&
+        member.methodKind === 'method' &&
+        member.visibility === 'public' &&
+        !member.modifiers.includes('static') &&
+        member.signature.parameters.length === 0 &&
+        !this.excluded(member.annotations)
+      ) {
+        methods.set(member.name, member);
+      }
+    }
+    for (const field of members) {
+      if (
+        field.kind !== 'field' ||
+        field.fieldKind !== 'field' ||
+        field.origin === 'generated' ||
+        field.visibility === 'public' ||
+        field.modifiers.includes('static') ||
+        field.constantValue !== null ||
+        this.excluded(field.annotations)
+      ) {
+        continue;
+      }
+      const getter = getterNamesOf(field)
+        .map((name) => methods.get(name))
+        .find(
+          (method) =>
+            method !== undefined &&
+            sameType(method.signature.returnType, field.type),
+        );
+      if (getter !== undefined) found.set(field.id, getter);
+    }
+    return found;
+  }
+
   /* -------------------------------------------------------- behaviours */
 
   /** R9.1 to R9.3: the public methods of each block, overloads collapsed. */
   private collectBehaviours(): void {
     for (const block of this.blocks.values()) {
+      const getters = new Set(this.gettersOf(block).values());
       const methods = block.artifact
         .children(block.node.id)
         .filter(
           (member): member is MethodNode =>
-            member.kind === 'method' && this.isBehaviourCandidate(member),
+            member.kind === 'method' &&
+            this.isBehaviourCandidate(member, getters),
         );
       const byName = new Map<ElementName, Located<MethodNode>[]>();
       for (const node of methods) {
@@ -411,13 +483,22 @@ class Projector {
     this.reportHomelessBehaviours();
   }
 
-  private isBehaviourCandidate(method: MethodNode): boolean {
+  /**
+   * R9.1, and R5.7, R5.8: a record component's accessor, and a getter that
+   * makes its field a property, are the property, not a behaviour.
+   */
+  private isBehaviourCandidate(
+    method: MethodNode,
+    getters: ReadonlySet<MethodNode>,
+  ): boolean {
     if (method.methodKind !== 'method' || method.origin === 'generated')
       return false;
+    if (isRecordComponent(method)) return false;
     if (this.excluded(method.annotations)) return false;
     if (hasRole(method.annotations, 'behaviour', this.vocabulary)) return true;
     return (
       method.visibility === 'public' &&
+      !getters.has(method) &&
       !this.vocabulary.technicalMembers.has(method.name)
     );
   }
@@ -549,12 +630,12 @@ class Projector {
     };
   }
 
-  /** R9.4: `TriggeredBy` of a behaviour role, nearest member first; a Command without one. */
+  /** R9.4: `TriggeredBy` of a behaviour role, or the type the role itself fixes, nearest member first; a Command without one. */
   private behaviourTypeOf(
     hierarchy: readonly Located<MethodNode>[],
   ): BehaviourType {
     for (const member of hierarchy) {
-      for (const { annotation } of rolesOf(
+      for (const { annotation, role } of rolesOf(
         member.node.annotations,
         'behaviour',
         this.vocabulary,
@@ -570,6 +651,7 @@ class Projector {
         ) {
           return triggeredBy;
         }
+        if (role.type !== undefined) return role.type;
       }
     }
     return 'Command';
@@ -762,6 +844,43 @@ function moduleIdOf(path: readonly string[]): ModuleId {
     (parent, name) => ModuleId.within(parent, name),
     ModuleId.root(root),
   );
+}
+
+/** The Java scanner marks a record's component field and accessor; the field is the property (R5.7). */
+function isRecordComponent(node: DeclarationNode): boolean {
+  return node.languageSpecific['java.isRecordComponent'] === true;
+}
+
+/** R5.8: the names a getter of `field` may have: `getX`, `isX` for a boolean, and the fluent `x`. */
+function getterNamesOf(field: FieldNode): string[] {
+  const capitalised = field.name.charAt(0).toUpperCase() + field.name.slice(1);
+  const names = [`get${capitalised}`, field.name];
+  if (isBoolean(field.type)) names.push(`is${capitalised}`);
+  return names;
+}
+
+function isBoolean(ref: TypeRef): boolean {
+  return (
+    (ref.kind === 'primitive' && ref.name === 'boolean') ||
+    (ref.kind === 'named' && ref.type === 'T:java.lang.Boolean')
+  );
+}
+
+/** R5.8: one type, nullability aside: a getter of another type exposes something else. */
+function sameType(a: TypeRef, b: TypeRef): boolean {
+  return typeKey(a) === typeKey(b);
+}
+
+function typeKey(ref: TypeRef): string {
+  return JSON.stringify(ref, (key, value: unknown) => {
+    if (key === 'nullable') return undefined;
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+      return value;
+    }
+    return Object.fromEntries(
+      Object.entries(value).sort(([x], [y]) => byCodeUnit(x, y)),
+    );
+  });
 }
 
 /** R4.6, R9.10: the node's first location; a node without one has no path. */

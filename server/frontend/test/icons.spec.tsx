@@ -2,8 +2,10 @@ import { describe, expect, it } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
+  IconBroom,
   IconChevronsDownUp,
   IconChevronsUpDown,
+  IconFrameX,
 } from '../src/shared/ui/icons/icons';
 
 const pathsOf = (svg: string) =>
@@ -19,6 +21,8 @@ describe('icons', () => {
   it.each([
     ['chevrons-up-down', IconChevronsUpDown],
     ['chevrons-down-up', IconChevronsDownUp],
+    ['broom', IconBroom],
+    ['frame-x', IconFrameX],
   ] as const)('%s draws what its .svg draws', (name, Icon) => {
     const html = renderToStaticMarkup(<Icon />);
     expect(pathsOf(html)).toEqual(pathsOf(source(name)));

@@ -93,7 +93,11 @@ for signatures. An object creation with a known constructor is only an
 
 Expressed as TypeScript types because the server validates with zod and the
 schema file is the contract every scanner writes against. Scanners in other
-languages mirror it (the .NET scanner has a C# copy with a schema test).
+languages mirror it (the .NET scanner has a C# copy with a schema test). The
+zod schema is `server/backend/src/app/code-model/code-model.ts`; `bun run
+generate` writes it as JSON Schema into `scanners/code-model/`
+(`manifest.schema.json`, `code-model.schema.json`), the readable copy a
+scanner author works from.
 
 ### 3.1 Files
 
@@ -178,7 +182,10 @@ the CLR does. An explicit interface implementation is named
 spelling (`IGenericInterface<System.Int32>.GetValue`) is not this grammar.
 `file`-local C# types get `@<file hash>` after the type name. Java uses `$`
 for nesting in its own canonical form; the model keeps `+` everywhere so
-consumers never branch on language for nesting.
+consumers never branch on language for nesting, and for the same reason a
+Java constructor is `#.ctor` and a static initializer block `#.cctor`
+([`code-model-java-scanner.md`](code-model-java-scanner.md) has the Java
+side).
 
 An id is unique within one artifact file, not across the scan: every
 artifact that declares `Sales.Domain` has a namespace node
@@ -721,7 +728,11 @@ Flat, scalar, language-prefixed keys: `csharp.isRefStruct`, `csharp.isFileLocal`
 `csharp.backingFieldAnnotations` (type ids of `[field:]` attributes on a
 property or event), `csharp.positional`, `csharp.fixedSize`, `java.throws`,
 `java.isRecordComponent`, `java.isAnnotation`, `java.synchronized`,
-`java.transient`, `java.permits`, `ts.defaultType`, `ts.isAmbient`,
+`java.transient`, `java.strictfp`, `java.permits`, `java.nonSealed`,
+`java.isLocal`, `java.isAnonymous`, `java.enclosingMethod`,
+`java.defaultValue`, `java.implicitSuperCall` (on a site), `java.groupId`,
+`java.packaging`, `java.buildFile`, `java.engine`, `java.mainClass` (on the
+artifact), `ts.defaultType`, `ts.isAmbient`,
 `php.isTrait`. A key is added to a per-language list in the schema file;
 unknown keys are allowed by the validator and ignored by the server. This is
 the escape hatch that keeps the shared vocabulary closed.
@@ -917,6 +928,9 @@ next.
   which of those ids are declared or stubbed.
 - **Schema**: the C# model types round-trip through the TypeScript zod
   schema in `server/backend`, so a field added on one side fails the other.
+  The golden files are also checked against the generated JSON Schema in
+  `scanners/code-model/`, and that the committed schema is the one the zod
+  source generates.
 - **Broken fixtures**: a `csharp-broken` fixture set with a missing
   reference and a syntax error in one file. Asserts: models still written,
   diagnostics present, exit code 0.

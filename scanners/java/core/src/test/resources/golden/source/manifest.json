@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "noesis-scan-java",
+    "version": "1.0.0"
+  },
+  "language": "java",
+  "repository": {
+    "name": "noesis",
+    "revision": "0123456789abcdef"
+  },
+  "root": "scanners/java/test-fixtures",
+  "artifacts": [
+    {
+      "id": "A:java-syntax-other",
+      "file": "code-model/java/java-syntax-other.code-model.json"
+    },
+    {
+      "id": "A:java-syntax",
+      "file": "code-model/java/java-syntax.code-model.json"
+    }
+  ],
+  "diagnostics": []
+}

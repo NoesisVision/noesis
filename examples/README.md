@@ -48,8 +48,9 @@ dotnet tool install -g Noesis.Scanner --add-source src/Noesis.Scanner.Cli/bin/Re
 
 Without it a scan fails with `Cannot run noesis-scan-csharp`. The first scan
 restores the example's packages and loads MSBuild, so it takes a while; later
-ones take a few seconds. `discounts-java` needs no tool: its scanner reads the
-sources as text.
+ones take a few seconds. Scanning `discounts-java` runs `./gradlew noesisScan`
+in the example, which needs the `vision.noesis.scanner` Gradle plugin in the
+local Maven repository (see below) and a JDK.
 
 Both commands need a terminal on stdin. Without one (a background job, a CI
 step, an agent's shell) the service takes stdin for MCP and quits when it
@@ -73,10 +74,14 @@ claude --plugin-dir ../../plugins/claude-code
 
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 `NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
-Each `discounts-*` example names its scanner in `.noesis/settings.json`
-(`"scanner": "java"` or `"csharp"`), which a scan reads every time. `qdoc-java`
-sets `NOESIS_SCANNER=dummy` instead, as does `dev:qdoc-java`: it has no code to
-scan, so a scan replays its implemented design documents.
+Each `discounts-*` example names its scanner in `.noesis/settings.json`, which a
+scan reads every time: `discounts-dotnet` says `"csharp"`, `discounts-java`
+says `"code-model"` with the `./gradlew noesisScan` command line to run in its
+`codeModel` block, `qdoc-java` says `"java-maven"`, which runs the Maven
+plugin through its `mvnw` (`"java"` reads the sources as text; `"dummy"`
+reads no code and replays the implemented design documents, for a repository
+without code). `qdoc-java` has no domain code yet, so its scan finds an empty
+model. Nothing but that file picks the scanner; no environment variable does.
 
 `bun run test:e2e` covers the two `discounts-*` examples: every change,
 design document and document in them must be served.
@@ -90,8 +95,20 @@ its build files, its scanner config (`.noesis/settings.json`) and the
 nothing else: no CI, build scripts, IDE settings or notes from the runs.
 
 - `discounts-java` depends on `vision.noesis:noesis-annotations:0.1.0-SNAPSHOT`
-  from `mavenLocal()`: run `mvn install` in `scanners/java` first, then
-  `./gradlew build` in the example.
+  and applies the `vision.noesis.scanner` Gradle plugin, both from
+  `mavenLocal()`: run `mvn install` in `scanners/java` and
+  `./gradlew publishToMavenLocal` in `scanners/java/gradle-plugin` first, then
+  `./gradlew build` in the example. `./gradlew noesisScan` there scans the
+  example into the code model under `.noesis/sessions/scanner/code-model/java/`
+  with the hybrid engine (its sources use Lombok); a scan from the service
+  runs the same command through its `.noesis/settings.json`.
+- `qdoc-java` is a Spring Boot Maven project that depends on
+  `vision.noesis:noesis-annotations:0.1.0-SNAPSHOT` and declares the
+  `noesis-scanner-maven-plugin`, both from the local repository: run
+  `mvn install` in `scanners/java` first, then `./mvnw process-classes noesis:scan`
+  in the example writes the code model under
+  `.noesis/sessions/scanner/code-model/java/`; a scan from the service runs the
+  plugin the same way through its `.noesis/settings.json`.
 - `discounts-dotnet` takes `NoesisVision.Annotations` from the private NuGet
   feed in its `nuget.config`; `dotnet build MyCompany.ECommerce.sln` builds it
   (net8.0). It is a library and its tests, nothing runs.

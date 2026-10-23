@@ -52,7 +52,7 @@ unsure, take them.
 
    ```sh
    bun run --cwd server/frontend build:spa
-   tail -f /dev/null | NOESIS_ROOT=$PWD/examples/qdoc-java NOESIS_SCANNER=dummy \
+   tail -f /dev/null | NOESIS_ROOT=$PWD/examples/qdoc-java \
      PORT=3987 NOESIS_OPEN_BROWSER=0 \
      script -q /dev/null bun server/backend/src/main.ts > /tmp/noesis-ui.log 2>&1 &
    curl -s 127.0.0.1:3987/ui/changes/navigation   # the change ids to open
