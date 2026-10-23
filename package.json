@@ -16,6 +16,7 @@
     "knip": "knip",
     "test": "bun run --cwd server/backend test && bun run --cwd server/frontend test && bun run --cwd plugins/claude-code test",
     "test:e2e": "bun run --filter '*' test:e2e",
+    "test:e2e:toolchain": "bun run --cwd server/backend test:e2e:toolchain",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "fix": "bun run lint:fix && bun run format && knip --fix",

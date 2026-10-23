@@ -18,13 +18,14 @@ bun run dev                 # Vite on :3000 (HMR) + watched backend on :3001
 bun run preview             # build, then serve the production artifacts on :3000
 bun run start:debug         # backend only on :3000 with bun's inspector
 
-bun run ci                  # the one definition of "verified": lint, knip, format:check, check-types, test, test:e2e, build
+bun run ci                  # the one definition of "verified" (the pre-push hook): lint, knip, format:check, check-types, test, test:e2e, build
 bun run lint                # oxlint (type-aware + backend layer rules); lint:fix to autofix
 bun run format              # oxfmt on code and Markdown; format:check to verify
 bun run check-types         # tsc --noEmit in every workspace
 bun run knip                # unused files/exports/deps across workspaces
 bun run test                # unit + integration in every workspace, one workspace at a time
 bun run test:e2e            # service boot, MCP session, SPA from source
+bun run test:e2e:toolchain  # the C# and Java scanners end to end; needs .NET and Maven, so not in ci (pre-push) but in GitHub CI
 bun run build               # vite build of the SPA + service bundle + plugin contracts (JSON Schema)
 bun run generate            # re-stamp version pins, regenerate scanners/code-model/*.schema.json; CI fails if the result is not committed
 ```

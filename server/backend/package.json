@@ -27,7 +27,8 @@
     "contracts": "bun run tools/generate-contracts.ts",
     "generate": "bun run tools/generate-code-model-schema.ts",
     "test": "bun test test/unit test/integration",
-    "test:e2e": "bun run --cwd ../frontend build:spa && bun test test/e2e",
+    "test:e2e": "bun run --cwd ../frontend build:spa && bun test ./test/e2e/",
+    "test:e2e:toolchain": "bun test ./test/e2e-toolchain/",
     "prepack": "bun run build"
   },
   "devDependencies": {
