@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { cp, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { JavaCodeParser } from '#backend/adapters/out/parsers/java-code-parser';
-import { SystemModel } from '#backend/app/system-model/system-model';
-import { SystemModelId } from '#backend/app/system-model/system-model-id';
+import { SystemModel } from '#backend/app/scanner/system-model/system-model';
+import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
 import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
-import { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import {
   designDocFixture,
   greenFieldDesignDocFixture,

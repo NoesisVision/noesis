@@ -17,7 +17,7 @@ import {
   type ScannedRule,
   type SystemModel,
   Visibility,
-} from '#backend/app/system-model/system-model';
+} from '#backend/app/scanner/system-model/system-model';
 import { type ChangedDesignDocField, DesignDocField } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
 import { MermaidSource } from './mermaid-source';

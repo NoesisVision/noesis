@@ -1,6 +1,6 @@
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
-import type { Visibility } from '#backend/app/system-model/system-model.ts';
+import type { Visibility } from '#backend/app/scanner/system-model/system-model.ts';
 
 /**
  * Who may call a behaviour, in a word: `public` with the actors it names, or

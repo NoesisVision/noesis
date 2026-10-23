@@ -7,8 +7,8 @@ import {
 } from '#backend/app/changes/changes.repository';
 import type { Now, Today } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
+import type { SystemModelsReader } from '#backend/app/scanner/system-model/system-models.repository';
 import { createAtFreeSlugId } from '#backend/app/slug-id';
-import type { SystemModelsReader } from '#backend/app/system-model/system-models.repository';
 import {
   type DesignDocument,
   DesignDocumentContent,

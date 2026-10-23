@@ -1,6 +1,6 @@
 import { Code } from '#/shared/design-system/code.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
-import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import type { BuildingBlockRefInput } from '#backend/app/scanner/system-model/system-model.ts';
 import {
   type DesignDocFieldInput,
   valueOf,

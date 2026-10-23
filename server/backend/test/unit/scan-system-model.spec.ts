@@ -2,20 +2,20 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { writeFile } from 'node:fs/promises';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
-import type { CodeParser } from '#backend/app/code-model/code-parser';
-import { ScanFailedError } from '#backend/app/system-model/scan-failed-error';
+import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
+import { ScanFailedError } from '#backend/app/scanner/system-model/scan-failed-error';
 import {
   type Scanners,
   scanSystemModelHandler,
-} from '#backend/app/system-model/scan-system-model';
+} from '#backend/app/scanner/system-model/scan-system-model';
 import {
   type CodeParsers,
   ScannerFactory,
-} from '#backend/app/system-model/scanner-factory';
-import type { RepositorySettings } from '#backend/app/system-model/scanner-settings.repository';
-import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
-import { SystemModel } from '#backend/app/system-model/system-model';
-import { SystemModelId } from '#backend/app/system-model/system-model-id';
+} from '#backend/app/scanner/system-model/scanner-factory';
+import type { RepositorySettings } from '#backend/app/scanner/system-model/scanner-settings.repository';
+import type { SourceCodeScanner } from '#backend/app/scanner/system-model/source-code-scanner';
+import { SystemModel } from '#backend/app/scanner/system-model/system-model';
+import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;

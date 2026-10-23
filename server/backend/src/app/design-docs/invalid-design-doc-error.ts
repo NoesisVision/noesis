@@ -1,4 +1,4 @@
-import type { SystemModelsReader } from '#backend/app/system-model/system-models.repository';
+import type { SystemModelsReader } from '#backend/app/scanner/system-model/system-models.repository';
 import {
   DesignDocument,
   type DesignDocumentContent,

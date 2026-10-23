@@ -6,7 +6,7 @@ import {
   RULE_TYPES_OF,
   ScannedScenario,
   SystemModel,
-} from '#backend/app/system-model/system-model';
+} from '#backend/app/scanner/system-model/system-model';
 
 /*
  * The system model is what a scanner found in the code of one unit: its

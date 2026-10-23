@@ -1,8 +1,8 @@
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import { SystemModel } from '#backend/app/system-model/system-model';
-import type { SystemModelId } from '#backend/app/system-model/system-model-id';
-import type { SystemModelsRepository } from '#backend/app/system-model/system-models.repository';
+import { SystemModel } from '#backend/app/scanner/system-model/system-model';
+import type { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
+import type { SystemModelsRepository } from '#backend/app/scanner/system-model/system-models.repository';
 import {
   JsonFileError,
   readJsonFile,

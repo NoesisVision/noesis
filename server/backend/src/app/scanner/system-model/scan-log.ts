@@ -1,5 +1,5 @@
-import type { Language } from '#backend/app/code-model/code-model';
-import type { BuildDiagnostic } from '#backend/app/code-model/system-model-builder/build-system-model';
+import type { Language } from '#backend/app/scanner/code-model/code-model';
+import type { BuildDiagnostic } from '#backend/app/scanner/code-model/system-model-builder/build-system-model';
 
 export interface ScanSummary {
   readonly name: string;

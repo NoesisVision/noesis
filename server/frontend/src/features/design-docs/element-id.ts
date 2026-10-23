@@ -5,7 +5,7 @@ import type {
   ElementId,
   ModuleId,
 } from '#backend/app/element-id.ts';
-import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import type { BuildingBlockRefInput } from '#backend/app/scanner/system-model/system-model.ts';
 
 /*
  * The one place that reads an element's id: the rule `ElementId` states on

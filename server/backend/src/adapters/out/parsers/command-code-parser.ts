@@ -6,11 +6,11 @@ import {
   CodeModelFile as CodeModelFileSchema,
   type Diagnostic,
   ScanManifest,
-} from '#backend/app/code-model/code-model';
+} from '#backend/app/scanner/code-model/code-model';
 import type {
   CodeParser,
   ParsedCode,
-} from '#backend/app/code-model/code-parser';
+} from '#backend/app/scanner/code-model/code-parser';
 import { readJsonFile } from '#backend/platform/files/json-file';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/logging';

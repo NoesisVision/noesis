@@ -3,7 +3,7 @@ import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts
 import type {
   BuildingBlockRefInput,
   BuildingBlockType,
-} from '#backend/app/system-model/system-model.ts';
+} from '#backend/app/scanner/system-model/system-model.ts';
 import type { ArchitectureCheck } from '../src/features/design-docs/architecture-outline';
 import {
   architectureTreeOf,

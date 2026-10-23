@@ -1,5 +1,5 @@
 import type { DesignDocFieldAuthor } from '#backend/app/design-docs/design-doc-field.ts';
-import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
+import type { BuildingBlockRefInput } from '#backend/app/scanner/system-model/system-model.ts';
 import { nameOf } from './element-id.ts';
 
 /*

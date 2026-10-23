@@ -2,13 +2,13 @@ import { z } from 'zod';
 import {
   NamespaceConfig,
   NamespaceConfigSchema,
-} from '#backend/app/code-model/system-model-builder/namespace-config';
+} from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 import {
   CodeModelToolSettings,
   RepositoryScannerName,
   type RepositorySettings,
   type ScannerSettingsRepository,
-} from '#backend/app/system-model/scanner-settings.repository';
+} from '#backend/app/scanner/system-model/scanner-settings.repository';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const SETTINGS_FILE = 'settings.json';

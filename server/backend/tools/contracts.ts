@@ -10,7 +10,7 @@ import {
 } from '#backend/app/changes/change';
 import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
 import { DocumentContentSchema } from '#backend/app/information-sources/document';
-import { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import designDocumentExample from './design-doc.example.json';
 
 export const CONTRACTS = {

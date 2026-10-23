@@ -5,7 +5,7 @@ Roslyn scanner for C#) writes the **code model**: declarations, edges and
 stubs, see [`docs/arch/code-model.md`](../arch/code-model.md).
 This stage reads that model and writes the **system model** the server keeps
 in `.noesis/graph/system-models/`: modules, building blocks and behaviours,
-see `server/backend/src/app/system-model/system-model.ts`. It runs in the
+see `server/backend/src/app/scanner/system-model/system-model.ts`. It runs in the
 TypeScript server, once for every language, and knows a language only through
 its **annotation vocabulary**: which annotation types mean what, which
 platform types are the model's primitives, which are collections.
@@ -398,7 +398,7 @@ them.
 
 ## 13. Implementation
 
-**Where.** `server/backend/src/app/code-model/system-model-builder/`: the
+**Where.** `server/backend/src/app/scanner/code-model/system-model-builder/`: the
 system model builder, pure functions over the two contracts, in the app layer
 because they are domain logic every parser's code model goes through.
 
@@ -415,8 +415,8 @@ because they are domain logic every parser's code model goes through.
 | `system-model-builder.ts` | `SystemModelBuilder`: picks the vocabulary by the manifest's language and builds over the namespace settings |
 
 The scan itself is domain logic too: `SourceCodeScanner`
-(`app/system-model/source-code-scanner.ts`) takes a `CodeParser`
-(`app/code-model/code-parser.ts`) and a `SystemModelBuilder`, runs the parser,
+(`app/scanner/system-model/source-code-scanner.ts`) takes a `CodeParser`
+(`app/scanner/code-model/code-parser.ts`) and a `SystemModelBuilder`, runs the parser,
 builds the system model of what it read, reports the diagnostics through the
 `ScanLog` port and returns the `SystemModel`. The adapters are only parsers:
 `CSharpCodeParser` and `JavaCodeParser` (`adapters/out/parsers/`) run their

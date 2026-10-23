@@ -9,7 +9,7 @@ import { z } from 'zod';
 import {
   CodeModelFile,
   ScanManifest,
-} from '#backend/app/code-model/code-model';
+} from '#backend/app/scanner/code-model/code-model';
 import { contractComment } from './generate-contracts';
 
 const serviceRoot = fileURLToPath(new URL('../', import.meta.url));

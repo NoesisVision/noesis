@@ -22,10 +22,10 @@ import { DocumentSchema } from '#backend/app/information-sources/document';
 import { findDocumentHandler } from '#backend/app/information-sources/find-document';
 import { listDocumentsInChangeHandler } from '#backend/app/information-sources/list-documents-in-change';
 import { updateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
+import { findNewestSystemModelHandler } from '#backend/app/scanner/system-model/find-newest-system-model';
+import { scanSystemModelHandler } from '#backend/app/scanner/system-model/scan-system-model';
+import { ScannerFactory } from '#backend/app/scanner/system-model/scanner-factory';
 import { searchHandler } from '#backend/app/search/search';
-import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
-import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
-import { ScannerFactory } from '#backend/app/system-model/scanner-factory';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { codeParsers } from './code-parsers';
 

@@ -1,7 +1,7 @@
 import type {
   BehaviourType,
   BuildingBlockType,
-} from '#backend/app/system-model/system-model';
+} from '#backend/app/scanner/system-model/system-model';
 import type { Language, NodeId } from '../code-model';
 
 /*

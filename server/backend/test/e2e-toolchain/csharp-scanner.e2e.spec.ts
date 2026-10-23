@@ -12,10 +12,10 @@ import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scann
 import {
   CodeModelFile,
   ScanManifest,
-} from '#backend/app/code-model/code-model';
-import { buildSystemModel } from '#backend/app/code-model/system-model-builder/build-system-model';
-import { CSHARP_VOCABULARY } from '#backend/app/code-model/system-model-builder/csharp.vocabulary';
-import { SystemModel } from '#backend/app/system-model/system-model';
+} from '#backend/app/scanner/code-model/code-model';
+import { buildSystemModel } from '#backend/app/scanner/code-model/system-model-builder/build-system-model';
+import { CSHARP_VOCABULARY } from '#backend/app/scanner/code-model/system-model-builder/csharp.vocabulary';
+import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import {
   INVOKES,

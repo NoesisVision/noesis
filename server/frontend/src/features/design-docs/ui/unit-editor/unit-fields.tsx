@@ -18,7 +18,7 @@ import type {
   BuildingBlockRefInput,
   RuleCategory,
   Visibility,
-} from '#backend/app/system-model/system-model.ts';
+} from '#backend/app/scanner/system-model/system-model.ts';
 import { writtenIn } from '../../change-set.ts';
 import {
   blocksNamedIn,

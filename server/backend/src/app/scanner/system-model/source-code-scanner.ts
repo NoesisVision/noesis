@@ -2,9 +2,9 @@ import type { Now } from '#backend/app/clock';
 import type {
   CodeParser,
   ParsedCode,
-} from '#backend/app/code-model/code-parser';
-import type { BuiltSystemModel } from '#backend/app/code-model/system-model-builder/build-system-model';
-import type { SystemModelBuilder } from '#backend/app/code-model/system-model-builder/system-model-builder';
+} from '#backend/app/scanner/code-model/code-parser';
+import type { BuiltSystemModel } from '#backend/app/scanner/code-model/system-model-builder/build-system-model';
+import type { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
 import type { ScanLog } from './scan-log';
 import type { SourceRepository } from './source-repository';
 import type { SystemModel } from './system-model';

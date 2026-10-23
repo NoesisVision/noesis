@@ -15,7 +15,7 @@ import type {
   ScannedScenario,
   SourceLocation,
   SystemModel,
-} from '#backend/app/system-model/system-model';
+} from '#backend/app/scanner/system-model/system-model';
 import type {
   Annotation,
   CodeModelFile,

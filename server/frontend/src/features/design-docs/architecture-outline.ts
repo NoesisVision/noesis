@@ -11,7 +11,7 @@ import type {
   BuildingBlockType,
   RuleCategory,
   RuleType,
-} from '#backend/app/system-model/system-model.ts';
+} from '#backend/app/scanner/system-model/system-model.ts';
 import type { kindOf } from './element-id.ts';
 
 /*

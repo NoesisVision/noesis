@@ -4,7 +4,7 @@ import {
   CodeModelFile,
   type Language,
   ScanManifest,
-} from '#backend/app/code-model/code-model';
+} from '#backend/app/scanner/code-model/code-model';
 
 const scanners = join(import.meta.dir, '../../../../scanners');
 

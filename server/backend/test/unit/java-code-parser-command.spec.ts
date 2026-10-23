@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { chmod, readdir, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { JavaCodeParser } from '#backend/adapters/out/parsers/java-code-parser';
-import { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 

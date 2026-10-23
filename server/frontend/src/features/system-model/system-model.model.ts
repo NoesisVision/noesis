@@ -4,7 +4,7 @@ import type {
   ScannedRule,
   ScannedScenario,
   SystemModel,
-} from '#backend/app/system-model/system-model.ts';
+} from '#backend/app/scanner/system-model/system-model.ts';
 
 /*
  * The scanned model read as the design documents are read: every element it

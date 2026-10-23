@@ -1,5 +1,5 @@
-import type { CodeParser } from '#backend/app/code-model/code-parser';
-import { SystemModelBuilder } from '#backend/app/code-model/system-model-builder/system-model-builder';
+import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
+import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
 import {
   RepositoryScannerName,
   type RepositorySettings,

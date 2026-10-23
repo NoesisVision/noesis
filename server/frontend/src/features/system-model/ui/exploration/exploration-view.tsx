@@ -30,7 +30,7 @@ import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
-import type { SystemModel } from '#backend/app/system-model/system-model.ts';
+import type { SystemModel } from '#backend/app/scanner/system-model/system-model.ts';
 import {
   choiceWithin,
   type DrawnRelation,

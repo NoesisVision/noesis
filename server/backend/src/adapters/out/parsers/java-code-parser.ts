@@ -1,4 +1,4 @@
-import type { CodeModelToolSettings } from '#backend/app/system-model/scanner-settings.repository';
+import type { CodeModelToolSettings } from '#backend/app/scanner/system-model/scanner-settings.repository';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { CommandCodeParser, fillCommand } from './command-code-parser';
 

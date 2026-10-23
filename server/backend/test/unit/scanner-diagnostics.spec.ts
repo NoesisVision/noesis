@@ -4,7 +4,7 @@ import type {
   CodeModelFile,
   Diagnostic,
   ScanManifest,
-} from '#backend/app/code-model/code-model';
+} from '#backend/app/scanner/code-model/code-model';
 
 /*
  * What the service logs of the diagnostics a scanner wrote: a module the

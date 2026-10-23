@@ -3,7 +3,7 @@
 A scanner reads one solution and writes a _code model_: a graph of what the
 code declares and what each body does, in a vocabulary shared by every
 language. This page walks that model top down. The contract is the zod schema
-in `server/backend/src/app/code-model/code-model.ts`, generated as JSON Schema
+in `server/backend/src/app/scanner/code-model/code-model.ts`, generated as JSON Schema
 into `scanners/code-model/`; the scanners keep their own copies in
 `scanners/dotnet/src/Noesis.Scanner.Model` and `scanners/java/model`.
 

@@ -2,11 +2,11 @@ import { GitSourceRepository } from '#backend/adapters/out/git/git-source-reposi
 import { ServerScanLog } from '#backend/adapters/out/logging/server-scan-log';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import type { Now } from '#backend/app/clock';
-import type { CodeParser } from '#backend/app/code-model/code-parser';
-import type { NamespaceConfig } from '#backend/app/code-model/system-model-builder/namespace-config';
-import { SystemModelBuilder } from '#backend/app/code-model/system-model-builder/system-model-builder';
-import type { RepositorySettings } from '#backend/app/system-model/scanner-settings.repository';
-import { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
+import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
+import type { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
+import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
+import type { RepositorySettings } from '#backend/app/scanner/system-model/scanner-settings.repository';
+import { SourceCodeScanner } from '#backend/app/scanner/system-model/source-code-scanner';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /** The scanner the service builds over `parser`, for the repository `noesis` is in. */

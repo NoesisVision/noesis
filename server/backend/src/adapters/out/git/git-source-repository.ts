@@ -1,5 +1,5 @@
 import { basename } from 'node:path';
-import type { SourceRepository } from '#backend/app/system-model/source-repository';
+import type { SourceRepository } from '#backend/app/scanner/system-model/source-repository';
 
 /** The repository at `root`, named after its directory, its commit read from Git. */
 export class GitSourceRepository implements SourceRepository {

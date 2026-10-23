@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
-import type { ScenarioStep } from '#backend/app/system-model/system-model.ts';
+import type { ScenarioStep } from '#backend/app/scanner/system-model/system-model.ts';
 import {
   keywordOf,
   nextKindAfter,

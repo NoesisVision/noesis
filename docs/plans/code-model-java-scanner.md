@@ -495,7 +495,7 @@ A Gradle one:
 Both plugins write the same files, so the two presets differ only in the
 command line; a build tool the plugins do not cover yet is a new `command`,
 not a change to the service. The Java
-vocabulary is `app/code-model/system-model-builder/java.vocabulary.ts`; it needed two
+vocabulary is `app/scanner/code-model/system-model-builder/java.vocabulary.ts`; it needed two
 small projection rules the C# one did not: a `behaviour` role may fix the
 behaviour type itself (R9.4, for the argument-less handler annotations) and a
 record component's private field is a property while its accessor is not a

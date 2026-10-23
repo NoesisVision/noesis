@@ -7,7 +7,7 @@ lists. The concepts and the id grammar are in
 [`docs/arch/code-model.md`](../../docs/arch/code-model.md).
 
 Both files are generated from the zod schema in
-`server/backend/src/app/code-model/code-model.ts`, the one the service
+`server/backend/src/app/scanner/code-model/code-model.ts`, the one the service
 validates with, by `bun run generate` (from the repo root, or
 `server/backend`). Do not edit them by hand: change the zod schema and
 regenerate. CI fails when the committed files are stale, and

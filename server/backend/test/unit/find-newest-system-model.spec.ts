@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
-import { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;

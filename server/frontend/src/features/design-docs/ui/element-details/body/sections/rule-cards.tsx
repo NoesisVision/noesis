@@ -12,7 +12,7 @@ import type { DesignedRuleInput } from '#backend/app/design-docs/design-doc.ts';
 import type {
   RuleCategory,
   RuleType,
-} from '#backend/app/system-model/system-model.ts';
+} from '#backend/app/scanner/system-model/system-model.ts';
 import { writtenIn } from '../../../../change-set.ts';
 import {
   type PartOwner,
