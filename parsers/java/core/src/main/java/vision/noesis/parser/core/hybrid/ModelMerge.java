@@ -24,6 +24,7 @@ import vision.noesis.parser.model.ArtifactNode;
 import vision.noesis.parser.model.CodeModelFile;
 import vision.noesis.parser.model.DeclarationNode;
 import vision.noesis.parser.model.Diagnostic;
+import vision.noesis.parser.model.DiagnosticSeverity;
 import vision.noesis.parser.model.Edge;
 import vision.noesis.parser.model.FieldNode;
 import vision.noesis.parser.model.LanguageBag;
@@ -51,18 +52,22 @@ import vision.noesis.parser.model.UsageSite;
  *
  * <ul>
  *   <li>Before the merge, {@link MergeInputs} gives a source method that names a processor-generated type the id
- *       bytecode has for it, and moves bytecode's field initializer edges from the constructors to the fields.</li>
+ *       bytecode has for it, and moves bytecode's field initializer edges from the constructors to the fields, a
+ *       generated static field's (Lombok's logger) included.</li>
  *   <li>A declaration only the class files have (a member or type an annotation processor generated) is added with
- *       {@code origin = generated} and {@code java.engine = bytecode}; a {@code .cctor} of a type the source engine
- *       declared is not, since the source engine attributes static initializers to the fields. An implicit member the
- *       source engine assumed but the class files lack (the default constructor of a class Lombok gave constructors)
- *       is dropped with its edges.</li>
- *   <li>A declaration in both models keeps the source engine's facts, except that modifiers the class file adds and a
- *       visibility it changes (Lombok's {@code @Value} makes the class final and the fields private) are taken from
- *       bytecode and the node is marked {@code java.processorModified = true}.</li>
+ *       {@code origin = generated} and {@code java.engine = bytecode}; one of a file whose declarations the source
+ *       engine dropped ({@code NS1010}) keeps bytecode's origin, and that {@code NS1010} becomes a warning that the
+ *       file's types come from the class files. A {@code .cctor} of a type the source engine declared is not added,
+ *       since the source engine attributes static initializers to the fields, unless the type has several generated
+ *       static fields, whose initializers no line tells apart. An implicit member the source engine assumed but the
+ *       class files lack (the default constructor of a class Lombok gave constructors) is dropped with its edges.</li>
+ *   <li>A declaration in both models keeps the source engine's facts, except that where the class file has a modifier
+ *       the sources lack, its modifiers are taken, and a visibility it changes too (Lombok's {@code @Value} makes the
+ *       class final and the fields private, {@code @UtilityClass} a method static); the node is marked
+ *       {@code java.processorModified = true}.</li>
  *   <li>Structural edges of an added declaration (containment, bases, overrides, interface member mapping) come
  *       from bytecode, as do the edges onto an added declaration from a source one. A base the source engine left
- *       {@code unresolved} is replaced by the bytecode engine's bases of that kind.</li>
+ *       {@code unresolved} is replaced by the bytecode engine's bases of that kind, if it has any.</li>
  *   <li>Body edges from an added declaration come from bytecode. Body edges from a source declaration come from
  *       bytecode only where they target an added declaration or sit within the lines of an expression the source
  *       engine reported an {@code NS1002} for (a call it could not bind, and every call chained after it, on whatever
@@ -75,7 +80,8 @@ import vision.noesis.parser.model.UsageSite;
  *       {@code new} to it), is dropped, as is a compiler error at its position or on lines that gained an edge.</li>
  *   <li>Stubs: the source engine's, plus the bytecode engine's for every symbol the added declarations and edges
  *       reference, with their containers and base chains.</li>
- *   <li>Module-level diagnostics of the bytecode engine (classes missing, parameter names missing) are kept.</li>
+ *   <li>Module-level diagnostics of the bytecode engine (classes missing, parameter names missing) are kept; its
+ *       {@code NS1001} becomes an {@code NS1011} warning, since the model is the source model, not empty.</li>
  *   <li>Without a source model, no compiler ({@code NS1003}) or a source engine that failed on the module
  *       ({@code NS1001}), the bytecode model is the whole result, with the source engine's diagnostics.</li>
  * </ul>
@@ -101,6 +107,9 @@ final class ModelMerge {
     private final List<Region> unboundRegions = new ArrayList<>();
     /** The file and line of every body edge taken from bytecode onto a source declaration. */
     private final Map<String, TreeSet<Integer>> addedLines = new HashMap<>();
+    /** The files whose declarations the source engine dropped ({@code NS1010}), and those of them whose types bytecode supplied. */
+    private final Set<String> droppedFiles = new HashSet<>();
+    private final Set<String> recoveredFiles = new HashSet<>();
 
     /** The lines of an expression the source engine could not bind. */
     private record Region(String file, int start, int end) {
@@ -123,7 +132,13 @@ final class ModelMerge {
         for (StubNode stub : bytecode.stubs()) bytecodeStubs.put(stub.id(), stub);
         for (Diagnostic diagnostic : source.diagnostics()) {
             if (Diagnostics.UNBOUND_SITE.equals(diagnostic.code()) && diagnostic.location() != null) unboundRegions.add(Region.of(diagnostic.location()));
+            if (isDroppedFile(diagnostic)) droppedFiles.add(diagnostic.location().file());
         }
+    }
+
+    /** The source engine's {@code NS1010} error: the walk failed on the file's declarations, which are rolled back. */
+    private static boolean isDroppedFile(Diagnostic diagnostic) {
+        return Diagnostics.FILE_NOT_PARSED.equals(diagnostic.code()) && diagnostic.severity() == DiagnosticSeverity.ERROR && diagnostic.location() != null;
     }
 
     /** Without a source model (no compiler, or the source engine failed on the module) the bytecode model is the whole result. */
@@ -166,10 +181,16 @@ final class ModelMerge {
     // --- Declarations ------------------------------------------------------------------------------------------------
 
     private void addDeclarations() {
+        Map<NodeId, List<FieldNode>> generatedStatics = MergeInputs.generatedStaticFields(bytecode, sourceNodes.keySet());
         for (DeclarationNode node : bytecode.nodes()) {
             if (sourceNodes.containsKey(node.id())) continue;
-            if (node.id().value().endsWith("#" + JavaIds.STATIC_INITIALIZER_NAME + "()") && sourceNodes.containsKey(declaringType(node.id()))) continue;
-            added.put(node.id(), fromBytecode(node));
+            if (node.id().value().endsWith("#" + JavaIds.STATIC_INITIALIZER_NAME + "()") && sourceNodes.containsKey(declaringType(node.id()))) {
+                // Several generated static fields: the class file does not tell which statement initializes which, so their initializers stay here.
+                if (generatedStatics.getOrDefault(declaringType(node.id()), List.of()).size() < 2) continue;
+            }
+            String droppedFile = droppedFileOf(node.id());
+            if (droppedFile != null) recoveredFiles.add(droppedFile);
+            added.put(node.id(), fromBytecode(node, droppedFile == null ? Origin.GENERATED : node.origin()));
         }
         for (DeclarationNode node : source.nodes()) {
             DeclarationNode compiled = bytecodeNodes.get(node.id());
@@ -186,27 +207,31 @@ final class ModelMerge {
     /** @return the source node with the class file's extra modifiers and visibility, or null when the class file adds nothing. */
     private static DeclarationNode reconcile(DeclarationNode node, DeclarationNode compiled) {
         if (node instanceof TypeNode t && compiled instanceof TypeNode c) {
-            List<Modifier> modifiers = union(t.modifiers(), c.modifiers());
+            List<Modifier> modifiers = modifiers(t.modifiers(), c.modifiers());
             if (modifiers.equals(t.modifiers()) && t.visibility() == c.visibility()) return null;
             return new TypeNode(t.id(), t.name(), t.origin(), t.locations(), t.annotations(), t.documentation(), withProcessorModified(t.languageSpecific()), t.typeKind(), c.visibility(), modifiers, t.typeParameters(), t.underlyingType(), t.delegateSignature(), t.aliasOf());
         }
         if (node instanceof FieldNode f && compiled instanceof FieldNode c) {
-            List<Modifier> modifiers = union(f.modifiers(), c.modifiers());
+            List<Modifier> modifiers = modifiers(f.modifiers(), c.modifiers());
             if (modifiers.equals(f.modifiers()) && f.visibility() == c.visibility()) return null;
             return new FieldNode(f.id(), f.name(), f.origin(), f.locations(), f.annotations(), f.documentation(), withProcessorModified(f.languageSpecific()), f.fieldKind(), c.visibility(), modifiers, f.type(), f.passing(), f.constantValue());
         }
         if (node instanceof MethodNode m && compiled instanceof MethodNode c) {
-            List<Modifier> modifiers = union(m.modifiers(), c.modifiers());
+            List<Modifier> modifiers = modifiers(m.modifiers(), c.modifiers());
             if (modifiers.equals(m.modifiers()) && m.visibility() == c.visibility()) return null;
             return new MethodNode(m.id(), m.name(), m.origin(), m.locations(), m.annotations(), m.documentation(), withProcessorModified(m.languageSpecific()), m.methodKind(), c.visibility(), modifiers, m.typeParameters(), m.signature(), m.extensionReceiver(), m.bodiless());
         }
         return null;
     }
 
-    private static List<Modifier> union(List<Modifier> declared, List<Modifier> compiled) {
-        List<Modifier> union = new ArrayList<>(declared);
-        for (Modifier modifier : compiled) if (!union.contains(modifier)) union.add(modifier);
-        return union;
+    /**
+     * The class file's modifiers when it has one the sources lack: the processor changed the declaration, and a modifier
+     * it adds can contradict one the sources imply ({@code @UtilityClass} makes a method static, so no longer virtual).
+     * Both engines map the access flags through {@code JavaModifiers}, so the sources hold no modifier the class file
+     * cannot express, and the class file's list is in the canonical order.
+     */
+    private static List<Modifier> modifiers(List<Modifier> declared, List<Modifier> compiled) {
+        return declared.containsAll(compiled) ? declared : compiled;
     }
 
     private boolean touchesDropped(Edge edge) {
@@ -218,19 +243,33 @@ final class ModelMerge {
         return false;
     }
 
-    private static DeclarationNode fromBytecode(DeclarationNode node) {
+    /**
+     * The file the source engine dropped that a bytecode declaration is written in: its own location's, or for a member
+     * without one (a generated member) its type's; null when the sources lack it for another reason (a processor).
+     */
+    private String droppedFileOf(NodeId id) {
+        if (droppedFiles.isEmpty()) return null;
+        DeclarationNode node = bytecodeNodes.get(id);
+        if (node == null || node instanceof NamespaceNode) return null;
+        if (!node.locations().isEmpty()) return droppedFiles.contains(node.locations().get(0).file()) ? node.locations().get(0).file() : null;
+        NodeId container = containerOf(id);
+        return container == null || container.kind() != NodeKindLetter.TYPE ? null : droppedFileOf(container);
+    }
+
+    /** Marked as bytecode's; generated, unless the sources declare it in a file the source engine dropped. */
+    private static DeclarationNode fromBytecode(DeclarationNode node, Origin origin) {
         LanguageBag bag = withEngine(node.languageSpecific());
         if (node instanceof TypeNode t) {
-            return new TypeNode(t.id(), t.name(), Origin.GENERATED, t.locations(), t.annotations(), t.documentation(), bag, t.typeKind(), t.visibility(), t.modifiers(), t.typeParameters(), t.underlyingType(), t.delegateSignature(), t.aliasOf());
+            return new TypeNode(t.id(), t.name(), origin, t.locations(), t.annotations(), t.documentation(), bag, t.typeKind(), t.visibility(), t.modifiers(), t.typeParameters(), t.underlyingType(), t.delegateSignature(), t.aliasOf());
         }
         if (node instanceof MethodNode m) {
-            return new MethodNode(m.id(), m.name(), Origin.GENERATED, m.locations(), m.annotations(), m.documentation(), bag, m.methodKind(), m.visibility(), m.modifiers(), m.typeParameters(), m.signature(), m.extensionReceiver(), m.bodiless());
+            return new MethodNode(m.id(), m.name(), origin, m.locations(), m.annotations(), m.documentation(), bag, m.methodKind(), m.visibility(), m.modifiers(), m.typeParameters(), m.signature(), m.extensionReceiver(), m.bodiless());
         }
         if (node instanceof FieldNode f) {
-            return new FieldNode(f.id(), f.name(), Origin.GENERATED, f.locations(), f.annotations(), f.documentation(), bag, f.fieldKind(), f.visibility(), f.modifiers(), f.type(), f.passing(), f.constantValue());
+            return new FieldNode(f.id(), f.name(), origin, f.locations(), f.annotations(), f.documentation(), bag, f.fieldKind(), f.visibility(), f.modifiers(), f.type(), f.passing(), f.constantValue());
         }
         if (node instanceof PropertyNode p) {
-            return new PropertyNode(p.id(), p.name(), Origin.GENERATED, p.locations(), p.annotations(), p.documentation(), bag, p.visibility(), p.modifiers(), p.type(), p.returnPassing(), p.parameters(), p.extensionReceiver(), p.accessors());
+            return new PropertyNode(p.id(), p.name(), origin, p.locations(), p.annotations(), p.documentation(), bag, p.visibility(), p.modifiers(), p.type(), p.returnPassing(), p.parameters(), p.extensionReceiver(), p.accessors());
         }
         NamespaceNode n = (NamespaceNode) node;
         return new NamespaceNode(n.id(), n.name(), n.origin(), n.locations(), n.annotations(), n.documentation(), bag);
@@ -238,15 +277,24 @@ final class ModelMerge {
 
     // --- Structure ---------------------------------------------------------------------------------------------------
 
-    /** Bytecode's structural edges of added declarations; bases the source engine left unresolved are replaced by bytecode's. */
+    /**
+     * Bytecode's structural edges of added declarations; a base the source engine left unresolved is replaced by
+     * bytecode's of the same kind, and kept where bytecode has none (no class file, or a stale one).
+     */
     private void addStructure() {
+        Set<NodeId> compiledExtends = new HashSet<>();
+        Set<NodeId> compiledImplements = new HashSet<>();
+        for (Edge edge : bytecode.edges()) {
+            if (edge instanceof Edge.Extends) compiledExtends.add(edge.from());
+            else if (edge instanceof Edge.Implements) compiledImplements.add(edge.from());
+        }
         Set<NodeId> unresolvedExtends = new HashSet<>();
         Set<NodeId> unresolvedImplements = new HashSet<>();
         for (Edge edge : source.edges()) {
-            if (edge instanceof Edge.Extends e && e.to() instanceof TypeRef.Unresolved) {
+            if (edge instanceof Edge.Extends e && e.to() instanceof TypeRef.Unresolved && compiledExtends.contains(e.from())) {
                 unresolvedExtends.add(e.from());
                 droppedSourceEdges.add(edge);
-            } else if (edge instanceof Edge.Implements e && e.to() instanceof TypeRef.Unresolved) {
+            } else if (edge instanceof Edge.Implements e && e.to() instanceof TypeRef.Unresolved && compiledImplements.contains(e.from())) {
                 unresolvedImplements.add(e.from());
                 droppedSourceEdges.add(edge);
             }
@@ -539,13 +587,33 @@ final class ModelMerge {
         List<Diagnostic> diagnostics = new ArrayList<>();
         for (Diagnostic diagnostic : source.diagnostics()) {
             SourceSpan location = diagnostic.location();
+            if (isDroppedFile(diagnostic) && recoveredFiles.contains(location.file())) {
+                diagnostics.add(recovered(diagnostic));
+                continue;
+            }
             boolean resolved = location != null && (resolvedPositions.contains(position(location)) || gainedEdge(location) || namesAddedType(diagnostic));
             if (!resolved) diagnostics.add(diagnostic);
         }
         for (Diagnostic diagnostic : bytecode.diagnostics()) {
-            if (diagnostic.location() == null && !diagnostics.contains(diagnostic)) diagnostics.add(diagnostic);
+            if (diagnostic.location() != null) continue;
+            Diagnostic kept = Diagnostics.MODULE_NOT_PARSED.equals(diagnostic.code()) ? bytecodeUnavailable(diagnostic) : diagnostic;
+            if (!diagnostics.contains(kept)) diagnostics.add(kept);
         }
         return diagnostics;
+    }
+
+    /** A dropped file whose types bytecode supplied is in the model after all: its {@code NS1010} becomes a warning that says so. */
+    private static Diagnostic recovered(Diagnostic dropped) {
+        String message = dropped.message();
+        int cause = message.indexOf(": ");
+        return Diagnostics.warning(Diagnostics.FILE_NOT_PARSED, "The declarations of " + dropped.location().file()
+                + " could not be parsed from the sources, so its types are taken from the class files: " + (cause < 0 ? message : message.substring(cause + 2)), dropped.location());
+    }
+
+    /** The bytecode engine's {@code NS1001} would say the model is empty; it is the source model, without what a processor generated. */
+    private static Diagnostic bytecodeUnavailable(Diagnostic failure) {
+        return Diagnostics.warning(Diagnostics.BYTECODE_UNAVAILABLE, "The class files could not be read, so the hybrid model is the source model, without the members an annotation processor generated. "
+                + failure.message());
     }
 
     private boolean unboundResolved(SourceSpan location, Map<String, TreeSet<Integer>> siteLines) {

@@ -20,6 +20,8 @@ public final class Diagnostics {
     public static final String PLATFORM_FROM_RUNTIME = "NS1008";
     public static final String RELEASE_NOT_SUPPORTED = "NS1009";
     public static final String FILE_NOT_PARSED = "NS1010";
+    /** The hybrid engine's bytecode side failed on the module, so the hybrid model is the source model. */
+    public static final String BYTECODE_UNAVAILABLE = "NS1011";
 
     private Diagnostics() {}
 
