@@ -28,6 +28,7 @@ import vision.noesis.parser.model.DiagnosticSeverity;
 import vision.noesis.parser.model.Edge;
 import vision.noesis.parser.model.FieldNode;
 import vision.noesis.parser.model.LanguageBag;
+import vision.noesis.parser.model.MethodKind;
 import vision.noesis.parser.model.MethodNode;
 import vision.noesis.parser.model.Modifier;
 import vision.noesis.parser.model.NamespaceNode;
@@ -60,7 +61,9 @@ import vision.noesis.parser.model.UsageSite;
  *       file's types come from the class files. A {@code .cctor} of a type the source engine declared is not added,
  *       since the source engine attributes static initializers to the fields, unless generated static fields of the
  *       type are initialized on one line, which does not tell their initializers apart. An implicit member the source engine assumed but the
- *       class files lack (the default constructor of a class Lombok gave constructors) is dropped with its edges.</li>
+ *       class files lack (the default constructor of a class Lombok gave constructors) is dropped with its edges; a
+ *       default constructor it assumed whose class file version a processor wrote (another access, or another line)
+ *       is taken from bytecode with its body.</li>
  *   <li>A declaration in both models keeps the source engine's facts, except that where the class file has a modifier
  *       the sources lack, its modifiers are taken, and a visibility it changes too (Lombok's {@code @Value} makes the
  *       class final and the fields private, {@code @UtilityClass} a method static); the node is marked
@@ -77,7 +80,8 @@ import vision.noesis.parser.model.UsageSite;
  *       to a member of the same name and arity that the class file does not make (javac bound {@code equals} to
  *       {@code Object}'s, not knowing the generated override) is replaced. An {@code NS1002} whose lines gained an
  *       edge, or whose statement's first line did within the same declaration (javac attributes a continued-line
- *       {@code new} to it), is dropped, as is a compiler error at its position or on lines that gained an edge. A
+ *       {@code new} to it), is dropped, as is a compiler error at its position or on lines that gained an edge, and
+ *       an abstract method javac says a class does not implement where the merge added it ({@code @Delegate}). A
  *       file whose bodies alone the source engine dropped ({@code NS1010} warning, its body edges rolled back) takes
  *       every body edge of its declarations from bytecode, and that {@code NS1010} says so.</li>
  *   <li>Stubs: the source engine's, plus the bytecode engine's for every symbol the added declarations and edges
@@ -100,6 +104,8 @@ final class ModelMerge {
     private final Map<NodeId, DeclarationNode> bytecodeNodes = new LinkedHashMap<>();
     private final Map<NodeId, DeclarationNode> reconciled = new LinkedHashMap<>();
     private final Set<NodeId> droppedSourceNodes = new HashSet<>();
+    /** Default constructors the source engine assumed but a processor wrote: node and body are taken from bytecode. */
+    private final Set<NodeId> replacedSourceNodes = new HashSet<>();
     private final Set<Edge> droppedSourceEdges = new HashSet<>();
     private final Map<NodeId, StubNode> sourceStubs = new LinkedHashMap<>();
     private final Map<NodeId, StubNode> bytecodeStubs = new LinkedHashMap<>();
@@ -206,6 +212,11 @@ final class ModelMerge {
             if (droppedFile != null) recoveredFiles.add(droppedFile);
             added.put(node.id(), fromBytecode(node, droppedFile == null ? Origin.GENERATED : node.origin()));
         }
+        Map<NodeId, Set<Integer>> sourceSiteLines = new HashMap<>();
+        for (Edge edge : source.edges()) {
+            UsageSite site = siteOf(edge);
+            if (site != null && site.location() != null) sourceSiteLines.computeIfAbsent(edge.from(), k -> new HashSet<>()).add(site.location().startLine());
+        }
         for (DeclarationNode node : source.nodes()) {
             DeclarationNode compiled = bytecodeNodes.get(node.id());
             if (compiled != null && bodilessFiles.contains(sourceFileOf(node.id()))) refilledFiles.add(sourceFileOf(node.id()));
@@ -214,9 +225,27 @@ final class ModelMerge {
                 if (member && node.origin() == Origin.GENERATED && bytecodeNodes.containsKey(declaringType(node.id()))) droppedSourceNodes.add(node.id());
                 continue;
             }
+            if (writtenByProcessor(node, compiled, sourceSiteLines.get(node.id()))) {
+                replacedSourceNodes.add(node.id());
+                reconciled.put(node.id(), fromBytecode(compiled, Origin.GENERATED));
+                continue;
+            }
             DeclarationNode merged = reconcile(node, compiled);
             if (merged != null) reconciled.put(node.id(), merged);
         }
+    }
+
+    /**
+     * A default constructor the source engine assumed (no location) whose class file version a processor wrote: javac
+     * gives its default constructor the class's access and compiles it onto the class declaration, the line of the
+     * source engine's implicit super call. Lombok's starts on its annotation's line ({@code @NoArgsConstructor}) or
+     * changes the access ({@code @UtilityClass} makes it private).
+     */
+    private static boolean writtenByProcessor(DeclarationNode node, DeclarationNode compiled, Set<Integer> sourceSiteLines) {
+        if (!(node instanceof MethodNode method) || !(compiled instanceof MethodNode c) || method.methodKind() != MethodKind.CONSTRUCTOR) return false;
+        if (node.origin() != Origin.GENERATED || !node.locations().isEmpty()) return false;
+        if (method.visibility() != c.visibility() || !method.modifiers().equals(c.modifiers())) return true;
+        return sourceSiteLines != null && !c.locations().isEmpty() && !sourceSiteLines.contains(c.locations().get(0).startLine());
     }
 
     /** @return the source node with the class file's extra modifiers and visibility, or null when the class file adds nothing. */
@@ -343,6 +372,8 @@ final class ModelMerge {
         Map<String, Integer> sourceInRegion = new HashMap<>();
         for (Edge edge : source.edges()) {
             String site = siteKey(edge);
+            // A constructor a processor wrote has bytecode's body, not javac's implicit super call.
+            if (site != null && replacedSourceNodes.contains(edge.from())) droppedSourceEdges.add(edge);
             if (site != null) sourceSites.add(site);
             Region region = widestRegionOf(siteOf(edge));
             if (region != null) sourceInRegion.merge(regionKey(region, edge), 1, Integer::sum);
@@ -358,7 +389,7 @@ final class ModelMerge {
             NodeId from = edge.from();
             UsageSite site = siteOf(edge);
             if (site == null) continue;
-            if (added.containsKey(from)) {
+            if (added.containsKey(from) || replacedSourceNodes.contains(from)) {
                 addedEdges.add(edge);
                 continue;
             }
@@ -414,7 +445,11 @@ final class ModelMerge {
         String name = signature.substring(0, open);
         int tick = name.indexOf('`');
         if (tick >= 0) name = name.substring(0, tick);
-        String parameters = signature.substring(open + 1, signature.lastIndexOf(')'));
+        return name + "/" + arity(signature.substring(open + 1, signature.lastIndexOf(')')));
+    }
+
+    /** The parameters in a comma-separated list, type arguments ({@code [..]} in ids, {@code <..>} in javac's messages) aside. */
+    private static int arity(String parameters) {
         int arity = 0;
         int depth = 0;
         for (int i = 0; i < parameters.length(); i++) {
@@ -423,8 +458,7 @@ final class ModelMerge {
             else if (c == ']' || c == '>') depth--;
             else if (c == ',' && depth == 0) arity++;
         }
-        if (!parameters.isEmpty()) arity++;
-        return name + "/" + arity;
+        return parameters.isBlank() ? arity : arity + 1;
     }
 
     private static Edge marked(Edge edge) {
@@ -468,6 +502,7 @@ final class ModelMerge {
         }
         Deque<NodeId> work = new ArrayDeque<>();
         for (DeclarationNode node : added.values()) referencedBy(node, work::add);
+        for (NodeId id : replacedSourceNodes) referencedBy(reconciled.get(id), work::add);
         for (Edge edge : addedEdges) referencedBy(edge, work::add);
         while (!work.isEmpty()) {
             NodeId id = work.pop();
@@ -602,8 +637,9 @@ final class ModelMerge {
     /**
      * The source engine's diagnostics, less those the bytecode edges answered: an {@code NS1002} whose lines gained an
      * edge, or whose statement did (javac puts a {@code new} on a continued line on the statement's first line: the
-     * nearest line above with a site, within the same declaration), and a compiler error at the same position as such an
-     * {@code NS1002} or on lines that gained an edge. The bytecode engine's module-level diagnostics are added.
+     * nearest line above with a site, within the same declaration), a compiler error at the same position as such an
+     * {@code NS1002} or on lines that gained an edge, one naming a class the merge added, and one saying a class does not
+     * implement an abstract method the merge added to it. The bytecode engine's module-level diagnostics are added.
      */
     private List<Diagnostic> diagnostics() {
         Map<String, TreeSet<Integer>> siteLines = new HashMap<>();
@@ -624,7 +660,8 @@ final class ModelMerge {
                 diagnostics.add(refilled(diagnostic));
                 continue;
             }
-            boolean resolved = location != null && (resolvedPositions.contains(position(location)) || gainedEdge(location) || namesAddedType(diagnostic));
+            boolean resolved = location != null && (resolvedPositions.contains(position(location)) || gainedEdge(location) || namesAddedType(diagnostic)
+                    || implementedByAddedMember(diagnostic));
             if (!resolved) diagnostics.add(diagnostic);
         }
         for (Diagnostic diagnostic : bytecode.diagnostics()) {
@@ -728,10 +765,34 @@ final class ModelMerge {
         String name = owner.find() ? owner.group(1) + "." + symbol.group(1) : symbol.group(1);
         for (NodeId id : added.keySet()) {
             if (id.kind() != NodeKindLetter.TYPE) continue;
-            String dotted = id.canonicalPath().replace('+', '.').replaceAll("`\\d+", "");
+            String dotted = dottedName(id);
             if (dotted.equals(name) || dotted.endsWith("." + name)) return true;
         }
         return false;
+    }
+
+    private static final Pattern MISSING_OVERRIDE = Pattern.compile("^(\\S+) is not abstract and does not override abstract method ([^(\\s]+)\\(([^)]*)\\) in \\S+$");
+
+    /**
+     * javac's "C is not abstract and does not override abstract method m(..) in I" for a class the merge added that
+     * method to: the processor implemented it ({@code @Delegate}). Matched by the class's name and the method's name
+     * and arity, as javac prints its parameters by their own type variables.
+     */
+    private boolean implementedByAddedMember(Diagnostic diagnostic) {
+        if (!"compiler.err.does.not.override.abstract".equals(diagnostic.code())) return false;
+        Matcher missing = MISSING_OVERRIDE.matcher(diagnostic.message());
+        if (!missing.find()) return false;
+        String method = missing.group(2) + "/" + arity(missing.group(3));
+        for (NodeId id : added.keySet()) {
+            if (id.kind() != NodeKindLetter.METHOD || !nameAndArity(id).equals(method)) continue;
+            if (dottedName(declaringType(id)).equals(missing.group(1))) return true;
+        }
+        return false;
+    }
+
+    /** {@code p.Outer.Inner} for {@code T:p.Outer+Inner`1}: a type as javac's messages name it. */
+    private static String dottedName(NodeId type) {
+        return type.canonicalPath().replace('+', '.').replaceAll("`\\d+", "");
     }
 
     private static String position(SourceSpan location) {

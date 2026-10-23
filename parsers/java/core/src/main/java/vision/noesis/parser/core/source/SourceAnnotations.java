@@ -1,10 +1,15 @@
 package vision.noesis.parser.core.source;
 
 import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.ClassTree;
 import com.sun.source.tree.CompilationUnitTree;
 import com.sun.source.tree.AssignmentTree;
 import com.sun.source.tree.ExpressionTree;
 import com.sun.source.tree.IdentifierTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.PackageTree;
+import com.sun.source.tree.TypeParameterTree;
+import com.sun.source.tree.VariableTree;
 import com.sun.source.util.SourcePositions;
 import com.sun.source.util.TreePath;
 import java.util.ArrayList;
@@ -24,7 +29,11 @@ import vision.noesis.parser.model.Annotation;
 import vision.noesis.parser.model.AnnotationArgument;
 import vision.noesis.parser.model.AnnotationValue;
 
-/** Annotation mirrors as annotations: explicit element values only, named by element, positional when written without {@code name =}. */
+/**
+ * Annotation mirrors as annotations: explicit element values only, named by element, positional when written without
+ * {@code name =}. The container javac synthesizes for repeated annotations is not written at all, so its own arguments
+ * are not positional; the repeats inside it are read off their own trees.
+ */
 final class SourceAnnotations {
 
     private final SourceContext context;
@@ -37,11 +46,70 @@ final class SourceAnnotations {
         List<Annotation> annotations = new ArrayList<>();
         // javac's getTree(element, mirror) dereferences the element's path, which a mandated or classpath element lacks.
         TreePath path = context.javac.trees().getPath(element);
+        CompilationUnitTree unit = path == null ? null : path.getCompilationUnit();
         for (AnnotationMirror mirror : element.getAnnotationMirrors()) {
             com.sun.source.tree.Tree tree = path == null ? null : context.javac.trees().getTree(element, mirror);
-            annotations.add(of(mirror, tree instanceof AnnotationTree annotationTree ? annotationTree : null, path == null ? null : path.getCompilationUnit()));
+            List<AnnotationTree> repeats = path == null || tree instanceof AnnotationTree ? null : repeatsOf(mirror, path);
+            annotations.add(repeats != null ? container(mirror, repeats, unit) : of(mirror, tree instanceof AnnotationTree annotationTree ? annotationTree : null, unit));
         }
         return annotations;
+    }
+
+    /** A synthesized container: no argument of it is written, so none is positional; each repeat reads its own tree. */
+    private Annotation container(AnnotationMirror mirror, List<AnnotationTree> repeats, CompilationUnitTree unit) {
+        List<AnnotationArgument> arguments = new ArrayList<>();
+        for (Map.Entry<? extends ExecutableElement, ? extends javax.lang.model.element.AnnotationValue> entry : mirror.getElementValues().entrySet()) {
+            String name = entry.getKey().getSimpleName().toString();
+            AnnotationValue value = valueOf(entry.getValue());
+            if (name.equals("value")) {
+                List<AnnotationMirror> nested = nestedIn(entry.getValue());
+                List<AnnotationValue> items = new ArrayList<>(nested.size());
+                for (int i = 0; i < nested.size(); i++) items.add(new AnnotationValue.Nested(of(nested.get(i), repeats.get(i), unit)));
+                value = new AnnotationValue.Array(items);
+            }
+            arguments.add(new AnnotationArgument(name, false, value));
+        }
+        return new Annotation(context.types.of(mirror.getAnnotationType()), arguments);
+    }
+
+    /**
+     * The trees of the repeats in a mirror that has no tree of its own: the declaration's annotations of the repeated
+     * type, which javac puts into the container in source order; null when the mirror is no such container.
+     */
+    private List<AnnotationTree> repeatsOf(AnnotationMirror mirror, TreePath path) {
+        List<AnnotationMirror> nested = null;
+        for (Map.Entry<? extends ExecutableElement, ? extends javax.lang.model.element.AnnotationValue> entry : mirror.getElementValues().entrySet()) {
+            if (entry.getKey().getSimpleName().contentEquals("value")) nested = nestedIn(entry.getValue());
+        }
+        if (nested == null || nested.isEmpty()) return null;
+        TypeMirror repeated = nested.get(0).getAnnotationType();
+        List<AnnotationTree> repeats = new ArrayList<>();
+        for (AnnotationTree tree : declaredOn(path.getLeaf())) {
+            TypeMirror type = context.javac.trees().getTypeMirror(new TreePath(new TreePath(path, tree), tree.getAnnotationType()));
+            if (type != null && context.javac.types().isSameType(type, repeated)) repeats.add(tree);
+        }
+        return repeats.size() == nested.size() ? repeats : null;
+    }
+
+    /** The annotations in an array value; null when it holds anything else. */
+    private static List<AnnotationMirror> nestedIn(javax.lang.model.element.AnnotationValue value) {
+        if (!(value.getValue() instanceof List<?> items)) return null;
+        List<AnnotationMirror> nested = new ArrayList<>(items.size());
+        for (Object item : items) {
+            if (!(item instanceof javax.lang.model.element.AnnotationValue element) || !(element.getValue() instanceof AnnotationMirror annotation)) return null;
+            nested.add(annotation);
+        }
+        return nested;
+    }
+
+    private static List<? extends AnnotationTree> declaredOn(com.sun.source.tree.Tree declaration) {
+        if (declaration instanceof ClassTree type) return type.getModifiers().getAnnotations();
+        if (declaration instanceof MethodTree method) return method.getModifiers().getAnnotations();
+        if (declaration instanceof VariableTree variable) return variable.getModifiers().getAnnotations();
+        if (declaration instanceof TypeParameterTree parameter) return parameter.getAnnotations();
+        if (declaration instanceof PackageTree pkg) return pkg.getAnnotations();
+        if (declaration instanceof CompilationUnitTree unit) return unit.getPackageAnnotations();
+        return List.of();
     }
 
     /** The type annotations on a type mirror (a {@code TYPE_USE} annotation on a return type); no tree, so every argument counts as positional. */

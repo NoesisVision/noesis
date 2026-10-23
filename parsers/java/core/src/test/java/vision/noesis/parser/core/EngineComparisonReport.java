@@ -28,7 +28,8 @@ import vision.noesis.parser.model.TypeRef;
  * The unfiltered difference between the engines over the fixture, counted per category, beside what each engine
  * holds: the measurements behind the comparison of the approaches. The first engine is the baseline every other one is
  * measured against. {@link AgreementRules} says which of these differences are accepted; this report says how big each
- * one is.
+ * one is. It diffs only the facts it lists: not the diagnostics, not a method's return annotations or return passing,
+ * and of a parameter only its name, type, variadic flag and annotation types.
  */
 final class EngineComparisonReport {
 

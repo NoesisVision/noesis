@@ -18,7 +18,7 @@ import vision.noesis.parser.model.FieldNode;
 import vision.noesis.parser.model.MethodNode;
 import vision.noesis.parser.model.TypeNode;
 
-/** The three {@code typeusage} fixtures put an own, an other-module and a library type in the same member positions; the models differ only in what the references point at. */
+/** The three {@code typeusage} fixtures put an own, an other-module and a library type in the same member positions; the model declares the same member names, nested types and member shapes for each. Edges and bodies are not compared here. */
 class TypeUsageMirrorTest {
 
     private static final String OWN = SYNTAX + "typeusage.OwnModuleTypeUsage";
@@ -83,6 +83,7 @@ class TypeUsageMirrorTest {
 
     private static Set<String> names(CodeModelFile model, String owner, Set<String> originSpecific) {
         Set<String> names = new TreeSet<>(members(model, owner).keySet());
+        assertTrue(names.containsAll(originSpecific), () -> owner + " lacks some of " + originSpecific);
         names.removeAll(originSpecific);
         return names;
     }

@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import vision.noesis.parser.model.CodeModelFile;
@@ -90,7 +92,7 @@ class ModelFactsTest {
         assertEquals(ExpressionKind.BASE, fromGrandChild.get(0).receiver());
         assertEquals(true, fromGrandChild.get(0).site().languageSpecific().get("java.implicitSuperCall"));
         List<Edge.Invokes> fromDerived = invokesFrom("M:" + SYNTAX + "inheritance.ClassInheritance+Derived#.ctor(java.lang.String)");
-        assertTrue(fromDerived.stream().anyMatch(e -> e.receiver() == ExpressionKind.THIS && e.to().value().endsWith("Derived#.ctor()")));
+        Models.one(fromDerived, e -> e.receiver() == ExpressionKind.THIS && e.to().value().equals("M:" + SYNTAX + "inheritance.ClassInheritance+Derived#.ctor()"), "this()");
     }
 
     @Test
@@ -98,7 +100,9 @@ class ModelFactsTest {
         List<Edge.ImplementsMember> edges = model.edges().stream().filter(Edge.ImplementsMember.class::isInstance).map(Edge.ImplementsMember.class::cast).collect(Collectors.toList());
         Edge.ImplementsMember throughBase = edges.stream().filter(e -> e.declaredOn().value().endsWith("DerivedImplementsThroughBase")).findFirst().orElseThrow();
         assertEquals("M:" + SYNTAX + "inheritance.InterfaceInheritance+BaseProvidesImplementation#first()", throughBase.from().value());
-        assertTrue(edges.stream().noneMatch(e -> e.declaredOn().value().endsWith("ImplementsSecond") && e.to().value().endsWith("First#first()")), "a default method fills its own slot");
+        // Second's default fills First#first() on Second itself, so ImplementsSecond, which inherits it, adds no edge for that slot.
+        Models.one(edges, e -> e.from().value().equals("M:" + SYNTAX + "inheritance.InterfaceInheritance+Second#first()") && e.to().value().equals("M:" + SYNTAX + "inheritance.InterfaceInheritance+First#first()"), "slot filled by the default");
+        assertTrue(edges.stream().noneMatch(e -> e.declaredOn().value().endsWith("ImplementsSecond") && e.to().value().endsWith("First#first()")), "an inherited default adds no slot edge on the implementing class");
         Edge.ImplementsMember money = edges.stream().filter(e -> e.declaredOn().value().endsWith("GenericInheritance+Money")).findFirst().orElseThrow();
         assertEquals("java.lang.Comparable`1[" + SYNTAX + "inheritance.GenericInheritance+Money]", money.interfaceType().canonical());
     }
@@ -107,8 +111,12 @@ class ModelFactsTest {
     void receiversAreClassified() {
         List<Edge.Invokes> calls = invokesFrom("M:" + SYNTAX + "invocations.InvocationForms#receivers(" + SYNTAX + "inheritance.ClassInheritance+Base)");
         List<ExpressionKind> receivers = calls.stream().map(Edge.Invokes::receiver).collect(Collectors.toList());
-        assertTrue(receivers.containsAll(List.of(ExpressionKind.THIS, ExpressionKind.BASE, ExpressionKind.PARAMETER, ExpressionKind.LOCAL, ExpressionKind.FIELD,
-                ExpressionKind.TYPE, ExpressionKind.CREATION, ExpressionKind.RETURN_VALUE, ExpressionKind.LITERAL)), receivers.toString());
+        assertEquals(17, receivers.size(), receivers.toString());
+        Map<ExpressionKind, Integer> expected = Map.of(ExpressionKind.THIS, 3, ExpressionKind.BASE, 1, ExpressionKind.PARAMETER, 1, ExpressionKind.LOCAL, 3, ExpressionKind.FIELD, 2,
+                ExpressionKind.TYPE, 2, ExpressionKind.CREATION, 1, ExpressionKind.RETURN_VALUE, 1, ExpressionKind.LITERAL, 1);
+        expected.forEach((kind, count) -> assertEquals(count.intValue(), Collections.frequency(receivers, kind), kind.toString()));
+        // The two constructor calls have no receiver.
+        assertEquals(2, Collections.frequency(receivers, null), receivers.toString());
     }
 
     @Test

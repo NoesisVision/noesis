@@ -36,11 +36,12 @@ import vision.noesis.parser.model.MethodKind;
 import vision.noesis.parser.model.MethodNode;
 import vision.noesis.parser.model.Modifier;
 import vision.noesis.parser.model.Origin;
+import vision.noesis.parser.model.Parameter;
 import vision.noesis.parser.model.TypeRef;
 import vision.noesis.parser.model.TypeUseRole;
 import vision.noesis.parser.model.Visibility;
 
-/** Facts about fields and methods, pinned against both engines wherever the class file holds them. */
+/** Facts about fields and methods, pinned against all three engines wherever the class file holds them. */
 class MemberFactsTest {
 
     private static final String FIELDS = SYNTAX + "members.FieldDeclarations";
@@ -97,7 +98,8 @@ class MemberFactsTest {
 
     @ParameterizedTest
     @EnumSource(EngineKind.class)
-    void constantsCarryTheirValueAsSourceText(EngineKind engine) {
+    void constantsCarryTheirFormattedValue(EngineKind engine) {
+        // The value is formatted from the constant itself, never copied from the source text, so every engine agrees.
         CodeModelFile model = Models.syntax(engine);
         Map<String, String> expected = Map.of("INT_CONSTANT", "1", "LONG_CONSTANT", "2L", "SHORT_CONSTANT", "3", "BYTE_CONSTANT", "4", "CHAR_CONSTANT", "'c'",
                 "DOUBLE_CONSTANT", "1.5", "BOOLEAN_CONSTANT", "true", "STRING_CONSTANT", "\"text with \\\"quotes\\\" and \\n newline\"");
@@ -168,6 +170,22 @@ class MemberFactsTest {
         assertEquals(1, Models.count(writes, w -> w.access() == AccessKind.READ_WRITE));
         assertTrue(writes.stream().allMatch(w -> w.to().value().equals("F:" + METHODS + ".staticCounter") && w.receiver() == ExpressionKind.TYPE));
         assertEquals(1, method(Models.syntax(EngineKind.BYTECODE), METHODS + "#.cctor()").locations().size());
+    }
+
+    @ParameterizedTest
+    @EnumSource(EngineKind.class)
+    void anInstanceInitializerRunsInTheConstructorThatCallsSuper(EngineKind engine) {
+        CodeModelFile model = Models.syntax(engine);
+        List<Edge.Accesses> fromInitializer = accesses(model, "M:" + METHODS + "#.ctor()").stream().filter(e -> e.site().location().startLine() == 26).toList();
+        Edge.Accesses write = one(fromInitializer, e -> e.to().value().equals("F:" + METHODS + ".instanceCounter"), "write of instanceCounter");
+        assertEquals(AccessKind.WRITE, write.access());
+        Edge.Accesses read = one(fromInitializer, e -> e.to().value().equals("F:" + METHODS + ".staticCounter"), "read of staticCounter");
+        assertEquals(AccessKind.READ, read.access());
+        assertEquals(ExpressionKind.TYPE, read.receiver());
+        assertEquals(2, fromInitializer.size());
+        if (engine != EngineKind.BYTECODE) assertEquals(ExpressionKind.THIS, write.receiver());
+        // .ctor(int) starts with this(), so the initializer is not inlined into it.
+        assertTrue(accesses(model, "M:" + METHODS + "#.ctor(int)").stream().noneMatch(e -> e.site().location().startLine() == 26));
     }
 
     @ParameterizedTest
@@ -294,7 +312,11 @@ class MemberFactsTest {
         MethodNode trailing = method(model, owner + "paramsAfterRegularParameters(java.lang.String,java.lang.Object[])");
         assertFalse(parameter(trailing, "first").variadic());
         assertTrue(parameter(trailing, "rest").variadic());
-        assertEquals("int", parameter(method(model, owner + "finalParameter(int)"), "value").type().canonical());
+        Parameter finalValue = parameter(method(model, owner + "finalParameter(int)"), "value");
+        assertEquals("int", finalValue.type().canonical());
+        // `final` leaves no trace: the parameter equals the one of a method without it.
+        assertTrue(finalValue.languageSpecific().isEmpty(), finalValue.languageSpecific().toString());
+        assertEquals(parameter(method(model, owner + "singleParameter(int)"), "value"), finalValue);
         assertEquals(List.of("int[]", "int[][]"), parameterTypes(method(model, owner + "arrayParameters(int[],int[][])")));
         method(model, owner + "genericParameters(java.util.List`1[java.lang.Integer],java.util.Map`2[java.lang.String,java.util.List`1[java.lang.Integer]],java.lang.Iterable`1[java.lang.Integer])");
         method(model, owner + "delegateParameters(java.lang.Runnable,java.util.function.Function`2[java.lang.Integer,java.lang.Integer],java.util.function.Predicate`1[java.lang.Integer],java.util.function.Consumer`1[java.lang.Integer])");
@@ -357,7 +379,8 @@ class MemberFactsTest {
     }
 
     @Test
-    void aTypeUseAnnotationOnTheReturnTypeIsNotInTheClassFileArchUnitReads() {
+    void aTypeUseAnnotationOnTheReturnTypeIsNotReadByTheBytecodeEngine() {
+        // The class file holds it as a RuntimeVisibleTypeAnnotations entry; the bytecode engine does not read those.
         MethodNode method = method(Models.syntax(EngineKind.BYTECODE), METHODS + "#methodWithReturnAttribute()");
         assertTrue(method.annotations().isEmpty());
         assertTrue(method.signature().returnAnnotations().isEmpty());
@@ -401,7 +424,10 @@ class MemberFactsTest {
         assertEquals("M:" + FIELDS + "#initialCounter()", counter.to().value());
         assertEquals(ExpressionKind.TYPE, counter.receiver());
         assertTrue(invokes(model, "F:" + FIELDS + ".delegateFieldWithMethodReferenceInitializer").isEmpty());
-        assertTrue(invokes(model, "F:" + FIELDS + ".delegateFieldWithLambdaInitializer").isEmpty());
+        Edge.Invokes threadLocal = one(invokes(model, "F:" + FIELDS + ".THREAD_STATIC_FIELD"), e -> true, "call from the initializer of THREAD_STATIC_FIELD");
+        assertEquals("M:java.lang.ThreadLocal`1#withInitial`1(java.util.function.Supplier`1[<other:? extends !!0>])", threadLocal.to().value());
+        assertEquals(ExpressionKind.TYPE, threadLocal.receiver());
+        assertEquals(List.of("java.lang.Integer"), threadLocal.typeArguments().stream().map(TypeRef::canonical).toList());
         Edge.Accesses enumRead = one(accesses(model, "F:" + FIELDS + ".ENUM_FIELD"), e -> true, "read from the initializer of ENUM_FIELD");
         assertEquals("F:" + SYNTAX + "types.EnumKinds+PlainEnum.FIRST", enumRead.to().value());
         assertEquals(AccessKind.READ, enumRead.access());
@@ -421,7 +447,11 @@ class MemberFactsTest {
         one(fromInitializer, e -> e.to().value().equals("M:" + FIELDS + "#initialCounter()"), "call to initialCounter from .cctor");
         List<Edge.Accesses> staticWrites = accesses(model, "M:" + FIELDS + "#.cctor()");
         one(staticWrites, e -> e.to().value().equals("F:" + FIELDS + ".counter") && e.access() == AccessKind.WRITE, "write of counter from .cctor");
-        assertTrue(staticWrites.stream().noneMatch(e -> e.to().value().endsWith(".staticVolatileField")));
+        one(staticWrites, e -> e.to().value().equals("F:" + FIELDS + ".NOT_A_CONSTANT") && e.access() == AccessKind.WRITE, "write of NOT_A_CONSTANT from .cctor");
+        // Compile-time constants live in the ConstantValue attribute; .cctor never touches them.
+        for (String constant : List.of("INT_CONSTANT", "STRING_CONSTANT", "DERIVED_CONSTANT")) {
+            assertTrue(staticWrites.stream().noneMatch(e -> e.to().value().equals("F:" + FIELDS + "." + constant)), constant);
+        }
         assertTrue(invokes(model, "F:" + FIELDS + ".counter").isEmpty());
         one(accesses(model, "M:" + FIELDS + "#.ctor()"), e -> e.to().value().equals("F:" + FIELDS + ".fieldWithInitializer") && e.access() == AccessKind.WRITE, "write of fieldWithInitializer from .ctor");
     }

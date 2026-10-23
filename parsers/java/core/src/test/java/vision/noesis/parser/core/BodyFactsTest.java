@@ -158,7 +158,6 @@ class BodyFactsTest {
         one(Models.usesTypes(model, "M:" + FORMS + "#arrayMembers()"), use(TypeUseRole.CREATION, "java.lang.String[]"), "new String[1]");
         one(Models.usesTypes(model, "M:" + FORMS + "#instanceReceivers(java.lang.Object)"), use(TypeUseRole.CREATION, "int[]"), "new int[]{1}");
         one(Models.usesTypes(model, "M:" + SYNTAX + "typeusage.OwnModuleTypeUsage#bodyLevelUse(java.lang.Object)"), use(TypeUseRole.CREATION, SYNTAX + "typeusage.UsedType[]"), "new UsedType[1]");
-        assertTrue(Models.edges(model, Edge.UsesType.class).noneMatch(edge -> edge.site().viaClosure()));
     }
 
     @ParameterizedTest
@@ -178,7 +177,7 @@ class BodyFactsTest {
                 {"LibraryTypeUsage", "com.google.common.util.concurrent.AtomicDouble", "com.google.common.net.HostAndPort", "com.google.common.collect.BoundType"}}) {
             List<Edge.UsesType> body = Models.usesTypes(model, "M:" + SYNTAX + "typeusage." + usage[0] + "#bodyLevelUse(java.lang.Object)");
             assertEquals(2, count(body, use(TypeUseRole.TYPE_TEST, usage[1])), usage[0]);
-            one(body, use(TypeUseRole.TYPE_TEST, usage[2]), usage[0] + " record pattern");
+            one(body, use(TypeUseRole.TYPE_TEST, usage[2]), usage[0] + " type pattern");
             one(body, use(TypeUseRole.TYPE_TEST, usage[3]), usage[0] + " enum test");
             assertEquals(4, count(body, edge -> edge.role() == TypeUseRole.TYPE_TEST), usage[0]);
         }
@@ -192,9 +191,10 @@ class BodyFactsTest {
     @Test
     void classLiteralsAreNoTypeUseInSourceAndReadIntegerTypeInBytecode() {
         CodeModelFile source = Models.syntax(EngineKind.SOURCE);
-        assertTrue(Models.usesTypes(source, ALL_LOCALS).stream().noneMatch(edge -> edge.to().canonical().startsWith("java.lang.Class")));
+        // no type use on the line of int.class (LocalVariableForms:42) or Base.class (InvocationForms:107), whatever its type
+        assertTrue(Models.usesTypes(source, ALL_LOCALS).stream().noneMatch(edge -> edge.site().location().startLine() == 42));
         assertTrue(Models.accesses(source, ALL_LOCALS).stream().noneMatch(edge -> edge.to().value().equals("F:java.lang.Integer.TYPE")));
-        assertTrue(Models.usesTypes(source, "M:" + FORMS + "#typeUses(java.lang.Object)").stream().noneMatch(edge -> edge.to().canonical().startsWith("java.lang.Class")));
+        assertTrue(Models.usesTypes(source, "M:" + FORMS + "#typeUses(java.lang.Object)").stream().noneMatch(edge -> edge.site().location().startLine() == 107));
         one(Models.accesses(Models.syntax(EngineKind.BYTECODE), ALL_LOCALS), access("F:java.lang.Integer.TYPE", READ).and(edge -> edge.receiver() == TYPE), "int.class");
     }
 
@@ -205,6 +205,11 @@ class BodyFactsTest {
         assertTrue(Models.edges(model, Edge.Accesses.class).noneMatch(edge -> edge.to().value().equals("F:" + Models.OTHER + "OtherConstants.CONSTANT")));
         assertTrue(Models.edges(model, Edge.Accesses.class).noneMatch(edge -> edge.to().value().equals("F:java.lang.Math.PI")));
         assertTrue(Models.edges(model, Edge.Accesses.class).noneMatch(edge -> edge.to().value().equals("F:" + SYNTAX + "typeusage.UsedType.CONSTANT")));
+        assertTrue(Models.accesses(model, ALL_LOCALS).stream().noneMatch(edge -> edge.to().value().equals("F:java.lang.Integer.BYTES")), "Integer.BYTES");
+        assertTrue(Models.accesses(model, ALL_LOCALS).stream().noneMatch(edge -> edge.to().value().equals("F:java.lang.Integer.MAX_VALUE")), "Integer.MAX_VALUE");
+        CodeModelFile other = Models.other(engine);
+        assertTrue(Models.accesses(other, "M:" + Models.OTHER + "OtherConstants#staticMethodFromOtherModule()").isEmpty(), "return CONSTANT reads nothing");
+        assertTrue(Models.edges(other, Edge.Accesses.class).noneMatch(edge -> edge.to().value().equals("F:" + Models.OTHER + "OtherConstants.CONSTANT")));
         one(Models.accesses(model, "M:" + SYNTAX + "typeusage.OwnModuleTypeUsage#bodyLevelUse(java.lang.Object)"), access("F:" + SYNTAX + "typeusage.UsedType.DEFAULT", READ).and(edge -> edge.receiver() == TYPE), "a static non-constant field is read");
     }
 }

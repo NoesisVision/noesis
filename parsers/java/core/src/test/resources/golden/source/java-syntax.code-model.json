@@ -64599,7 +64599,7 @@
           "arguments": [
             {
               "name": "value",
-              "positional": true,
+              "positional": false,
               "value": {
                 "kind": "array",
                 "items": [
@@ -64616,7 +64616,7 @@
                       "arguments": [
                         {
                           "name": "value",
-                          "positional": true,
+                          "positional": false,
                           "value": {
                             "kind": "literal",
                             "text": "\"first\""
@@ -128716,20 +128716,6 @@
       "name": "stream",
       "typeKind": null,
       "artifact": "A:java.base@17"
-    },
-    {
-      "id": "N:vision",
-      "kind": "namespace",
-      "name": "vision",
-      "typeKind": null,
-      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
-    },
-    {
-      "id": "N:vision.noesis",
-      "kind": "namespace",
-      "name": "noesis",
-      "typeKind": null,
-      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
     },
     {
       "id": "N:vision.noesis.annotations",

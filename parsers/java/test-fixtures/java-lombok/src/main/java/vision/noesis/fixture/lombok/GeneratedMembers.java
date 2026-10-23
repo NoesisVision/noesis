@@ -56,7 +56,7 @@ public final class GeneratedMembers {
         int count;
     }
 
-    /** {@code builder()}, the nested {@code Builder} class with a method per field, {@code build()} and {@code toBuilder()}. */
+    /** {@code builder()}, the nested {@code BuiltBuilder} class with a method per field, {@code build()} and {@code toBuilder()}. */
     @Builder(toBuilder = true)
     @Getter
     public static class Built {

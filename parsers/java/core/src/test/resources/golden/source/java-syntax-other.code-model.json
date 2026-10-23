@@ -4219,20 +4219,6 @@
       "artifact": "A:java.base@17"
     },
     {
-      "id": "N:vision",
-      "kind": "namespace",
-      "name": "vision",
-      "typeKind": null,
-      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
-    },
-    {
-      "id": "N:vision.noesis",
-      "kind": "namespace",
-      "name": "noesis",
-      "typeKind": null,
-      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
-    },
-    {
       "id": "N:vision.noesis.annotations",
       "kind": "namespace",
       "name": "annotations",

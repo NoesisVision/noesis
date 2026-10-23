@@ -25,6 +25,7 @@ import vision.noesis.parser.model.Diagnostic;
 import vision.noesis.parser.model.DiagnosticSeverity;
 import vision.noesis.parser.model.DiagnosticSource;
 import vision.noesis.parser.model.Edge;
+import vision.noesis.parser.model.Origin;
 import vision.noesis.parser.model.PackageReference;
 import vision.noesis.parser.model.SourceSpan;
 import vision.noesis.parser.model.TypeRef;
@@ -53,8 +54,7 @@ class SourceEdgeCaseTest {
                 """);
 
         assertParsed(model);
-        List<Edge.Invokes> calls = model.edges().stream().filter(Edge.Invokes.class::isInstance).map(Edge.Invokes.class::cast)
-                .filter(call -> call.from().value().startsWith("M:p.C#f(")).toList();
+        List<Edge.Invokes> calls = invokes(model, "M:p.C#f(java.lang.Enum`1[<other:?>])");
         assertTrue(calls.stream().anyMatch(call -> call.to().value().equals("M:java.util.Collections#singletonList`1(!!0)")), calls.toString());
         assertTrue(calls.stream().filter(call -> call.to().value().startsWith("M:java.util.Collections#singletonList"))
                 .allMatch(call -> call.typeArguments().get(0).canonical().startsWith("java.lang.Enum`1[")), calls.toString());
@@ -65,13 +65,34 @@ class SourceEdgeCaseTest {
         CodeModelFile model = parse(17, """
                 package p;
                 public class C {
+                    int t() { return 1; }
                     { Runnable r = new Runnable() { public void run() {} }; }
-                    { int x = 1; }
+                    { int x = t(); }
                 }
                 """);
 
         assertParsed(model);
         assertTrue(model.nodes().stream().anyMatch(node -> node.id().value().equals("T:p.C+1")), model.nodes().toString());
+        assertEquals(1, invokes(model, "M:p.C#.ctor()").stream().filter(call -> call.to().value().equals("M:p.C#t()")).count(), "the second initializer's call");
+    }
+
+    /** A cast and a type test inside a lambda body are the enclosing member's, through the closure. */
+    @Test
+    void aCastAndATypeTestInALambdaAreUsedThroughTheClosure() throws IOException {
+        CodeModelFile model = parse(17, """
+                package p;
+                public class C {
+                    void f(Object o) {
+                        Runnable r = () -> { String s = (String) o; boolean b = o instanceof Integer; };
+                    }
+                }
+                """);
+
+        assertParsed(model);
+        List<String> uses = model.edges().stream().filter(Edge.UsesType.class::isInstance).map(Edge.UsesType.class::cast)
+                .filter(use -> use.from().value().equals("M:p.C#f(java.lang.Object)"))
+                .map(use -> use.role().name() + " " + use.to().canonical() + " " + use.site().viaClosure()).sorted().toList();
+        assertEquals(List.of("CAST java.lang.String true", "TYPE_TEST java.lang.Integer true"), uses);
     }
 
     @Test
@@ -124,7 +145,7 @@ class SourceEdgeCaseTest {
         Diagnostic warning = model.diagnostics().stream().filter(d -> d.code().equals(Diagnostics.RELEASE_NOT_SUPPORTED)).findFirst()
                 .orElseThrow(() -> new AssertionError(model.diagnostics().toString()));
         assertEquals(DiagnosticSeverity.WARNING, warning.severity());
-        assertTrue(warning.message().contains("bound against release " + running), warning.message());
+        assertTrue(warning.message().endsWith("bound against release " + running + ". Run the build on a JDK of release " + (running + 1) + " or newer."), warning.message());
         assertTrue(invokes(model, "M:p.C#f()").stream().anyMatch(call -> call.to().value().equals("M:java.lang.String#valueOf(int)")));
     }
 
@@ -136,8 +157,12 @@ class SourceEdgeCaseTest {
                 """);
 
         assertParsed(model);
-        assertTrue(model.diagnostics().stream().anyMatch(d -> d.code().equals(Diagnostics.RELEASE_NOT_SUPPORTED) && d.message().startsWith("Release 6 ")),
-                model.diagnostics().toString());
+        Diagnostic warning = model.diagnostics().stream().filter(d -> d.code().equals(Diagnostics.RELEASE_NOT_SUPPORTED)).findFirst()
+                .orElseThrow(() -> new AssertionError(model.diagnostics().toString()));
+        assertTrue(warning.message().startsWith("Release 6 ") && warning.message().contains(", the oldest it supports. Run the build on an older JDK whose javac still supports release 6."),
+                warning.message());
+        // javac's warnings that the old --release the parser passed is obsolete describe the parser, not the code.
+        assertEquals(List.of(), model.diagnostics().stream().map(Diagnostic::code).filter(code -> code.startsWith("compiler.warn.option.obsolete")).toList());
     }
 
     // --- Patterns (Java 21): a type pattern, a record pattern and its nested patterns are type tests --------------------
@@ -257,7 +282,9 @@ class SourceEdgeCaseTest {
         assertEquals(1, duplicates.size(), duplicates.toString());
         String message = duplicates.get(0).message();
         assertTrue(message.contains("M:p.C#put`1(!!0)") && message.contains("C.java:3") && message.contains("C.java:4"), message);
+        assertTrue(message.contains(" by p.C.put(java.lang.Number) at ") && message.contains(" and p.C.put(java.lang.CharSequence) at "), message);
         assertEquals(4, duplicates.get(0).location().startLine());
+        assertEquals(Origin.DECLARED, model.nodes().stream().filter(node -> node.id().value().equals("M:p.C#put`1(!!0)")).findFirst().orElseThrow().origin());
     }
 
     /** javac gives a superclass it cannot bind an error type, as it does a missing interface; both are unresolved bases. */

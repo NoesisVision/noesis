@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import vision.noesis.parser.model.AccessKind;
@@ -51,10 +50,12 @@ class InheritanceFactsTest {
         assertEquals(List.of("java.util.ArrayList`1[java.lang.Integer]"), Models.extendsOf(model, "T:" + CI + "DerivedFromFrameworkCollection"));
         assertEquals(List.of("java.lang.Exception"), Models.extendsOf(model, "T:" + CI + "DerivedFromException"));
         assertEquals(List.of(), Models.implementsOf(model, "T:" + CI + "DerivedFromException"));
-        StubNode exception = Models.stub(model, "T:java.lang.Exception");
-        assertEquals(StubKind.TYPE, exception.kind());
-        assertEquals(TypeKind.CLASS, exception.typeKind());
-        assertEquals("A:java.base@17", exception.artifact().value());
+        for (String id : List.of("T:java.lang.Exception", "T:java.util.AbstractList`1", "T:java.util.ArrayList`1")) {
+            StubNode stub = Models.stub(model, id);
+            assertEquals(StubKind.TYPE, stub.kind(), id);
+            assertEquals(TypeKind.CLASS, stub.typeKind(), id);
+            assertEquals("A:java.base@17", stub.artifact().value(), id);
+        }
     }
 
     @ParameterizedTest
@@ -71,7 +72,12 @@ class InheritanceFactsTest {
         CodeModelFile model = Models.syntax(engine);
         assertEquals(List.of("M:" + CI + "Base#overridable()"), Models.overridesOf(model, "M:" + CI + "Derived#overridable()"));
         assertEquals(List.of("M:" + CI + "Derived#overridable()"), Models.overridesOf(model, "M:" + CI + "SecondLevelDerivedClass#overridable()"));
-        assertEquals(0, Models.edges(model, Edge.Overrides.class).filter(edge -> edge.from().value().startsWith("M:" + CI + "GrandChild#")).count());
+        // AbstractIntermediate does not redeclare these, so the override skips it and names the definition two levels up.
+        assertEquals(List.of("M:" + AI + "AbstractBaseWithAllMemberKinds#protectedAbstractMethod()"), Models.overridesOf(model, "M:" + AI + "ConcreteFromAbstractIntermediate#protectedAbstractMethod()"));
+        assertEquals(List.of("M:" + AI + "AbstractBaseWithAllMemberKinds#abstractGenericMethod`1(!!0)"), Models.overridesOf(model, "M:" + AI + "ConcreteFromAbstractIntermediate#abstractGenericMethod`1(!!0)"));
+        // A static method hides the base one; it overrides nothing.
+        Models.method(model, CI + "Base#staticMethod()");
+        assertEquals(List.of(), Models.overridesOf(model, "M:" + CI + "HidingSubclass#staticMethod()"));
         assertEquals(List.of("M:" + CI + "Base#covariant()"), Models.overridesOf(model, "M:" + CI + "Derived#covariant()"));
         assertEquals("java.lang.String", Models.method(model, CI + "Derived#covariant()").signature().returnType().canonical());
         assertEquals(List.of("M:" + CI + "Base#virtualGenericMethod`1(!!0)"), Models.overridesOf(model, "M:" + CI + "Derived#virtualGenericMethod`1(!!0)"));
@@ -119,9 +125,10 @@ class InheritanceFactsTest {
         assertEquals(ExpressionKind.BASE, Models.invokesTo(model, "M:" + CI + "DerivedFromOtherProjectClass#.ctor()", "M:" + OTHER_ABSTRACT + "#.ctor(int)").get(0).receiver());
     }
 
-    @Test
-    void implicitConstructorsAndSuperCallsAreSourceFacts() {
-        CodeModelFile model = Models.syntax(EngineKind.SOURCE);
+    @ParameterizedTest
+    @EnumSource(names = {"SOURCE", "HYBRID"})
+    void implicitConstructorsAndSuperCallsAreSourceFacts(EngineKind engine) {
+        CodeModelFile model = Models.syntax(engine);
         assertEquals(Origin.GENERATED, Models.method(model, CI + "DerivedViaProtectedConstructor#.ctor()").origin());
         assertEquals(Origin.DECLARED, Models.method(model, CI + "DerivedFromException#.ctor()").origin());
         Edge.Invokes implicit = Models.invokesTo(model, "M:" + CI + "DerivedViaProtectedConstructor#.ctor()", "M:" + CI + "BaseClassWithProtectedConstructorOnly#.ctor()").get(0);
@@ -141,9 +148,10 @@ class InheritanceFactsTest {
         assertEquals(List.of("M:" + CI + "BaseClassCalledFromDerivedWithBaseKeyword#compute()"), Models.overridesOf(model, "M:" + CI + "DerivedCallingBaseInsideLambda#compute()"));
     }
 
-    @Test
-    void aSuperCallInsideALambdaHasABaseReceiver() {
-        CodeModelFile model = Models.syntax(EngineKind.SOURCE);
+    @ParameterizedTest
+    @EnumSource(names = {"SOURCE", "HYBRID"})
+    void superCallsHaveABaseReceiverInsideALambdaAndOutside(EngineKind engine) {
+        CodeModelFile model = Models.syntax(engine);
         assertEquals(ExpressionKind.BASE, Models.invokesTo(model, "M:" + CI + "DerivedCallingBaseInsideLambda#compute()", "M:" + CI + "BaseClassCalledFromDerivedWithBaseKeyword#compute()").get(0).receiver());
         assertEquals(ExpressionKind.BASE, Models.invokesTo(model, "M:" + CI + "Derived#overridable()", "M:" + CI + "Base#overridable()").get(0).receiver());
     }
@@ -173,9 +181,10 @@ class InheritanceFactsTest {
         assertEquals(1, Models.count(reads, e -> e.to().value().equals("F:" + CI + "Base.baseField") && e.access() == AccessKind.READ));
     }
 
-    @Test
-    void aHiddenFieldIsReadThroughSuperAndTheHidingOneThroughThis() {
-        List<Edge.Accesses> reads = Models.accesses(Models.syntax(EngineKind.SOURCE), "M:" + CI + "DerivedClassHidingField#readHidingField()");
+    @ParameterizedTest
+    @EnumSource(names = {"SOURCE", "HYBRID"})
+    void aHiddenFieldIsReadThroughSuperAndTheHidingOneThroughThis(EngineKind engine) {
+        List<Edge.Accesses> reads = Models.accesses(Models.syntax(engine), "M:" + CI + "DerivedClassHidingField#readHidingField()");
         assertEquals(ExpressionKind.THIS, Models.one(reads, e -> e.to().value().endsWith("DerivedClassHidingField.baseField"), "hiding read").receiver());
         assertEquals(ExpressionKind.BASE, Models.one(reads, e -> e.to().value().endsWith("Base.baseField"), "hidden read").receiver());
     }
@@ -223,6 +232,15 @@ class InheritanceFactsTest {
         assertEquals(List.of(GI + "GenericBaseClass`1[" + Models.OTHER + "OtherClass]"), Models.extendsOf(model, "T:" + GI + "DerivedFromGenericBaseOfOtherProjectType"));
         assertEquals(List.of("java.util.ArrayList`1[java.lang.Integer]"), Models.extendsOf(model, "T:" + GI + "DerivedFromFrameworkGenericClass"));
         assertEquals(List.of("java.util.HashMap`2[java.lang.String,!0]"), Models.extendsOf(model, "T:" + GI + "DerivedFromFrameworkGenericClassWithOwnParameter`1"));
+        // canonical() drops the owner of !0; each one is the deriving type.
+        for (String derived : List.of("DerivedFromOpenGenericBaseWithRenamedParameter`1", "DerivedFromGenericBaseWithConstraint`1", "DerivedFromGenericBaseWithExtraParameter`2", "DerivedFromFrameworkGenericClassWithOwnParameter`1")) {
+            TypeRef.Named base = (TypeRef.Named) Models.edgesFrom(model, Edge.Extends.class, "T:" + GI + derived).get(0).to();
+            TypeRef.TypeParameterRef last = (TypeRef.TypeParameterRef) base.typeArguments().get(base.typeArguments().size() - 1);
+            assertEquals("T:" + GI + derived, last.owner().value(), derived);
+            assertEquals(0, last.ordinal(), derived);
+        }
+        TypeRef.TypeParameterRef second = (TypeRef.TypeParameterRef) Models.field(model, GI + "DerivedFromGenericBaseWithExtraParameter`2.secondValue").type();
+        assertEquals("T:" + GI + "DerivedFromGenericBaseWithExtraParameter`2", second.owner().value());
     }
 
     @ParameterizedTest
@@ -239,6 +257,24 @@ class InheritanceFactsTest {
         assertEquals(List.of("M:com.google.common.base.Converter`2#doForward(!0)"), Models.overridesOf(model, "M:" + GI + "LengthConverter#doForward(java.lang.String)"));
         assertEquals(List.of("M:com.google.common.base.Converter`2#doBackward(!1)"), Models.overridesOf(model, "M:" + GI + "LengthConverter#doBackward(java.lang.Integer)"));
         assertTrue(Models.stub(model, "T:com.google.common.base.Converter`2").artifact().value().startsWith("A:com.google.guava:guava@"));
+    }
+
+    @ParameterizedTest
+    @EnumSource(EngineKind.class)
+    void inheritedMembersFillTheInterfaceSlotsOfALibraryBase(EngineKind engine) {
+        CodeModelFile model = Models.syntax(engine);
+        // Converter<A, B> implements both Function interfaces; LengthConverter declares neither apply nor equals.
+        List<Edge.ImplementsMember> slots = Models.implementsMembersDeclaredOn(model, "T:" + GI + "LengthConverter");
+        assertEquals(List.of(
+                "M:com.google.common.base.Converter`2#apply(!0) -> M:com.google.common.base.Function`2#apply(!0)",
+                "M:com.google.common.base.Converter`2#apply(!0) -> M:java.util.function.Function`2#apply(!0)",
+                "M:com.google.common.base.Converter`2#equals(java.lang.Object) -> M:com.google.common.base.Function`2#equals(java.lang.Object)"),
+                slots.stream().map(e -> e.from().value() + " -> " + e.to().value()).toList());
+        assertEquals(List.of(
+                "com.google.common.base.Function`2[java.lang.String,java.lang.Integer]",
+                "java.util.function.Function`2[java.lang.String,java.lang.Integer]",
+                "com.google.common.base.Function`2[java.lang.String,java.lang.Integer]"),
+                slots.stream().map(e -> e.interfaceType().canonical()).toList());
     }
 
     @ParameterizedTest

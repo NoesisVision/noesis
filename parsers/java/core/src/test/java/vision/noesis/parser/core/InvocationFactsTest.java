@@ -29,7 +29,7 @@ import vision.noesis.parser.model.Edge;
 import vision.noesis.parser.model.InvocationKind;
 import vision.noesis.parser.model.TypeRef;
 
-/** Every invocation form of {@code InvocationForms}, pinned the way the .NET parser's InvocationTests pin theirs. */
+/** The invocation forms of {@code InvocationForms}: targets, receivers and closure flags, pinned the way the .NET parser's InvocationTests pin theirs. */
 class InvocationFactsTest {
 
     private static final String FORMS = SYNTAX + "invocations.InvocationForms";
@@ -116,6 +116,11 @@ class InvocationFactsTest {
         assertEquals(2, count(calls, to("M:" + TARGET + "#returnsSelf()", RETURN_VALUE)));
         one(calls, to("M:" + TARGET + "#staticFactory()", TYPE), "static factory as receiver");
         assertEquals(3, count(calls, to("M:java.lang.String#valueOf(int)", TYPE)));
+        one(calls, to("M:" + TARGET + "+InvocationDerived#overridable()", CREATION), "new InvocationDerived(\"x\").overridable()");
+        one(calls, to("M:" + TARGET + "#returnsArray()", LOCAL), "local.returnsArray()");
+        one(calls, to("M:java.lang.String#toLowerCase()", RETURN_VALUE), "getName().toLowerCase()");
+        one(calls, to("M:java.lang.String#length()", OTHER), "length() on a parenthesized concatenation");
+        one(calls, to("M:java.lang.String#length()", RETURN_VALUE), "toString().length()");
     }
 
     @ParameterizedTest
@@ -205,7 +210,12 @@ class InvocationFactsTest {
         assertEquals(2, count(calls, to("M:java.lang.Runnable#run()")));
         one(calls, to("M:java.util.function.Supplier`1#get()"), "constructor.get()");
         assertTrue(calls.stream().noneMatch(edge -> edge.to().value().startsWith("M:" + SYNTAX)), calls.toString());
-        assertTrue(Models.invokes(Models.syntax(engine), "F:" + FORMS + ".supplierField").isEmpty());
+        if (engine == EngineKind.BYTECODE) {
+            // bytecode puts field initializers into the constructor
+            assertTrue(Models.invokes(Models.syntax(engine), "M:" + FORMS + "#.ctor()").stream().noneMatch(to(STATIC)), "InvocationTarget::staticMethod is no call");
+        } else {
+            assertTrue(Models.invokes(Models.syntax(engine), "F:" + FORMS + ".supplierField").isEmpty(), "InvocationTarget::staticMethod is no call");
+        }
     }
 
     @ParameterizedTest
@@ -228,11 +238,16 @@ class InvocationFactsTest {
     @EnumSource(EngineKind.class)
     void otherExpressionContextsAttributeToTheMethod(EngineKind engine) {
         List<Edge.Invokes> calls = invokes(engine, "otherExpressionContexts()");
-        one(calls, edge -> edge.to().value().equals("M:" + FORMS + "#instanceMethodOnThisClass()") && edge.site().viaClosure(), "this call inside a lambda");
+        Edge.Invokes viaThis = one(calls, edge -> edge.to().value().equals("M:" + FORMS + "#instanceMethodOnThisClass()") && edge.site().viaClosure(), "this call inside a lambda");
         assertEquals(2, count(calls, to(INSTANCE)));
         assertEquals(2, count(calls, to(STATIC, TYPE)));
         one(calls, to("M:java.util.function.Supplier`1#get()"), "viaThisInLambda.get()");
-        one(Models.accesses(Models.syntax(engine), "M:" + FORMS + "#otherExpressionContexts()"), access("F:" + FORMS + ".counter", AccessKind.READ), "counter in the ternary");
+        Edge.Accesses counter = one(Models.accesses(Models.syntax(engine), "M:" + FORMS + "#otherExpressionContexts()"), access("F:" + FORMS + ".counter", AccessKind.READ), "counter in the ternary");
+        // bytecode receivers are OTHER (design §4)
+        if (engine != EngineKind.BYTECODE) {
+            assertEquals(THIS, viaThis.receiver());
+            assertEquals(THIS, counter.receiver());
+        }
     }
 
     @ParameterizedTest
@@ -260,13 +275,13 @@ class InvocationFactsTest {
         assertEquals("M:" + FORMS + "#localClassInvocations()", local.languageSpecific().get("java.enclosingMethod"));
         List<Edge.Invokes> calls = invokes(engine, "localClassInvocations()");
         one(calls, to("M:" + LOCAL_FUNCTIONS + "#.ctor()", null), "new LocalFunctions()");
-        one(calls, to("M:" + LOCAL_FUNCTIONS + "#localFunction()"), "localFunction()");
+        one(calls, to("M:" + LOCAL_FUNCTIONS + "#localFunction()"), "localFunction(); functions::localFunction is no call");
         one(calls, to("M:" + LOCAL_FUNCTIONS + "#localFunctionWithParameter(int)"), "localFunctionWithParameter(1)");
         assertEquals(2, count(calls, to("M:" + LOCAL_FUNCTIONS + "#genericLocalFunction`1(!!0)")));
         one(calls, to("M:" + LOCAL_FUNCTIONS + "#recursiveLocalFunction(int)"), "recursiveLocalFunction(2)");
         one(calls, to("M:" + LOCAL_FUNCTIONS + "#callingStaticFromLocalClass()"), "callingStaticFromLocalClass()");
         one(calls, to("M:" + FORMS + "#localFunctionDeclaredLater()"), "method named like a local function");
-        one(calls, to("M:java.util.function.Supplier`1#get()"), "functions::localFunction is no call");
+        one(calls, to("M:java.util.function.Supplier`1#get()"), "asSupplier.get()");
         Models.method(model, LOCAL_FUNCTIONS + "#genericLocalFunction`1(!!0)");
         one(Models.invokes(model, "M:" + LOCAL_FUNCTIONS + "#recursiveLocalFunction(int)"), to("M:" + LOCAL_FUNCTIONS + "#recursiveLocalFunction(int)"), "recursion");
         one(Models.invokes(model, "M:" + LOCAL_FUNCTIONS + "#callingStaticFromLocalClass()"), to(STATIC, TYPE), "static call from the local class");

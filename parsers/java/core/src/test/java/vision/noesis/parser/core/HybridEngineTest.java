@@ -97,6 +97,7 @@ class HybridEngineTest {
         assertTrue(hybrid.edges().stream().anyMatch(e -> e instanceof Edge.Contains c && c.from().value().equals(type) && c.to().value().equals("M:" + MEMBERS + "+DataHolder#equals(java.lang.Object)")));
         assertTrue(hybrid.edges().stream().anyMatch(e -> e instanceof Edge.Overrides o && o.from().value().equals("M:" + MEMBERS + "+DataHolder#toString()") && o.to().value().equals("M:java.lang.Object#toString()")));
         assertTrue(hybrid.edges().stream().anyMatch(e -> e instanceof Edge.ImplementsMember m && m.from().value().equals("M:" + MEMBERS + "+Delegating#size()") && m.to().value().equals("M:java.util.List`1#size()")));
+        // Written in the source, not generated: the generated members above implement it.
         assertTrue(hybrid.edges().stream().anyMatch(e -> e instanceof Edge.Implements i && i.from().value().equals("T:" + MEMBERS + "+Delegating") && i.to().canonical().equals("java.util.List`1[java.lang.String]")));
         assertTrue(hybrid.edges().stream().anyMatch(e -> e instanceof Edge.Contains c && c.from().value().equals("T:" + MEMBERS + "+Built") && c.to().value().equals("T:" + MEMBERS + "+Built+BuiltBuilder")));
     }
@@ -113,6 +114,8 @@ class HybridEngineTest {
 
     @Test
     void modifiersTheProcessorAddsAreTakenFromBytecodeAndMarked() {
+        TypeNode written = Models.node(Models.lombok(EngineKind.SOURCE), TypeNode.class, "T:" + MEMBERS + "+ValueHolder");
+        assertFalse(written.modifiers().contains(vision.noesis.parser.model.Modifier.FINAL), "javac sees the class before Lombok makes it final");
         TypeNode value = Models.node(Models.lombok(EngineKind.HYBRID), TypeNode.class, "T:" + MEMBERS + "+ValueHolder");
         assertTrue(value.modifiers().contains(vision.noesis.parser.model.Modifier.FINAL), value.modifiers().toString());
         assertEquals(true, value.languageSpecific().get("java.processorModified"));
@@ -120,16 +123,43 @@ class HybridEngineTest {
         vision.noesis.parser.model.FieldNode name = Models.node(Models.lombok(EngineKind.HYBRID), vision.noesis.parser.model.FieldNode.class, "F:" + MEMBERS + "+ValueHolder.name");
         assertEquals(vision.noesis.parser.model.Visibility.PRIVATE, name.visibility());
         assertTrue(name.modifiers().contains(vision.noesis.parser.model.Modifier.READONLY));
-        assertNull(Models.node(Models.lombok(EngineKind.HYBRID), TypeNode.class, "T:" + MEMBERS + "+Plain").languageSpecific().get("java.processorModified"));
+        assertEquals(true, name.languageSpecific().get("java.processorModified"));
+        // Lombok annotates these too, but leaves their modifiers as written.
+        for (String unchanged : List.of("T:" + MEMBERS + "+Plain", "T:" + MEMBERS + "+Built", "T:" + MEMBERS + "+DataHolder", "F:" + MEMBERS + "+DataHolder.name")) {
+            assertNull(Models.node(Models.lombok(EngineKind.HYBRID), DeclarationNode.class, unchanged).languageSpecific().get("java.processorModified"), unchanged);
+        }
     }
 
     @Test
     void aCallJavacBoundToTheSupertypesMemberIsReboundToTheGeneratedOverride() {
+        assertRebound("comparedCalls()", "M:java.lang.Object#equals(java.lang.Object)", "M:" + MEMBERS + "+Compared#equals(java.lang.Object)", 1);
+        assertRebound("comparedCalls()", "M:java.lang.Object#hashCode()", "M:" + MEMBERS + "+Compared#hashCode()", 2);
+        assertRebound("comparedCalls()", "M:java.lang.Object#toString()", "M:" + MEMBERS + "+Compared#toString()", 2);
+        assertRebound("dataCalls()", "M:java.lang.Object#equals(java.lang.Object)", "M:" + MEMBERS + "+DataHolder#equals(java.lang.Object)", 1);
+        assertRebound("dataCalls()", "M:java.lang.Object#hashCode()", "M:" + MEMBERS + "+DataHolder#hashCode()", 1);
+        assertRebound("dataCalls()", "M:java.lang.Object#toString()", "M:" + MEMBERS + "+DataHolder#toString()", 1);
+        assertRebound("delegateCalls()", "M:java.util.List`1#add(!0)", "M:" + MEMBERS + "+Delegating#add(java.lang.String)", 1);
+        assertRebound("delegateCalls()", "M:java.util.List`1#get(int)", "M:" + MEMBERS + "+Delegating#get(int)", 1);
+        assertRebound("delegateCalls()", "M:java.util.List`1#size()", "M:" + MEMBERS + "+Delegating#size()", 1);
+
         String caller = "M:" + CALLERS + "#comparedCalls()";
-        assertEquals(1, Models.invokesTo(Models.lombok(EngineKind.SOURCE), caller, "M:java.lang.Object#equals(java.lang.Object)").size());
-        assertTrue(Models.invokesTo(Models.lombok(EngineKind.HYBRID), caller, "M:java.lang.Object#equals(java.lang.Object)").isEmpty());
-        assertEquals(1, Models.invokesTo(Models.lombok(EngineKind.HYBRID), caller, "M:" + MEMBERS + "+Compared#equals(java.lang.Object)").size());
-        assertEquals(1, Models.invokesTo(Models.lombok(EngineKind.HYBRID), caller, "M:java.lang.String#equals(java.lang.Object)").size(), "a call on another receiver on the same line stays");
+        String stringEquals = "M:java.lang.String#equals(java.lang.Object)";
+        List<Edge.Invokes> kept = Models.invokesTo(Models.lombok(EngineKind.HYBRID), caller, stringEquals);
+        assertEquals(Models.invokesTo(Models.lombok(EngineKind.SOURCE), caller, stringEquals), kept, "a call on another receiver on the same line stays the source engine's");
+        assertEquals(1, kept.size());
+        assertEquals(ExpressionKind.RETURN_VALUE, kept.get(0).receiver());
+        assertEquals(81, kept.get(0).site().location().startColumn());
+        assertNull(kept.get(0).site().languageSpecific().get("java.engine"));
+    }
+
+    /** javac binds the calls to the supertype's member; the hybrid model has them all on the generated one, from bytecode. */
+    private static void assertRebound(String caller, String javacs, String generated, int calls) {
+        String from = "M:" + CALLERS + "#" + caller;
+        assertEquals(calls, Models.invokesTo(Models.lombok(EngineKind.SOURCE), from, javacs).size(), caller + " -> " + javacs + " in the source model");
+        assertTrue(Models.invokesTo(Models.lombok(EngineKind.HYBRID), from, javacs).isEmpty(), caller + " -> " + javacs + " left in the hybrid model");
+        List<Edge.Invokes> rebound = Models.invokesTo(Models.lombok(EngineKind.HYBRID), from, generated);
+        assertEquals(calls, rebound.size(), caller + " -> " + generated);
+        assertTrue(rebound.stream().allMatch(call -> "bytecode".equals(call.site().languageSpecific().get("java.engine"))), caller + " -> " + generated);
     }
 
     @Test
@@ -199,18 +229,51 @@ class HybridEngineTest {
     void theUnboundSiteDiagnosticsOfResolvedLinesAreDropped() {
         List<Diagnostic> source = Models.lombok(EngineKind.SOURCE).diagnostics().stream().filter(d -> d.code().equals(Diagnostics.UNBOUND_SITE)).collect(Collectors.toList());
         List<Diagnostic> hybrid = Models.lombok(EngineKind.HYBRID).diagnostics().stream().filter(d -> d.code().equals(Diagnostics.UNBOUND_SITE)).collect(Collectors.toList());
-        assertTrue(source.size() >= 20, "the source engine reports every call to a generated member: " + source.size());
+        assertEquals(52, source.size(), "the source engine reports every call javac cannot bind: to a generated member, or on what one returns");
         assertTrue(hybrid.isEmpty(), () -> hybrid.size() + " unbound sites left: " + hybrid);
         List<Diagnostic> errors = Models.lombok(EngineKind.HYBRID).diagnostics().stream().filter(d -> d.code().startsWith("compiler.err")).collect(Collectors.toList());
-        assertEquals(List.of("compiler.err.does.not.override.abstract"), errors.stream().map(Diagnostic::code).collect(Collectors.toList()), "only the error on the class line stays: " + errors);
+        assertTrue(errors.isEmpty(), () -> errors.size() + " compiler errors left: " + errors);
+    }
+
+    @Test
+    void theAbstractMethodErrorOfAClassTheProcessorImplementedIsDropped() {
+        List<Diagnostic> source = Models.lombok(EngineKind.SOURCE).diagnostics().stream().filter(d -> d.code().equals("compiler.err.does.not.override.abstract")).collect(Collectors.toList());
+        assertEquals(1, source.size(), "javac without Lombok sees Delegating implement no List method: " + source);
+        assertTrue(source.get(0).message().contains("Delegating is not abstract"), source.get(0).message());
+        assertTrue(Models.has(Models.lombok(EngineKind.HYBRID), "M:" + MEMBERS + "+Delegating#subList(int,int)"), "the method it names is generated");
+        assertTrue(Models.lombok(EngineKind.HYBRID).diagnostics().stream().noneMatch(d -> d.code().equals("compiler.err.does.not.override.abstract")));
+    }
+
+    @Test
+    void aDefaultConstructorTheProcessorWroteHasTheClassFilesBody() {
+        String constructor = "M:" + MEMBERS + "+Constructed#.ctor()";
+        CodeModelFile hybrid = Models.lombok(EngineKind.HYBRID);
+        MethodNode written = Models.node(hybrid, MethodNode.class, constructor);
+        assertEquals(Origin.GENERATED, written.origin());
+        assertEquals("bytecode", written.languageSpecific().get("java.engine"), "@NoArgsConstructor's, not javac's default constructor");
+        assertEquals(70, written.locations().get(0).startLine(), "the annotation's line");
+        List<Edge> body = hybrid.edges().stream().filter(e -> e.from().value().equals(constructor) && !(e instanceof Edge.Contains)).collect(Collectors.toList());
+        assertTrue(body.stream().anyMatch(e -> e instanceof Edge.Accesses a && a.to().value().equals("F:" + MEMBERS + "+Constructed.name")
+                && a.access() == vision.noesis.parser.model.AccessKind.WRITE && a.site().location().startLine() == 70), "force = true writes null: " + body);
+        assertTrue(body.stream().noneMatch(e -> e instanceof Edge.Invokes i && i.site().location().startLine() == 73), "no implicit super call on the class line: " + body);
+        // A default constructor javac compiled keeps the source engine's facts.
+        String plain = "M:" + MEMBERS + "+Plain#.ctor()";
+        assertEquals(Models.node(Models.lombok(EngineKind.SOURCE), MethodNode.class, plain), Models.node(hybrid, MethodNode.class, plain));
     }
 
     @Test
     void everyCallOfAChainAfterAGeneratedGetterIsTakenWhateverLineItIsOn() {
         String caller = "M:" + CALLERS + "#multiLineChain()";
-        for (String target : List.of("M:java.lang.String#chars()", "M:java.util.stream.IntStream#filter(java.util.function.IntPredicate)", "M:java.util.stream.IntStream#count()")) {
+        List<String> targets = List.of("M:" + MEMBERS + "+GetterSetter#getName()", "M:java.lang.String#chars()",
+                "M:java.util.stream.IntStream#filter(java.util.function.IntPredicate)", "M:java.util.stream.IntStream#count()");
+        int[] lines = {110, 111, 112, 113};
+        for (int i = 0; i < targets.size(); i++) {
+            String target = targets.get(i);
             assertTrue(Models.invokesTo(Models.lombok(EngineKind.SOURCE), caller, target).isEmpty(), target + " unbound in source");
-            assertEquals(1, Models.invokesTo(Models.lombok(EngineKind.HYBRID), caller, target).size(), target);
+            List<Edge.Invokes> calls = Models.invokesTo(Models.lombok(EngineKind.HYBRID), caller, target);
+            assertEquals(1, calls.size(), target);
+            assertEquals(lines[i], calls.get(0).site().location().startLine(), target + ": on its own line");
+            assertEquals("bytecode", calls.get(0).site().languageSpecific().get("java.engine"), target);
         }
     }
 

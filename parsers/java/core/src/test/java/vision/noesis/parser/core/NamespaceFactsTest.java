@@ -56,9 +56,10 @@ class NamespaceFactsTest {
         assertFalse(Models.contains(model, "N:" + FIXTURE, "T:" + SYNTAX + "Program"));
     }
 
-    @Test
-    void namespaceLocationsAreThePackageClausesRepositoryRelativeWithForwardSlashes() {
-        CodeModelFile model = Models.syntax(EngineKind.SOURCE);
+    @ParameterizedTest
+    @EnumSource(value = EngineKind.class, names = {"SOURCE", "HYBRID"})
+    void namespaceLocationsAreThePackageClausesRepositoryRelativeWithForwardSlashes(EngineKind engine) {
+        CodeModelFile model = Models.syntax(engine);
         SourceSpan dotted = Models.one(Models.namespace(model, SYNTAX + "imports.dotted").locations(), span -> true, "location of the dotted package");
         assertEquals(SOURCES + "syntax/imports/dotted/deeply/nested/ClassInDeeplyNestedPackage.java", dotted.file());
         assertEquals(new SourceSpan(dotted.file(), 1, 9, 1, 52), dotted);
@@ -66,8 +67,11 @@ class NamespaceFactsTest {
         List<SourceSpan> syntax = Models.namespace(model, FIXTURE + ".syntax").locations();
         Models.one(syntax, span -> span.file().equals(SOURCES + "syntax/Program.java") && span.startLine() == 1 && span.startColumn() == 9, "Program.java package clause");
         Models.one(syntax, span -> span.file().equals(SOURCES + "syntax/package-info.java") && span.startLine() == 3, "package-info.java package clause");
-        assertTrue(syntax.size() > 30);
-        assertTrue(Models.namespace(model, "vision").locations().size() >= syntax.size());
+        assertEquals(43, syntax.size());
+        // The parent levels also hold the package clause of SharedNamespaceInSyntax.
+        for (String level : List.of("vision", "vision.noesis", FIXTURE)) {
+            assertEquals(44, Models.namespace(model, level).locations().size(), level);
+        }
         assertTrue(syntax.stream().noneMatch(span -> span.file().contains("\\")));
         assertEquals(syntax.stream().sorted().toList(), syntax);
     }
@@ -91,7 +95,9 @@ class NamespaceFactsTest {
         assertEquals(engine != EngineKind.BYTECODE ? "The syntax fixture: one file per topic the parser maps." : null, syntax.documentation());
         assertTrue(Models.namespace(Models.syntax(engine), FIXTURE).annotations().isEmpty());
         NamespaceNode other = Models.namespace(Models.other(engine), FIXTURE + ".other");
-        assertEquals("\"other\"", ((AnnotationValue.Literal) other.annotations().get(0).arguments().get(0).value()).text());
+        Annotation otherModule = Models.one(other.annotations(), annotation -> true, "package annotation of the other module");
+        assertEquals("vision.noesis.annotations.Module", otherModule.type().canonical());
+        assertEquals("\"other\"", Models.literal(otherModule, "value"));
     }
 
     @ParameterizedTest
@@ -105,6 +111,7 @@ class NamespaceFactsTest {
         assertFalse(Models.has(other, "T:" + FIXTURE + ".shared.SharedNamespaceInSyntax"));
         assertFalse(Models.hasStub(syntax, "T:" + FIXTURE + ".shared.SharedNamespaceInOtherModule"));
         assertFalse(Models.hasStub(syntax, "N:" + FIXTURE + ".shared"));
+        Models.one(Models.invokes(syntax, "M:" + FIXTURE + ".shared.SharedNamespaceInSyntax#other()"), Models.to("M:" + FIXTURE + ".shared.SharedNamespaceInOtherModule#.ctor()", null), "call into the other module's half of the package");
         assertEquals("shared", Models.namespace(other, FIXTURE + ".shared").name());
         assertFalse(Models.has(syntax, "N:" + FIXTURE + ".other"));
     }

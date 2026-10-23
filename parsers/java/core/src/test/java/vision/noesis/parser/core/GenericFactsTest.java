@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import vision.noesis.parser.model.AccessKind;
 import vision.noesis.parser.model.CodeModelFile;
 import vision.noesis.parser.model.Edge;
 import vision.noesis.parser.model.ExpressionKind;
@@ -191,10 +193,22 @@ class GenericFactsTest {
     @EnumSource(EngineKind.class)
     void genericInvocationsTargetTheDefinitionWhateverTheArguments(EngineKind engine) {
         CodeModelFile model = Models.syntax(engine);
-        for (String target : List.of("M:" + GM + "#identity`1(!!0)", "M:" + GM + "#staticGenericMethod`1(!!0)", "M:" + GM + "#listOf`1(!!0[])", "M:" + GT + "GenericStaticClass`1#identity`1(!!0)",
-                "M:" + ONE + "#.ctor()", "M:" + ONE + "+NestedGenericClass`1#.ctor()", "M:java.util.Map`2#size()")) {
-            Models.atLeast(1, Models.invokesTo(model, INVOCATIONS, target), e -> true, "call of " + target);
-        }
+        Map<String, Integer> expected = Map.ofEntries(
+                Map.entry("M:" + GM + "#.ctor()", 1),
+                Map.entry("M:" + GM + "#identity`1(!!0)", 2),
+                Map.entry("M:" + GM + "#genericMethodWithTwoParameters`2(!!0,java.util.function.Function`2[!!0,!!1])", 2),
+                Map.entry("M:" + GM + "#genericMethodWithoutUsingParameterInSignature`1()", 1),
+                Map.entry("M:" + GM + "#staticGenericMethod`1(!!0)", 1),
+                Map.entry("M:" + GM + "#listOf`1(!!0[])", 1),
+                Map.entry("M:" + GT + "GenericStaticClass`1#identity`1(!!0)", 1),
+                Map.entry("M:" + GM + "+GenericMethodsInInterface#staticGenericMethodInInterface`1(!!0)", 1),
+                Map.entry("M:" + ONE + "#.ctor()", 1),
+                Map.entry("M:" + ONE + "+NestedGenericClass`1#.ctor()", 1));
+        expected.forEach((target, calls) -> assertEquals(calls.intValue(), Models.invokesTo(model, INVOCATIONS, target).size(), target));
+        Models.one(Models.invokes(model, INVOCATIONS), e -> e.to().value().equals("M:java.util.Map`2#size()"), "closedNested.map.size()");
+        // every fixture target is one of the definitions above, never an erased id such as #identity(java.lang.Object)
+        List<String> ownTargets = Models.invokes(model, INVOCATIONS).stream().map(e -> e.to().value()).filter(id -> id.startsWith("M:" + Models.SYNTAX)).distinct().sorted().toList();
+        assertEquals(expected.keySet().stream().sorted().toList(), ownTargets);
         if (engine == EngineKind.BYTECODE) {
             assertTrue(Models.invokes(model, INVOCATIONS).stream().allMatch(e -> e.typeArguments().isEmpty()));
         }
@@ -217,6 +231,27 @@ class GenericFactsTest {
         assertEquals("java.lang.Class`1[<other:?>]", open.type().canonical());
         assertEquals(new TypeRef.Other("?"), ((TypeRef.Named) open.type()).typeArguments().get(0));
         assertEquals("java.lang.Class`1[<other:?>]", Models.field(model, usages + "openGenericTypeOfTwoParameters").type().canonical());
+    }
+
+    @ParameterizedTest
+    @EnumSource(EngineKind.class)
+    void classLiteralInitializersProduceNoEdge(EngineKind engine) {
+        CodeModelFile model = Models.syntax(engine);
+        String usages = GT + "ClosedGenericUsages";
+        if (engine == EngineKind.BYTECODE) {
+            // bytecode puts field initializers into the constructor; lines 140-141 only store the fields
+            String ctor = "M:" + usages + "#.ctor()";
+            assertTrue(Models.invokes(model, ctor).stream().noneMatch(e -> e.site().location().startLine() == 140 || e.site().location().startLine() == 141));
+            List<Edge.Accesses> stores = Models.accesses(model, ctor).stream().filter(e -> e.site().location().startLine() == 140 || e.site().location().startLine() == 141).toList();
+            assertEquals(List.of("F:" + usages + ".openGenericTypeOf", "F:" + usages + ".openGenericTypeOfTwoParameters"), stores.stream().map(e -> e.to().value()).sorted().toList());
+            assertTrue(stores.stream().allMatch(e -> e.access() == AccessKind.WRITE), stores.toString());
+            assertTrue(Models.usesTypes(model, ctor).isEmpty());
+        } else {
+            for (String field : List.of("openGenericTypeOf", "openGenericTypeOfTwoParameters")) {
+                String id = "F:" + usages + "." + field;
+                assertTrue(model.edges().stream().noneMatch(e -> e.from().value().equals(id)), id);
+            }
+        }
     }
 
     @Test

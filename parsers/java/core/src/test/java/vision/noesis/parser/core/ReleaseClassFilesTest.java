@@ -39,7 +39,7 @@ class ReleaseClassFilesTest {
     @Test
     void release21HasSequencedCollectionWhenTheJdkKnowsIt() {
         Optional<ReleaseClassFiles> release = ReleaseClassFiles.open(21);
-        if (release.isEmpty()) return; // the running JDK is older than 21
+        if (release.isEmpty()) return; // no release 21 in ct.sym: the running JDK is 21 itself, or older
         try (ReleaseClassFiles files = release.get()) {
             assertTrue(files.resource("java/util/SequencedCollection.class").isPresent());
         }

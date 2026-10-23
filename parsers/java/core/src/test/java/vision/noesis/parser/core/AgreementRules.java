@@ -15,6 +15,7 @@ import vision.noesis.parser.model.CanonicalString;
 import vision.noesis.parser.model.NamespaceNode;
 import vision.noesis.parser.model.TypeParameterConstraint;
 import vision.noesis.parser.model.AnnotationArgument;
+import vision.noesis.parser.model.AnnotationValue;
 import vision.noesis.parser.model.CodeModelFile;
 import vision.noesis.parser.model.DeclarationNode;
 import vision.noesis.parser.model.Edge;
@@ -39,22 +40,22 @@ import vision.noesis.parser.model.TypeUseRole;
  *   <li>{@code documentation}: not in bytecode.</li>
  *   <li>{@code origin}: compared only where the source engine says {@code declared}; bytecode cannot tell an implicit record member or default constructor from a written one.</li>
  *   <li>Bag keys {@code java.strictfp} and {@code java.nonSealed}: not in the class file.</li>
- *   <li>{@code positional} on annotation arguments: the class file has only names.</li>
+ *   <li>{@code positional} on annotation arguments, nested ones included: the class file has only names.</li>
  *   <li>Annotations with SOURCE retention ({@code @Override}, {@code @SuppressWarnings}): not in the class file.</li>
  *   <li>Type arguments of an inner class's enclosing instantiation ({@code Outer<String>.Inner<Integer>}): ArchUnit does not read them; types are compared with the inner class's own arguments only.</li>
  *   <li>Base chains of stubs: compared through the stubs themselves, not edge by edge.</li>
  *   <li>Parameter names: compared because the fixture is compiled with {@code -parameters}.</li>
  *   <li>{@code .cctor}: bytecode has one whenever a static field has an initializer; compared only when the source engine emitted it.</li>
- *   <li>Body edges from constructors, fields and generated methods: field initializers are compiled into constructors and {@code .cctor}, the implicit {@code super()} flag is source-only, and an implicit record accessor has a body only in bytecode; only edges from declared methods are compared.</li>
+ *   <li>Body edges from fields and generated methods: field initializers are compiled into constructors and {@code .cctor}, and an implicit record accessor has a body only in bytecode; they are not compared. Declared constructors are compared one way: every call and access the source has must be in bytecode, which also holds the field initializers; the implicit {@code super()} flag is source-only, and site bags are not compared.</li>
  *   <li>Repeated sites: a {@code finally} body is compiled once per exit path, so bytecode may hold more copies of a site than the source; a site the source has not at all is a difference.</li>
  *   <li>Lines of body edges: javac gives a continued line of an expression no line entry of its own unless it starts a call, so a {@code new} or a field read on a second line is attributed to the statement's line and the calls of a chain to their own lines, where the source engine locates the whole expression; sites are compared as multisets per caller, target and closure flag, without lines.</li>
  *   <li>{@code INVOKES.typeArguments} and {@code receiver}: bytecode has neither the inference nor the expression.</li>
- *   <li>{@code INVOKES} to external targets: the compiler inserts calls (boxing, iterators, {@code close()}), so bytecode is a superset, and an inherited member may be bound to a different declaring type, so external targets are compared by member name; calls to parsed targets must agree exactly, except the calls javac inserts for a statement: {@code close()} of a try-with-resources resource and {@code iterator()}, {@code hasNext()}, {@code next()} of an enhanced for.</li>
- *   <li>{@code java.enclosingMethod}: a class declared in a field initializer has no enclosing method in the class file.</li>
- *   <li>{@code ACCESSES}: read and write merged, a source {@code readWrite} counted as the two accesses bytecode has; accesses to enum constants excluded (a {@code case} label reads none in bytecode); accesses to external fields are a superset in bytecode ({@code int.class} reads {@code Integer.TYPE}).</li>
+ *   <li>{@code INVOKES} to external targets: the compiler inserts calls (boxing, iterators, {@code close()}), so bytecode is a superset, and an inherited member may be bound to a different declaring type, so external targets are compared by member name and parameter list, without the declaring type. Calls to parsed targets: every source call must be in bytecode, which may hold more copies of it; a parsed target the source never calls from that member is a difference, except the calls javac inserts for a statement: {@code close()} of a try-with-resources resource and {@code iterator()}, {@code hasNext()}, {@code next()} of an enhanced for.</li>
+ *   <li>{@code java.enclosingMethod}: a class declared in a field initializer has no enclosing method in the class file, so a source value that names a field ({@code F:}) is dropped when bytecode has none; any other value must agree.</li>
+ *   <li>{@code ACCESSES}: compared per kind, a source {@code readWrite} counted as the read and the write bytecode has; bytecode may hold more copies of an access ({@code finally}); an enum constant may be read fewer times in bytecode (a {@code case} label reads none there) but never read where the source has no access to it; accesses to external fields are a superset in bytecode ({@code int.class} reads {@code Integer.TYPE}).</li>
  *   <li>{@code USES_TYPE}: only {@code typeTest} is in bytecode.</li>
  *   <li>Stubs: the source engine's are a subset of bytecode's, which also stubs the targets of compiler-inserted calls.</li>
- *   <li>Diagnostics: not compared, but for {@code NS1004}, by the id it names: an id two declarations share is dropped from both models alike; the messages differ, since bytecode has no declaration lines.</li>
+ *   <li>Diagnostics: not compared, but for {@code NS1004}, by the id it names: when two declarations share an id, both models keep the first declared under it and drop the second; the messages differ, since bytecode has no declaration lines.</li>
  * </ul>
  */
 final class AgreementRules {
@@ -63,13 +64,13 @@ final class AgreementRules {
 
     private final List<String> differences = new ArrayList<>();
     private final Set<String> parsedTypePaths;
-    private final Set<NodeId> enumConstants;
+    private final Set<String> enumConstants;
 
     AgreementRules(List<CodeModelFile> sourceModels) {
         parsedTypePaths = sourceModels.stream().flatMap(model -> model.nodes().stream()).filter(TypeNode.class::isInstance)
                 .map(node -> node.id().canonicalPath()).collect(Collectors.toSet());
         enumConstants = sourceModels.stream().flatMap(model -> model.nodes().stream()).filter(node -> node instanceof FieldNode field && field.fieldKind() == FieldKind.ENUM_MEMBER)
-                .map(DeclarationNode::id).collect(Collectors.toSet());
+                .map(node -> node.id().value()).collect(Collectors.toSet());
     }
 
     List<String> differences() {
@@ -106,9 +107,10 @@ final class AgreementRules {
             if (b == null) continue;
             boolean compareOrigin = s.origin() == Origin.DECLARED;
             boolean compareFile = !s.locations().isEmpty() && !(s instanceof NamespaceNode);
-            boolean enclosingMethodKnown = b.languageSpecific().get("java.enclosingMethod") != null;
-            Map<String, String> left = projection(s, compareOrigin, compareFile, enclosingMethodKnown);
-            Map<String, String> right = projection(b, compareOrigin, compareFile, enclosingMethodKnown);
+            Object sourceEnclosing = s.languageSpecific().get("java.enclosingMethod");
+            boolean dropEnclosingMethod = b.languageSpecific().get("java.enclosingMethod") == null && sourceEnclosing != null && sourceEnclosing.toString().startsWith("F:");
+            Map<String, String> left = projection(s, compareOrigin, compareFile, dropEnclosingMethod);
+            Map<String, String> right = projection(b, compareOrigin, compareFile, dropEnclosingMethod);
             for (String field : left.keySet()) {
                 if (!left.get(field).equals(right.get(field))) differences.add(artifact + ": " + id + " " + field + ": source=" + left.get(field) + " bytecode=" + right.get(field));
             }
@@ -118,7 +120,7 @@ final class AgreementRules {
     /** Annotations the compiler keeps out of the class file. */
     private static final Set<String> SOURCE_RETENTION = Set.of("java.lang.Override", "java.lang.SuppressWarnings");
 
-    private static Map<String, String> projection(DeclarationNode node, boolean compareOrigin, boolean compareFile, boolean bytecodeHasEnclosingMethod) {
+    private static Map<String, String> projection(DeclarationNode node, boolean compareOrigin, boolean compareFile, boolean dropEnclosingMethod) {
         Map<String, String> fields = new TreeMap<>();
         fields.put("name", node.name());
         if (compareOrigin) fields.put("origin", node.origin().id());
@@ -126,7 +128,7 @@ final class AgreementRules {
         fields.put("annotations", annotations(node.annotations()));
         Map<String, Object> bag = new TreeMap<>(node.languageSpecific().entries());
         EXCLUDED_BAG_KEYS.forEach(bag::remove);
-        if (!bytecodeHasEnclosingMethod) bag.remove("java.enclosingMethod");
+        if (dropEnclosingMethod) bag.remove("java.enclosingMethod");
         fields.put("bag", bag.toString());
         if (node instanceof TypeNode type) {
             fields.put("typeKind", type.typeKind().id());
@@ -163,8 +165,19 @@ final class AgreementRules {
 
     private static String annotations(List<Annotation> annotations) {
         return annotations.stream().filter(a -> !SOURCE_RETENTION.contains(a.type().canonical()))
-                .map(a -> a.type().canonical() + "(" + a.arguments().stream().sorted(java.util.Comparator.comparing(AnnotationArgument::name))
-                .map(arg -> arg.name() + "=" + arg.value()).collect(Collectors.joining(",")) + ")").sorted().collect(Collectors.joining(" "));
+                .map(AgreementRules::annotation).sorted().collect(Collectors.joining(" "));
+    }
+
+    /** An annotation without {@code positional}, down into nested annotations (the repeats in a container). */
+    private static String annotation(Annotation annotation) {
+        return annotation.type().canonical() + "(" + annotation.arguments().stream().sorted(java.util.Comparator.comparing(AnnotationArgument::name))
+                .map(arg -> arg.name() + "=" + value(arg.value())).collect(Collectors.joining(",")) + ")";
+    }
+
+    private static String value(AnnotationValue value) {
+        if (value instanceof AnnotationValue.Nested nested) return annotation(nested.annotation());
+        if (value instanceof AnnotationValue.Array array) return array.items().stream().map(AgreementRules::value).collect(Collectors.joining(",", "[", "]"));
+        return value.toString();
     }
 
     /**
@@ -223,9 +236,7 @@ final class AgreementRules {
     private static final Set<String> COMPILER_INSERTED = Set.of("close()", "iterator()", "hasNext()", "next()");
 
     private void compareBodies(String artifact, CodeModelFile source, CodeModelFile bytecode, Map<NodeId, DeclarationNode> sourceNodes) {
-        Set<NodeId> methods = sourceNodes.values().stream()
-                .filter(node -> node instanceof MethodNode m && m.methodKind() == MethodKind.METHOD && m.origin() == Origin.DECLARED)
-                .map(DeclarationNode::id).collect(Collectors.toSet());
+        Set<NodeId> methods = declared(sourceNodes, MethodKind.METHOD);
         Map<String, Long> sourceCalls = calls(source, methods);
         Map<String, Long> bytecodeCalls = calls(bytecode, methods);
         for (Map.Entry<String, Long> call : sourceCalls.entrySet()) {
@@ -242,7 +253,7 @@ final class AgreementRules {
         Map<String, Long> bytecodeAccesses = accesses(bytecode, methods);
         for (Map.Entry<String, Long> access : sourceAccesses.entrySet()) {
             long other = bytecodeAccesses.getOrDefault(access.getKey(), 0L);
-            if (other < access.getValue()) differences.add(artifact + ": ACCESSES only in source: " + access.getKey() + times(access.getValue(), other));
+            if (other < access.getValue() && !isEnumConstantAccess(access.getKey())) differences.add(artifact + ": ACCESSES only in source: " + access.getKey() + times(access.getValue(), other));
         }
         for (Map.Entry<String, Long> access : bytecodeAccesses.entrySet()) {
             long other = sourceAccesses.getOrDefault(access.getKey(), 0L);
@@ -256,6 +267,24 @@ final class AgreementRules {
         for (String test : bytecodeTests.keySet()) {
             if (!sourceTests.containsKey(test)) differences.add(artifact + ": typeTest only in bytecode: " + test);
         }
+        // Constructors one way: bytecode adds the field initializers.
+        Set<NodeId> constructors = declared(sourceNodes, MethodKind.CONSTRUCTOR);
+        Map<String, Long> constructorCalls = calls(bytecode, constructors);
+        for (Map.Entry<String, Long> call : calls(source, constructors).entrySet()) {
+            long other = constructorCalls.getOrDefault(call.getKey(), 0L);
+            if (other < call.getValue()) differences.add(artifact + ": INVOKES only in source: " + call.getKey() + times(call.getValue(), other));
+        }
+        Map<String, Long> constructorAccesses = accesses(bytecode, constructors);
+        for (Map.Entry<String, Long> access : accesses(source, constructors).entrySet()) {
+            long other = constructorAccesses.getOrDefault(access.getKey(), 0L);
+            if (other < access.getValue() && !isEnumConstantAccess(access.getKey())) differences.add(artifact + ": ACCESSES only in source: " + access.getKey() + times(access.getValue(), other));
+        }
+    }
+
+    private static Set<NodeId> declared(Map<NodeId, DeclarationNode> sourceNodes, MethodKind kind) {
+        return sourceNodes.values().stream()
+                .filter(node -> node instanceof MethodNode m && m.methodKind() == kind && m.origin() == Origin.DECLARED)
+                .map(DeclarationNode::id).collect(Collectors.toSet());
     }
 
     private static String times(long source, long bytecode) {
@@ -266,32 +295,39 @@ final class AgreementRules {
         return !key.contains(" -> #");
     }
 
+    /** An access key, {@code <from> -> <target> <kind>}, whose target is an enum constant. */
+    private boolean isEnumConstantAccess(String key) {
+        return enumConstants.contains(key.substring(key.indexOf(" -> ") + 4, key.lastIndexOf(' ')));
+    }
+
     private static boolean isCompilerInserted(String key) {
         String target = key.substring(key.indexOf(" -> ") + 4);
         if (target.contains(" ")) target = target.substring(0, target.indexOf(' '));
         return COMPILER_INSERTED.contains(target.substring(target.indexOf('#') + 1));
     }
 
-    /** Calls per caller and target, counted; parsed targets by id, external ones by member name, because javac and the class file may bind an inherited member to different declaring types. */
+    /** Calls per caller and target, counted; parsed targets by id, external ones by member name and parameter list, because javac and the class file may bind an inherited member to different declaring types. */
     private Map<String, Long> calls(CodeModelFile model, Set<NodeId> from) {
         Map<String, Long> calls = new TreeMap<>();
         for (Edge edge : model.edges()) {
             if (edge instanceof Edge.Invokes e && from.contains(e.from())) {
                 String typePath = e.to().canonicalPath().substring(0, e.to().canonicalPath().indexOf('#'));
-                String target = parsedTypePaths.contains(typePath) ? e.to().value() : "#" + e.to().canonicalPath().substring(e.to().canonicalPath().indexOf('#') + 1, e.to().canonicalPath().indexOf('('));
+                String target = parsedTypePaths.contains(typePath) ? e.to().value() : "#" + e.to().canonicalPath().substring(e.to().canonicalPath().indexOf('#') + 1);
                 calls.merge(e.from() + " -> " + target + (e.site().viaClosure() ? " (closure)" : ""), 1L, Long::sum);
             }
         }
         return calls;
     }
 
+    /** Accesses per caller, target and kind, counted; a {@code readWrite} counts as one read and one write. */
     private Map<String, Long> accesses(CodeModelFile model, Set<NodeId> from) {
         Map<String, Long> accesses = new TreeMap<>();
         for (Edge edge : model.edges()) {
-            if (edge instanceof Edge.Accesses e && from.contains(e.from()) && !enumConstants.contains(e.to())) {
+            if (edge instanceof Edge.Accesses e && from.contains(e.from())) {
                 String typePath = e.to().canonicalPath().substring(0, e.to().canonicalPath().lastIndexOf('.'));
                 String target = parsedTypePaths.contains(typePath) ? e.to().value() : "#" + e.to().canonicalPath();
-                accesses.merge(e.from() + " -> " + target, e.access() == AccessKind.READ_WRITE ? 2L : 1L, Long::sum);
+                List<AccessKind> kinds = e.access() == AccessKind.READ_WRITE ? List.of(AccessKind.READ, AccessKind.WRITE) : List.of(e.access());
+                for (AccessKind kind : kinds) accesses.merge(e.from() + " -> " + target + " " + kind.id(), 1L, Long::sum);
             }
         }
         return accesses;

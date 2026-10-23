@@ -38,7 +38,7 @@ class ManifestFactsTest {
 
     @ParameterizedTest
     @EnumSource(EngineKind.class)
-    void manifestCarriesSchemaRepositoryRootAndTheArtifactsInDependencyOrder(EngineKind engine) {
+    void manifestCarriesSchemaRepositoryRootAndTheArtifactsInRequestOrder(EngineKind engine) {
         ParseResult parse = Models.parse(engine);
         ParseManifest manifest = parse.manifest();
         assertEquals(ParseManifest.CURRENT_SCHEMA_VERSION, manifest.schemaVersion());
@@ -49,6 +49,7 @@ class ManifestFactsTest {
         assertEquals(Fixtures.REVISION, manifest.repository().revision());
         assertEquals("parsers/java/test-fixtures", manifest.root());
         assertTrue(manifest.diagnostics().isEmpty());
+        // Fixtures hands the modules over other-first, so this shows the request order is kept, not that the parser sorts by dependency.
         assertEquals(List.of(OTHER, SYNTAX), manifest.artifacts().stream().map(artifact -> artifact.id().value()).toList());
         assertEquals("code-model/java/java-syntax-other.code-model.json", manifest.artifacts().get(0).file());
         assertEquals("code-model/java/java-syntax.code-model.json", manifest.artifacts().get(1).file());
@@ -71,6 +72,7 @@ class ManifestFactsTest {
         assertEquals("jdk-17", artifact.target());
         assertTrue(artifact.executable());
         assertTrue(artifact.annotations().isEmpty());
+        // The main class comes from Fixtures, not from the fixture pom, which declares none.
         assertEquals(Fixtures.MAIN_CLASS, artifact.languageSpecific().get("java.mainClass"));
         assertEquals("parsers/java/test-fixtures/java-syntax/pom.xml", artifact.languageSpecific().get("java.buildFile"));
         assertEquals("vision.noesis.fixtures", artifact.languageSpecific().get("java.groupId"));
@@ -101,9 +103,10 @@ class ManifestFactsTest {
 
     @ParameterizedTest
     @EnumSource(EngineKind.class)
-    void theOtherArtifactIsALibraryModuleWithoutAMainClass(EngineKind engine) {
+    void theOtherArtifactIsANonExecutableSourceModule(EngineKind engine) {
         ArtifactNode artifact = Models.other(engine).artifact();
         assertEquals(OTHER, artifact.id().value());
+        assertEquals(ArtifactKind.SOURCE, artifact.kind());
         assertFalse(artifact.executable());
         assertEquals("parsers/java/test-fixtures/java-syntax-other", artifact.rootDirectory());
         assertNull(artifact.languageSpecific().get("java.mainClass"));
@@ -116,7 +119,6 @@ class ManifestFactsTest {
     void everyStubBelongsToADependencyAndStubsAreSortedById(EngineKind engine) {
         for (CodeModelFile model : Models.parse(engine).models()) {
             Set<String> known = model.artifact().dependencies().stream().map(dependency -> dependency.id().value()).collect(Collectors.toSet());
-            known.add(model.artifact().id().value());
             for (StubNode stub : model.stubs()) {
                 assertTrue(known.contains(stub.artifact().value()), stub.id() + " -> " + stub.artifact());
             }
@@ -127,6 +129,20 @@ class ManifestFactsTest {
         assertTrue(Models.syntax(engine).stubs().stream().anyMatch(stub -> stub.artifact().value().equals(GUAVA)));
         assertTrue(Models.syntax(engine).stubs().stream().anyMatch(stub -> stub.artifact().value().equals(ANNOTATIONS)));
         assertTrue(Models.other(engine).stubs().stream().noneMatch(stub -> stub.artifact().value().equals(GUAVA)));
+    }
+
+    @ParameterizedTest
+    @EnumSource(EngineKind.class)
+    void noStubRepeatsADeclaredNode(EngineKind engine) {
+        for (CodeModelFile model : Models.parse(engine).models()) {
+            Set<NodeId> declared = model.nodes().stream().map(node -> node.id()).collect(Collectors.toSet());
+            for (StubNode stub : model.stubs()) {
+                assertFalse(declared.contains(stub.id()), model.artifact().name() + " declares and stubs " + stub.id());
+            }
+        }
+        // The annotation types' package chain ends at the packages the fixture declares itself.
+        assertTrue(Models.syntax(engine).stubs().stream().anyMatch(stub -> stub.id().value().equals("N:vision.noesis.annotations")));
+        assertTrue(Models.syntax(engine).nodes().stream().anyMatch(node -> node.id().value().equals("N:vision.noesis")));
     }
 
     @Test

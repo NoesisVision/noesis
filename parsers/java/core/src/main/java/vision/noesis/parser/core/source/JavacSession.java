@@ -85,6 +85,8 @@ final class JavacSession implements AutoCloseable {
                     "-proc:none",
                     "--release", Integer.toString(release),
                     "-implicit:none",
+                    // javac warns that an old --release is obsolete: about the parser's options, not the module's code.
+                    "-Xlint:-options",
                     "-Xmaxerrs", "100000",
                     "-Xmaxwarns", "100000",
                     "-encoding", input.encoding().name()));

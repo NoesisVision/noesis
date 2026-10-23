@@ -40,7 +40,7 @@ import vision.noesis.parser.model.TypeParameterConstraint;
 import vision.noesis.parser.model.TypeRef;
 import vision.noesis.parser.model.Visibility;
 
-/** Facts about type declarations, pinned against both engines wherever the class file holds them. */
+/** Facts about type declarations, pinned against all three engines wherever the class file holds them. */
 class TypeFactsTest {
 
     private static final String TYPES = SYNTAX + "types.";
@@ -102,6 +102,7 @@ class TypeFactsTest {
         CodeModelFile model = Models.syntax(EngineKind.SOURCE);
         assertEquals(true, type(model, CLASSES + "Square").languageSpecific().get("java.nonSealed"));
         assertNull(type(model, CLASSES + "Circle").languageSpecific().get("java.nonSealed"));
+        assertNull(type(Models.syntax(EngineKind.BYTECODE), CLASSES + "Square").languageSpecific().get("java.nonSealed"));
     }
 
     @ParameterizedTest
@@ -130,7 +131,7 @@ class TypeFactsTest {
         assertEquals(List.of(Modifier.STATIC, Modifier.FINAL), nestedEnum.modifiers());
         TypeNode record = type(model, outer + "NestedRecord");
         assertEquals(TypeKind.CLASS, record.typeKind());
-        assertTrue(record.modifiers().contains(Modifier.RECORD));
+        assertEquals(List.of(Modifier.STATIC, Modifier.FINAL, Modifier.RECORD), record.modifiers());
         TypeNode annotation = type(model, outer + "NestedAnnotation");
         assertEquals(TypeKind.INTERFACE, annotation.typeKind());
         assertEquals(true, annotation.languageSpecific().get("java.isAnnotation"));
@@ -227,6 +228,10 @@ class TypeFactsTest {
         assertEquals("F:" + CLASSES + "ClassUsingFileLocalClass.fileLocalInterfaceInstance", type(model, CLASSES + "ClassUsingFileLocalClass+1").languageSpecific().get("java.enclosingMethod"));
         assertEquals("F:" + TYPES + "BuiltInAndSpecialTypes+AnonymousAndImplicitTypes+1.anonymousNested", type(model, TYPES + "BuiltInAndSpecialTypes+AnonymousAndImplicitTypes+1+1").languageSpecific().get("java.enclosingMethod"));
         assertEquals("F:" + ENUMS + "EnumWithConstantBodies.ONE", type(model, ENUMS + "EnumWithConstantBodies+1").languageSpecific().get("java.enclosingMethod"));
+        CodeModelFile bytecode = Models.syntax(EngineKind.BYTECODE);
+        for (String path : List.of(CLASSES + "ClassUsingFileLocalClass+1", TYPES + "BuiltInAndSpecialTypes+AnonymousAndImplicitTypes+1+1", ENUMS + "EnumWithConstantBodies+1")) {
+            assertNull(type(bytecode, path).languageSpecific().get("java.enclosingMethod"), path);
+        }
     }
 
     @ParameterizedTest
@@ -281,6 +286,8 @@ class TypeFactsTest {
         MethodNode number = method(model, ENUMS + "EnumWithConstantBodies+1#number()");
         assertEquals(Visibility.NAMESPACE, number.visibility());
         assertEquals(List.of(Modifier.VIRTUAL), number.modifiers());
+        assertEquals(List.of("M:" + ENUMS + "EnumWithConstantBodies#number()"), overridesOf(model, number.id().value()));
+        assertEquals(List.of("M:" + ENUMS + "EnumWithConstantBodies#number()"), overridesOf(model, "M:" + ENUMS + "EnumWithConstantBodies+2#number()"));
     }
 
     @ParameterizedTest
@@ -317,6 +324,11 @@ class TypeFactsTest {
         assertTrue(method(model, RECORDS + "PlainRecord#toString()").locations().isEmpty());
         assertEquals(Origin.GENERATED, method(model, ENUMS + "PlainEnum#.ctor()").origin());
         assertEquals(Origin.GENERATED, method(model, RECORDS + "RecordWithPositionalAndBodyMembers#.ctor(int,int)").origin());
+        // The class file cannot tell a synthesised member from a written one.
+        CodeModelFile bytecode = Models.syntax(EngineKind.BYTECODE);
+        for (String path : List.of(RECORDS + "PlainRecord#.ctor(int,java.lang.String)", RECORDS + "PlainRecord#equals(java.lang.Object)", ENUMS + "PlainEnum#.ctor()", RECORDS + "RecordWithPositionalAndBodyMembers#.ctor(int,int)")) {
+            assertEquals(Origin.DECLARED, method(bytecode, path).origin(), path);
+        }
     }
 
     @ParameterizedTest
@@ -331,6 +343,7 @@ class TypeFactsTest {
         var chained = one(invokes(model, "M:" + record + "#.ctor(int)"), e -> true, "call from the non-canonical constructor");
         assertEquals("M:" + record + "#.ctor(int,int)", chained.to().value());
         assertEquals(ExpressionKind.THIS, chained.receiver());
+        assertEquals(55, chained.site().location().startLine());
     }
 
     @ParameterizedTest
@@ -371,6 +384,10 @@ class TypeFactsTest {
         assertEquals(1, bound.size());
         assertTrue(bound.get(0) instanceof TypeParameterConstraint.TypeConstraint constraint && constraint.type().canonical().equals("java.lang.Number"), bound.toString());
         assertTrue(parameter(method(model, FUNCTIONS + "FunctionWithVarargs#accept(int[])"), "values").variadic());
+        for (String name : List.of("VoidFunctionWithoutParameters", "FunctionWithDefaultAndStaticMethods", "PackagePrivateFunction", "GenericFunctionWithBound`1", "FunctionWithVarargs")) {
+            String prefix = "M:" + FUNCTIONS + name + "#";
+            assertEquals(1, model.nodes().stream().filter(n -> n instanceof MethodNode m && m.id().value().startsWith(prefix) && m.bodiless()).count(), name);
+        }
     }
 
     @ParameterizedTest
@@ -403,6 +420,14 @@ class TypeFactsTest {
         Annotation own = annotation(type(model, ENUMS + "AnnotatedEnum").annotations(), "T:" + SYNTAX + "annotations.OwnAnnotation");
         assertTrue(argument(own, "value").positional());
         assertFalse(argument(annotation(type(model, CLASSES + "ClassWithAttributes").annotations(), "T:java.lang.Deprecated"), "since").positional());
+        assertFalse(argument(annotation(type(model, SYNTAX + "annotations.AnnotationUsage`1").annotations(), "T:" + SYNTAX + "annotations.OwnAnnotation"), "value").positional());
+        // the synthesized container writes nothing; each repeat is read off its own tree
+        Annotation container = annotation(type(model, CLASSES + "ClassWithAttributes").annotations(), "T:" + CLASSES + "CustomAnnotationWithUsage+Container");
+        assertFalse(argument(container, "value").positional());
+        var repeats = ((AnnotationValue.Array) argument(container, "value").value()).items().stream().map(item -> ((AnnotationValue.Nested) item).annotation()).toList();
+        assertFalse(argument(repeats.get(0), "value").positional());
+        assertFalse(argument(repeats.get(0), "namedArgument").positional());
+        assertTrue(argument(repeats.get(1), "value").positional());
         Annotation suppress = annotation(type(model, CLASSES + "StrictClass").annotations(), "T:java.lang.SuppressWarnings");
         var items = ((AnnotationValue.Array) argument(suppress, "value").value()).items();
         assertEquals(List.of(new AnnotationValue.Literal("\"strictfp\"")), items);

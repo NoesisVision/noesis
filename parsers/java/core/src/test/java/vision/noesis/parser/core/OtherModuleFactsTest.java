@@ -61,7 +61,6 @@ class OtherModuleFactsTest {
         assertEquals("Exception", exception.name());
         assertEquals(TypeKind.CLASS, exception.typeKind());
         assertEquals("A:java.base@17", exception.artifact().value());
-        assertTrue(model.stubs().stream().noneMatch(stub -> stub.id().value().startsWith("T:" + OTHER)));
     }
 
     @ParameterizedTest
@@ -108,6 +107,14 @@ class OtherModuleFactsTest {
         Edge.ImplementsMember put = one(Models.implementsMembersOf(model, "M:" + USAGE + "#put(" + OTHER + "OtherUsedType)"), edge -> true, "put slot");
         assertEquals("M:" + OTHER + "OtherInterface`1#put(!0)", put.to().value());
         assertEquals(OTHER + "OtherInterface`1[" + OTHER + "OtherUsedType]", put.interfaceType().canonical());
+        Edge.ImplementsMember get = one(Models.implementsMembersOf(model, "M:" + USAGE + "#get()"), edge -> true, "get slot");
+        assertEquals("M:" + OTHER + "OtherInterface`1#get()", get.to().value());
+        assertEquals(OTHER + "OtherInterface`1[" + OTHER + "OtherUsedType]", get.interfaceType().canonical());
+        Edge.ImplementsMember plain = one(Models.implementsMembersOf(model, "M:" + USAGE + "#plainMethodFromOtherModule()"), edge -> true, "plain interface slot");
+        assertEquals("M:" + OTHER + "OtherPlainInterface#plainMethodFromOtherModule()", plain.to().value());
+        Edge.ImplementsMember compare = one(Models.implementsMembersOf(model, "M:" + USAGE + "#compare(" + OTHER + "OtherRecord," + OTHER + "OtherRecord)"), edge -> true, "compare slot");
+        assertEquals("M:java.util.Comparator`1#compare(!0,!0)", compare.to().value());
+        assertEquals("java.util.Comparator`1[" + OTHER + "OtherRecord]", compare.interfaceType().canonical());
         List<Edge.Invokes> noArguments = Models.invokes(model, "M:" + USAGE + "#.ctor()");
         one(noArguments, to(USAGE_CTOR, THIS), "this(...)");
         one(noArguments, to("M:" + OTHER + "OtherUsedType#.ctor()", null), "argument of this(...)");

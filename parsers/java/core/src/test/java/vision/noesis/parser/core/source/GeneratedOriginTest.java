@@ -45,6 +45,14 @@ class GeneratedOriginTest {
         assertEquals(Origin.GENERATED, originOf(model, "T:p.Generated"));
     }
 
+    @Test
+    void anOutputDirectoryRightInTheModuleDoesNotMakeItsSourcesGenerated() throws IOException {
+        Path generated = root.resolve("target/generated-sources/annotations");
+        CodeModelFile model = parse(generated, root.resolve("classes"), null);
+
+        assertEquals(Origin.DECLARED, originOf(model, "T:p.Declared"));
+    }
+
     private CodeModelFile parse(Path generated, Path classes, Path buildDirectory) throws IOException {
         Path sources = root.resolve("src/main/java");
         write(sources.resolve("p/Declared.java"), "package p; public class Declared { Generated g; }");

@@ -66,9 +66,12 @@ public final class ModelBuilder {
         diagnostics.subList(mark.diagnostics(), diagnostics.size()).clear();
     }
 
-    /** Sorted file; stub artifacts no dependency lists are appended as libraries, platform ones as platform. */
+    /**
+     * Sorted file; stub artifacts no dependency lists are appended as libraries, platform ones as platform. A stub of an
+     * id the artifact declares (a package of a stubbed type's chain the module also declares) is dropped: the node stands.
+     */
     public CodeModelFile build(Generator generator, ArtifactNode artifact, ParseSession session) {
-        List<StubNode> allStubs = stubs.stubs();
+        List<StubNode> allStubs = stubs.stubs().stream().filter(stub -> !nodes.containsKey(stub.id())).toList();
         TreeMap<NodeId, ArtifactDependency> dependencies = new TreeMap<>();
         artifact.dependencies().forEach(dependency -> dependencies.put(dependency.id(), dependency));
         for (StubNode stub : allStubs) {

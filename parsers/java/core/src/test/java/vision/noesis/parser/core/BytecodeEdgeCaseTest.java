@@ -21,6 +21,9 @@ import vision.noesis.parser.model.CodeModelFile;
 import vision.noesis.parser.model.Diagnostic;
 import vision.noesis.parser.model.DiagnosticSeverity;
 import vision.noesis.parser.model.Edge;
+import vision.noesis.parser.model.MethodNode;
+import vision.noesis.parser.model.Origin;
+import vision.noesis.parser.model.TypeParameterConstraint;
 
 /** Class directories the fixtures do not have, compiled here and read by the bytecode engine as a module of their own. */
 class BytecodeEdgeCaseTest {
@@ -131,6 +134,8 @@ class BytecodeEdgeCaseTest {
         for (EngineKind engine : List.of(EngineKind.SOURCE, EngineKind.BYTECODE)) {
             CodeModelFile model = parse(engine, running + 1, sources, classes);
             assertEquals(Optional.of("A:java.base@" + running), model.stubs().stream().filter(stub -> stub.id().value().equals("T:java.lang.String")).map(stub -> String.valueOf(stub.artifact())).findFirst(), engine.id());
+            String expected = engine == EngineKind.SOURCE ? Diagnostics.RELEASE_NOT_SUPPORTED : Diagnostics.PLATFORM_FROM_RUNTIME;
+            assertEquals(List.of(expected), model.diagnostics().stream().map(Diagnostic::code).toList(), engine.id());
         }
     }
 
@@ -164,6 +169,18 @@ class BytecodeEdgeCaseTest {
         assertTrue(duplicate.message().startsWith("Declared twice: M:r.G#put`1(!!0), by r.G.put(java.lang.Number) at ")
                 && duplicate.message().contains(" and r.G.put(java.lang.CharSequence) at "), duplicate.message());
         assertEquals(List.of("r/G.java", 4), List.of(duplicate.location().file().substring(duplicate.location().file().length() - "r/G.java".length()), duplicate.location().startLine()));
+        String sourceMessage = models.source().diagnostics().stream().filter(d -> d.code().equals(Diagnostics.DUPLICATE_ID)).findFirst().orElseThrow().message();
+        assertTrue(sourceMessage.startsWith("Declared twice: M:r.G#put`1(!!0), by r.G.put(java.lang.Number) at ")
+                && sourceMessage.contains(" and r.G.put(java.lang.CharSequence) at "), sourceMessage);
+        for (CodeModelFile model : List.of(models.source(), models.bytecode())) {
+            String engine = model.artifact().languageSpecific().get("java.engine").toString();
+            List<MethodNode> kept = model.nodes().stream().filter(node -> node.id().value().equals("M:r.G#put`1(!!0)")).map(MethodNode.class::cast).toList();
+            assertEquals(1, kept.size(), engine);
+            assertEquals(3, kept.get(0).locations().get(0).startLine(), engine + ": the first declared");
+            assertEquals(Origin.DECLARED, kept.get(0).origin(), engine);
+            TypeParameterConstraint bound = kept.get(0).typeParameters().get(0).constraints().get(0);
+            assertEquals("java.lang.Number", ((TypeParameterConstraint.TypeConstraint) bound).type().canonical(), engine);
+        }
     }
 
     /** Parses the sources with both engines, asserts they agree, and returns the bytecode model's edges of a kind. */

@@ -36,6 +36,7 @@ class BrokenFixtureTest {
     void declarationsSurviveTheErrors() {
         List<String> ids = model.nodes().stream().map(node -> node.id().value()).toList();
         assertTrue(ids.contains("T:broken.SyntaxError"), ids.toString());
+        assertTrue(ids.contains("M:broken.SyntaxError#works()"), "the method before the syntax error: " + ids);
         assertTrue(ids.contains("T:broken.MissingReference"), ids.toString());
         assertTrue(ids.contains("M:broken.MissingReference#works()"), ids.toString());
     }
@@ -48,12 +49,25 @@ class BrokenFixtureTest {
 
     @Test
     void theCompilerErrorsAreDiagnostics() {
-        assertTrue(model.diagnostics().stream().anyMatch(d -> d.source() == DiagnosticSource.COMPILER && d.severity() == DiagnosticSeverity.ERROR && d.code().startsWith("compiler.err.")),
-                model.diagnostics().toString());
-        assertTrue(model.diagnostics().stream().anyMatch(d -> d.code().equals(Diagnostics.UNBOUND_SITE)), model.diagnostics().toString());
+        List<String> errors = model.diagnostics().stream().filter(d -> d.source() == DiagnosticSource.COMPILER && d.severity() == DiagnosticSeverity.ERROR)
+                .map(BrokenFixtureTest::codeAt).sorted().toList();
+        assertEquals(List.of(
+                "compiler.err.cant.resolve.location MissingReference.java:7:19",
+                "compiler.err.cant.resolve.location MissingReference.java:7:41",
+                "compiler.err.doesnt.exist MissingReference.java:3:8",
+                "compiler.err.illegal.start.of.type SyntaxError.java:9:24"), errors, model.diagnostics().toString());
+        List<String> unbound = model.diagnostics().stream().filter(d -> d.code().equals(Diagnostics.UNBOUND_SITE)).map(BrokenFixtureTest::codeAt).sorted().toList();
+        assertEquals(List.of("NS1002 MissingReference.java:10:16", "NS1002 MissingReference.java:7:37"), unbound, "new Unknown() and unknown.describe()");
+        assertEquals(6, model.diagnostics().size(), model.diagnostics().toString());
         for (Diagnostic diagnostic : model.diagnostics()) {
             if (diagnostic.location() != null) assertEquals(true, diagnostic.location().file().startsWith("parsers/java/core/src/test/resources/fixtures-broken/"), diagnostic.location().file());
         }
+    }
+
+    /** The code and where it is, as {@code code File.java:line:column}. */
+    private static String codeAt(Diagnostic diagnostic) {
+        String file = diagnostic.location().file();
+        return diagnostic.code() + " " + file.substring(file.lastIndexOf('/') + 1) + ":" + diagnostic.location().startLine() + ":" + diagnostic.location().startColumn();
     }
 
     private static DeclarationNode node(String id) {

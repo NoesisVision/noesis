@@ -22,11 +22,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import vision.noesis.parser.model.CodeModelFile;
 import vision.noesis.parser.model.Edge;
+import vision.noesis.parser.model.ExpressionKind;
 import vision.noesis.parser.model.FieldNode;
 import vision.noesis.parser.model.MethodNode;
 import vision.noesis.parser.model.TypeNode;
 
-/** Lambdas and local classes in {@code LocalFunctionsAndLambdas}, and every import form of {@code ImportForms}. */
+/**
+ * Lambdas, local and anonymous classes in {@code LocalFunctionsAndLambdas}, {@code LocalVariableForms} and {@code InvocationForms}, and the import
+ * forms of {@code ImportForms}, {@code ImportsFromParentPackage} and {@code ClassInDeeplyNestedPackage}.
+ */
 class LambdaAndImportFactsTest {
 
     private static final String LAMBDAS = SYNTAX + "members.LocalFunctionsAndLambdas";
@@ -48,12 +52,17 @@ class LambdaAndImportFactsTest {
             assertEquals(true, node.languageSpecific().get("java.isLocal"));
             assertEquals(WITH_LOCALS, node.languageSpecific().get("java.enclosingMethod"));
         }
-        Models.type(model, LAMBDAS + "+1NestedLocalFunctionOuter+1NestedLocalFunctionInner");
+        TypeNode inner = Models.type(model, LAMBDAS + "+1NestedLocalFunctionOuter+1NestedLocalFunctionInner");
+        assertEquals(true, inner.languageSpecific().get("java.isLocal"));
+        assertEquals("M:" + LAMBDAS + "+1NestedLocalFunctionOuter#invoke()", inner.languageSpecific().get("java.enclosingMethod"));
         Models.method(model, LAMBDAS + "+1BlockBodiedLocalFunction#.ctor()");
         Models.method(model, SYNTAX + "localvariables.LocalVariableForms+1LocalClassCapturingLocal#.ctor()");
         Models.method(model, SYNTAX + "invocations.InvocationForms+2#.ctor()");
         one(Models.invokes(model, WITH_LOCALS), to("M:" + LAMBDAS + "+1BlockBodiedLocalFunction#.ctor()", null), "new BlockBodiedLocalFunction()");
-        one(Models.invokes(model, "M:" + SYNTAX + "localvariables.LocalVariableForms#allLocalVariableForms()"), to("M:" + SYNTAX + "localvariables.LocalVariableForms+1LocalClassCapturingLocal#.ctor()", null), "new LocalClassCapturingLocal()");
+        List<Edge.Invokes> allLocals = Models.invokes(model, "M:" + SYNTAX + "localvariables.LocalVariableForms#allLocalVariableForms()");
+        one(allLocals, to("M:" + SYNTAX + "localvariables.LocalVariableForms+1LocalClassCapturingLocal#.ctor()", null), "new LocalClassCapturingLocal()");
+        // bytecode receivers are OTHER (design §4)
+        one(allLocals, to("M:" + SYNTAX + "localvariables.LocalVariableForms+1LocalClassCapturingLocal#read()", engine == EngineKind.BYTECODE ? ExpressionKind.OTHER : CREATION), "call on the local class creation");
         one(Models.invokes(model, "M:" + LAMBDAS + "+1NestedLocalFunctionOuter#invoke()"), to("M:" + LAMBDAS + "+1NestedLocalFunctionOuter+1NestedLocalFunctionInner#invoke()"), "nested local class call");
     }
 
@@ -129,7 +138,7 @@ class LambdaAndImportFactsTest {
         one(calls, to("M:java.util.stream.IntStream#range(int,int)", TYPE), "static single import");
         one(calls, to("M:java.util.stream.Collectors#toList`1()", TYPE), "static import of a collector");
         one(calls, to("M:" + SYNTAX + "types.ClassKinds+OuterClassWithNestedTypes+NestedRecord#.ctor(int)", null), "nested type import");
-        one(calls, to("M:java.util.ArrayList`1#.ctor()", null), "single type import shadowing the on-demand one");
+        one(calls, to("M:java.util.ArrayList`1#.ctor()", null), "ArrayList via the on-demand java.util.* import");
         one(calls, to("M:" + SYNTAX + "imports.Types#.ctor()", null), "same package");
         one(calls, to("M:" + SYNTAX + "members.MethodDeclarations#.ctor()", null), "own module import");
         one(calls, to("M:java.util.concurrent.ConcurrentHashMap`2#.ctor()", null), "fully qualified generic");
@@ -144,7 +153,13 @@ class LambdaAndImportFactsTest {
         one(accesses, access("F:" + OTHER + "OtherEnum.ALPHA", READ).and(edge -> edge.receiver() == TYPE), "other module fully qualified enum");
         one(accesses, access("F:java.nio.charset.StandardCharsets.UTF_8", READ).and(edge -> edge.receiver() == TYPE), "fully qualified static field");
         assertTrue(accesses.stream().noneMatch(edge -> edge.to().value().contains("OtherConstants") || edge.to().value().contains("Math.PI")));
-        assertTrue(calls.stream().noneMatch(edge -> edge.to().value().contains("Iterable") || edge.to().value().startsWith("M:java.util.Collection")), "raw interface locals produce nothing");
+        // the raw Iterable and Collection locals (lines 36-37) produce no edge of any kind
+        List<Edge.UsesType> uses = Models.usesTypes(model, USE_IMPORTS);
+        for (int line : List.of(36, 37)) {
+            assertTrue(calls.stream().noneMatch(edge -> edge.site().location().startLine() == line), "INVOKES on line " + line);
+            assertTrue(accesses.stream().noneMatch(edge -> edge.site().location().startLine() == line), "ACCESSES on line " + line);
+            assertTrue(uses.stream().noneMatch(edge -> edge.site().location().startLine() == line), "USES_TYPE on line " + line);
+        }
     }
 
     @Test
@@ -168,6 +183,10 @@ class LambdaAndImportFactsTest {
         assertEquals("int", constant.type().canonical());
         assertTrue(Models.invokes(model, constant.id().value()).isEmpty());
         assertTrue(Models.accesses(model, constant.id().value()).isEmpty());
+        // the field checks are vacuous in bytecode, which has no field initializers: there, no .cctor and no read of CONSTANT in ImportForms
+        assertFalse(Models.has(model, "M:" + IMPORTS + "#.cctor()"));
+        assertTrue(Models.edges(model, Edge.Accesses.class).filter(edge -> edge.from().value().contains(IMPORTS))
+                .noneMatch(edge -> edge.to().value().equals("F:" + OTHER + "OtherConstants.CONSTANT")));
     }
 
     @ParameterizedTest
@@ -191,7 +210,9 @@ class LambdaAndImportFactsTest {
         String deep = SYNTAX + "imports.dotted.deeply.nested.ClassInDeeplyNestedPackage";
         assertEquals(SYNTAX + "types.ClassKinds+PlainClass", Models.field(model, deep + ".viaPackageNamedLikeType").type().canonical());
         assertEquals(SYNTAX + "imports.Types", Models.field(model, deep + ".viaConflictingTypeName").type().canonical());
+        // Iterable is java.lang, so the field named for the on-demand import resolves without it; Collection does need java.util.*
         assertEquals("java.lang.Iterable`1<>", Models.field(model, deep + ".nonGenericInterfaceViaOnDemandImport").type().canonical());
+        assertEquals("java.util.Collection`1<>", Models.field(model, deep + ".nonGenericCollectionViaOnDemandImport").type().canonical());
         assertEquals("java.util.List`1[java.lang.Integer]", Models.field(model, deep + ".genericInterfaceViaSingleTypeImport").type().canonical());
         assertFalse(Models.hasStub(model, "T:" + IMPORTS));
     }
@@ -203,6 +224,5 @@ class LambdaAndImportFactsTest {
         one(Models.invokes(model, "F:" + parent + ".viaParentPackageImport"), to("M:" + IMPORTS + "#.ctor()", null), "new ImportForms()");
         one(Models.invokes(model, "F:" + SYNTAX + "imports.dotted.deeply.nested.ClassInDeeplyNestedPackage.nonGenericInterfaceViaOnDemandImport"), to("M:java.util.ArrayList`1#.ctor()", null).and(edge -> edge.typeArguments().isEmpty()), "raw new ArrayList()");
         assertTrue(Models.invokes(model, "M:" + parent + "#.ctor()").stream().noneMatch(to("M:" + IMPORTS + "#.ctor()")));
-        one(Models.invokes(model, "M:" + SYNTAX + "localvariables.LocalVariableForms#allLocalVariableForms()"), to("M:" + SYNTAX + "localvariables.LocalVariableForms+1LocalClassCapturingLocal#read()", CREATION), "call on the local class creation");
     }
 }

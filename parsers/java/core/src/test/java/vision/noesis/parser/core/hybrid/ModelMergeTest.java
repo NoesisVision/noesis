@@ -43,11 +43,13 @@ import vision.noesis.parser.model.Modifier;
 import vision.noesis.parser.model.Origin;
 import vision.noesis.parser.model.TypeNode;
 import vision.noesis.parser.model.TypeRef;
+import vision.noesis.parser.model.Visibility;
 
 /**
  * The merge on inputs the fixtures do not have: one of the engines failed on the module or on a file, the class files
- * are missing or stale, and Lombok features whose output the source model contradicts. Each case compiles its own
- * sources, with Lombok as the annotation processor, into a temporary module.
+ * are missing or stale, and Lombok features whose output the source model contradicts. Most cases compile their own
+ * sources, with Lombok as the annotation processor, into a temporary module; the first merges the Lombok fixture's
+ * bytecode model, and a missing class directory is not compiled at all.
  */
 class ModelMergeTest {
 
@@ -64,8 +66,8 @@ class ModelMergeTest {
         CodeModelFile merged = ModelMerge.merge(failed, bytecode, bytecode.artifact(), session);
 
         assertEquals(bytecode.nodes(), merged.nodes(), "nodes as bytecode has them: none relabelled as generated");
-        assertTrue(merged.nodes().stream().map(DeclarationNode::origin).noneMatch(origin -> origin == Origin.GENERATED));
-        assertEquals(bytecode.edges().size(), merged.edges().size());
+        assertEquals(bytecode.edges(), merged.edges());
+        assertEquals(bytecode.stubs(), merged.stubs());
         assertTrue(merged.diagnostics().stream().anyMatch(d -> d.code().equals(Diagnostics.MODULE_NOT_PARSED)), merged.diagnostics().toString());
     }
 
@@ -110,14 +112,54 @@ class ModelMergeTest {
 
     @Test
     void aMethodLombokMadeStaticTakesTheClassFilesModifiersInOrder() throws Exception {
-        ArtifactInput input = module(Map.of("p/U.java", "package p;\n@lombok.experimental.UtilityClass\npublic class U {\n    public int twice(int x) { return 2 * x; }\n}\n"));
+        ArtifactInput input = module(Map.of("p/U.java", "package p;\n@lombok.experimental.UtilityClass\npublic class U {\n    public int twice(int x) { return 2 * x; }\n"
+                + "    public final int four(int x) { return 4 * x; }\n}\n"));
 
         CodeModelFile merged = merge(input);
 
         MethodNode twice = (MethodNode) node(merged, "M:p.U#twice(int)");
         assertEquals(List.of(Modifier.STATIC), twice.modifiers(), "static, no longer virtual");
         assertEquals(true, twice.languageSpecific().get(ModelMerge.PROCESSOR_MODIFIED_KEY));
+        MethodNode four = (MethodNode) node(merged, "M:p.U#four(int)");
+        assertEquals(List.of(Modifier.STATIC, Modifier.FINAL), four.modifiers(), "the written final after the added static");
+        assertEquals(true, four.languageSpecific().get(ModelMerge.PROCESSOR_MODIFIED_KEY));
         assertEquals(List.of(Modifier.FINAL), ((TypeNode) node(merged, "T:p.U")).modifiers());
+    }
+
+    @Test
+    void aDefaultConstructorLombokWroteIsTakenFromBytecodeAndOneJavacCompiledStaysTheSourceEngines() throws Exception {
+        ArtifactInput input = module(Map.of(
+                "p/U.java", "package p;\n@lombok.experimental.UtilityClass\npublic class U {\n    public int twice(int x) { return 2 * x; }\n}\n",
+                "p/A.java", "package p;\n@Deprecated\npublic class A {\n    {\n        System.gc();\n    }\n    int x = Integer.parseInt(\"1\");\n}\n"));
+        CodeModelFile source = parse(input, new SourceEngine());
+
+        CodeModelFile merged = merge(input, source, parse(input, new BytecodeEngine()));
+
+        MethodNode utility = (MethodNode) node(merged, "M:p.U#.ctor()");
+        assertEquals(Origin.GENERATED, utility.origin());
+        assertEquals(Visibility.PRIVATE, utility.visibility());
+        assertEquals("bytecode", utility.languageSpecific().get(ModelMerge.ENGINE_KEY));
+        List<Edge.Invokes> thrown = invokes(merged, "M:p.U#.ctor()", "M:java.lang.UnsupportedOperationException#.ctor(java.lang.String)");
+        assertEquals(1, thrown.size(), merged.edges().toString());
+        List<Edge.Invokes> superCalls = invokes(merged, "M:p.U#.ctor()", "M:java.lang.Object#.ctor()");
+        assertEquals(1, superCalls.size(), "Lombok's super call, not javac's as well: " + superCalls);
+        assertEquals(null, superCalls.get(0).site().languageSpecific().get("java.implicitSuperCall"));
+        // javac's default constructor, its instance initializer included: the annotation above the class changes nothing.
+        assertEquals(node(source, "M:p.A#.ctor()"), node(merged, "M:p.A#.ctor()"));
+        assertEquals(source.edges().stream().filter(e -> e.from().value().equals("M:p.A#.ctor()")).toList(),
+                merged.edges().stream().filter(e -> e.from().value().equals("M:p.A#.ctor()")).toList());
+    }
+
+    @Test
+    void theAbstractMethodErrorOfAClassWhoseMethodLombokDelegatesIsDropped() throws Exception {
+        ArtifactInput input = module(Map.of("p/D.java", "package p;\npublic class D implements Runnable {\n    @lombok.experimental.Delegate\n    private final Runnable r = () -> {};\n}\n"));
+        CodeModelFile source = parse(input, new SourceEngine());
+        assertEquals("compiler.err.does.not.override.abstract", only(source, "compiler.err.does.not.override.abstract").code());
+
+        CodeModelFile merged = merge(input, source, parse(input, new BytecodeEngine()));
+
+        assertEquals("bytecode", node(merged, "M:p.D#run()").languageSpecific().get(ModelMerge.ENGINE_KEY));
+        assertTrue(merged.diagnostics().stream().noneMatch(d -> d.code().startsWith("compiler.err")), merged.diagnostics().toString());
     }
 
     @Test
@@ -258,6 +300,7 @@ class ModelMergeTest {
         ArtifactInput input = module(Map.of("p/G.java", "package p;\npublic class G {\n    <T extends Number> void put(T v) {}\n    <T extends CharSequence> void put(T v) {}\n}\n"));
         CodeModelFile source = parse(input, new SourceEngine());
         CodeModelFile compiled = parse(input, new BytecodeEngine());
+        assertEquals(1, compiled.diagnostics().stream().filter(d -> Diagnostics.DUPLICATE_ID.equals(d.code())).count(), "bytecode reports the duplicate too: " + compiled.diagnostics());
         // A class file without a SourceFile attribute (-g:none) leaves bytecode's warning without a location.
         List<Diagnostic> unlocated = compiled.diagnostics().stream()
                 .map(d -> Diagnostics.DUPLICATE_ID.equals(d.code()) ? new Diagnostic(d.severity(), d.code(), d.message(), null, d.source()) : d)

@@ -152,7 +152,10 @@ which Java fact fills each field. "javac" is the source engine's input,
 The annotation type, and one argument per element value written: named by
 the element, `positional` when the source spells no name (javac's parser
 rewrites `@A("x")` into `value = "x"`, so the spelling is read off the
-source). Defaults are not filled in. Values: constants are `literal` through
+source). A repeated annotation comes as the container javac synthesizes,
+with the repeats in its `value` in source order; the container is not
+written, so its `value` is not `positional`, and each repeat is read off its
+own spelling. Defaults are not filled in. Values: constants are `literal` through
 `Literals`, `X.class` is `type`, an enum constant is `enum`, arrays and nested
 annotations nest. Annotations sit on types, methods, fields, parameters, type
 parameters and packages; type-use annotations on return types are not split
@@ -229,7 +232,7 @@ the compiler's per artifact.
 
 ```
 sources under the compile source roots, but module-info.java (it would make the sources a named module, which cannot read the classpath)
-→ javac: -proc:none --release <release> -implicit:none -classpath <compile classpath minus the module's own classes>
+→ javac: -proc:none --release <release> -implicit:none -Xlint:-options -classpath <compile classpath minus the module's own classes>
   parse() + analyze()
 → declaration pass: every top-level class of every unit, through javax.lang.model, trees for spans and Javadoc
 → body pass: a TreePathScanner per unit; local and anonymous classes are handed back to the declaration pass
@@ -335,7 +338,15 @@ produced, for the price of both parses and a compiled module.
   stay on the `.cctor`, added as generated.
 - An implicit member the source engine assumed but the class files lack,
   the default constructor of a class Lombok gave constructors, is dropped
-  with its edges.
+  with its edges. A default constructor the source engine assumed whose
+  class file version a processor wrote is taken from bytecode, node and body
+  edges, marked `java.engine: bytecode`: javac gives its default constructor
+  the class's access and compiles it onto the class declaration, the line of
+  the source engine's implicit super call, so one with another access or
+  modifiers (`@UtilityClass`'s private constructor that throws) or starting
+  on another line (`@NoArgsConstructor` on its own line) is the processor's.
+  One written on the class's line with the class's access is not told apart
+  and keeps javac's body.
 - A declaration in both models keeps the source engine's facts; where the
   class file has a modifier the sources lack, its modifiers are taken whole,
   since one it adds can contradict one the sources imply (`@UtilityClass`
@@ -372,7 +383,9 @@ produced, for the price of both parses and a compiled module.
   lines gained an edge, or whose statement's first line did within the same
   declaration (javac attributes a continued-line `new` to it), is dropped, as
   is a compiler error at its position, on lines that gained an edge, or naming
-  a class the merge added. A file whose bodies alone the source engine
+  a class the merge added, and javac's "C is not abstract and does not
+  override abstract method m(..)" where the merge added a method of that name
+  and arity to C (`@Delegate`). A file whose bodies alone the source engine
   dropped (an `NS1010` warning; the walk's partial edges are rolled back)
   takes every body edge of its declarations from bytecode, so marked, and its
   `NS1010` says the bodies come from the class files. A base the source

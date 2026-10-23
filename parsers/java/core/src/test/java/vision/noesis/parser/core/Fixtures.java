@@ -10,7 +10,7 @@ import vision.noesis.parser.model.ArtifactDependency;
 import vision.noesis.parser.model.ArtifactKind;
 import vision.noesis.parser.model.PackageReference;
 
-/** The fixture modules under {@code test-fixtures/}, parsed once per engine the way the Maven plugin would hand them over: the syntax fixture as one request, the Lombok fixture as another. */
+/** The fixture modules under {@code test-fixtures/}, parsed once per engine the way the Maven plugin would hand them over: the syntax fixture as one request, the Lombok fixture as another. The syntax module's main class is injected here ({@link #MAIN_CLASS}); the fixture pom declares none. */
 public final class Fixtures {
 
     public static final String REPOSITORY_NAME = "noesis";

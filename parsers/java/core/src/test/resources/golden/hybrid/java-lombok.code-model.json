@@ -2578,10 +2578,31 @@
       "id": "M:vision.noesis.fixture.lombok.GeneratedMembers+Constructed#.ctor()",
       "name": ".ctor",
       "origin": "generated",
-      "locations": [],
-      "annotations": [],
+      "locations": [
+        {
+          "file": "parsers/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMembers.java",
+          "startLine": 70,
+          "startColumn": 0,
+          "endLine": 70,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:lombok.Generated",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": []
+        }
+      ],
       "documentation": null,
-      "languageSpecific": {},
+      "languageSpecific": {
+        "java.engine": "bytecode"
+      },
       "methodKind": "constructor",
       "visibility": "public",
       "modifiers": [],
@@ -6937,7 +6958,7 @@
           "arguments": []
         }
       ],
-      "documentation": "builder(), the nested Builder class with a method per field, build() and toBuilder().",
+      "documentation": "builder(), the nested BuiltBuilder class with a method per field, build() and toBuilder().",
       "languageSpecific": {},
       "typeKind": "class",
       "visibility": "public",
@@ -7932,6 +7953,24 @@
           "startLine": 106,
           "startColumn": 0,
           "endLine": 106,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.lombok.GeneratedMembers+Constructed#.ctor()",
+      "to": "F:vision.noesis.fixture.lombok.GeneratedMembers+Constructed.name",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "parsers/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMembers.java",
+          "startLine": 70,
+          "startColumn": 0,
+          "endLine": 70,
           "endColumn": 0
         },
         "viaClosure": false,
@@ -13120,15 +13159,13 @@
       "site": {
         "location": {
           "file": "parsers/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMembers.java",
-          "startLine": 73,
-          "startColumn": 19,
-          "endLine": 73,
-          "endColumn": 19
+          "startLine": 70,
+          "startColumn": 0,
+          "endLine": 70,
+          "endColumn": 0
         },
         "viaClosure": false,
-        "languageSpecific": {
-          "java.implicitSuperCall": true
-        }
+        "languageSpecific": {}
       },
       "invocationKind": "call",
       "receiver": "base"
@@ -15244,19 +15281,5 @@
       "artifact": "A:org.projectlombok:lombok@1.18.48"
     }
   ],
-  "diagnostics": [
-    {
-      "severity": "error",
-      "code": "compiler.err.does.not.override.abstract",
-      "message": "vision.noesis.fixture.lombok.GeneratedMembers.Delegating is not abstract and does not override abstract method subList(int,int) in java.util.List",
-      "location": {
-        "file": "parsers/java/test-fixtures/java-lombok/src/main/java/vision/noesis/fixture/lombok/GeneratedMembers.java",
-        "startLine": 111,
-        "startColumn": 5,
-        "endLine": 138,
-        "endColumn": 6
-      },
-      "source": "compiler"
-    }
-  ]
+  "diagnostics": []
 }

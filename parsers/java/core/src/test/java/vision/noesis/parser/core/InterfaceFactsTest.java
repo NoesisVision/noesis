@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import vision.noesis.parser.model.CodeModelFile;
@@ -151,10 +150,11 @@ class InterfaceFactsTest {
         assertEquals(1, Models.invokesTo(model, resolver, "M:" + IMPL + "SecondDefaultInterface#conflictingDefault()").size());
     }
 
-    @Test
-    void interfaceSuperCallsHaveABaseReceiver() {
+    @ParameterizedTest
+    @EnumSource(names = {"SOURCE", "HYBRID"})
+    void interfaceSuperCallsHaveABaseReceiver(EngineKind engine) {
         String resolver = "M:" + IMPL + "ConflictingDefaultsResolvedByOverride#conflictingDefault()";
-        List<Edge.Invokes> calls = Models.invokes(Models.syntax(EngineKind.SOURCE), resolver);
+        List<Edge.Invokes> calls = Models.invokes(Models.syntax(engine), resolver);
         assertEquals(2, calls.size());
         assertTrue(calls.stream().allMatch(e -> e.receiver() == ExpressionKind.BASE), calls.toString());
     }
@@ -166,6 +166,12 @@ class InterfaceFactsTest {
         Edge.ImplementsMember open = Models.one(Models.implementsMembersOf(model, "M:" + IMPL + "TwoParameterGenericInterfaceImplementation`2#map(!0)"), e -> true, "open map");
         assertEquals("M:" + TWO + "#map(!0)", open.to().value());
         assertEquals(TWO + "[!0,!1]", open.interfaceType().canonical());
+        List<TypeRef> openArguments = ((TypeRef.Named) open.interfaceType()).typeArguments();
+        for (int ordinal = 0; ordinal < 2; ordinal++) {
+            TypeRef.TypeParameterRef argument = (TypeRef.TypeParameterRef) openArguments.get(ordinal);
+            assertEquals("T:" + IMPL + "TwoParameterGenericInterfaceImplementation`2", argument.owner().value());
+            assertEquals(ordinal, argument.ordinal());
+        }
         Edge.ImplementsMember partial = Models.one(Models.implementsMembersOf(model, "M:" + IMPL + "PartiallyClosedGenericInterfaceImplementation`1#map(java.lang.String)"), e -> true, "partial map");
         assertEquals("M:" + TWO + "#map(!0)", partial.to().value());
         assertEquals(TWO + "[java.lang.String,!0]", partial.interfaceType().canonical());
@@ -174,6 +180,8 @@ class InterfaceFactsTest {
         assertTrue(record.modifiers().contains(Modifier.RECORD));
         assertEquals(List.of("java.lang.Record"), Models.extendsOf(model, record.id().value()));
         assertEquals(List.of(GENERIC_INTERFACE + "[!0]"), Models.implementsOf(model, record.id().value()));
+        TypeRef.Named recordInterface = (TypeRef.Named) Models.edgesFrom(model, Edge.Implements.class, record.id().value()).get(0).to();
+        assertEquals(record.id(), ((TypeRef.TypeParameterRef) recordInterface.typeArguments().get(0)).owner());
         assertEquals(List.of("M:" + GENERIC_INTERFACE + "#get()", "M:" + GENERIC_INTERFACE + "#put(!0)"),
                 Models.implementsMembersDeclaredOn(model, record.id().value()).stream().map(e -> e.to().value()).toList());
         Edge.ImplementsMember generic = Models.one(Models.implementsMembersOf(model, "M:" + IMPL + "GenericMethodImplementation#genericMethodInInterface`1(!!0)"), e -> true, "generic slot");
@@ -255,9 +263,10 @@ class InterfaceFactsTest {
         assertEquals(1, Models.invokesTo(model, "M:" + IMPL + "VarianceImplementation#consume(" + GENERIC_INTERFACE + "[<other:? super java.lang.String>])", "M:" + GENERIC_INTERFACE + "#put(!0)").size());
     }
 
-    @Test
-    void aConstraintTypedReceiverIsAParameter() {
-        CodeModelFile model = Models.syntax(EngineKind.SOURCE);
+    @ParameterizedTest
+    @EnumSource(names = {"SOURCE", "HYBRID"})
+    void aConstraintTypedReceiverIsAParameter(EngineKind engine) {
+        CodeModelFile model = Models.syntax(engine);
         assertEquals(ExpressionKind.PARAMETER, Models.invokesTo(model, "M:" + IMPL + "InterfaceImplementationUsedThroughGenericConstraint#read`1(!!0)", "M:" + GENERIC_INTERFACE + "#get()").get(0).receiver());
     }
 

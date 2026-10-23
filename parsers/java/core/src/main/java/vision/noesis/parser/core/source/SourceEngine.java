@@ -55,8 +55,12 @@ public final class SourceEngine implements Engine {
                 return builder.build(session.generator(), artifact, session);
             }
             if (javac.release() != input.release()) {
+                // A release older than javac supports needs an older JDK, not a newer one.
+                String advice = input.release() < javac.release()
+                        ? ", the oldest it supports. Run the build on an older JDK whose javac still supports release " + input.release() + "."
+                        : ". Run the build on a JDK of release " + input.release() + " or newer.";
                 builder.diagnostic(Diagnostics.warning(Diagnostics.RELEASE_NOT_SUPPORTED, "Release " + input.release() + " is not supported by the running JDK "
-                        + Runtime.version().feature() + "; the sources are bound against release " + javac.release() + ". Run the build on a JDK of release " + input.release() + " or newer."));
+                        + Runtime.version().feature() + "; the sources are bound against release " + javac.release() + advice));
             }
             SourceContext context = new SourceContext(input, session, javac, builder, artifactId);
             SourceDeclarations declarations = new SourceDeclarations(context);

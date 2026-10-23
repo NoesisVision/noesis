@@ -2449,7 +2449,7 @@
           "arguments": []
         }
       ],
-      "documentation": "builder(), the nested Builder class with a method per field, build() and toBuilder().",
+      "documentation": "builder(), the nested BuiltBuilder class with a method per field, build() and toBuilder().",
       "languageSpecific": {},
       "typeKind": "class",
       "visibility": "public",
