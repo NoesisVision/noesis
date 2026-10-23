@@ -1,7 +1,7 @@
 import type { Handler } from '#backend/app/handler';
+import type { SystemModel } from '#backend/app/scanner/system-model/system-model';
+import type { SystemModelsRepository } from '#backend/app/scanner/system-model/system-models.repository';
 import { ScanFailedError } from './scan-failed-error';
-import type { SystemModel } from './system-model';
-import type { SystemModelsRepository } from './system-models.repository';
 
 export type ScanSystemModelHandler = Handler<void, SystemModel>;
 

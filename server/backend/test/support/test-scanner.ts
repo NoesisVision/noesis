@@ -5,8 +5,8 @@ import type { Now } from '#backend/app/clock';
 import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
 import type { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
-import type { RepositorySettings } from '#backend/app/scanner/system-model/scanner-settings.repository';
-import { SourceCodeScanner } from '#backend/app/scanner/system-model/source-code-scanner';
+import type { RepositorySettings } from '#backend/app/scanner/scanner-settings.repository';
+import { SourceCodeScanner } from '#backend/app/scanner/source-code-scanner';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /** The scanner the service builds over `parser`, for the repository `noesis` is in. */

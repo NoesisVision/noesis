@@ -8,7 +8,7 @@ import {
   RepositoryScannerName,
   type RepositorySettings,
   type ScannerSettingsRepository,
-} from '#backend/app/scanner/system-model/scanner-settings.repository';
+} from '#backend/app/scanner/scanner-settings.repository';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const SETTINGS_FILE = 'settings.json';

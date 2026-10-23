@@ -5,10 +5,10 @@ import type {
 } from '#backend/app/scanner/code-model/code-parser';
 import type { BuiltSystemModel } from '#backend/app/scanner/code-model/system-model-builder/build-system-model';
 import type { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
+import type { SystemModel } from '#backend/app/scanner/system-model/system-model';
+import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
 import type { ScanLog } from './scan-log';
 import type { SourceRepository } from './source-repository';
-import type { SystemModel } from './system-model';
-import { SystemModelId } from './system-model-id';
 
 export interface SourceCodeScannerDeps {
   readonly parser: CodeParser;
