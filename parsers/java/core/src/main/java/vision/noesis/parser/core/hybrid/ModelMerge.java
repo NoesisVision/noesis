@@ -53,13 +53,13 @@ import vision.noesis.parser.model.UsageSite;
  * <ul>
  *   <li>Before the merge, {@link MergeInputs} gives a source method that names a processor-generated type the id
  *       bytecode has for it, and moves bytecode's field initializer edges from the constructors to the fields, a
- *       generated static field's (Lombok's logger) included.</li>
+ *       generated field's (Lombok's logger, {@code @Synchronized}'s lock) included.</li>
  *   <li>A declaration only the class files have (a member or type an annotation processor generated) is added with
  *       {@code origin = generated} and {@code java.engine = bytecode}; one of a file whose declarations the source
  *       engine dropped ({@code NS1010}) keeps bytecode's origin, and that {@code NS1010} becomes a warning that the
  *       file's types come from the class files. A {@code .cctor} of a type the source engine declared is not added,
- *       since the source engine attributes static initializers to the fields, unless the type has several generated
- *       static fields, whose initializers no line tells apart. An implicit member the source engine assumed but the
+ *       since the source engine attributes static initializers to the fields, unless generated static fields of the
+ *       type are initialized on one line, which does not tell their initializers apart. An implicit member the source engine assumed but the
  *       class files lack (the default constructor of a class Lombok gave constructors) is dropped with its edges.</li>
  *   <li>A declaration in both models keeps the source engine's facts, except that where the class file has a modifier
  *       the sources lack, its modifiers are taken, and a visibility it changes too (Lombok's {@code @Value} makes the
@@ -77,11 +77,14 @@ import vision.noesis.parser.model.UsageSite;
  *       to a member of the same name and arity that the class file does not make (javac bound {@code equals} to
  *       {@code Object}'s, not knowing the generated override) is replaced. An {@code NS1002} whose lines gained an
  *       edge, or whose statement's first line did within the same declaration (javac attributes a continued-line
- *       {@code new} to it), is dropped, as is a compiler error at its position or on lines that gained an edge.</li>
+ *       {@code new} to it), is dropped, as is a compiler error at its position or on lines that gained an edge. A
+ *       file whose bodies alone the source engine dropped ({@code NS1010} warning, its body edges rolled back) takes
+ *       every body edge of its declarations from bytecode, and that {@code NS1010} says so.</li>
  *   <li>Stubs: the source engine's, plus the bytecode engine's for every symbol the added declarations and edges
  *       reference, with their containers and base chains.</li>
  *   <li>Module-level diagnostics of the bytecode engine (classes missing, parameter names missing) are kept; its
- *       {@code NS1001} becomes an {@code NS1011} warning, since the model is the source model, not empty.</li>
+ *       {@code NS1001} becomes an {@code NS1011} warning, since the model is the source model, not empty, and its
+ *       {@code NS1005} (classes missing) a warning that says so.</li>
  *   <li>Without a source model, no compiler ({@code NS1003}) or a source engine that failed on the module
  *       ({@code NS1001}), the bytecode model is the whole result, with the source engine's diagnostics.</li>
  * </ul>
@@ -110,6 +113,11 @@ final class ModelMerge {
     /** The files whose declarations the source engine dropped ({@code NS1010}), and those of them whose types bytecode supplied. */
     private final Set<String> droppedFiles = new HashSet<>();
     private final Set<String> recoveredFiles = new HashSet<>();
+    /** The files whose bodies alone the source engine dropped ({@code NS1010} warning), and those of them whose bodies bytecode supplied. */
+    private final Set<String> bodilessFiles = new HashSet<>();
+    private final Set<String> refilledFiles = new HashSet<>();
+    /** The source types whose static initializer stays: their generated static fields store on a line they share. */
+    private final Set<NodeId> sharedStaticInitializers;
 
     /** The lines of an expression the source engine could not bind. */
     private record Region(String file, int start, int end) {
@@ -123,9 +131,10 @@ final class ModelMerge {
         }
     }
 
-    private ModelMerge(CodeModelFile source, CodeModelFile bytecode) {
+    private ModelMerge(CodeModelFile source, CodeModelFile bytecode, Set<NodeId> sharedStaticInitializers) {
         this.source = source;
         this.bytecode = bytecode;
+        this.sharedStaticInitializers = sharedStaticInitializers;
         for (DeclarationNode node : source.nodes()) sourceNodes.put(node.id(), node);
         for (DeclarationNode node : bytecode.nodes()) bytecodeNodes.put(node.id(), node);
         for (StubNode stub : source.stubs()) sourceStubs.put(stub.id(), stub);
@@ -133,12 +142,18 @@ final class ModelMerge {
         for (Diagnostic diagnostic : source.diagnostics()) {
             if (Diagnostics.UNBOUND_SITE.equals(diagnostic.code()) && diagnostic.location() != null) unboundRegions.add(Region.of(diagnostic.location()));
             if (isDroppedFile(diagnostic)) droppedFiles.add(diagnostic.location().file());
+            if (isBodilessFile(diagnostic)) bodilessFiles.add(diagnostic.location().file());
         }
     }
 
     /** The source engine's {@code NS1010} error: the walk failed on the file's declarations, which are rolled back. */
     private static boolean isDroppedFile(Diagnostic diagnostic) {
         return Diagnostics.FILE_NOT_PARSED.equals(diagnostic.code()) && diagnostic.severity() == DiagnosticSeverity.ERROR && diagnostic.location() != null;
+    }
+
+    /** The source engine's {@code NS1010} warning: the walk failed on the file's bodies, whose edges are rolled back; its declarations stay. */
+    private static boolean isBodilessFile(Diagnostic diagnostic) {
+        return Diagnostics.FILE_NOT_PARSED.equals(diagnostic.code()) && diagnostic.severity() == DiagnosticSeverity.WARNING && diagnostic.location() != null;
     }
 
     /** Without a source model (no compiler, or the source engine failed on the module) the bytecode model is the whole result. */
@@ -148,7 +163,7 @@ final class ModelMerge {
         if (noSourceModel) return bytecodeOnly(source, bytecode, artifact, session);
         CodeModelFile repairedSource = MergeInputs.repairUnresolved(source, bytecode);
         CodeModelFile attributedBytecode = MergeInputs.attributeFieldInitializers(bytecode, repairedSource);
-        return new ModelMerge(repairedSource, attributedBytecode).merge(artifact, session);
+        return new ModelMerge(repairedSource, attributedBytecode, MergeInputs.sharedStaticInitializers(bytecode, repairedSource)).merge(artifact, session);
     }
 
     private CodeModelFile merge(ArtifactNode artifact, ParseSession session) {
@@ -181,12 +196,11 @@ final class ModelMerge {
     // --- Declarations ------------------------------------------------------------------------------------------------
 
     private void addDeclarations() {
-        Map<NodeId, List<FieldNode>> generatedStatics = MergeInputs.generatedStaticFields(bytecode, sourceNodes.keySet());
         for (DeclarationNode node : bytecode.nodes()) {
             if (sourceNodes.containsKey(node.id())) continue;
             if (node.id().value().endsWith("#" + JavaIds.STATIC_INITIALIZER_NAME + "()") && sourceNodes.containsKey(declaringType(node.id()))) {
-                // Several generated static fields: the class file does not tell which statement initializes which, so their initializers stay here.
-                if (generatedStatics.getOrDefault(declaringType(node.id()), List.of()).size() < 2) continue;
+                // Generated static fields initialized on one line: no line tells which statement initializes which, so their initializers stay here.
+                if (!sharedStaticInitializers.contains(declaringType(node.id()))) continue;
             }
             String droppedFile = droppedFileOf(node.id());
             if (droppedFile != null) recoveredFiles.add(droppedFile);
@@ -194,6 +208,7 @@ final class ModelMerge {
         }
         for (DeclarationNode node : source.nodes()) {
             DeclarationNode compiled = bytecodeNodes.get(node.id());
+            if (compiled != null && bodilessFiles.contains(sourceFileOf(node.id()))) refilledFiles.add(sourceFileOf(node.id()));
             if (compiled == null) {
                 boolean member = node.id().kind() == NodeKindLetter.METHOD || node.id().kind() == NodeKindLetter.FIELD || node.id().kind() == NodeKindLetter.PROPERTY;
                 if (member && node.origin() == Origin.GENERATED && bytecodeNodes.containsKey(declaringType(node.id()))) droppedSourceNodes.add(node.id());
@@ -254,6 +269,15 @@ final class ModelMerge {
         if (!node.locations().isEmpty()) return droppedFiles.contains(node.locations().get(0).file()) ? node.locations().get(0).file() : null;
         NodeId container = containerOf(id);
         return container == null || container.kind() != NodeKindLetter.TYPE ? null : droppedFileOf(container);
+    }
+
+    /** The file a source declaration is written in: its own location's, or for one without (an implicit constructor) its type's. */
+    private String sourceFileOf(NodeId id) {
+        DeclarationNode node = sourceNodes.get(id);
+        if (node == null || node instanceof NamespaceNode) return null;
+        if (!node.locations().isEmpty()) return node.locations().get(0).file();
+        NodeId container = containerOf(id);
+        return container == null || container.kind() != NodeKindLetter.TYPE ? null : sourceFileOf(container);
     }
 
     /** Marked as bytecode's; generated, unless the sources declare it in a file the source engine dropped. */
@@ -339,6 +363,11 @@ final class ModelMerge {
                 continue;
             }
             if (!sourceNodes.containsKey(from)) continue;
+            if (!bodilessFiles.isEmpty() && bodilessFiles.contains(sourceFileOf(from))) {
+                // The source engine rolled back every body edge of the file, so none of these duplicates one of its.
+                addedEdges.add(marked(edge));
+                continue;
+            }
             boolean ontoAdded;
             if (edge instanceof Edge.Invokes e) ontoAdded = added.containsKey(e.to());
             else if (edge instanceof Edge.Accesses e) ontoAdded = added.containsKey(e.to());
@@ -591,12 +620,17 @@ final class ModelMerge {
                 diagnostics.add(recovered(diagnostic));
                 continue;
             }
+            if (isBodilessFile(diagnostic) && refilledFiles.contains(location.file())) {
+                diagnostics.add(refilled(diagnostic));
+                continue;
+            }
             boolean resolved = location != null && (resolvedPositions.contains(position(location)) || gainedEdge(location) || namesAddedType(diagnostic));
             if (!resolved) diagnostics.add(diagnostic);
         }
         for (Diagnostic diagnostic : bytecode.diagnostics()) {
             if (diagnostic.location() != null) continue;
-            Diagnostic kept = Diagnostics.MODULE_NOT_PARSED.equals(diagnostic.code()) ? bytecodeUnavailable(diagnostic) : diagnostic;
+            Diagnostic kept = Diagnostics.MODULE_NOT_PARSED.equals(diagnostic.code()) ? bytecodeUnavailable(diagnostic)
+                    : Diagnostics.CLASSES_MISSING.equals(diagnostic.code()) ? classesMissing(diagnostic) : diagnostic;
             if (!diagnostics.contains(kept)) diagnostics.add(kept);
         }
         return diagnostics;
@@ -604,10 +638,27 @@ final class ModelMerge {
 
     /** A dropped file whose types bytecode supplied is in the model after all: its {@code NS1010} becomes a warning that says so. */
     private static Diagnostic recovered(Diagnostic dropped) {
+        return Diagnostics.warning(Diagnostics.FILE_NOT_PARSED, "The declarations of " + dropped.location().file()
+                + " could not be parsed from the sources, so its types are taken from the class files: " + cause(dropped), dropped.location());
+    }
+
+    /** A file whose bodies alone the source engine dropped has them from the class files: its {@code NS1010} says so. */
+    private static Diagnostic refilled(Diagnostic dropped) {
+        return Diagnostics.warning(Diagnostics.FILE_NOT_PARSED, "The bodies of " + dropped.location().file()
+                + " could not be parsed from the sources, so their calls, accesses and type uses are taken from the class files: " + cause(dropped), dropped.location());
+    }
+
+    /** What the source engine's message says after its first {@code ": "}: the exception. */
+    private static String cause(Diagnostic dropped) {
         String message = dropped.message();
         int cause = message.indexOf(": ");
-        return Diagnostics.warning(Diagnostics.FILE_NOT_PARSED, "The declarations of " + dropped.location().file()
-                + " could not be parsed from the sources, so its types are taken from the class files: " + (cause < 0 ? message : message.substring(cause + 2)), dropped.location());
+        return cause < 0 ? message : message.substring(cause + 2);
+    }
+
+    /** No class files is no error of the hybrid model, which is the source model; the code stays, so the advice to build the module is found. */
+    private static Diagnostic classesMissing(Diagnostic missing) {
+        return Diagnostics.warning(Diagnostics.CLASSES_MISSING, "The hybrid model is the source model, without the members an annotation processor generated: "
+                + missing.message());
     }
 
     /** The bytecode engine's {@code NS1001} would say the model is empty; it is the source model, without what a processor generated. */

@@ -204,7 +204,8 @@ Compiler diagnostics keep javac's codes (`compiler.err.cant.resolve.location`),
 English messages and spans. The parser's own are `NS1001` (a module could
 not be parsed; the model is empty), `NS1002` (an unbound site), `NS1003`
 (no compiler in this JVM), `NS1004` (an id declared twice), `NS1005` (the
-class directory is missing), `NS1006` (parameter names unavailable), `NS1007`
+class directory is missing; a warning in the hybrid model, which is then the
+source model), `NS1006` (parameter names unavailable), `NS1007`
 (a class not fully imported), `NS1008` (the running JDK has no API signatures
 for the module's release, so the bytecode engine read its own JDK's classes),
 `NS1009` (a warning: the running JDK's javac does not support the module's
@@ -212,7 +213,7 @@ release, so the source engine bound the sources against the nearest release it
 does, the running JDK's for a newer one), `NS1010` (the source engine failed
 on one file: an error when the file's declarations are dropped, a warning
 when only its bodies' calls, accesses and type uses are, or when the hybrid
-engine took the dropped file's types from the class files), `NS1011` (a
+engine took the dropped file's types or bodies from the class files), `NS1011` (a
 warning: the hybrid engine's bytecode side failed on the module, so the hybrid
 model is the source model). A failure in one
 file costs that file: whatever the walk of that file added is rolled back, and
@@ -328,10 +329,10 @@ produced, for the price of both parses and a compiled module.
   the same way but keeps bytecode's origin, `declared`, and its `NS1010`
   becomes a warning that the file's types come from the class files. A
   `.cctor` of a type the source engine declared is not added (the source
-  engine attributes static initializers to the fields), unless the type has
-  several generated static fields (Lombok's logger and `@Synchronized`'s
-  lock), whose initializers no line tells apart: they stay on the `.cctor`,
-  added as generated.
+  engine attributes static initializers to the fields), unless generated
+  static fields of the type (Lombok's logger and `@Synchronized`'s lock) are
+  initialized on one line, which does not tell their initializers apart: they
+  stay on the `.cctor`, added as generated.
 - An implicit member the source engine assumed but the class files lack,
   the default constructor of a class Lombok gave constructors, is dropped
   with its edges.
@@ -350,9 +351,13 @@ produced, for the price of both parses and a compiled module.
   bytecode's. And a constructor's or `.cctor`'s bytecode edges on the lines of
   a field of its type become the field's, as the source engine attributes a
   field initializer (taken from one constructor, since every constructor holds
-  a copy; the store into the field itself is no access). A generated static
-  field has no lines: when it is its type's only one (`@Slf4j`'s `log`), the
-  `.cctor`'s edges outside the sources' fields and static blocks become its.
+  a copy; the store into the field itself is no access). A generated field
+  has no lines, but Lombok puts its initializer on the annotation's line: the
+  `.cctor`'s (`@Slf4j`'s `log`) or a constructor's (`@Synchronized`'s
+  `$lock`) edges on the line of its store into the field become the field's,
+  outside the sources' fields and static blocks and what javac compiles there
+  (the assertion switch's `desiredAssertionStatus()`, an older javac's enum
+  `$VALUES` array); a line several generated fields store on stays.
 - A body edge from a source declaration is taken from bytecode only where it
   targets an added declaration or sits within the lines of an expression the
   source engine reported an `NS1002` for: the call it could not bind and every
@@ -367,14 +372,18 @@ produced, for the price of both parses and a compiled module.
   lines gained an edge, or whose statement's first line did within the same
   declaration (javac attributes a continued-line `new` to it), is dropped, as
   is a compiler error at its position, on lines that gained an edge, or naming
-  a class the merge added; a base the source engine left `unresolved` is
-  replaced by bytecode's of the same kind, and kept where bytecode has none
-  (no class file, a stale one).
+  a class the merge added. A file whose bodies alone the source engine
+  dropped (an `NS1010` warning; the walk's partial edges are rolled back)
+  takes every body edge of its declarations from bytecode, so marked, and its
+  `NS1010` says the bodies come from the class files. A base the source
+  engine left `unresolved` is replaced by bytecode's of the same kind, and
+  kept where bytecode has none (no class file, a stale one).
 - Stubs are the source engine's plus the bytecode engine's for every symbol
   the added declarations and edges reference, with containers and base
   chains; the bytecode engine's module-level diagnostics (classes missing,
   parameter names missing) are kept; its `NS1001` becomes an `NS1011`
-  warning, since the model is the source model. Without a source model, no compiler
+  warning, since the model is the source model, and its `NS1005` a warning
+  that says so. Without a source model, no compiler
   (`NS1003`) or a source engine that failed on the module (`NS1001`), the
   bytecode model is the whole result, with the source engine's diagnostics;
   a merge that fails writes the `NS1001` alone.

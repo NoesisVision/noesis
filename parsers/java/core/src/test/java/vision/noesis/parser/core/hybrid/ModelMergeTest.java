@@ -91,7 +91,7 @@ class ModelMergeTest {
         ArtifactInput input = module(Map.of(
                 "p/A.java", "package p;\npublic class A {\n    public int a() { return new B().b(); }\n}\n",
                 "p/B.java", "package p;\npublic class B {\n    public int b() { return Integer.parseInt(\"1\"); }\n}\n"));
-        CodeModelFile source = parse(input, failingDeclarationsOf("B.java"));
+        CodeModelFile source = parse(input, failing("DECLARATIONS", "B.java"));
         assertEquals(DiagnosticSeverity.ERROR, only(source, Diagnostics.FILE_NOT_PARSED).severity(), "the source engine dropped B.java");
 
         CodeModelFile merged = merge(input, source, parse(input, new BytecodeEngine()));
@@ -157,8 +157,19 @@ class ModelMergeTest {
     }
 
     @Test
-    void theInitializersOfSeveralGeneratedStaticFieldsStayOnAGeneratedStaticInitializer() throws Exception {
+    void theInitializersOfSeveralGeneratedStaticFieldsAreToldApartByTheirLines() throws Exception {
         ArtifactInput input = module(Map.of("p/S.java", "package p;\n@lombok.extern.java.Log\npublic class S {\n    @lombok.Synchronized\n    public static void run() {}\n}\n"));
+
+        CodeModelFile merged = merge(input);
+
+        assertEquals(Origin.GENERATED, node(merged, "F:p.S.$LOCK").origin());
+        assertEquals(1, invokes(merged, "F:p.S.log", "M:java.util.logging.Logger#getLogger(java.lang.String)").size(), merged.edges().toString());
+        assertTrue(merged.nodes().stream().noneMatch(n -> n.id().value().equals("M:p.S#.cctor()")), "the initializers are the fields'");
+    }
+
+    @Test
+    void theInitializersOfGeneratedStaticFieldsOnOneLineStayOnAGeneratedStaticInitializer() throws Exception {
+        ArtifactInput input = module(Map.of("p/S.java", "package p;\n@lombok.extern.java.Log public class S { @lombok.Synchronized public static void run() {} }\n"));
 
         CodeModelFile merged = merge(input);
 
@@ -166,6 +177,80 @@ class ModelMergeTest {
         DeclarationNode initializer = node(merged, "M:p.S#.cctor()");
         assertEquals(Origin.GENERATED, initializer.origin());
         assertEquals(1, invokes(merged, "M:p.S#.cctor()", "M:java.util.logging.Logger#getLogger(java.lang.String)").size(), merged.edges().toString());
+    }
+
+    @Test
+    void missingClassFilesLeaveTheSourceModelWithAWarningNotAnError() throws Exception {
+        Path src = write(root.resolve("src"), Map.of("p/A.java", "package p;\npublic class A { public int a() { return 1; } }\n"));
+        ArtifactInput input = input(src, root.resolve("classes"));
+        CodeModelFile source = parse(input, new SourceEngine());
+
+        CodeModelFile merged = merge(input, source, parse(input, new BytecodeEngine()));
+
+        assertEquals(source.nodes(), merged.nodes());
+        Diagnostic missing = only(merged, Diagnostics.CLASSES_MISSING);
+        assertEquals(DiagnosticSeverity.WARNING, missing.severity(), missing.message());
+        assertTrue(missing.message().contains("source model"), missing.message());
+    }
+
+    @Test
+    void theBodiesOfAFileTheSourceEngineFailedOnAreTakenFromBytecode() throws Exception {
+        ArtifactInput input = module(Map.of(
+                "p/A.java", "package p;\n@lombok.Builder\npublic class A {\n    int x;\n}\n",
+                "p/B.java", "package p;\npublic class B {\n    private final String s = String.valueOf(1);\n"
+                        + "    public int b() { return Integer.parseInt(s); }\n"
+                        + "    public int c(A.ABuilder builder) { return builder.hashCode(); }\n}\n"));
+        CodeModelFile source = parse(input, failing("BODIES", "B.java"));
+        assertEquals(DiagnosticSeverity.WARNING, only(source, Diagnostics.FILE_NOT_PARSED).severity(), "the source engine dropped B.java's bodies");
+
+        CodeModelFile merged = merge(input, source, parse(input, new BytecodeEngine()));
+
+        List<Edge.Invokes> parse = invokes(merged, "M:p.B#b()", "M:java.lang.Integer#parseInt(java.lang.String)");
+        assertEquals(1, parse.size(), merged.edges().toString());
+        assertEquals("bytecode", parse.get(0).site().languageSpecific().get(ModelMerge.ENGINE_KEY));
+        assertEquals(1, invokes(merged, "F:p.B.s", "M:java.lang.String#valueOf(int)").size(), "the field initializer is the field's");
+        assertEquals(1, invokes(merged, "M:p.B#c(p.A+ABuilder)", "M:java.lang.Object#hashCode()").size(), "from the repaired id");
+        assertEquals(1, invokes(merged, "M:p.B#.ctor()", "M:java.lang.Object#.ctor()").size(), merged.edges().toString());
+        assertTrue(merged.edges().stream().noneMatch(e -> e instanceof Edge.Accesses a && a.to().value().equals("F:p.B.s") && a.from().value().contains("#.ctor(")),
+                "the initializer's store is no access");
+        Diagnostic failure = only(merged, Diagnostics.FILE_NOT_PARSED);
+        assertEquals(DiagnosticSeverity.WARNING, failure.severity());
+        assertTrue(failure.message().contains("taken from the class files"), failure.message());
+    }
+
+    @Test
+    void theInitializerOfAGeneratedInstanceFieldIsTheFieldsNotTheConstructors() throws Exception {
+        ArtifactInput input = module(Map.of("p/L.java", "package p;\npublic class L {\n    private final int n;\n    public L() { n = 1; }\n    public L(int n) { this.n = n; }\n"
+                + "    @lombok.Synchronized\n    public void run() { System.out.println(n); }\n}\n"));
+
+        CodeModelFile merged = merge(input);
+
+        assertEquals(Origin.GENERATED, node(merged, "F:p.L.$lock").origin());
+        assertTrue(merged.edges().stream().noneMatch(e -> e instanceof Edge.Accesses a && a.to().value().equals("F:p.L.$lock") && a.from().value().contains("#.ctor(")),
+                "no constructor writes the lock: " + merged.edges());
+        assertTrue(merged.edges().stream().noneMatch(e -> e.from().value().equals("F:p.L.$lock") && e instanceof Edge.Accesses), "the store into its own field is no access");
+        assertEquals(1, merged.edges().stream().filter(e -> e instanceof Edge.Accesses a && a.from().value().equals("M:p.L#run()") && a.to().value().equals("F:p.L.$lock")).count(),
+                "the synchronized method reads it");
+    }
+
+    @Test
+    void anEnumsCompilerMadeStaticInitializerIsNotItsLoggersInitializer() throws Exception {
+        ArtifactInput input = module(Map.of("p/E.java", "package p;\n@lombok.extern.java.Log\npublic enum E {\n    A, B;\n    public void run() { log.info(\"x\"); }\n}\n"));
+
+        CodeModelFile merged = merge(input);
+
+        assertEquals(List.of("M:java.lang.Class`1#getName()", "M:java.util.logging.Logger#getLogger(java.lang.String)"), targetsFrom(merged, "F:p.E.log"));
+        assertTrue(merged.nodes().stream().noneMatch(n -> n.id().value().equals("M:p.E#.cctor()")));
+    }
+
+    @Test
+    void theAssertionSwitchIsNotTheLoggersInitializer() throws Exception {
+        ArtifactInput input = module(Map.of("p/S.java", "package p;\n@lombok.extern.java.Log\npublic class S {\n    public void run(int x) { assert x > 0; }\n}\n"));
+
+        CodeModelFile merged = merge(input);
+
+        assertEquals(List.of("M:java.lang.Class`1#getName()", "M:java.util.logging.Logger#getLogger(java.lang.String)"), targetsFrom(merged, "F:p.S.log"));
+        assertTrue(merged.nodes().stream().noneMatch(n -> n.id().value().equals("M:p.S#.cctor()")));
     }
 
     // --- A module of its own ------------------------------------------------------------------------------------------
@@ -223,10 +308,10 @@ class ModelMergeTest {
         return ModelMerge.merge(source, bytecode, ArtifactNodes.of(input, session, input.id(), EngineKind.HYBRID), session);
     }
 
-    /** The source engine with a walker that fails on the declarations of one file, as {@code SourceEngineFailureTest} provokes {@code NS1010}. */
-    private static SourceEngine failingDeclarationsOf(String fileName) throws ReflectiveOperationException {
+    /** The source engine with a walker that fails on one pass ({@code DECLARATIONS}, {@code BODIES}) over one file, as {@code SourceEngineFailureTest} provokes {@code NS1010}. */
+    private static SourceEngine failing(String failingPass, String fileName) throws ReflectiveOperationException {
         BiConsumer<Object, CompilationUnitTree> beforeWalk = (pass, unit) -> {
-            if (pass.toString().equals("DECLARATIONS") && unit.getSourceFile().getName().endsWith(fileName)) throw new IllegalStateException("walker bug");
+            if (pass.toString().equals(failingPass) && unit.getSourceFile().getName().endsWith(fileName)) throw new IllegalStateException("walker bug");
         };
         Constructor<SourceEngine> constructor = SourceEngine.class.getDeclaredConstructor(BiConsumer.class);
         constructor.setAccessible(true);
@@ -243,6 +328,15 @@ class ModelMergeTest {
     private static List<Edge.Invokes> invokes(CodeModelFile model, String from, String to) {
         return model.edges().stream().filter(Edge.Invokes.class::isInstance).map(Edge.Invokes.class::cast)
                 .filter(call -> call.from().value().equals(from) && call.to().value().equals(to)).toList();
+    }
+
+    /** What the declaration's body edges reach, sorted. */
+    private static List<String> targetsFrom(CodeModelFile model, String from) {
+        return model.edges().stream().filter(e -> e.from().value().equals(from)).map(e -> {
+            if (e instanceof Edge.Invokes call) return call.to().value();
+            if (e instanceof Edge.Accesses access) return access.to().value();
+            return e instanceof Edge.UsesType use ? use.to().canonical() : null;
+        }).filter(target -> target != null).sorted().toList();
     }
 
     private static List<String> bases(CodeModelFile model, String from, Class<? extends Edge> kind) {

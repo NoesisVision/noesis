@@ -34,9 +34,10 @@ import vision.noesis.parser.model.TypeRef;
  *       source engine left unresolved on a field, a return or a parameter take bytecode's.</li>
  *   <li>The bytecode model: a field initializer compiles into every constructor, or into {@code .cctor} for a static
  *       field, where the source engine attributes it to the field. A constructor's or static initializer's edge on the
- *       lines of a field of its type is the field's, and the store into the field itself is no access. A static field
- *       a processor generated has no lines (Lombok's logger): the static initializer's edges outside the sources'
- *       fields and static blocks are its initializer, when it is the type's only one.</li>
+ *       lines of a field of its type is the field's, and the store into the field itself is no access. A field a
+ *       processor generated has no lines: its initializer is the edges on the line where the static initializer (a
+ *       static field, Lombok's logger) or a constructor (an instance field, {@code @Synchronized}'s lock) stores into
+ *       it, outside the sources' fields and static blocks and what javac makes there (the assertion switch).</li>
  * </ul>
  */
 final class MergeInputs {
@@ -178,30 +179,25 @@ final class MergeInputs {
     static CodeModelFile attributeFieldInitializers(CodeModelFile bytecode, CodeModelFile source) {
         Map<NodeId, List<FieldNode>> fieldsByType = new LinkedHashMap<>();
         Map<NodeId, List<SourceSpan>> staticBlocks = new HashMap<>();
-        Set<NodeId> declared = new HashSet<>();
         for (DeclarationNode node : source.nodes()) {
-            declared.add(node.id());
             if (node instanceof FieldNode field && !field.locations().isEmpty()) {
                 fieldsByType.computeIfAbsent(declaringType(field.id()), k -> new ArrayList<>()).add(field);
             } else if (isStaticInitializer(node.id())) {
                 staticBlocks.put(declaringType(node.id()), node.locations());
             }
         }
-        Map<NodeId, FieldNode> generatedStatic = new HashMap<>();
-        generatedStaticFields(bytecode, declared).forEach((type, fields) -> {
-            if (fields.size() == 1) generatedStatic.put(type, fields.get(0));
-        });
-        if (fieldsByType.isEmpty() && generatedStatic.isEmpty()) return bytecode;
+        GeneratedFields generated = GeneratedFields.of(bytecode, source);
+        if (fieldsByType.isEmpty() && generated.byLine().isEmpty()) return bytecode;
         // An instance initializer is copied into every constructor that does not delegate: the field takes one copy, the first constructor's by id.
         Map<NodeId, NodeId> constructorOf = new HashMap<>();
         for (Edge edge : bytecode.edges()) {
-            FieldNode field = initializedField(edge, fieldsByType, staticBlocks, generatedStatic);
+            FieldNode field = initializedField(edge, fieldsByType, staticBlocks, generated);
             if (field != null) constructorOf.merge(field.id(), edge.from(), (a, b) -> a.compareTo(b) <= 0 ? a : b);
         }
         List<Edge> edges = new ArrayList<>(bytecode.edges().size());
         boolean changed = false;
         for (Edge edge : bytecode.edges()) {
-            FieldNode field = initializedField(edge, fieldsByType, staticBlocks, generatedStatic);
+            FieldNode field = initializedField(edge, fieldsByType, staticBlocks, generated);
             if (field == null) {
                 edges.add(edge);
                 continue;
@@ -215,24 +211,88 @@ final class MergeInputs {
         return CodeModelFile.sorted(bytecode.generator(), bytecode.artifact(), bytecode.nodes(), edges, bytecode.stubs(), bytecode.diagnostics());
     }
 
+    /** The source-declared types whose static initializer has a line several generated static fields store on: no line tells their initializers apart. */
+    static Set<NodeId> sharedStaticInitializers(CodeModelFile bytecode, CodeModelFile source) {
+        return GeneratedFields.of(bytecode, source).sharedStatic();
+    }
+
     /**
-     * The field of the constructor's or static initializer's type whose declaration holds the edge's line; else, for a
-     * static initializer's edge outside the sources' static blocks, the type's one generated static field.
+     * The field of the constructor's or static initializer's type whose declaration holds the edge's line; else, outside
+     * the sources' static blocks and what javac makes, the generated field whose initializer is on that line.
      */
     private static FieldNode initializedField(Edge edge, Map<NodeId, List<FieldNode>> fieldsByType, Map<NodeId, List<SourceSpan>> staticBlocks,
-            Map<NodeId, FieldNode> generatedStatic) {
-        String from = edge.from().value();
+            GeneratedFields generated) {
         boolean staticInitializer = isStaticInitializer(edge.from());
-        if (!from.contains("#.ctor(") && !staticInitializer) return null;
+        if (!isConstructor(edge.from()) && !staticInitializer) return null;
         SourceSpan site = siteOf(edge);
         if (site == null || site.startLine() <= 0) return null;
         NodeId type = declaringType(edge.from());
         for (FieldNode field : fieldsByType.getOrDefault(type, List.of())) {
             if (holds(field.locations().get(0), site)) return field;
         }
-        if (!staticInitializer || !generatedStatic.containsKey(type)) return null;
-        for (SourceSpan block : staticBlocks.getOrDefault(type, List.of())) if (holds(block, site)) return null;
-        return generatedStatic.get(type);
+        if (staticInitializer) {
+            for (SourceSpan block : staticBlocks.getOrDefault(type, List.of())) if (holds(block, site)) return null;
+            if (compilerMade(edge)) return null;
+        }
+        return generated.at(edge);
+    }
+
+    private static final String ASSERTION_STATUS = "M:java.lang.Class`1#desiredAssertionStatus()";
+
+    /**
+     * What javac compiles into a static initializer on the class's first line, which is the processor's annotation's
+     * when it comes first: the assertion switch ({@code $assertionsDisabled = !T.class.desiredAssertionStatus()}) and,
+     * before JDK 15, an enum's {@code $VALUES = new T[] {A, B}}, reading its own constants.
+     */
+    private static boolean compilerMade(Edge edge) {
+        if (edge instanceof Edge.Invokes call) return call.to().value().equals(ASSERTION_STATUS);
+        return edge instanceof Edge.Accesses access && access.access() == AccessKind.READ && declaringType(access.to()).equals(declaringType(access.from()));
+    }
+
+    /**
+     * The fields only the class files have, of the types the sources declare (Lombok's logger, {@code @Synchronized}'s
+     * lock), by the line of their initializer: that of the static initializer's store into a static one, of a
+     * constructor's into an instance one. Lombok puts a generated initializer on its annotation's line, so a line tells
+     * the initializers apart, unless several fields store on it.
+     */
+    private record GeneratedFields(Map<String, FieldNode> byLine, Set<String> shared, Set<NodeId> sharedStatic) {
+
+        static GeneratedFields of(CodeModelFile bytecode, CodeModelFile source) {
+            Set<NodeId> declared = new HashSet<>();
+            for (DeclarationNode node : source.nodes()) declared.add(node.id());
+            Map<NodeId, FieldNode> fields = new HashMap<>();
+            for (DeclarationNode node : bytecode.nodes()) {
+                if (node instanceof FieldNode field && !declared.contains(field.id()) && declared.contains(declaringType(field.id()))) fields.put(field.id(), field);
+            }
+            GeneratedFields generated = new GeneratedFields(new HashMap<>(), new HashSet<>(), new HashSet<>());
+            if (fields.isEmpty()) return generated;
+            for (Edge edge : bytecode.edges()) {
+                if (!(edge instanceof Edge.Accesses store) || store.access() != AccessKind.WRITE) continue;
+                FieldNode field = fields.get(store.to());
+                if (field == null || !declaringType(field.id()).equals(declaringType(store.from()))) continue;
+                boolean isStatic = field.modifiers().contains(Modifier.STATIC);
+                if (isStatic ? !isStaticInitializer(store.from()) : !isConstructor(store.from())) continue;
+                String line = lineKey(store.from(), store.site().location());
+                if (line == null) continue;
+                FieldNode before = generated.byLine().putIfAbsent(line, field);
+                if (before == null || before.id().equals(field.id())) continue;
+                generated.shared().add(line);
+                if (isStatic) generated.sharedStatic().add(declaringType(field.id()));
+            }
+            return generated;
+        }
+
+        /** The generated field whose initializer is on the line of the edge, from the field's initializer kind; null when none or several are. */
+        FieldNode at(Edge edge) {
+            String line = lineKey(edge.from(), siteOf(edge));
+            return line == null || shared.contains(line) ? null : byLine.get(line);
+        }
+    }
+
+    /** {@code S|T:p.T|src/p/T.java:3}: static or instance initializer, its type, and a line. */
+    private static String lineKey(NodeId initializer, SourceSpan site) {
+        if (site == null || site.startLine() <= 0) return null;
+        return (isStaticInitializer(initializer) ? "S|" : "I|") + declaringType(initializer) + "|" + site.file() + ":" + site.startLine();
     }
 
     private static boolean holds(SourceSpan declaration, SourceSpan site) {
@@ -243,15 +303,8 @@ final class MergeInputs {
         return id.value().endsWith("#" + JavaIds.STATIC_INITIALIZER_NAME + "()");
     }
 
-    /** The static fields only the class files have, of each type the sources declare: what a processor added (Lombok's logger, {@code @Synchronized}'s lock). */
-    static Map<NodeId, List<FieldNode>> generatedStaticFields(CodeModelFile bytecode, Set<NodeId> declared) {
-        Map<NodeId, List<FieldNode>> fields = new HashMap<>();
-        for (DeclarationNode node : bytecode.nodes()) {
-            if (!(node instanceof FieldNode field) || !field.modifiers().contains(Modifier.STATIC) || declared.contains(field.id())) continue;
-            NodeId type = declaringType(field.id());
-            if (declared.contains(type)) fields.computeIfAbsent(type, k -> new ArrayList<>()).add(field);
-        }
-        return fields;
+    private static boolean isConstructor(NodeId id) {
+        return id.value().contains("#.ctor(");
     }
 
     private static SourceSpan siteOf(Edge edge) {
