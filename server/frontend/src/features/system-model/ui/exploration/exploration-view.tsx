@@ -12,6 +12,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/base.css';
 import {
+  type CSSProperties,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -66,7 +67,6 @@ import {
 } from './exploration-steps.ts';
 import { type Drawing, ExplorationToolbar } from './exploration-toolbar.tsx';
 import {
-  type EdgeRoutes,
   type LayoutAlgorithm,
   type LayoutDirection,
   layoutExploration,
@@ -83,6 +83,7 @@ import {
   placeLocally,
 } from './place-locally.ts';
 import { QuickAdd, type QuickAddSpot } from './quick-add.tsx';
+import { EDGE_COLOR } from './relation-colors.ts';
 import { type RelationEdge, RelationEdgeView } from './relation-edge.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
 import { VisibilityPanel } from './visibility-panel.tsx';
@@ -118,7 +119,7 @@ const LEAVING_MS = 200;
 const GLIDE_MS = 320;
 /** The most cards, a group's with all inside it, dragged as they are rather than as an outline. */
 const LIVE_DRAG = 10;
-/** The one layout the reader is offered: the only one that routes edges. */
+/** The one layout the reader is offered. */
 const ALGORITHM = 'layered';
 
 export function ExplorationView({ model }: { model: SystemModel }) {
@@ -169,7 +170,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
 
   const {
     nodes,
-    routes,
     placements,
     onNodesChange,
     placing,
@@ -198,9 +198,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     at: opened?.at ?? -1,
     count: opened?.list.length ?? 0,
   });
-  const now = useRef({ stored, relations, drawing, nodes, routes });
+  const now = useRef({ stored, relations, drawing, nodes });
   useLayoutEffect(() => {
-    now.current = { stored, relations, drawing, nodes, routes };
+    now.current = { stored, relations, drawing, nodes };
   });
   // The step a move back or forward lands on is that step, not a new one;
   // so is the one the diagram opens at.
@@ -221,7 +221,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       relations: drawnRelations,
       direction: how.direction,
       nodes: now.current.nodes.filter(({ data }) => !data.leaving),
-      routes: now.current.routes,
     };
     const held = steps.current;
     const list = [...held.list.slice(0, held.at + 1), step].slice(-STEPS);
@@ -247,7 +246,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         !sameSet(step.relations, drawnRelations) ||
         step.direction !== how.direction;
       stepping.current = true;
-      restore(step.nodes, step.routes, changes);
+      restore(step.nodes, changes);
       if (!changes) return;
       setChoice(step.choice);
       setRelations(step.relations);
@@ -489,7 +488,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     () =>
       graph.relations.map((relation) =>
         edgeOf(relation, {
-          route: orthogonal ? (routes.get(relation.id) ?? null) : null,
           orthogonal,
           animated,
           highlight:
@@ -500,7 +498,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                 : 'faded',
         }),
       ),
-    [graph, routes, orthogonal, animated, selection, related],
+    [graph, orthogonal, animated, selection, related],
   );
 
   /*
@@ -748,12 +746,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
 }
 
-const NO_ROUTES: EdgeRoutes = new Map();
-
 /**
  * The cards where the layout puts them, placed again whenever what is drawn
  * or how changes, or the reader asks; each placing is fitted to the canvas
- * once it lands. The layout's routes hold until a card is dragged.
+ * once it lands.
  */
 /** A change made from one card, to be placed beside it, not anew. */
 interface LocalChange {
@@ -768,10 +764,9 @@ function usePlacement(
   algorithm: LayoutAlgorithm,
   direction: LayoutDirection,
   /** Where the cards stood when the reader last left, to open at. */
-  opening: { nodes: ExplorationNode[]; routes: EdgeRoutes } | null,
+  opening: { nodes: ExplorationNode[] } | null,
 ) {
   const [nodes, setNodes, onNodesMoved] = useNodesState<ExplorationNode>([]);
-  const [routes, setRoutes] = useState<EdgeRoutes>(NO_ROUTES);
   const [asked, setAsked] = useState(0);
   const [placed, setPlaced] = useState<{
     graph: ExplorationGraph;
@@ -821,7 +816,7 @@ function usePlacement(
 
   /** Cards where a placing, or a step gone back to, puts them. */
   const landNodes = useCallback(
-    (next: ExplorationNode[], routes: EdgeRoutes) => {
+    (next: ExplorationNode[]) => {
       // A card taken off stays a moment, fading, before it is gone.
       setNodes((shown) => {
         const kept = new Set(next.map(({ id }) => id));
@@ -831,7 +826,9 @@ function usePlacement(
         // A card that stands as it stood stays the same node, so React Flow
         // draws only those that moved.
         const before = new Map(shown.map((node) => [node.id, node]));
-        const landed = next.map((node) => {
+        const landed = next.map((given) => {
+          // A frame, saved before frames were taken by their top, is too.
+          const node = withHandle(given);
           const was = before.get(node.id);
           return was !== undefined && standsAsBefore(was, node) ? was : node;
         });
@@ -845,40 +842,31 @@ function usePlacement(
       setGliding(true);
       clearTimeout(timers.current.glide);
       timers.current.glide = setTimeout(() => setGliding(false), GLIDE_MS);
-      setRoutes(routes);
       setPlacements((count) => count + 1);
       setFailure(null);
     },
     [setNodes],
   );
   const land = useCallback(
-    (elements: PlacedElement[], routes: EdgeRoutes, way: LayoutDirection) =>
-      landNodes(
-        elements.map((each) => nodeOf(each, way)),
-        routes,
-      ),
+    (elements: PlacedElement[], way: LayoutDirection) =>
+      landNodes(elements.map((each) => nodeOf(each, way))),
     [landNodes],
   );
 
   // A step gone back to, to be put back as it stood rather than placed.
   const restoring = useRef<{
     nodes: ExplorationNode[];
-    routes: EdgeRoutes;
     /** Fitted to the canvas, as a diagram opened is; a step gone back to is not. */
     fit: boolean;
-  } | null>(
-    opening === null
-      ? null
-      : { nodes: opening.nodes, routes: opening.routes, fit: true },
-  );
+  } | null>(opening === null ? null : { nodes: opening.nodes, fit: true });
   /**
    * Puts the cards back where a step had them: now, when what is drawn is
    * as it was; else once the change back to it lands, in place of a placing.
    */
   const restore = useCallback(
-    (nodes: ExplorationNode[], routes: EdgeRoutes, afterChange: boolean) => {
-      if (afterChange) restoring.current = { nodes, routes, fit: false };
-      else landNodes(nodes, routes);
+    (nodes: ExplorationNode[], afterChange: boolean) => {
+      if (afterChange) restoring.current = { nodes, fit: false };
+      else landNodes(nodes);
     },
     [landNodes],
   );
@@ -977,14 +965,13 @@ function usePlacement(
               x: now.origin.x + node.position.x,
               y: now.origin.y + node.position.y,
             });
-      if (elements !== null) return land(elements, NO_ROUTES, direction);
+      if (elements !== null) return land(elements, direction);
       // No settling what it pushes: the card alone where it was let go.
       setNodes((all) =>
         all.map((each) =>
           each.id === node.id ? { ...each, position: node.position } : each,
         ),
       );
-      setRoutes(NO_ROUTES);
       setEdits((count) => count + 1);
     },
     [land, direction, setNodes],
@@ -1000,7 +987,7 @@ function usePlacement(
     if (back !== null) {
       restoring.current = null;
       local.current = null;
-      landNodes(back.nodes, back.routes);
+      landNodes(back.nodes);
       done(!back.fit);
       return;
     }
@@ -1024,7 +1011,7 @@ function usePlacement(
         change.anchor,
       );
       if (elements !== null) {
-        land(elements, NO_ROUTES, direction);
+        land(elements, direction);
         done(true);
         return;
       }
@@ -1033,7 +1020,7 @@ function usePlacement(
     layoutExploration(graph, algorithm, direction).then(
       (placement) => {
         if (!current) return;
-        land(placement.elements, placement.routes, direction);
+        land(placement.elements, direction);
         done(false);
       },
       (error: unknown) => {
@@ -1069,7 +1056,7 @@ function usePlacement(
         inside,
       );
       if (elements === null) setAsked((count) => count + 1);
-      else land(elements, NO_ROUTES, direction);
+      else land(elements, direction);
     },
     [algorithm, direction, land],
   );
@@ -1099,8 +1086,8 @@ function usePlacement(
     return () => cancelAnimationFrame(frame);
   }, [placed, flow]);
 
-  // A card moved off its place leaves the routes made for it behind. A card being dragged keeps its place until let go of:
-  // only its outline moves.
+  // A card being dragged keeps its place until let go of: only its outline
+  // moves.
   const onNodesChange = useCallback(
     (all: NodeChange<ExplorationNode>[]) => {
       const now = holding.current;
@@ -1109,8 +1096,6 @@ function usePlacement(
         (change) => !(change.type === 'position' && change.id === dragged),
       );
       if (changes.length === 0) return;
-      if (changes.some((change) => change.type === 'position'))
-        setRoutes(NO_ROUTES);
       onNodesMoved(changes);
     },
     [onNodesMoved],
@@ -1125,7 +1110,6 @@ function usePlacement(
     placed.asked !== asked;
   return {
     nodes,
-    routes,
     placements,
     onNodesChange,
     placing,
@@ -1180,7 +1164,8 @@ const standsAsBefore = (was: ExplorationNode, node: ExplorationNode) =>
   was.parentId === node.parentId &&
   was.data.direction === node.data.direction &&
   was.data.placed.holds === node.data.placed.holds &&
-  was.data.placed.element === node.data.placed.element;
+  was.data.placed.element === node.data.placed.element &&
+  was.dragHandle === node.dragHandle;
 
 /** Where a card stands on the canvas, through each container round it. */
 function absoluteOf(nodes: ExplorationNode[], id: string): CanvasPoint {
@@ -1213,6 +1198,18 @@ const standingOf = (nodes: ExplorationNode[]): PlacedElement[] =>
       height: height ?? data.placed.height,
     }));
 
+/** Where a frame is taken to be dragged: its top, by its name. */
+const FRAME_HANDLE = `.${classes.frameTop}`;
+
+/** A node dragged as its kind is: a frame by its top, a card anywhere. */
+const withHandle = (node: ExplorationNode): ExplorationNode =>
+  node.data.placed.holds === (node.dragHandle === FRAME_HANDLE)
+    ? node
+    : {
+        ...node,
+        dragHandle: node.data.placed.holds ? FRAME_HANDLE : undefined,
+      };
+
 function nodeOf(
   placed: PlacedElement,
   direction: LayoutDirection,
@@ -1226,14 +1223,11 @@ function nodeOf(
     height: placed.height,
     // What a frame holds is drawn inside it; dragged out, the frame grows.
     ...(element.parent === null ? {} : { parentId: element.parent }),
+    // A frame is dragged by its top alone; a card, from anywhere on it.
+    ...(placed.holds ? { dragHandle: FRAME_HANDLE } : {}),
     data: { placed, direction },
   };
 }
-
-const RELATION_CLASS = {
-  uses: `${classes.edge} ${classes.uses}`,
-  invokes: `${classes.edge} ${classes.invokes}`,
-} as const;
 
 const ARROW = {
   type: MarkerType.ArrowClosed,
@@ -1244,11 +1238,10 @@ const ARROW = {
 function edgeOf(
   relation: DrawnRelation,
   {
-    route,
     orthogonal,
     animated,
     highlight,
-  }: Required<RelationEdge>['data'] & {
+  }: Pick<Required<RelationEdge>['data'], 'orthogonal'> & {
     animated: boolean;
     /** Where the edge stands to the selection; nothing with none in hand. */
     highlight: 'highlighted' | 'faded' | undefined;
@@ -1259,13 +1252,14 @@ function edgeOf(
     type: 'relation',
     source: relation.source,
     target: relation.target,
-    data: { route, orthogonal },
+    data: { orthogonal },
     animated,
     label: RELATION_WORD[relation.kind],
     className:
       highlight === undefined
-        ? RELATION_CLASS[relation.kind]
-        : `${RELATION_CLASS[relation.kind]} ${classes[highlight]}`,
+        ? classes.edge
+        : `${classes.edge} ${classes[highlight]}`,
+    style: { '--relation-color': EDGE_COLOR[relation.kind] } as CSSProperties,
     // The selection's relations are drawn over the rest.
     zIndex: highlight === 'highlighted' ? 1 : 0,
     labelStyle: { fontSize: 11, fill: 'var(--noesis-secondary-text)' },
@@ -1276,9 +1270,7 @@ function edgeOf(
       color:
         highlight === 'highlighted'
           ? 'var(--noesis-architecture-selection)'
-          : relation.kind === 'invokes'
-            ? 'var(--mantine-color-grape-filled)'
-            : 'var(--mantine-color-brand-filled)',
+          : EDGE_COLOR[relation.kind],
     },
   };
 }

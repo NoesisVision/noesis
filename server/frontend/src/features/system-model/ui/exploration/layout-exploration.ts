@@ -1,9 +1,4 @@
-import type {
-  ElkExtendedEdge,
-  ElkNode,
-  ElkPoint,
-  LayoutOptions,
-} from 'elkjs/lib/elk.bundled.js';
+import type { ElkNode, LayoutOptions } from 'elkjs/lib/elk.bundled.js';
 import type {
   DrawnElement,
   ExplorationGraph,
@@ -13,9 +8,8 @@ import type {
  * Where each element of the exploration stands, placed by one of ELK's
  * algorithms, a container sized around what it holds. Positions are in the
  * canvas's own pixels, a contained element's relative to its container, as
- * React Flow reads them. Only the layered algorithm routes the edges too —
- * at right angles, around the cards, across containers — so only its
- * placing comes with routes.
+ * React Flow reads them. The relations shape where the cards go; the edges
+ * themselves are drawn between the cards wherever they then stand.
  *
  * ELK is large, so it is loaded the first time something is placed.
  */
@@ -24,13 +18,9 @@ export type LayoutDirection = 'vertical' | 'horizontal';
 
 export type LayoutAlgorithm = 'layered' | 'tree' | 'force' | 'compact';
 
-/** The points an edge runs through, start to end, by the edge's id. */
-export type EdgeRoutes = ReadonlyMap<string, ElkPoint[]>;
-
 export interface Placement {
   /** Containers before what they hold, as React Flow needs a parent first. */
   elements: PlacedElement[];
-  routes: EdgeRoutes;
 }
 
 export interface PlacedElement {
@@ -100,8 +90,6 @@ function optionsOf(
         'elk.algorithm': 'layered',
         'elk.edgeRouting': 'ORTHOGONAL',
         'elk.layered.spacing.nodeNodeBetweenLayers': '64',
-        // The routes' points in the canvas's pixels, wherever their ends sit.
-        'elk.json.edgeCoords': 'ROOT',
       };
     case 'tree':
       return { ...flow, 'elk.algorithm': 'mrtree' };
@@ -111,13 +99,6 @@ function optionsOf(
       return { 'elk.algorithm': 'rectpacking' };
   }
 }
-
-const routeOf = (edge: ElkExtendedEdge): ElkPoint[] | null => {
-  const section = edge.sections?.[0];
-  return section === undefined
-    ? null
-    : [section.startPoint, ...(section.bendPoints ?? []), section.endPoint];
-};
 
 export async function layoutExploration(
   graph: ExplorationGraph,
@@ -191,13 +172,7 @@ export async function layoutExploration(
     }
   };
   walk(placed.children);
-  const routes = new Map<string, ElkPoint[]>();
-  if (algorithm === 'layered')
-    for (const edge of placed.edges ?? []) {
-      const route = routeOf(edge);
-      if (route !== null) routes.set(edge.id, route);
-    }
-  return { elements: out, routes };
+  return { elements: out };
 }
 
 /**
