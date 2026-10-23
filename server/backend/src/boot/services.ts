@@ -1,6 +1,3 @@
-import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
-import { DummySourceCodeScanner } from '#backend/adapters/out/scanners/dummy.scanner';
-import { JavaSourceCodeScanner } from '#backend/adapters/out/scanners/java.scanner';
 import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
 import { NoesisScannerSettingsRepository } from '#backend/adapters/out/store/scanner-settings.repository';
@@ -28,15 +25,14 @@ import { findNewestSystemModelHandler } from '#backend/app/system-model/find-new
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
 import { ScannerFactory } from '#backend/app/system-model/scanner-factory';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { scannerBuilders } from './scanners';
 
 /**
  * Wires the file repositories under `.noesis/` and the scanners to the
- * handlers that use them. `env` is where the scanner settings look for
- * `NOESIS_SCANNER`.
+ * handlers that use them.
  */
 export function createServices(
   noesis: NoesisDir,
-  env: NodeJS.ProcessEnv = process.env,
   today: Today = localToday,
   now: Now = utcNow,
 ) {
@@ -92,13 +88,10 @@ export function createServices(
     findDocument: findDocumentHandler(documents, changes),
     search: searchHandler(),
     scanSystemModel: scanSystemModelHandler(
-      new ScannerFactory(new NoesisScannerSettingsRepository(noesis, env), {
-        dummy: () =>
-          new DummySourceCodeScanner({ noesis, changes, designDocs, now }),
-        java: () => new JavaSourceCodeScanner({ noesis, now }),
-        csharp: (namespaces) =>
-          new CSharpSourceCodeScanner({ noesis, now, namespaces }),
-      }),
+      new ScannerFactory(
+        new NoesisScannerSettingsRepository(noesis),
+        scannerBuilders(noesis, now),
+      ),
       systemModels,
     ),
     findNewestSystemModel: findNewestSystemModelHandler(systemModels),

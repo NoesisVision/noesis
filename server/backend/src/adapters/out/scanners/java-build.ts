@@ -1,6 +1,6 @@
 import { access, constants } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { JavaScannerEngine } from './repository-settings';
+import type { JavaScannerEngine } from '#backend/app/system-model/scanner-settings.repository';
 
 /** The plugins built and installed from scanners/java; pinned, because an unversioned prefix would take whatever is newest locally. */
 export const JAVA_SCANNER_PLUGIN_VERSION = '0.1.0-SNAPSHOT';

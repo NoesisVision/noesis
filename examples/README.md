@@ -78,9 +78,7 @@ Each `discounts-*` example names its scanner in `.noesis/settings.json`, which a
 scan reads every time: `discounts-dotnet` says `"csharp"`, `discounts-java`
 says `"code-model"` with the `./gradlew noesisScan` command line to run in its
 `codeModel` block, `qdoc-java` says `"java-maven"`, which runs the Maven
-plugin through its `mvnw` (`"java"` reads the sources as text; `"dummy"`
-reads no code and replays the implemented design documents, for a repository
-without code). `qdoc-java` has no domain code yet, so its scan finds an empty
+plugin through its `mvnw`. `qdoc-java` has no domain code yet, so its scan finds an empty
 model. Nothing but that file picks the scanner; no environment variable does.
 
 `bun run test:e2e` covers the two `discounts-*` examples: every change,

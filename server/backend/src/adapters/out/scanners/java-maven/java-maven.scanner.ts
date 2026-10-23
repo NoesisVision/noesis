@@ -1,3 +1,4 @@
+import type { JavaScannerEngine } from '#backend/app/system-model/scanner-settings.repository';
 import {
   CodeModelScanner,
   type CodeModelScannerDeps,
@@ -7,7 +8,6 @@ import {
   javaEngine,
   wrapperOr,
 } from '../java-build';
-import type { JavaScannerEngine } from '../repository-settings';
 
 export { JAVA_SCANNER_PLUGIN_VERSION };
 

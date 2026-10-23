@@ -1,9 +1,6 @@
+import type { CodeModelToolSettings } from '#backend/app/system-model/scanner-settings.repository';
 import { CodeModelScanner, fillCommand } from './code-model-scanner';
 import type { CodeModelScannerDeps } from './code-model-scanner';
-import {
-  type CodeModelToolSettings,
-  noCodeModelCommand,
-} from './repository-settings';
 
 export interface ConfiguredCodeModelScannerDeps extends Omit<
   CodeModelScannerDeps,
@@ -39,7 +36,11 @@ export class ConfiguredCodeModelScanner extends CodeModelScanner {
     name: string,
     outDir: string,
   ): Promise<readonly string[]> {
-    if (this.codeModel === null) throw noCodeModelCommand(this.noesis);
+    if (this.codeModel === null) {
+      throw new Error(
+        '.noesis/settings.json names the code-model scanner but has no "codeModel": { "command": [...] } telling it what to run.',
+      );
+    }
     return fillCommand(this.codeModel.command, { out: outDir, root, name });
   }
 

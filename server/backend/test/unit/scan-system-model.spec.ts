@@ -70,18 +70,15 @@ describe('Scanning the system model', () => {
 });
 
 describe('ScannerFactory', () => {
-  const settings = (env: NodeJS.ProcessEnv = {}) =>
-    new NoesisScannerSettingsRepository(t.noesis, env);
   /** Scanners that only tell which one was picked. */
-  const scanners: RepositoryScanners = {
+  const scanners: ScannerBuilders = {
     'java-maven': () => scannerOf(found('java-maven')),
     'java-gradle': () => scannerOf(found('java-gradle')),
     csharp: () => scannerOf(found('csharp')),
     'code-model': () => scannerOf(found('code-model')),
-    dummy: () => scannerOf(found('dummy')),
   };
-  const factory = (env: NodeJS.ProcessEnv = {}) =>
-    new ScannerFactory(settings(env), scanners);
+  const factory = (builders: ScannerBuilders = scanners) =>
+    new ScannerFactory(new NoesisScannerSettingsRepository(t.noesis), builders);
   const configure = (settings: unknown) =>
     writeFile(t.noesis.resolve('settings.json'), JSON.stringify(settings));
   const scanWith = async (scanners: ScannerFactory) =>
@@ -96,22 +93,17 @@ describe('ScannerFactory', () => {
     expect((await scanWith(scanners)).name).toBe('csharp');
     await configure({ scanner: 'java-maven', engine: 'hybrid' });
     expect((await scanWith(scanners)).name).toBe('java-maven');
-    await configure({ scanner: 'dummy' });
-    expect((await scanWith(scanners)).name).toBe('dummy');
+    await configure({ scanner: 'code-model', codeModel: { command: ['x'] } });
+    expect((await scanWith(scanners)).name).toBe('code-model');
   });
 
   it('hands the repository scanner its settings', async () => {
     let namespaces: unknown;
-    const spying = new ScannerFactory(
-      deps(),
-      {},
-      {
-        ...scanners,
-        csharp: (built) => {
-          namespaces =
-            built.settings.namespaces.modulePathOf('Acme.Shop.Orders');
-          return scannerOf(found('csharp'));
-        },
+    const spying = factory({
+      ...scanners,
+      csharp: (settings) => {
+        namespaces = settings.namespaces.modulePathOf('Acme.Shop.Orders');
+        return scannerOf(found('csharp'));
       },
     });
     await configure({ scanner: 'csharp', namespacePartsToSkip: ['Acme'] });
@@ -123,32 +115,18 @@ describe('ScannerFactory', () => {
 
   it('refuses a repository that names no scanner, or names one wrongly', async () => {
     await expect(factory().create()).rejects.toThrow(
-      /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: java-maven, java-gradle, csharp, code-model, dummy\./,
+      /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: java-maven, java-gradle, csharp, code-model\./,
     );
-    await configure({ scanner: 'cobol' });
-    await expect(factory().create()).rejects.toThrow(
-      /Invalid .*\.noesis\/settings\.json/,
-    );
+    for (const scanner of ['java', 'dummy', 'cobol']) {
+      await configure({ scanner });
+      await expect(factory().create()).rejects.toThrow(
+        /Invalid .*\.noesis\/settings\.json/,
+      );
+    }
     await configure({ scanner: 'csharp', namespacePartsToSkip: 'Acme' });
     await expect(factory().create()).rejects.toThrow(
       /Invalid .*\.noesis\/settings\.json/,
     );
-  });
-
-  it('picks the dummy when NOESIS_SCANNER=dummy, whatever the repository names', async () => {
-    await configure({ scanner: 'java-maven' });
-
-    expect((await scanWith(factory({ NOESIS_SCANNER: 'dummy' }))).name).toBe(
-      'dummy',
-    );
-  });
-
-  it('rejects any other NOESIS_SCANNER: the repository names its own scanner', async () => {
-    for (const name of ['java', 'csharp', 'cobol']) {
-      await expect(factory({ NOESIS_SCANNER: name }).create()).rejects.toThrow(
-        'NOESIS_SCANNER',
-      );
-    }
   });
 });
 

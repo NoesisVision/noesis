@@ -66,7 +66,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     'document',
   );
   return {
-    ...createServices(noesis, { NOESIS_SCANNER: 'dummy' }, TODAY, () => NOW),
+    ...createServices(noesis, TODAY, () => NOW),
     root,
     noesis,
     changesRepository,

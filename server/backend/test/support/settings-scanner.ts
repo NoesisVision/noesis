@@ -1,7 +1,5 @@
-import {
-  loadRepositorySettings,
-  type RepositorySettings,
-} from '#backend/adapters/out/scanners/repository-settings';
+import { NoesisScannerSettingsRepository } from '#backend/adapters/out/store/scanner-settings.repository';
+import type { RepositorySettings } from '#backend/app/system-model/scanner-settings.repository';
 import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -13,7 +11,8 @@ export function settingsScanner(
   noesis: NoesisDir,
   build: (settings: RepositorySettings) => SourceCodeScanner,
 ): SourceCodeScanner {
+  const settings = new NoesisScannerSettingsRepository(noesis);
   return {
-    scan: async () => build(await loadRepositorySettings(noesis)).scan(),
+    scan: async () => build(await settings.repositorySettings()).scan(),
   };
 }

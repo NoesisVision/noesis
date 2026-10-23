@@ -5,8 +5,8 @@ import {
   JAVA_SCANNER_PLUGIN_VERSION,
   JavaMavenSourceCodeScanner,
 } from '#backend/adapters/out/scanners/java-maven/java-maven.scanner';
-import type { JavaScannerEngine } from '#backend/adapters/out/scanners/repository-settings';
 import { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
+import type { JavaScannerEngine } from '#backend/app/system-model/scanner-settings.repository';
 import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';

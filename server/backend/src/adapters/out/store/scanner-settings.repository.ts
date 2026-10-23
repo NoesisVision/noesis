@@ -4,7 +4,8 @@ import {
   NamespaceConfigSchema,
 } from '#backend/app/code-model/projection/namespace-config';
 import {
-  type ForcedScannerName,
+  CodeModelToolSettings,
+  JavaScannerEngine,
   RepositoryScannerName,
   type RepositorySettings,
   type ScannerSettingsRepository,
@@ -13,33 +14,29 @@ import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const SETTINGS_FILE = 'settings.json';
 
-const ScannerOverride = z.literal('dummy').optional();
-
 const RepositorySettingsSchema = NamespaceConfigSchema.extend({
   scanner: RepositoryScannerName.optional(),
+  codeModel: CodeModelToolSettings.optional(),
+  engine: JavaScannerEngine.optional(),
 });
 
-/** `NOESIS_SCANNER` from `env`, `.noesis/settings.json` from the repository. */
+/** `.noesis/settings.json` in the repository. */
 export class NoesisScannerSettingsRepository implements ScannerSettingsRepository {
-  constructor(
-    private readonly noesis: NoesisDir,
-    private readonly env: NodeJS.ProcessEnv = process.env,
-  ) {}
+  private readonly noesis: NoesisDir;
 
-  async forcedScanner(): Promise<ForcedScannerName | null> {
-    const parsed = ScannerOverride.safeParse(this.env.NOESIS_SCANNER);
-    if (!parsed.success) {
-      throw new Error(
-        `NOESIS_SCANNER may only be "dummy"; the repository names its own scanner in .noesis/settings.json.`,
-      );
-    }
-    return parsed.data ?? null;
+  constructor(noesis: NoesisDir) {
+    this.noesis = noesis;
   }
 
   async repositorySettings(): Promise<RepositorySettings> {
     const file = Bun.file(this.noesis.resolve(SETTINGS_FILE));
     if (!(await file.exists())) {
-      return { scanner: null, namespaces: NamespaceConfig.of({}) };
+      return {
+        scanner: null,
+        codeModel: null,
+        engine: null,
+        namespaces: NamespaceConfig.of({}),
+      };
     }
     const parsed = RepositorySettingsSchema.safeParse(await file.json());
     if (!parsed.success) {
@@ -47,9 +44,20 @@ export class NoesisScannerSettingsRepository implements ScannerSettingsRepositor
         `Invalid ${file.name}:\n${z.prettifyError(parsed.error)}`,
       );
     }
-    const { scanner, ...namespaces } = parsed.data;
+    const { scanner, codeModel, engine, ...namespaces } = parsed.data;
+    if (
+      engine !== undefined &&
+      scanner !== 'java-maven' &&
+      scanner !== 'java-gradle'
+    ) {
+      throw new Error(
+        `${file.name} sets "engine", which only the java-maven and java-gradle scanners read; with "code-model" put -Dnoesis.engine or -Pnoesis.engine in the command.`,
+      );
+    }
     return {
       scanner: scanner ?? null,
+      codeModel: codeModel ?? null,
+      engine: engine ?? null,
       namespaces: NamespaceConfig.of(namespaces),
     };
   }

@@ -83,7 +83,6 @@ describe('the fixture solution through the C# scanner (e2e)', () => {
       const noesis = new NoesisDir(FIXTURE);
       const { namespaces: config } = await new NoesisScannerSettingsRepository(
         noesis,
-        {},
       ).repositorySettings();
       const scanner = new CSharpSourceCodeScanner({
         noesis,

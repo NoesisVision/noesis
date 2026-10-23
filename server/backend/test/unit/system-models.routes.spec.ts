@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import type { SystemModel } from '#backend/app/system-model/system-model';
+import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
+import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
+import { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -8,7 +11,18 @@ let app: ReturnType<typeof createUiApp>;
 
 beforeEach(async () => {
   t = await testNoesis();
-  app = createUiApp(t);
+  const found = SystemModel.parse({
+    id: SystemModelId.mint(),
+    name: 'shop',
+    scanned_at: '2026-09-29T08:00:00.000Z',
+  });
+  app = createUiApp({
+    ...t,
+    scanSystemModel: scanSystemModelHandler(
+      { create: () => Promise.resolve({ scan: () => Promise.resolve(found) }) },
+      new NoesisSystemModelsRepository(t.noesis),
+    ),
+  });
 });
 
 afterEach(() => t.cleanup());

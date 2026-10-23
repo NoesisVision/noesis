@@ -401,23 +401,10 @@ describe('scan_system_model', () => {
   });
 
   it('answers a failed scan in-band', async () => {
-    const change = await noesis.writeChange(CHANGE);
-    await noesis.writeDesignDoc(change, {
-      id: `${TODAY}-rename-sales`,
-      name: 'Rename sales',
-      description: 'Renames a module no design added.',
-      modules: {
-        modified: [{ id: 'module|sales', name: { value: 'selling' } }],
-      },
-      implemented: true,
-    });
-
     const result = await client.callTool({ name: 'scan_system_model' });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain(
-      'modules.modified[module|sales] is not there',
-    );
+    expect(textOf(result)).toContain('.noesis/settings.json names no scanner');
   });
 
   it('is advertised as adding a scan on every call', async () => {

@@ -5,7 +5,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { join, resolve } from 'node:path';
 import { JavaMavenSourceCodeScanner } from '#backend/adapters/out/scanners/java-maven/java-maven.scanner';
-import { loadRepositorySettings } from '#backend/adapters/out/scanners/repository-settings';
+import { NoesisScannerSettingsRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import {
   CodeModelFile,
   ScanManifest,
@@ -55,7 +55,9 @@ describe('test/fixtures/java/shop through the Java scanner (e2e)', () => {
     'scans the build with the noesis:scan plugin and projects the system model within budget',
     async () => {
       const noesis = new NoesisDir(FIXTURE);
-      const { namespaces: config } = await loadRepositorySettings(noesis);
+      const { namespaces: config } = await new NoesisScannerSettingsRepository(
+        noesis,
+      ).repositorySettings();
       const scanner = new JavaMavenSourceCodeScanner({
         noesis,
         now: () => new Date().toISOString(),

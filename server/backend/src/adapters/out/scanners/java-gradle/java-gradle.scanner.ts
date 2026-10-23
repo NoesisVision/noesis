@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import type { JavaScannerEngine } from '#backend/app/system-model/scanner-settings.repository';
 import {
   CodeModelScanner,
   type CodeModelScannerDeps,
@@ -9,7 +10,6 @@ import {
   javaEngine,
   wrapperOr,
 } from '../java-build';
-import type { JavaScannerEngine } from '../repository-settings';
 
 const INIT_SCRIPT = 'noesis-scan.init.gradle';
 
