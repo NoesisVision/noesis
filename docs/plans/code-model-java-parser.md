@@ -513,9 +513,8 @@ until the Gradle plugin covered them, has since been removed.
   `typeusage/*TypeUsage` classes use a type from the own module, the other
   module and a library in the same positions, so they differ only in the ids
   referenced and in which of those are declared or stubbed.
-- **Schema**: the golden files are validated against the JSON Schema in
-  `parsers/code-model/` from Java (`SchemaValidationTest`) and parsed by the
-  strict zod schema in `server/backend` (`test/unit/code-model-schema.spec.ts`),
+- **Schema**: the golden files are parsed by the strict zod schema in
+  `server/backend` (`test/unit/code-model-schema.spec.ts`),
   so a field added on one side fails the other.
 - **Facts**: `ModelFactsTest` pins the facts the golden file is too large to
   review by eye: ids of nested and anonymous types, flattened ordinals,

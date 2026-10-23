@@ -16,7 +16,6 @@
     "examples/*/",
     "parsers/dotnet/test/Noesis.Parser.Tests/golden/",
     "parsers/java/core/src/test/resources/golden/",
-    "parsers/code-model/*.schema.json",
     "server/frontend/.design-sync/"
   ]
 }

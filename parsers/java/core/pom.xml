@@ -34,11 +34,6 @@
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>com.networknt</groupId>
-      <artifactId>json-schema-validator</artifactId>
-      <scope>test</scope>
-    </dependency>
     <!-- ArchUnit logs through slf4j; a binding keeps its warnings visible in the tests. -->
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -93,7 +88,6 @@
           <systemPropertyVariables>
             <noesis.repositoryRoot>${project.basedir}/../../..</noesis.repositoryRoot>
             <noesis.fixturesDir>${project.basedir}/../test-fixtures</noesis.fixturesDir>
-            <noesis.schemaDir>${project.basedir}/../../code-model</noesis.schemaDir>
             <noesis.classpath.annotations>${vision.noesis:noesis-annotations:jar}</noesis.classpath.annotations>
             <noesis.classpath.guava>${com.google.guava:guava:jar}</noesis.classpath.guava>
             <noesis.classpath.other>${vision.noesis.fixtures:java-syntax-other:jar}</noesis.classpath.other>

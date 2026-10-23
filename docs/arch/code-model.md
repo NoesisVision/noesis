@@ -3,8 +3,7 @@
 A parser reads one solution and writes a _code model_: a graph of what the
 code declares and what each body does, in a vocabulary shared by every
 language. This page walks that model top down. The contract is the zod schema
-in `server/backend/src/app/scanner/code-model/code-model.ts`, generated as JSON Schema
-into `parsers/code-model/`; the parsers keep their own copies in
+in `server/backend/src/app/scanner/code-model/code-model.ts`; the parsers keep their own copies in
 `parsers/dotnet/src/Noesis.Parser.Model` and `parsers/java/model`.
 
 ## 1. What a parse produces

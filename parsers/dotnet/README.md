@@ -5,8 +5,7 @@ writes the common **code model**: one JSON file per project with every
 namespace, type and member, the edges between them (containment, inheritance,
 overrides, interface member mapping, invocations, member accesses, body-level
 type uses) and stubs for the external symbols it reached. The model and its
-ids are described in [`docs/arch/code-model.md`](../../docs/arch/code-model.md)
-and its JSON Schema is generated into [`../code-model/`](../code-model/);
+ids are described in [`docs/arch/code-model.md`](../../docs/arch/code-model.md);
 this README is about building and running the parser.
 
 The parser never fails because code does not compile: unbound names become

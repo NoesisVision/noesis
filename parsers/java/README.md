@@ -7,9 +7,8 @@ them (containment, inheritance, overrides, interface member mapping,
 invocations, field accesses, body-level type uses) and stubs for the external
 symbols it reached. The model, its ids and the mapping rules are designed in
 [`docs/plans/code-model-java-parser.md`](../../docs/plans/code-model-java-parser.md)
-on top of the model document the .NET parser shares; the JSON Schema of
-the files is generated into [`../code-model/`](../code-model/). This README is
-about building and running the parser.
+on top of the model document the .NET parser shares. This README is about
+building and running the parser.
 
 Two engines read the code into the same model. The **source** engine runs
 javac over the sources and is the reference: full symbol resolution, source

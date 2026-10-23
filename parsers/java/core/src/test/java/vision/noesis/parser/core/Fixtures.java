@@ -20,7 +20,6 @@ public final class Fixtures {
 
     public static final Path REPOSITORY_ROOT = Path.of(System.getProperty("noesis.repositoryRoot", "../../..")).toAbsolutePath().normalize();
     public static final Path FIXTURES = Path.of(System.getProperty("noesis.fixturesDir", "../test-fixtures")).toAbsolutePath().normalize();
-    public static final Path SCHEMAS = Path.of(System.getProperty("noesis.schemaDir", "../../code-model")).toAbsolutePath().normalize();
     public static final Path MODULE_DIR = Path.of(System.getProperty("basedir", ".")).toAbsolutePath().normalize();
 
     private static final Map<EngineKind, ParseResult> syntax = new EnumMap<>(EngineKind.class);
