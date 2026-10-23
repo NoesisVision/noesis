@@ -628,12 +628,30 @@ final class ModelMerge {
             if (!resolved) diagnostics.add(diagnostic);
         }
         for (Diagnostic diagnostic : bytecode.diagnostics()) {
-            if (diagnostic.location() != null) continue;
+            if (diagnostic.location() != null || reportedBySource(diagnostic)) continue;
             Diagnostic kept = Diagnostics.MODULE_NOT_PARSED.equals(diagnostic.code()) ? bytecodeUnavailable(diagnostic)
                     : Diagnostics.CLASSES_MISSING.equals(diagnostic.code()) ? classesMissing(diagnostic) : diagnostic;
             if (!diagnostics.contains(kept)) diagnostics.add(kept);
         }
         return diagnostics;
+    }
+
+    /**
+     * A duplicate id both engines report: the source engine's warning, with its declarations' lines, is the one kept. A
+     * class file without a {@code SourceFile} attribute gives bytecode's copy no location, which would otherwise keep both.
+     */
+    private boolean reportedBySource(Diagnostic diagnostic) {
+        if (!Diagnostics.DUPLICATE_ID.equals(diagnostic.code())) return false;
+        String id = duplicatedId(diagnostic);
+        return id != null && source.diagnostics().stream().anyMatch(d -> Diagnostics.DUPLICATE_ID.equals(d.code()) && id.equals(duplicatedId(d)));
+    }
+
+    /** The id an {@code NS1004} names: "Declared twice: <id>, by ...". */
+    private static String duplicatedId(Diagnostic diagnostic) {
+        String prefix = "Declared twice: ";
+        String message = diagnostic.message();
+        int end = message.indexOf(", by ");
+        return message.startsWith(prefix) && end > prefix.length() ? message.substring(prefix.length(), end) : null;
     }
 
     /** A dropped file whose types bytecode supplied is in the model after all: its {@code NS1010} becomes a warning that says so. */

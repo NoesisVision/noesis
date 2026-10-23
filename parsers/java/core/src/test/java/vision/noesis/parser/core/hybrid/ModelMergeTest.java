@@ -253,6 +253,24 @@ class ModelMergeTest {
         assertTrue(merged.nodes().stream().noneMatch(n -> n.id().value().equals("M:p.S#.cctor()")));
     }
 
+    @Test
+    void aDuplicateIdBothEnginesReportIsReportedOnceEvenWhenBytecodesCopyHasNoLocation() throws Exception {
+        ArtifactInput input = module(Map.of("p/G.java", "package p;\npublic class G {\n    <T extends Number> void put(T v) {}\n    <T extends CharSequence> void put(T v) {}\n}\n"));
+        CodeModelFile source = parse(input, new SourceEngine());
+        CodeModelFile compiled = parse(input, new BytecodeEngine());
+        // A class file without a SourceFile attribute (-g:none) leaves bytecode's warning without a location.
+        List<Diagnostic> unlocated = compiled.diagnostics().stream()
+                .map(d -> Diagnostics.DUPLICATE_ID.equals(d.code()) ? new Diagnostic(d.severity(), d.code(), d.message(), null, d.source()) : d)
+                .toList();
+        CodeModelFile bytecode = CodeModelFile.sorted(compiled.generator(), compiled.artifact(), compiled.nodes(), compiled.edges(), compiled.stubs(), unlocated);
+
+        CodeModelFile merged = merge(input, source, bytecode);
+
+        List<Diagnostic> duplicates = merged.diagnostics().stream().filter(d -> Diagnostics.DUPLICATE_ID.equals(d.code())).toList();
+        assertEquals(1, duplicates.size(), duplicates.toString());
+        assertTrue(duplicates.get(0).location() != null, "the source engine's warning, with its line");
+    }
+
     // --- A module of its own ------------------------------------------------------------------------------------------
 
     private ArtifactInput module(Map<String, String> sources) throws IOException {
