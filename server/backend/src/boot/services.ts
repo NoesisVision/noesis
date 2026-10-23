@@ -1,6 +1,9 @@
-import { ScannerFactory } from '#backend/adapters/out/scanners/scanner-factory';
+import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
+import { DummySourceCodeScanner } from '#backend/adapters/out/scanners/dummy.scanner';
+import { JavaSourceCodeScanner } from '#backend/adapters/out/scanners/java.scanner';
 import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
 import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
+import { NoesisScannerSettingsRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
 import { createChangeHandler } from '#backend/app/changes/create-change';
 import { deleteChangeHandler } from '#backend/app/changes/delete-change';
@@ -23,11 +26,12 @@ import { updateDocumentInChangeHandler } from '#backend/app/information-sources/
 import { searchHandler } from '#backend/app/search/search';
 import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
+import { ScannerFactory } from '#backend/app/system-model/scanner-factory';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /**
- * Wires the file repositories under `.noesis/` and the scanner factory to the
- * handlers that use them. `env` is where the factory looks for
+ * Wires the file repositories under `.noesis/` and the scanners to the
+ * handlers that use them. `env` is where the scanner settings look for
  * `NOESIS_SCANNER`.
  */
 export function createServices(
@@ -88,7 +92,13 @@ export function createServices(
     findDocument: findDocumentHandler(documents, changes),
     search: searchHandler(),
     scanSystemModel: scanSystemModelHandler(
-      new ScannerFactory({ noesis, changes, designDocs, now }, env),
+      new ScannerFactory(new NoesisScannerSettingsRepository(noesis, env), {
+        dummy: () =>
+          new DummySourceCodeScanner({ noesis, changes, designDocs, now }),
+        java: () => new JavaSourceCodeScanner({ noesis, now }),
+        csharp: (namespaces) =>
+          new CSharpSourceCodeScanner({ noesis, now, namespaces }),
+      }),
       systemModels,
     ),
     findNewestSystemModel: findNewestSystemModelHandler(systemModels),

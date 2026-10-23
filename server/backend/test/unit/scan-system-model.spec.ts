@@ -1,20 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { writeFile } from 'node:fs/promises';
-import { DummySourceCodeScanner } from '#backend/adapters/out/scanners/dummy.scanner';
-import {
-  type RepositoryScanners,
-  ScannerFactory,
-} from '#backend/adapters/out/scanners/scanner-factory';
+import { NoesisScannerSettingsRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
 import { ScanFailedError } from '#backend/app/system-model/scan-failed-error';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
-import type {
-  SourceCodeScanner,
-  SourceCodeScannerFactory,
-} from '#backend/app/system-model/source-code-scanner';
+import {
+  type ScannerBuilders,
+  ScannerFactory,
+} from '#backend/app/system-model/scanner-factory';
+import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
-import { NOW, type TestNoesis, testNoesis } from './test-noesis';
+import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
 let systemModels: NoesisSystemModelsRepository;
@@ -37,7 +34,9 @@ const scannerOf = (model: SystemModel): SourceCodeScanner => ({
 });
 
 /** A factory that always picks `scanner`. */
-const always = (scanner: SourceCodeScanner): SourceCodeScannerFactory => ({
+const always = (
+  scanner: SourceCodeScanner,
+): Pick<ScannerFactory, 'create'> => ({
   create: () => Promise.resolve(scanner),
 });
 
@@ -71,12 +70,8 @@ describe('Scanning the system model', () => {
 });
 
 describe('ScannerFactory', () => {
-  const deps = () => ({
-    noesis: t.noesis,
-    changes: t.changesRepository,
-    designDocs: t.designDocsRepository,
-    now: () => NOW,
-  });
+  const settings = (env: NodeJS.ProcessEnv = {}) =>
+    new NoesisScannerSettingsRepository(t.noesis, env);
   /** Scanners that only tell which one was picked. */
   const scanners: RepositoryScanners = {
     'java-maven': () => scannerOf(found('java-maven')),
@@ -86,10 +81,10 @@ describe('ScannerFactory', () => {
     dummy: () => scannerOf(found('dummy')),
   };
   const factory = (env: NodeJS.ProcessEnv = {}) =>
-    new ScannerFactory(deps(), env, scanners);
+    new ScannerFactory(settings(env), scanners);
   const configure = (settings: unknown) =>
     writeFile(t.noesis.resolve('settings.json'), JSON.stringify(settings));
-  const scanWith = async (scanners: SourceCodeScannerFactory) =>
+  const scanWith = async (scanners: ScannerFactory) =>
     (await scanners.create()).scan();
 
   it('picks the scanner .noesis/settings.json names, read at every scan', async () => {
@@ -118,7 +113,7 @@ describe('ScannerFactory', () => {
           return scannerOf(found('csharp'));
         },
       },
-    );
+    });
     await configure({ scanner: 'csharp', namespacePartsToSkip: ['Acme'] });
 
     await spying.create();
@@ -143,8 +138,8 @@ describe('ScannerFactory', () => {
   it('picks the dummy when NOESIS_SCANNER=dummy, whatever the repository names', async () => {
     await configure({ scanner: 'java-maven' });
 
-    expect(await factory({ NOESIS_SCANNER: 'dummy' }).create()).toBeInstanceOf(
-      DummySourceCodeScanner,
+    expect((await scanWith(factory({ NOESIS_SCANNER: 'dummy' }))).name).toBe(
+      'dummy',
     );
   });
 
