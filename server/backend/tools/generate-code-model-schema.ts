@@ -57,11 +57,13 @@ export async function generateCodeModelSchemas(
       `${JSON.stringify(json, null, 2)}\n`,
     );
   }
-  return [...files.keys()].sort();
+  return [...files.keys()].sort((a, b) => a.localeCompare(b));
 }
 
+// Always into scanners/code-model: the one place the scanners read the schemas from.
 if (import.meta.main) {
-  const destination = process.argv[2] ?? defaultDestination;
-  const files = await generateCodeModelSchemas(destination);
-  console.log(`generated ${files.length} schema files in ${destination}`);
+  const files = await generateCodeModelSchemas(defaultDestination);
+  console.log(
+    `generated ${files.length} schema files in ${defaultDestination}`,
+  );
 }
