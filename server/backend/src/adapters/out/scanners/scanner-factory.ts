@@ -8,7 +8,6 @@ import { CSharpSourceCodeScanner } from './csharp/csharp.scanner';
 import { type DummyScannerDeps, DummySourceCodeScanner } from './dummy.scanner';
 import { JavaGradleSourceCodeScanner } from './java-gradle/java-gradle.scanner';
 import { JavaMavenSourceCodeScanner } from './java-maven/java-maven.scanner';
-import { JavaSourceCodeScanner } from './java.scanner';
 import {
   loadRepositorySettings,
   RepositoryScannerName,
@@ -34,7 +33,6 @@ export type RepositoryScanners = Record<
 >;
 
 const REPOSITORY_SCANNERS: RepositoryScanners = {
-  java: (deps) => new JavaSourceCodeScanner(deps),
   'java-maven': ({ settings, ...deps }) =>
     new JavaMavenSourceCodeScanner({
       ...deps,

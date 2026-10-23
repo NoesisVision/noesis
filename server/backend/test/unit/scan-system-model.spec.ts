@@ -79,7 +79,6 @@ describe('ScannerFactory', () => {
   });
   /** Scanners that only tell which one was picked. */
   const scanners: RepositoryScanners = {
-    java: () => scannerOf(found('java')),
     'java-maven': () => scannerOf(found('java-maven')),
     'java-gradle': () => scannerOf(found('java-gradle')),
     csharp: () => scannerOf(found('csharp')),
@@ -96,8 +95,8 @@ describe('ScannerFactory', () => {
   it('picks the scanner .noesis/settings.json names, read at every scan', async () => {
     const scanners = factory();
 
-    await configure({ scanner: 'java' });
-    expect((await scanWith(scanners)).name).toBe('java');
+    await configure({ scanner: 'java-gradle' });
+    expect((await scanWith(scanners)).name).toBe('java-gradle');
     await configure({ scanner: 'csharp' });
     expect((await scanWith(scanners)).name).toBe('csharp');
     await configure({ scanner: 'java-maven', engine: 'hybrid' });
@@ -129,7 +128,7 @@ describe('ScannerFactory', () => {
 
   it('refuses a repository that names no scanner, or names one wrongly', async () => {
     await expect(factory().create()).rejects.toThrow(
-      /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: java, java-maven, java-gradle, csharp, code-model, dummy\./,
+      /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: java-maven, java-gradle, csharp, code-model, dummy\./,
     );
     await configure({ scanner: 'cobol' });
     await expect(factory().create()).rejects.toThrow(
@@ -142,7 +141,7 @@ describe('ScannerFactory', () => {
   });
 
   it('picks the dummy when NOESIS_SCANNER=dummy, whatever the repository names', async () => {
-    await configure({ scanner: 'java' });
+    await configure({ scanner: 'java-maven' });
 
     expect(await factory({ NOESIS_SCANNER: 'dummy' }).create()).toBeInstanceOf(
       DummySourceCodeScanner,

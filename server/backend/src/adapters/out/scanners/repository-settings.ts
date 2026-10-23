@@ -10,12 +10,10 @@ const SETTINGS_FILE = 'settings.json';
 /**
  * The scanners a repository can name: `code-model` runs the command line of
  * its `codeModel` block, `java-maven`, `java-gradle` and `csharp` are built-in
- * presets of it, `java` is the regex Java scanner, and `dummy` reads no code:
- * it replays the implemented design documents, for a repository that has no
- * code to scan yet.
+ * presets of it, and `dummy` reads no code: it replays the implemented design
+ * documents, for a repository that has no code to scan yet.
  */
 export const RepositoryScannerName = z.enum([
-  'java',
   'java-maven',
   'java-gradle',
   'csharp',
