@@ -378,7 +378,7 @@ public class QDocCreationService {
    in the domain (`BlankQDocTitleException`, `NotAQualityManagerException`),
    with a message in the design document's language that names the rule.
 2. Each root module has one abstract `DomainException extends
-RuntimeException` in its package; every domain exception extends it.
+   RuntimeException` in its package; every domain exception extends it.
 3. When the design document models outcomes as building blocks (a base
    with `Accepted` and `Rejected` implementers), the behaviour returns them
    instead, as a sealed interface handled with an exhaustive `switch`.

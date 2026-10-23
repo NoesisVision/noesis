@@ -239,7 +239,11 @@ export interface ArtifactNode {
 }
 
 export type DeclarationNode =
-  NamespaceNode | TypeNode | MethodNode | PropertyNode | FieldNode;
+  | NamespaceNode
+  | TypeNode
+  | MethodNode
+  | PropertyNode
+  | FieldNode;
 
 interface NodeBase {
   readonly id: NodeId;

@@ -188,7 +188,7 @@ Where the scanner takes the table from is a choice, in two steps:
    that knows its library is no new coupling.
 2. **Then, meta-annotations.** Each annotation library marks its own
    annotations with one meta-annotation, `@NoesisRole(BUILDING_BLOCK, type =
-"aggregate")` on `@AggregateRoot`, `[NoesisRole(...)]` on
+   "aggregate")` on `@AggregateRoot`, `[NoesisRole(...)]` on
    `DddAggregateAttribute`, and the scanner reads that meta-annotation instead
    of a table: from the annotation type's node, or, for a library, from its
    class file or metadata. A team can then mark its own annotations
@@ -271,7 +271,7 @@ the scanner to update.
 ## 8. Open questions
 
 1. **Element of a non-generic collection.** `class Items implements
-Iterable<Item>` is a collection of `Item`; carrying the element on the
+   Iterable<Item>` is a collection of `Item`; carrying the element on the
    classification (`{ wellKnown: 'collection', element: TypeRef }`) is the
    general form. Deferred until a codebase needs it.
 2. **Dictionaries** stay unexpressible in the system model (decision 7 of the

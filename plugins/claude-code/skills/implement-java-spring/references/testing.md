@@ -135,7 +135,7 @@ recording publisher silent.
   `satisfies(...)`. Several facts of one _then_ on different objects:
   `assertSoftly(softly -> ...)` so one failure does not hide the rest.
 - Rejections: `assertThatExceptionOfType(BlankQDocTitleException.class)
-.isThrownBy(() -> new QDocTitle("   "))`, then, when the scenario says
+  .isThrownBy(() -> new QDocTitle("   "))`, then, when the scenario says
   more, `.withMessageContaining(...)`. Never `assertThrows`.
 - Assert what the _then_ says, and all of it: "an active QDoc with a
   document number, its version 1 with the status new, one empty content

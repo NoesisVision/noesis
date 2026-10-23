@@ -360,7 +360,7 @@ Taken on the first draft of this document; the rules above are written to
 them.
 
 1. **Invocations** are in the system model: `ScannedBehaviour.invokes:
-BehaviorId[]` (default empty), filled by section 11. The design document's
+   BehaviorId[]` (default empty), filled by section 11. The design document's
    `DesignedBehaviour` does not carry it yet; the dummy scanner leaves it
    empty.
 2. **Messages are value objects.** `Command`, `Query`, `Event`,
