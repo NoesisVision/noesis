@@ -31,7 +31,7 @@ export function OverviewView() {
   const designDocs = useQuery(designDocsList(changeId));
 
   return (
-    <Card withBorder radius="xl" padding="xl" className={classes.card}>
+    <Card withBorder padding="xl" className={classes.card}>
       <Box className={classes.content}>
         {!!change.description && (
           <Box className={classes.description}>
