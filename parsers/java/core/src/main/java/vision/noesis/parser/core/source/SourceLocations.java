@@ -44,12 +44,14 @@ final class SourceLocations {
 
     SourceSpan span(CompilationUnitTree unit, long start, long end) {
         LineMap lines = unit.getLineMap();
-        return new SourceSpan(
-                fileOf(unit),
-                (int) lines.getLineNumber(start),
-                (int) lines.getColumnNumber(start),
-                (int) lines.getLineNumber(end),
-                (int) lines.getColumnNumber(end));
+        long startLine = lines.getLineNumber(start);
+        long endLine = lines.getLineNumber(end);
+        return new SourceSpan(fileOf(unit), (int) startLine, column(lines, startLine, start), (int) endLine, column(lines, endLine, end));
+    }
+
+    /** Characters from the line's start, as the other parsers count: {@link LineMap#getColumnNumber} expands tabs to stops of 8. */
+    private static int column(LineMap lines, long line, long position) {
+        return (int) (position - lines.getStartPosition(line) + 1);
     }
 
     boolean hasPosition(CompilationUnitTree unit, Tree tree) {

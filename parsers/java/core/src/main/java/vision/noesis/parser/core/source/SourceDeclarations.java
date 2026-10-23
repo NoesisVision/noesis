@@ -9,6 +9,7 @@ import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -31,6 +32,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
+import vision.noesis.parser.core.Diagnostics;
 import vision.noesis.parser.core.java.JavaModifiers;
 import vision.noesis.parser.core.java.Literals;
 import vision.noesis.parser.core.java.MemberFlags;
@@ -66,6 +68,8 @@ final class SourceDeclarations {
     private final Elements elements;
     private final Map<NodeId, NamespaceLevel> namespaces = new LinkedHashMap<>();
     private final Set<NodeId> emittedTypes = new HashSet<>();
+    /** The method each id was emitted for, to tell the same method met again from another that shares its id. */
+    private final Map<NodeId, ExecutableElement> emittedMethods = new HashMap<>();
 
     /** A namespace level: its name, every package clause that names it, its package-info annotations. */
     private static final class NamespaceLevel {
@@ -245,7 +249,12 @@ final class SourceDeclarations {
 
     NodeId emitMethod(ExecutableElement method, TypeElement owner, Set<String> componentNames) {
         NodeId id = c.ids.member(method);
-        if (c.builder.hasNode(id)) return null;
+        if (c.builder.hasNode(id)) {
+            ExecutableElement first = emittedMethods.get(id);
+            if (first != null && !first.equals(method)) reportDuplicate(id, first, method);
+            return null;
+        }
+        emittedMethods.put(id, method);
         TreePath path = c.javac.trees().getPath(method);
         CompilationUnitTree unit = path == null ? null : path.getCompilationUnit();
         // javac reports MANDATED for a default constructor but EXPLICIT for enum values()/valueOf() and implicit record
@@ -270,6 +279,26 @@ final class SourceDeclarations {
                 flags.isAbstract() || flags.isNative()));
         if (!constructor && !flags.isStatic() && !flags.isPrivate()) addOverridesEdge(method, owner, id);
         return id;
+    }
+
+    /**
+     * Two methods the id grammar cannot tell apart, such as overloads that differ only in a type parameter's bound: the
+     * first keeps the id, the second is dropped, and the drop is reported rather than silent.
+     */
+    private void reportDuplicate(NodeId id, ExecutableElement first, ExecutableElement second) {
+        c.builder.diagnostic(Diagnostics.warning(Diagnostics.DUPLICATE_ID, "Declared twice: " + id + ", by " + describe(first) + " and " + describe(second)
+                + "; the second is missing from the model.", locationOf(second)));
+    }
+
+    private String describe(ExecutableElement method) {
+        String name = ((TypeElement) method.getEnclosingElement()).getQualifiedName() + "." + method;
+        SourceSpan location = locationOf(method);
+        return location == null ? name : name + " at " + location.file() + ":" + location.startLine();
+    }
+
+    private SourceSpan locationOf(Element element) {
+        TreePath path = c.javac.trees().getPath(element);
+        return path == null ? null : c.locations.spanOf(path.getCompilationUnit(), path.getLeaf());
     }
 
     private Map<String, Object> methodBag(ExecutableElement method, MemberFlags flags, TypeElement owner, Set<String> componentNames) {

@@ -7,14 +7,22 @@ import com.sun.source.util.Trees;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.file.FileSystemLoopException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Stream;
+import java.util.Set;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
@@ -60,22 +68,35 @@ final class JavacSession implements AutoCloseable {
         if (compiler == null) return null;
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, Locale.ENGLISH, input.encoding());
-        fileManager.setLocationFromPaths(StandardLocation.CLASS_PATH, classpathWithoutOwnClasses(input));
-        List<Path> sources = sourceFiles(input.sourceRoots());
-        Iterable<? extends JavaFileObject> files = fileManager.getJavaFileObjectsFromPaths(sources);
-        int release = supportedRelease(compiler, input.release());
-        List<String> options = new ArrayList<>(List.of(
-                "-proc:none",
-                "--release", Integer.toString(release),
-                "-implicit:none",
-                "-Xmaxerrs", "100000",
-                "-Xmaxwarns", "100000",
-                "-encoding", input.encoding().name()));
-        JavacTask task = (JavacTask) compiler.getTask(null, fileManager, diagnostics, options, null, files);
-        List<CompilationUnitTree> units = new ArrayList<>();
-        task.parse().forEach(units::add);
-        task.analyze();
-        return new JavacSession(fileManager, task, diagnostics, units, release);
+        try {
+            fileManager.setLocationFromPaths(StandardLocation.CLASS_PATH, classpathWithoutOwnClasses(input));
+            // Without a source path javac reads a .java file it finds on the classpath as a source, preferring it to a
+            // class file beside it; the compilation's sources are exactly the source roots' files.
+            fileManager.setLocationFromPaths(StandardLocation.SOURCE_PATH, List.of());
+            List<Path> sources = sourceFiles(input.sourceRoots());
+            Iterable<? extends JavaFileObject> files = fileManager.getJavaFileObjectsFromPaths(sources);
+            int release = supportedRelease(compiler, input.release());
+            List<String> options = new ArrayList<>(List.of(
+                    "-proc:none",
+                    "--release", Integer.toString(release),
+                    "-implicit:none",
+                    "-Xmaxerrs", "100000",
+                    "-Xmaxwarns", "100000",
+                    "-encoding", input.encoding().name()));
+            JavacTask task = (JavacTask) compiler.getTask(null, fileManager, diagnostics, options, null, files);
+            List<CompilationUnitTree> units = new ArrayList<>();
+            task.parse().forEach(units::add);
+            task.analyze();
+            return new JavacSession(fileManager, task, diagnostics, units, release);
+        } catch (IOException | RuntimeException | Error e) {
+            // The file manager holds the classpath's jars open; a build daemon would keep them for its lifetime.
+            try {
+                fileManager.close();
+            } catch (IOException closing) {
+                e.addSuppressed(closing);
+            }
+            throw e;
+        }
     }
 
     /**
@@ -117,17 +138,35 @@ final class JavacSession implements AutoCloseable {
         return paths;
     }
 
+    /**
+     * The roots' .java files, through symbolic links, each compiled once however many paths reach it: the first path in
+     * order names it. A link back up the tree is a loop the walk skips, since its files are reached without it.
+     */
     private static List<Path> sourceFiles(List<Path> roots) throws IOException {
-        List<Path> files = new ArrayList<>();
-        for (Path root : roots) {
-            if (!Files.isDirectory(root)) continue;
-            try (Stream<Path> walk = Files.walk(root)) {
+        List<Path> found = new ArrayList<>();
+        FileVisitor<Path> collector = new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attributes) {
                 // module-info.java would make the sources a named module, which cannot read the classpath's unnamed one.
-                walk.filter(path -> path.toString().endsWith(".java") && !path.getFileName().toString().equals("module-info.java") && Files.isRegularFile(path))
-                        .forEach(files::add);
+                if (attributes.isRegularFile() && path.toString().endsWith(".java") && !path.getFileName().toString().equals("module-info.java")) found.add(path);
+                return FileVisitResult.CONTINUE;
             }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path path, IOException e) throws IOException {
+                if (e instanceof FileSystemLoopException) return FileVisitResult.CONTINUE;
+                throw e;
+            }
+        };
+        for (Path root : roots) {
+            if (Files.isDirectory(root)) Files.walkFileTree(root, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, collector);
         }
-        files.sort(null);
+        found.sort(null);
+        Set<Path> realPaths = new HashSet<>();
+        List<Path> files = new ArrayList<>();
+        for (Path file : found) {
+            if (realPaths.add(file.toRealPath())) files.add(file);
+        }
         return files;
     }
 

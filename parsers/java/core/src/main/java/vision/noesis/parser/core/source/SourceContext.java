@@ -1,5 +1,6 @@
 package vision.noesis.parser.core.source;
 
+import com.sun.source.util.TreePath;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,11 +43,15 @@ final class SourceContext {
         this.locations = new SourceLocations(this);
     }
 
-    /** Declared outside this compilation: read from the classpath or the platform. */
+    /**
+     * Declared outside this compilation: read from the classpath or the platform. A tree alone does not make a type
+     * the artifact's own; it must come from one of the units parsed from the source roots.
+     */
     boolean isExternal(Element element) {
         TypeElement top = topLevelTypeOf(element);
         if (top == null) return false;
-        return javac.trees().getPath(top) == null;
+        TreePath path = javac.trees().getPath(top);
+        return path == null || javac.unitOf(path.getCompilationUnit().getSourceFile().toUri()) != path.getCompilationUnit();
     }
 
     /** External and not a sibling module of the build: the symbol has no model file and is referenced through a stub. */

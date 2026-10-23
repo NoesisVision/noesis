@@ -7,8 +7,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
@@ -19,8 +23,10 @@ import vision.noesis.parser.model.ArtifactKind;
 import vision.noesis.parser.model.CodeModelFile;
 import vision.noesis.parser.model.Diagnostic;
 import vision.noesis.parser.model.DiagnosticSeverity;
+import vision.noesis.parser.model.DiagnosticSource;
 import vision.noesis.parser.model.Edge;
 import vision.noesis.parser.model.PackageReference;
+import vision.noesis.parser.model.SourceSpan;
 import vision.noesis.parser.model.TypeUseRole;
 
 /**
@@ -215,6 +221,95 @@ class SourceEdgeCaseTest {
                 model.diagnostics().toString());
     }
 
+    // --- Columns, ids, inputs -----------------------------------------------------------------------------------------
+
+    @Test
+    void columnsCountCharactersNotTabStops() throws IOException {
+        CodeModelFile model = parse(17, "package p;\npublic class C {\n\tint f() {\n\t\treturn missing;\n\t}\n}\n");
+
+        SourceSpan method = model.nodes().stream().filter(node -> node.id().value().equals("M:p.C#f()")).findFirst().orElseThrow().locations().get(0);
+        assertEquals(List.of(3, 2, 5, 3), List.of(method.startLine(), method.startColumn(), method.endLine(), method.endColumn()));
+        SourceSpan error = model.diagnostics().stream().filter(d -> d.source() == DiagnosticSource.COMPILER).findFirst()
+                .orElseThrow(() -> new AssertionError(model.diagnostics().toString())).location();
+        assertEquals(List.of(4, 10, 4, 17), List.of(error.startLine(), error.startColumn(), error.endLine(), error.endColumn()));
+    }
+
+    @Test
+    void overloadsThatDifferOnlyInATypeParameterBoundAreReportedNotDroppedSilently() throws IOException {
+        CodeModelFile model = parse(17, """
+                package p;
+                public class C {
+                    <T extends Number> void put(T v) {}
+                    <T extends CharSequence> void put(T v) {}
+                    void f() {
+                        class Local { void g() {} }
+                        new Runnable() { public void run() {} }.run();
+                    }
+                    { new Object() {}; }
+                    public C() {}
+                    public C(int x) {}
+                }
+                """);
+
+        assertParsed(model);
+        List<Diagnostic> duplicates = model.diagnostics().stream().filter(d -> d.code().equals(Diagnostics.DUPLICATE_ID)).toList();
+        assertEquals(1, duplicates.size(), duplicates.toString());
+        String message = duplicates.get(0).message();
+        assertTrue(message.contains("M:p.C#put`1(!!0)") && message.contains("C.java:3") && message.contains("C.java:4"), message);
+        assertEquals(4, duplicates.get(0).location().startLine());
+    }
+
+    @Test
+    void aSourceFileOnTheClasspathIsNotCompiledAsASource() throws IOException {
+        Path lib = root.resolve("lib");
+        Files.createDirectories(lib.resolve("lib"));
+        Files.writeString(lib.resolve("lib/L.java"), "package lib;\npublic class L { public static void f() {} }\n", StandardCharsets.UTF_8);
+        ArtifactDependency dependency = new ArtifactDependency(JavaIds.libraryArtifact("x:lib", "1"), ArtifactKind.LIBRARY, new PackageReference("x:lib", "1"));
+        String caller = """
+                package p;
+                public class C {
+                    void g() { lib.L.f(); }
+                }
+                """;
+
+        CodeModelFile sourceOnly = parse(17, List.of(new ClasspathEntry(lib, dependency)), caller);
+        assertParsed(sourceOnly);
+        assertTrue(invokes(sourceOnly, "M:p.C#g()").isEmpty(), invokes(sourceOnly, "M:p.C#g()").toString());
+        assertTrue(sourceOnly.diagnostics().stream().anyMatch(d -> d.source() == DiagnosticSource.COMPILER && d.severity() == DiagnosticSeverity.ERROR),
+                sourceOnly.diagnostics().toString());
+
+        JavaCompiler javac = ToolProvider.getSystemJavaCompiler();
+        assertEquals(0, javac.run(null, null, null, "-d", lib.toString(), lib.resolve("lib/L.java").toString()));
+        // A source newer than its class is the one javac would prefer, were it allowed to read it.
+        Files.setLastModifiedTime(lib.resolve("lib/L.java"), FileTime.from(Instant.now().plusSeconds(60)));
+        CodeModelFile withClass = parse(17, List.of(new ClasspathEntry(lib, dependency)), caller);
+        assertParsed(withClass);
+        assertEquals(List.of("M:lib.L#f()"), invokes(withClass, "M:p.C#g()").stream().map(call -> call.to().value()).toList());
+        assertTrue(withClass.stubs().stream().anyMatch(stub -> stub.id().value().equals("M:lib.L#f()") && dependency.id().equals(stub.artifact())),
+                withClass.stubs().toString());
+    }
+
+    @Test
+    void symlinkedSourcesAreFollowedOnceAndALoopEndsTheWalk() throws IOException {
+        Path real = root.resolve("real");
+        Files.createDirectories(real.resolve("p"));
+        Files.writeString(real.resolve("p/C.java"), "package p;\npublic class C { q.D d; }\n", StandardCharsets.UTF_8);
+        Path linkedRoot = Files.createSymbolicLink(root.resolve("src"), real);
+        Path other = root.resolve("other");
+        Files.createDirectories(other);
+        Files.writeString(other.resolve("D.java"), "package q;\npublic class D {}\n", StandardCharsets.UTF_8);
+        Files.createSymbolicLink(real.resolve("q"), other);
+        Files.createSymbolicLink(real.resolve("again"), real.resolve("p"));
+        Files.createSymbolicLink(real.resolve("p/loop"), real);
+
+        CodeModelFile model = parseRoots(17, List.of(linkedRoot), List.of());
+
+        assertParsed(model);
+        assertTrue(model.nodes().stream().anyMatch(node -> node.id().value().equals("T:p.C")), model.nodes().toString());
+        assertTrue(model.nodes().stream().anyMatch(node -> node.id().value().equals("T:q.D")), model.nodes().toString());
+        assertTrue(model.diagnostics().stream().noneMatch(d -> d.severity() == DiagnosticSeverity.ERROR), model.diagnostics().toString());
+    }
+
     private static List<String> typeTests(CodeModelFile model, String from) {
         return model.edges().stream().filter(Edge.UsesType.class::isInstance).map(Edge.UsesType.class::cast)
                 .filter(use -> use.from().value().equals(from) && use.role() == TypeUseRole.TYPE_TEST).map(use -> use.to().canonical()).sorted().toList();
@@ -229,7 +324,11 @@ class SourceEdgeCaseTest {
         Path file = sources.resolve("p/C.java");
         Files.createDirectories(file.getParent());
         Files.writeString(file, source, StandardCharsets.UTF_8);
-        ArtifactInput input = new ArtifactInput("p", "edge", "1", root, null, List.of(sources), root.resolve("classes"), classpath, release,
+        return parseRoots(release, List.of(sources), classpath);
+    }
+
+    private CodeModelFile parseRoots(int release, List<Path> sources, List<ClasspathEntry> classpath) {
+        ArtifactInput input = new ArtifactInput("p", "edge", "1", root, null, sources, root.resolve("classes"), classpath, release,
                 StandardCharsets.UTF_8, "jar", null);
         ParseRequest request = new ParseRequest(root, "edge", "", "", root.resolve("out"), EngineKind.SOURCE, List.of(input));
         return JavaParser.engineFor(EngineKind.SOURCE).parse(input, new ParseSession(new JavaParser(Fixtures.GENERATOR_VERSION).generator(), request));
