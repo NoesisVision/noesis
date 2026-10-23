@@ -19,6 +19,11 @@ repositories {
     mavenCentral()
 }
 
+// Every configuration resolves to the versions in gradle.lockfile; `./gradlew dependencies --write-locks` updates it.
+dependencyLocking {
+    lockAllConfigurations()
+}
+
 // Compiled for Gradle's minimum (17), like the core, on whatever JDK runs the build.
 tasks.withType(JavaCompile).configureEach {
     options.release = 17
