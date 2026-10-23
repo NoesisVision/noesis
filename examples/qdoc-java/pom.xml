@@ -81,7 +81,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<!-- The Noesis code model scanner: ./mvnw process-classes noesis:scan writes .noesis/sessions/scanner/code-model/java/.
+			<!-- The Noesis code model scanner: ./mvnw process-classes noesis:scan writes .noesis/tmp/scanner/code-model/java/.
 			     Install it first: mvn install in scanners/java (see examples/README.md). -->
 			<plugin>
 				<groupId>vision.noesis</groupId>

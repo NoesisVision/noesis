@@ -22,7 +22,7 @@ public class NoesisScannerPlugin implements Plugin<Project> {
     public static final String TASK_NAME = "noesisScan";
     public static final String EXTENSION_NAME = "noesis";
 
-    private static final String DEFAULT_OUT = ".noesis/sessions/scanner";
+    private static final String DEFAULT_OUT = ".noesis/tmp/scanner";
 
     @Override
     public void apply(Project project) {

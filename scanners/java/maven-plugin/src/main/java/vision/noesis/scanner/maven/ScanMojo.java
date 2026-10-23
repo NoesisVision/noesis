@@ -2,12 +2,9 @@ package vision.noesis.scanner.maven;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -27,6 +24,7 @@ import vision.noesis.scanner.model.CodeModelFile;
 import vision.noesis.scanner.model.CodeModelWriter;
 import vision.noesis.scanner.model.Generator;
 import vision.noesis.scanner.model.Language;
+import vision.noesis.scanner.model.ManifestArtifact;
 import vision.noesis.scanner.model.RepositoryInfo;
 import vision.noesis.scanner.model.ScanManifest;
 
@@ -48,7 +46,7 @@ public class ScanMojo extends AbstractMojo {
     private PluginDescriptor plugin;
 
     /** The output root; files land under {@code code-model/java/} inside it. A relative path is taken from the execution root, not the module. */
-    @Parameter(property = "noesis.out", defaultValue = "${session.executionRootDirectory}/.noesis/sessions/scanner")
+    @Parameter(property = "noesis.out", defaultValue = "${session.executionRootDirectory}/.noesis/tmp/scanner")
     private String out;
 
     /** The directory file paths in the model are relative to; a relative path is taken from the execution root. */
@@ -79,7 +77,6 @@ public class ScanMojo extends AbstractMojo {
         ReactorState state = ReactorState.of(session, plugin);
         Path outputRoot = fromExecutionRoot(out);
         try {
-            if (state.start()) clearPreviousScan(outputRoot);
             if (skip) {
                 getLog().info("Noesis scan skipped for " + project.getArtifactId());
             } else {
@@ -97,8 +94,9 @@ public class ScanMojo extends AbstractMojo {
         ScanSession scanSession = new ScanSession(generator(), fromExecutionRoot(repositoryRoot), List.of(input), reactorArtifactIds(), reactorOutputDirectories());
         long started = System.nanoTime();
         CodeModelFile model = scanner.scan(input, scanSession);
-        String file = state.fileFor(project, input.id());
+        String file = state.fileFor(project);
         CodeModelWriter.writeModel(outputRoot, file, model);
+        state.written(project, new ManifestArtifact(input.id(), file));
         getLog().info(String.format("%s: %d nodes, %d edges, %d stubs, %d diagnostics in %d ms (%s engine)",
                 project.getArtifactId(), model.nodes().size(), model.edges().size(), model.stubs().size(), model.diagnostics().size(),
                 (System.nanoTime() - started) / 1_000_000, engine));
@@ -110,15 +108,15 @@ public class ScanMojo extends AbstractMojo {
         File topLevel = session.getTopLevelProject().getFile();
         String rootFile = topLevel == null ? "" : locations.relativePath(topLevel.toPath());
         String name = repository == null || repository.isBlank() ? root.getFileName().toString() : repository;
-        ScanManifest manifest = new ScanManifest(
+        RepositoryInfo repositoryInfo = new RepositoryInfo(name, revision == null ? "" : revision);
+        state.writeManifest(outputRoot, (artifacts, diagnostics) -> new ScanManifest(
                 ScanManifest.CURRENT_SCHEMA_VERSION,
                 generator(),
                 Language.JAVA,
-                new RepositoryInfo(name, revision == null ? "" : revision),
+                repositoryInfo,
                 rootFile,
-                state.artifacts(),
-                state.diagnostics());
-        CodeModelWriter.writeManifest(outputRoot, manifest);
+                artifacts,
+                diagnostics));
     }
 
     /** Maven resolves a {@code File} parameter against the module; a path given once for the whole reactor belongs to the execution root. */
@@ -146,14 +144,5 @@ public class ScanMojo extends AbstractMojo {
             if (!"pom".equals(other.getPackaging())) directories.add(Path.of(other.getBuild().getOutputDirectory()));
         }
         return directories;
-    }
-
-    /** The previous scan's files, so a module that disappeared leaves no stale model behind. */
-    private static void clearPreviousScan(Path outputRoot) throws IOException {
-        Path directory = outputRoot.resolve(CodeModelWriter.languageDirectory(Language.JAVA));
-        if (!Files.isDirectory(directory)) return;
-        try (Stream<Path> files = Files.walk(directory)) {
-            for (Path file : files.sorted(Comparator.reverseOrder()).toList()) Files.delete(file);
-        }
     }
 }

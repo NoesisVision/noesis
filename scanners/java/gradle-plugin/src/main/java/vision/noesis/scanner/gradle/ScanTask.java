@@ -1,8 +1,5 @@
 package vision.noesis.scanner.gradle;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -11,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -39,8 +35,7 @@ import vision.noesis.scanner.model.Language;
 
 /**
  * Scans every Java project of the build into the common code model in one go: one {@code <name>.code-model.json} per
- * project under {@code <out>/code-model/java/}, in dependency order, and the manifest listing them. The previous scan's
- * files are removed first, so a project that disappeared leaves no stale model behind.
+ * project under {@code <out>/code-model/java/}, in dependency order, and the manifest listing them.
  */
 @DisableCachingByDefault(because = "The model holds absolute paths of the repository root and the classpath; a cache hit from another checkout would be wrong")
 public abstract class ScanTask extends DefaultTask {
@@ -105,7 +100,6 @@ public abstract class ScanTask extends DefaultTask {
                 outputRoot,
                 engine,
                 artifacts);
-        clearPreviousScan(outputRoot);
         long started = System.nanoTime();
         ScanResult result = new JavaScanner(getPluginVersion().get()).scan(request);
         for (CodeModelFile model : result.models()) {
@@ -142,17 +136,5 @@ public abstract class ScanTask extends DefaultTask {
         }
         onPath.remove(module);
         order.add(module);
-    }
-
-    private static void clearPreviousScan(Path outputRoot) {
-        Path directory = outputRoot.resolve(CodeModelWriter.languageDirectory(Language.JAVA));
-        if (!Files.isDirectory(directory)) return;
-        try (Stream<Path> files = Files.walk(directory)) {
-            for (Path file : files.sorted(Comparator.reverseOrder()).toList()) {
-                if (!file.equals(directory)) Files.delete(file);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("Could not clear the previous scan under " + directory, e);
-        }
     }
 }

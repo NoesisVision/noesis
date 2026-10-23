@@ -97,7 +97,7 @@ nothing else: no CI, build scripts, IDE settings or notes from the runs.
   `mavenLocal()`: run `mvn install` in `scanners/java` and
   `./gradlew publishToMavenLocal` in `scanners/java/gradle-plugin` first, then
   `./gradlew build` in the example. `./gradlew noesisScan` there scans the
-  example into the code model under `.noesis/sessions/scanner/code-model/java/`
+  example into the code model under `.noesis/tmp/scanner/code-model/java/`
   with the hybrid engine (its sources use Lombok); a scan from the service
   runs the same command through its `.noesis/settings.json`.
 - `qdoc-java` is a Spring Boot Maven project that depends on
@@ -105,7 +105,7 @@ nothing else: no CI, build scripts, IDE settings or notes from the runs.
   `noesis-scanner-maven-plugin`, both from the local repository: run
   `mvn install` in `scanners/java` first, then `./mvnw process-classes noesis:scan`
   in the example writes the code model under
-  `.noesis/sessions/scanner/code-model/java/`; a scan from the service runs the
+  `.noesis/tmp/scanner/code-model/java/`; a scan from the service runs the
   plugin the same way through its `.noesis/settings.json`.
 - `discounts-dotnet` takes `NoesisVision.Annotations` from the private NuGet
   feed in its `nuget.config`; `dotnet build MyCompany.ECommerce.sln` builds it

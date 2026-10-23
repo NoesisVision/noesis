@@ -10,7 +10,7 @@ import org.gradle.api.provider.Property;
  */
 public abstract class NoesisExtension {
 
-    /** The output root; files land under {@code code-model/java/} inside it. Default: {@code .noesis/sessions/scanner} in the root project. */
+    /** The output root; files land under {@code code-model/java/} inside it. Default: {@code .noesis/tmp/scanner} in the root project. */
     public abstract DirectoryProperty getOut();
 
     /** The directory file paths in the model are relative to. Default: the root project's directory. */

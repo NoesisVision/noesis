@@ -83,7 +83,7 @@ mvn -B -q -ntp -Dnoesis.out=/tmp/scan -Dnoesis.repositoryRoot=$PWD -Dnoesis.repo
 
 | Property                | Default                                                              | Meaning                                                                                                                   |
 | ----------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `noesis.out`            | `${session.executionRootDirectory}/.noesis/sessions/scanner`         | output root; files land in `code-model/java/` inside it; a relative path is taken from the execution root, not the module |
+| `noesis.out`            | `${session.executionRootDirectory}/.noesis/tmp/scanner`              | output root; files land in `code-model/java/` inside it; a relative path is taken from the execution root, not the module |
 | `noesis.repositoryRoot` | `${session.executionRootDirectory}`                                  | directory file paths in the model are relative to; relative paths as for `noesis.out`                                     |
 | `noesis.repository`     | the root directory's name                                            | written into the manifest                                                                                                 |
 | `noesis.revision`       | `""`                                                                 | written into the manifest                                                                                                 |
@@ -93,8 +93,9 @@ mvn -B -q -ntp -Dnoesis.out=/tmp/scan -Dnoesis.repositoryRoot=$PWD -Dnoesis.repo
 
 Every module writes `code-model/java/<artifactId>.code-model.json` and
 rewrites `code-model/java/manifest.json`, which lists every module scanned so
-far in reactor order; `pom` modules are skipped. The first module to run
-clears the previous scan's files.
+far in reactor order; `pom` modules are skipped. Nothing is deleted: a
+reader reads only the files the manifest lists, and the service scans into a
+fresh directory that it removes once it has read the model.
 
 The service runs exactly this invocation when `.noesis/settings.json` says
 `"scanner": "java-maven"` (`server/backend/src/adapters/out/scanners/java-maven/`),
@@ -152,7 +153,7 @@ sets a scan up without touching the build:
 
 | Setting                 | Default                                                                | Meaning                                                                               |
 | ----------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `noesis.out`            | `.noesis/sessions/scanner` in the root project                         | output root; files land in `code-model/java/` inside it; relative to the root project |
+| `noesis.out`            | `.noesis/tmp/scanner` in the root project                              | output root; files land in `code-model/java/` inside it; relative to the root project |
 | `noesis.repositoryRoot` | the root project's directory                                           | directory file paths in the model are relative to                                     |
 | `noesis.repository`     | the repository root's directory name                                   | written into the manifest                                                             |
 | `noesis.revision`       | `""`                                                                   | written into the manifest                                                             |

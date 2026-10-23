@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /** Lays the manifest and the model files out under the output root: {@code code-model/<language>/}. */
 public final class CodeModelWriter {
@@ -33,9 +34,16 @@ public final class CodeModelWriter {
         write(outputRoot.resolve(manifestFile(manifest.language())), CodeModelJson.serialize(manifest));
     }
 
+    /** Through a temporary file beside the target and a rename, so a reader sees the old file or the new one, never half of one. */
     private static void write(Path file, String json) throws IOException {
-        Files.createDirectories(file.getParent());
-        Files.writeString(file, json, StandardCharsets.UTF_8);
+        Path directory = Files.createDirectories(file.getParent());
+        Path temporary = Files.createTempFile(directory, file.getFileName().toString(), ".tmp");
+        try {
+            Files.writeString(temporary, json, StandardCharsets.UTF_8);
+            Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
     }
 
     private static String safeFileName(String name) {
