@@ -400,24 +400,29 @@ type arguments are absent, the location is a line.
 `noesis:parse`, bound to `process-classes` so the module and the reactor
 siblings it depends on are compiled:
 
-| Property                | Default                                                  | Meaning                                                                           |
-| ----------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| `noesis.out`            | `${session.executionRootDirectory}/.noesis/tmp/parser`   | the output root; a relative path is taken from the execution root, not the module |
-| `noesis.repositoryRoot` | `${session.executionRootDirectory}`                      | paths in the model are relative to it; relative paths as for `noesis.out`         |
-| `noesis.repository`     | the root directory's name                                | `repository.name` in the manifest                                                 |
-| `noesis.revision`       | `""`                                                     | `repository.revision`                                                             |
-| `noesis.engine`         | `source`                                                 | `source` or `bytecode`                                                            |
-| `noesis.release`        | `maven.compiler.release` → `maven.compiler.target` → JVM | the release the sources are bound against                                         |
-| `noesis.skip`           | `false`                                                  | skip this module                                                                  |
+| Property                | Default                                                     | Meaning                                                                           |
+| ----------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `noesis.out`            | `${session.executionRootDirectory}/.noesis/tmp/parser`      | the output root; a relative path is taken from the execution root, not the module |
+| `noesis.repositoryRoot` | `${session.executionRootDirectory}`                         | paths in the model are relative to it; relative paths as for `noesis.out`         |
+| `noesis.repository`     | the root directory's name                                   | `repository.name` in the manifest                                                 |
+| `noesis.revision`       | `""`                                                        | `repository.revision`                                                             |
+| `noesis.engine`         | `source`                                                    | `source`, `bytecode` or `hybrid`                                                  |
+| `noesis.release`        | the compiler plugin's `release` → `target` → `source` → JVM | the release the sources are bound against                                         |
+| `noesis.skip`           | `false`                                                     | skip this module                                                                  |
+
+Each of the compiler plugin's `release`, `target` and `source` is read as the
+compiler plugin reads it: the `default-compile` execution's configuration, else
+the plugin's, else the `maven.compiler.*` property, a command-line `-D` winning
+over the POM; `release` wins over `target`, `target` over `source`.
 
 Each module writes `code-model/java/<artifactId>.code-model.json` (`~2` on a
 name clash) and rewrites the manifest listing every module parsed so far in
-reactor order, through state shared in the plugin context of the top-level
-project (thread-safe for `-T`), so the manifest is complete after the last
-module and partial after a stopped build. Nothing is deleted: a reader reads
-only the files the manifest lists, and the service scans into a fresh
-directory that it removes once it has read the model. `pom` modules are
-skipped.
+reactor order, through state shared by every module of the build (one per
+Maven request, created atomically, so thread-safe for `-T`), so the manifest
+is complete after the last module and partial after a stopped build. Nothing
+is deleted: a reader reads only the files the manifest lists, and the service
+scans into a fresh directory that it removes once it has read the model.
+`pom` modules are skipped.
 
 The service invokes the plugin by its full coordinates, so the project's POM
 needs no change:
