@@ -11,7 +11,7 @@ import { changesDir } from './changes.repository';
  * shape serves design documents and documents; the schema and kind tell them
  * apart.
  */
-export class NoesisChangeOwnedRepository<
+export class ChangeOwnedFileRepository<
   T extends { id: string },
 > implements ChangeOwnedRepository<T> {
   private readonly changesDir: string;

@@ -1,7 +1,7 @@
-import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
-import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
-import { NoesisScannerSettingsRepository } from '#backend/adapters/out/store/scanner-settings.repository';
-import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
+import { ChangeOwnedFileRepository } from '#backend/adapters/out/store/change-owned.repository';
+import { ChangesFileRepository } from '#backend/adapters/out/store/changes.repository';
+import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
+import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import { createChangeHandler } from '#backend/app/changes/create-change';
 import { deleteChangeHandler } from '#backend/app/changes/delete-change';
 import { findChangeHandler } from '#backend/app/changes/find-change';
@@ -36,18 +36,18 @@ export function createServices(
   today: Today = localToday,
   now: Now = utcNow,
 ) {
-  const changes = new NoesisChangesRepository(noesis);
-  const designDocs = new NoesisChangeOwnedRepository(
+  const changes = new ChangesFileRepository(noesis);
+  const designDocs = new ChangeOwnedFileRepository(
     noesis,
     StoredDesignDocument,
     'design-doc',
   );
-  const documents = new NoesisChangeOwnedRepository(
+  const documents = new ChangeOwnedFileRepository(
     noesis,
     DocumentSchema,
     'document',
   );
-  const systemModels = new NoesisSystemModelsRepository(noesis);
+  const systemModels = new SystemModelsFileRepository(noesis);
   return {
     createChange: createChangeHandler(changes, today),
     updateChange: updateChangeHandler(changes),
@@ -89,7 +89,7 @@ export function createServices(
     search: searchHandler(),
     scanSystemModel: scanSystemModelHandler(
       new ScannerFactory(
-        new NoesisScannerSettingsRepository(noesis),
+        new ScannerSettingsFileRepository(noesis),
         scannerBuilders(noesis, now),
       ),
       systemModels,

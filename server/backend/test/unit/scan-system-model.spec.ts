@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { writeFile } from 'node:fs/promises';
-import { NoesisScannerSettingsRepository } from '#backend/adapters/out/store/scanner-settings.repository';
-import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
+import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
+import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import { ScanFailedError } from '#backend/app/system-model/scan-failed-error';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
 import {
@@ -14,11 +14,11 @@ import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
-let systemModels: NoesisSystemModelsRepository;
+let systemModels: SystemModelsFileRepository;
 
 beforeEach(async () => {
   t = await testNoesis();
-  systemModels = new NoesisSystemModelsRepository(t.noesis);
+  systemModels = new SystemModelsFileRepository(t.noesis);
 });
 
 afterEach(() => t.cleanup());
@@ -78,7 +78,7 @@ describe('ScannerFactory', () => {
     'code-model': () => scannerOf(found('code-model')),
   };
   const factory = (builders: ScannerBuilders = scanners) =>
-    new ScannerFactory(new NoesisScannerSettingsRepository(t.noesis), builders);
+    new ScannerFactory(new ScannerSettingsFileRepository(t.noesis), builders);
   const configure = (settings: unknown) =>
     writeFile(t.noesis.resolve('settings.json'), JSON.stringify(settings));
   const scanWith = async (scanners: ScannerFactory) =>

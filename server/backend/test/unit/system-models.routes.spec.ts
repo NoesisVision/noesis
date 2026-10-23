@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
-import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
+import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
@@ -20,7 +20,7 @@ beforeEach(async () => {
     ...t,
     scanSystemModel: scanSystemModelHandler(
       { create: () => Promise.resolve({ scan: () => Promise.resolve(found) }) },
-      new NoesisSystemModelsRepository(t.noesis),
+      new SystemModelsFileRepository(t.noesis),
     ),
   });
 });

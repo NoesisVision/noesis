@@ -8,7 +8,7 @@ import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
-import { NoesisScannerSettingsRepository } from '#backend/adapters/out/store/scanner-settings.repository';
+import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import {
   CodeModelFile,
   ScanManifest,
@@ -81,7 +81,7 @@ describe('the fixture solution through the C# scanner (e2e)', () => {
     'scans the solution with noesis-scan-csharp and projects the system model within budget',
     async () => {
       const noesis = new NoesisDir(FIXTURE);
-      const { namespaces: config } = await new NoesisScannerSettingsRepository(
+      const { namespaces: config } = await new ScannerSettingsFileRepository(
         noesis,
       ).repositorySettings();
       const scanner = new CSharpSourceCodeScanner({

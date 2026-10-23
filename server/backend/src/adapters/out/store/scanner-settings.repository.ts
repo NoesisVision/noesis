@@ -21,7 +21,7 @@ const RepositorySettingsSchema = NamespaceConfigSchema.extend({
 });
 
 /** `.noesis/settings.json` in the repository. */
-export class NoesisScannerSettingsRepository implements ScannerSettingsRepository {
+export class ScannerSettingsFileRepository implements ScannerSettingsRepository {
   private readonly noesis: NoesisDir;
 
   constructor(noesis: NoesisDir) {
