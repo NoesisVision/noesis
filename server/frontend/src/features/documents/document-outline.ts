@@ -17,8 +17,8 @@ export interface DocumentLink {
 }
 
 const FENCE = /^\s*(```|~~~)/;
-const HEADING = /^(#{1,6})\s+(.+?)\s*#*\s*$/;
-const LINK = /\[([^\]]+)\]\((https?:\/\/[^)\s]+)(?:\s+"[^"]*")?\)/g;
+const HEADING = /^(#{1,6})[ \t]+(\S.*)$/;
+const LINK = /\[([^[\]]+)\]\((https?:\/\/[^)\s]+)(?:\s+"[^"]*")?\)/g;
 const BARE = /(?<![(<"\w])(https?:\/\/[^\s)>\]]+)/g;
 
 /** The lines of the markdown that are prose, not code. */
@@ -36,7 +36,7 @@ function proseLines(markdown: string): string[] {
 /** Markdown's inline marks taken off, as a heading reads on the page. */
 const plain = (text: string) =>
   text
-    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^[\]]+)\]\([^)]*\)/g, '$1')
     .replace(/[*_`]/g, '')
     .trim();
 
@@ -46,10 +46,12 @@ export function documentHeadings(
   deepest = 3,
 ): DocumentHeading[] {
   return proseLines(markdown).flatMap((line) => {
-    const match = HEADING.exec(line);
+    const match = HEADING.exec(line.trimEnd());
     if (!match) return [];
     const depth = match[1]!.length;
-    return depth <= deepest ? [{ text: plain(match[2]!), depth }] : [];
+    // A heading may close with a run of #s, which is not part of its words.
+    const text = plain(trimTrailing(match[2]!, '#'));
+    return depth <= deepest && text ? [{ text, depth }] : [];
   });
 }
 
@@ -67,12 +69,22 @@ export function documentLinks(markdown: string): DocumentLink[] {
         seen.set(href, { label: plain(label!), href });
     }
     for (const [href] of prose.replace(LINK, '').matchAll(BARE)) {
-      const clean = href.replace(/[.,;:]+$/, '');
+      const clean = trimTrailing(href, '.,;:');
       if (!seen.has(clean))
         seen.set(clean, { label: hostOf(clean), href: clean });
     }
   }
   return [...seen.values()];
+}
+
+/**
+ * The text with any run of `chars` at its end taken off — by hand, since a
+ * regular expression anchored at the end backtracks on long runs.
+ */
+function trimTrailing(text: string, chars: string): string {
+  let end = text.length;
+  while (end > 0 && chars.includes(text[end - 1]!)) end--;
+  return text.slice(0, end).trimEnd();
 }
 
 /** A bare address by its host, which is what a reader recognises it by. */
