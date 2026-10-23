@@ -83,6 +83,18 @@
           "description": "Secondary text: quieter than the body text, a step more contrast than Mantine's dimmed. Gray 7 in light, dark 1 in dark, from `cssVariablesResolver` in `theme.ts`."
         },
         {
+          "name": "--noesis-rail-background",
+          "description": "The ground of the app's navigation, the top bar and the rail: a tint off the page. Gray 1 in light, dark 8 in dark, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-rail-border",
+          "description": "The line that rules the top bar and the rail off from the page, and outlines what is raised on the rail. Gray 2 in light, dark 5 in dark, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-rail-surface",
+          "description": "What is raised on the rail: the change's card and the item you are on. White in light, dark 7 in dark, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
           "name": "--noesis-focus-ring",
           "description": "The outline a control takes under the keyboard (`:focus-visible`), in the brand filled colour; each rule sets its own offset. from `cssVariablesResolver` in `theme.ts`."
         },

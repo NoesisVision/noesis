@@ -63,6 +63,10 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       '--noesis-architecture-core-border': brand[4],
       '--noesis-requirement-quote': gray[0],
       '--noesis-requirement-gap': red[8],
+      // The app's navigation: a tinted rail with white surfaces raised on it.
+      '--noesis-rail-background': gray[1],
+      '--noesis-rail-border': gray[2],
+      '--noesis-rail-surface': current.white,
     },
     dark: {
       '--noesis-secondary-text': dark[1],
@@ -72,6 +76,9 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       '--noesis-architecture-module-border': brand[8],
       '--noesis-architecture-core': dark[7],
       '--noesis-architecture-core-border': brand[7],
+      '--noesis-rail-background': dark[8],
+      '--noesis-rail-border': dark[5],
+      '--noesis-rail-surface': dark[7],
       '--noesis-requirement-quote': dark[6],
       '--noesis-requirement-gap': red[4],
     },

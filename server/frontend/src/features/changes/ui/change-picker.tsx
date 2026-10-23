@@ -1,16 +1,21 @@
 import { IconSelector } from '@tabler/icons-react';
 import { useNavigate } from '@tanstack/react-router';
-import { Badge } from '#/shared/design-system/badge';
 import { Box } from '#/shared/design-system/box';
 import { Group } from '#/shared/design-system/group';
 import { Menu } from '#/shared/design-system/menu';
+import { Stack } from '#/shared/design-system/stack';
 import { Text } from '#/shared/design-system/text';
+import { ThemeIcon } from '#/shared/design-system/theme-icon';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button';
+import { titleCase } from '#/shared/ui/title-case.ts';
 import type { Change } from '#backend/app/changes/change.ts';
 import {
+  CHANGE_STAGES,
   CHANGE_STATUS_META,
   CHANGE_TYPE_META,
+  changeInitials,
   changeSwatch,
+  changeSwatchColor,
 } from '../changes.model.ts';
 import classes from './change-picker.module.css';
 
@@ -18,7 +23,7 @@ interface ChangePickerProps {
   changes: Change[];
   current: Change | null;
   onNavigate?: () => void;
-  /** One line, for the header: the swatch, the name, the key and the type. */
+  /** Only the change's tile, for the rail folded to icons. */
   compact?: boolean;
 }
 
@@ -32,6 +37,16 @@ function detailLine(change: Change): string {
     .join(' · ');
 }
 
+/** What the card says under the name: what kind of change, at which stage. */
+function stageLine(change: Change): string {
+  return `${titleCase(CHANGE_TYPE_META[change.type].label)} · ${CHANGE_STATUS_META[change.status].label} stage`;
+}
+
+/**
+ * The head of the rail's change card: the change you are in, by its tile, its
+ * name and its stage, with its progress through the stages under it. The
+ * whole head is the button that switches to another change.
+ */
 export function ChangePicker({
   changes,
   current,
@@ -48,123 +63,79 @@ export function ChangePicker({
     });
   };
 
+  const stage = current ? CHANGE_STAGES.indexOf(current.status) : -1;
+  const stageColor = current
+    ? CHANGE_STATUS_META[current.status].color
+    : 'gray';
+
+  const tile = (
+    <ThemeIcon
+      size={36}
+      radius={11}
+      variant="light"
+      color={current ? changeSwatchColor(current.id) : 'gray'}
+      className={classes.tile}
+      aria-hidden
+    >
+      {current ? changeInitials(current.name) : '–'}
+    </ThemeIcon>
+  );
+
   return (
     <Box miw={0}>
-      <Menu
-        width={compact ? 320 : 'target'}
-        position="bottom-start"
-        shadow="md"
-        offset={4}
-      >
+      <Menu width={320} position="right-start" shadow="md" offset={12}>
         <Menu.Target>
           {compact ? (
             <UnstyledButton
-              className={classes.compact}
-              aria-label="Switch change"
+              className={classes.tileButton}
+              aria-label={
+                current
+                  ? `Switch change (now ${current.name})`
+                  : 'Switch change'
+              }
+              title={current?.name}
             >
-              <Group gap={10} wrap="nowrap">
-                <Box
-                  className={classes.bar}
-                  h={22}
-                  bg={
-                    current
-                      ? changeSwatch(current.id)
-                      : 'var(--mantine-color-gray-4)'
-                  }
-                />
-                <Text size="sm" fw={600} truncate lh={1.3}>
-                  {current ? current.name : 'No change yet'}
-                </Text>
-                {current?.key ? (
-                  <Text
-                    size="xs"
-                    c="dimmed"
-                    ff="monospace"
-                    visibleFrom="sm"
-                    style={{ flex: 'none' }}
-                  >
-                    {current.key}
-                  </Text>
-                ) : null}
-                {current ? (
-                  <Badge
-                    size="xs"
-                    variant="outline"
-                    visibleFrom="lg"
-                    color={CHANGE_TYPE_META[current.type].color}
-                    style={{ flex: 'none' }}
-                  >
-                    {CHANGE_TYPE_META[current.type].label}
-                  </Badge>
-                ) : null}
-                {current ? (
-                  <Badge
-                    size="xs"
-                    variant="light"
-                    visibleFrom="lg"
-                    color={CHANGE_STATUS_META[current.status].color}
-                    style={{ flex: 'none' }}
-                  >
-                    {CHANGE_STATUS_META[current.status].label}
-                  </Badge>
-                ) : null}
-                <IconSelector
-                  size={16}
-                  style={{ flex: 'none', color: 'var(--mantine-color-dimmed)' }}
-                />
-              </Group>
+              {tile}
             </UnstyledButton>
           ) : (
-            <UnstyledButton className={classes.pick} aria-label="Switch change">
-              <Group gap={10} wrap="nowrap" align="stretch">
-                <Box
-                  className={classes.bar}
-                  mih={24}
-                  bg={
-                    current
-                      ? changeSwatch(current.id)
-                      : 'var(--mantine-color-gray-4)'
-                  }
-                />
-                <Box style={{ flex: 1, minWidth: 0 }}>
-                  <Text size="sm" fw={600} truncate lh={1.3}>
-                    {current ? current.name : 'No change yet'}
-                  </Text>
-                  {current ? (
-                    <>
-                      {current.key ? (
-                        <Text size="xs" c="dimmed" ff="monospace" lh={1.4}>
-                          {current.key}
-                        </Text>
-                      ) : null}
-                      <Group gap={6} mt={4} wrap="nowrap">
-                        <Badge
-                          size="xs"
-                          variant="outline"
-                          color={CHANGE_TYPE_META[current.type].color}
-                        >
-                          {CHANGE_TYPE_META[current.type].label}
-                        </Badge>
-                        <Badge
-                          size="xs"
-                          variant="light"
-                          color={CHANGE_STATUS_META[current.status].color}
-                        >
-                          {CHANGE_STATUS_META[current.status].label}
-                        </Badge>
-                      </Group>
-                    </>
-                  ) : (
-                    <Text size="xs" c="dimmed" truncate lh={1.3}>
-                      Ask the agent to create one
+            <UnstyledButton className={classes.card} aria-label="Switch change">
+              <Stack gap={12}>
+                <Group gap={10} wrap="nowrap" align="flex-start">
+                  {tile}
+                  <Box style={{ flex: 1, minWidth: 0 }}>
+                    <Text size="sm" fw={600} lh={1.35} lineClamp={2}>
+                      {current ? current.name : 'No change yet'}
                     </Text>
-                  )}
+                    <Text size="xs" className={classes.subLabel} truncate>
+                      {current
+                        ? stageLine(current)
+                        : 'Ask the agent to create one'}
+                    </Text>
+                  </Box>
+                  <IconSelector
+                    size={16}
+                    aria-hidden
+                    style={{
+                      flex: 'none',
+                      // Level with the tile's middle, however long the name.
+                      marginTop: 10,
+                      color: 'var(--mantine-color-dimmed)',
+                    }}
+                  />
+                </Group>
+                <Box className={classes.stages} aria-hidden>
+                  {CHANGE_STAGES.map((status, i) => (
+                    <Box
+                      key={status}
+                      className={classes.stage}
+                      data-reached={i <= stage || undefined}
+                      style={{
+                        '--stage-color': `var(--mantine-color-${stageColor}-5)`,
+                      }}
+                    />
+                  ))}
                 </Box>
-                <IconSelector
-                  size={16}
-                  style={{ flex: 'none', color: 'var(--mantine-color-dimmed)' }}
-                />
-              </Group>
+              </Stack>
             </UnstyledButton>
           )}
         </Menu.Target>

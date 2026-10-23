@@ -40,12 +40,29 @@ const SWATCH_COLORS = [
  */
 const SWATCH_HASH_MODULUS = 2_147_483_647;
 
-/** Derived from the id; the colour is deliberately not stored. */
-export function changeSwatch(id: string): string {
+/** The swatch's Mantine colour, derived from the id; it is deliberately not stored. */
+export function changeSwatchColor(id: string): (typeof SWATCH_COLORS)[number] {
   let hash = 0;
   for (const char of id) {
     hash = (hash * 31 + char.charCodeAt(0)) % SWATCH_HASH_MODULUS;
   }
-  const name = SWATCH_COLORS[hash % SWATCH_COLORS.length] ?? SWATCH_COLORS[0];
-  return `var(--mantine-color-${name}-6)`;
+  return SWATCH_COLORS[hash % SWATCH_COLORS.length] ?? SWATCH_COLORS[0];
 }
+
+/** The swatch as a CSS colour. */
+export function changeSwatch(id: string): string {
+  return `var(--mantine-color-${changeSwatchColor(id)}-6)`;
+}
+
+/** What a change's tile reads: the first letters of its first two words. */
+export function changeInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase())
+    .join('');
+}
+
+/** The stages a change goes through, in order: what its progress is drawn from. */
+export const CHANGE_STAGES = Object.keys(CHANGE_STATUS_META) as ChangeStatus[];

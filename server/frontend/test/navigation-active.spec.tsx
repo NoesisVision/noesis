@@ -127,7 +127,7 @@ describe('the navigation', () => {
   it.each([`/changes/${CHANGE}/documents`, `/changes/${CHANGE}/design-docs`])(
     'marks nothing at the list page %s, which the bar only names',
     async (url) => {
-      // Documents and Design docs label their groups; they are not links.
+      // Documents and Design docs label their sections; they are not links.
       expect(await currentLinks(url)).toEqual([]);
     },
   );
@@ -140,14 +140,25 @@ describe('the navigation', () => {
     ).not.toContain(`/changes/${CHANGE}/design-docs`);
   });
 
-  it('stays on the document while the reader moves about inside it', async () => {
+  it('stays on the view being read while the reader moves about inside it', async () => {
     // A design document keeps the element in hand and the search in the
-    // address. A link names a view, never a reading position inside one, so
-    // the search takes no part in deciding which link is current.
+    // address. The open doc's views are the links, and the one being read —
+    // here the model, which an element in hand opens — links to the address
+    // as it stands, so it alone matches it.
     expect(
       await currentLinks(
         `/changes/${CHANGE}/design-docs/${DOC}?node=module%7Cx&q=slot`,
       ),
-    ).toEqual([`/changes/${CHANGE}/design-docs/${DOC}`]);
+    ).toEqual([
+      `/changes/${CHANGE}/design-docs/${DOC}?node=module%7Cx&amp;q=slot`,
+    ]);
+  });
+
+  it('marks the view the address names', async () => {
+    expect(
+      await currentLinks(
+        `/changes/${CHANGE}/design-docs/${DOC}?view=requirements`,
+      ),
+    ).toEqual([`/changes/${CHANGE}/design-docs/${DOC}?view=requirements`]);
   });
 });
