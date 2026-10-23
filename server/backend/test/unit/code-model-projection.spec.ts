@@ -5,6 +5,7 @@ import type {
   CodeModelFile,
   DeclarationNode,
   Edge,
+  LanguageBag,
   MethodNode,
   Modifier,
   ScanManifest,
@@ -17,6 +18,7 @@ import type {
 } from '#backend/app/code-model/code-model';
 import { unquote } from '#backend/app/code-model/projection/annotations';
 import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.vocabulary';
+import { JAVA_VOCABULARY } from '#backend/app/code-model/projection/java.vocabulary';
 import {
   NamespaceConfig,
   type NamespaceConfigInput,
@@ -25,6 +27,7 @@ import {
   type Projection,
   projectSystemModel,
 } from '#backend/app/code-model/projection/project-system-model';
+import type { AnnotationVocabulary } from '#backend/app/code-model/projection/vocabulary';
 import { SystemModel } from '#backend/app/system-model/system-model';
 
 /*
@@ -78,6 +81,12 @@ const SYS = {
   func: 'T:System.Func`2',
   cancellation: 'T:System.Threading.CancellationToken',
   object: 'T:System.Object',
+};
+
+const JAVA = {
+  boolean: 'T:java.lang.Boolean',
+  string: 'T:java.lang.String',
+  list: 'T:java.util.List`1',
 };
 
 /* ------------------------------------------------------- annotations */
@@ -135,6 +144,12 @@ const scenario = (name: string | null) =>
 const exclude = () => attr('ExcludeFromDocsAttribute');
 const domainModel = () => attr('Domain.DomainModelAttribute');
 
+/** A `vision.noesis.annotations` annotation, which carries no arguments. */
+const javaAnnotation = (short: string): Annotation => ({
+  type: named(`T:vision.noesis.annotations.${short}`),
+  arguments: [],
+});
+
 /* ----------------------------------------------------------- builder */
 
 interface TypeOptions {
@@ -156,6 +171,7 @@ interface ParameterInput {
 }
 
 interface MethodOptions {
+  languageSpecific?: LanguageBag;
   parameters?: ParameterInput[];
   returns?: TypeRef;
   annotations?: Annotation[];
@@ -172,6 +188,7 @@ interface MethodOptions {
 }
 
 interface MemberOptions {
+  languageSpecific?: LanguageBag;
   annotations?: Annotation[];
   visibility?: Visibility;
   modifiers?: Modifier[];
@@ -321,7 +338,7 @@ class ArtifactBuilder {
       locations: [this.location(options.file)],
       annotations: options.annotations ?? [],
       documentation: options.documentation ?? null,
-      languageSpecific: {},
+      languageSpecific: options.languageSpecific ?? {},
       methodKind: options.methodKind ?? 'method',
       visibility: options.visibility ?? 'public',
       modifiers: options.modifiers ?? [],
@@ -409,7 +426,7 @@ class ArtifactBuilder {
       locations: [this.location(options.file, options.line)],
       annotations: options.annotations ?? [],
       documentation: options.documentation ?? null,
-      languageSpecific: {},
+      languageSpecific: options.languageSpecific ?? {},
       fieldKind: options.enumMember ? 'enumMember' : 'field',
       visibility: options.visibility ?? 'public',
       modifiers: options.modifiers ?? [],
@@ -487,12 +504,13 @@ const artifact = (
 function project(
   artifacts: ArtifactBuilder[],
   config: NamespaceConfigInput = {},
+  vocabulary: AnnotationVocabulary = CSHARP_VOCABULARY,
 ): Projection {
   const files = artifacts.map((a) => a.build());
   const manifest: ScanManifest = {
     schemaVersion: 1,
     generator: { name: 'spec', version: '0' },
-    language: 'csharp',
+    language: vocabulary.language,
     repository: { name: 'spec', revision: 'none' },
     root: '',
     artifacts: files.map((file) => ({
@@ -504,7 +522,7 @@ function project(
   const projection = projectSystemModel({
     manifest,
     files,
-    vocabulary: CSHARP_VOCABULARY,
+    vocabulary,
     config: NamespaceConfig.of(config),
   });
   // Whatever the projection yields must be a system model.
@@ -539,6 +557,10 @@ describe('2. the annotation vocabulary', () => {
     expect<unknown>(unquote('"Say \\"hi\\"\\n"')).toBe('Say "hi"\n');
     expect<unknown>(unquote('@"C:\\x ""quoted"""')).toBe('C:\\x "quoted"');
     expect<unknown>(unquote('"""  raw text  """')).toBe('raw text');
+    // A Java text block spells itself the raw way.
+    expect<unknown>(unquote('"""\n    Placed by the customer.\n    """')).toBe(
+      'Placed by the customer.',
+    );
     expect<unknown>(unquote('null')).toBe(null);
     expect<unknown>(unquote('42')).toBe('42');
   });
@@ -985,6 +1007,205 @@ describe('5. properties', () => {
     expect<unknown>(
       model.buildingBlocks[0]?.properties.map((p) => p.name),
     ).toEqual(['C', 'A', 'B', 'Z']);
+  });
+
+  it("R5.7 takes a Java record's components as properties although their fields are private, and their accessors as no behaviours", () => {
+    const { model } = project(
+      [
+        artifact('shop')
+          .type('T:com.acme.Money', {
+            modifiers: ['final', 'record'],
+            annotations: [javaAnnotation('ValueObject')],
+          })
+          .field('F:com.acme.Money.amount', prim('long'), {
+            visibility: 'private',
+            modifiers: ['readonly'],
+            languageSpecific: { 'java.isRecordComponent': true },
+          })
+          .field('F:com.acme.Money.cache', prim('long'), {
+            visibility: 'private',
+          })
+          .method('M:com.acme.Money#amount()', {
+            returns: prim('long'),
+            languageSpecific: { 'java.isRecordComponent': true },
+          })
+          .method('M:com.acme.Money#negate()', {
+            returns: named('T:com.acme.Money'),
+          }),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    const money = model.buildingBlocks.find((b) => b.name === 'Money');
+    expect<unknown>(money?.properties.map((p) => [p.name, p.type])).toEqual([
+      ['amount', 'primitive|integer'],
+    ]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual(['negate']);
+  });
+
+  /** A Java value object `com.acme.Offer`, to hang private fields and getters on. */
+  const offer = () =>
+    artifact('shop').type('T:com.acme.Offer', {
+      modifiers: ['final'],
+      annotations: [javaAnnotation('ValueObject')],
+    });
+  const privateField: MemberOptions = {
+    visibility: 'private',
+    modifiers: ['readonly'],
+  };
+  const javaProjection = (built: ArtifactBuilder) =>
+    project([built], {}, JAVA_VOCABULARY).model;
+  const propertiesOfOffer = (model: Projection['model']) =>
+    model.buildingBlocks
+      .find((b) => b.name === 'Offer')
+      ?.properties.map((p) => [p.name, p.type]);
+
+  it("R5.8 takes a Java field behind Lombok's generated getter as a property, described by the field, else the getter", () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.products', named(JAVA.list, prim('long')), {
+          ...privateField,
+          languageSpecific: { 'java.processorModified': true },
+        })
+        .field('F:com.acme.Offer.total', prim('long'), {
+          ...privateField,
+          documentation: 'What is owed.',
+        })
+        .method('M:com.acme.Offer#getProducts()', {
+          returns: named(JAVA.list, prim('long')),
+          origin: 'generated',
+          documentation: 'The products offered.',
+          languageSpecific: { 'java.engine': 'bytecode' },
+        })
+        .method('M:com.acme.Offer#getTotal()', {
+          returns: prim('long'),
+          origin: 'generated',
+          documentation: 'Ignored: the field has its own.',
+        })
+        .method('M:com.acme.Offer#hashCode()', {
+          returns: prim('int'),
+          origin: 'generated',
+        }),
+    );
+    expect<unknown>(
+      model.buildingBlocks[0]?.properties.map((p) => [p.name, p.description]),
+    ).toEqual([
+      ['products', 'The products offered.'],
+      ['total', 'What is owed.'],
+    ]);
+    expect<unknown>(model.behaviours).toEqual([]);
+  });
+
+  it('R5.8 takes a Java field behind a hand-written getter as a property, and the getter as no behaviour', () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.total', prim('long'), privateField)
+        .method('M:com.acme.Offer#getTotal()', { returns: prim('long') })
+        .method('M:com.acme.Offer#discount()', { returns: prim('long') }),
+    );
+    expect<unknown>(propertiesOfOffer(model)).toEqual([
+      ['total', 'primitive|integer'],
+    ]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual(['discount']);
+  });
+
+  it('R5.8 takes isX() as the getter of a boolean or Boolean field, and only of one', () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.paid', prim('boolean'), privateField)
+        .field('F:com.acme.Offer.signed', named(JAVA.boolean), privateField)
+        .field('F:com.acme.Offer.count', prim('int'), privateField)
+        .method('M:com.acme.Offer#isPaid()', { returns: prim('boolean') })
+        .method('M:com.acme.Offer#isSigned()', {
+          returns: named(JAVA.boolean),
+        })
+        .method('M:com.acme.Offer#isCount()', { returns: prim('int') }),
+    );
+    expect<unknown>(propertiesOfOffer(model)).toEqual([
+      ['paid', 'primitive|boolean'],
+      ['signed', 'primitive|boolean'],
+    ]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual(['isCount']);
+  });
+
+  it("R5.8 takes Lombok's fluent accessor x() as the getter of x", () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.total', prim('long'), privateField)
+        .method('M:com.acme.Offer#total()', {
+          returns: prim('long'),
+          origin: 'generated',
+        }),
+    );
+    expect<unknown>(propertiesOfOffer(model)).toEqual([
+      ['total', 'primitive|integer'],
+    ]);
+  });
+
+  it("R5.8 takes no getter whose return type is not the field's, nor one that is static, takes parameters or is not public", () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.total', prim('long'), privateField)
+        .field('F:com.acme.Offer.code', prim('int'), privateField)
+        .field('F:com.acme.Offer.name', named(JAVA.string), privateField)
+        .field('F:com.acme.Offer.note', named(JAVA.string), privateField)
+        .method('M:com.acme.Offer#getTotal()', { returns: named(JAVA.string) })
+        .method('M:com.acme.Offer#getCode()', {
+          returns: prim('int'),
+          modifiers: ['static'],
+        })
+        .method('M:com.acme.Offer#getName(int)', {
+          returns: named(JAVA.string),
+          parameters: [{ name: 'index', type: prim('int') }],
+        })
+        .method('M:com.acme.Offer#getNote()', {
+          returns: named(JAVA.string),
+          visibility: 'namespace',
+        }),
+    );
+    expect<unknown>(propertiesOfOffer(model)).toEqual([]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual([
+      'getCode',
+      'getName',
+      'getTotal',
+    ]);
+  });
+
+  it('R5.8 takes no static field, constant or excluded field for a property, getter or not', () => {
+    const model = javaProjection(
+      offer()
+        .field('F:com.acme.Offer.instances', prim('long'), {
+          visibility: 'private',
+          modifiers: ['static'],
+        })
+        .field('F:com.acme.Offer.limit', prim('long'), {
+          ...privateField,
+          constantValue: '10',
+        })
+        .method('M:com.acme.Offer#getInstances()', { returns: prim('long') })
+        .method('M:com.acme.Offer#getLimit()', { returns: prim('long') }),
+    );
+    expect<unknown>(propertiesOfOffer(model)).toEqual([]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual([
+      'getInstances',
+      'getLimit',
+    ]);
+  });
+
+  it('R5.8 leaves C# alone: a private field behind a getter method is no property, the method a behaviour', () => {
+    const { model } = project([
+      sales()
+        .field('F:Sales.Orders.Order.total', prim('decimal'), {
+          visibility: 'private',
+        })
+        .method('M:Sales.Orders.Order#getTotal()', { returns: prim('decimal') })
+        .method('M:Sales.Orders.Order#total()', { returns: prim('decimal') }),
+    ]);
+    expect<unknown>(model.buildingBlocks[0]?.properties).toEqual([]);
+    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual([
+      'getTotal',
+      'total',
+    ]);
   });
 
   it('R5.6 describes a property by its doc comment', () => {
@@ -1463,6 +1684,39 @@ describe('9. behaviours', () => {
       ['Place', 'Command'],
       ['Total', 'Query'],
       ['Unspecified', 'Command'],
+    ]);
+  });
+
+  it('R9.4 takes the type a Java handler annotation fixes itself, which carries no argument', () => {
+    const { model } = project(
+      [
+        artifact('shop')
+          .type('T:com.acme.Orders', {
+            annotations: [javaAnnotation('ApplicationService')],
+          })
+          .method('M:com.acme.Orders#place()', {
+            annotations: [javaAnnotation('CommandHandler')],
+          })
+          .method('M:com.acme.Orders#total()', {
+            returns: prim('long'),
+            annotations: [javaAnnotation('QueryHandler')],
+          })
+          .method('M:com.acme.Orders#onPlaced()', {
+            annotations: [javaAnnotation('EventHandler')],
+            visibility: 'namespace',
+          })
+          .method('M:com.acme.Orders#list()', { returns: prim('long') }),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    expect<unknown>(
+      model.behaviours.map((b) => [b.name, b.type, b.visibility.kind]),
+    ).toEqual([
+      ['list', 'Command', 'public'],
+      ['onPlaced', 'Event', 'private'],
+      ['place', 'Command', 'public'],
+      ['total', 'Query', 'public'],
     ]);
   });
 

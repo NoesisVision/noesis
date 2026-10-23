@@ -1,4 +1,7 @@
-import type { BuildingBlockType } from '#backend/app/system-model/system-model';
+import type {
+  BehaviourType,
+  BuildingBlockType,
+} from '#backend/app/system-model/system-model';
 import type { Language, NodeId } from '../code-model';
 
 /*
@@ -23,8 +26,8 @@ export type PrimitiveName =
 export type AnnotationRole =
   /** The type is a building block of `type`; the `name` argument overrides its name. */
   | { readonly role: 'buildingBlock'; readonly type: BuildingBlockType }
-  /** The method is a behaviour; `name` overrides its name, `triggeredBy` fixes its type. */
-  | { readonly role: 'behaviour' }
+  /** The method is a behaviour; `name` overrides its name, `triggeredBy` fixes its type, or the role's own `type` does (Java's `@QueryHandler`). */
+  | { readonly role: 'behaviour'; readonly type?: BehaviourType }
   /** Who calls the behaviour: the `name` argument. */
   | { readonly role: 'actor' }
   /** The element's description, Markdown, in the `description` argument. */

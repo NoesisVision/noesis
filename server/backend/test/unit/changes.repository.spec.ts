@@ -22,7 +22,7 @@ afterEach(() => t.cleanup());
 const ids = async (): Promise<string[]> =>
   (await t.changesRepository.list()).map(({ id }) => id);
 
-describe('NoesisChangesRepository', () => {
+describe('ChangesFileRepository', () => {
   it('lists nothing before the first change, then every id written, ascending', async () => {
     expect(await ids()).toEqual([]);
 

@@ -11,7 +11,7 @@ export function changesDir(noesis: NoesisDir): string {
   return noesis.resolve('graph', 'changes');
 }
 
-export class NoesisChangesRepository implements ChangesRepository {
+export class ChangesFileRepository implements ChangesRepository {
   private readonly dir: string;
   private readonly changes: JsonCollection<Change>;
 

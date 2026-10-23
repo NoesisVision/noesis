@@ -21,7 +21,7 @@ const NO_COMMIT = 'uncommitted';
  * by the minute it was scanned at (UTC) and the commit it scanned. A scan in
  * the same minute on the same commit replaces the one before.
  */
-export class NoesisSystemModelsRepository implements SystemModelsRepository {
+export class SystemModelsFileRepository implements SystemModelsRepository {
   private readonly dir: string;
 
   constructor(noesis: NoesisDir) {

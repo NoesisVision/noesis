@@ -1,8 +1,8 @@
 import { basename } from 'node:path';
-import { ScannerFactory } from '#backend/adapters/out/scanners/scanner-factory';
-import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
-import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
-import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
+import { ChangeOwnedFileRepository } from '#backend/adapters/out/store/change-owned.repository';
+import { ChangesFileRepository } from '#backend/adapters/out/store/changes.repository';
+import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
+import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import { createChangeHandler } from '#backend/app/changes/create-change';
 import { deleteChangeHandler } from '#backend/app/changes/delete-change';
 import { findChangeHandler } from '#backend/app/changes/find-change';
@@ -24,31 +24,31 @@ import { updateDocumentInChangeHandler } from '#backend/app/information-sources/
 import { searchHandler } from '#backend/app/search/search';
 import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
+import { ScannerFactory } from '#backend/app/system-model/scanner-factory';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { scannerBuilders } from './scanners';
 
 /**
- * Wires the file repositories under `.noesis/` and the scanner factory to the
- * handlers that use them. `env` is where the factory looks for
- * `NOESIS_SCANNER`.
+ * Wires the file repositories under `.noesis/` and the scanners to the
+ * handlers that use them.
  */
 export function createServices(
   noesis: NoesisDir,
-  env: NodeJS.ProcessEnv = process.env,
   today: Today = localToday,
   now: Now = utcNow,
 ) {
-  const changes = new NoesisChangesRepository(noesis);
-  const designDocs = new NoesisChangeOwnedRepository(
+  const changes = new ChangesFileRepository(noesis);
+  const designDocs = new ChangeOwnedFileRepository(
     noesis,
     StoredDesignDocument,
     'design-doc',
   );
-  const documents = new NoesisChangeOwnedRepository(
+  const documents = new ChangeOwnedFileRepository(
     noesis,
     DocumentSchema,
     'document',
   );
-  const systemModels = new NoesisSystemModelsRepository(noesis);
+  const systemModels = new SystemModelsFileRepository(noesis);
   return {
     // Named as the scanners name the model they find: by the folder.
     projectName: basename(noesis.root),
@@ -91,7 +91,10 @@ export function createServices(
     findDocument: findDocumentHandler(documents, changes),
     search: searchHandler(),
     scanSystemModel: scanSystemModelHandler(
-      new ScannerFactory({ noesis, changes, designDocs, now }, env),
+      new ScannerFactory(
+        new ScannerSettingsFileRepository(noesis),
+        scannerBuilders(noesis, now),
+      ),
       systemModels,
     ),
     findNewestSystemModel: findNewestSystemModelHandler(systemModels),

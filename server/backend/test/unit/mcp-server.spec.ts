@@ -6,7 +6,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/server';
 import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
 import { SessionDir } from '#backend/adapters/in/mcp/session-dir';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
-import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
+import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
@@ -353,7 +353,7 @@ describe('scan_system_model', () => {
 
   /** A client whose server scans with a scanner that finds `found`. */
   async function scanningClient(): Promise<Client> {
-    const systemModels = new NoesisSystemModelsRepository(noesis.noesis);
+    const systemModels = new SystemModelsFileRepository(noesis.noesis);
     const server = createMcpServer({
       ...noesis,
       version: '0.0.0-test',
@@ -395,29 +395,16 @@ describe('scan_system_model', () => {
       behaviours: 0,
     });
     expect(textOf(result)).toContain(`Scanned shop (${id}): 1 modules`);
-    expect(
-      await new NoesisSystemModelsRepository(noesis.noesis).list(),
-    ).toEqual([found]);
+    expect(await new SystemModelsFileRepository(noesis.noesis).list()).toEqual([
+      found,
+    ]);
   });
 
   it('answers a failed scan in-band', async () => {
-    const change = await noesis.writeChange(CHANGE);
-    await noesis.writeDesignDoc(change, {
-      id: `${TODAY}-rename-sales`,
-      name: 'Rename sales',
-      description: 'Renames a module no design added.',
-      modules: {
-        modified: [{ id: 'module|sales', name: { value: 'selling' } }],
-      },
-      implemented: true,
-    });
-
     const result = await client.callTool({ name: 'scan_system_model' });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain(
-      'modules.modified[module|sales] is not there',
-    );
+    expect(textOf(result)).toContain('.noesis/settings.json names no scanner');
   });
 
   it('is advertised as adding a scan on every call', async () => {
@@ -446,7 +433,7 @@ describe('get_newest_system_model', () => {
   });
 
   it('answers the model scanned last, whole', async () => {
-    const systemModels = new NoesisSystemModelsRepository(noesis.noesis);
+    const systemModels = new SystemModelsFileRepository(noesis.noesis);
     const newest = scan(NEWER, 'shop', '2026-09-29T08:01:00.000Z');
     await systemModels.save(newest);
     await systemModels.save(scan(OLDER, 'billing', '2026-09-29T08:00:00.000Z'));

@@ -472,7 +472,7 @@ The identity lives in whichever catalog declares it (`System.Runtime` for
       own file) → that type;
    3. unless `context.kind = 'usingDirective'` and this is the innermost
       scope: if the scope's directives contain a `using` alias or an `extern
-alias` named `I` and `K = 0` → its target (`type` or `namespace`). An
+      alias` named `I` and `K = 0` → its target (`type` or `namespace`). An
       alias and a namespace member with the same name is `ambiguous`
       (CS0576);
    4. unless excluded as in 3.3: collect accessible types `I` of arity `K`

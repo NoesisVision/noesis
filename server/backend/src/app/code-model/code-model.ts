@@ -6,13 +6,20 @@ import { z } from 'zod';
  * docs/plans/code-model-and-roslyn-csharp-scanner.md; the .NET scanner keeps a
  * C# copy of these shapes and its golden files are checked against this schema.
  * Objects are strict so a field added on one side fails the other.
+ *
+ * `bun run generate` writes these shapes as JSON Schema into
+ * `scanners/code-model/`, the file a scanner in any language reads; a schema
+ * named here with `.meta({ id })` becomes a `$defs` entry under that name.
  */
 
 export const Language = z.enum(['csharp', 'java', 'typescript', 'php']);
 export type Language = z.infer<typeof Language>;
 
 /** `<kind-letter>:<canonical path>`; unique within one artifact file. */
-export const NodeId = z.string().regex(/^[ANTMPF]:/);
+export const NodeId = z
+  .string()
+  .regex(/^[ANTMPF]:/)
+  .meta({ id: 'NodeId' });
 export type NodeId = z.infer<typeof NodeId>;
 
 const bagValue = z.union([
@@ -23,60 +30,70 @@ const bagValue = z.union([
 ]);
 
 /** Flat, scalar, language-prefixed facts; unknown keys are allowed and ignored. */
-export const LanguageBag = z.record(z.string(), bagValue);
+export const LanguageBag = z
+  .record(z.string(), bagValue)
+  .meta({ id: 'LanguageBag' });
 export type LanguageBag = z.infer<typeof LanguageBag>;
 
-export const SourceSpan = z.strictObject({
-  file: z.string(),
-  startLine: z.number().int(),
-  startColumn: z.number().int(),
-  endLine: z.number().int(),
-  endColumn: z.number().int(),
-});
+export const SourceSpan = z
+  .strictObject({
+    file: z.string(),
+    startLine: z.number().int(),
+    startColumn: z.number().int(),
+    endLine: z.number().int(),
+    endColumn: z.number().int(),
+  })
+  .meta({ id: 'SourceSpan' });
 export type SourceSpan = z.infer<typeof SourceSpan>;
 
-export const Visibility = z.enum([
-  'public',
-  'protected',
-  'private',
-  'artifact',
-  'namespace',
-  'file',
-  'protectedOrArtifact',
-  'protectedAndArtifact',
-  'protectedOrNamespace',
-]);
+export const Visibility = z
+  .enum([
+    'public',
+    'protected',
+    'private',
+    'artifact',
+    'namespace',
+    'file',
+    'protectedOrArtifact',
+    'protectedAndArtifact',
+    'protectedOrNamespace',
+  ])
+  .meta({ id: 'Visibility' });
 export type Visibility = z.infer<typeof Visibility>;
 
-export const Modifier = z.enum([
-  'static',
-  'abstract',
-  'final',
-  'virtual',
-  'hiding',
-  'readonly',
-  'record',
-  'volatile',
-  'async',
-  'external',
-]);
+export const Modifier = z
+  .enum([
+    'static',
+    'abstract',
+    'final',
+    'virtual',
+    'hiding',
+    'readonly',
+    'record',
+    'volatile',
+    'async',
+    'external',
+  ])
+  .meta({ id: 'Modifier' });
 export type Modifier = z.infer<typeof Modifier>;
 
-export const Passing = z.enum(['value', 'ref']);
+export const Passing = z.enum(['value', 'ref']).meta({ id: 'Passing' });
 export type Passing = z.infer<typeof Passing>;
 
-export const Origin = z.enum(['declared', 'generated']);
+export const Origin = z.enum(['declared', 'generated']).meta({ id: 'Origin' });
 export type Origin = z.infer<typeof Origin>;
 
-export const TypeKind = z.enum([
-  'class',
-  'interface',
-  'struct',
-  'enum',
-  'delegate',
-  'trait',
-  'typeAlias',
-]);
+export const TypeKind = z
+  .enum([
+    'class',
+    'interface',
+    'struct',
+    'enum',
+    'delegate',
+    'trait',
+    'typeAlias',
+  ])
+  .meta({ id: 'TypeKind' });
 export type TypeKind = z.infer<typeof TypeKind>;
 
 export interface Signature {
@@ -167,166 +184,186 @@ export type TypeRef =
   | { readonly kind: 'unresolved'; readonly text: string }
   | { readonly kind: 'other'; readonly text: string };
 
-export const TypeRef: z.ZodType<TypeRef> = z.lazy(() =>
-  z.discriminatedUnion('kind', [
+export const TypeRef: z.ZodType<TypeRef> = z
+  .lazy(() =>
+    z.discriminatedUnion('kind', [
+      z.strictObject({
+        kind: z.literal('named'),
+        type: NodeId,
+        typeArguments: z.array(TypeRef),
+        unbound: z.boolean(),
+        nullable: z.boolean(),
+      }),
+      z.strictObject({
+        kind: z.literal('typeParameter'),
+        owner: NodeId,
+        ordinal: z.number().int(),
+        nullable: z.boolean(),
+      }),
+      z.strictObject({
+        kind: z.literal('array'),
+        element: TypeRef,
+        rank: z.number().int(),
+        nullable: z.boolean(),
+      }),
+      z.strictObject({
+        kind: z.literal('tuple'),
+        elements: z.array(
+          z.strictObject({ name: z.string().nullable(), type: TypeRef }),
+        ),
+      }),
+      z.strictObject({
+        kind: z.literal('function'),
+        signature: Signature,
+        callingConvention: z.string().nullable(),
+      }),
+      z.strictObject({
+        kind: z.literal('structural'),
+        members: z.array(z.strictObject({ name: z.string(), type: TypeRef })),
+      }),
+      z.strictObject({ kind: z.literal('pointer'), pointee: TypeRef }),
+      z.strictObject({ kind: z.literal('union'), members: z.array(TypeRef) }),
+      z.strictObject({
+        kind: z.literal('intersection'),
+        members: z.array(TypeRef),
+      }),
+      z.strictObject({ kind: z.literal('literal'), text: z.string() }),
+      z.strictObject({
+        kind: z.literal('primitive'),
+        name: z.string(),
+        nullable: z.boolean(),
+      }),
+      z.strictObject({ kind: z.literal('dynamic') }),
+      z.strictObject({ kind: z.literal('void') }),
+      z.strictObject({ kind: z.literal('unresolved'), text: z.string() }),
+      z.strictObject({ kind: z.literal('other'), text: z.string() }),
+    ]),
+  )
+  .meta({ id: 'TypeRef' });
+
+export const AnnotationValue: z.ZodType<AnnotationValue> = z
+  .lazy(() =>
+    z.discriminatedUnion('kind', [
+      z.strictObject({ kind: z.literal('literal'), text: z.string() }),
+      z.strictObject({ kind: z.literal('type'), type: TypeRef }),
+      z.strictObject({
+        kind: z.literal('enum'),
+        type: TypeRef,
+        member: z.string(),
+      }),
+      z.strictObject({
+        kind: z.literal('array'),
+        items: z.array(AnnotationValue),
+      }),
+      z.strictObject({ kind: z.literal('annotation'), annotation: Annotation }),
+      z.strictObject({ kind: z.literal('other'), text: z.string() }),
+    ]),
+  )
+  .meta({ id: 'AnnotationValue' });
+
+export const Annotation: z.ZodType<Annotation> = z
+  .lazy(() =>
     z.strictObject({
-      kind: z.literal('named'),
-      type: NodeId,
-      typeArguments: z.array(TypeRef),
-      unbound: z.boolean(),
-      nullable: z.boolean(),
-    }),
-    z.strictObject({
-      kind: z.literal('typeParameter'),
-      owner: NodeId,
-      ordinal: z.number().int(),
-      nullable: z.boolean(),
-    }),
-    z.strictObject({
-      kind: z.literal('array'),
-      element: TypeRef,
-      rank: z.number().int(),
-      nullable: z.boolean(),
-    }),
-    z.strictObject({
-      kind: z.literal('tuple'),
-      elements: z.array(
-        z.strictObject({ name: z.string().nullable(), type: TypeRef }),
+      type: TypeRef,
+      arguments: z.array(
+        z.strictObject({
+          name: z.string(),
+          positional: z.boolean(),
+          value: AnnotationValue,
+        }),
       ),
     }),
+  )
+  .meta({ id: 'Annotation' });
+
+export const Parameter: z.ZodType<Parameter> = z
+  .lazy(() =>
     z.strictObject({
-      kind: z.literal('function'),
-      signature: Signature,
-      callingConvention: z.string().nullable(),
-    }),
-    z.strictObject({
-      kind: z.literal('structural'),
-      members: z.array(z.strictObject({ name: z.string(), type: TypeRef })),
-    }),
-    z.strictObject({ kind: z.literal('pointer'), pointee: TypeRef }),
-    z.strictObject({ kind: z.literal('union'), members: z.array(TypeRef) }),
-    z.strictObject({
-      kind: z.literal('intersection'),
-      members: z.array(TypeRef),
-    }),
-    z.strictObject({ kind: z.literal('literal'), text: z.string() }),
-    z.strictObject({
-      kind: z.literal('primitive'),
       name: z.string(),
-      nullable: z.boolean(),
-    }),
-    z.strictObject({ kind: z.literal('dynamic') }),
-    z.strictObject({ kind: z.literal('void') }),
-    z.strictObject({ kind: z.literal('unresolved'), text: z.string() }),
-    z.strictObject({ kind: z.literal('other'), text: z.string() }),
-  ]),
-);
-
-export const AnnotationValue: z.ZodType<AnnotationValue> = z.lazy(() =>
-  z.discriminatedUnion('kind', [
-    z.strictObject({ kind: z.literal('literal'), text: z.string() }),
-    z.strictObject({ kind: z.literal('type'), type: TypeRef }),
-    z.strictObject({
-      kind: z.literal('enum'),
       type: TypeRef,
-      member: z.string(),
+      passing: Passing,
+      variadic: z.boolean(),
+      optional: z.boolean(),
+      defaultValue: z.string().nullable(),
+      annotations: z.array(Annotation),
+      languageSpecific: LanguageBag,
     }),
+  )
+  .meta({ id: 'Parameter' });
+
+export const Signature: z.ZodType<Signature> = z
+  .lazy(() =>
     z.strictObject({
-      kind: z.literal('array'),
-      items: z.array(AnnotationValue),
+      parameters: z.array(Parameter),
+      returnType: TypeRef,
+      returnPassing: Passing,
+      returnAnnotations: z.array(Annotation),
     }),
-    z.strictObject({ kind: z.literal('annotation'), annotation: Annotation }),
+  )
+  .meta({ id: 'Signature' });
+
+export const TypeParameterConstraint = z
+  .discriminatedUnion('kind', [
+    z.strictObject({ kind: z.literal('type'), type: TypeRef }),
+    z.strictObject({ kind: z.literal('referenceType') }),
+    z.strictObject({ kind: z.literal('valueType') }),
+    z.strictObject({ kind: z.literal('notNull') }),
+    z.strictObject({ kind: z.literal('parameterlessConstructor') }),
     z.strictObject({ kind: z.literal('other'), text: z.string() }),
-  ]),
-);
-
-export const Annotation: z.ZodType<Annotation> = z.lazy(() =>
-  z.strictObject({
-    type: TypeRef,
-    arguments: z.array(
-      z.strictObject({
-        name: z.string(),
-        positional: z.boolean(),
-        value: AnnotationValue,
-      }),
-    ),
-  }),
-);
-
-export const Parameter: z.ZodType<Parameter> = z.lazy(() =>
-  z.strictObject({
-    name: z.string(),
-    type: TypeRef,
-    passing: Passing,
-    variadic: z.boolean(),
-    optional: z.boolean(),
-    defaultValue: z.string().nullable(),
-    annotations: z.array(Annotation),
-    languageSpecific: LanguageBag,
-  }),
-);
-
-export const Signature: z.ZodType<Signature> = z.lazy(() =>
-  z.strictObject({
-    parameters: z.array(Parameter),
-    returnType: TypeRef,
-    returnPassing: Passing,
-    returnAnnotations: z.array(Annotation),
-  }),
-);
-
-export const TypeParameterConstraint = z.discriminatedUnion('kind', [
-  z.strictObject({ kind: z.literal('type'), type: TypeRef }),
-  z.strictObject({ kind: z.literal('referenceType') }),
-  z.strictObject({ kind: z.literal('valueType') }),
-  z.strictObject({ kind: z.literal('notNull') }),
-  z.strictObject({ kind: z.literal('parameterlessConstructor') }),
-  z.strictObject({ kind: z.literal('other'), text: z.string() }),
-]);
+  ])
+  .meta({ id: 'TypeParameterConstraint' });
 export type TypeParameterConstraint = z.infer<typeof TypeParameterConstraint>;
 
-export const TypeParameter = z.strictObject({
-  name: z.string(),
-  ordinal: z.number().int(),
-  annotations: z.array(Annotation),
-  variance: z.enum(['invariant', 'covariant', 'contravariant']),
-  constraints: z.array(TypeParameterConstraint),
-  languageSpecific: LanguageBag,
-});
+export const TypeParameter = z
+  .strictObject({
+    name: z.string(),
+    ordinal: z.number().int(),
+    annotations: z.array(Annotation),
+    variance: z.enum(['invariant', 'covariant', 'contravariant']),
+    constraints: z.array(TypeParameterConstraint),
+    languageSpecific: LanguageBag,
+  })
+  .meta({ id: 'TypeParameter' });
 export type TypeParameter = z.infer<typeof TypeParameter>;
 
-export const Diagnostic = z.strictObject({
-  severity: z.enum(['error', 'warning', 'info']),
-  code: z.string(),
-  message: z.string(),
-  location: SourceSpan.nullable(),
-  source: z.enum(['compiler', 'scanner']),
-});
+export const Diagnostic = z
+  .strictObject({
+    severity: z.enum(['error', 'warning', 'info']),
+    code: z.string(),
+    message: z.string(),
+    location: SourceSpan.nullable(),
+    source: z.enum(['compiler', 'scanner']),
+  })
+  .meta({ id: 'Diagnostic' });
 export type Diagnostic = z.infer<typeof Diagnostic>;
 
-export const ArtifactKind = z.enum(['source', 'library', 'platform']);
+export const ArtifactKind = z
+  .enum(['source', 'library', 'platform'])
+  .meta({ id: 'ArtifactKind' });
 export type ArtifactKind = z.infer<typeof ArtifactKind>;
 
-export const ArtifactNode = z.strictObject({
-  id: NodeId,
-  kind: ArtifactKind,
-  name: z.string(),
-  version: z.string().nullable(),
-  rootDirectory: z.string().nullable(),
-  target: z.string(),
-  executable: z.boolean(),
-  dependencies: z.array(
-    z.strictObject({
-      id: NodeId,
-      kind: ArtifactKind,
-      package: z
-        .strictObject({ id: z.string(), version: z.string() })
-        .nullable(),
-    }),
-  ),
-  annotations: z.array(Annotation),
-  languageSpecific: LanguageBag,
-});
+export const ArtifactNode = z
+  .strictObject({
+    id: NodeId,
+    kind: ArtifactKind,
+    name: z.string(),
+    version: z.string().nullable(),
+    rootDirectory: z.string().nullable(),
+    target: z.string(),
+    executable: z.boolean(),
+    dependencies: z.array(
+      z.strictObject({
+        id: NodeId,
+        kind: ArtifactKind,
+        package: z
+          .strictObject({ id: z.string(), version: z.string() })
+          .nullable(),
+      }),
+    ),
+    annotations: z.array(Annotation),
+    languageSpecific: LanguageBag,
+  })
+  .meta({ id: 'ArtifactNode' });
 export type ArtifactNode = z.infer<typeof ArtifactNode>;
 
 const nodeBase = {
@@ -339,152 +376,178 @@ const nodeBase = {
   languageSpecific: LanguageBag,
 };
 
-export const NamespaceNode = z.strictObject({
-  kind: z.literal('namespace'),
-  ...nodeBase,
-});
+export const NamespaceNode = z
+  .strictObject({
+    kind: z.literal('namespace'),
+    ...nodeBase,
+  })
+  .meta({ id: 'NamespaceNode' });
 export type NamespaceNode = z.infer<typeof NamespaceNode>;
 
-export const TypeNode = z.strictObject({
-  kind: z.literal('type'),
-  ...nodeBase,
-  typeKind: TypeKind,
-  visibility: Visibility,
-  modifiers: z.array(Modifier),
-  typeParameters: z.array(TypeParameter),
-  underlyingType: TypeRef.nullable(),
-  delegateSignature: Signature.nullable(),
-  aliasOf: TypeRef.nullable(),
-});
+export const TypeNode = z
+  .strictObject({
+    kind: z.literal('type'),
+    ...nodeBase,
+    typeKind: TypeKind,
+    visibility: Visibility,
+    modifiers: z.array(Modifier),
+    typeParameters: z.array(TypeParameter),
+    underlyingType: TypeRef.nullable(),
+    delegateSignature: Signature.nullable(),
+    aliasOf: TypeRef.nullable(),
+  })
+  .meta({ id: 'TypeNode' });
 export type TypeNode = z.infer<typeof TypeNode>;
 
-export const MethodNode = z.strictObject({
-  kind: z.literal('method'),
-  ...nodeBase,
-  methodKind: z.enum([
-    'method',
-    'constructor',
-    'staticInitializer',
-    'destructor',
-    'operator',
-    'function',
-  ]),
-  visibility: Visibility,
-  modifiers: z.array(Modifier),
-  typeParameters: z.array(TypeParameter),
-  signature: Signature,
-  extensionReceiver: TypeRef.nullable(),
-  bodiless: z.boolean(),
-});
+export const MethodNode = z
+  .strictObject({
+    kind: z.literal('method'),
+    ...nodeBase,
+    methodKind: z.enum([
+      'method',
+      'constructor',
+      'staticInitializer',
+      'destructor',
+      'operator',
+      'function',
+    ]),
+    visibility: Visibility,
+    modifiers: z.array(Modifier),
+    typeParameters: z.array(TypeParameter),
+    signature: Signature,
+    extensionReceiver: TypeRef.nullable(),
+    bodiless: z.boolean(),
+  })
+  .meta({ id: 'MethodNode' });
 export type MethodNode = z.infer<typeof MethodNode>;
 
-export const PropertyNode = z.strictObject({
-  kind: z.literal('property'),
-  ...nodeBase,
-  visibility: Visibility,
-  modifiers: z.array(Modifier),
-  type: TypeRef,
-  returnPassing: Passing,
-  parameters: z.array(Parameter),
-  extensionReceiver: TypeRef.nullable(),
-  accessors: z.array(z.enum(['get', 'set', 'init', 'add', 'remove'])),
-});
+export const PropertyNode = z
+  .strictObject({
+    kind: z.literal('property'),
+    ...nodeBase,
+    visibility: Visibility,
+    modifiers: z.array(Modifier),
+    type: TypeRef,
+    returnPassing: Passing,
+    parameters: z.array(Parameter),
+    extensionReceiver: TypeRef.nullable(),
+    accessors: z.array(z.enum(['get', 'set', 'init', 'add', 'remove'])),
+  })
+  .meta({ id: 'PropertyNode' });
 export type PropertyNode = z.infer<typeof PropertyNode>;
 
-export const FieldNode = z.strictObject({
-  kind: z.literal('field'),
-  ...nodeBase,
-  fieldKind: z.enum(['field', 'enumMember']),
-  visibility: Visibility,
-  modifiers: z.array(Modifier),
-  type: TypeRef,
-  passing: Passing,
-  constantValue: z.string().nullable(),
-});
+export const FieldNode = z
+  .strictObject({
+    kind: z.literal('field'),
+    ...nodeBase,
+    fieldKind: z.enum(['field', 'enumMember']),
+    visibility: Visibility,
+    modifiers: z.array(Modifier),
+    type: TypeRef,
+    passing: Passing,
+    constantValue: z.string().nullable(),
+  })
+  .meta({ id: 'FieldNode' });
 export type FieldNode = z.infer<typeof FieldNode>;
 
-export const DeclarationNode = z.discriminatedUnion('kind', [
-  NamespaceNode,
-  TypeNode,
-  MethodNode,
-  PropertyNode,
-  FieldNode,
-]);
+export const DeclarationNode = z
+  .discriminatedUnion('kind', [
+    NamespaceNode,
+    TypeNode,
+    MethodNode,
+    PropertyNode,
+    FieldNode,
+  ])
+  .meta({ id: 'DeclarationNode' });
 export type DeclarationNode = z.infer<typeof DeclarationNode>;
 
 /** One shape for every stubbed symbol; never visibility, modifiers, signatures or members. */
-export const StubNode = z.strictObject({
-  id: NodeId,
-  kind: z.enum(['namespace', 'type', 'method', 'property', 'field']),
-  name: z.string(),
-  typeKind: TypeKind.nullable(),
-  artifact: NodeId.nullable(),
-});
+export const StubNode = z
+  .strictObject({
+    id: NodeId,
+    kind: z.enum(['namespace', 'type', 'method', 'property', 'field']),
+    name: z.string(),
+    typeKind: TypeKind.nullable(),
+    artifact: NodeId.nullable(),
+  })
+  .meta({ id: 'StubNode' });
 export type StubNode = z.infer<typeof StubNode>;
 
-export const UsageSite = z.strictObject({
-  location: SourceSpan,
-  viaClosure: z.boolean(),
-  languageSpecific: LanguageBag,
-});
+export const UsageSite = z
+  .strictObject({
+    location: SourceSpan,
+    viaClosure: z.boolean(),
+    languageSpecific: LanguageBag,
+  })
+  .meta({ id: 'UsageSite' });
 export type UsageSite = z.infer<typeof UsageSite>;
 
-export const ExpressionKind = z.enum([
-  'this',
-  'base',
-  'typeParameter',
-  'parameter',
-  'local',
-  'field',
-  'property',
-  'returnValue',
-  'type',
-  'creation',
-  'literal',
-  'other',
-]);
+export const ExpressionKind = z
+  .enum([
+    'this',
+    'base',
+    'typeParameter',
+    'parameter',
+    'local',
+    'field',
+    'property',
+    'returnValue',
+    'type',
+    'creation',
+    'literal',
+    'other',
+  ])
+  .meta({ id: 'ExpressionKind' });
 export type ExpressionKind = z.infer<typeof ExpressionKind>;
 
-export const Edge = z.discriminatedUnion('kind', [
-  z.strictObject({ kind: z.literal('CONTAINS'), from: NodeId, to: NodeId }),
-  z.strictObject({ kind: z.literal('EXTENDS'), from: NodeId, to: TypeRef }),
-  z.strictObject({ kind: z.literal('IMPLEMENTS'), from: NodeId, to: TypeRef }),
-  z.strictObject({ kind: z.literal('OVERRIDES'), from: NodeId, to: NodeId }),
-  z.strictObject({
-    kind: z.literal('IMPLEMENTS_MEMBER'),
-    from: NodeId,
-    to: NodeId,
-    interface: TypeRef,
-    declaredOn: NodeId,
-  }),
-  z.strictObject({
-    kind: z.literal('INVOKES'),
-    from: NodeId,
-    to: NodeId,
-    typeArguments: z.array(TypeRef),
-    site: UsageSite,
-    invocationKind: z.enum(['call', 'extension']),
-    receiver: ExpressionKind.nullable(),
-  }),
-  z.strictObject({
-    kind: z.literal('ACCESSES'),
-    from: NodeId,
-    to: NodeId,
-    access: z.enum(['read', 'write', 'readWrite']),
-    site: UsageSite,
-    receiver: ExpressionKind.nullable(),
-  }),
-  z.strictObject({
-    kind: z.literal('USES_TYPE'),
-    from: NodeId,
-    to: TypeRef,
-    role: z.enum(['creation', 'cast', 'typeTest']),
-    site: UsageSite,
-  }),
-]);
+export const Edge = z
+  .discriminatedUnion('kind', [
+    z.strictObject({ kind: z.literal('CONTAINS'), from: NodeId, to: NodeId }),
+    z.strictObject({ kind: z.literal('EXTENDS'), from: NodeId, to: TypeRef }),
+    z.strictObject({
+      kind: z.literal('IMPLEMENTS'),
+      from: NodeId,
+      to: TypeRef,
+    }),
+    z.strictObject({ kind: z.literal('OVERRIDES'), from: NodeId, to: NodeId }),
+    z.strictObject({
+      kind: z.literal('IMPLEMENTS_MEMBER'),
+      from: NodeId,
+      to: NodeId,
+      interface: TypeRef,
+      declaredOn: NodeId,
+    }),
+    z.strictObject({
+      kind: z.literal('INVOKES'),
+      from: NodeId,
+      to: NodeId,
+      typeArguments: z.array(TypeRef),
+      site: UsageSite,
+      invocationKind: z.enum(['call', 'extension']),
+      receiver: ExpressionKind.nullable(),
+    }),
+    z.strictObject({
+      kind: z.literal('ACCESSES'),
+      from: NodeId,
+      to: NodeId,
+      access: z.enum(['read', 'write', 'readWrite']),
+      site: UsageSite,
+      receiver: ExpressionKind.nullable(),
+    }),
+    z.strictObject({
+      kind: z.literal('USES_TYPE'),
+      from: NodeId,
+      to: TypeRef,
+      role: z.enum(['creation', 'cast', 'typeTest']),
+      site: UsageSite,
+    }),
+  ])
+  .meta({ id: 'Edge' });
 export type Edge = z.infer<typeof Edge>;
 
-const generator = z.strictObject({ name: z.string(), version: z.string() });
+const generator = z
+  .strictObject({ name: z.string(), version: z.string() })
+  .meta({ id: 'Generator' });
 
 export const ScanManifest = z.strictObject({
   schemaVersion: z.literal(1),

@@ -6,7 +6,8 @@ namespace, type and member, the edges between them (containment, inheritance,
 overrides, interface member mapping, invocations, member accesses, body-level
 type uses) and stubs for the external symbols it reached. The model, its ids
 and the mapping rules are designed in
-[`docs/plans/code-model-and-roslyn-csharp-scanner.md`](../../docs/plans/code-model-and-roslyn-csharp-scanner.md);
+[`docs/plans/code-model-and-roslyn-csharp-scanner.md`](../../docs/plans/code-model-and-roslyn-csharp-scanner.md)
+and its JSON Schema is generated into [`../code-model/`](../code-model/);
 this README is about building and running the scanner.
 
 The scanner never fails because code does not compile: unbound names become

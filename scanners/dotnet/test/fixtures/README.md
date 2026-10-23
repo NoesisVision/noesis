@@ -5,7 +5,7 @@ scanner, and the one C# code base every test of the scanner uses: the scanner's
 own tests (`../Noesis.Scanner.Tests`, with the golden model under its
 `golden/`), the server's unit test over that golden model
 (`server/backend/test/unit/csharp-scanner.spec.ts`) and the server's e2e test
-over a real scan (`server/backend/test/e2e/csharp-scanner.e2e.spec.ts`). It is
+over a real scan (`server/backend/test/e2e-toolchain/csharp-scanner.e2e.spec.ts`). It is
 not a business domain: every type, member and variable is named after the
 syntax or the rule it demonstrates, so a test can look for
 `DerivedFromClosedGenericBase` or `CallsThroughNonBlockInterface` by name.

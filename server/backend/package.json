@@ -1,7 +1,7 @@
 {
   "name": "@noesis-vision/noesis",
   "version": "0.1.0-beta.4",
-  "description": "Noesis service — one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
+  "description": "Noesis service \u2014 one stdio MCP process per agent session, serving the knowledge graph in .noesis/ and the browser UI",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -25,8 +25,10 @@
     "start:debug": "bun run --cwd ../frontend build:spa && PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
     "check-types": "tsc --noEmit",
     "contracts": "bun run tools/generate-contracts.ts",
+    "generate": "bun run tools/generate-code-model-schema.ts",
     "test": "bun test test/unit test/integration",
-    "test:e2e": "bun run --cwd ../frontend build:spa && bun test test/e2e",
+    "test:e2e": "bun run --cwd ../frontend build:spa && bun test ./test/e2e/",
+    "test:e2e:toolchain": "bun test ./test/e2e-toolchain/",
     "prepack": "bun run build"
   },
   "devDependencies": {
@@ -34,8 +36,8 @@
     "@logtape/file": "^2.3.4",
     "@logtape/hono": "^2.3.4",
     "@logtape/logtape": "^2.3.4",
-    "@modelcontextprotocol/client": "2.2.0",
-    "@modelcontextprotocol/server": "2.2.0",
+    "@modelcontextprotocol/client": "2.3.1",
+    "@modelcontextprotocol/server": "2.3.1",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "hono": "catalog:",

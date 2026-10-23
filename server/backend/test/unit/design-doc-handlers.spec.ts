@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
+import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import { ChangeId } from '#backend/app/changes/change-id';
 import {
   DesignDocument,
@@ -51,7 +51,7 @@ async function scan(
   id: string,
   { withCreditNote }: { withCreditNote: boolean },
 ) {
-  await new NoesisSystemModelsRepository(t.noesis).save(
+  await new SystemModelsFileRepository(t.noesis).save(
     SystemModel.parse({
       id,
       name: 'shop',

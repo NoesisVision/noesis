@@ -1,27 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { writeFile } from 'node:fs/promises';
-import { DummySourceCodeScanner } from '#backend/adapters/out/scanners/dummy.scanner';
-import {
-  type RepositoryScanners,
-  ScannerFactory,
-} from '#backend/adapters/out/scanners/scanner-factory';
-import { NoesisSystemModelsRepository } from '#backend/adapters/out/store/system-models.repository';
+import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
+import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import { ScanFailedError } from '#backend/app/system-model/scan-failed-error';
 import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
-import type {
-  SourceCodeScanner,
-  SourceCodeScannerFactory,
-} from '#backend/app/system-model/source-code-scanner';
+import {
+  type ScannerBuilders,
+  ScannerFactory,
+} from '#backend/app/system-model/scanner-factory';
+import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
-import { NOW, type TestNoesis, testNoesis } from './test-noesis';
+import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
-let systemModels: NoesisSystemModelsRepository;
+let systemModels: SystemModelsFileRepository;
 
 beforeEach(async () => {
   t = await testNoesis();
-  systemModels = new NoesisSystemModelsRepository(t.noesis);
+  systemModels = new SystemModelsFileRepository(t.noesis);
 });
 
 afterEach(() => t.cleanup());
@@ -37,7 +34,9 @@ const scannerOf = (model: SystemModel): SourceCodeScanner => ({
 });
 
 /** A factory that always picks `scanner`. */
-const always = (scanner: SourceCodeScanner): SourceCodeScannerFactory => ({
+const always = (
+  scanner: SourceCodeScanner,
+): Pick<ScannerFactory, 'create'> => ({
   create: () => Promise.resolve(scanner),
 });
 
@@ -71,46 +70,42 @@ describe('Scanning the system model', () => {
 });
 
 describe('ScannerFactory', () => {
-  const deps = () => ({
-    noesis: t.noesis,
-    changes: t.changesRepository,
-    designDocs: t.designDocsRepository,
-    now: () => NOW,
-  });
   /** Scanners that only tell which one was picked. */
-  const scanners: RepositoryScanners = {
-    java: () => scannerOf(found('java')),
+  const scanners: ScannerBuilders = {
+    'java-maven': () => scannerOf(found('java-maven')),
+    'java-gradle': () => scannerOf(found('java-gradle')),
     csharp: () => scannerOf(found('csharp')),
+    'code-model': () => scannerOf(found('code-model')),
   };
-  const factory = (env: NodeJS.ProcessEnv = {}) =>
-    new ScannerFactory(deps(), env, scanners);
+  const factory = (builders: ScannerBuilders = scanners) =>
+    new ScannerFactory(new ScannerSettingsFileRepository(t.noesis), builders);
   const configure = (settings: unknown) =>
     writeFile(t.noesis.resolve('settings.json'), JSON.stringify(settings));
-  const scanWith = async (scanners: SourceCodeScannerFactory) =>
+  const scanWith = async (scanners: ScannerFactory) =>
     (await scanners.create()).scan();
 
   it('picks the scanner .noesis/settings.json names, read at every scan', async () => {
     const scanners = factory();
 
-    await configure({ scanner: 'java' });
-    expect((await scanWith(scanners)).name).toBe('java');
+    await configure({ scanner: 'java-gradle' });
+    expect((await scanWith(scanners)).name).toBe('java-gradle');
     await configure({ scanner: 'csharp' });
     expect((await scanWith(scanners)).name).toBe('csharp');
+    await configure({ scanner: 'java-maven', engine: 'hybrid' });
+    expect((await scanWith(scanners)).name).toBe('java-maven');
+    await configure({ scanner: 'code-model', codeModel: { command: ['x'] } });
+    expect((await scanWith(scanners)).name).toBe('code-model');
   });
 
-  it('hands the repository scanner the namespace settings', async () => {
+  it('hands the repository scanner its settings', async () => {
     let namespaces: unknown;
-    const spying = new ScannerFactory(
-      deps(),
-      {},
-      {
-        ...scanners,
-        csharp: (built) => {
-          namespaces = built.namespaces.modulePathOf('Acme.Shop.Orders');
-          return scannerOf(found('csharp'));
-        },
+    const spying = factory({
+      ...scanners,
+      csharp: (settings) => {
+        namespaces = settings.namespaces.modulePathOf('Acme.Shop.Orders');
+        return scannerOf(found('csharp'));
       },
-    );
+    });
     await configure({ scanner: 'csharp', namespacePartsToSkip: ['Acme'] });
 
     await spying.create();
@@ -120,32 +115,18 @@ describe('ScannerFactory', () => {
 
   it('refuses a repository that names no scanner, or names one wrongly', async () => {
     await expect(factory().create()).rejects.toThrow(
-      /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: java, csharp\./,
+      /\.noesis\/settings\.json names no scanner\. Set "scanner" to one of: java-maven, java-gradle, csharp, code-model\./,
     );
-    await configure({ scanner: 'cobol' });
-    await expect(factory().create()).rejects.toThrow(
-      /Invalid .*\.noesis\/settings\.json/,
-    );
+    for (const scanner of ['java', 'dummy', 'cobol']) {
+      await configure({ scanner });
+      await expect(factory().create()).rejects.toThrow(
+        /Invalid .*\.noesis\/settings\.json/,
+      );
+    }
     await configure({ scanner: 'csharp', namespacePartsToSkip: 'Acme' });
     await expect(factory().create()).rejects.toThrow(
       /Invalid .*\.noesis\/settings\.json/,
     );
-  });
-
-  it('picks the dummy when NOESIS_SCANNER=dummy, whatever the repository names', async () => {
-    await configure({ scanner: 'java' });
-
-    expect(await factory({ NOESIS_SCANNER: 'dummy' }).create()).toBeInstanceOf(
-      DummySourceCodeScanner,
-    );
-  });
-
-  it('rejects any other NOESIS_SCANNER: the repository names its own scanner', async () => {
-    for (const name of ['java', 'csharp', 'cobol']) {
-      await expect(factory({ NOESIS_SCANNER: name }).create()).rejects.toThrow(
-        'NOESIS_SCANNER',
-      );
-    }
   });
 });
 

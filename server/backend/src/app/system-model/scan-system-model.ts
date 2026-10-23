@@ -1,13 +1,13 @@
 import type { Handler } from '#backend/app/handler';
 import { ScanFailedError } from './scan-failed-error';
-import type { SourceCodeScannerFactory } from './source-code-scanner';
+import type { ScannerFactory } from './scanner-factory';
 import type { SystemModel } from './system-model';
 import type { SystemModelsRepository } from './system-models.repository';
 
 export type ScanSystemModelHandler = Handler<void, SystemModel>;
 
 export function scanSystemModelHandler(
-  scanners: SourceCodeScannerFactory,
+  scanners: Pick<ScannerFactory, 'create'>,
   systemModels: SystemModelsRepository,
 ): ScanSystemModelHandler {
   return {

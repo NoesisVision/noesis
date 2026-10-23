@@ -2,8 +2,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { z } from 'zod';
-import { NoesisChangeOwnedRepository } from '#backend/adapters/out/store/change-owned.repository';
-import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
+import { ChangeOwnedFileRepository } from '#backend/adapters/out/store/change-owned.repository';
+import { ChangesFileRepository } from '#backend/adapters/out/store/changes.repository';
 import type { Change } from '#backend/app/changes/change';
 import { ChangeId } from '#backend/app/changes/change-id';
 import {
@@ -27,9 +27,9 @@ export const NOW = '2026-09-24T10:00:00.000Z';
 export interface TestNoesis extends Services {
   root: string;
   noesis: NoesisDir;
-  changesRepository: NoesisChangesRepository;
-  designDocsRepository: NoesisChangeOwnedRepository<DesignDocument>;
-  documentsRepository: NoesisChangeOwnedRepository<Document>;
+  changesRepository: ChangesFileRepository;
+  designDocsRepository: ChangeOwnedFileRepository<DesignDocument>;
+  documentsRepository: ChangeOwnedFileRepository<Document>;
   /** `graph/changes/`, where each change's file and folder sit. */
   changesDir: string;
   /** Writes a change with placeholder data, bypassing the handlers. */
@@ -54,19 +54,19 @@ export async function testNoesis(): Promise<TestNoesis> {
   const root = await mkdtemp(join(tmpdir(), 'noesis-test-'));
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
-  const changesRepository = new NoesisChangesRepository(noesis);
-  const designDocsRepository = new NoesisChangeOwnedRepository(
+  const changesRepository = new ChangesFileRepository(noesis);
+  const designDocsRepository = new ChangeOwnedFileRepository(
     noesis,
     DesignDocument,
     'design-doc',
   );
-  const documentsRepository = new NoesisChangeOwnedRepository(
+  const documentsRepository = new ChangeOwnedFileRepository(
     noesis,
     DocumentSchema,
     'document',
   );
   return {
-    ...createServices(noesis, { NOESIS_SCANNER: 'dummy' }, TODAY, () => NOW),
+    ...createServices(noesis, TODAY, () => NOW),
     root,
     noesis,
     changesRepository,

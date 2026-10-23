@@ -111,7 +111,7 @@ same id.
   - `UPDATE`: `readOnlyHint: false`, `destructiveHint: true`,
     `idempotentHint: true`, `openWorldHint: false`
 - Answers: a create says `Created change 2026-09-24-payment-retry (…). Refer
-to it by this id.` and returns the entity or summary, id included. An update
+  to it by this id.` and returns the entity or summary, id included. An update
   says `Updated …`. The `created` flag goes from the output schemas.
 - New in-band failures: an update of an unknown id says so and hints at
   `list_changes` (or the matching create tool).

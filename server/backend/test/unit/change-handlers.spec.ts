@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { NoesisChangesRepository } from '#backend/adapters/out/store/changes.repository';
+import { ChangesFileRepository } from '#backend/adapters/out/store/changes.repository';
 import {
   type Change,
   ChangeContentSchema,
@@ -147,7 +147,7 @@ describe('CreateChangeHandler', () => {
   it('gives creates of one name from two sessions different ids', async () => {
     // Another session's service over the same files, as its own process has.
     const otherSession = createChangeHandler(
-      new NoesisChangesRepository(t.noesis),
+      new ChangesFileRepository(t.noesis),
       () => '2026-09-24',
     );
 
