@@ -1,0 +1,2 @@
+rootProject.name = 'broken-project'
+include 'broken'

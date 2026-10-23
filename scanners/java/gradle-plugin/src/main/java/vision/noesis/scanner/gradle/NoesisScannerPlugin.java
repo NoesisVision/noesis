@@ -2,6 +2,7 @@ package vision.noesis.scanner.gradle;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -9,13 +10,15 @@ import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.compile.JavaCompile;
 
 /**
  * Registers one {@code noesisScan} task on the root project that scans every project of the build with the {@code java}
  * plugin, so the model has every module and one manifest whichever project the plugin is applied to. Applying it a
  * second time (in another project, or through {@code allprojects}) adds nothing: the task and the {@code noesis}
  * extension are shared. Every setting is also a Gradle property ({@code -Pnoesis.engine=bytecode}) that wins over the
- * build's {@code noesis { }} block.
+ * build's {@code noesis { }} block. When {@code noesisScan} is asked for, a compile error fails no compile task, so the
+ * scan reads every project with the compiler's errors in its model; any other build compiles as the build says.
  */
 public class NoesisScannerPlugin implements Plugin<Project> {
 
@@ -59,6 +62,10 @@ public class NoesisScannerPlugin implements Plugin<Project> {
             task.getRootFile().set(ProjectInputs.rootFile(root));
             task.getPluginVersion().set(pluginVersion());
         });
+        // A build run for a scan compiles past errors: the engines read the sources and the errors land in the model.
+        if (scanRequested(root.getGradle().getStartParameter().getTaskNames())) {
+            root.allprojects(project -> project.getTasks().withType(JavaCompile.class).configureEach(compile -> compile.getOptions().setFailOnError(false)));
+        }
         root.allprojects(project -> project.getPluginManager().withPlugin("java", applied -> {
             Provider<ModuleInputs> inputs = ProjectInputs.of(project);
             scan.configure(task -> {
@@ -67,6 +74,15 @@ public class NoesisScannerPlugin implements Plugin<Project> {
                 task.dependsOn(project.getTasks().named(JavaPlugin.CLASSES_TASK_NAME));
             });
         }));
+    }
+
+    /**
+     * Whether the command line asks for {@code noesisScan}, by its name or a project path ending in it; an
+     * abbreviation ({@code nS}) does not count. Read from the start parameter, so the decision is made while the build
+     * is configured and holds under the configuration cache.
+     */
+    static boolean scanRequested(List<String> taskNames) {
+        return taskNames.stream().anyMatch(name -> name.equals(TASK_NAME) || name.endsWith(":" + TASK_NAME));
     }
 
     /** The version this jar was built as, from the resource the build expands; {@code 0.0.0} when loaded from a classes directory. */

@@ -48,6 +48,24 @@ public final class ModelBuilder {
         diagnostics.add(diagnostic);
     }
 
+    /** How much the builder holds now, so a failed step can be undone with {@link #rollback}. */
+    public record Mark(int nodes, int edges, int diagnostics) {}
+
+    public Mark mark() {
+        return new Mark(nodes.size(), edges.size(), diagnostics.size());
+    }
+
+    /** Drops every node, edge and diagnostic added since the mark. Stubs stay: the closure adds them only at the end. */
+    public void rollback(Mark mark) {
+        int kept = 0;
+        for (var iterator = nodes.keySet().iterator(); iterator.hasNext(); ) {
+            iterator.next();
+            if (kept++ >= mark.nodes()) iterator.remove();
+        }
+        edges.subList(mark.edges(), edges.size()).clear();
+        diagnostics.subList(mark.diagnostics(), diagnostics.size()).clear();
+    }
+
     /** Sorted file; stub artifacts no dependency lists are appended as libraries, platform ones as platform. */
     public CodeModelFile build(Generator generator, ArtifactNode artifact, ScanSession session) {
         List<StubNode> allStubs = stubs.stubs();
