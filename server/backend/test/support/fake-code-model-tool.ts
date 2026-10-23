@@ -4,7 +4,9 @@
 // code-model/ into the output directory (`--out <dir>`, Maven's `-Dnoesis.out=<dir>` or
 // Gradle's `-Pnoesis.out=<dir>`),
 // `--fail <code>` exits with that code instead. The arguments are recorded
-// beside the output. The real tools run in test/e2e.
+// in `fake-scan-args.json` in the working directory, the repository root,
+// since the output directory is removed after the scan. The real tools run
+// in test/e2e.
 import { cp, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -24,7 +26,10 @@ if (out === undefined) {
   process.exit(1);
 }
 await mkdir(out, { recursive: true });
-await writeFile(join(out, 'fake-scan-args.json'), JSON.stringify(args));
+await writeFile(
+  join(process.cwd(), 'fake-scan-args.json'),
+  JSON.stringify(args),
+);
 
 const exitCode = Number(after('--fail') ?? '0');
 if (exitCode !== 0) {

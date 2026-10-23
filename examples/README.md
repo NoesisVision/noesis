@@ -74,7 +74,7 @@ claude --plugin-dir ../../plugins/claude-code
 
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 `NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
-Each `discounts-*` example names its scanner in `.noesis/noesis-config.json`, which a
+Each `discounts-*` example names its scanner in `.noesis/settings.json`, which a
 scan reads every time: `discounts-dotnet` says `"csharp"`, `discounts-java`
 says `"code-model"` with the `./gradlew noesisScan` command line to run in its
 `codeModel` block, `qdoc-java` says `"java-maven"`, which runs the Maven
@@ -90,7 +90,7 @@ design document and document in them must be served.
 
 Only the two `discounts-*` examples have code to build, and neither build is
 needed for the app, only for working on the sample code. Each is its sources,
-its build files, its scanner config (`.noesis/noesis-config.json`) and the
+its build files, its scanner config (`.noesis/settings.json`) and the
 `.claude/settings.json` that points the plugin at this checkout's service,
 nothing else: no CI, build scripts, IDE settings or notes from the runs.
 
@@ -101,14 +101,14 @@ nothing else: no CI, build scripts, IDE settings or notes from the runs.
   `./gradlew build` in the example. `./gradlew noesisScan` there scans the
   example into the code model under `.noesis/sessions/scanner/code-model/java/`
   with the hybrid engine (its sources use Lombok); a scan from the service
-  runs the same command through its `.noesis/noesis-config.json`.
+  runs the same command through its `.noesis/settings.json`.
 - `qdoc-java` is a Spring Boot Maven project that depends on
   `vision.noesis:noesis-annotations:0.1.0-SNAPSHOT` and declares the
   `noesis-scanner-maven-plugin`, both from the local repository: run
   `mvn install` in `scanners/java` first, then `./mvnw process-classes noesis:scan`
   in the example writes the code model under
   `.noesis/sessions/scanner/code-model/java/`; a scan from the service runs the
-  plugin the same way through its `.noesis/noesis-config.json`.
+  plugin the same way through its `.noesis/settings.json`.
 - `discounts-dotnet` takes `NoesisVision.Annotations` from the private NuGet
   feed in its `nuget.config`; `dotnet build MyCompany.ECommerce.sln` builds it
   (net8.0). It is a library and its tests, nothing runs.

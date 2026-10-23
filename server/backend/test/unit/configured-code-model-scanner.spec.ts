@@ -1,34 +1,63 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { chmod, writeFile } from 'node:fs/promises';
+import { chmod, readdir, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { ConfiguredCodeModelScanner } from '#backend/adapters/out/scanners/configured-code-model.scanner';
+import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
+import { settingsScanner } from '../support/settings-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
- * The `code-model` scanner runs whatever command line noesis-config.json
+ * The `code-model` scanner runs whatever command line .noesis/settings.json
  * gives and projects what it wrote, by the language the manifest names. Here
- * the command is the fake tool (test/support/fake-code-model-tool.ts) copying
- * a committed code model: the Java shop's, then the C# shop's, with the one
- * config file telling them apart. The real tools run in test/e2e.
+ * the command is a fake tool copying a committed code model: the Java shop's
+ * (test/support/fake-code-model-tool.ts), then the .NET scanner's golden one
+ * (test/support/fake-scan-csharp.ts), with the one settings file telling them
+ * apart. The real tools run in test/e2e.
  */
 
 const FIXTURES = join(import.meta.dir, '..', 'fixtures');
 const JAVA_SHOP = join(FIXTURES, 'java', 'shop');
-const CSHARP_SHOP = join(FIXTURES, 'csharp', 'shop');
 const FAKE_TOOL = join(
   import.meta.dir,
   '..',
   'support',
   'fake-code-model-tool.ts',
 );
+const FAKE_CSHARP_TOOL = join(
+  import.meta.dir,
+  '..',
+  'support',
+  'fake-scan-csharp.ts',
+);
+const CSHARP_GOLDEN = join(
+  import.meta.dir,
+  '..',
+  '..',
+  '..',
+  '..',
+  'scanners',
+  'dotnet',
+  'test',
+  'Noesis.Scanner.Tests',
+  'golden',
+);
+/** A command line writing the .NET scanner's golden C# code model. */
+const csharpLike = () => [
+  'bun',
+  FAKE_CSHARP_TOOL,
+  '--golden',
+  CSHARP_GOLDEN,
+  '--out',
+  '{out}',
+];
 
 let t: TestNoesis;
-let scanner: ConfiguredCodeModelScanner;
+let scanner: SourceCodeScanner;
 
 const configure = (config: Record<string, unknown>) =>
   writeFile(
-    t.noesis.resolve('noesis-config.json'),
+    t.noesis.resolve('settings.json'),
     JSON.stringify({ scanner: 'code-model', ...config }),
   );
 
@@ -48,22 +77,36 @@ const gradleLike = (source: string, ...flags: string[]) => [
   '{out}',
 ];
 
+/** The arguments the fake tool was run with, recorded in the repository root. */
 const recordedArgs = async (): Promise<string[]> =>
-  (await Bun.file(
-    join(t.noesis.resolve('sessions', 'scanner'), 'fake-scan-args.json'),
-  ).json()) as string[];
+  (await Bun.file(join(t.root, 'fake-scan-args.json')).json()) as string[];
+
+/** The output directory a recorded `--out` names: a fresh `.noesis/tmp/<uuid>/`. */
+const outOf = (args: readonly string[]): string => {
+  const out = args[args.indexOf('--out') + 1] ?? '';
+  expect<unknown>(out).toMatch(
+    new RegExp(`^${t.noesis.resolve('tmp')}/[0-9a-f-]{36}$`),
+  );
+  return out;
+};
 
 beforeEach(async () => {
   t = await testNoesis();
-  scanner = new ConfiguredCodeModelScanner({
-    noesis: t.noesis,
-    now: () => NOW,
-  });
+  scanner = settingsScanner(
+    t.noesis,
+    ({ namespaces, codeModel }) =>
+      new ConfiguredCodeModelScanner({
+        noesis: t.noesis,
+        now: () => NOW,
+        namespaces,
+        codeModel,
+      }),
+  );
 });
 
 afterEach(() => t.cleanup());
 
-describe('The code-model scanner configured in noesis-config.json', () => {
+describe('The code-model scanner configured in .noesis/settings.json', () => {
   it('runs the configured command from the repository root with the placeholders filled', async () => {
     await configure({
       codeModel: { command: gradleLike(JAVA_SHOP) },
@@ -72,8 +115,9 @@ describe('The code-model scanner configured in noesis-config.json', () => {
 
     await scanner.scan();
 
-    const out = t.noesis.resolve('sessions', 'scanner');
-    expect<unknown>(await recordedArgs()).toEqual([
+    const args = await recordedArgs();
+    const out = outOf(args);
+    expect<unknown>(args).toEqual([
       '--source',
       JAVA_SHOP,
       '-q',
@@ -104,28 +148,30 @@ describe('The code-model scanner configured in noesis-config.json', () => {
     ).toBe('Query');
   });
 
-  it('projects a C# code model by the C# vocabulary: the manifest, not the config, names the language', async () => {
+  it('projects a C# code model by the C# vocabulary: the manifest, not the settings, names the language', async () => {
     await configure({
-      codeModel: { command: gradleLike(CSHARP_SHOP) },
-      namespacePartsToSkip: ['Acme'],
-      namespacesToExclude: ['*.Internal'],
+      codeModel: { command: csharpLike() },
+      namespacePartsToSkip: ['CSharpSyntax'],
+      namespacesToExclude: ['*.ExcludedNamespace'],
     });
 
     const model = SystemModel.parse(await scanner.scan());
 
     expect<unknown>(model.buildingBlocks.map((b) => b.id)).toContain(
-      'building_block|Shop.Orders.Order',
+      'building_block|OtherProject.Projection.BlockFromOtherProject',
     );
   });
 
-  it('reads the command at every scan, so a changed config counts without a restart', async () => {
+  it('reads the command at every scan, so changed settings count without a restart', async () => {
     await configure({ codeModel: { command: gradleLike(JAVA_SHOP) } });
     await scanner.scan();
-    await configure({ codeModel: { command: gradleLike(CSHARP_SHOP) } });
+    await configure({
+      codeModel: { command: gradleLike(JAVA_SHOP, '--changed') },
+    });
 
     await scanner.scan();
 
-    expect<unknown>(await recordedArgs()).toContain(CSHARP_SHOP);
+    expect<unknown>(await recordedArgs()).toContain('--changed');
   });
 
   it('runs a relative command from the repository root, where a build wrapper lives', async () => {
@@ -142,12 +188,13 @@ describe('The code-model scanner configured in noesis-config.json', () => {
     const model = await scanner.scan();
 
     expect<unknown>(model.buildingBlocks.length).toBeGreaterThan(0);
-    expect<unknown>(await recordedArgs()).toEqual([
+    const args = await recordedArgs();
+    expect<unknown>(args).toEqual([
       '--source',
       JAVA_SHOP,
       'noesisScan',
       '--out',
-      t.noesis.resolve('sessions', 'scanner'),
+      outOf(args),
     ]);
   });
 
@@ -163,7 +210,7 @@ describe('The code-model scanner configured in noesis-config.json', () => {
     await configure({ codeModel: { command: [] } });
 
     await expect<unknown>(scanner.scan()).rejects.toThrow(
-      'Invalid noesis-config.json',
+      /Invalid .*\.noesis\/settings\.json/,
     );
   });
 
@@ -187,7 +234,18 @@ describe('The code-model scanner configured in noesis-config.json', () => {
     );
   });
 
-  it('tells what to install, in the config file words, when the command cannot start', async () => {
+  it('removes its tmp directory after a scan, whether it succeeds or fails', async () => {
+    await configure({ codeModel: { command: gradleLike(JAVA_SHOP) } });
+    await scanner.scan();
+    await configure({
+      codeModel: { command: gradleLike(JAVA_SHOP, '--fail', '2') },
+    });
+    await expect<unknown>(scanner.scan()).rejects.toThrow();
+
+    expect<unknown>(await readdir(t.noesis.resolve('tmp'))).toEqual([]);
+  });
+
+  it('tells what to install, in the settings file words, when the command cannot start', async () => {
     await configure({
       codeModel: {
         command: ['gradle-that-does-not-exist', 'noesisScan'],

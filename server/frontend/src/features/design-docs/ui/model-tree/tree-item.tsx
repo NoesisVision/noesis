@@ -4,6 +4,7 @@ import {
   memo,
   type MouseEvent,
 } from 'react';
+import { Checkbox } from '#/shared/design-system/checkbox.tsx';
 import { ChangeMark } from './change-mark.tsx';
 import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
@@ -19,7 +20,9 @@ import classes from './model-tree.module.css';
  *
  * A click reads the row; a double click, or a click on the chevron beside the
  * name, opens or shuts it. One tab stop per row either way, and the arrow
- * keys do what the tree pattern says they do.
+ * keys do what the tree pattern says they do. A row that puts its element in
+ * or takes it out of a view is checked while it is in: the plus or minus at
+ * its end flips it, and so do Enter and Space, in place of reading the row.
  */
 
 export interface TreeItemProps {
@@ -42,6 +45,7 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
     dragOver,
     drop,
     dragEnd,
+    flip,
   } = useTreeActions();
   const children = useTreeState((s) => s.childrenOf(path));
   const hasChildren = children.length > 0;
@@ -57,6 +61,9 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
   const colour = useTreeState((s) => s.colours[node.change]);
   const draggable = useTreeState((s) => s.canDrag(path));
   const dropTarget = useTreeState((s) => s.dropPath === path);
+  const on = useTreeState((s) => s.toggledOn(path));
+  const inactive = useTreeState((s) => s.isInactive(path));
+  const inactiveNote = useTreeState((s) => s.inactiveNote);
 
   /*
    * A row is dragged by its own line and dropped on another's; the item
@@ -85,12 +92,23 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
   // meant it.
   const onClick = (event: MouseEvent<HTMLLIElement>) => {
     event.stopPropagation();
+    // A row not to be picked opens or shuts instead, to reach what is under it.
+    if (inactive) return toggle(node.path);
+    // A row with a tick is clicked to put its element in or out, as the
+    // tick itself is: the whole row is the target.
+    if (on !== null) return flip(node.path);
     select(node.path, 'tree');
   };
 
   const onDoubleClick = (event: MouseEvent<HTMLLIElement>) => {
     event.stopPropagation();
     toggle(node.path);
+  };
+
+  /* The tick only flips the element; the row stays as it is. */
+  const onFlipClick = (event: MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    flip(node.path);
   };
 
   /* The chevron only opens and shuts; reading is the row's own job. */
@@ -131,7 +149,8 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
       case 'Enter':
       case ' ':
         handled();
-        return select(node.path, 'tree');
+        if (inactive) return toggle(node.path);
+        return on === null ? select(node.path, 'tree') : flip(node.path);
       default:
     }
   };
@@ -142,12 +161,15 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
       aria-level={node.depth + 1}
       aria-selected={selected}
       aria-expanded={hasChildren ? expanded : undefined}
+      aria-checked={on ?? undefined}
       aria-labelledby={rowId}
       tabIndex={focusable ? 0 : -1}
       data-path={node.path}
       data-depth={node.depth}
       data-kind={node.kind}
       data-change={node.change}
+      data-inactive={inactive || undefined}
+      aria-disabled={inactive || undefined}
       data-selected={selected || undefined}
       data-ancestor={(!selected && inPath) || undefined}
       data-context={context || undefined}
@@ -174,6 +196,17 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
           expanded={expanded}
           onToggle={onChevronClick}
         />
+        {on !== null && (
+          // Out of the tab order and the accessibility tree: the row is one
+          // stop, checked or not, and Enter or Space on it does the same.
+          <Checkbox.Indicator
+            size="xs"
+            checked={on}
+            aria-hidden
+            className={classes.tick}
+            onClick={onFlipClick}
+          />
+        )}
         <ChangeMark change={node.change} color={colour}>
           <KindIcon kind={node.kind} pattern={node.pattern} />
         </ChangeMark>
@@ -181,6 +214,9 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
           {node.name}
         </MatchedText>
         <span className={classes.trailing}>
+          {inactive && inactiveNote !== '' && (
+            <span className={classes.inactiveNote}>{inactiveNote}</span>
+          )}
           {node.hasDiagram && <DiagramMark />}
         </span>
       </span>

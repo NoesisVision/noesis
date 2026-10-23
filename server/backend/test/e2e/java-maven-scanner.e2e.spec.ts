@@ -5,7 +5,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { join, resolve } from 'node:path';
 import { JavaMavenSourceCodeScanner } from '#backend/adapters/out/scanners/java-maven/java-maven.scanner';
-import { loadNoesisConfig } from '#backend/adapters/out/scanners/noesis-config';
+import { loadRepositorySettings } from '#backend/adapters/out/scanners/repository-settings';
 import {
   CodeModelFile,
   ScanManifest,
@@ -55,9 +55,11 @@ describe('test/fixtures/java/shop through the Java scanner (e2e)', () => {
     'scans the build with the noesis:scan plugin and projects the system model within budget',
     async () => {
       const noesis = new NoesisDir(FIXTURE);
+      const { namespaces: config } = await loadRepositorySettings(noesis);
       const scanner = new JavaMavenSourceCodeScanner({
         noesis,
         now: () => new Date().toISOString(),
+        namespaces: config,
       });
 
       const started = performance.now();
@@ -75,7 +77,6 @@ describe('test/fixtures/java/shop through the Java scanner (e2e)', () => {
           CodeModelFile.parse(await Bun.file(join(FIXTURE, file)).json()),
         ),
       );
-      const { namespaces: config } = await loadNoesisConfig(FIXTURE);
       const { model: committed } = projectSystemModel({
         manifest,
         files,

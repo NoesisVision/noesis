@@ -7,7 +7,7 @@ public static class CommandLine
 {
     public const string Usage = """
         noesis-scan-csharp <path>...                  directory, solution or project(s)
-          --out <dir>                                 output root (default `<repository-root>/.noesis/sessions/scanner`)
+          --out <dir>                                 output root (default `<repository-root>/.noesis/tmp/scanner`)
           --repository <name> --revision <commit>     written into the manifest
           --repository-root <dir>                     directory file paths are relative to (default: current directory)
           --configuration Debug|Release               MSBuild configuration (default Debug)
@@ -15,6 +15,7 @@ public static class CommandLine
           --exclude-projects <glob,...>               skip these projects
           --tfm <moniker>                             target framework for multi-targeted projects (default: highest)
           --no-restore                                never run dotnet restore
+          --cache <dir>                               reuse the model of every project whose inputs did not change (default: no cache)
           --verbosity quiet|normal|detailed
         """;
 
@@ -30,6 +31,7 @@ public static class CommandLine
         var excludeProjects = Array.Empty<string>();
         string? tfm = null;
         var noRestore = false;
+        string? cache = null;
         var verbosity = Verbosity.Normal;
 
         for (var i = 0; i < args.Count; i++)
@@ -46,6 +48,7 @@ public static class CommandLine
                 case "--exclude-projects": excludeProjects = Globs(Next()); break;
                 case "--tfm": tfm = Next(); break;
                 case "--no-restore": noRestore = true; break;
+                case "--cache": cache = Next(); break;
                 case "--verbosity":
                     verbosity = Next().ToLowerInvariant() switch
                     {
@@ -75,7 +78,7 @@ public static class CommandLine
         {
             Inputs = inputs.Select(input => Path.GetFullPath(input, currentDirectory)).ToArray(),
             RepositoryRoot = root,
-            OutputDirectory = output is null ? Path.Combine(root, ".noesis", "sessions", "scanner") : Path.GetFullPath(output, currentDirectory),
+            OutputDirectory = output is null ? Path.Combine(root, ".noesis", "tmp", "scanner") : Path.GetFullPath(output, currentDirectory),
             RepositoryName = repository,
             Revision = revision,
             Configuration = configuration,
@@ -83,6 +86,7 @@ public static class CommandLine
             ExcludeProjects = excludeProjects,
             TargetFramework = tfm,
             NoRestore = noRestore,
+            CacheDirectory = cache is null ? null : Path.GetFullPath(cache, currentDirectory),
         };
         return new ParsedCommandLine(request, verbosity, ShowHelp: false);
     }

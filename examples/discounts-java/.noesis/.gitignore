@@ -1,2 +1,4 @@
 sessions/
 logs/
+tmp/
+cache/

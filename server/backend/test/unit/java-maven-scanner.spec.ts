@@ -1,12 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { chmod, cp, mkdir, writeFile } from 'node:fs/promises';
-import { basename, dirname, join } from 'node:path';
+import { chmod, cp, readdir, writeFile } from 'node:fs/promises';
+import { basename, join } from 'node:path';
 import {
   JAVA_SCANNER_PLUGIN_VERSION,
   JavaMavenSourceCodeScanner,
 } from '#backend/adapters/out/scanners/java-maven/java-maven.scanner';
+import type { JavaScannerEngine } from '#backend/adapters/out/scanners/repository-settings';
+import { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
+import type { SourceCodeScanner } from '#backend/app/system-model/source-code-scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
+import { settingsScanner } from '../support/settings-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
@@ -27,22 +31,39 @@ const FAKE_TOOL = join(
 const SCAN_GOAL = `vision.noesis:noesis-scanner-maven-plugin:${JAVA_SCANNER_PLUGIN_VERSION}:scan`;
 
 let t: TestNoesis;
-let scanner: JavaMavenSourceCodeScanner;
+let scanner: SourceCodeScanner;
 
-/** A scanner whose first stage is the fake tool with `flags` of its own. */
-const scannerWith = (...flags: string[]) =>
-  new JavaMavenSourceCodeScanner({
-    noesis: t.noesis,
-    now: () => NOW,
-    command: ['bun', FAKE_TOOL, ...flags],
-  });
+/**
+ * A scanner built from `.noesis/settings.json` at every scan, whose first
+ * stage is the fake tool with `flags` of its own; no flags at all runs the
+ * repository's own build.
+ */
+const scannerWith = (
+  flags: readonly string[] | null,
+  engine?: JavaScannerEngine,
+) =>
+  settingsScanner(
+    t.noesis,
+    ({ namespaces, engine: configured }) =>
+      new JavaMavenSourceCodeScanner({
+        noesis: t.noesis,
+        now: () => NOW,
+        namespaces,
+        command: flags === null ? undefined : ['bun', FAKE_TOOL, ...flags],
+        engine: engine ?? configured ?? undefined,
+      }),
+  );
+
+/** The arguments the fake tool was run with, recorded in the repository root. */
+const recordedArgs = async (): Promise<string[]> =>
+  (await Bun.file(join(t.root, 'fake-scan-args.json')).json()) as string[];
 
 beforeEach(async () => {
   t = await testNoesis();
-  scanner = scannerWith('--source', FIXTURE);
+  scanner = scannerWith(['--source', FIXTURE]);
   await cp(
-    join(FIXTURE, '.noesis', 'noesis-config.json'),
-    t.noesis.resolve('noesis-config.json'),
+    join(FIXTURE, '.noesis', 'settings.json'),
+    t.noesis.resolve('settings.json'),
   );
 });
 
@@ -51,13 +72,14 @@ afterEach(() => t.cleanup());
 const ids = (items: readonly { id: string }[]) => items.map((item) => item.id);
 
 describe('The Java scanner for Maven builds', () => {
-  it('runs the plugin after process-classes, by its full coordinates, into the session directory', async () => {
+  it('runs the plugin after process-classes, by its full coordinates, into a fresh .noesis/tmp/<uuid>/', async () => {
     await scanner.scan();
 
-    const out = t.noesis.resolve('sessions', 'scanner');
-    const args = (await Bun.file(
-      join(out, 'fake-scan-args.json'),
-    ).json()) as string[];
+    const args = await recordedArgs();
+    const out = args[5]?.slice('-Dnoesis.out='.length) ?? '';
+    expect<unknown>(out).toMatch(
+      new RegExp(`^${t.noesis.resolve('tmp')}/[0-9a-f-]{36}$`),
+    );
     expect<unknown>(args).toEqual([
       '--source',
       FIXTURE,
@@ -74,22 +96,13 @@ describe('The Java scanner for Maven builds', () => {
   });
 
   it('passes the engine it was configured with', async () => {
-    const bytecode = new JavaMavenSourceCodeScanner({
-      noesis: t.noesis,
-      now: () => NOW,
-      command: ['bun', FAKE_TOOL, '--source', FIXTURE],
-      engine: 'bytecode',
-    });
-    await bytecode.scan();
+    await scannerWith(['--source', FIXTURE], 'bytecode').scan();
 
-    const args = (await Bun.file(
-      join(t.noesis.resolve('sessions', 'scanner'), 'fake-scan-args.json'),
-    ).json()) as string[];
-    expect<unknown>(args).toContain('-Dnoesis.engine=bytecode');
+    expect<unknown>(await recordedArgs()).toContain('-Dnoesis.engine=bytecode');
   });
 
-  it('runs the engine noesis-config.json names when it was given none', async () => {
-    const config = t.noesis.resolve('noesis-config.json');
+  it('runs the engine .noesis/settings.json names', async () => {
+    const config = t.noesis.resolve('settings.json');
     await writeFile(
       config,
       JSON.stringify({
@@ -100,10 +113,7 @@ describe('The Java scanner for Maven builds', () => {
 
     await scanner.scan();
 
-    const args = (await Bun.file(
-      join(t.noesis.resolve('sessions', 'scanner'), 'fake-scan-args.json'),
-    ).json()) as string[];
-    expect<unknown>(args).toContain('-Dnoesis.engine=hybrid');
+    expect<unknown>(await recordedArgs()).toContain('-Dnoesis.engine=hybrid');
   });
 
   it("prefers the repository's own mvnw when no command is configured", async () => {
@@ -113,18 +123,10 @@ describe('The Java scanner for Maven builds', () => {
       `#!/bin/sh\nexec bun ${JSON.stringify(FAKE_TOOL)} --source ${JSON.stringify(FIXTURE)} "$@"\n`,
     );
     await chmod(wrapper, 0o755);
-    const byWrapper = new JavaMavenSourceCodeScanner({
-      noesis: t.noesis,
-      now: () => NOW,
-    });
-
-    const model = await byWrapper.scan();
+    const model = await scannerWith(null).scan();
 
     expect<unknown>(model.buildingBlocks.length).toBeGreaterThan(0);
-    const args = (await Bun.file(
-      join(t.noesis.resolve('sessions', 'scanner'), 'fake-scan-args.json'),
-    ).json()) as string[];
-    expect<unknown>(args.at(-1)).toBe(SCAN_GOAL);
+    expect<unknown>((await recordedArgs()).at(-1)).toBe(SCAN_GOAL);
   });
 
   it('projects the code model the plugin wrote onto a system model by the Java vocabulary', async () => {
@@ -134,7 +136,7 @@ describe('The Java scanner for Maven builds', () => {
     expect<unknown>(model.name).toBe(basename(t.root));
     expect<unknown>(model.scanned_at).toBe(NOW);
 
-    // com.acme is skipped by noesis-config.json, *.internal excluded; the
+    // com.acme is skipped by .noesis/settings.json, *.internal excluded; the
     // infrastructure module has no blocks.
     const domain = 'shop-domain/src/main/java/com/acme/shop';
     expect<unknown>(model.modules.map((m) => [m.id, m.source])).toEqual([
@@ -362,8 +364,8 @@ describe('The Java scanner for Maven builds', () => {
     );
   });
 
-  it('maps packages by noesis-config.json, every package to itself without one', async () => {
-    await writeFile(t.noesis.resolve('noesis-config.json'), '{}');
+  it('maps packages by .noesis/settings.json, every package to itself without one', async () => {
+    await writeFile(t.noesis.resolve('settings.json'), '{}');
 
     const model = await scanner.scan();
 
@@ -379,13 +381,13 @@ describe('The Java scanner for Maven builds', () => {
   });
 
   it('fails with the build output when Maven exits with an error', async () => {
-    await expect<unknown>(scannerWith('--fail', '1').scan()).rejects.toThrow(
+    await expect<unknown>(scannerWith(['--fail', '1']).scan()).rejects.toThrow(
       /exit code 1[\s\S]*failing as asked/,
     );
   });
 
   it('fails when the plugin wrote no manifest', async () => {
-    await expect<unknown>(scannerWith().scan()).rejects.toThrow(
+    await expect<unknown>(scannerWith([]).scan()).rejects.toThrow(
       'no readable manifest',
     );
   });
@@ -394,6 +396,7 @@ describe('The Java scanner for Maven builds', () => {
     const missing = new JavaMavenSourceCodeScanner({
       noesis: t.noesis,
       now: () => NOW,
+      namespaces: NamespaceConfig.of({}),
       command: ['mvn-that-does-not-exist'],
     });
 
@@ -402,16 +405,13 @@ describe('The Java scanner for Maven builds', () => {
     );
   });
 
-  it('starts from an empty output directory, so a stale model is never read', async () => {
-    const stale = t.noesis.resolve('sessions', 'scanner', 'code-model', 'java');
-    await mkdir(dirname(join(stale, 'x')), { recursive: true });
-    await writeFile(join(stale, 'Stale.code-model.json'), '{}');
+  it('removes its tmp directory after a scan, whether it succeeds or fails', async () => {
+    await scanner.scan();
+    await expect<unknown>(
+      scannerWith(['--fail', '1']).scan(),
+    ).rejects.toThrow();
+    await expect<unknown>(scannerWith([]).scan()).rejects.toThrow();
 
-    await expect<unknown>(scannerWith().scan()).rejects.toThrow(
-      'no readable manifest',
-    );
-    expect<unknown>(
-      await Bun.file(join(stale, 'Stale.code-model.json')).exists(),
-    ).toBe(false);
+    expect<unknown>(await readdir(t.noesis.resolve('tmp'))).toEqual([]);
   });
 });

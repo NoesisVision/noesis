@@ -37,8 +37,12 @@ export function InputOutputSection({
         <Grid.Col span={{ base: 'content' }} className={classes.inputs}>
           <Side label="Inputs" items={input} kind="parameter" owner={owner} />
         </Grid.Col>
-        <Divider orientation="vertical" variant="dashed" />
-        <Grid.Col span={{ base: 'content' }}>
+        <Divider
+          orientation="vertical"
+          variant="dashed"
+          className={classes.seam}
+        />
+        <Grid.Col span={{ base: 'content' }} className={classes.outputs}>
           <Side
             label="Outputs"
             items={output}

@@ -67,7 +67,7 @@ the tests scan it with `--no-restore`.
 
 ```text
 noesis-scan-csharp <path>...                  directory, solution or project(s)
-  --out <dir>                                 output root (default `<repository-root>/.noesis/sessions/scanner`)
+  --out <dir>                                 output root (default `<repository-root>/.noesis/tmp/scanner`)
   --repository <name> --revision <commit>     written into the manifest, supplied by the server
   --repository-root <dir>                     directory file paths are relative to (default: current directory)
   --configuration Debug|Release               MSBuild configuration (default Debug)
@@ -75,6 +75,7 @@ noesis-scan-csharp <path>...                  directory, solution or project(s)
   --exclude-projects <glob,...>               skip these projects
   --tfm <moniker>                             target framework for multi-targeted projects (default: highest)
   --no-restore                                never run dotnet restore
+  --cache <dir>                               reuse the model of every project whose inputs did not change (default: no cache)
   --verbosity quiet|normal|detailed
 ```
 
@@ -83,6 +84,15 @@ loaded, 1 for invalid arguments. The output is `code-model/csharp/manifest.json`
 plus one `<assembly>.code-model.json` per project under `--out`; the manifest
 lists the files in dependency order and file paths inside the model are
 relative to `--repository-root`.
+
+With `--cache` the scanner keys every project by its inputs (sources,
+options, references, the keys of referenced projects, the scanner build
+itself) and copies the cached model instead of compiling when the key is
+known; a change in a project rescans it and every project that references
+it. The cache holds up to three versions per project under
+`<dir>/<assembly>/<key>.code-model.json.gz`, the least recently used
+evicted; the server passes `.noesis/cache/scanner/csharp`. Delete the
+directory to force a full scan.
 
 Without a solution file the scanner takes every `*.csproj` under the directory
 except `bin/`, `obj/` and `node_modules/`. When a project has no

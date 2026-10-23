@@ -119,8 +119,18 @@ export function designOf(model: SystemModel): DesignDocument {
   };
 }
 
-/** Where the reader is in the model, as the address names it. */
+/** The ways the scanned model is read: as the model tree, or explored as a diagram. */
+export const SYSTEM_MODEL_VIEWS = ['model', 'exploration'] as const;
+export type SystemModelViewName = (typeof SYSTEM_MODEL_VIEWS)[number];
+
+export const isSystemModelView = (
+  value: unknown,
+): value is SystemModelViewName =>
+  (SYSTEM_MODEL_VIEWS as readonly unknown[]).includes(value);
+
+/** Where the reader is in the model, as the address names it; no view is the model. */
 export interface SystemModelSearch {
+  view?: 'exploration';
   node?: string;
   q?: string;
 }
@@ -130,4 +140,8 @@ const word = (value: unknown) =>
 
 export const systemModelSearch = (
   search: Record<string, unknown>,
-): SystemModelSearch => ({ node: word(search.node), q: word(search.q) });
+): SystemModelSearch => ({
+  view: search.view === 'exploration' ? 'exploration' : undefined,
+  node: word(search.node),
+  q: word(search.q),
+});

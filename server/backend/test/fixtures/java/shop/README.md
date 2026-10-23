@@ -8,7 +8,7 @@ as properties (R5.7) beside a public field, `OrderLine`'s private `product`
 behind its fluent getter (R5.8), the `Map` field no word in the
 model has, the overloaded `addLine`, `@QueryHandler` fixing a type (R9.4),
 the chain `handle → logTotal → total`, the `internal` package
-`noesis-config.json` drops, the unannotated `SqlOrderRepository` whose calls
+`.noesis/settings.json` drops, the unannotated `SqlOrderRepository` whose calls
 count for the interface's behaviours.
 
 `code-model/` is the Java scanner's output over these sources and is

@@ -3775,7 +3775,7 @@
           "arguments": []
         }
       ],
-      "documentation": "In a package noesis-config.json excludes.",
+      "documentation": "In a package the settings exclude.",
       "languageSpecific": {},
       "typeKind": "class",
       "visibility": "public",

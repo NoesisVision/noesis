@@ -1,13 +1,14 @@
 // The C# scanner end to end: the real `noesis-scan-csharp` (built from
-// scanners/dotnet) over examples/discounts-dotnet, then the projection. Needs
-// the .NET SDK. Besides the model, the test measures both stages against a
-// budget, so a performance regression in either fails here and the timings
-// are printed for the record.
+// scanners/dotnet) over the fixture solution under scanners/dotnet/test/fixtures,
+// then the projection. Needs the .NET SDK. Besides the model, the test measures
+// both stages against a budget, so a performance regression in either fails
+// here and the timings are printed for the record.
 import { beforeAll, describe, expect, it } from 'bun:test';
-import { readdir } from 'node:fs/promises';
+import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CSharpSourceCodeScanner } from '#backend/adapters/out/scanners/csharp/csharp.scanner';
-import { loadNoesisConfig } from '#backend/adapters/out/scanners/noesis-config';
+import { loadRepositorySettings } from '#backend/adapters/out/scanners/repository-settings';
 import {
   CodeModelFile,
   ScanManifest,
@@ -16,9 +17,14 @@ import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.voc
 import { projectSystemModel } from '#backend/app/code-model/projection/project-system-model';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
+import {
+  INVOKES,
+  MODULES,
+  UNREACHED,
+} from '../support/csharp-fixture-expectations';
 
 const REPOSITORY = resolve(import.meta.dir, '../../../..');
-const EXAMPLE = join(REPOSITORY, 'examples', 'discounts-dotnet');
+const FIXTURE = join(REPOSITORY, 'scanners', 'dotnet', 'test', 'fixtures');
 const CLI_PROJECT = join(
   REPOSITORY,
   'scanners',
@@ -34,7 +40,10 @@ const PROJECTION_BUDGET_MS = 2_000;
 
 let command: string[];
 
-async function run(cmd: string[], cwd: string): Promise<string> {
+async function run(
+  cmd: string[],
+  cwd: string,
+): Promise<{ out: string; err: string }> {
   const process = Bun.spawn(cmd, { cwd, stdout: 'pipe', stderr: 'pipe' });
   const [out, err, code] = await Promise.all([
     new Response(process.stdout).text(),
@@ -43,7 +52,7 @@ async function run(cmd: string[], cwd: string): Promise<string> {
   ]);
   if (code !== 0)
     throw new Error(`${cmd.join(' ')} failed (${code}):\n${out}${err}`);
-  return out;
+  return { out, err };
 }
 
 beforeAll(async () => {
@@ -67,34 +76,70 @@ beforeAll(async () => {
   command = ['dotnet', join(binaries, framework, 'noesis-scan-csharp.dll')];
 }, FIRST_STAGE_BUDGET_MS);
 
-describe('examples/discounts-dotnet through the C# scanner (e2e)', () => {
+describe('the fixture solution through the C# scanner (e2e)', () => {
   it(
     'scans the solution with noesis-scan-csharp and projects the system model within budget',
     async () => {
-      const noesis = new NoesisDir(EXAMPLE);
+      const noesis = new NoesisDir(FIXTURE);
+      const { namespaces: config } = await loadRepositorySettings(noesis);
       const scanner = new CSharpSourceCodeScanner({
         noesis,
         now: () => new Date().toISOString(),
+        namespaces: config,
         command,
       });
 
-      const started = performance.now();
-      const model = SystemModel.parse(await scanner.scan());
-      const bothStages = performance.now() - started;
+      // The first stage alone, into a directory of the test's own: the
+      // scanner removes its tmp directory once it has read it.
+      const outDir = await mkdtemp(join(tmpdir(), 'noesis-e2e-csharp-'));
+      let manifest: ScanManifest;
+      let files: CodeModelFile[];
+      let firstStage: number;
+      try {
+        const firstStart = performance.now();
+        await run(
+          [...command, FIXTURE, '--out', outDir, '--repository-root', FIXTURE],
+          FIXTURE,
+        );
+        firstStage = performance.now() - firstStart;
+        manifest = ScanManifest.parse(
+          await Bun.file(
+            join(outDir, 'code-model', 'csharp', 'manifest.json'),
+          ).json(),
+        );
+        files = await Promise.all(
+          manifest.artifacts.map(async ({ file }) =>
+            CodeModelFile.parse(await Bun.file(join(outDir, file)).json()),
+          ),
+        );
 
-      // The projection alone, over what the first stage just wrote.
-      const outDir = noesis.resolve('sessions', 'scanner');
-      const manifest = ScanManifest.parse(
-        await Bun.file(
-          join(outDir, 'code-model', 'csharp', 'manifest.json'),
-        ).json(),
-      );
-      const files = await Promise.all(
-        manifest.artifacts.map(async ({ file }) =>
-          CodeModelFile.parse(await Bun.file(join(outDir, file)).json()),
-        ),
-      );
-      const { namespaces: config } = await loadNoesisConfig(EXAMPLE);
+        // The cache: the first run with --cache fills it, the second reuses
+        // every model and writes the same files.
+        const cacheDir = join(outDir, 'cache');
+        const cached = [
+          ...command,
+          FIXTURE,
+          '--out',
+          outDir,
+          '--repository-root',
+          FIXTURE,
+          '--cache',
+          cacheDir,
+        ];
+        const filled = await run(cached, FIXTURE);
+        expect<unknown>(filled.err).toContain('Cache: 0 of 2 model(s) reused');
+        const reused = await run(cached, FIXTURE);
+        expect<unknown>(reused.err).toContain('Cache: 2 of 2 model(s) reused');
+        for (const { file } of manifest.artifacts) {
+          expect<unknown>(
+            CodeModelFile.parse(await Bun.file(join(outDir, file)).json()),
+          ).toEqual(
+            files[manifest.artifacts.findIndex((a) => a.file === file)],
+          );
+        }
+      } finally {
+        await rm(outDir, { recursive: true, force: true });
+      }
       const projectionStart = performance.now();
       const { model: projected } = projectSystemModel({
         manifest,
@@ -104,106 +149,56 @@ describe('examples/discounts-dotnet through the C# scanner (e2e)', () => {
       });
       const projection = performance.now() - projectionStart;
 
+      // Both stages through the scanner, which leaves no tmp directory behind.
+      const model = SystemModel.parse(await scanner.scan());
+      expect<unknown>(await readdir(noesis.resolve('tmp'))).toEqual([]);
+
       console.log(
-        `[e2e] discounts-dotnet: both stages ${Math.round(bothStages)} ms, projection alone ${projection.toFixed(1)} ms, ${files.length} artifacts, ${model.buildingBlocks.length} blocks, ${model.behaviours.length} behaviours`,
+        `[e2e] fixture: first stage ${Math.round(firstStage)} ms, projection alone ${projection.toFixed(1)} ms, ${files.length} artifacts, ${model.buildingBlocks.length} blocks, ${model.behaviours.length} behaviours`,
       );
-      expect<unknown>(bothStages).toBeLessThan(FIRST_STAGE_BUDGET_MS);
+      expect<unknown>(firstStage).toBeLessThan(FIRST_STAGE_BUDGET_MS);
       expect<unknown>(projection).toBeLessThan(PROJECTION_BUDGET_MS);
       expect<unknown>(projected.buildingBlocks).toEqual(model.buildingBlocks);
 
-      // What the as-built design of the example names, by the rules.
-      expect<unknown>(model.name).toBe('discounts-dotnet');
-      expect<unknown>(manifest.artifacts.map((a) => a.id)).toContain(
-        'A:MyCompany.ECommerce.Sales.DeepModel',
-      );
-      expect<unknown>(model.modules.map((m) => m.id)).toEqual(
-        expect.arrayContaining([
-          'module|Sales',
-          'module|Sales.Orders',
-          'module|Sales.Pricing',
-        ]),
-      );
-      // MyCompany.ECommerce is skipped, *.TechnicalStuff.* excluded.
-      expect<unknown>(
-        model.modules.some((m) => (m.id as string).includes('TechnicalStuff')),
-      ).toBe(false);
-      expect<unknown>(
-        model.modules.some((m) => (m.id as string).includes('MyCompany')),
-      ).toBe(false);
+      // What the real scan gives the projection, by the rules; the unit test
+      // over the golden model checks the same expectations in full.
+      expect<unknown>(model.name).toBe('fixtures');
+      expect<unknown>(manifest.artifacts.map((a) => a.id)).toEqual([
+        'A:CSharpSyntax.OtherProject',
+        'A:CSharpSyntax',
+      ]);
+      expect<unknown>(model.modules.map((m) => m.id)).toEqual(MODULES);
 
       const block = (id: string) =>
         model.buildingBlocks.find((b) => b.id === id);
-      expect<unknown>(block('building_block|Sales.Orders.Order')).toMatchObject(
-        {
-          type: 'aggregate',
-          description: expect.stringContaining(
-            'An order is a request for products.',
-          ),
-          source: {
-            path: 'Sources/Sales/Sales.DeepModel/Orders/Order.Data.cs',
-          },
-        },
-      );
       expect<unknown>(
-        block('building_block|Sales.Orders.Order Repository')?.type,
-      ).toBe('repository');
-      expect<unknown>(
-        block('building_block|Sales.Orders.Order Factory')?.type,
-      ).toBe('factory');
-      expect<unknown>(
-        block('building_block|Sales.Orders.Order Placed')?.type,
-      ).toBe('value_object');
-      expect<unknown>(
-        block('building_block|Sales.Orders.AllOrderDetails')?.type,
-      ).toBe('value_object');
-      expect<unknown>(
-        block('building_block|Sales.ExchangeRates.ExchangeRateProvider')?.type,
-      ).toBe('external_integration');
-      expect<unknown>(
-        block('building_block|Sales.Pricing.Discounts.ClientLevelDiscounts')
-          ?.implements,
-      ).toEqual([
-        'building_block|Sales.Pricing.OfferModifier',
-        'building_block|Sales.Pricing.QuoteModifier',
-      ]);
-
-      const behaviour = (id: string) =>
-        model.behaviours.find((b) => b.id === id);
-      expect<unknown>(
-        behaviour('behavior|Sales.Orders.Order.ConfirmPrices'),
+        block('building_block|Projection.Blocks.AggregateBlock'),
       ).toMatchObject({
-        type: 'Command',
-        visibility: { kind: 'public', actors: [] },
-        input: [
-          { name: 'offer', type: 'building_block|Sales.Pricing.Offer' },
-          {
-            name: 'priceChangesPolicy',
-            type: 'building_block|Sales.Orders.PriceChanges.PriceChangesPolicy',
-          },
-          { name: 'agreementExpiresOn', type: 'primitive|datetime' },
-        ],
-        invokes: expect.arrayContaining([
-          'behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices',
-        ]),
+        type: 'aggregate',
+        description: 'An aggregate with a *short* description.',
+        source: { path: 'CSharpSyntax/Projection/Blocks/BlockKinds.cs' },
       });
       expect<unknown>(
-        behaviour('behavior|Sales.Orders.Order Repository.GetBy')?.output,
+        block('building_block|Projection.Invocations.ImplementsTwoContracts')
+          ?.implements,
       ).toEqual([
-        {
-          type: 'building_block|Sales.Orders.Order',
-          description: null,
-          optional: false,
-        },
+        'building_block|Projection.Invocations.FirstContract',
+        'building_block|Projection.Invocations.SecondContract',
       ]);
-      expect<unknown>(
-        behaviour('behavior|Sales.Pricing.CalculatePrices.For')?.invokes,
-      ).toEqual(
-        expect.arrayContaining([
-          'behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor',
-          'behavior|Sales.Pricing.OfferModifiers.ChooseFor',
-          'behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor',
-        ]),
+
+      const invocations = model.behaviours.filter(
+        (b) =>
+          b.id.startsWith('behavior|Projection.Invocations.') &&
+          !b.id.startsWith('behavior|Projection.Invocations.Reached.'),
       );
+      expect<unknown>(
+        Object.fromEntries(invocations.map((b) => [b.id, b.invokes])),
+      ).toEqual(INVOKES);
+      const reachedByAnyone = new Set<string>(
+        model.behaviours.flatMap((b) => b.invokes),
+      );
+      for (const leaf of UNREACHED)
+        expect<unknown>(reachedByAnyone.has(leaf)).toBe(false);
       expect<unknown>(model.behaviours.map((b) => b.name)).not.toContain(
         'ToString',
       );

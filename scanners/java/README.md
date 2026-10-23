@@ -96,7 +96,7 @@ rewrites `code-model/java/manifest.json`, which lists every module scanned so
 far in reactor order; `pom` modules are skipped. The first module to run
 clears the previous scan's files.
 
-The service runs exactly this invocation when `.noesis/noesis-config.json` says
+The service runs exactly this invocation when `.noesis/settings.json` says
 `"scanner": "java-maven"` (`server/backend/src/adapters/out/scanners/java-maven/`),
 so `mvn -q install -DskipTests` here is the one setup step; `"engine":
 "hybrid"` (or `bytecode`) in the same file picks the engine. Any other
@@ -114,7 +114,7 @@ from the compiled classes and keeps everything else from the sources.
 
 The plugin id is `vision.noesis.scanner`, published to the local repository
 by `./gradlew publishToMavenLocal` in `gradle-plugin/`. The service needs no
-change to a build: `"scanner": "java-gradle"` in `.noesis/noesis-config.json`
+change to a build: `"scanner": "java-gradle"` in `.noesis/settings.json`
 applies the plugin through an init script and runs `noesisScan`, with the
 `"engine"` the file names. To run it by hand, a build applies it
 once, in the root build file or in any project's (the task is registered on
@@ -159,7 +159,7 @@ sets a scan up without touching the build:
 | `noesis.engine`         | `source`                                                               | `source`, `bytecode` or `hybrid`                                                      |
 | `noesis.release`        | the compile task's `release`, else `targetCompatibility`, else the JVM | the Java release the sources are bound against                                        |
 
-The service runs the task when `.noesis/noesis-config.json` says so; `{out}`,
+The service runs the task when `.noesis/settings.json` says so; `{out}`,
 `{root}` and `{name}` are filled in with the session directory, the
 repository root and its name:
 

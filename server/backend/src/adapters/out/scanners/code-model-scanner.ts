@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { readdir, rm } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
 import type { Now } from '#backend/app/clock';
@@ -10,6 +11,7 @@ import {
 } from '#backend/app/code-model/code-model';
 import { CSHARP_VOCABULARY } from '#backend/app/code-model/projection/csharp.vocabulary';
 import { JAVA_VOCABULARY } from '#backend/app/code-model/projection/java.vocabulary';
+import type { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
 import {
   type ProjectionDiagnostic,
   projectSystemModel,
@@ -21,7 +23,7 @@ import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { readJsonFile } from '#backend/platform/files/json-file';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/logging';
-import { loadNoesisConfig } from './noesis-config';
+import { headCommit } from './head-commit';
 
 const OUTPUT_TAIL = 4000;
 const CODE_MODEL_DIR = 'code-model';
@@ -36,13 +38,16 @@ const VOCABULARIES: Partial<Record<Language, AnnotationVocabulary>> = {
 export interface CodeModelScannerDeps {
   noesis: NoesisDir;
   now: Now;
+  /** How namespaces map to modules, from the repository's settings. */
+  namespaces: NamespaceConfig;
   /** The first stage's command and leading arguments; the preset's default tool unless given. */
   command?: readonly string[];
 }
 
 /**
  * A scanner in two stages: a tool of the repository's language writes the
- * common code model into the session directory, and the projection
+ * common code model into a fresh `.noesis/tmp/<uuid>/`, removed once read,
+ * and the projection
  * (app/code-model/projection) turns it into the system model by the
  * vocabulary of the language the manifest names. Rules in
  * docs/plans/code-model-to-system-model.md. A subclass says only which
@@ -55,6 +60,7 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
   protected constructor(
     protected readonly noesis: NoesisDir,
     protected readonly now: Now,
+    private readonly namespaces: NamespaceConfig,
     name: string,
   ) {
     this.log = serverLogger('scanner', name);
@@ -76,11 +82,10 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
     const scannedAt = this.now();
     const root = this.noesis.root;
     const name = basename(root);
-    const outDir = this.noesis.resolve('sessions', 'scanner');
+    const commit = await headCommit(root);
 
-    const { namespaces: config } = await loadNoesisConfig(root);
     const started = performance.now();
-    const { manifest, files } = await this.runFirstStage(root, name, outDir);
+    const { manifest, files } = await this.runFirstStage(root, name);
     const scanned = performance.now();
     // The message is a property, not the template: javac's messages may hold braces.
     for (const { level, message } of scannerDiagnostics(manifest, files)) {
@@ -90,7 +95,7 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
       manifest,
       files,
       vocabulary: vocabularyOf(manifest.language),
-      config,
+      config: this.namespaces,
     });
     const projected = performance.now();
     this.logDiagnostics(diagnostics);
@@ -106,17 +111,28 @@ export abstract class CodeModelScanner implements SourceCodeScanner {
         projectMs: Math.round(projected - scanned),
       },
     );
-    return { id, name, scanned_at: scannedAt, ...model };
+    return { id, name, scanned_at: scannedAt, commit, ...model };
   }
 
-  /** Runs the tool into an empty `outDir` and reads what it wrote. */
+  /** Runs the tool into a fresh tmp directory, reads what it wrote and removes it. */
   private async runFirstStage(
+    root: string,
+    name: string,
+  ): Promise<{ manifest: ScanManifest; files: CodeModelFile[] }> {
+    const outDir = this.noesis.resolve('tmp', randomUUID());
+    try {
+      return await this.runTool(root, name, outDir);
+    } finally {
+      await rm(outDir, { recursive: true, force: true });
+    }
+  }
+
+  private async runTool(
     root: string,
     name: string,
     outDir: string,
   ): Promise<{ manifest: ScanManifest; files: CodeModelFile[] }> {
     const codeModelDir = join(outDir, CODE_MODEL_DIR);
-    await rm(codeModelDir, { recursive: true, force: true });
     const [executable, ...args] = await this.firstStage(root, name, outDir);
     if (executable === undefined) {
       throw new Error('The code model scanner has no command to run.');

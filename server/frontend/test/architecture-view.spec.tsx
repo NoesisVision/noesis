@@ -12,8 +12,9 @@ import { MantineProvider } from '../src/shared/design-system/provider';
 import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixture';
 
 // The editor that reads markdown arrives on its own and draws its text only
-// in a browser: here a description reads as its markdown, so whether it is
-// read does not hang on which spec opened an editor first.
+// in a browser: here a description reads as its markdown, so where it lands
+// can be asserted. Declared here, not only where other files declare it, so
+// this file reads the same alone as in the whole suite.
 void mock.module(
   '../src/features/design-docs/ui/element-details/markdown-reading.tsx',
   () => ({

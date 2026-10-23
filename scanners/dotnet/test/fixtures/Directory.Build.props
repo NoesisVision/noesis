@@ -14,4 +14,9 @@
     <NoWarn>$(NoWarn);CS0067;CS0169;CS0219;CS0414;CS0649;CS8321;CS0168;CS1998;CS0628;CS8981;CS0162;CS9113;CS0693;CS8632;CS0108;CS0114;CS0618;CS1718;CS0660;CS0661;CS8524</NoWarn>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- The annotations the server's projection reads (CSharpSyntax/Projection, CSharpSyntax.OtherProject/ProjectionFromOtherProject.cs). -->
+    <PackageReference Include="NoesisVision.Annotations" Version="0.1.3" />
+  </ItemGroup>
+
 </Project>

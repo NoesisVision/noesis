@@ -9,7 +9,7 @@ import {
   javaEngine,
   wrapperOr,
 } from '../java-build';
-import type { JavaScannerEngine } from '../noesis-config';
+import type { JavaScannerEngine } from '../repository-settings';
 
 const INIT_SCRIPT = 'noesis-scan.init.gradle';
 
@@ -41,7 +41,7 @@ gradle.projectsEvaluated {
 `;
 
 export interface JavaGradleScannerDeps extends CodeModelScannerDeps {
-  /** The engine to run; unless given, the one noesis-config.json names, else `source`. */
+  /** The engine `.noesis/settings.json` names; `source` unless given. */
   engine?: JavaScannerEngine;
 }
 
@@ -55,8 +55,14 @@ export class JavaGradleSourceCodeScanner extends CodeModelScanner {
   private readonly engine: JavaScannerEngine | undefined;
   private readonly command: readonly string[] | undefined;
 
-  constructor({ noesis, now, command, engine }: JavaGradleScannerDeps) {
-    super(noesis, now, 'java-gradle');
+  constructor({
+    noesis,
+    now,
+    namespaces,
+    command,
+    engine,
+  }: JavaGradleScannerDeps) {
+    super(noesis, now, namespaces, 'java-gradle');
     this.engine = engine;
     this.command = command;
   }
@@ -79,7 +85,7 @@ export class JavaGradleSourceCodeScanner extends CodeModelScanner {
       `-Pnoesis.out=${outDir}`,
       `-Pnoesis.repositoryRoot=${root}`,
       `-Pnoesis.repository=${name}`,
-      `-Pnoesis.engine=${await javaEngine(root, this.engine)}`,
+      `-Pnoesis.engine=${javaEngine(this.engine)}`,
     ];
   }
 

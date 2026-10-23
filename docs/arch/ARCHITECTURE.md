@@ -119,16 +119,19 @@ Both land on the same service layer. Neither bypasses it.
   change — including changes Noesis did not make, such as a `git checkout` or a branch switch.
 - **Source code scanner** reads the project source and projects the implemented model into the
   system model files, when an agent calls `scan_system_model` or a person presses Scan on the
-  System model page. The repository names its scanner in `.noesis/noesis-config.json` (`"scanner"`), read
-  at every scan: `java` reads the source as text; `code-model` runs the command line of the file's
+  System model page. At every scan `ScannerFactory` picks the scanner: the dummy when
+  `NOESIS_SCANNER=dummy`, otherwise the one the repository names in `.noesis/settings.json`
+  (`"scanner"`). `java` reads the source as text; `code-model` runs the command line of the file's
   `codeModel` block (a Gradle build's `noesisScan` task, say) and projects the code model it wrote
   onto the system model by the vocabulary of the language the manifest names, with the rules in
   `docs/plans/code-model-to-system-model.md`; `csharp` (the .NET scanner, `noesis-scan-csharp` on
   the PATH), `java-maven` (the Java scanner's Maven plugin, installed once with `mvn install`) and
   `java-gradle` (its Gradle plugin, applied through an init script the service writes) are fixed
-  command lines of the same kind, the Java ones running the engine the file's `"engine"` names; `dummy` reads no code and replays the implemented
-  design documents instead. A new tool is a new config file, not a new adapter, and no
-  environment variable picks the scanner. Projecting into the graph waits for the graph.
+  command lines of the same kind, the Java ones running the engine the file's `"engine"` names;
+  `dummy` reads no code and replays the implemented design documents instead. A new tool is a new
+  settings file, not a new adapter. The C# tool keeps a cache of model files under
+  `.noesis/cache/scanner/csharp/` and compiles only the projects whose inputs changed
+  (`scanners/dotnet/README.md`). Projecting into the graph waits for the graph.
 
 ## Source of truth
 
@@ -158,9 +161,12 @@ All knowledge graph files live under `.noesis/` at the repository root:
 
 ```
 <project>/.noesis/
-├── .gitignore                  written by the service on first run; contains `sessions/`
+├── .gitignore                  written by the service on first run; contains `sessions/`, `logs/`, `tmp/`
+├── settings.json               repository settings: which scanner, how namespaces map to modules
 ├── sessions/<session>/         scratch space between the agent and the service — never versioned;
 │                               one subdirectory per service process, removed when it exits
+├── tmp/<uuid>/                 the service's own scratch, e.g. the C# scanner's code model —
+│                               never versioned; removed once used
 └── graph/
     ├── changes/
     │   ├── <change>.change.json       one change
@@ -168,7 +174,8 @@ All knowledge graph files live under `.noesis/` at the repository root:
     │       ├── <id>.document.json       an imported document — title, date and verbatim content
     │       └── <id>.design-doc.json     a designed model, as a diff against the implemented system
     └── system-models/
-        └── <id>.system-model.json     the implemented model, projected from the code by the scanner
+        └── YYYY-MM-DD_HH-MM_<commit>.json   the implemented model, projected from the code by the scanner;
+                                             scan minute in UTC, short commit hash or `uncommitted`
 ```
 
 The split reflects provenance. Documents are **imports** — a faithful record of what was

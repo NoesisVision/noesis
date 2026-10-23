@@ -136,6 +136,7 @@ describe('The dummy scanner', () => {
       id: expect.any(String),
       name: basename(t.root),
       scanned_at: NOW,
+      commit: null,
       modules: [],
       buildingBlocks: [],
       behaviours: [],

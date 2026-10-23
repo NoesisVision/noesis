@@ -26,14 +26,6 @@ describe('server configuration', () => {
     expect(parseServerConfig({ PORT: 'many' }).ok).toBe(false);
   });
 
-  it('reads no scanner from the environment: the repository names its own in noesis-config.json', () => {
-    const result = parseServerConfig({ NOESIS_SCANNER: 'dummy' });
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect('scanner' in result.config).toBe(false);
-  });
-
   it('rejects an empty root rather than silently ignoring it', () => {
     const result = parseServerConfig({ NOESIS_ROOT: '' });
 

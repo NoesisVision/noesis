@@ -26,6 +26,30 @@ export interface ModelTreeProps {
   label: string;
   /** Which rows may be dragged, where to, and what a drop does; none for a tree read only. */
   moving?: TreeMoving;
+  /** Rows whose element can be put in or taken out of a view; none where nothing can. */
+  toggling?: TreeToggling;
+  /**
+   * Rows shown but not to be picked — greyed, saying why in `note`, and
+   * opened rather than read by a click — so what is under them can still be
+   * reached; none by default.
+   */
+  inactive?: TreeInactive;
+}
+
+export interface TreeInactive {
+  is: (node: OutlineNode) => boolean;
+  /** The word a row not to be picked carries, so it says so by more than its colour. */
+  note: string;
+}
+
+/**
+ * Putting a row's element in, or taking it out of, something the tree's owner
+ * draws: a tick box before the row's name, and Enter or Space on the row.
+ */
+export interface TreeToggling {
+  /** Whether the element is in; null for a row with nothing to put in or take out. */
+  isOn: (node: OutlineNode) => boolean | null;
+  onToggle: (node: OutlineNode) => void;
 }
 
 /**
@@ -39,11 +63,18 @@ export interface TreeMoving {
 }
 
 const NEVER = () => false;
+const NO_TOGGLE = () => null;
 
 const CHANGES = Object.keys(CHANGE_COLOUR) as OutlineChange[];
 const NONE: readonly OutlineNode[] = [];
 
-export function ModelTree({ controller, label, moving }: ModelTreeProps) {
+export function ModelTree({
+  controller,
+  label,
+  moving,
+  toggling,
+  inactive,
+}: ModelTreeProps) {
   const baseId = useId();
   const { tree, selected, search, isExpanded } = controller;
 
@@ -52,9 +83,9 @@ export function ModelTree({ controller, label, moving }: ModelTreeProps) {
    * whatever the controller is now: a callback that changed with every render
    * would render every row with it.
    */
-  const latest = useRef({ controller, moving });
+  const latest = useRef({ controller, moving, toggling });
   useLayoutEffect(() => {
-    latest.current = { controller, moving };
+    latest.current = { controller, moving, toggling };
   });
   // Held outside state: a drag is one gesture, and only its target is drawn.
   const dragged = useRef<string | null>(null);
@@ -93,6 +124,10 @@ export function ModelTree({ controller, label, moving }: ModelTreeProps) {
       dragEnd: () => {
         dragged.current = null;
         setDropPath(null);
+      },
+      flip: (path) => {
+        const node = latest.current.controller.tree.byPath.get(path);
+        if (node !== undefined) latest.current.toggling?.onToggle(node);
       },
     };
   }, []);
@@ -156,6 +191,24 @@ export function ModelTree({ controller, label, moving }: ModelTreeProps) {
     };
   }, [tree, moving]);
 
+  const toggledOn = useMemo(() => {
+    if (toggling === undefined) return NO_TOGGLE;
+    return (path: string) => {
+      const node = tree.byPath.get(path);
+      return node === undefined ? null : toggling.isOn(node);
+    };
+  }, [tree, toggling]);
+
+  const isInactive = useMemo(() => {
+    if (inactive === undefined) return NEVER;
+    return (path: string) => {
+      const node = tree.byPath.get(path);
+      return node !== undefined && inactive.is(node);
+    };
+  }, [tree, inactive]);
+
+  const inactiveNote = inactive?.note ?? '';
+
   const snapshot = useMemo<TreeSnapshot>(
     () => ({
       selected,
@@ -169,6 +222,9 @@ export function ModelTree({ controller, label, moving }: ModelTreeProps) {
       colours,
       canDrag,
       dropPath,
+      toggledOn,
+      isInactive,
+      inactiveNote,
     }),
     [
       selected,
@@ -181,6 +237,9 @@ export function ModelTree({ controller, label, moving }: ModelTreeProps) {
       colours,
       canDrag,
       dropPath,
+      toggledOn,
+      isInactive,
+      inactiveNote,
     ],
   );
   // Made with the first snapshot, so the first render is already whole.

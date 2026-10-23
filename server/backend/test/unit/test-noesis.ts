@@ -1,4 +1,4 @@
-import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { z } from 'zod';
@@ -54,11 +54,6 @@ export async function testNoesis(): Promise<TestNoesis> {
   const root = await mkdtemp(join(tmpdir(), 'noesis-test-'));
   const noesis = new NoesisDir(root);
   await noesis.ensureInitialized();
-  // The dummy scanner, as a repository without code configures it: a scan replays the implemented design documents.
-  await writeFile(
-    noesis.resolve('noesis-config.json'),
-    JSON.stringify({ scanner: 'dummy' }),
-  );
   const changesRepository = new NoesisChangesRepository(noesis);
   const designDocsRepository = new NoesisChangeOwnedRepository(
     noesis,
@@ -71,7 +66,7 @@ export async function testNoesis(): Promise<TestNoesis> {
     'document',
   );
   return {
-    ...createServices(noesis, TODAY, () => NOW),
+    ...createServices(noesis, { NOESIS_SCANNER: 'dummy' }, TODAY, () => NOW),
     root,
     noesis,
     changesRepository,

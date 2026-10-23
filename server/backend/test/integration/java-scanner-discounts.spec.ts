@@ -1,11 +1,16 @@
 // The Java example under examples/discounts-java carries the code before the
-// weather-based discount, a sealed design document of that code and the
-// weather design still to implement. The regex Java scanner must keep finding
-// in that code every element the sealed design names by id, what the weather
-// design modifies but not what it adds, and the whole model as the golden
-// file under test/fixtures/java/discounts records it, so a parser regression
-// fails here. The test reads the example and writes nothing; what the example
-// keeps under .noesis/graph/system-models is the demo's and not read here.
+// weather-based discount, a sealed design document of that code, the weather
+// design still to implement, and the system model the Java scanner found in
+// the code. The scanner must keep finding that model: every element the
+// sealed design names by id, what the weather design modifies but not what it
+// adds, and the whole model as committed, so a parser regression fails here
+// and not in a demo.
+//
+// The code is scanned where it lies; the documents and the model it is held
+// to are copies kept with this spec (test/fixtures/discounts-java), so
+// working on the example's design documents, or scanning it again from the
+// UI, leaves the spec alone. Refresh the copies on purpose when it should
+// follow them.
 import { describe, expect, it } from 'bun:test';
 import { readFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
@@ -16,19 +21,10 @@ import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const EXAMPLE = resolve(__dirname, '../../../../examples/discounts-java');
-const AS_BUILT = join(
-  EXAMPLE,
-  '.noesis/graph/changes/2026-09-16-discounts-as-built/2026-09-16-discounts-as-built.design-doc.json',
-);
-const WEATHER = join(
-  EXAMPLE,
-  '.noesis/graph/changes/2026-09-17-weather-based-discount/2026-09-17-weather-based-discount.design-doc.json',
-);
-/** What the scanner found in the example's code when the golden was taken; `bun run test` fails when it finds something else. */
-const GOLDEN = resolve(
-  __dirname,
-  '../fixtures/java/discounts/discounts.system-model.json',
-);
+const FIXTURES = resolve(__dirname, '../fixtures/discounts-java');
+const AS_BUILT = join(FIXTURES, 'as-built.design-doc.json');
+const WEATHER = join(FIXTURES, 'weather-based-discount.design-doc.json');
+const COMMITTED_MODEL = join(FIXTURES, 'system-model.json');
 
 // Read only: the scanner reads the checkout and writes nothing.
 async function scan(): Promise<SystemModel> {
@@ -50,8 +46,8 @@ function idsOf(model: SystemModel): Map<string, { type?: unknown }> {
   ]);
 }
 
-async function goldenModel(): Promise<SystemModel> {
-  return SystemModel.parse(JSON.parse(await readFile(GOLDEN, 'utf8')));
+async function committedModel(): Promise<SystemModel> {
+  return SystemModel.parse(JSON.parse(await readFile(COMMITTED_MODEL, 'utf8')));
 }
 
 describe('The Java scanner on examples/discounts-java', () => {
@@ -95,16 +91,18 @@ describe('The Java scanner on examples/discounts-java', () => {
     for (const { id } of modified) expect(byId.has(id), id).toBe(true);
     for (const { id } of added) expect(byId.has(id), id).toBe(false);
   });
-  it('finds the golden model, scan time and id apart', async () => {
-    const { id, scanned_at, ...golden } = await goldenModel();
+  it('finds the model committed with the example, scan time, id and commit apart', async () => {
+    const { id, scanned_at, commit: _, ...committed } = await committedModel();
     expect(id).toMatch(/^[0-9a-f-]{36}$/);
     expect(scanned_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 
-    const { id: scannedId, scanned_at: now, ...found } = await scan();
+    const { id: scannedId, scanned_at: now, commit, ...found } = await scan();
 
     expect(SystemModelId.safeParse(scannedId).success).toBe(true);
     expect(now).toBe('2026-09-30T00:00:00.000Z');
-    expect(found).toEqual(golden);
+    // The example lives in this repository, so its HEAD is this checkout's.
+    expect<unknown>(commit).toMatch(/^[0-9a-f]{4,40}$/);
+    expect(found).toEqual(committed);
     expect<unknown>(found.modules.map((m) => m.id)).toEqual([
       'module|discounts',
       'module|discounts.calculation',

@@ -14,8 +14,8 @@ export interface SystemModelsRepository {
    */
   findNewest(): Promise<SystemModel | null>;
 
-  /** Writes `model` where none is yet; `false` when its id is taken. */
-  create(model: SystemModel): Promise<boolean>;
+  /** Writes `model`, replacing a scan of the same commit in the same minute. */
+  save(model: SystemModel): Promise<void>;
 }
 
 /** What a query may touch: the methods that read. */

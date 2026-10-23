@@ -7,14 +7,14 @@ import {
   javaEngine,
   wrapperOr,
 } from '../java-build';
-import type { JavaScannerEngine } from '../noesis-config';
+import type { JavaScannerEngine } from '../repository-settings';
 
 export { JAVA_SCANNER_PLUGIN_VERSION };
 
 const SCAN_GOAL = `vision.noesis:noesis-scanner-maven-plugin:${JAVA_SCANNER_PLUGIN_VERSION}:scan`;
 
 export interface JavaMavenScannerDeps extends CodeModelScannerDeps {
-  /** The engine to run; unless given, the one noesis-config.json names, else `source`. */
+  /** The engine `.noesis/settings.json` names; `source` unless given. */
   engine?: JavaScannerEngine;
 }
 
@@ -28,8 +28,14 @@ export class JavaMavenSourceCodeScanner extends CodeModelScanner {
   private readonly engine: JavaScannerEngine | undefined;
   private readonly command: readonly string[] | undefined;
 
-  constructor({ noesis, now, command, engine }: JavaMavenScannerDeps) {
-    super(noesis, now, 'java-maven');
+  constructor({
+    noesis,
+    now,
+    namespaces,
+    command,
+    engine,
+  }: JavaMavenScannerDeps) {
+    super(noesis, now, namespaces, 'java-maven');
     this.engine = engine;
     this.command = command;
   }
@@ -48,7 +54,7 @@ export class JavaMavenSourceCodeScanner extends CodeModelScanner {
       `-Dnoesis.out=${outDir}`,
       `-Dnoesis.repositoryRoot=${root}`,
       `-Dnoesis.repository=${name}`,
-      `-Dnoesis.engine=${await javaEngine(root, this.engine)}`,
+      `-Dnoesis.engine=${javaEngine(this.engine)}`,
       'process-classes',
       SCAN_GOAL,
     ];

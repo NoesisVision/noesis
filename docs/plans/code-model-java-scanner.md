@@ -418,14 +418,14 @@ cacheable because the model holds absolute paths. The functional test runs
 the task through Gradle TestKit on `src/test/resources/multi-project`, the
 Gradle twin of the Maven integration test's reactor, and asserts the same
 facts. `examples/discounts-java` applies the plugin with the hybrid engine
-(section 4a), its sources being Lombok's, and its `noesis-config.json` runs it
+(section 4a), its sources being Lombok's, and its `.noesis/settings.json` runs it
 through the `code-model` scanner (section 5a); its shipped system model has
 the source lines of every building block and, Lombok's accessors being
 `generated`, only the written methods as behaviours.
 
 ## 5a. The service adapter
 
-`scanner: "java-maven"` in `.noesis/noesis-config.json` selects
+`scanner: "java-maven"` in `.noesis/settings.json` selects
 `JavaMavenSourceCodeScanner` (`server/backend/src/adapters/out/scanners/java-maven/`),
 which shares its two-stage shape with the C# adapter through
 `code-model-scanner.ts`: run a command line into the session directory, find

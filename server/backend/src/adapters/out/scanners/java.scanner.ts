@@ -5,6 +5,7 @@ import type { SourceCodeScanner } from '#backend/app/system-model/source-code-sc
 import type { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { headCommit } from './head-commit';
 import { findJavaSources } from './java/java-files';
 import { type ParsedJavaFile, projectJavaModel } from './java/java-model';
 import { parseJavaSource } from './java/java-source';
@@ -48,6 +49,7 @@ export class JavaSourceCodeScanner implements SourceCodeScanner {
       id,
       name: basename(root),
       scanned_at: scannedAt,
+      commit: await headCommit(root),
       ...projectJavaModel(files),
     };
   }
