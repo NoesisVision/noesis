@@ -1,56 +1,95 @@
 package vision.noesis.scanner.core;
 
-import com.tngtech.archunit.core.domain.JavaClass;
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.domain.JavaMethod;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
-import java.time.Instant;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import vision.noesis.scanner.core.config.ScanConfig;
-import vision.noesis.scanner.core.derive.BehaviourDeriver;
-import vision.noesis.scanner.core.derive.Derived;
-import vision.noesis.scanner.core.derive.InvocationDeriver;
-import vision.noesis.scanner.core.derive.MessageEdgeDeriver;
-import vision.noesis.scanner.core.derive.ModuleDeriver;
-import vision.noesis.scanner.core.derive.PortBindingDeriver;
-import vision.noesis.scanner.core.detect.StereotypeDetector;
-import vision.noesis.scanner.core.model.Edge;
-import vision.noesis.scanner.core.model.Graph;
-import vision.noesis.scanner.core.model.Node;
-import vision.noesis.scanner.core.model.ScanInfo;
+import java.util.Locale;
+import java.util.Set;
+import vision.noesis.scanner.core.bytecode.BytecodeEngine;
+import vision.noesis.scanner.core.hybrid.HybridEngine;
+import vision.noesis.scanner.core.source.SourceEngine;
+import vision.noesis.scanner.model.CodeModelFile;
+import vision.noesis.scanner.model.CodeModelWriter;
+import vision.noesis.scanner.model.Diagnostic;
+import vision.noesis.scanner.model.Generator;
+import vision.noesis.scanner.model.Language;
+import vision.noesis.scanner.model.ManifestArtifact;
+import vision.noesis.scanner.model.RepositoryInfo;
+import vision.noesis.scanner.model.ScanManifest;
 
-/**
- * Facade: imports compiled classes with ArchUnit, detects annotated building
- * blocks and messages, derives behaviours and relations (design-doc §9.4).
- */
+/** Scans every artifact of a request with the chosen engine into the common code model: one manifest, one model file per artifact. */
 public final class JavaScanner {
 
-    public Graph scan(ScanConfig config) {
-        JavaClasses classes = new ClassFileImporter().importPaths(config.classDirs());
+    public static final String GENERATOR_NAME = "noesis-scan-java";
 
-        Map<JavaClass, Node> classNodes = new StereotypeDetector(config.stereotypes()).detect(classes);
+    private final Generator generator;
 
-        Derived derived = new ModuleDeriver().derive(classNodes);
-        Map<JavaMethod, Node> behaviours = new BehaviourDeriver(config.stereotypes()).derive(classNodes, derived);
-        new InvocationDeriver().derive(behaviours, derived);
-        new MessageEdgeDeriver().derive(behaviours, classNodes, derived);
-        new PortBindingDeriver().derive(classNodes, derived);
-
-        List<Node> nodes = new ArrayList<>(derived.nodes);
-        nodes.addAll(classNodes.values());
-        List<Edge> edges = List.copyOf(derived.edges);
-
-        return new Graph(scanInfo(config.moduleName()), List.copyOf(nodes), edges);
+    public JavaScanner(String version) {
+        this.generator = new Generator(GENERATOR_NAME, version);
     }
 
-    private static ScanInfo scanInfo(String moduleName) {
-        String version = JavaScanner.class.getPackage().getImplementationVersion();
-        return new ScanInfo(
-                "noesis-java-scanner",
-                version != null ? version : "dev",
-                Instant.now().toString(),
-                moduleName);
+    public Generator generator() {
+        return generator;
+    }
+
+    public ScanResult scan(ScanRequest request) {
+        ScanSession session = new ScanSession(generator, request);
+        Engine engine = engineFor(request.engine());
+        List<CodeModelFile> models = new ArrayList<>();
+        List<Diagnostic> manifestDiagnostics = new ArrayList<>();
+        if (request.artifacts().isEmpty()) {
+            manifestDiagnostics.add(Diagnostics.error(Diagnostics.MODULE_NOT_SCANNED, "No Java module to scan."));
+        }
+        for (ArtifactInput artifact : request.artifacts()) {
+            models.add(engine.scan(artifact, session));
+        }
+        ScanManifest manifest = manifest(request, models, manifestDiagnostics);
+        write(request, manifest, models);
+        return new ScanResult(manifest, models, request.outputDirectory());
+    }
+
+    public static Engine engineFor(EngineKind kind) {
+        return switch (kind) {
+            case SOURCE -> new SourceEngine();
+            case BYTECODE -> new BytecodeEngine();
+            case HYBRID -> new HybridEngine();
+        };
+    }
+
+    public ScanManifest manifest(ScanRequest request, List<CodeModelFile> models, List<Diagnostic> diagnostics) {
+        return new ScanManifest(
+                ScanManifest.CURRENT_SCHEMA_VERSION,
+                generator,
+                Language.JAVA,
+                new RepositoryInfo(request.repositoryName(), request.revision()),
+                request.root(),
+                artifactFiles(models),
+                List.copyOf(diagnostics));
+    }
+
+    /** One file per model, named after the artifact; a second artifact of the same name gets {@code ~2}. */
+    public static List<ManifestArtifact> artifactFiles(List<CodeModelFile> models) {
+        Set<String> used = new HashSet<>();
+        List<ManifestArtifact> files = new ArrayList<>();
+        for (CodeModelFile model : models) {
+            String name = model.artifact().name();
+            String candidate = name;
+            for (int i = 2; !used.add(candidate.toLowerCase(Locale.ROOT)); i++) candidate = name + "~" + i;
+            files.add(new ManifestArtifact(model.artifact().id(), CodeModelWriter.artifactFile(Language.JAVA, candidate)));
+        }
+        return files;
+    }
+
+    private static void write(ScanRequest request, ScanManifest manifest, List<CodeModelFile> models) {
+        try {
+            for (int i = 0; i < models.size(); i++) {
+                CodeModelWriter.writeModel(request.outputDirectory(), manifest.artifacts().get(i).file(), models.get(i));
+            }
+            CodeModelWriter.writeManifest(request.outputDirectory(), manifest);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

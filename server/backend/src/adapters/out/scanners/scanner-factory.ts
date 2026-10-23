@@ -1,15 +1,18 @@
 import { z } from 'zod';
-import type { NamespaceConfig } from '#backend/app/code-model/projection/namespace-config';
 import type {
   SourceCodeScanner,
   SourceCodeScannerFactory,
 } from '#backend/app/system-model/source-code-scanner';
+import { ConfiguredCodeModelScanner } from './configured-code-model.scanner';
 import { CSharpSourceCodeScanner } from './csharp/csharp.scanner';
 import { type DummyScannerDeps, DummySourceCodeScanner } from './dummy.scanner';
+import { JavaGradleSourceCodeScanner } from './java-gradle/java-gradle.scanner';
+import { JavaMavenSourceCodeScanner } from './java-maven/java-maven.scanner';
 import { JavaSourceCodeScanner } from './java.scanner';
 import {
   loadRepositorySettings,
   RepositoryScannerName,
+  type RepositorySettings,
   repositorySettingsPath,
 } from './repository-settings';
 
@@ -19,9 +22,9 @@ import {
  */
 const ScannerOverride = z.literal('dummy').optional();
 
-/** What a repository scanner is built from: the repository's namespace settings included. */
+/** What a repository scanner is built from: the repository's settings included. */
 interface RepositoryScannerDeps extends DummyScannerDeps {
-  namespaces: NamespaceConfig;
+  settings: RepositorySettings;
 }
 
 /** The scanners `.noesis/settings.json` can name, by name. */
@@ -32,7 +35,27 @@ export type RepositoryScanners = Record<
 
 const REPOSITORY_SCANNERS: RepositoryScanners = {
   java: (deps) => new JavaSourceCodeScanner(deps),
-  csharp: (deps) => new CSharpSourceCodeScanner(deps),
+  'java-maven': ({ settings, ...deps }) =>
+    new JavaMavenSourceCodeScanner({
+      ...deps,
+      namespaces: settings.namespaces,
+      engine: settings.engine ?? undefined,
+    }),
+  'java-gradle': ({ settings, ...deps }) =>
+    new JavaGradleSourceCodeScanner({
+      ...deps,
+      namespaces: settings.namespaces,
+      engine: settings.engine ?? undefined,
+    }),
+  csharp: ({ settings, ...deps }) =>
+    new CSharpSourceCodeScanner({ ...deps, namespaces: settings.namespaces }),
+  'code-model': ({ settings, ...deps }) =>
+    new ConfiguredCodeModelScanner({
+      ...deps,
+      namespaces: settings.namespaces,
+      codeModel: settings.codeModel,
+    }),
+  dummy: (deps) => new DummySourceCodeScanner(deps),
 };
 
 /**
@@ -50,13 +73,13 @@ export class ScannerFactory implements SourceCodeScannerFactory {
   async create(): Promise<SourceCodeScanner> {
     if (this.dummyForced()) return new DummySourceCodeScanner(this.deps);
     const { noesis } = this.deps;
-    const { scanner, namespaces } = await loadRepositorySettings(noesis);
-    if (scanner === null) {
+    const settings = await loadRepositorySettings(noesis);
+    if (settings.scanner === null) {
       throw new Error(
         `${repositorySettingsPath(noesis)} names no scanner. Set "scanner" to one of: ${RepositoryScannerName.options.join(', ')}.`,
       );
     }
-    return this.scanners[scanner]({ ...this.deps, namespaces });
+    return this.scanners[settings.scanner]({ ...this.deps, settings });
   }
 
   private dummyForced(): boolean {

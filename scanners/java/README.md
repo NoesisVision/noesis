@@ -1,90 +1,188 @@
 # Noesis Java scanner
 
-A Maven build that extracts a DDD building-block graph from compiled Java
-code: aggregates, entities, services, ports, adapters, the commands, queries
-and events they exchange, and the behaviours (public methods) that invoke
-one another. The research and the schema are in
-[`design-doc.md`](design-doc.md), which records the engine and the
-graph vocabulary.
+A Maven build, plus a Gradle plugin beside it, that reads Java modules into
+the common **code model**: one
+JSON file per module with every package, type and member, the edges between
+them (containment, inheritance, overrides, interface member mapping,
+invocations, field accesses, body-level type uses) and stubs for the external
+symbols it reached. The model, its ids and the mapping rules are designed in
+[`docs/plans/code-model-java-scanner.md`](../../docs/plans/code-model-java-scanner.md)
+on top of the model document the .NET scanner shares; the JSON Schema of
+the files is generated into [`../code-model/`](../code-model/). This README is
+about building and running the scanner.
 
-**Status: standalone, not yet integrated with the service.** The scanner
-writes a JSON graph file; how that file feeds `.noesis/graph/system-models/` is a
-later decision, once the file format settles. The TypeScript scanner inside `server/backend` is the only one the
-service runs today.
+Two engines read the code into the same model. The **source** engine runs
+javac over the sources and is the reference: full symbol resolution, source
+spans, parameter names, Javadoc, and it never fails because code does not
+compile (unbound names become `unresolved` references, unbound call sites
+become diagnostics). The **bytecode** engine reads the compiled classes with
+ArchUnit for projects whose sources need annotation processors (Lombok); it
+writes the same model with the gaps bytecode has, listed in the design
+document's section 4: line-only locations, no Javadoc, parameter names only
+with `-parameters`, no casts or array creations, compiler-inserted calls
+present. The **hybrid** engine runs both and merges them by id (section 4a):
+the source model whole, plus the members a processor generated and the calls
+to them from the class files, each marked `java.engine: bytecode`. Every
+engine binds the JDK API of the module's release (the bytecode engine reads
+it from the running JDK's `lib/ct.sym`, as `javac --release` does), so the
+model does not depend on the JDK that runs the scan. An agreement test keeps
+the source and the bytecode engine equal up to exactly that list, a
+committed report counts every difference from the source engine by category
+for every engine, and the `*FactsTest` classes pin the facts the .NET
+scanner's tests pin, against every engine that holds them.
 
-## Modules
+## Layout
 
-| Module          | Artifact                      | What it is                                                                                                                                                                                                                                                                                                                                                                                                      |
-| --------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `annotations/`  | `noesis-annotations`          | The stereotype annotations a team can put on its classes: `@AggregateRoot`, `@DomainEntity`, `@ValueObject`, `@Identifier`, `@DomainService`, `@ApplicationService`, `@Repository`, `@Factory`, `@ExternalIntegration` (with `Direction`), `@Adapter`, `@Module`, `@Command`, `@Query`, `@Event` on message classes; and `@CommandHandler`, `@QueryHandler`, `@EventHandler` on the behaviours that handle them |
-| `core/`         | `noesis-scanner-core`         | The engine: ArchUnit's `ClassFileImporter` over a classes directory, stereotype detection through a configurable annotation mapping, derivers for modules, behaviours, invocations, message edges and port bindings, and a Jackson JSON writer                                                                                                                                                                  |
-| `maven-plugin/` | `noesis-scanner-maven-plugin` | The `noesis:scan` goal; gathers the project's inputs and calls the core                                                                                                                                                                                                                                                                                                                                         |
+| Path                                              | What it is                                                                                                                                  |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `annotations/`                                    | `vision.noesis.annotations`: the DDD stereotype annotations a user codebase depends on                                                      |
+| `model/`                                          | The schema as Java records, the canonical string grammar, the JSON codec and the file layout; language-neutral                              |
+| `core/`                                           | The engines (`source/`, `bytecode/`, `hybrid/`) and what they share: ids, modifiers, constants, the stub closure, the classpath index       |
+| `maven-plugin/`                                   | The `noesis:scan` goal: reads the module off the Maven project and writes its file and the manifest                                         |
+| `gradle-plugin/`                                  | The `vision.noesis.scanner` Gradle plugin: a `noesisScan` task that scans every Java project of a Gradle build; its own build               |
+| `test-fixtures/java-syntax`                       | Every Java construct the scanner maps, one file per topic, mirroring the .NET scanner's `CSharpSyntax` fixture; scanned by the golden tests |
+| `test-fixtures/java-syntax-other`                 | The types the syntax fixture reaches across a module boundary                                                                               |
+| `test-fixtures/java-lombok`                       | Classes whose members Lombok generates and the code that calls them: what the hybrid engine adds to the source model                        |
+| `core/src/test/resources/golden/`                 | The committed model files per engine, and `engine-comparison.md`, the counted difference of every engine from the source engine             |
+| `core/src/test/resources/fixtures-broken/`        | A syntax error and a missing import; must still yield a model                                                                               |
+| `maven-plugin/src/it/multi-module/`               | A two-module reactor project the plugin's integration test scans with the exact invocation the service makes                                |
+| `gradle-plugin/src/test/resources/multi-project/` | The same two modules as a Gradle build, scanned by the Gradle plugin's functional test                                                      |
 
-Group id `vision.noesis`, Java 17, version `0.1.0-SNAPSHOT`; nothing is
-published to a repository yet.
+## Commands
 
-## The graph
-
-The typed vocabulary (design-doc §9.4), as the `NodeType` and
-`EdgeType` enums in `core`:
-
-- **Nodes** — grouping: `BOUNDED_CONTEXT`, `MODULE`; blocks: `AGGREGATE_ROOT`,
-  `ENTITY`, `VALUE_OBJECT`, `IDENTIFIER`, `DOMAIN_SERVICE`,
-  `APPLICATION_SERVICE`, `REPOSITORY`, `FACTORY`, `PORT`, `ADAPTER`;
-  messages: `COMMAND`, `QUERY`, `EVENT`; and `BEHAVIOUR` (a public method,
-  id `fqn#method(paramTypes)`, other than a record accessor, `equals`,
-  `hashCode`, `toString` or an enum's `values` and `valueOf`; with a
-  `behaviourType` of `COMMAND`, `QUERY` or `EVENT` when its method carries
-  `@CommandHandler`, `@QueryHandler` or `@EventHandler`, or jMolecules'
-  `@CommandHandler` or `@DomainEventHandler`).
-- **Edges** — `CONTAINS`, `ASSOCIATION`, `INVOKES` (behaviour to behaviour),
-  `SENDS` and `HANDLES` (behaviour to message), `EXPOSES`, `IMPLEMENTS`,
-  `DEPENDS_ON` (block-to-block fallback).
-
-All communication goes through message nodes; block-to-block usage is
-meant to be derived downstream by lifting `INVOKES` through `CONTAINS`. The
-scanner ships facts, not aggregations.
-
-Not implemented yet: the Spoon source-fidelity pass
-(positions, Javadoc, parameter names) and the Gradle plugin. `core` depends
-on ArchUnit and Jackson only.
-
-## Using the plugin
-
-The goal binds to `process-classes` and reads the module's compiled classes:
-
-```xml
-<plugin>
-  <groupId>vision.noesis</groupId>
-  <artifactId>noesis-scanner-maven-plugin</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
-  <executions>
-    <execution>
-      <goals><goal>scan</goal></goals>
-    </execution>
-  </executions>
-</plugin>
-```
-
-| Parameter           | Default                                        | Meaning                    |
-| ------------------- | ---------------------------------------------- | -------------------------- |
-| `noesis.outputFile` | `${project.build.directory}/noesis/graph.json` | Where the graph is written |
-| `noesis.skip`       | `false`                                        | Skip the scan              |
-
-Modules with `pom` packaging and modules without compiled classes are
-skipped. Multi-module aggregation is an open question (design-doc §10): today
-each module writes its own graph.
-
-## Building
-
-Not a bun workspace member; Maven owns this directory.
+From this directory:
 
 ```sh
-mvn -B verify      # build all three modules and run the core tests
-mvn -B install     # put the plugin in ~/.m2 so another build can use it
+mvn -B verify                                   # build everything, scan the fixtures, run the tests and the plugin's integration test
+NOESIS_UPDATE_GOLDEN=1 mvn -B -pl core -am test  # rewrite core/src/test/resources/golden/ after an intended model change
+mvn -q install -DskipTests                       # put the plugin in the local repository, which is how the service runs it
 ```
 
-`core`'s test scans a fixture order-management module annotated with
-`noesis-annotations` and asserts the graph it yields. CI runs `mvn verify`
-in the `java-scanner` job, gated on changes under `scanners/java/**`;
-Renovate groups the Maven dependency bumps into one weekly PR.
+The fixture modules are built by the reactor before `core`'s tests scan them;
+run the tests through the reactor, not with `mvn -f core/pom.xml`.
+
+The Gradle plugin is a Gradle build of its own, because the Gradle API is not
+on Maven Central; it takes `core` from the local repository, so `mvn install`
+comes first. From `gradle-plugin/`:
+
+```sh
+./gradlew build                 # compile, validate the plugin, run the functional test on the fixture build
+./gradlew publishToMavenLocal   # put the plugin in the local repository, where a Gradle build finds it
+```
+
+## Running the plugin
+
+The plugin is bound to `process-classes`, so the module and the reactor
+siblings it depends on are compiled. On any Maven project, without touching
+its POM:
+
+```sh
+mvn -B -q -ntp -Dnoesis.out=/tmp/scan -Dnoesis.repositoryRoot=$PWD -Dnoesis.repository=my-repo \
+  process-classes vision.noesis:noesis-scanner-maven-plugin:0.1.0-SNAPSHOT:scan
+```
+
+| Property                | Default                                                              | Meaning                                                                                                                   |
+| ----------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `noesis.out`            | `${session.executionRootDirectory}/.noesis/sessions/scanner`         | output root; files land in `code-model/java/` inside it; a relative path is taken from the execution root, not the module |
+| `noesis.repositoryRoot` | `${session.executionRootDirectory}`                                  | directory file paths in the model are relative to; relative paths as for `noesis.out`                                     |
+| `noesis.repository`     | the root directory's name                                            | written into the manifest                                                                                                 |
+| `noesis.revision`       | `""`                                                                 | written into the manifest                                                                                                 |
+| `noesis.engine`         | `source`                                                             | `source`, `bytecode` or `hybrid`                                                                                          |
+| `noesis.release`        | `maven.compiler.release`, else `maven.compiler.target`, else the JVM | the Java release the sources are bound against                                                                            |
+| `noesis.skip`           | `false`                                                              | skip this module                                                                                                          |
+
+Every module writes `code-model/java/<artifactId>.code-model.json` and
+rewrites `code-model/java/manifest.json`, which lists every module scanned so
+far in reactor order; `pom` modules are skipped. The first module to run
+clears the previous scan's files.
+
+The service runs exactly this invocation when `.noesis/settings.json` says
+`"scanner": "java-maven"` (`server/backend/src/adapters/out/scanners/java-maven/`),
+so `mvn -q install -DskipTests` here is the one setup step; `"engine":
+"hybrid"` (or `bytecode`) in the same file picks the engine. Any other
+invocation that writes the same files, this plugin with other flags or the
+Gradle plugin below, goes in the file's `codeModel` block under
+`"scanner": "code-model"`.
+
+The source engine needs Maven to run on a JDK (17 or newer); on a JRE every
+module reports `NS1003`. Annotation processors are not run: members Lombok
+would generate do not exist for the source engine, and calls to them are
+`NS1002` diagnostics; `-Dnoesis.engine=hybrid` takes those members and calls
+from the compiled classes and keeps everything else from the sources.
+
+## Running the Gradle plugin
+
+The plugin id is `vision.noesis.scanner`, published to the local repository
+by `./gradlew publishToMavenLocal` in `gradle-plugin/`. The service needs no
+change to a build: `"scanner": "java-gradle"` in `.noesis/settings.json`
+applies the plugin through an init script and runs `noesisScan`, with the
+`"engine"` the file names. To run it by hand, a build applies it
+once, in the root build file or in any project's (the task is registered on
+the root project either way), with `mavenLocal()` among the plugin
+repositories of its settings file:
+
+```groovy
+// settings.gradle
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+
+// build.gradle
+plugins {
+    id 'vision.noesis.scanner' version '0.1.0-SNAPSHOT'
+}
+
+noesis {
+    engine = 'hybrid'   // for a build whose sources need annotation processors (Lombok); 'bytecode' reads the classes alone
+}
+```
+
+`./gradlew noesisScan` then compiles every project with the `java` plugin and
+scans them all in one go, in dependency order, into one manifest. The
+settings of the `noesis { }` block are the Maven plugin's properties, and a
+Gradle property of the same name overrides each of them, so a command line
+sets a scan up without touching the build:
+
+```sh
+./gradlew -q noesisScan -Pnoesis.out=/tmp/scan -Pnoesis.repositoryRoot=$PWD -Pnoesis.repository=my-repo
+```
+
+| Setting                 | Default                                                                | Meaning                                                                               |
+| ----------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `noesis.out`            | `.noesis/sessions/scanner` in the root project                         | output root; files land in `code-model/java/` inside it; relative to the root project |
+| `noesis.repositoryRoot` | the root project's directory                                           | directory file paths in the model are relative to                                     |
+| `noesis.repository`     | the repository root's directory name                                   | written into the manifest                                                             |
+| `noesis.revision`       | `""`                                                                   | written into the manifest                                                             |
+| `noesis.engine`         | `source`                                                               | `source`, `bytecode` or `hybrid`                                                      |
+| `noesis.release`        | the compile task's `release`, else `targetCompatibility`, else the JVM | the Java release the sources are bound against                                        |
+
+The service runs the task when `.noesis/settings.json` says so; `{out}`,
+`{root}` and `{name}` are filled in with the session directory, the
+repository root and its name:
+
+```json
+{
+  "scanner": "code-model",
+  "codeModel": {
+    "command": [
+      "./gradlew",
+      "-q",
+      "noesisScan",
+      "-Pnoesis.out={out}",
+      "-Pnoesis.repositoryRoot={root}",
+      "-Pnoesis.repository={name}"
+    ]
+  }
+}
+```
+
+A project is named by its Gradle project name (`A:app`), or by its path (`A:billing:api`) when another project of the build has the same name; a sibling project on
+the compile classpath is a `source` dependency, a module a `library` by its
+coordinates; the main class comes from the `application` plugin, Spring
+Boot's `springBoot.mainClass` or the jar manifest's `Main-Class`. The task is
+up to date while the sources, the classpath and the settings are unchanged.
+The Gradle daemon must run on a JDK, as Maven must; the engines run inside
+it.

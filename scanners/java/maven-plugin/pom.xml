@@ -51,6 +51,35 @@
           <goalPrefix>noesis</goalPrefix>
         </configuration>
       </plugin>
+      <!-- Runs the goal on src/it/multi-module the way the service invokes it: a lifecycle phase plus the goal's full coordinates. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <configuration>
+          <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
+          <postBuildHookScript>verify</postBuildHookScript>
+          <streamLogs>false</streamLogs>
+          <properties>
+            <maven.compiler.release>17</maven.compiler.release>
+          </properties>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>4.0.30</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>install</goal>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>
