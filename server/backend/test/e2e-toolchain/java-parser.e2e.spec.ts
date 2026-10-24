@@ -11,9 +11,9 @@ import {
   CodeModelFile,
   ParseManifest,
 } from '#backend/app/scanner/code-model/code-model';
-import { buildSystemModel } from '#backend/app/scanner/code-model/system-model-builder/build-system-model';
-import { JAVA_VOCABULARY } from '#backend/app/scanner/code-model/system-model-builder/java.vocabulary';
-import { SystemModel } from '#backend/app/scanner/system-model/system-model';
+import { buildSystemModel } from '#backend/app/scanner/system-model-builder/build-system-model';
+import { JAVA_VOCABULARY } from '#backend/app/scanner/system-model-builder/java.vocabulary';
+import { SystemModel } from '#backend/app/system-model/system-model';
 import { codeParserFor } from '#backend/boot/code-parsers';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { scannerOver } from '../support/test-scanner';

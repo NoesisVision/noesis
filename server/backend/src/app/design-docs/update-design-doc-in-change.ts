@@ -4,7 +4,7 @@ import type { ChangesReader } from '#backend/app/changes/changes.repository';
 import type { Clock } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';
-import type { SystemModelsReader } from '#backend/app/scanner/system-model/system-models.repository';
+import type { SystemModelsReader } from '#backend/app/system-model/system-models.repository';
 import {
   type DesignDocument,
   DesignDocumentContent,

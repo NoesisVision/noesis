@@ -2,8 +2,8 @@ import type { BuildingBlockId } from '#backend/app/element-id';
 import {
   type BuildingBlockRef,
   PrimitiveId,
-} from '#backend/app/scanner/system-model/system-model';
-import type { NodeId, TypeRef } from '../code-model';
+} from '#backend/app/system-model/system-model';
+import type { NodeId, TypeRef } from '../code-model/code-model';
 import type { CodeModelIndex, IndexedArtifact } from './code-model-index';
 import type { AnnotationVocabulary } from './vocabulary';
 

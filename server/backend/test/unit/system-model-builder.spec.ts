@@ -16,19 +16,19 @@ import type {
   TypeRef,
   Visibility,
 } from '#backend/app/scanner/code-model/code-model';
-import { unquote } from '#backend/app/scanner/code-model/system-model-builder/annotations';
+import { unquote } from '#backend/app/scanner/system-model-builder/annotations';
 import {
   type BuiltSystemModel,
   buildSystemModel,
-} from '#backend/app/scanner/code-model/system-model-builder/build-system-model';
-import { CSHARP_VOCABULARY } from '#backend/app/scanner/code-model/system-model-builder/csharp.vocabulary';
-import { JAVA_VOCABULARY } from '#backend/app/scanner/code-model/system-model-builder/java.vocabulary';
+} from '#backend/app/scanner/system-model-builder/build-system-model';
+import { CSHARP_VOCABULARY } from '#backend/app/scanner/system-model-builder/csharp.vocabulary';
+import { JAVA_VOCABULARY } from '#backend/app/scanner/system-model-builder/java.vocabulary';
 import {
   NamespaceConfig,
   type NamespaceConfigInput,
-} from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
-import type { AnnotationVocabulary } from '#backend/app/scanner/code-model/system-model-builder/vocabulary';
-import { SystemModel } from '#backend/app/scanner/system-model/system-model';
+} from '#backend/app/scanner/system-model-builder/namespace-config';
+import type { AnnotationVocabulary } from '#backend/app/scanner/system-model-builder/vocabulary';
+import { SystemModel } from '#backend/app/system-model/system-model';
 
 /*
  * One `describe` per section of docs/plans/code-model-to-system-model.md,

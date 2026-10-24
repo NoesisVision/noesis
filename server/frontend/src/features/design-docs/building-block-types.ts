@@ -1,4 +1,4 @@
-import type { BuildingBlockType } from '#backend/app/scanner/system-model/system-model.ts';
+import type { BuildingBlockType } from '#backend/app/system-model/system-model.ts';
 import {
   DOMAIN_CORE_NAME,
   type Hexagon,

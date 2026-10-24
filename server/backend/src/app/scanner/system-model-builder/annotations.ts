@@ -1,4 +1,4 @@
-import type { Annotation, AnnotationValue } from '../code-model';
+import type { Annotation, AnnotationValue } from '../code-model/code-model';
 import type { AnnotationRole, AnnotationVocabulary } from './vocabulary';
 
 /*

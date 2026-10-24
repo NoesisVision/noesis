@@ -1,5 +1,5 @@
-import type { Language } from '../code-model';
-import type { ParsedCode } from '../code-parser';
+import type { Language } from '../code-model/code-model';
+import type { ParsedCode } from '../code-model/code-parser';
 import { type BuiltSystemModel, buildSystemModel } from './build-system-model';
 import { CSHARP_VOCABULARY } from './csharp.vocabulary';
 import { JAVA_VOCABULARY } from './java.vocabulary';

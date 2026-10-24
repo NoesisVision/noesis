@@ -7,7 +7,7 @@ import type {
   StubNode,
   TypeNode,
   TypeRef,
-} from '../code-model';
+} from '../code-model/code-model';
 
 /*
  * The code model files indexed for lookup: nodes, stubs and edges by id, per

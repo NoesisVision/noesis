@@ -5,7 +5,7 @@ Roslyn parser for C#) writes the **code model**: declarations, edges and
 stubs, see [`docs/arch/code-model.md`](../arch/code-model.md).
 This stage reads that model and writes the **system model** the server keeps
 in `.noesis/graph/system-models/`: modules, building blocks and behaviours,
-see `server/backend/src/app/scanner/system-model/system-model.ts`. It runs in the
+see `server/backend/src/app/system-model/system-model.ts`. It runs in the
 TypeScript server, once for every language, and knows a language only through
 its **annotation vocabulary**: which annotation types mean what, which
 platform types are the model's primitives, which are collections.
@@ -398,7 +398,7 @@ them.
 
 ## 13. Implementation
 
-**Where.** `server/backend/src/app/scanner/code-model/system-model-builder/`: the
+**Where.** `server/backend/src/app/scanner/system-model-builder/`: the
 system model builder, pure functions over the two contracts, in the app layer
 because they are domain logic every parser's code model goes through.
 

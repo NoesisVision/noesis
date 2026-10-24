@@ -1,7 +1,7 @@
 import type {
   ScenarioStep,
   ScenarioStepKind,
-} from '#backend/app/scanner/system-model/system-model.ts';
+} from '#backend/app/system-model/system-model.ts';
 
 /*
  * A scenario's steps as they are read: each kind under its keyword, and a

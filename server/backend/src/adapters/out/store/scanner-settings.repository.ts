@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
   NamespaceConfig,
   NamespaceConfigSchema,
-} from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
+} from '#backend/app/scanner/system-model-builder/namespace-config';
 import {
   CodeParserSettings,
   type RepositorySettings,

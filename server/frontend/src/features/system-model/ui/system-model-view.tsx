@@ -16,7 +16,7 @@ import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
 import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
 import { StatusPanel } from '#/shared/ui/status-panel.tsx';
 import { titleCase } from '#/shared/ui/title-case.ts';
-import type { SystemModel } from '#backend/app/scanner/system-model/system-model.ts';
+import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import { newestSystemModel, useScanSystemModel } from '../system-model.api.ts';
 import {
   designOf,

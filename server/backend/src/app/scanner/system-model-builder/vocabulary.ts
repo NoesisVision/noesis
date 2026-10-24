@@ -1,8 +1,8 @@
 import type {
   BehaviourType,
   BuildingBlockType,
-} from '#backend/app/scanner/system-model/system-model';
-import type { Language, NodeId } from '../code-model';
+} from '#backend/app/system-model/system-model';
+import type { Language, NodeId } from '../code-model/code-model';
 
 /*
  * What the system model builder knows about one language: which annotation types mean

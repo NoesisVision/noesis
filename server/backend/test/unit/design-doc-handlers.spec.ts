@@ -9,7 +9,7 @@ import {
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { InvalidDesignDocError } from '#backend/app/design-docs/invalid-design-doc-error';
-import { SystemModel } from '#backend/app/scanner/system-model/system-model';
+import { SystemModel } from '#backend/app/system-model/system-model';
 import {
   decodedDesignDocFixture,
   designDocFixture,

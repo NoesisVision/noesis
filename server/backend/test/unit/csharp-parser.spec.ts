@@ -2,10 +2,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { readdir } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { CSharpParser } from '#backend/adapters/out/scanner/parsers/csharp-parser';
-import { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
+import { NamespaceConfig } from '#backend/app/scanner/system-model-builder/namespace-config';
 import type { Scanner } from '#backend/app/scanner/scanner';
-import { SystemModel } from '#backend/app/scanner/system-model/system-model';
-import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
+import { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import {
   INVOKES,
   MODULES,

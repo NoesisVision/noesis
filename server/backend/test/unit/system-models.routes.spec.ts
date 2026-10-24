@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import { scanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
-import { SystemModel } from '#backend/app/scanner/system-model/system-model';
-import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
+import { SystemModel } from '#backend/app/system-model/system-model';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { scannerFinding } from '../support/test-scanner';
 import { type TestNoesis, testNoesis } from './test-noesis';
 

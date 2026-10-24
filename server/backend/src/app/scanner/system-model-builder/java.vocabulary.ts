@@ -1,4 +1,4 @@
-import type { BuildingBlockType } from '#backend/app/scanner/system-model/system-model';
+import type { BuildingBlockType } from '#backend/app/system-model/system-model';
 import type {
   AnnotationRole,
   AnnotationVocabulary,

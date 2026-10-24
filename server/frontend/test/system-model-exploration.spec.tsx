@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { ReactFlowProvider } from '@xyflow/react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import type { SystemModel } from '#backend/app/scanner/system-model/system-model.ts';
+import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
   DesignDocumentContext,
   ElementSearch,

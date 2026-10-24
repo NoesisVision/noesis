@@ -22,7 +22,7 @@ import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import type {
   ScenarioStep,
   ScenarioStepKind,
-} from '#backend/app/scanner/system-model/system-model.ts';
+} from '#backend/app/system-model/system-model.ts';
 import type { UnitDraft, UnitState } from '../../design-doc-edit.ts';
 import {
   keywordOf,

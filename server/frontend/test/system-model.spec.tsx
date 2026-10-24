@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DesignDocument } from '#backend/app/design-docs/design-doc.ts';
-import { SystemModel } from '#backend/app/scanner/system-model/system-model.ts';
+import { SystemModel } from '#backend/app/system-model/system-model.ts';
 import { ModelReader } from '../src/features/design-docs/model-reader';
 import { designOf } from '../src/features/system-model/system-model.model';
 import { MantineProvider } from '../src/shared/design-system/provider';

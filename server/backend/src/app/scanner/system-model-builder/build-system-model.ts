@@ -15,7 +15,7 @@ import type {
   ScannedScenario,
   SourceLocation,
   SystemModel,
-} from '#backend/app/scanner/system-model/system-model';
+} from '#backend/app/system-model/system-model';
 import type {
   Annotation,
   CodeModelFile,
@@ -28,7 +28,7 @@ import type {
   SourceSpan,
   TypeNode,
   TypeRef,
-} from '../code-model';
+} from '../code-model/code-model';
 import { enumArgument, hasRole, rolesOf, stringArgument } from './annotations';
 import {
   CodeModelIndex,

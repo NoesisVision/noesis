@@ -19,7 +19,7 @@ import type {
   RuleType,
   ScenarioStep,
   Visibility,
-} from '#backend/app/scanner/system-model/system-model.ts';
+} from '#backend/app/system-model/system-model.ts';
 import {
   type DesignDocFieldInput,
   draftOf,

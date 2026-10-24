@@ -6,7 +6,7 @@ import type {
   DesignedResultInput,
   DesignedRuleInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import type { BuildingBlockRefInput } from '#backend/app/scanner/system-model/system-model.ts';
+import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { type ChangeSetInput, writtenIn } from '../../change-set.ts';
 import { refKeyOf } from '../../design-doc-edit.ts';
 import { valueOf } from '../../design-doc-field.ts';

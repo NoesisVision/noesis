@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { chmod, cp, readdir, readFile, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { SystemModel } from '#backend/app/scanner/system-model/system-model';
+import { SystemModel } from '#backend/app/system-model/system-model';
 import { codeParserFor } from '#backend/boot/code-parsers';
 import { fixedClock } from '../support/fixed-clock';
 import { settingsScanner } from '../support/test-scanner';

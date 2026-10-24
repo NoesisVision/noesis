@@ -1,4 +1,4 @@
-import type { SystemModelsRepository } from '#backend/app/scanner/system-model/system-models.repository';
+import type { SystemModelsRepository } from '#backend/app/system-model/system-models.repository';
 import { ScanFailedError } from './scan-failed-error';
 import type { ScanSystemModelHandler } from './scan-system-model.port';
 import type { ScannerFactory } from './scanner-factory';

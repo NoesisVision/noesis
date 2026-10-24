@@ -1,6 +1,6 @@
 import { plural } from '#/features/design-docs/ui/plural.ts';
 import type { ElementId } from '#backend/app/element-id.ts';
-import type { BuildingBlockType } from '#backend/app/scanner/system-model/system-model.ts';
+import type { BuildingBlockType } from '#backend/app/system-model/system-model.ts';
 import {
   type ArchitectureCheck,
   type ArchitectureOutline,

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
+import type { NamespaceConfig } from '#backend/app/scanner/system-model-builder/namespace-config';
 
 /** The `csharp` parser: runs `noesis-parse-csharp`, which needs no settings. */
 const CSharpParserSettings = z.strictObject({

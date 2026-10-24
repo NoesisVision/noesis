@@ -13,7 +13,7 @@ import type {
 import type {
   BuildingBlockRefInput,
   BuildingBlockType,
-} from '#backend/app/scanner/system-model/system-model.ts';
+} from '#backend/app/system-model/system-model.ts';
 import { architectureChecks } from './architecture-checks.ts';
 import {
   type ArchitectureOutline,

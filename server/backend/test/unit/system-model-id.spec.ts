@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
-import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
+import { SystemModelId } from '#backend/app/system-model/system-model-id';
 
 /*
  * A system model's id is a lower-case UUIDv7 the server mints per scan. Its

@@ -4,7 +4,7 @@ import type {
   BuildingBlockRef,
   BuildingBlockType,
   SystemModel,
-} from '#backend/app/scanner/system-model/system-model.ts';
+} from '#backend/app/system-model/system-model.ts';
 
 /*
  * The scanned model read as a graph: its modules, building blocks and
