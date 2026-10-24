@@ -79,11 +79,9 @@ export function createServices(noesis: NoesisDir, clock: Clock = systemClock) {
       new ScannerFactory(
         new ScannerSettingsFileRepository(noesis),
         codeParsers(noesis),
-        {
-          repository: new GitSourceRepository(noesis.root),
-          clock,
-          log: new ServerScanLog(),
-        },
+        new GitSourceRepository(noesis.root),
+        clock,
+        new ServerScanLog(),
       ),
       systemModels,
     ),

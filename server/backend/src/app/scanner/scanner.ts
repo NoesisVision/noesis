@@ -10,7 +10,7 @@ import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id
 import type { ScanLog } from './scan-log';
 import type { SourceRepository } from './source-repository';
 
-export interface ScannerDeps {
+interface ScannerDeps {
   readonly parser: CodeParser;
   readonly builder: SystemModelBuilder;
   readonly repository: SourceRepository;

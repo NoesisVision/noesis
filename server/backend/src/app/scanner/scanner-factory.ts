@@ -1,20 +1,20 @@
+import type { Clock } from '#backend/app/clock';
 import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
 import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
-import { Scanner, type ScannerDeps } from './scanner';
+import type { ScanLog } from './scan-log';
+import { Scanner } from './scanner';
 import {
   ParserName,
   type RepositorySettings,
   type ScannerSettingsRepository,
 } from './scanner-settings.repository';
+import type { SourceRepository } from './source-repository';
 
 /** How each scanner's parser is built, by name, from the repository's settings. */
 export type CodeParsers = Record<
   ParserName,
   (settings: RepositorySettings) => CodeParser
 >;
-
-/** What every scanner shares, whichever parser it runs. */
-export type ScanningDeps = Omit<ScannerDeps, 'parser' | 'builder'>;
 
 /**
  * The only place a scanner is chosen, at every scan: the parser the
@@ -24,16 +24,22 @@ export type ScanningDeps = Omit<ScannerDeps, 'parser' | 'builder'>;
 export class ScannerFactory {
   private readonly settings: ScannerSettingsRepository;
   private readonly parsers: CodeParsers;
-  private readonly scanning: ScanningDeps;
+  private readonly repository: SourceRepository;
+  private readonly clock: Clock;
+  private readonly log: ScanLog;
 
   constructor(
     settings: ScannerSettingsRepository,
     parsers: CodeParsers,
-    scanning: ScanningDeps,
+    repository: SourceRepository,
+    clock: Clock,
+    log: ScanLog,
   ) {
     this.settings = settings;
     this.parsers = parsers;
-    this.scanning = scanning;
+    this.repository = repository;
+    this.clock = clock;
+    this.log = log;
   }
 
   async create(): Promise<Scanner> {
@@ -44,9 +50,11 @@ export class ScannerFactory {
       );
     }
     return new Scanner({
-      ...this.scanning,
       parser: this.parsers[settings.parser](settings),
       builder: new SystemModelBuilder(settings.namespaces),
+      repository: this.repository,
+      clock: this.clock,
+      log: this.log,
     });
   }
 }

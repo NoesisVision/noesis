@@ -83,11 +83,13 @@ describe('ScannerFactory', () => {
     'code-model': parserOf('code-model'),
   };
   const factory = () =>
-    new ScannerFactory(new ScannerSettingsFileRepository(t.noesis), parsers, {
-      repository: { name: 'shop', headCommit: () => Promise.resolve(null) },
-      clock: fixedClock('2026-09-29T08:00:00.000Z'),
-      log: { buildDiagnostics: () => {}, scanned: () => {} },
-    });
+    new ScannerFactory(
+      new ScannerSettingsFileRepository(t.noesis),
+      parsers,
+      { name: 'shop', headCommit: () => Promise.resolve(null) },
+      fixedClock('2026-09-29T08:00:00.000Z'),
+      { buildDiagnostics: () => {}, scanned: () => {} },
+    );
   const configure = (settings: unknown) =>
     writeFile(t.noesis.resolve('settings.json'), JSON.stringify(settings));
 
