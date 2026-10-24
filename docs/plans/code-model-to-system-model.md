@@ -414,8 +414,8 @@ because they are domain logic every parser's code model goes through.
 | `build-system-model.ts`   | Sections 3 to 6, 9 to 11: `buildSystemModel(manifest, files, vocabulary, config) → { model, diagnostics }`   |
 | `system-model-builder.ts` | `SystemModelBuilder`: picks the vocabulary by the manifest's language and builds over the namespace settings |
 
-The scan itself is domain logic too: `SourceCodeScanner`
-(`app/scanner/source-code-scanner.ts`) takes a `CodeParser`
+The scan itself is domain logic too: `Scanner`
+(`app/scanner/scanner.ts`) takes a `CodeParser`
 (`app/scanner/code-model/code-parser.ts`) and a `SystemModelBuilder`, runs the parser,
 builds the system model of what it read, reports the diagnostics through the
 `ScanLog` port and returns the `SystemModel`. The adapters are only parsers:

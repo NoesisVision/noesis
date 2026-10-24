@@ -5,9 +5,9 @@ import type { Now } from '#backend/app/clock';
 import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
 import type { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
+import { Scanner } from '#backend/app/scanner/scanner';
 import type { ScannerFactory } from '#backend/app/scanner/scanner-factory';
 import type { RepositorySettings } from '#backend/app/scanner/scanner-settings.repository';
-import { SourceCodeScanner } from '#backend/app/scanner/source-code-scanner';
 import type { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -17,8 +17,8 @@ export function scannerOver(
   parser: CodeParser,
   namespaces: NamespaceConfig,
   now: Now,
-): SourceCodeScanner {
-  return new SourceCodeScanner({
+): Scanner {
+  return new Scanner({
     parser,
     builder: new SystemModelBuilder(namespaces),
     repository: new GitSourceRepository(noesis.root),
@@ -36,7 +36,7 @@ export function settingsScanner(
   noesis: NoesisDir,
   parser: (settings: RepositorySettings) => CodeParser,
   now: Now,
-): Pick<SourceCodeScanner, 'scan'> {
+): Pick<Scanner, 'scan'> {
   const settings = new ScannerSettingsFileRepository(noesis);
   return {
     scan: async () => {
@@ -52,7 +52,7 @@ export function settingsScanner(
 }
 
 /** What a fake factory hands out: only what the scan handler calls. */
-export type FakeScanner = Pick<SourceCodeScanner, 'scan'>;
+export type FakeScanner = Pick<Scanner, 'scan'>;
 
 /** A fake ScannerFactory; its private fields keep a literal from matching it. */
 export function fakeScannerFactory(

@@ -7,7 +7,7 @@ import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
 import { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
 import type { ScanLog, ScanSummary } from '#backend/app/scanner/scan-log';
-import { SourceCodeScanner } from '#backend/app/scanner/source-code-scanner';
+import { Scanner } from '#backend/app/scanner/scanner';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
 import { NOW } from './test-noesis';
@@ -42,7 +42,7 @@ const recordingLog = () => {
 };
 
 const scannerWith = (parser: CodeParser, log: ScanLog = recordingLog().log) =>
-  new SourceCodeScanner({
+  new Scanner({
     parser,
     builder: new SystemModelBuilder(NamespaceConfig.of({})),
     repository: { name: 'shop', headCommit: () => Promise.resolve('7ba8217') },
@@ -50,7 +50,7 @@ const scannerWith = (parser: CodeParser, log: ScanLog = recordingLog().log) =>
     log,
   });
 
-describe('SourceCodeScanner', () => {
+describe('Scanner', () => {
   it('stamps the model the builder made with a fresh id, the repository and the time', async () => {
     const model = SystemModel.parse(await scannerWith(parserOf('java')).scan());
 

@@ -10,7 +10,7 @@ import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id
 import type { ScanLog } from './scan-log';
 import type { SourceRepository } from './source-repository';
 
-export interface SourceCodeScannerDeps {
+export interface ScannerDeps {
   readonly parser: CodeParser;
   readonly builder: SystemModelBuilder;
   readonly repository: SourceRepository;
@@ -23,20 +23,14 @@ export interface SourceCodeScannerDeps {
  * reads the source code into the code model, the builder makes the system
  * model of it. Rules in docs/plans/code-model-to-system-model.md.
  */
-export class SourceCodeScanner {
+export class Scanner {
   private readonly parser: CodeParser;
   private readonly builder: SystemModelBuilder;
   private readonly repository: SourceRepository;
   private readonly now: Now;
   private readonly log: ScanLog;
 
-  constructor({
-    parser,
-    builder,
-    repository,
-    now,
-    log,
-  }: SourceCodeScannerDeps) {
+  constructor({ parser, builder, repository, now, log }: ScannerDeps) {
     this.parser = parser;
     this.builder = builder;
     this.repository = repository;
