@@ -1,5 +1,5 @@
-import { GitSourceRepository } from '#backend/adapters/out/scanner/git-source-repository';
-import { ServerScanLog } from '#backend/adapters/out/scanner/server-scan-log';
+import { GitSourceRepository } from '#backend/adapters/out/scanners/git-source-repository';
+import { ServerScanLog } from '#backend/adapters/out/scanners/server-scan-log';
 import { ChangesFileRepository } from '#backend/adapters/out/store/changes.repository';
 import { DesignDocsFileRepository } from '#backend/adapters/out/store/design-docs.repository';
 import { DocumentsFileRepository } from '#backend/adapters/out/store/documents.repository';
@@ -21,8 +21,8 @@ import { deleteDocumentFromChangeHandler } from '#backend/app/information-source
 import { findDocumentHandler } from '#backend/app/information-sources/find-document';
 import { listDocumentsInChangeHandler } from '#backend/app/information-sources/list-documents-in-change';
 import { updateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
-import { scanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
-import { ScannerFactory } from '#backend/app/scanner/scanner-factory';
+import { scanSystemModelHandler } from '#backend/app/scanners/scan-system-model';
+import { ScannerFactory } from '#backend/app/scanners/scanner-factory';
 import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
 import { searchHandler } from '#backend/app/search/search';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';

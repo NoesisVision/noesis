@@ -1,5 +1,5 @@
 // The C# parser end to end: the real `noesis-parse-csharp` (built from
-// parsers/dotnet) over the fixture solution under parsers/dotnet/test/fixtures,
+// code-parsers/dotnet) over the fixture solution under code-parsers/dotnet/test/fixtures,
 // then the system model builder. Needs the .NET SDK. Besides the model, the test measures
 // both stages against a budget, so a performance regression in either fails
 // here and the timings are printed for the record.
@@ -7,15 +7,15 @@ import { beforeAll, describe, expect, it } from 'bun:test';
 import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { CSharpParser } from '#backend/adapters/out/scanner/parsers/csharp-parser';
+import { CSharpParser } from '#backend/adapters/out/scanners/code-parsers/csharp-parser';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { systemClock } from '#backend/app/clock';
 import {
   CodeModelFile,
   ParseManifest,
-} from '#backend/app/scanner/code-model/code-model';
-import { buildSystemModel } from '#backend/app/scanner/system-model-builder/build-system-model';
-import { CSHARP_VOCABULARY } from '#backend/app/scanner/system-model-builder/csharp.vocabulary';
+} from '#backend/app/scanners/code-parsers/code-model';
+import { buildSystemModel } from '#backend/app/scanners/system-model-builders/build-system-model';
+import { CSHARP_VOCABULARY } from '#backend/app/scanners/system-model-builders/csharp.vocabulary';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import {
@@ -26,10 +26,10 @@ import {
 import { scannerOver } from '../support/test-scanner';
 
 const REPOSITORY = resolve(import.meta.dir, '../../../..');
-const FIXTURE = join(REPOSITORY, 'parsers', 'dotnet', 'test', 'fixtures');
+const FIXTURE = join(REPOSITORY, 'code-parsers', 'dotnet', 'test', 'fixtures');
 const CLI_PROJECT = join(
   REPOSITORY,
-  'parsers',
+  'code-parsers',
   'dotnet',
   'src',
   'Noesis.Parser.Cli',

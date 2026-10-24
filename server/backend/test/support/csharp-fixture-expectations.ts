@@ -1,6 +1,6 @@
 /*
  * What the projection makes of the C# fixture solution under
- * parsers/dotnet/test/fixtures (its annotated part is CSharpSyntax/Projection
+ * code-parsers/dotnet/test/fixtures (its annotated part is CSharpSyntax/Projection
  * and CSharpSyntax.OtherProject/ProjectionFromOtherProject.cs). Shared by the
  * unit test over the golden code model and the e2e test over a real scan.
  *

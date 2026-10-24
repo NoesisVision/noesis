@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { readdir } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { CSharpParser } from '#backend/adapters/out/scanner/parsers/csharp-parser';
-import { NamespaceConfig } from '#backend/app/scanner/system-model-builder/namespace-config';
-import type { Scanner } from '#backend/app/scanner/scanner';
+import { CSharpParser } from '#backend/adapters/out/scanners/code-parsers/csharp-parser';
+import { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
+import type { Scanner } from '#backend/app/scanners/scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import {
@@ -21,16 +21,16 @@ import { NOW, type TestNoesis, testNoesis } from './test-noesis';
  * model of what it wrote. Here
  * the tool is a bun script (test/support/fake-parse-csharp.ts) that copies the
  * .NET parser's golden code model of the fixture solution under
- * parsers/dotnet/test/fixtures into `--out`, so the whole chain runs without
+ * code-parsers/dotnet/test/fixtures into `--out`, so the whole chain runs without
  * .NET. The real tool runs over the same fixture in
  * test/e2e-toolchain/csharp-parser.e2e.spec.ts.
  */
 
 const REPOSITORY = join(import.meta.dir, '..', '..', '..', '..');
-const FIXTURE = join(REPOSITORY, 'parsers', 'dotnet', 'test', 'fixtures');
+const FIXTURE = join(REPOSITORY, 'code-parsers', 'dotnet', 'test', 'fixtures');
 const GOLDEN = join(
   REPOSITORY,
-  'parsers',
+  'code-parsers',
   'dotnet',
   'test',
   'Noesis.Parser.Tests',
@@ -42,7 +42,7 @@ const FAKE_TOOL = join(
   'support',
   'fake-parse-csharp.ts',
 );
-const SOURCES = 'parsers/dotnet/test/fixtures/CSharpSyntax/Projection';
+const SOURCES = 'code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection';
 
 let t: TestNoesis;
 let scanner: Scanner;

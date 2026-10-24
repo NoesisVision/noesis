@@ -398,7 +398,7 @@ them.
 
 ## 13. Implementation
 
-**Where.** `server/backend/src/app/scanner/system-model-builder/`: the
+**Where.** `server/backend/src/app/scanners/system-model-builders/`: the
 system model builder, pure functions over the two contracts, in the app layer
 because they are domain logic every parser's code model goes through.
 
@@ -415,19 +415,19 @@ because they are domain logic every parser's code model goes through.
 | `system-model-builder.ts` | `SystemModelBuilder`: picks the vocabulary by the manifest's language and builds over the namespace settings |
 
 The scan itself is domain logic too: `Scanner`
-(`app/scanner/scanner.ts`) takes a `CodeParser`
-(`app/scanner/code-model/code-parser.ts`) and a `SystemModelBuilder`, runs the parser,
+(`app/scanners/scanner.ts`) takes a `CodeParser`
+(`app/scanners/code-parsers/code-parser.ts`) and a `SystemModelBuilder`, runs the parser,
 builds the system model of what it read, reports the diagnostics through the
 `ScanLog` port and returns the `SystemModel`. The adapters are only parsers:
-`CSharpParser` and `JavaParser` (`adapters/out/scanner/parsers/`) run their
+`CSharpParser` and `JavaParser` (`adapters/out/scanners/code-parsers/`) run their
 tool, and read and validate the files it wrote with the `code-model.ts` schemas.
 
 **Tests.** `server/backend/test/unit/system-model-builder.spec.ts`: one
 `describe` per section above, one `it` per rule, over a small builder that
 makes a `CodeModelFile` in a few lines. `test/unit/csharp-parser.spec.ts`
 reads the .NET parser's golden code model of the fixture solution under
-`parsers/dotnet/test/fixtures/` (`CSharpSyntax/Projection` holds the
-annotated types; `parsers/dotnet/test/Noesis.Parser.Tests/golden/` is
+`code-parsers/dotnet/test/fixtures/` (`CSharpSyntax/Projection` holds the
+annotated types; `code-parsers/dotnet/test/Noesis.Parser.Tests/golden/` is
 regenerated with `NOESIS_UPDATE_GOLDEN=1 dotnet test`) and checks the whole
 chain without .NET. `test/e2e-toolchain/csharp-parser.e2e.spec.ts` builds the .NET
 parser, scans the same fixture through `CSharpParser` and asserts the model

@@ -38,10 +38,10 @@ Each is `bun run dev` with `NOESIS_ROOT` set to that example.
 
 Scanning `discounts-dotnet` (the Scan button, or `scan_system_model`) runs the
 `noesis-parse-csharp` tool from the PATH. Install it once from this checkout
-(see [`parsers/dotnet/README.md`](../parsers/dotnet/README.md)):
+(see [`code-parsers/dotnet/README.md`](../code-parsers/dotnet/README.md)):
 
 ```sh
-cd parsers/dotnet
+cd code-parsers/dotnet
 dotnet pack src/Noesis.Parser.Cli -c Release
 dotnet tool install -g Noesis.Parser --add-source src/Noesis.Parser.Cli/bin/Release
 ```
@@ -94,8 +94,8 @@ nothing else: no CI, build scripts, IDE settings or notes from the runs.
 
 - `discounts-java` depends on `vision.noesis:noesis-annotations:0.1.0-SNAPSHOT`
   and applies the `vision.noesis.parser` Gradle plugin, both from
-  `mavenLocal()`: run `mvn install` in `parsers/java` and
-  `./gradlew publishToMavenLocal` in `parsers/java/gradle-plugin` first, then
+  `mavenLocal()`: run `mvn install` in `code-parsers/java` and
+  `./gradlew publishToMavenLocal` in `code-parsers/java/gradle-plugin` first, then
   `./gradlew build` in the example. `./gradlew noesisParse` there scans the
   example into the code model under `.noesis/tmp/parser/code-model/java/`
   with the hybrid engine (its sources use Lombok); a scan from the service
@@ -103,7 +103,7 @@ nothing else: no CI, build scripts, IDE settings or notes from the runs.
 - `qdoc-java` is a Spring Boot Maven project that depends on
   `vision.noesis:noesis-annotations:0.1.0-SNAPSHOT` and declares the
   `noesis-parser-maven-plugin`, both from the local repository: run
-  `mvn install` in `parsers/java` first, then `./mvnw process-classes noesis:parse`
+  `mvn install` in `code-parsers/java` first, then `./mvnw process-classes noesis:parse`
   in the example writes the code model under
   `.noesis/tmp/parser/code-model/java/`; a scan from the service runs the
   plugin the same way through its `.noesis/settings.json`.

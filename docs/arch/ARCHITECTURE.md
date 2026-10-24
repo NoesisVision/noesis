@@ -130,7 +130,7 @@ Both land on the same service layer. Neither bypasses it.
   `noesis-parse-csharp` on the PATH) is a fixed command line of the same kind. The service knows
   no build tool; a new tool is a new settings file, not a new adapter. The C# tool keeps a cache of model files under
   `.noesis/cache/parser/csharp/` and compiles only the projects whose inputs changed
-  (`parsers/dotnet/README.md`). Projecting into the graph waits for the graph.
+  (`code-parsers/dotnet/README.md`). Projecting into the graph waits for the graph.
 
 ## Source of truth
 

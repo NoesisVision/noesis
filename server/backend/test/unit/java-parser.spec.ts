@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { cp, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { JavaParser } from '#backend/adapters/out/scanner/parsers/java-parser';
+import { JavaParser } from '#backend/adapters/out/scanners/code-parsers/java-parser';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { fixedClock } from '../support/fixed-clock';

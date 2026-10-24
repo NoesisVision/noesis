@@ -46,7 +46,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-h2console</artifactId>
 		</dependency>
-		<!-- Install it first: mvn install in parsers/java (see examples/README.md). -->
+		<!-- Install it first: mvn install in code-parsers/java (see examples/README.md). -->
 		<dependency>
 			<groupId>vision.noesis</groupId>
 			<artifactId>noesis-annotations</artifactId>
@@ -82,7 +82,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<!-- The Noesis code model parser: ./mvnw process-classes noesis:parse writes .noesis/tmp/parser/code-model/java/.
-			     Install it first: mvn install in parsers/java (see examples/README.md). -->
+			     Install it first: mvn install in code-parsers/java (see examples/README.md). -->
 			<plugin>
 				<groupId>vision.noesis</groupId>
 				<artifactId>noesis-parser-maven-plugin</artifactId>

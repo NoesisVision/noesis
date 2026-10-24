@@ -14,7 +14,7 @@ count for the interface's behaviours.
 `code-model/` is the Java parser's output over these sources and is
 committed, so the server's tests need no JDK. Regenerate it after changing
 the sources (from this directory, with the plugin installed once by
-`mvn -q install -DskipTests` in `parsers/java`):
+`mvn -q install -DskipTests` in `code-parsers/java`):
 
 ```sh
 rm -rf code-model

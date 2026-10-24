@@ -1,13 +1,13 @@
-import { GitSourceRepository } from '#backend/adapters/out/scanner/git-source-repository';
-import { ServerScanLog } from '#backend/adapters/out/scanner/server-scan-log';
+import { GitSourceRepository } from '#backend/adapters/out/scanners/git-source-repository';
+import { ServerScanLog } from '#backend/adapters/out/scanners/server-scan-log';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import type { Clock } from '#backend/app/clock';
-import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
-import type { NamespaceConfig } from '#backend/app/scanner/system-model-builder/namespace-config';
-import { SystemModelBuilder } from '#backend/app/scanner/system-model-builder/system-model-builder';
-import { Scanner } from '#backend/app/scanner/scanner';
-import type { ScannerFactory } from '#backend/app/scanner/scanner-factory';
-import type { CodeParserSettings } from '#backend/app/scanner/scanner-settings.repository';
+import type { CodeParser } from '#backend/app/scanners/code-parsers/code-parser';
+import type { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
+import { SystemModelBuilder } from '#backend/app/scanners/system-model-builders/system-model-builder';
+import { Scanner } from '#backend/app/scanners/scanner';
+import type { ScannerFactory } from '#backend/app/scanners/scanner-factory';
+import type { CodeParserSettings } from '#backend/app/scanners/scanner-settings.repository';
 import type { SystemModel } from '#backend/app/system-model/system-model';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 

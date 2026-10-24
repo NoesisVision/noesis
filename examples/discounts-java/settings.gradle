@@ -9,7 +9,7 @@
 
 pluginManagement {
     repositories {
-        // The Noesis parser plugin, built locally from noesis/parsers/java/gradle-plugin (./gradlew publishToMavenLocal).
+        // The Noesis parser plugin, built locally from noesis/code-parsers/java/gradle-plugin (./gradlew publishToMavenLocal).
         mavenLocal {
             content {
                 includeGroup 'vision.noesis'

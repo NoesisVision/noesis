@@ -36,7 +36,7 @@ const CSHARP_GOLDEN = join(
   '..',
   '..',
   '..',
-  'parsers',
+  'code-parsers',
   'dotnet',
   'test',
   'Noesis.Parser.Tests',

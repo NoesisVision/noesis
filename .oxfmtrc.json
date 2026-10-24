@@ -14,8 +14,8 @@
     "docs/arch/*.html",
     ".agents/",
     "examples/*/",
-    "parsers/dotnet/test/Noesis.Parser.Tests/golden/",
-    "parsers/java/core/src/test/resources/golden/",
+    "code-parsers/dotnet/test/Noesis.Parser.Tests/golden/",
+    "code-parsers/java/core/src/test/resources/golden/",
     "server/frontend/.design-sync/"
   ]
 }

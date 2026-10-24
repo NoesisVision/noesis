@@ -2,14 +2,14 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { writeFile } from 'node:fs/promises';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
-import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
-import { ScanFailedError } from '#backend/app/scanner/scan-failed-error';
-import { scanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
+import type { CodeParser } from '#backend/app/scanners/code-parsers/code-parser';
+import { ScanFailedError } from '#backend/app/scanners/scan-failed-error';
+import { scanSystemModelHandler } from '#backend/app/scanners/scan-system-model';
 import {
   type CreateCodeParser,
   ScannerFactory,
-} from '#backend/app/scanner/scanner-factory';
-import type { CodeParserSettings } from '#backend/app/scanner/scanner-settings.repository';
+} from '#backend/app/scanners/scanner-factory';
+import type { CodeParserSettings } from '#backend/app/scanners/scanner-settings.repository';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { fixedClock } from '../support/fixed-clock';

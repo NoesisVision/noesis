@@ -1,5 +1,5 @@
 // The Java parser end to end: the shop fixture declares the `noesis:parse`
-// Maven plugin (built and installed from parsers/java), and its
+// Maven plugin (built and installed from code-parsers/java), and its
 // .noesis/settings.json runs it through the java parser, then the system
 // model builder. Needs a JDK and Maven. The model must equal the one built of the
 // committed code model, which keeps the fixture's committed files honest.
@@ -10,16 +10,16 @@ import { systemClock } from '#backend/app/clock';
 import {
   CodeModelFile,
   ParseManifest,
-} from '#backend/app/scanner/code-model/code-model';
-import { buildSystemModel } from '#backend/app/scanner/system-model-builder/build-system-model';
-import { JAVA_VOCABULARY } from '#backend/app/scanner/system-model-builder/java.vocabulary';
+} from '#backend/app/scanners/code-parsers/code-model';
+import { buildSystemModel } from '#backend/app/scanners/system-model-builders/build-system-model';
+import { JAVA_VOCABULARY } from '#backend/app/scanners/system-model-builders/java.vocabulary';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { codeParserFor } from '#backend/boot/code-parsers';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { scannerOver } from '../support/test-scanner';
 
 const REPOSITORY = resolve(import.meta.dir, '../../../..');
-const PARSER = join(REPOSITORY, 'parsers', 'java');
+const PARSER = join(REPOSITORY, 'code-parsers', 'java');
 const FIXTURE = join(import.meta.dir, '..', 'fixtures', 'java', 'shop');
 
 /** Generous: a cold `mvn install` downloads plugins and a cold scan compiles the fixture; ~1 min here. */

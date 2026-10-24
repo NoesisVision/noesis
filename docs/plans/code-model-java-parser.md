@@ -3,10 +3,10 @@
 Status: done (October 2026), the Gradle plugin of section 5b included, up to
 the deferred items of section 7.
 
-The .NET parser (`parsers/dotnet`) reads a C# solution with Roslyn and
+The .NET parser (`code-parsers/dotnet`) reads a C# solution with Roslyn and
 writes the common code model described in
 [`docs/arch/code-model.md`](../arch/code-model.md).
-This document is the Java counterpart: how `parsers/java` reads a Maven
+This document is the Java counterpart: how `code-parsers/java` reads a Maven
 build into the same model, with the same ids and the same edges, so the
 service projects both through one set of rules
 ([`code-model-to-system-model.md`](code-model-to-system-model.md)). It pins
@@ -446,11 +446,11 @@ mvn -B -q -ntp -Dnoesis.out=<.noesis/tmp/<uuid>> -Dnoesis.repositoryRoot=<root> 
 ```
 
 The plugin must be in the local repository: `mvn -q install -DskipTests` in
-`parsers/java`.
+`code-parsers/java`.
 
 ## 5b. The Gradle plugin
 
-`parsers/java/gradle-plugin` is a Gradle build of its own (the Gradle API is
+`code-parsers/java/gradle-plugin` is a Gradle build of its own (the Gradle API is
 not on Maven Central) that takes `core` from the local repository and
 publishes the `vision.noesis.parser` plugin there. Applied to any project of
 a build, it registers one `noesisParse` task on the root project, so a build
@@ -539,7 +539,7 @@ A Gradle one:
 Both plugins write the same files, so the two presets differ only in the
 command line; a build tool the plugins do not cover yet is a new `command`,
 not a change to the service. The Java
-vocabulary is `app/scanner/system-model-builder/java.vocabulary.ts`; it needed two
+vocabulary is `app/scanners/system-model-builders/java.vocabulary.ts`; it needed two
 small projection rules the C# one did not: a `behaviour` role may fix the
 behaviour type itself (R9.4, for the argument-less handler annotations) and a
 record component's private field is a property while its accessor is not a
@@ -548,7 +548,7 @@ until the Gradle plugin covered them, has since been removed.
 
 ## 6. Testing
 
-- **Golden model**: the two fixture modules under `parsers/java/test-fixtures`
+- **Golden model**: the two fixture modules under `code-parsers/java/test-fixtures`
   (`java-syntax`, one file per topic, and `java-syntax-other`, the types it
   reaches across a module boundary) parsed to a checked-in model file per
   module plus the manifest, under `core/src/test/resources/golden/<engine>/`;

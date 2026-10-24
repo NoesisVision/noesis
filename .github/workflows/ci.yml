@@ -22,14 +22,14 @@ jobs:
         with:
           filters: |
             java:
-              - 'parsers/java/**'
+              - 'code-parsers/java/**'
               - '.github/workflows/ci.yml'
             ts:
               - 'server/**'
               - 'plugins/**'
               - 'package.json'
               # The backend's tests read the Java goldens and its e2e runs the Java parser.
-              - 'parsers/java/**'
+              - 'code-parsers/java/**'
               - 'bun.lock'
               - 'bunfig.toml'
               - '.github/workflows/ci.yml'
@@ -64,13 +64,13 @@ jobs:
         with:
           bun-version-file: package.json
 
-      # The toolchain e2e installs the Maven plugin from parsers/java and parses a fixture with it.
+      # The toolchain e2e installs the Maven plugin from code-parsers/java and parses a fixture with it.
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
-          cache-dependency-path: parsers/java/**/pom.xml
+          cache-dependency-path: code-parsers/java/**/pom.xml
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -136,16 +136,16 @@ jobs:
       - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
         with:
           distribution: temurin
-          # Matches maven.compiler.release in parsers/java/pom.xml.
+          # Matches maven.compiler.release in code-parsers/java/pom.xml.
           java-version: '17'
           cache: maven
-          cache-dependency-path: parsers/java/**/pom.xml
+          cache-dependency-path: code-parsers/java/**/pom.xml
 
       # install, not verify: the Gradle plugin takes the core from the local repository.
       - name: Build and test
         run: mvn -B --no-transfer-progress install
-        working-directory: parsers/java
+        working-directory: code-parsers/java
 
       - name: Build and test the Gradle plugin
         run: ./gradlew --no-daemon build
-        working-directory: parsers/java/gradle-plugin
+        working-directory: code-parsers/java/gradle-plugin

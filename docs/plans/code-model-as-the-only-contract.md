@@ -6,7 +6,7 @@ Today a scan has two contracts. The first is the **code model**: the files a
 parser writes (described in
 [`docs/arch/code-model.md`](../arch/code-model.md)).
 The second is an **annotation vocabulary** per language, in the service
-(`server/backend/src/app/scanner/system-model-builder/{java,csharp}.vocabulary.ts`),
+(`server/backend/src/app/scanners/system-model-builders/{java,csharp}.vocabulary.ts`),
 plus a few rules of the projection that read one language's facts
 ([`code-model-to-system-model.md`](code-model-to-system-model.md), the
 "projection rules" below). Whenever a parser learns something about its
@@ -84,7 +84,7 @@ R7.1 to R7.3 then read `wellKnown` of the referenced type and nothing else;
 and `voidTypes` leave the vocabulary.
 
 The parser classifies with what it knows. The Java parser moves today's
-table into `parsers/java/core` and adds the hierarchy: a generic type whose
+table into `code-parsers/java/core` and adds the hierarchy: a generic type whose
 first type parameter flows into `java.lang.Iterable<T>` is a `collection`, one
 that flows into `java.util.Map<K,V>` a `dictionary`. vavr's `List`, Guava's
 `ImmutableList` and a project's own `Items<T> implements Iterable<T>` are
@@ -182,9 +182,9 @@ the annotations on every node.
 Where the parser takes the table from is a choice, in two steps:
 
 1. **First, the parser's own table.** The Java table moves from
-   `java.vocabulary.ts` into `parsers/java/core`, the C# table into
-   `parsers/dotnet`. The annotation libraries ship with their parsers
-   (`parsers/java/annotations`, `NoesisVision.Annotations`), so a parser
+   `java.vocabulary.ts` into `code-parsers/java/core`, the C# table into
+   `code-parsers/dotnet`. The annotation libraries ship with their parsers
+   (`code-parsers/java/annotations`, `NoesisVision.Annotations`), so a parser
    that knows its library is no new coupling.
 2. **Then, meta-annotations.** Each annotation library marks its own
    annotations with one meta-annotation, `@NoesisRole(BUILDING_BLOCK, type =
@@ -215,8 +215,8 @@ change in the service.
 
 | Parser                  | 3.1 well-known types                                                       | 3.2 technical members                                                                                     | 3.3 properties                       | 3.4 roles                         |
 | ----------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------ | --------------------------------- |
-| Java (`parsers/java`)   | table from `java.vocabulary.ts`, plus hierarchy, in one shared `core` pass | `Object`'s members, `Comparable`                                                                          | new: one `core` pass for all engines | table from `java.vocabulary.ts`   |
-| .NET (`parsers/dotnet`) | table from `csharp.vocabulary.ts`, plus hierarchy                          | `System.Object`'s members, `IEquatable<T>`, `IComparable<T>`, `ICloneable`, `Deconstruct`, `PrintMembers` | nothing: properties are native       | table from `csharp.vocabulary.ts` |
+| Java (`code-parsers/java`)   | table from `java.vocabulary.ts`, plus hierarchy, in one shared `core` pass | `Object`'s members, `Comparable`                                                                          | new: one `core` pass for all engines | table from `java.vocabulary.ts`   |
+| .NET (`code-parsers/dotnet`) | table from `csharp.vocabulary.ts`, plus hierarchy                          | `System.Object`'s members, `IEquatable<T>`, `IComparable<T>`, `ICloneable`, `Deconstruct`, `PrintMembers` | nothing: properties are native       | table from `csharp.vocabulary.ts` |
 | Any `code-model` tool   | optional: an unclassified type is a named type                             | optional                                                                                                  | optional                             | required for building blocks      |
 
 A third-party tool that writes no roles yields an empty system model, which
@@ -228,7 +228,7 @@ One pull request per step; each removes one row of section 1 from the
 projection and keeps the system models of the fixtures and examples equal,
 which the goldens show.
 
-1. **Schema 2** in `server/backend/src/app/scanner/code-model/code-model.ts`,
+1. **Schema 2** in `server/backend/src/app/scanners/code-parsers/code-model.ts`,
    in the Java model records and the .NET model, with every new field
    nullable, so both parsers write version 2 before they fill it.
 2. **Technical members** (3.2): both parsers classify; R9.1 reads the
@@ -255,7 +255,7 @@ the parser to update.
 ## 7. Tests
 
 - **The projection names no language.** A unit test reads the sources under
-  `server/backend/src/app/scanner/system-model-builder/` and fails on `java`,
+  `server/backend/src/app/scanners/system-model-builders/` and fails on `java`,
   `csharp`, a `T:`/`M:` id literal or a `languageSpecific` key; it is the
   guard that keeps section 2 true.
 - **Projection rules on neutral facts.** `code-model-projection.spec.ts`

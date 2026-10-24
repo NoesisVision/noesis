@@ -122,7 +122,7 @@ Verdict: the fallback if ArchUnit's model or performance ever becomes a hard blo
 Three artifacts, following the OpenRewrite / SpotBugs pattern:
 
 ```
-parsers/java/
+code-parsers/java/
 ├── scanner-core/      # plain JAR, zero build-tool deps
 │                      #   in:  class dirs (+ optionally source roots) + classpath
 │                      #   out: graph JSON matching the Noesis contract schema

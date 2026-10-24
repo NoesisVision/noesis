@@ -16,7 +16,7 @@ plugins {
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
-    // Noesis DDD annotations, built locally from noesis/parsers/java (mvn install).
+    // Noesis DDD annotations, built locally from noesis/code-parsers/java (mvn install).
     mavenLocal()
 }
 

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'bun:test';
-import { parserDiagnostics } from '#backend/adapters/out/scanner/parsers/command-code-parser';
+import { parserDiagnostics } from '#backend/adapters/out/scanners/code-parsers/command-code-parser';
 import type {
   CodeModelFile,
   Diagnostic,
   ParseManifest,
-} from '#backend/app/scanner/code-model/code-model';
+} from '#backend/app/scanners/code-parsers/code-model';
 
 /*
  * What the service logs of the diagnostics a parser wrote: a module the

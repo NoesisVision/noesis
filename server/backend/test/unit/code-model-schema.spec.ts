@@ -4,9 +4,9 @@ import {
   CodeModelFile,
   type Language,
   ParseManifest,
-} from '#backend/app/scanner/code-model/code-model';
+} from '#backend/app/scanners/code-parsers/code-model';
 
-const parsers = join(import.meta.dir, '../../../../parsers');
+const parsers = join(import.meta.dir, '../../../../code-parsers');
 
 /** Each parser's committed golden files: the model it writes for its syntax fixture. */
 const GOLDENS: Record<

@@ -2,12 +2,12 @@ import { describe, expect, it } from 'bun:test';
 import type {
   Language,
   ParseManifest,
-} from '#backend/app/scanner/code-model/code-model';
-import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
-import { NamespaceConfig } from '#backend/app/scanner/system-model-builder/namespace-config';
-import { SystemModelBuilder } from '#backend/app/scanner/system-model-builder/system-model-builder';
-import type { ScanLog, ScanSummary } from '#backend/app/scanner/scan-log';
-import { Scanner } from '#backend/app/scanner/scanner';
+} from '#backend/app/scanners/code-parsers/code-model';
+import type { CodeParser } from '#backend/app/scanners/code-parsers/code-parser';
+import { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
+import { SystemModelBuilder } from '#backend/app/scanners/system-model-builders/system-model-builder';
+import type { ScanLog, ScanSummary } from '#backend/app/scanners/scan-log';
+import { Scanner } from '#backend/app/scanners/scanner';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { fixedClock } from '../support/fixed-clock';

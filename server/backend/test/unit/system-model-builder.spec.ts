@@ -15,19 +15,19 @@ import type {
   TypeParameter,
   TypeRef,
   Visibility,
-} from '#backend/app/scanner/code-model/code-model';
-import { unquote } from '#backend/app/scanner/system-model-builder/annotations';
+} from '#backend/app/scanners/code-parsers/code-model';
+import { unquote } from '#backend/app/scanners/system-model-builders/annotations';
 import {
   type BuiltSystemModel,
   buildSystemModel,
-} from '#backend/app/scanner/system-model-builder/build-system-model';
-import { CSHARP_VOCABULARY } from '#backend/app/scanner/system-model-builder/csharp.vocabulary';
-import { JAVA_VOCABULARY } from '#backend/app/scanner/system-model-builder/java.vocabulary';
+} from '#backend/app/scanners/system-model-builders/build-system-model';
+import { CSHARP_VOCABULARY } from '#backend/app/scanners/system-model-builders/csharp.vocabulary';
+import { JAVA_VOCABULARY } from '#backend/app/scanners/system-model-builders/java.vocabulary';
 import {
   NamespaceConfig,
   type NamespaceConfigInput,
-} from '#backend/app/scanner/system-model-builder/namespace-config';
-import type { AnnotationVocabulary } from '#backend/app/scanner/system-model-builder/vocabulary';
+} from '#backend/app/scanners/system-model-builders/namespace-config';
+import type { AnnotationVocabulary } from '#backend/app/scanners/system-model-builders/vocabulary';
 import { SystemModel } from '#backend/app/system-model/system-model';
 
 /*

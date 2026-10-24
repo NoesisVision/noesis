@@ -10,7 +10,7 @@ import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-m
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
-import { scanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
+import { scanSystemModelHandler } from '#backend/app/scanners/scan-system-model';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';

@@ -21,7 +21,7 @@
         "src/app/element-id.ts",
         "src/app/design-docs/design-doc-field.ts",
         "src/app/system-model/system-model.ts",
-        "src/app/scanner/code-model/code-model.ts",
+        "src/app/scanners/code-parsers/code-model.ts",
         "test/**/*.types.ts",
         "test/support/fake-code-model-tool.ts",
         "test/support/fake-parse-csharp.ts"

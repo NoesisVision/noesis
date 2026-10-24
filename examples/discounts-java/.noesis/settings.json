@@ -9,7 +9,7 @@
       "-Pnoesis.repositoryRoot={root}",
       "-Pnoesis.repository={name}"
     ],
-    "installHint": "Run the service on a JDK; the build takes the vision.noesis.parser plugin from mavenLocal (./gradlew publishToMavenLocal in noesis/parsers/java/gradle-plugin, after mvn install in noesis/parsers/java)."
+    "installHint": "Run the service on a JDK; the build takes the vision.noesis.parser plugin from mavenLocal (./gradlew publishToMavenLocal in noesis/code-parsers/java/gradle-plugin, after mvn install in noesis/code-parsers/java)."
   },
   "namespacePartsToSkip": ["com.itlibrium"],
   "namespacesToExclude": []

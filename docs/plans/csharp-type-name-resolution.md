@@ -1,7 +1,7 @@
 # Design: C# type name resolution without a compiler
 
 > **Status: superseded.** The C# parser uses Roslyn, see
-> [`parsers/dotnet`](../../parsers/dotnet/README.md).
+> [`code-parsers/dotnet`](../../code-parsers/dotnet/README.md).
 > This document remains the inventory of everything that influences type
 > resolution in C# and the design of the Roslyn-based test oracle.
 
@@ -39,7 +39,7 @@ Two claims are kept apart on purpose:
 | Project model         | Supplied as a `CompilationModel`. Preferred source: `obj/project.assets.json` and the generated `obj/**/*.GlobalUsings.g.cs`, `*.AssemblyInfo.cs` when present (restore output, exact). Fallback: a documented csproj evaluator with listed limits.                                                                                                                                         |
 | Preprocessor          | Source is parsed with the compilation's `DefineConstants`; inactive `#if` regions contribute no declarations and no usings. This is the parser's job; the resolver sees only active syntax.                                                                                                                                                                                                 |
 | Stability             | `ResolutionApi.version = 1`. Additive changes keep the version; a breaking change bumps it and the old `resolve` stays callable for one release. All unions are closed and have a `kind` discriminator.                                                                                                                                                                                     |
-| Oracle                | The `../../parsers/dotnet/test/fixtures` solution plus a Roslyn harness that dumps every type reference's bound symbol to a golden file. The TypeScript implementation must reproduce the golden file byte for byte.                                                                                                                                                                        |
+| Oracle                | The `../../code-parsers/dotnet/test/fixtures` solution plus a Roslyn harness that dumps every type reference's bound symbol to a golden file. The TypeScript implementation must reproduce the golden file byte for byte.                                                                                                                                                                        |
 
 ## 2. What affects type resolution in C#
 
@@ -608,11 +608,11 @@ reference aliases behave like assembly aliases.
 
 Accuracy is proven, not argued:
 
-1. A small .NET tool (kept in `../../parsers/dotnet/test/fixtures`, run only in CI and
-   by whoever updates the fixtures) opens `../../parsers/dotnet/test/fixtures`
+1. A small .NET tool (kept in `../../code-parsers/dotnet/test/fixtures`, run only in CI and
+   by whoever updates the fixtures) opens `../../code-parsers/dotnet/test/fixtures`
    with Roslyn, walks every `TypeSyntax` node of every file, and writes
    `file:line:column`, the written text, and the bound symbol's canonical
-   string (or the error code) to `../../parsers/dotnet/test/fixtures`.
+   string (or the error code) to `../../code-parsers/dotnet/test/fixtures`.
 2. The TypeScript test parses the same files, builds the compilation model
    from `obj/project.assets.json`, calls `resolveTypeName` at every recorded
    position and compares `canonicalString(result)` with the golden line.
@@ -628,7 +628,7 @@ builds, which turns every real C# project into a regression test for free.
 
 | Question                                                  | Proposal                                                                                                                                                                                                    |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Where the module lives                                    | `server/backend/src/adapters/out/scanners/csharp/type-resolution/` next to the present scanner, as a pure library with no I/O, so it can later move to `parsers/dotnet` unchanged.                          |
+| Where the module lives                                    | `server/backend/src/adapters/out/scanners/csharp/type-resolution/` next to the present scanner, as a pure library with no I/O, so it can later move to `code-parsers/dotnet` unchanged.                          |
 | Reference-pack JSON size                                  | One file per TFM, ~2 MB gzipped for `net10.0`; loaded lazily per compilation. Acceptable; revisit if several TFMs ship.                                                                                     |
 | Source generators                                         | Their output is in `obj/` only after a build, not after restore. Generated types are therefore invisible unless `obj/` holds them; names bound to generator output resolve to `notFound`. Documented limit. |
 | `global using` in multiple files with conflicting aliases | The compiler reports CS1537; the model validation rejects the compilation with the same diagnostic rather than resolving against a broken set.                                                              |

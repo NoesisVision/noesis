@@ -12,7 +12,7 @@
       "process-classes",
       "noesis:parse"
     ],
-    "installHint": "Run the service on a JDK with Maven on the PATH; the build takes noesis-parser-maven-plugin from the local repository (mvn install in parsers/java)."
+    "installHint": "Run the service on a JDK with Maven on the PATH; the build takes noesis-parser-maven-plugin from the local repository (mvn install in code-parsers/java)."
   },
   "namespacePartsToSkip": ["com.acme"],
   "namespacesToExclude": ["*.internal"]

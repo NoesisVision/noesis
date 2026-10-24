@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
-import { scanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
+import { scanSystemModelHandler } from '#backend/app/scanners/scan-system-model';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { scannerFinding } from '../support/test-scanner';
