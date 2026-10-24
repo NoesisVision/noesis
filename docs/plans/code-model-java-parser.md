@@ -34,7 +34,7 @@ model document stays the contract.
 3. **The service gets a second Java parser.** The regex-based TypeScript
    parser stayed as `scanner: "java"` (since removed). A repository now
    declares the Noesis Maven or Gradle plugin in its build and runs it
-   through `parser: "code-model"`; the service reads the files and projects
+   through `parser: "java"`; the service reads the files and projects
    them with a Java annotation vocabulary.
 4. **`vision.noesis.annotations` is unchanged.** The DDD graph the previous
    parser derived (`detect/`, `derive/`, `graph.json`) is gone; its rules are
@@ -475,7 +475,7 @@ the task through Gradle TestKit on `src/test/resources/multi-project`, the
 Gradle twin of the Maven integration test's reactor, and asserts the same
 facts. `examples/discounts-java` applies the plugin with the hybrid engine
 (section 4a), its sources being Lombok's, and its `.noesis/settings.json` runs it
-through the `code-model` parser (section 5a); its shipped system model has
+through the `java` parser (section 5a); its shipped system model has
 the source lines of every building block and, Lombok's accessors being
 `generated`, only the written methods as behaviours.
 
@@ -483,9 +483,9 @@ the source lines of every building block and, Lombok's accessors being
 
 A Java repository declares the Noesis plugin in its build, with what it
 needs (the version, the engine) in the plugin's configuration, and names
-`parser: "code-model"` in `.noesis/settings.json` with the command that runs
-it in the file's `codeModel` block (`{out}`, `{root}` and `{name}` filled
-in). The `code-model` parser shares its shape with the C# adapter
+`parser: "java"` in `.noesis/settings.json` with the command that runs
+it in the file's `java` block (`{out}`, `{root}` and `{name}` filled
+in). The `java` parser shares its shape with the C# adapter
 through `command-code-parser.ts`: run a command line into the session
 directory, find the one `code-model/<language>/manifest.json` it wrote, read
 it and its files with the zod schema; `SystemModelBuilder` projects them with the vocabulary of the
@@ -501,8 +501,8 @@ the compiler's errors land in the model. A Maven repository:
 
 ```json
 {
-  "parser": "code-model",
-  "codeModel": {
+  "parser": "java",
+  "java": {
     "command": [
       "./mvnw",
       "-B",
@@ -522,8 +522,8 @@ A Gradle one:
 
 ```json
 {
-  "parser": "code-model",
-  "codeModel": {
+  "parser": "java",
+  "java": {
     "command": [
       "./gradlew",
       "-q",
@@ -589,7 +589,7 @@ until the Gradle plugin covered them, has since been removed.
 - **Service**: `test/fixtures/java/shop` is a two-module Maven build with the
   rules of the C# `shop` fixture in Java and its committed `code-model/`;
   its POM declares the plugin and its `.noesis/settings.json` runs it;
-  `test/unit/java-code-parser.spec.ts` runs the `code-model` parser over a fake
+  `test/unit/java-code-parser.spec.ts` runs the `java` parser over a fake
   build that copies the committed model and pins the projected model,
   `test/e2e-toolchain/java-parser.e2e.spec.ts` installs the plugin and scans
   the fixture for real with the fixture's own settings, asserting the same
@@ -604,7 +604,7 @@ until the Gradle plugin covered them, has since been removed.
 ## 7. Deferred
 
 Running the Gradle plugin on a build that does not apply it (an init script
-the `codeModel` command passes); a `wildcard` type reference kind; `@Nullable` → `nullable`; the
+the `java` command passes); a `wildcard` type reference kind; `@Nullable` → `nullable`; the
 `hiding` modifier; `module-info` as a node (its file is left out of the
 compilation, section 3); `typeLiteral` (`X.class`) and
 `REFERENCES_METHOD`; parameter names without `-parameters`; running

@@ -80,7 +80,7 @@ describe('ScannerFactory', () => {
     };
   const parsers: CodeParsers = {
     csharp: parserOf('csharp'),
-    'code-model': parserOf('code-model'),
+    java: parserOf('java'),
   };
   const factory = () =>
     new ScannerFactory(
@@ -102,10 +102,10 @@ describe('ScannerFactory', () => {
 
     await configure({ parser: 'csharp' });
     await scanners.create();
-    await configure({ parser: 'code-model', codeModel: { command: ['x'] } });
+    await configure({ parser: 'java', java: { command: ['x'] } });
     await scanners.create();
 
-    expect(picked.map(({ name }) => name)).toEqual(['csharp', 'code-model']);
+    expect(picked.map(({ name }) => name)).toEqual(['csharp', 'java']);
   });
 
   it('hands the parser the repository settings', async () => {
@@ -120,13 +120,13 @@ describe('ScannerFactory', () => {
 
   it('refuses a repository that names no parser, or names one wrongly', async () => {
     await expect(factory().create()).rejects.toThrow(
-      /\.noesis\/settings\.json is missing\. Create it and set "parser" to one of: csharp, code-model\./,
+      /\.noesis\/settings\.json is missing\. Create it and set "parser" to one of: csharp, java\./,
     );
     await configure({});
     await expect(factory().create()).rejects.toThrow(
-      /\.noesis\/settings\.json names no parser\. Set "parser" to one of: csharp, code-model\./,
+      /\.noesis\/settings\.json names no parser\. Set "parser" to one of: csharp, java\./,
     );
-    for (const parser of ['java', 'dummy', 'cobol']) {
+    for (const parser of ['dummy', 'cobol']) {
       await configure({ parser });
       await expect(factory().create()).rejects.toThrow(
         /Invalid .*\.noesis\/settings\.json/,
@@ -145,19 +145,31 @@ describe('ScannerFactory', () => {
     );
   });
 
+  it('refuses a file that still names the code-model parser, saying what to rename', async () => {
+    for (const settings of [
+      { parser: 'code-model', codeModel: { command: ['x'] } },
+      { parser: 'java', codeModel: { command: ['x'] } },
+    ]) {
+      await configure(settings);
+      await expect(factory().create()).rejects.toThrow(
+        /names the "code-model" parser, which is now "java"/,
+      );
+    }
+  });
+
   it('refuses a file written for the Java presets the service no longer has, saying how to move', async () => {
     for (const settings of [
       { scanner: 'java-maven' },
       { scanner: 'java-gradle' },
       {
-        parser: 'code-model',
-        codeModel: { command: ['x'] },
+        parser: 'java',
+        java: { command: ['x'] },
         engine: 'hybrid',
       },
     ]) {
       await configure(settings);
       await expect(factory().create()).rejects.toThrow(
-        /(no longer has|no parser reads any more)[\s\S]*"parser": "code-model"/,
+        /(no longer has|no parser reads any more)[\s\S]*"parser": "java"/,
       );
     }
   });

@@ -4,7 +4,7 @@ import {
   NamespaceConfigSchema,
 } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 import {
-  CodeModelToolSettings,
+  JavaParserSettings,
   ParserName,
   type RepositorySettings,
   type ScannerSettingsRepository,
@@ -17,10 +17,10 @@ const PARSER_NAMES = ParserName.options.join(', ');
 
 const RepositorySettingsSchema = NamespaceConfigSchema.extend({
   parser: ParserName.optional(),
-  codeModel: CodeModelToolSettings.optional(),
+  java: JavaParserSettings.optional(),
 });
 
-/** The Java presets the service once had, which a repository's build now runs through `code-model`. */
+/** The Java presets the service once had, which a repository's build now runs through `java`. */
 const JAVA_PRESETS = ['java-maven', 'java-gradle'];
 
 /** `.noesis/settings.json` in the repository. */
@@ -46,7 +46,7 @@ export class ScannerSettingsFileRepository implements ScannerSettingsRepository 
         `Invalid ${file.name}:\n${z.prettifyError(parsed.error)}`,
       );
     }
-    const { parser, codeModel, ...namespaces } = parsed.data;
+    const { parser, java, ...namespaces } = parsed.data;
     if (parser === undefined) {
       throw new Error(
         `.noesis/${SETTINGS_FILE} names no parser. Set "parser" to one of: ${PARSER_NAMES}.`,
@@ -54,7 +54,7 @@ export class ScannerSettingsFileRepository implements ScannerSettingsRepository 
     }
     return {
       parser,
-      codeModel: codeModel ?? null,
+      java: java ?? null,
       namespaces: NamespaceConfig.of(namespaces),
     };
   }
@@ -62,14 +62,19 @@ export class ScannerSettingsFileRepository implements ScannerSettingsRepository 
 
 /**
  * A file written for an older service says what to change: the schema would
- * drop a `scanner` or an `engine` unread, so the scan would run no parser or
- * another engine. A Java preset moves to the build's own plugin.
+ * drop a `scanner`, an `engine` or a `codeModel` unread, so the scan would run
+ * no parser, another engine or no command. A Java preset moves to the build's
+ * own plugin; the `code-model` parser is now named `java`.
  */
 function refuseRetiredSettings(raw: unknown, file: string): void {
   if (typeof raw !== 'object' || raw === null) return;
-  const settings = raw as { scanner?: unknown; engine?: unknown };
+  const settings = raw as {
+    scanner?: unknown;
+    engine?: unknown;
+    parser?: unknown;
+  };
   const move =
-    'Declare the Noesis Maven or Gradle plugin in the build, with the engine in its configuration, and run it with "parser": "code-model" and a "codeModel" command (parsers/java/README.md).';
+    'Declare the Noesis Maven or Gradle plugin in the build, with the engine in its configuration, and run it with "parser": "java" and a "java" command (parsers/java/README.md).';
   if (
     typeof settings.scanner === 'string' &&
     JAVA_PRESETS.includes(settings.scanner)
@@ -86,6 +91,11 @@ function refuseRetiredSettings(raw: unknown, file: string): void {
   if ('engine' in settings) {
     throw new Error(
       `${file} sets "engine", which no parser reads any more. ${move}`,
+    );
+  }
+  if (settings.parser === 'code-model' || 'codeModel' in settings) {
+    throw new Error(
+      `${file} names the "code-model" parser, which is now "java": set "parser": "java" and rename the "codeModel" block to "java".`,
     );
   }
 }

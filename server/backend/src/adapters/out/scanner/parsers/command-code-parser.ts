@@ -5,6 +5,7 @@ import {
   type CodeModelFile,
   CodeModelFile as CodeModelFileSchema,
   type Diagnostic,
+  type Language,
   ParseManifest,
 } from '#backend/app/scanner/code-model/code-model';
 import type {
@@ -20,19 +21,20 @@ const CODE_MODEL_DIR = 'code-model';
 const MANIFEST_FILE = 'manifest.json';
 
 /**
- * A parser that runs a tool of the repository's language, which writes the
- * common code model into a fresh `.noesis/tmp/<uuid>/`, removed once read.
- * A subclass says only which command line to run, and what to tell someone
- * who cannot run it; every tool that writes the model is read the same way.
+ * A parser that runs a tool of one language, which writes the common code
+ * model into a fresh `.noesis/tmp/<uuid>/`, removed once read. A model of
+ * another language is refused. A subclass says only which command line to
+ * run, and what to tell someone who cannot run it; every tool that writes
+ * the model is read the same way.
  */
 export abstract class CommandCodeParser implements CodeParser {
   private readonly log;
 
   protected constructor(
     protected readonly noesis: NoesisDir,
-    name: string,
+    private readonly language: Language,
   ) {
-    this.log = serverLogger('scanner', name);
+    this.log = serverLogger('scanner', language);
   }
 
   /** The whole command line that scans `root` into `outDir` as `name`, run from `root`. */
@@ -66,7 +68,7 @@ export abstract class CommandCodeParser implements CodeParser {
       outDir,
     );
     if (executable === undefined) {
-      throw new Error('The code-model parser has no command to run.');
+      throw new Error('The parser has no command to run.');
     }
     this.log.debug('Running {executable} {args}', { executable, args });
     const output = await this.run(executable, args, root);
@@ -75,7 +77,15 @@ export abstract class CommandCodeParser implements CodeParser {
         `${executable} failed with exit code ${output.exitCode}:\n${output.text.slice(-OUTPUT_TAIL)}`,
       );
     }
-    return readCodeModel(await manifestIn(codeModelDir, executable));
+    const code = await readCodeModel(
+      await manifestIn(codeModelDir, this.language, executable),
+    );
+    if (code.manifest.language !== this.language) {
+      throw new Error(
+        `${executable} wrote a ${code.manifest.language} code model; the ${this.language} parser reads only ${this.language}.`,
+      );
+    }
+    return code;
   }
 
   private async run(
@@ -178,32 +188,28 @@ export function fillCommand(
   );
 }
 
-/** The one `code-model/<language>/manifest.json` the tool wrote; the language is the tool's to say. */
+/** `code-model/<language>/manifest.json`, refusing a tool that wrote a model of another language. */
 async function manifestIn(
   codeModelDir: string,
+  language: Language,
   executable: string,
 ): Promise<string> {
-  let languages: string[];
+  let written: string[];
   try {
-    languages = (await readdir(codeModelDir, { withFileTypes: true }))
+    written = (await readdir(codeModelDir, { withFileTypes: true }))
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name)
       .sort();
   } catch {
-    languages = [];
+    written = [];
   }
-  const manifests: string[] = [];
-  for (const language of languages) {
-    const manifest = join(codeModelDir, language, MANIFEST_FILE);
-    if (await Bun.file(manifest).exists()) manifests.push(manifest);
-  }
-  if (manifests.length > 1) {
+  const others = written.filter((name) => name !== language);
+  if (others.length > 0) {
     throw new Error(
-      `${executable} wrote more than one code model under ${codeModelDir} (${languages.join(', ')}); one scan projects one.`,
+      `${executable} wrote a code model of ${others.join(', ')} under ${codeModelDir}; the ${language} parser reads only ${language}.`,
     );
   }
-  // One expected manifest path keeps the error readable when nothing was written.
-  return manifests[0] ?? join(codeModelDir, '<language>', MANIFEST_FILE);
+  return join(codeModelDir, language, MANIFEST_FILE);
 }
 
 async function readCodeModel(manifestPath: string): Promise<ParsedCode> {

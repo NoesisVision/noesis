@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { chmod, readdir, writeFile } from 'node:fs/promises';
+import { chmod, cp, readdir, readFile, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { JavaCodeParser } from '#backend/adapters/out/scanner/parsers/java-code-parser';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
@@ -8,13 +8,12 @@ import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
- * The `code-model` parser runs whatever command line .noesis/settings.json
- * gives, and the scanner builds the system model of what it wrote by the
- * language the manifest names. Here
- * the command is a fake tool copying a committed code model: the Java shop's
- * (test/support/fake-code-model-tool.ts), then the .NET parser's golden one
- * (test/support/fake-parse-csharp.ts), with the one settings file telling them
- * apart. The real tools run in test/e2e.
+ * The `java` parser runs the command line .noesis/settings.json gives, and
+ * reads only the Java code model it wrote. Here the command is a fake tool
+ * copying a committed code model: the Java shop's
+ * (test/support/fake-code-model-tool.ts), or the .NET parser's golden one
+ * (test/support/fake-parse-csharp.ts), which the parser refuses. The real
+ * tools run in test/e2e.
  */
 
 const FIXTURES = join(import.meta.dir, '..', 'fixtures');
@@ -59,7 +58,7 @@ let scanner: ReturnType<typeof settingsScanner>;
 const configure = (config: Record<string, unknown>) =>
   writeFile(
     t.noesis.resolve('settings.json'),
-    JSON.stringify({ parser: 'code-model', ...config }),
+    JSON.stringify({ parser: 'java', ...config }),
   );
 
 /** A Gradle-shaped command line: the tool's own flags, then the placeholders the service fills. */
@@ -95,10 +94,10 @@ beforeEach(async () => {
   t = await testNoesis();
   scanner = settingsScanner(
     t.noesis,
-    ({ codeModel }) =>
+    ({ java }) =>
       new JavaCodeParser({
         noesis: t.noesis,
-        codeModel,
+        settings: java,
       }),
     fixedClock(NOW),
   );
@@ -106,10 +105,10 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
-describe('The code-model parser configured in .noesis/settings.json', () => {
+describe('The java parser configured in .noesis/settings.json', () => {
   it('runs the configured command from the repository root with the placeholders filled', async () => {
     await configure({
-      codeModel: { command: gradleLike(JAVA_SHOP) },
+      java: { command: gradleLike(JAVA_SHOP) },
       namespacePartsToSkip: ['com.acme'],
     });
 
@@ -132,7 +131,7 @@ describe('The code-model parser configured in .noesis/settings.json', () => {
 
   it('builds a Java code model by the Java vocabulary, as the Maven preset does', async () => {
     await configure({
-      codeModel: { command: gradleLike(JAVA_SHOP) },
+      java: { command: gradleLike(JAVA_SHOP) },
       namespacePartsToSkip: ['com.acme'],
       namespacesToExclude: ['*.internal'],
     });
@@ -148,25 +147,19 @@ describe('The code-model parser configured in .noesis/settings.json', () => {
     ).toBe('Query');
   });
 
-  it('builds a C# code model by the C# vocabulary: the manifest, not the settings, names the language', async () => {
-    await configure({
-      codeModel: { command: csharpLike() },
-      namespacePartsToSkip: ['CSharpSyntax'],
-      namespacesToExclude: ['*.ExcludedNamespace'],
-    });
+  it('refuses a command that writes a C# code model', async () => {
+    await configure({ java: { command: csharpLike() } });
 
-    const model = SystemModel.parse(await scanner.scan());
-
-    expect<unknown>(model.buildingBlocks.map((b) => b.id)).toContain(
-      'building_block|OtherProject.Projection.BlockFromOtherProject',
+    await expect<unknown>(scanner.scan()).rejects.toThrow(
+      /wrote a code model of csharp .*; the java parser reads only java\./,
     );
   });
 
   it('reads the command at every scan, so changed settings count without a restart', async () => {
-    await configure({ codeModel: { command: gradleLike(JAVA_SHOP) } });
+    await configure({ java: { command: gradleLike(JAVA_SHOP) } });
     await scanner.scan();
     await configure({
-      codeModel: { command: gradleLike(JAVA_SHOP, '--changed') },
+      java: { command: gradleLike(JAVA_SHOP, '--changed') },
     });
 
     await scanner.scan();
@@ -182,7 +175,7 @@ describe('The code-model parser configured in .noesis/settings.json', () => {
     );
     await chmod(wrapper, 0o755);
     await configure({
-      codeModel: { command: ['./gradlew', 'noesisParse', '--out', '{out}'] },
+      java: { command: ['./gradlew', 'noesisParse', '--out', '{out}'] },
     });
 
     const model = await scanner.scan();
@@ -198,16 +191,16 @@ describe('The code-model parser configured in .noesis/settings.json', () => {
     ]);
   });
 
-  it('refuses to scan without a codeModel command', async () => {
+  it('refuses to scan without a java command', async () => {
     await configure({});
 
     await expect<unknown>(scanner.scan()).rejects.toThrow(
-      /names the code-model parser but has no "codeModel"/,
+      /names the java parser but has no "java"/,
     );
   });
 
   it('rejects an empty command', async () => {
-    await configure({ codeModel: { command: [] } });
+    await configure({ java: { command: [] } });
 
     await expect<unknown>(scanner.scan()).rejects.toThrow(
       /Invalid .*\.noesis\/settings\.json/,
@@ -216,7 +209,7 @@ describe('The code-model parser configured in .noesis/settings.json', () => {
 
   it('fails with the tool output when the command exits with an error', async () => {
     await configure({
-      codeModel: { command: gradleLike(JAVA_SHOP, '--fail', '2') },
+      java: { command: gradleLike(JAVA_SHOP, '--fail', '2') },
     });
 
     await expect<unknown>(scanner.scan()).rejects.toThrow(
@@ -224,9 +217,29 @@ describe('The code-model parser configured in .noesis/settings.json', () => {
     );
   });
 
+  it('refuses a Java code model whose manifest names another language', async () => {
+    const source = join(t.root, 'mislabelled');
+    await cp(join(JAVA_SHOP, 'code-model'), join(source, 'code-model'), {
+      recursive: true,
+    });
+    const manifest = join(source, 'code-model', 'java', 'manifest.json');
+    await writeFile(
+      manifest,
+      (await readFile(manifest, 'utf8')).replace(
+        '"language": "java"',
+        '"language": "csharp"',
+      ),
+    );
+    await configure({ java: { command: gradleLike(source) } });
+
+    await expect<unknown>(scanner.scan()).rejects.toThrow(
+      /wrote a csharp code model; the java parser reads only java\./,
+    );
+  });
+
   it('fails when the tool wrote no manifest', async () => {
     await configure({
-      codeModel: { command: ['bun', FAKE_TOOL, '--out', '{out}'] },
+      java: { command: ['bun', FAKE_TOOL, '--out', '{out}'] },
     });
 
     await expect<unknown>(scanner.scan()).rejects.toThrow(
@@ -235,10 +248,10 @@ describe('The code-model parser configured in .noesis/settings.json', () => {
   });
 
   it('removes its tmp directory after a scan, whether it succeeds or fails', async () => {
-    await configure({ codeModel: { command: gradleLike(JAVA_SHOP) } });
+    await configure({ java: { command: gradleLike(JAVA_SHOP) } });
     await scanner.scan();
     await configure({
-      codeModel: { command: gradleLike(JAVA_SHOP, '--fail', '2') },
+      java: { command: gradleLike(JAVA_SHOP, '--fail', '2') },
     });
     await expect<unknown>(scanner.scan()).rejects.toThrow();
 
@@ -247,7 +260,7 @@ describe('The code-model parser configured in .noesis/settings.json', () => {
 
   it('tells what to install, in the settings file words, when the command cannot start', async () => {
     await configure({
-      codeModel: {
+      java: {
         command: ['gradle-that-does-not-exist', 'noesisParse'],
         installHint: 'Install Gradle and publish the Noesis plugin.',
       },

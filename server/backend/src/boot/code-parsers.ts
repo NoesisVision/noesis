@@ -7,6 +7,6 @@ import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 export function codeParsers(noesis: NoesisDir): CodeParsers {
   return {
     csharp: () => new CSharpCodeParser({ noesis }),
-    'code-model': ({ codeModel }) => new JavaCodeParser({ noesis, codeModel }),
+    java: ({ java }) => new JavaCodeParser({ noesis, settings: java }),
   };
 }

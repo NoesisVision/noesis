@@ -1,6 +1,6 @@
 // The Java parser end to end: the shop fixture declares the `noesis:parse`
 // Maven plugin (built and installed from parsers/java), and its
-// .noesis/settings.json runs it through the code-model parser, then the system
+// .noesis/settings.json runs it through the java parser, then the system
 // model builder. Needs a JDK and Maven. The model must equal the one built of the
 // committed code model, which keeps the fixture's committed files honest.
 import { beforeAll, describe, expect, it } from 'bun:test';
@@ -64,7 +64,7 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       const config = settings.namespaces;
       const scanner = scannerOver(
         noesis,
-        codeParsers(noesis)['code-model'](settings),
+        codeParsers(noesis).java(settings),
         config,
         systemClock,
       );

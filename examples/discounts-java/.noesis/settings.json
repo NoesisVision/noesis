@@ -1,6 +1,6 @@
 {
-  "parser": "code-model",
-  "codeModel": {
+  "parser": "java",
+  "java": {
     "command": [
       "./gradlew",
       "-q",

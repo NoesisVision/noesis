@@ -19,12 +19,12 @@ namespace-wide annotations).
 
 ## 1. Inputs and output
 
-| Input                         | Where from                                                                                                                                                                                                     |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ParseManifest` + model files | The first stage's output directory; the manifest lists the files in dependency order and names the language                                                                                                    |
-| Annotation vocabulary         | One per language, in code (section 2); chosen by the manifest's `language`                                                                                                                                     |
-| `.noesis/settings.json`       | In the repository: `parser` (which parser reads the repository), `codeModel` (the command line of the `code-model` parser), `engine` (the Java presets' engine), `namespacePartsToSkip`, `namespacesToExclude` |
-| Clock, repository name        | From the scanner adapter, as today                                                                                                                                                                             |
+| Input                         | Where from                                                                                                                                                                                          |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ParseManifest` + model files | The first stage's output directory; the manifest lists the files in dependency order and names the language                                                                                         |
+| Annotation vocabulary         | One per language, in code (section 2); chosen by the manifest's `language`                                                                                                                          |
+| `.noesis/settings.json`       | In the repository: `parser` (which parser reads the repository), `java` (the command line of the `java` parser), `engine` (the Java presets' engine), `namespacePartsToSkip`, `namespacesToExclude` |
+| Clock, repository name        | From the scanner adapter, as today                                                                                                                                                                  |
 
 Output: the `modules`, `buildingBlocks` and `behaviours` of one
 `SystemModel`, plus diagnostics. The stage is a pure function of its inputs;

@@ -10,7 +10,7 @@ import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 /*
  * A Java repository declares the Noesis Maven plugin in its build and runs
- * it through the `code-model` scanner (test/fixtures/java/shop/.noesis/settings.json).
+ * it through the `java` parser (test/fixtures/java/shop/.noesis/settings.json).
  * Here the build is a bun script (test/support/fake-code-model-tool.ts) that
  * copies the committed code model of the fixture into `-Dnoesis.out`, so the
  * Java system model is built without a JDK. The real build runs in
@@ -35,7 +35,7 @@ beforeEach(async () => {
     () =>
       new JavaCodeParser({
         noesis: t.noesis,
-        codeModel: {
+        settings: {
           command: [
             'bun',
             FAKE_TOOL,
@@ -296,7 +296,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
   it('maps packages by .noesis/settings.json, every package to itself without namespace settings', async () => {
     await writeFile(
       t.noesis.resolve('settings.json'),
-      JSON.stringify({ parser: 'code-model' }),
+      JSON.stringify({ parser: 'java' }),
     );
 
     const model = await scanner.scan();

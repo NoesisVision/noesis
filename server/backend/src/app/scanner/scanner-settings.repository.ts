@@ -2,32 +2,32 @@ import { z } from 'zod';
 import type { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 
 /**
- * The parsers a repository can name: `code-model` runs the command line of
- * its `codeModel` block, which is how a Java repository runs the Noesis plugin
- * its build declares; `csharp` is a built-in preset of it.
+ * The parsers a repository can name: `csharp` runs `noesis-parse-csharp`;
+ * `java` runs the command line of the file's `java` block, which runs the
+ * Noesis Maven or Gradle plugin the repository's build declares.
  */
-export const ParserName = z.enum(['csharp', 'code-model']);
+export const ParserName = z.enum(['csharp', 'java']);
 export type ParserName = z.infer<typeof ParserName>;
 
 /**
- * How the `code-model` parser runs the repository's own tool. `command` is
+ * How the `java` parser runs the repository's own build. `command` is
  * the whole command line, run from the repository root; `{out}`, `{root}` and
  * `{name}` in an argument stand for the output directory, the repository root
  * and the repository name. The tool must leave a `code-model/<language>/`
  * tree under `{out}`.
  */
-export const CodeModelToolSettings = z.object({
+export const JavaParserSettings = z.object({
   command: z.array(z.string()).min(1),
   /** What to tell someone on whose machine the command cannot be started. */
   installHint: z.string().optional(),
 });
-export type CodeModelToolSettings = z.infer<typeof CodeModelToolSettings>;
+export type JavaParserSettings = z.infer<typeof JavaParserSettings>;
 
 /** `.noesis/settings.json`: which parser reads the repository, how, and how its namespaces map to modules. */
 export interface RepositorySettings {
   readonly parser: ParserName;
-  /** Null when the file has no `codeModel` block. */
-  readonly codeModel: CodeModelToolSettings | null;
+  /** Null when the file has no `java` block. */
+  readonly java: JavaParserSettings | null;
   readonly namespaces: NamespaceConfig;
 }
 
