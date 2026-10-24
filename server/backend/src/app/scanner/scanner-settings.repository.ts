@@ -25,8 +25,7 @@ export type CodeModelToolSettings = z.infer<typeof CodeModelToolSettings>;
 
 /** `.noesis/settings.json`: which parser reads the repository, how, and how its namespaces map to modules. */
 export interface RepositorySettings {
-  /** Null when the file names none, or there is no file. */
-  readonly parser: ParserName | null;
+  readonly parser: ParserName;
   /** Null when the file has no `codeModel` block. */
   readonly codeModel: CodeModelToolSettings | null;
   readonly namespaces: NamespaceConfig;
@@ -37,6 +36,6 @@ export interface RepositorySettings {
  * every scan, so a changed setting counts without a restart.
  */
 export interface ScannerSettingsRepository {
-  /** No file names no parser and maps every namespace to itself. */
+  /** Throws when there is no file, or it names no parser or is invalid. */
   repositorySettings(): Promise<RepositorySettings>;
 }

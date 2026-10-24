@@ -13,6 +13,8 @@ import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const SETTINGS_FILE = 'settings.json';
 
+const PARSER_NAMES = ParserName.options.join(', ');
+
 const RepositorySettingsSchema = NamespaceConfigSchema.extend({
   parser: ParserName.optional(),
   codeModel: CodeModelToolSettings.optional(),
@@ -32,11 +34,9 @@ export class ScannerSettingsFileRepository implements ScannerSettingsRepository 
   async repositorySettings(): Promise<RepositorySettings> {
     const file = Bun.file(this.noesis.resolve(SETTINGS_FILE));
     if (!(await file.exists())) {
-      return {
-        parser: null,
-        codeModel: null,
-        namespaces: NamespaceConfig.of({}),
-      };
+      throw new Error(
+        `.noesis/${SETTINGS_FILE} is missing. Create it and set "parser" to one of: ${PARSER_NAMES}.`,
+      );
     }
     const raw: unknown = await file.json();
     refuseRetiredSettings(raw, file.name ?? SETTINGS_FILE);
@@ -47,8 +47,13 @@ export class ScannerSettingsFileRepository implements ScannerSettingsRepository 
       );
     }
     const { parser, codeModel, ...namespaces } = parsed.data;
+    if (parser === undefined) {
+      throw new Error(
+        `.noesis/${SETTINGS_FILE} names no parser. Set "parser" to one of: ${PARSER_NAMES}.`,
+      );
+    }
     return {
-      parser: parser ?? null,
+      parser,
       codeModel: codeModel ?? null,
       namespaces: NamespaceConfig.of(namespaces),
     };

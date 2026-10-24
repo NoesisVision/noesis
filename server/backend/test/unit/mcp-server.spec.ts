@@ -403,7 +403,7 @@ describe('scan_system_model', () => {
     const result = await client.callTool({ name: 'scan_system_model' });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('.noesis/settings.json names no parser');
+    expect(textOf(result)).toContain('.noesis/settings.json is missing');
   });
 
   it('is advertised as adding a scan on every call', async () => {

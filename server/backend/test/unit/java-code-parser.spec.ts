@@ -293,8 +293,11 @@ describe('A Java repository scanned through its Maven plugin', () => {
     );
   });
 
-  it('maps packages by .noesis/settings.json, every package to itself without one', async () => {
-    await writeFile(t.noesis.resolve('settings.json'), '{}');
+  it('maps packages by .noesis/settings.json, every package to itself without namespace settings', async () => {
+    await writeFile(
+      t.noesis.resolve('settings.json'),
+      JSON.stringify({ parser: 'code-model' }),
+    );
 
     const model = await scanner.scan();
 

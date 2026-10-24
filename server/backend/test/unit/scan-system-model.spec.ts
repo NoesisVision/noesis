@@ -120,6 +120,10 @@ describe('ScannerFactory', () => {
 
   it('refuses a repository that names no parser, or names one wrongly', async () => {
     await expect(factory().create()).rejects.toThrow(
+      /\.noesis\/settings\.json is missing\. Create it and set "parser" to one of: csharp, code-model\./,
+    );
+    await configure({});
+    await expect(factory().create()).rejects.toThrow(
       /\.noesis\/settings\.json names no parser\. Set "parser" to one of: csharp, code-model\./,
     );
     for (const parser of ['java', 'dummy', 'cobol']) {
