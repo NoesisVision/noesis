@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import type { ScanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
+import type { ScanSystemModelHandler } from '#backend/app/scanner/scan-system-model.port';
 import type { FindNewestSystemModelHandler } from '#backend/app/scanner/system-model/find-newest-system-model';
 
 export interface SystemModelsDeps {

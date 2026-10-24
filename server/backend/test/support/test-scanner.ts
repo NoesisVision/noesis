@@ -5,8 +5,10 @@ import type { Now } from '#backend/app/clock';
 import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
 import type { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
+import type { ScannerFactory } from '#backend/app/scanner/scanner-factory';
 import type { RepositorySettings } from '#backend/app/scanner/scanner-settings.repository';
 import { SourceCodeScanner } from '#backend/app/scanner/source-code-scanner';
+import type { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /** The scanner the service builds over `parser`, for the repository `noesis` is in. */
@@ -47,4 +49,21 @@ export function settingsScanner(
       ).scan();
     },
   };
+}
+
+/** What a fake factory hands out: only what the scan handler calls. */
+export type FakeScanner = Pick<SourceCodeScanner, 'scan'>;
+
+/** A fake ScannerFactory; its private fields keep a literal from matching it. */
+export function fakeScannerFactory(
+  create: () => Promise<FakeScanner>,
+): ScannerFactory {
+  return { create } as unknown as ScannerFactory;
+}
+
+/** A factory whose scanner always finds `model`. */
+export function scannerFinding(model: SystemModel): ScannerFactory {
+  return fakeScannerFactory(() =>
+    Promise.resolve({ scan: () => Promise.resolve(model) }),
+  );
 }

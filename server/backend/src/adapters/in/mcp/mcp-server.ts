@@ -12,7 +12,7 @@ import type { CreateDocumentInChangeHandler } from '#backend/app/information-sou
 import type { FindDocumentHandler } from '#backend/app/information-sources/find-document';
 import type { ListDocumentsInChangeHandler } from '#backend/app/information-sources/list-documents-in-change';
 import type { UpdateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
-import type { ScanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
+import type { ScanSystemModelHandler } from '#backend/app/scanner/scan-system-model.port';
 import type { FindNewestSystemModelHandler } from '#backend/app/scanner/system-model/find-newest-system-model';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import type { ToolRegistration } from './tool';

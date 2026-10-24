@@ -4,18 +4,15 @@ import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scann
 import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
 import { ScanFailedError } from '#backend/app/scanner/scan-failed-error';
-import {
-  type Scanners,
-  scanSystemModelHandler,
-} from '#backend/app/scanner/scan-system-model';
+import { scanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
 import {
   type CodeParsers,
   ScannerFactory,
 } from '#backend/app/scanner/scanner-factory';
 import type { RepositorySettings } from '#backend/app/scanner/scanner-settings.repository';
-import type { SourceCodeScanner } from '#backend/app/scanner/source-code-scanner';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
+import { type FakeScanner, fakeScannerFactory } from '../support/test-scanner';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -34,16 +31,13 @@ const found = (
 ): SystemModel =>
   SystemModel.parse({ id: SystemModelId.mint(), name, scanned_at: scannedAt });
 
-type Scanner = Pick<SourceCodeScanner, 'scan'>;
-
-const scannerOf = (model: SystemModel): Scanner => ({
+const scannerOf = (model: SystemModel): FakeScanner => ({
   scan: () => Promise.resolve(model),
 });
 
 /** A factory that always picks `scanner`. */
-const always = (scanner: Scanner): Scanners => ({
-  create: () => Promise.resolve(scanner),
-});
+const always = (scanner: FakeScanner): ScannerFactory =>
+  fakeScannerFactory(() => Promise.resolve(scanner));
 
 describe('Scanning the system model', () => {
   it('stores what the scanner finds and answers with it', async () => {
@@ -180,7 +174,7 @@ describe('a scan that fails', () => {
 
   it('fails as a ScanFailedError when no scanner can be picked', async () => {
     const scan = scanSystemModelHandler(
-      { create: () => Promise.reject(new Error('names no parser')) },
+      fakeScannerFactory(() => Promise.reject(new Error('names no parser'))),
       systemModels,
     );
 

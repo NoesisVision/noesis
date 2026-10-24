@@ -4,6 +4,7 @@ import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-m
 import { scanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
+import { scannerFinding } from '../support/test-scanner';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -19,7 +20,7 @@ beforeEach(async () => {
   app = createUiApp({
     ...t,
     scanSystemModel: scanSystemModelHandler(
-      { create: () => Promise.resolve({ scan: () => Promise.resolve(found) }) },
+      scannerFinding(found),
       new SystemModelsFileRepository(t.noesis),
     ),
   });

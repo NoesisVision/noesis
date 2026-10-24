@@ -19,6 +19,7 @@ import {
   greenFieldDesignDocFixture,
 } from '../fixtures/design-doc.fixture';
 import { textOf } from '../support/service-process';
+import { scannerFinding } from '../support/test-scanner';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // A linked InMemoryTransport pair speaks the 2025 era only; the modern
@@ -360,9 +361,7 @@ describe('scan_system_model', () => {
       noesis: noesis.noesis,
       sessionFiles: files,
       scanSystemModel: scanSystemModelHandler(
-        {
-          create: () => Promise.resolve({ scan: () => Promise.resolve(found) }),
-        },
+        scannerFinding(found),
         systemModels,
       ),
     });

@@ -1,6 +1,6 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import type { ScanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
+import type { ScanSystemModelHandler } from '#backend/app/scanner/scan-system-model.port';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { CREATE, defineTool, type ToolRegistration } from '../tool';
 import { GET_NEWEST_SYSTEM_MODEL, SCAN_SYSTEM_MODEL } from '../tool-names';
