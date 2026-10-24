@@ -589,7 +589,7 @@ until the Gradle plugin covered them, has since been removed.
 - **Service**: `test/fixtures/java/shop` is a two-module Maven build with the
   rules of the C# `shop` fixture in Java and its committed `code-model/`;
   its POM declares the plugin and its `.noesis/settings.json` runs it;
-  `test/unit/java-code-parser.spec.ts` runs the `java` parser over a fake
+  `test/unit/java-parser.spec.ts` runs the `java` parser over a fake
   build that copies the committed model and pins the projected model,
   `test/e2e-toolchain/java-parser.e2e.spec.ts` installs the plugin and scans
   the fixture for real with the fixture's own settings, asserting the same

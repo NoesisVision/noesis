@@ -419,17 +419,17 @@ The scan itself is domain logic too: `Scanner`
 (`app/scanner/code-model/code-parser.ts`) and a `SystemModelBuilder`, runs the parser,
 builds the system model of what it read, reports the diagnostics through the
 `ScanLog` port and returns the `SystemModel`. The adapters are only parsers:
-`CSharpCodeParser` and `JavaCodeParser` (`adapters/out/scanner/parsers/`) run their
+`CSharpParser` and `JavaParser` (`adapters/out/scanner/parsers/`) run their
 tool, and read and validate the files it wrote with the `code-model.ts` schemas.
 
 **Tests.** `server/backend/test/unit/system-model-builder.spec.ts`: one
 `describe` per section above, one `it` per rule, over a small builder that
-makes a `CodeModelFile` in a few lines. `test/unit/csharp-code-parser.spec.ts`
+makes a `CodeModelFile` in a few lines. `test/unit/csharp-parser.spec.ts`
 reads the .NET parser's golden code model of the fixture solution under
 `parsers/dotnet/test/fixtures/` (`CSharpSyntax/Projection` holds the
 annotated types; `parsers/dotnet/test/Noesis.Parser.Tests/golden/` is
 regenerated with `NOESIS_UPDATE_GOLDEN=1 dotnet test`) and checks the whole
 chain without .NET. `test/e2e-toolchain/csharp-parser.e2e.spec.ts` builds the .NET
-parser, scans the same fixture through `CSharpCodeParser` and asserts the model
+parser, scans the same fixture through `CSharpParser` and asserts the model
 and the time each stage took. The expected `invokes` of every chain in the
 fixture are in `test/support/csharp-fixture-expectations.ts`, shared by both.

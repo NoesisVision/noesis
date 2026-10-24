@@ -19,20 +19,20 @@ export type CreateCodeParser = (settings: CodeParserSettings) => CodeParser;
  */
 export class ScannerFactory {
   private readonly settings: ScannerSettingsRepository;
-  private readonly parserFor: CreateCodeParser;
+  private readonly createParser: CreateCodeParser;
   private readonly repository: SourceRepository;
   private readonly clock: Clock;
   private readonly log: ScanLog;
 
   constructor(
     settings: ScannerSettingsRepository,
-    parserFor: CreateCodeParser,
+    createParser: CreateCodeParser,
     repository: SourceRepository,
     clock: Clock,
     log: ScanLog,
   ) {
     this.settings = settings;
-    this.parserFor = parserFor;
+    this.createParser = createParser;
     this.repository = repository;
     this.clock = clock;
     this.log = log;
@@ -41,7 +41,7 @@ export class ScannerFactory {
   async create(): Promise<Scanner> {
     const settings = await this.settings.repositorySettings();
     return new Scanner({
-      parser: this.parserFor(settings.parser),
+      parser: this.createParser(settings.parser),
       builder: new SystemModelBuilder(settings.namespaces),
       repository: this.repository,
       clock: this.clock,

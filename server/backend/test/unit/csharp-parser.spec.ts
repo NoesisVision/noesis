@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { readdir } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { CSharpCodeParser } from '#backend/adapters/out/scanner/parsers/csharp-code-parser';
+import { CSharpParser } from '#backend/adapters/out/scanner/parsers/csharp-parser';
 import { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 import type { Scanner } from '#backend/app/scanner/scanner';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
@@ -59,7 +59,7 @@ const scannerWith = (
 ) =>
   scannerOver(
     t.noesis,
-    new CSharpCodeParser({
+    new CSharpParser({
       noesis: t.noesis,
       command: ['bun', FAKE_TOOL, ...flags],
     }),
@@ -419,7 +419,7 @@ describe('Scanning through the C# parser', () => {
   it('fails when the tool is not installed', async () => {
     const missing = scannerOver(
       t.noesis,
-      new CSharpCodeParser({
+      new CSharpParser({
         noesis: t.noesis,
         command: ['noesis-parse-csharp-that-does-not-exist'],
       }),

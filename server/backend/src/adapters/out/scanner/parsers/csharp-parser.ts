@@ -6,7 +6,7 @@ const DEFAULT_COMMAND = ['noesis-parse-csharp'];
 /** Under `.noesis/`: the tool's model cache, a ring per project; parsers/dotnet/README.md. */
 const CACHE_DIR = ['cache', 'parser', 'csharp'] as const;
 
-export interface CSharpCodeParserDeps {
+export interface CSharpParserDeps {
   noesis: NoesisDir;
   /** The tool's command and leading arguments; `noesis-parse-csharp` unless given. */
   command?: readonly string[];
@@ -18,10 +18,10 @@ export interface CSharpCodeParserDeps {
  * project whose inputs did not change (`.noesis/cache/parser/csharp/`). The
  * cache in parsers/dotnet/README.md.
  */
-export class CSharpCodeParser extends CommandCodeParser {
+export class CSharpParser extends CommandCodeParser {
   private readonly command: readonly string[];
 
-  constructor({ noesis, command = DEFAULT_COMMAND }: CSharpCodeParserDeps) {
+  constructor({ noesis, command = DEFAULT_COMMAND }: CSharpParserDeps) {
     super(noesis, 'csharp');
     this.command = command;
   }

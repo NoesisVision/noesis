@@ -2,7 +2,7 @@ import type { JavaParserSettings } from '#backend/app/scanner/scanner-settings.r
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { CommandCodeParser, fillCommand } from './command-code-parser';
 
-export interface JavaCodeParserDeps {
+export interface JavaParserDeps {
   noesis: NoesisDir;
   /** The `parser` of `.noesis/settings.json`. */
   settings: JavaParserSettings;
@@ -15,10 +15,10 @@ export interface JavaCodeParserDeps {
  * repository declares the Noesis Maven or Gradle plugin in its build, so the
  * command comes from the repository, not the service.
  */
-export class JavaCodeParser extends CommandCodeParser {
+export class JavaParser extends CommandCodeParser {
   private readonly settings: JavaParserSettings;
 
-  constructor({ noesis, settings }: JavaCodeParserDeps) {
+  constructor({ noesis, settings }: JavaParserDeps) {
     super(noesis, 'java');
     this.settings = settings;
   }

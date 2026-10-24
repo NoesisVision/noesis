@@ -2,10 +2,9 @@ import { z } from 'zod';
 import type { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 
 /** The `csharp` parser: runs `noesis-parse-csharp`, which needs no settings. */
-export const CSharpParserSettings = z.strictObject({
+const CSharpParserSettings = z.strictObject({
   language: z.literal('csharp'),
 });
-export type CSharpParserSettings = z.infer<typeof CSharpParserSettings>;
 
 /**
  * The `java` parser: runs the repository's own build, which declares the

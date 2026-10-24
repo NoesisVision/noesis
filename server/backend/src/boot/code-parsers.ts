@@ -1,5 +1,5 @@
-import { CSharpCodeParser } from '#backend/adapters/out/scanner/parsers/csharp-code-parser';
-import { JavaCodeParser } from '#backend/adapters/out/scanner/parsers/java-code-parser';
+import { CSharpParser } from '#backend/adapters/out/scanner/parsers/csharp-parser';
+import { JavaParser } from '#backend/adapters/out/scanner/parsers/java-parser';
 import type { CreateCodeParser } from '#backend/app/scanner/scanner-factory';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -8,9 +8,9 @@ export function codeParserFor(noesis: NoesisDir): CreateCodeParser {
   return (settings) => {
     switch (settings.language) {
       case 'csharp':
-        return new CSharpCodeParser({ noesis });
+        return new CSharpParser({ noesis });
       case 'java':
-        return new JavaCodeParser({ noesis, settings });
+        return new JavaParser({ noesis, settings });
     }
   };
 }

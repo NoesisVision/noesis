@@ -1,7 +1,7 @@
 # Java projection fixture
 
 A small annotated Maven build the Java parser's unit tests project onto the
-system model (`test/unit/java-code-parser.spec.ts`). Every type and member
+system model (`test/unit/java-parser.spec.ts`). Every type and member
 is there to show one rule of `docs/plans/code-model-to-system-model.md` in
 Java: the nested `Order.Repository`, the `@Event` record, record components
 as properties (R5.7) beside a public field, `OrderLine`'s private `product`

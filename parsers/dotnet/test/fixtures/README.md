@@ -4,7 +4,7 @@ A .NET 10 / C# 14 solution that exercises C# syntax for tests of the .NET
 parser, and the one C# code base every test of the parser uses: the parser's
 own tests (`../Noesis.Parser.Tests`, with the golden model under its
 `golden/`), the server's unit test over that golden model
-(`server/backend/test/unit/csharp-code-parser.spec.ts`) and the server's e2e test
+(`server/backend/test/unit/csharp-parser.spec.ts`) and the server's e2e test
 over a real parse (`server/backend/test/e2e-toolchain/csharp-parser.e2e.spec.ts`). It is
 not a business domain: every type, member and variable is named after the
 syntax or the rule it demonstrates, so a test can look for

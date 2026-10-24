@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { cp, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { JavaCodeParser } from '#backend/adapters/out/scanner/parsers/java-code-parser';
+import { JavaParser } from '#backend/adapters/out/scanner/parsers/java-parser';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
 import { fixedClock } from '../support/fixed-clock';
@@ -33,7 +33,7 @@ beforeEach(async () => {
   scanner = settingsScanner(
     t.noesis,
     () =>
-      new JavaCodeParser({
+      new JavaParser({
         noesis: t.noesis,
         settings: {
           language: 'java',
