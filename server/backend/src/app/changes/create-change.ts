@@ -1,4 +1,4 @@
-import type { Today } from '#backend/app/clock';
+import type { Clock } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { createAtFreeSlugId } from '#backend/app/slug-id';
 import type { Change, NewChange } from './change';
@@ -9,7 +9,7 @@ export type CreateChangeHandler = Handler<NewChange, Change>;
 
 export function createChangeHandler(
   changes: ChangesRepository,
-  today: Today,
+  clock: Clock,
 ): CreateChangeHandler {
   return {
     /**
@@ -25,7 +25,7 @@ export function createChangeHandler(
       const id = await createAtFreeSlugId(
         ChangeId,
         command.name,
-        today(),
+        clock.today(),
         (candidate) => changes.create(at(candidate)),
       );
       return at(id);

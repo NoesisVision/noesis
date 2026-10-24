@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CSharpCodeParser } from '#backend/adapters/out/scanner/parsers/csharp-code-parser';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
+import { systemClock } from '#backend/app/clock';
 import {
   CodeModelFile,
   ParseManifest,
@@ -89,7 +90,7 @@ describe('the fixture solution through the C# parser (e2e)', () => {
         noesis,
         new CSharpCodeParser({ noesis, command }),
         config,
-        () => new Date().toISOString(),
+        systemClock,
       );
 
       // The first stage alone, into a directory of the test's own: the

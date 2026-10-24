@@ -10,6 +10,7 @@ import type { ScanLog, ScanSummary } from '#backend/app/scanner/scan-log';
 import { Scanner } from '#backend/app/scanner/scanner';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
+import { fixedClock } from '../support/fixed-clock';
 import { NOW } from './test-noesis';
 
 /*
@@ -46,7 +47,7 @@ const scannerWith = (parser: CodeParser, log: ScanLog = recordingLog().log) =>
     parser,
     builder: new SystemModelBuilder(NamespaceConfig.of({})),
     repository: { name: 'shop', headCommit: () => Promise.resolve('7ba8217') },
-    now: () => NOW,
+    clock: fixedClock(NOW),
     log,
   });
 

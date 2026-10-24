@@ -10,7 +10,8 @@ import {
 import { ChangeId } from '#backend/app/changes/change-id';
 import { createChangeHandler } from '#backend/app/changes/create-change';
 import { designDocFixture } from '../fixtures/design-doc.fixture';
-import { type TestNoesis, testNoesis } from './test-noesis';
+import { fixedClock } from '../support/fixed-clock';
+import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
 
@@ -148,7 +149,7 @@ describe('CreateChangeHandler', () => {
     // Another session's service over the same files, as its own process has.
     const otherSession = createChangeHandler(
       new ChangesFileRepository(t.noesis),
-      () => '2026-09-24',
+      fixedClock(NOW),
     );
 
     const created = await Promise.all([

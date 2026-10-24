@@ -14,10 +14,12 @@ import {
 import { DocumentSchema } from '#backend/app/information-sources/document';
 import { createServices, type Services } from '#backend/boot/services';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { fixedClock } from '../support/fixed-clock';
 
-/** The day every handler in a spec mints its ids on. */
-const TODAY = () => '2026-09-24';
-/** The instant every handler in a spec stamps its writes with, on that day. */
+/**
+ * The instant every handler in a spec stamps its writes with; its date is the
+ * day they mint their ids on.
+ */
 export const NOW = '2026-09-24T10:00:00.000Z';
 
 // Each spec makes its own, so the file system is the isolation: there is no
@@ -56,7 +58,7 @@ export async function testNoesis(): Promise<TestNoesis> {
   const designDocsRepository = new DesignDocsFileRepository(noesis);
   const documentsRepository = new DocumentsFileRepository(noesis);
   return {
-    ...createServices(noesis, TODAY, () => NOW),
+    ...createServices(noesis, fixedClock(NOW)),
     root,
     noesis,
     changesRepository,

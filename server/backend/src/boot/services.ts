@@ -11,7 +11,7 @@ import { findChangeHandler } from '#backend/app/changes/find-change';
 import { listChangesHandler } from '#backend/app/changes/list-changes';
 import { listChangesWithEntriesHandler } from '#backend/app/changes/list-changes-with-entries';
 import { updateChangeHandler } from '#backend/app/changes/update-change';
-import { localToday, type Now, type Today, utcNow } from '#backend/app/clock';
+import { type Clock, systemClock } from '#backend/app/clock';
 import { createDesignDocInChangeHandler } from '#backend/app/design-docs/create-design-doc-in-change';
 import { findDesignDocHandler } from '#backend/app/design-docs/find-design-doc';
 import { listDesignDocsInChangeHandler } from '#backend/app/design-docs/list-design-docs-in-change';
@@ -32,17 +32,13 @@ import { codeParsers } from './code-parsers';
  * Wires the file repositories under `.noesis/` and the scanners to the
  * handlers that use them.
  */
-export function createServices(
-  noesis: NoesisDir,
-  today: Today = localToday,
-  now: Now = utcNow,
-) {
+export function createServices(noesis: NoesisDir, clock: Clock = systemClock) {
   const changes = new ChangesFileRepository(noesis);
   const designDocs = new DesignDocsFileRepository(noesis);
   const documents = new DocumentsFileRepository(noesis);
   const systemModels = new SystemModelsFileRepository(noesis);
   return {
-    createChange: createChangeHandler(changes, today),
+    createChange: createChangeHandler(changes, clock),
     updateChange: updateChangeHandler(changes),
     deleteChange: deleteChangeHandler(changes),
     listChanges: listChangesHandler(changes),
@@ -56,21 +52,20 @@ export function createServices(
       designDocs,
       changes,
       systemModels,
-      today,
-      now,
+      clock,
     ),
     updateDesignDocInChange: updateDesignDocInChangeHandler(
       designDocs,
       changes,
       systemModels,
-      now,
+      clock,
     ),
     listDesignDocsInChange: listDesignDocsInChangeHandler(designDocs, changes),
     findDesignDoc: findDesignDocHandler(designDocs, changes),
     createDocumentInChange: createDocumentInChangeHandler(
       documents,
       changes,
-      today,
+      clock,
     ),
     updateDocumentInChange: updateDocumentInChangeHandler(documents, changes),
     deleteDocumentFromChange: deleteDocumentFromChangeHandler(
@@ -86,7 +81,7 @@ export function createServices(
         codeParsers(noesis),
         {
           repository: new GitSourceRepository(noesis.root),
-          now,
+          clock,
           log: new ServerScanLog(),
         },
       ),

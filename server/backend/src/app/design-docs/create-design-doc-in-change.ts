@@ -4,7 +4,7 @@ import {
   type ChangesReader,
   getChangeOrThrow,
 } from '#backend/app/changes/changes.repository';
-import type { Now, Today } from '#backend/app/clock';
+import type { Clock } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import type { SystemModelsReader } from '#backend/app/scanner/system-model/system-models.repository';
 import { createAtFreeSlugId } from '#backend/app/slug-id';
@@ -34,8 +34,7 @@ export function createDesignDocInChangeHandler(
   designDocs: DesignDocsRepository,
   changes: ChangesReader,
   systemModels: SystemModelsReader,
-  today: Today,
-  now: Now,
+  clock: Clock,
 ): CreateDesignDocInChangeHandler {
   return {
     /**
@@ -49,7 +48,7 @@ export function createDesignDocInChangeHandler(
     async handle({ change, designDoc }) {
       await getChangeOrThrow(changes, change);
       await assertDesignDocFollowsRules(designDoc, 'agent', systemModels);
-      const implementedAt = implementedAtOf(designDoc, null, now);
+      const implementedAt = implementedAtOf(designDoc, null, clock);
       const at = (id: DesignDocId): DesignDocument => ({
         id,
         ...designDoc,
@@ -58,7 +57,7 @@ export function createDesignDocInChangeHandler(
       const id = await createAtFreeSlugId(
         DesignDocId,
         designDoc.name,
-        today(),
+        clock.today(),
         (candidate) => designDocs.create(change, at(candidate)),
       );
       return summarize(at(id));

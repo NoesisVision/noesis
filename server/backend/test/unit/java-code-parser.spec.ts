@@ -4,6 +4,7 @@ import { basename, join } from 'node:path';
 import { JavaCodeParser } from '#backend/adapters/out/scanner/parsers/java-code-parser';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
+import { fixedClock } from '../support/fixed-clock';
 import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
@@ -44,7 +45,7 @@ beforeEach(async () => {
           ],
         },
       }),
-    () => NOW,
+    fixedClock(NOW),
   );
   await cp(
     join(FIXTURE, '.noesis', 'settings.json'),

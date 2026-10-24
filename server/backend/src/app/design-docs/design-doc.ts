@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Now } from '#backend/app/clock';
+import type { Clock } from '#backend/app/clock';
 import {
   BehaviorId,
   BuildingBlockId,
@@ -195,10 +195,10 @@ export type DesignDocumentContent = z.infer<typeof DesignDocumentContent>;
 export function implementedAtOf(
   design: DesignDocumentContent,
   before: DesignDocument | null,
-  now: Now,
+  clock: Clock,
 ): string | null {
   if (!design.implemented) return null;
-  return before?.implemented ? before.implementedAt : now();
+  return before?.implemented ? before.implementedAt : clock.now();
 }
 
 export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;

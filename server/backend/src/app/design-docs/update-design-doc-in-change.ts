@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesReader } from '#backend/app/changes/changes.repository';
-import type { Now } from '#backend/app/clock';
+import type { Clock } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';
 import type { SystemModelsReader } from '#backend/app/scanner/system-model/system-models.repository';
@@ -40,7 +40,7 @@ export function updateDesignDocInChangeHandler(
   designDocs: DesignDocsRepository,
   changes: ChangesReader,
   systemModels: SystemModelsReader,
-  now: Now,
+  clock: Clock,
 ): UpdateDesignDocInChangeHandler {
   return {
     /**
@@ -59,7 +59,7 @@ export function updateDesignDocInChangeHandler(
       const updated: DesignDocument = {
         id,
         ...designDoc,
-        implementedAt: implementedAtOf(designDoc, before, now),
+        implementedAt: implementedAtOf(designDoc, before, clock),
       };
       if (!(await designDocs.replace(change, updated))) {
         throw new NotFoundError('design document', id, change);

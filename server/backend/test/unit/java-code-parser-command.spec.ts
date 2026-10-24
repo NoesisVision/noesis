@@ -3,6 +3,7 @@ import { chmod, readdir, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { JavaCodeParser } from '#backend/adapters/out/scanner/parsers/java-code-parser';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
+import { fixedClock } from '../support/fixed-clock';
 import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
@@ -99,7 +100,7 @@ beforeEach(async () => {
         noesis: t.noesis,
         codeModel,
       }),
-    () => NOW,
+    fixedClock(NOW),
   );
 });
 

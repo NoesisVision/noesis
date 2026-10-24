@@ -6,6 +6,7 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { join, resolve } from 'node:path';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
+import { systemClock } from '#backend/app/clock';
 import {
   CodeModelFile,
   ParseManifest,
@@ -65,7 +66,7 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
         noesis,
         codeParsers(noesis)['code-model'](settings),
         config,
-        () => new Date().toISOString(),
+        systemClock,
       );
 
       const started = performance.now();

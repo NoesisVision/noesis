@@ -12,6 +12,7 @@ import {
   UNREACHED,
   behaviour as invocation,
 } from '../support/csharp-fixture-expectations';
+import { fixedClock } from '../support/fixed-clock';
 import { scannerOver } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
@@ -63,7 +64,7 @@ const scannerWith = (
       command: ['bun', FAKE_TOOL, ...flags],
     }),
     namespaces,
-    () => NOW,
+    fixedClock(NOW),
   );
 
 beforeEach(async () => {
@@ -423,7 +424,7 @@ describe('Scanning through the C# parser', () => {
         command: ['noesis-parse-csharp-that-does-not-exist'],
       }),
       FIXTURE_NAMESPACES,
-      () => NOW,
+      fixedClock(NOW),
     );
 
     await expect<unknown>(missing.scan()).rejects.toThrow('Cannot run');

@@ -1,4 +1,4 @@
-import type { Now } from '#backend/app/clock';
+import type { Clock } from '#backend/app/clock';
 import type {
   CodeParser,
   ParsedCode,
@@ -14,7 +14,7 @@ export interface ScannerDeps {
   readonly parser: CodeParser;
   readonly builder: SystemModelBuilder;
   readonly repository: SourceRepository;
-  readonly now: Now;
+  readonly clock: Clock;
   readonly log: ScanLog;
 }
 
@@ -27,21 +27,21 @@ export class Scanner {
   private readonly parser: CodeParser;
   private readonly builder: SystemModelBuilder;
   private readonly repository: SourceRepository;
-  private readonly now: Now;
+  private readonly clock: Clock;
   private readonly log: ScanLog;
 
-  constructor({ parser, builder, repository, now, log }: ScannerDeps) {
+  constructor({ parser, builder, repository, clock, log }: ScannerDeps) {
     this.parser = parser;
     this.builder = builder;
     this.repository = repository;
-    this.now = now;
+    this.clock = clock;
     this.log = log;
   }
 
   /** Mints the id as the scan starts, so the newest scan has the highest id. */
   async scan(): Promise<SystemModel> {
     const id = SystemModelId.mint();
-    const scannedAt = this.now();
+    const scannedAt = this.clock.now();
     const commit = await this.repository.headCommit();
     const parsed = await timed(() => this.parser.parse());
     const built = await timed(async () => this.builder.build(parsed.result));

@@ -1,7 +1,7 @@
 import { GitSourceRepository } from '#backend/adapters/out/scanner/git-source-repository';
 import { ServerScanLog } from '#backend/adapters/out/scanner/server-scan-log';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
-import type { Now } from '#backend/app/clock';
+import type { Clock } from '#backend/app/clock';
 import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
 import type { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
@@ -16,13 +16,13 @@ export function scannerOver(
   noesis: NoesisDir,
   parser: CodeParser,
   namespaces: NamespaceConfig,
-  now: Now,
+  clock: Clock,
 ): Scanner {
   return new Scanner({
     parser,
     builder: new SystemModelBuilder(namespaces),
     repository: new GitSourceRepository(noesis.root),
-    now,
+    clock,
     log: new ServerScanLog(),
   });
 }
@@ -35,7 +35,7 @@ export function scannerOver(
 export function settingsScanner(
   noesis: NoesisDir,
   parser: (settings: RepositorySettings) => CodeParser,
-  now: Now,
+  clock: Clock,
 ): Pick<Scanner, 'scan'> {
   const settings = new ScannerSettingsFileRepository(noesis);
   return {
@@ -45,7 +45,7 @@ export function settingsScanner(
         noesis,
         parser(repository),
         repository.namespaces,
-        now,
+        clock,
       ).scan();
     },
   };

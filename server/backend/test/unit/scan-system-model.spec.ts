@@ -12,6 +12,7 @@ import {
 import type { RepositorySettings } from '#backend/app/scanner/scanner-settings.repository';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
+import { fixedClock } from '../support/fixed-clock';
 import { type FakeScanner, fakeScannerFactory } from '../support/test-scanner';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
@@ -84,7 +85,7 @@ describe('ScannerFactory', () => {
   const factory = () =>
     new ScannerFactory(new ScannerSettingsFileRepository(t.noesis), parsers, {
       repository: { name: 'shop', headCommit: () => Promise.resolve(null) },
-      now: () => '2026-09-29T08:00:00.000Z',
+      clock: fixedClock('2026-09-29T08:00:00.000Z'),
       log: { buildDiagnostics: () => {}, scanned: () => {} },
     });
   const configure = (settings: unknown) =>
