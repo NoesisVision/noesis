@@ -4,17 +4,13 @@ import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model
 import type { ScanLog } from './scan-log';
 import { Scanner } from './scanner';
 import type {
-  ParserName,
-  RepositorySettings,
+  CodeParserSettings,
   ScannerSettingsRepository,
 } from './scanner-settings.repository';
 import type { SourceRepository } from './source-repository';
 
-/** How each scanner's parser is built, by name, from the repository's settings. */
-export type CodeParsers = Record<
-  ParserName,
-  (settings: RepositorySettings) => CodeParser
->;
+/** Builds the parser the repository's settings name, from its settings. */
+export type CreateCodeParser = (settings: CodeParserSettings) => CodeParser;
 
 /**
  * The only place a scanner is chosen, at every scan: the parser the
@@ -23,20 +19,20 @@ export type CodeParsers = Record<
  */
 export class ScannerFactory {
   private readonly settings: ScannerSettingsRepository;
-  private readonly parsers: CodeParsers;
+  private readonly parserFor: CreateCodeParser;
   private readonly repository: SourceRepository;
   private readonly clock: Clock;
   private readonly log: ScanLog;
 
   constructor(
     settings: ScannerSettingsRepository,
-    parsers: CodeParsers,
+    parserFor: CreateCodeParser,
     repository: SourceRepository,
     clock: Clock,
     log: ScanLog,
   ) {
     this.settings = settings;
-    this.parsers = parsers;
+    this.parserFor = parserFor;
     this.repository = repository;
     this.clock = clock;
     this.log = log;
@@ -45,7 +41,7 @@ export class ScannerFactory {
   async create(): Promise<Scanner> {
     const settings = await this.settings.repositorySettings();
     return new Scanner({
-      parser: this.parsers[settings.parser](settings),
+      parser: this.parserFor(settings.parser),
       builder: new SystemModelBuilder(settings.namespaces),
       repository: this.repository,
       clock: this.clock,

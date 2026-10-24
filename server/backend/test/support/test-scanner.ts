@@ -7,7 +7,7 @@ import type { NamespaceConfig } from '#backend/app/scanner/code-model/system-mod
 import { SystemModelBuilder } from '#backend/app/scanner/code-model/system-model-builder/system-model-builder';
 import { Scanner } from '#backend/app/scanner/scanner';
 import type { ScannerFactory } from '#backend/app/scanner/scanner-factory';
-import type { RepositorySettings } from '#backend/app/scanner/scanner-settings.repository';
+import type { CodeParserSettings } from '#backend/app/scanner/scanner-settings.repository';
 import type { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
@@ -34,7 +34,7 @@ export function scannerOver(
  */
 export function settingsScanner(
   noesis: NoesisDir,
-  parser: (settings: RepositorySettings) => CodeParser,
+  parser: (settings: CodeParserSettings) => CodeParser,
   clock: Clock,
 ): Pick<Scanner, 'scan'> {
   const settings = new ScannerSettingsFileRepository(noesis);
@@ -43,7 +43,7 @@ export function settingsScanner(
       const repository = await settings.repositorySettings();
       return scannerOver(
         noesis,
-        parser(repository),
+        parser(repository.parser),
         repository.namespaces,
         clock,
       ).scan();

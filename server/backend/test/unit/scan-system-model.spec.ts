@@ -6,10 +6,10 @@ import type { CodeParser } from '#backend/app/scanner/code-model/code-parser';
 import { ScanFailedError } from '#backend/app/scanner/scan-failed-error';
 import { scanSystemModelHandler } from '#backend/app/scanner/scan-system-model';
 import {
-  type CodeParsers,
+  type CreateCodeParser,
   ScannerFactory,
 } from '#backend/app/scanner/scanner-factory';
-import type { RepositorySettings } from '#backend/app/scanner/scanner-settings.repository';
+import type { CodeParserSettings } from '#backend/app/scanner/scanner-settings.repository';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
 import { SystemModelId } from '#backend/app/scanner/system-model/system-model-id';
 import { fixedClock } from '../support/fixed-clock';
@@ -71,21 +71,15 @@ describe('Scanning the system model', () => {
 
 describe('ScannerFactory', () => {
   /** Parsers that only tell which one was picked, and with what settings. */
-  let picked: { name: string; settings: RepositorySettings }[];
-  const parserOf =
-    (name: string) =>
-    (settings: RepositorySettings): CodeParser => {
-      picked.push({ name, settings });
-      return { parse: () => Promise.reject(new Error('not parsed here')) };
-    };
-  const parsers: CodeParsers = {
-    csharp: parserOf('csharp'),
-    java: parserOf('java'),
+  let picked: CodeParserSettings[];
+  const parserFor: CreateCodeParser = (settings): CodeParser => {
+    picked.push(settings);
+    return { parse: () => Promise.reject(new Error('not parsed here')) };
   };
   const factory = () =>
     new ScannerFactory(
       new ScannerSettingsFileRepository(t.noesis),
-      parsers,
+      parserFor,
       { name: 'shop', headCommit: () => Promise.resolve(null) },
       fixedClock('2026-09-29T08:00:00.000Z'),
       { buildDiagnostics: () => {}, scanned: () => {} },
@@ -100,76 +94,63 @@ describe('ScannerFactory', () => {
   it('picks the parser .noesis/settings.json names, read at every scan', async () => {
     const scanners = factory();
 
-    await configure({ parser: 'csharp' });
+    await configure({ parser: { language: 'csharp' } });
     await scanners.create();
-    await configure({ parser: 'java', java: { command: ['x'] } });
+    await configure({ parser: { language: 'java', command: ['x'] } });
     await scanners.create();
 
-    expect(picked.map(({ name }) => name)).toEqual(['csharp', 'java']);
+    expect(picked.map(({ language }) => language)).toEqual(['csharp', 'java']);
   });
 
-  it('hands the parser the repository settings', async () => {
-    await configure({ parser: 'csharp', namespacePartsToSkip: ['Acme'] });
+  it('hands the parser its own settings', async () => {
+    await configure({
+      parser: { language: 'java', command: ['x'], installHint: 'y' },
+      namespacePartsToSkip: ['Acme'],
+    });
 
     await factory().create();
 
-    expect(
-      picked[0]?.settings.namespaces.modulePathOf('Acme.Shop.Orders'),
-    ).toEqual(['Shop', 'Orders']);
+    expect(picked).toEqual([
+      { language: 'java', command: ['x'], installHint: 'y' },
+    ]);
   });
 
   it('refuses a repository that names no parser, or names one wrongly', async () => {
     await expect(factory().create()).rejects.toThrow(
-      /\.noesis\/settings\.json is missing\. Create it and set "parser" to one of: csharp, java\./,
+      /\.noesis\/settings\.json is missing\. Create it and set "parser": \{ "language": … \} with one of: csharp, java\./,
     );
     await configure({});
     await expect(factory().create()).rejects.toThrow(
-      /\.noesis\/settings\.json names no parser\. Set "parser" to one of: csharp, java\./,
+      /\.noesis\/settings\.json names no parser\. Set "parser": \{ "language": … \} with one of: csharp, java\./,
     );
-    for (const parser of ['dummy', 'cobol']) {
+    for (const parser of [
+      { language: 'dummy' },
+      { language: 'java' },
+      { language: 'java', command: [] },
+    ]) {
       await configure({ parser });
       await expect(factory().create()).rejects.toThrow(
         /Invalid .*\.noesis\/settings\.json/,
       );
     }
-    await configure({ parser: 'csharp', namespacePartsToSkip: 'Acme' });
+    await configure({
+      parser: { language: 'csharp' },
+      namespacePartsToSkip: 'Acme',
+    });
     await expect(factory().create()).rejects.toThrow(
       /Invalid .*\.noesis\/settings\.json/,
     );
   });
 
-  it('refuses a file that still names its parser under "scanner", saying what to rename', async () => {
-    await configure({ scanner: 'csharp' });
-    await expect(factory().create()).rejects.toThrow(
-      /sets "scanner", which is now "parser"/,
-    );
-  });
-
-  it('refuses a file that still names the code-model parser, saying what to rename', async () => {
+  it('refuses a key it does not know, at the top or in the parser', async () => {
     for (const settings of [
-      { parser: 'code-model', codeModel: { command: ['x'] } },
-      { parser: 'java', codeModel: { command: ['x'] } },
+      { parser: { language: 'csharp' }, engine: 'hybrid' },
+      { parser: { language: 'java', command: ['x'], instalHint: 'y' } },
+      { parser: { language: 'csharp', command: ['x'] } },
     ]) {
       await configure(settings);
       await expect(factory().create()).rejects.toThrow(
-        /names the "code-model" parser, which is now "java"/,
-      );
-    }
-  });
-
-  it('refuses a file written for the Java presets the service no longer has, saying how to move', async () => {
-    for (const settings of [
-      { scanner: 'java-maven' },
-      { scanner: 'java-gradle' },
-      {
-        parser: 'java',
-        java: { command: ['x'] },
-        engine: 'hybrid',
-      },
-    ]) {
-      await configure(settings);
-      await expect(factory().create()).rejects.toThrow(
-        /(no longer has|no parser reads any more)[\s\S]*"parser": "java"/,
+        /Invalid .*\.noesis\/settings\.json[\s\S]*Unrecognized key/,
       );
     }
   });

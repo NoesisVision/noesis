@@ -36,6 +36,7 @@ beforeEach(async () => {
       new JavaCodeParser({
         noesis: t.noesis,
         settings: {
+          language: 'java',
           command: [
             'bun',
             FAKE_TOOL,
@@ -296,7 +297,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
   it('maps packages by .noesis/settings.json, every package to itself without namespace settings', async () => {
     await writeFile(
       t.noesis.resolve('settings.json'),
-      JSON.stringify({ parser: 'java' }),
+      JSON.stringify({ parser: { language: 'java', command: ['x'] } }),
     );
 
     const model = await scanner.scan();

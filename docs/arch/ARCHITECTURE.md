@@ -120,8 +120,8 @@ Both land on the same service layer. Neither bypasses it.
 - **Scanner** reads the project source and projects the implemented model into the
   system model files, when an agent calls `scan_system_model` or a person presses Scan on the
   System model page. At every scan `ScannerFactory` picks the parser the repository names in
-  `.noesis/settings.json` (`"parser"`), read through `ScannerSettingsRepository`. `java`
-  runs the command line of the file's `java` block (a Gradle build's `noesisParse` task, say)
+  `.noesis/settings.json` (`"parser": { "language": … }`), read through `ScannerSettingsRepository`. `java`
+  runs the `command` in its parser settings (a Gradle build's `noesisParse` task, say)
   and `SystemModelBuilder` projects the code model it wrote onto the system model by the
   vocabulary of the language the manifest names, with the rules in
   `docs/plans/code-model-to-system-model.md`. A Java repository

@@ -1,33 +1,37 @@
 import { z } from 'zod';
 import type { NamespaceConfig } from '#backend/app/scanner/code-model/system-model-builder/namespace-config';
 
-/**
- * The parsers a repository can name: `csharp` runs `noesis-parse-csharp`;
- * `java` runs the command line of the file's `java` block, which runs the
- * Noesis Maven or Gradle plugin the repository's build declares.
- */
-export const ParserName = z.enum(['csharp', 'java']);
-export type ParserName = z.infer<typeof ParserName>;
+/** The `csharp` parser: runs `noesis-parse-csharp`, which needs no settings. */
+export const CSharpParserSettings = z.strictObject({
+  language: z.literal('csharp'),
+});
+export type CSharpParserSettings = z.infer<typeof CSharpParserSettings>;
 
 /**
- * How the `java` parser runs the repository's own build. `command` is
- * the whole command line, run from the repository root; `{out}`, `{root}` and
- * `{name}` in an argument stand for the output directory, the repository root
- * and the repository name. The tool must leave a `code-model/<language>/`
- * tree under `{out}`.
+ * The `java` parser: runs the repository's own build, which declares the
+ * Noesis Maven or Gradle plugin. `command` is the whole command line, run
+ * from the repository root; `{out}`, `{root}` and `{name}` in an argument
+ * stand for the output directory, the repository root and the repository
+ * name. The build must leave a `code-model/java/` tree under `{out}`.
  */
-export const JavaParserSettings = z.object({
+export const JavaParserSettings = z.strictObject({
+  language: z.literal('java'),
   command: z.array(z.string()).min(1),
   /** What to tell someone on whose machine the command cannot be started. */
   installHint: z.string().optional(),
 });
 export type JavaParserSettings = z.infer<typeof JavaParserSettings>;
 
+/** The parser a repository names, by its language, with that parser's settings. */
+export const CodeParserSettings = z.discriminatedUnion('language', [
+  CSharpParserSettings,
+  JavaParserSettings,
+]);
+export type CodeParserSettings = z.infer<typeof CodeParserSettings>;
+
 /** `.noesis/settings.json`: which parser reads the repository, how, and how its namespaces map to modules. */
 export interface RepositorySettings {
-  readonly parser: ParserName;
-  /** Null when the file has no `java` block. */
-  readonly java: JavaParserSettings | null;
+  readonly parser: CodeParserSettings;
   readonly namespaces: NamespaceConfig;
 }
 

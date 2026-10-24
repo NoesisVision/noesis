@@ -75,9 +75,9 @@ claude --plugin-dir ../../plugins/claude-code
 Each example's `.claude/settings.json` sets `NOESIS_SERVICE_COMMAND` and
 `NOESIS_SERVICE_ENTRY`, so the plugin runs the service from this checkout.
 Each `discounts-*` example names its parser in `.noesis/settings.json`, which a
-scan reads every time: `discounts-dotnet` says `"csharp"`; `discounts-java`
-and `qdoc-java` say `"java"`, with the command line that runs the
-Noesis plugin their build declares in the `java` block: `./gradlew
+scan reads every time: `discounts-dotnet` says `{ "language": "csharp" }`;
+`discounts-java` and `qdoc-java` say `{ "language": "java" }`, with the
+`command` that runs the Noesis plugin their build declares: `./gradlew
 noesisParse` for one, `./mvnw … process-classes noesis:parse` for the other. `qdoc-java` has no domain code yet, so its scan finds an empty
 model. Nothing but that file picks the parser; no environment variable does.
 

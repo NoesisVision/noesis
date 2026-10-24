@@ -121,14 +121,14 @@ the plugin's `<configuration>`, so the build pins the version and the engine:
 ```
 
 Declared there, the goal has the short name `noesis:parse`. The repository's
-`.noesis/settings.json` gives the service the command that runs it, under
-`"parser": "java"`; the service fills in `{out}` with a fresh
+`.noesis/settings.json` gives the service the command that runs it, in
+`"parser": { "language": "java", … }`; the service fills in `{out}` with a fresh
 directory and `{name}` with the repository's name:
 
 ```json
 {
-  "parser": "java",
-  "java": {
+  "parser": {
+    "language": "java",
     "command": [
       "./mvnw",
       "-B",
@@ -216,8 +216,8 @@ repository root and its name:
 
 ```json
 {
-  "parser": "java",
-  "java": {
+  "parser": {
+    "language": "java",
     "command": [
       "./gradlew",
       "-q",

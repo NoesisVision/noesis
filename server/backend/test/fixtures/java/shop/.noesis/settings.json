@@ -1,6 +1,6 @@
 {
-  "parser": "java",
-  "java": {
+  "parser": {
+    "language": "java",
     "command": [
       "mvn",
       "-B",

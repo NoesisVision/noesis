@@ -26,7 +26,7 @@ import { ScannerFactory } from '#backend/app/scanner/scanner-factory';
 import { findNewestSystemModelHandler } from '#backend/app/scanner/system-model/find-newest-system-model';
 import { searchHandler } from '#backend/app/search/search';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import { codeParsers } from './code-parsers';
+import { codeParserFor } from './code-parsers';
 
 /**
  * Wires the file repositories under `.noesis/` and the scanners to the
@@ -78,7 +78,7 @@ export function createServices(noesis: NoesisDir, clock: Clock = systemClock) {
     scanSystemModel: scanSystemModelHandler(
       new ScannerFactory(
         new ScannerSettingsFileRepository(noesis),
-        codeParsers(noesis),
+        codeParserFor(noesis),
         new GitSourceRepository(noesis.root),
         clock,
         new ServerScanLog(),

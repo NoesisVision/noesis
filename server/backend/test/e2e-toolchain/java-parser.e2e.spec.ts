@@ -14,7 +14,7 @@ import {
 import { buildSystemModel } from '#backend/app/scanner/code-model/system-model-builder/build-system-model';
 import { JAVA_VOCABULARY } from '#backend/app/scanner/code-model/system-model-builder/java.vocabulary';
 import { SystemModel } from '#backend/app/scanner/system-model/system-model';
-import { codeParsers } from '#backend/boot/code-parsers';
+import { codeParserFor } from '#backend/boot/code-parsers';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { scannerOver } from '../support/test-scanner';
 
@@ -64,7 +64,7 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       const config = settings.namespaces;
       const scanner = scannerOver(
         noesis,
-        codeParsers(noesis).java(settings),
+        codeParserFor(noesis)(settings.parser),
         config,
         systemClock,
       );

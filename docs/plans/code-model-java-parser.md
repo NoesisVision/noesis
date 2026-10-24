@@ -483,11 +483,11 @@ the source lines of every building block and, Lombok's accessors being
 
 A Java repository declares the Noesis plugin in its build, with what it
 needs (the version, the engine) in the plugin's configuration, and names
-`parser: "java"` in `.noesis/settings.json` with the command that runs
-it in the file's `java` block (`{out}`, `{root}` and `{name}` filled
-in). The `java` parser shares its shape with the C# adapter
+`"parser": { "language": "java", "command": [...] }` in
+`.noesis/settings.json`, the command running it (`{out}`, `{root}` and
+`{name}` filled in). The `java` parser shares its shape with the C# adapter
 through `command-code-parser.ts`: run a command line into the session
-directory, find the one `code-model/<language>/manifest.json` it wrote, read
+directory, find the `code-model/<language>/manifest.json` of its language, read
 it and its files with the zod schema; `SystemModelBuilder` projects them with the vocabulary of the
 language the manifest names. The service knows nothing of Maven or Gradle,
 and the repository's own build decides how the plugin runs.
@@ -501,8 +501,8 @@ the compiler's errors land in the model. A Maven repository:
 
 ```json
 {
-  "parser": "java",
-  "java": {
+  "parser": {
+    "language": "java",
     "command": [
       "./mvnw",
       "-B",
@@ -522,8 +522,8 @@ A Gradle one:
 
 ```json
 {
-  "parser": "java",
-  "java": {
+  "parser": {
+    "language": "java",
     "command": [
       "./gradlew",
       "-q",
