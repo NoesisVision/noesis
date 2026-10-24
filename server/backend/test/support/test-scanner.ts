@@ -3,11 +3,11 @@ import { ServerScanLog } from '#backend/adapters/out/scanners/server-scan-log';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import type { Clock } from '#backend/app/clock';
 import type { CodeParser } from '#backend/app/scanners/code-parsers/code-parser';
-import type { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
-import { SystemModelBuilder } from '#backend/app/scanners/system-model-builders/system-model-builder';
 import { Scanner } from '#backend/app/scanners/scanner';
 import type { ScannerFactory } from '#backend/app/scanners/scanner-factory';
 import type { CodeParserSettings } from '#backend/app/scanners/scanner-settings.repository';
+import type { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
+import { SystemModelBuilder } from '#backend/app/scanners/system-model-builders/system-model-builder';
 import type { SystemModel } from '#backend/app/system-model/system-model';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 

@@ -23,8 +23,8 @@ import { listDocumentsInChangeHandler } from '#backend/app/information-sources/l
 import { updateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
 import { scanSystemModelHandler } from '#backend/app/scanners/scan-system-model';
 import { ScannerFactory } from '#backend/app/scanners/scanner-factory';
-import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
 import { searchHandler } from '#backend/app/search/search';
+import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { codeParserFor } from './code-parsers';
 

@@ -4,10 +4,10 @@ import type {
   ParseManifest,
 } from '#backend/app/scanners/code-parsers/code-model';
 import type { CodeParser } from '#backend/app/scanners/code-parsers/code-parser';
-import { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
-import { SystemModelBuilder } from '#backend/app/scanners/system-model-builders/system-model-builder';
 import type { ScanLog, ScanSummary } from '#backend/app/scanners/scan-log';
 import { Scanner } from '#backend/app/scanners/scanner';
+import { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
+import { SystemModelBuilder } from '#backend/app/scanners/system-model-builders/system-model-builder';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { fixedClock } from '../support/fixed-clock';

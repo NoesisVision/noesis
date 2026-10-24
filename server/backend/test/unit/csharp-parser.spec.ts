@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { readdir } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { CSharpParser } from '#backend/adapters/out/scanners/code-parsers/csharp-parser';
-import { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
 import type { Scanner } from '#backend/app/scanners/scanner';
+import { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import {

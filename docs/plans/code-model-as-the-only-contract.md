@@ -213,11 +213,11 @@ change in the service.
 
 ## 5. What the parsers do
 
-| Parser                  | 3.1 well-known types                                                       | 3.2 technical members                                                                                     | 3.3 properties                       | 3.4 roles                         |
-| ----------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------ | --------------------------------- |
+| Parser                       | 3.1 well-known types                                                       | 3.2 technical members                                                                                     | 3.3 properties                       | 3.4 roles                         |
+| ---------------------------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------ | --------------------------------- |
 | Java (`code-parsers/java`)   | table from `java.vocabulary.ts`, plus hierarchy, in one shared `core` pass | `Object`'s members, `Comparable`                                                                          | new: one `core` pass for all engines | table from `java.vocabulary.ts`   |
 | .NET (`code-parsers/dotnet`) | table from `csharp.vocabulary.ts`, plus hierarchy                          | `System.Object`'s members, `IEquatable<T>`, `IComparable<T>`, `ICloneable`, `Deconstruct`, `PrintMembers` | nothing: properties are native       | table from `csharp.vocabulary.ts` |
-| Any `code-model` tool   | optional: an unclassified type is a named type                             | optional                                                                                                  | optional                             | required for building blocks      |
+| Any `code-model` tool        | optional: an unclassified type is a named type                             | optional                                                                                                  | optional                             | required for building blocks      |
 
 A third-party tool that writes no roles yields an empty system model, which
 is honest: without roles nothing says what is a building block.

@@ -1,5 +1,5 @@
-import type { BuildDiagnostic } from '#backend/app/scanners/system-model-builders/build-system-model';
 import type { ScanLog, ScanSummary } from '#backend/app/scanners/scan-log';
+import type { BuildDiagnostic } from '#backend/app/scanners/system-model-builders/build-system-model';
 import { serverLogger } from '#backend/platform/logging/logging';
 
 /** A scan's report in the service log, under the `scanner` category. */
