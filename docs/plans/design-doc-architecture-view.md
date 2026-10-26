@@ -94,12 +94,11 @@ Considered and left out:
 | ------------------------------------ | ------- | --------------------------------------------------------------------------------------------------------------- |
 | Domain depends on no port            | Warning | A domain block's property, input or output uses a repository, an external integration or an application service |
 | Only application services are public | Warning | A behaviour of any other building block is public: the core is exposed past its ports                           |
-| No type crosses hexagons             | Warning | A property, input or output in one hexagon uses a type of another                                               |
 | Type in no contract                  | Warning | A building block is used by no property, input or output                                                        |
 | Caller unknown                       | Note    | A public behaviour names no actor                                                                               |
 
 A check that finds nothing is a pass and lists the elements it checked. On
-the qdoc design the first three pass, `NewQDocNotification` is in no contract (only `createQDoc`'s sequence diagram
+the qdoc design the first two pass, `NewQDocNotification` is in no contract (only `createQDoc`'s sequence diagram
 names it), and `notifyUsers`' caller is unknown.
 
 There is no check that a port's adapter is decided. A port is the hexagon's

@@ -150,7 +150,6 @@ describe('architectureOf', () => {
     expect(levelsOf(outline.checks)).toEqual({
       'domain-depends-on-no-port': 'pass',
       'only-application-services-are-public': 'pass',
-      'no-type-crosses-hexagons': 'pass',
       'type-in-no-contract': 'pass',
       'caller-unknown': 'pass',
     });
@@ -215,30 +214,6 @@ describe('the checks', () => {
     expect(check).toMatchObject({
       level: 'warning',
       elementIds: ['behavior|sales.orders.Order.cancel'],
-    });
-  });
-
-  it('warn when a type of one hexagon is used in another', () => {
-    const check = checkOf(
-      {
-        ...clean,
-        buildingBlocks: {
-          added: [
-            ...clean.buildingBlocks.added,
-            block('sales.billing.InvoiceLine', 'value_object', [
-              'sales.orders.OrderLine',
-            ]),
-          ],
-        },
-      },
-      'no-type-crosses-hexagons',
-    );
-    expect(check).toMatchObject({
-      level: 'warning',
-      elementIds: [
-        'building_block|sales.billing.InvoiceLine',
-        'building_block|sales.orders.OrderLine',
-      ],
     });
   });
 
@@ -369,7 +344,6 @@ describe('the qdoc design', () => {
       ['caller-unknown', 'note'],
       ['domain-depends-on-no-port', 'pass'],
       ['only-application-services-are-public', 'pass'],
-      ['no-type-crosses-hexagons', 'pass'],
     ]);
   });
 

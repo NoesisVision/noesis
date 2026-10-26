@@ -6,7 +6,7 @@ import {
   type ArchitectureOutline,
   elementsOf,
 } from './architecture-outline.ts';
-import { moduleOf, nameOf } from './element-id.ts';
+import { nameOf } from './element-id.ts';
 
 /*
  * What a hexagonal architecture asks of a design, checked against what the
@@ -27,7 +27,6 @@ export function architectureChecks(placed: Placed): ArchitectureCheck[] {
   return [
     domainDependsOnNoPort(placed),
     onlyApplicationServicesArePublic(placed),
-    noTypeCrossesHexagons(placed),
     typeInNoContract(placed),
     callerUnknown(placed),
   ].sort((a, b) => LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level));
@@ -91,31 +90,6 @@ function onlyApplicationServicesArePublic({
   };
 }
 
-function noTypeCrossesHexagons({ hexagons }: Placed): ArchitectureCheck {
-  const crossing = hexagons.flatMap((hexagon) =>
-    elementsOf(hexagon).flatMap((element) =>
-      element.uses
-        .filter((used) => moduleOf(used) !== hexagon.module.id)
-        .map((used) => [element.id, used] as const),
-    ),
-  );
-  const title = 'No type crosses hexagons';
-  if (crossing.length === 0)
-    return pass(
-      'no-type-crosses-hexagons',
-      title,
-      crossingPassText(hexagons.map(({ module }) => module.name)),
-      hexagons.map(({ module }) => module.id),
-    );
-  return {
-    id: 'no-type-crosses-hexagons',
-    level: 'warning',
-    title,
-    text: `${sentence(crossing.map(([element, used]) => `${nameOf(element)} uses ${nameOf(used)} of ${nameOf(moduleOf(used))}`))}.`,
-    elementIds: unique(crossing.flat()),
-  };
-}
-
 /** Types: the blocks a property, an input or an output can be of. */
 const TYPES: readonly BuildingBlockType[] = [
   'aggregate',
@@ -167,15 +141,6 @@ function callerUnknown({ hexagons }: Placed): ArchitectureCheck {
     text: `${list(behaviours)} ${plural(behaviours.length, 'is', 'are')} public and ${plural(behaviours.length, 'names', 'name')} no actor, so another subsystem calls ${plural(behaviours.length, 'it', 'them')}. Which one is not in the design document.`,
     elementIds: behaviours.map(({ id }) => id),
   };
-}
-
-function crossingPassText(modules: string[]): string {
-  const [one, other] = modules;
-  if (modules.length === 2)
-    return `No property, input or output in ${one} uses a type of ${other}, or the other way round.`;
-  return modules.length < 2
-    ? 'No property, input or output uses a type of another module.'
-    : 'No property, input or output in one hexagon uses a type of another.';
 }
 
 function pass(
