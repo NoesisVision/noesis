@@ -106,7 +106,9 @@ describe('ArchitectureView', () => {
   it('reads a check under the rows, linking to what it concerns', () => {
     const html = render('checks/check:caller-unknown');
     expect(headingsOf(html)).toContainEqual([2, 'Caller unknown']);
-    expect(headingsOf(html)).toContainEqual([3, 'Concerns']);
+    // In the box the model lists what a block implements in.
+    expect(html).toMatch(/<dt[^>]*>.*Concerns.*<\/dt>/s);
+    expect(html).toMatch(/<button[^>]*>.*notifyUsers.*<\/button>/s);
     expect(html).toContain('notifyUsers is public and names no actor');
   });
 
@@ -136,6 +138,18 @@ describe('ArchitectureView', () => {
     expect(headingsOf(html)).toContainEqual([2, 'notifyUsers']);
     expect(html).toContain('Speaks in');
     expect(html).not.toContain('Clear the selection');
+  });
+
+  it('reads a flow under the block at its other end, each name a link', () => {
+    const html = read(
+      'building_block|qdocmanagement.preparation.DocumentNumberGenerator',
+    );
+    const flows = html.slice(html.indexOf('Flow inferred from types'));
+    const text = flows.replace(/<[^>]*>/g, '');
+    expect(text).toContain('QDocgivesDocumentNumber to create');
+    expect(text).not.toContain('QDoc.create');
+    for (const name of ['QDoc', 'DocumentNumber', 'create'])
+      expect(flows).toMatch(new RegExp(`<button[^>]*>${name}</button>`));
   });
 
   it("folds a rule's description in the panel, and only there", () => {

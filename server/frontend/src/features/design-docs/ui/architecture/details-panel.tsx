@@ -122,7 +122,8 @@ export function DetailsPanel({
                 {address}
               </Text>
             )}
-            {children}
+            {/* Apart as the model's own sections are. */}
+            <Stack gap="xl">{children}</Stack>
           </Stack>
         </GlanceReadingContext.Provider>
       </ElementNavigationContext.Provider>

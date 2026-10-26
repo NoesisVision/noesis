@@ -19,6 +19,8 @@ interface DetailSectionProps
   muted?: boolean;
   /** How many it holds, in a bubble after the title. */
   count?: number;
+  /** The title as a heading of this level, where the section is a part of the page's outline. */
+  order?: 2 | 3 | 4;
 }
 
 export function DetailSection({
@@ -29,6 +31,7 @@ export function DetailSection({
   field,
   muted,
   count,
+  order,
   ...props
 }: DetailSectionProps) {
   return (
@@ -41,7 +44,13 @@ export function DetailSection({
       {/* A rule, not a border: the divider is the design system's. */}
       {muted && <Divider mb="xs" />}
       {!!title && (
-        <Group gap="xs" wrap="nowrap" className={classes.title}>
+        <Group
+          component={order === undefined ? 'div' : `h${order}`}
+          gap="xs"
+          wrap="nowrap"
+          m={0}
+          className={classes.title}
+        >
           {icon && (
             <Box component="span" className={classes.icon} aria-hidden="true">
               {icon}

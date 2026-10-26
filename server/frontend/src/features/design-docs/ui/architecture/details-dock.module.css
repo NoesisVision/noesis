@@ -1,0 +1,76 @@
+/*
+ * The panel a selection is read in, and the button it is minimized into, in
+ * one corner: minimized, the panel shrinks into that corner as it fades and
+ * the button comes up where it went; opened again, the other way round. The
+ * panel is scaled whole, so nothing in it reflows on the way.
+ */
+.dock {
+  /* No taller or wider than the canvas leaves it; the panel scrolls inside. */
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100% - 30px);
+  max-height: calc(100% - 30px);
+  /* Only what is shown takes the pointer; the canvas behind is the canvas. */
+  pointer-events: none;
+}
+
+.panel {
+  width: 360px;
+  max-width: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-radius: 16px;
+  background: var(--mantine-color-body);
+  box-shadow:
+    0 12px 32px rgba(16, 24, 40, 0.12),
+    0 1px 3px rgba(16, 24, 40, 0.06);
+  pointer-events: auto;
+  transform-origin: top right;
+  transition:
+    transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 180ms ease;
+
+  .dock[data-folded] & {
+    /* About the button's size, where the button is. */
+    transform: scale(0.12);
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.button.button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-color: light-dark(
+    var(--mantine-color-gray-2),
+    var(--mantine-color-dark-4)
+  );
+  background: var(--mantine-color-body);
+  box-shadow:
+    0 12px 32px rgba(16, 24, 40, 0.12),
+    0 1px 3px rgba(16, 24, 40, 0.06);
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+  transition:
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 160ms ease;
+
+  /* Up once the panel is most of the way into the corner. */
+  .dock[data-folded] & {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition-delay: 90ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .button.button {
+    transition: none;
+  }
+}

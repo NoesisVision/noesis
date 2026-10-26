@@ -141,9 +141,10 @@
   height: 20px;
 }
 
+/* On its grey still, as the model reads it, only closer in. */
 [data-glance] .behaviour {
-  padding: 0;
-  background: none;
+  padding: 10px 12px;
+  border-radius: 12px;
 }
 
 [data-glance] .definition {

@@ -1,7 +1,6 @@
 import { type ReactNode, useMemo } from 'react';
 import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { Badge } from '#/shared/design-system/badge.tsx';
-import { Code } from '#/shared/design-system/code.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
@@ -12,9 +11,10 @@ import {
   placedById,
 } from '../../architecture-outline.ts';
 import { inferredFlowOf } from '../../design-doc-architecture.ts';
-import { addressOf, nameOf } from '../../element-id.ts';
+import { addressOf } from '../../element-id.ts';
+import { DetailSection } from '../element-details/body/sections/detail-section.tsx';
 import { ElementRelations } from '../element-details/element-relations.tsx';
-import { DetailSection } from './detail-parts.tsx';
+import { InferredFlows } from './inferred-flows.tsx';
 import type { LaidOutNode } from './layout-architecture.ts';
 import classes from './architecture-details.module.css';
 
@@ -47,7 +47,7 @@ export function ElementFindings({
   return (
     <>
       {checks.length > 0 && (
-        <DetailSection title="Checks">
+        <DetailSection title="Checks" count={checks.length} order={3}>
           <Findings>
             {checks.map((check) => (
               <Finding key={check.id}>
@@ -84,41 +84,7 @@ export function ElementFindings({
         flush
       />
       {flows.length > 0 && (
-        <DetailSection title="Flow inferred from types">
-          <Findings>
-            {flows.map((flow) => (
-              <Finding key={`${flow.direction}:${flow.type}:${flow.other.id}`}>
-                <Text
-                  component="span"
-                  flex="none"
-                  w="3.5rem"
-                  fz="xs"
-                  fw={600}
-                  c="var(--noesis-secondary-text)"
-                >
-                  {flow.direction === 'gives' ? 'gives' : 'takes'}
-                </Text>
-                <Text component="span" inherit>
-                  <Code bg="transparent" p={0}>
-                    {nameOf(flow.type)}
-                  </Code>
-                  {flow.direction === 'gives' ? ' to ' : ' from '}
-                  {`${flow.other.owner}.${flow.other.name}`}
-                  {flow.typeMatchOnly && (
-                    <Text
-                      component="span"
-                      inherit
-                      fs="italic"
-                      c="var(--noesis-secondary-text)"
-                    >
-                      {' · type match only'}
-                    </Text>
-                  )}
-                </Text>
-              </Finding>
-            ))}
-          </Findings>
-        </DetailSection>
+        <InferredFlows flows={flows} modelTree={modelTree} />
       )}
     </>
   );

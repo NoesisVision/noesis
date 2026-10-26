@@ -1,4 +1,5 @@
 // An element read on a canvas, for a feature that draws a model it did not design.
+export { DetailsDock } from './ui/architecture/details-dock.tsx';
 export { ElementPanel } from './ui/architecture/element-panel.tsx';
 export { DesignDocumentContext } from './ui/element-details/design-document-context.ts';
 export { ElementTooltip } from './ui/element-details/element-tooltip.tsx';

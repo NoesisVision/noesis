@@ -1,48 +1,40 @@
-import { Box } from '#/shared/design-system/box.tsx';
-import { Group } from '#/shared/design-system/group.tsx';
-import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { nameOf } from '../../element-id.ts';
-import { DetailSection, DetailText } from './detail-parts.tsx';
-import type { LaidOutNode } from './layout-architecture.ts';
-import classes from './architecture-details.module.css';
+import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
+import { addressOf } from '../../element-id.ts';
+import { NoteSection } from '../element-details/body/sections/note-section.tsx';
+import { ElementRelations } from '../element-details/element-relations.tsx';
 
-/** The elements something is about, each a way to it; or a word on why there are none. */
+/**
+ * The elements something is about, each a way to it, in the box the model
+ * lists what a block implements in; or a word on why there are none.
+ */
 export function ElementLinks({
   title,
   ids,
-  cards,
+  modelTree,
   empty,
-  onSelect,
 }: {
   title: string;
   ids: string[];
-  cards: ReadonlyMap<string, LaidOutNode>;
+  /** The model's own tree, where each element finds its row and its kind. */
+  modelTree: OutlineTree;
   empty?: string | undefined;
-  onSelect: (id: string) => void;
 }) {
-  if (ids.length === 0 && empty === undefined) return null;
+  if (ids.length === 0)
+    return empty === undefined ? null : <NoteSection>{empty}</NoteSection>;
   return (
-    <DetailSection title={title}>
-      {ids.length === 0 ? (
-        <DetailText>{empty}</DetailText>
-      ) : (
-        <Group component="ul" gap={6} m={0} p={0} className={classes.list}>
-          {ids.map((id) => (
-            <Box component="li" key={id}>
-              <UnstyledButton
-                className={classes.chip}
-                py={2}
-                px="xs"
-                fz="sm"
-                c="var(--mantine-color-anchor)"
-                onClick={() => onSelect(id)}
-              >
-                {cards.get(id)?.label ?? nameOf(id)}
-              </UnstyledButton>
-            </Box>
-          ))}
-        </Group>
-      )}
-    </DetailSection>
+    <ElementRelations
+      relations={[
+        {
+          label: title,
+          items: ids.map((id) => ({
+            change: modelTree.byPath.get(id)?.change ?? 'unchanged',
+            label: addressOf(id),
+            path: id,
+          })),
+        },
+      ]}
+      tree={modelTree}
+      flush
+    />
   );
 }

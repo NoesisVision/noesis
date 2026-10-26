@@ -108,16 +108,19 @@ function TypeLink({ item }: { item: ChangeListItem }) {
   const { change, label, path } = item;
   const td = change === 'removed' ? 'line-through' : undefined;
   const removed = change === 'removed' || undefined;
+  // The row it opens, when the tree has one.
+  const row = path !== null && has(path) ? path : null;
   return (
-    <ElementTooltip name={label}>
-      {path !== null && has(path) ? (
+    // A bare word gets the help cursor: nothing else says it can be hovered.
+    <ElementTooltip name={label} hint={row === null}>
+      {row !== null ? (
         <Anchor
           component="button"
           size="sm"
           fw={500}
           td={td}
           data-removed={removed}
-          onClick={() => select(path)}
+          onClick={() => select(row)}
         >
           <QualifiedName name={label} />
         </Anchor>

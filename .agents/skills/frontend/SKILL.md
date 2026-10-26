@@ -116,11 +116,49 @@ Two exceptions:
 - The model tree: an ARIA tree renders only its expanded subtrees
   (`tree-item.tsx`), as mounting every folded one would mount the whole
   model.
-- A floating panel minimized into a button — the exploration's details —
+- A floating panel minimized into a button — a canvas's details, see below —
   is not folded but shrunk: the panel scales into its corner with a CSS
   `transform` and fades as the button comes up there, both always rendered
   and swapped by a `data-` attribute, the hidden one `inert`. Scaled whole,
   nothing in it reflows on the way.
+
+## Every canvas reads its selection in a `DetailsDock`
+
+A diagram on a React Flow canvas — the design document's architecture, the
+system model's exploration, and any diagram added later — shows what is
+selected in a panel over the canvas's top right, and that panel can always
+be minimized. Build it from `DetailsDock`
+([`src/features/design-docs/ui/architecture/details-dock.tsx`](../../../server/frontend/src/features/design-docs/ui/architecture/details-dock.tsx),
+exported to other features through `#/features/design-docs/element-reader.ts`),
+never a bare `<Panel>` of its own:
+
+```tsx
+const [folded, setFolded] = useState(false); // kept as the selection changes
+…
+<ReactFlow …>
+  {selected !== null && (
+    <DetailsDock folded={folded} onUnfold={() => setFolded(false)} subject={name}>
+      <DetailsPanel … onMinimize={() => setFolded(true)}>…</DetailsPanel>
+    </DetailsDock>
+  )}
+</ReactFlow>
+```
+
+The panel inside is a `DetailsPanel` (or `ElementPanel` / `ArchitectureDetails`,
+which wrap it) given `onMinimize` — that is what puts the minimize button in its
+header. The dock supplies the rest: the 360px panel with its own scroll
+(`nowheel nopan`), the corner button it shrinks into, named "Show the details
+of …", and the animation between the two. The folded state lives with the
+canvas's selection, outside the dock, so it survives one selection giving way
+to the next.
+
+What the panel says is built from the model's own section pieces, whatever is
+selected — an element, a check, a need, a placeholder: a part under a title is
+the model's `DetailSection` (`element-details/body/sections/detail-section.tsx`,
+with `count` and, in the panel, `order={3}`), the elements something is about
+are an `ElementRelations` box (`ElementLinks` builds one), a statement is plain
+`DetailText` under the header, and a word on why something is empty is a
+`NoteSection`. No section titles, link chips or spacing of the canvas's own.
 
 ## Every modal uses `ModalFrame`
 
