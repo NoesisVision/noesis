@@ -15,6 +15,7 @@ import {
   CHANGE_TYPE_META,
   changeAge,
   changeInitials,
+  changeKindLine,
   changeSwatchColor,
 } from '../changes.model.ts';
 import classes from './change-picker.module.css';
@@ -27,17 +28,6 @@ interface ChangePickerProps {
   onNavigate?: () => void;
   /** Only the change's tile, for the rail folded to icons. */
   compact?: boolean;
-}
-
-/** What a change in the list says under its name: its kind, then its stage. */
-function kindLine(change: Change): string {
-  return [
-    change.key,
-    titleCase(CHANGE_TYPE_META[change.type].label),
-    CHANGE_STATUS_META[change.status].label,
-  ]
-    .filter(Boolean)
-    .join(' · ');
 }
 
 /** A change's tile: its initials on its own colour. */
@@ -182,7 +172,7 @@ export function ChangePicker({
                   {change.name}
                 </Text>
                 <Text size="xs" className={classes.subLabel} truncate lh={1.4}>
-                  {kindLine(change)}
+                  {changeKindLine(change)}
                 </Text>
               </Menu.Item>
             );

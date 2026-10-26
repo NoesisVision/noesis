@@ -133,6 +133,12 @@ function drawingOf(kind: OutlineKind, pattern: string | null | undefined) {
   return { Icon: KIND_ICONS[kind], tone: undefined };
 }
 
+/** The icon a row of this kind and pattern is drawn with, for a list of its own. */
+export const kindIconOf = (
+  kind: OutlineKind,
+  pattern: string | null | undefined,
+) => drawingOf(kind, pattern).Icon;
+
 /** Decorative: the name beside it already says what the row is. */
 export function KindIcon({
   kind,

@@ -21,7 +21,7 @@ import {
   useChangeNav,
 } from '#/shell/navigation/use-change-nav.ts';
 import { RailIcons } from './rail-icons.tsx';
-import { DesignDocTile, DesignDocViews } from './rail-parts.tsx';
+import { appLinkTo, DesignDocTile, DesignDocViews } from './rail-parts.tsx';
 import classes from './rail.module.css';
 
 /** A row's label runs on to a second line rather than being cut off. */
@@ -182,15 +182,7 @@ function RailList({ onNavigate }: RailListProps) {
           className={classes.appLink}
           label={entry.label}
           leftSection={<entry.icon size={18} stroke={1.7} />}
-          onClick={onNavigate}
-          renderRoot={(props) => (
-            <Link
-              {...props}
-              to={entry.to}
-              activeOptions={ACTIVE_OPTIONS}
-              viewTransition
-            />
-          )}
+          {...appLinkTo(entry, onNavigate)}
         />
       ))}
     </Box>

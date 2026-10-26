@@ -82,7 +82,13 @@ export function SystemModelView() {
         </Group>
       </Group>
       {failure !== null && (
-        <Alert color="red" title={failure.title}>
+        <Alert
+          color="red"
+          title={failure.title}
+          withCloseButton
+          closeButtonLabel="Dismiss"
+          onClose={() => scan.reset()}
+        >
           {failure.description}
         </Alert>
       )}

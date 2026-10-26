@@ -13,6 +13,7 @@ import { Route as ShellRouteImport } from './routes/_shell'
 import { Route as ShellIndexRouteImport } from './routes/_shell/index'
 import { Route as ShellDevToolsRouteImport } from './routes/_shell/dev-tools'
 import { Route as ShellSystemModelRouteImport } from './routes/_shell/system-model'
+import { Route as ShellWikiRouteImport } from './routes/_shell/wiki'
 import { Route as ShellChangesChangeIdRouteImport } from './routes/_shell/changes/$changeId'
 import { Route as ShellChangesChangeIdIndexRouteImport } from './routes/_shell/changes/$changeId/index'
 import { Route as ShellChangesChangeIdDesignDocsRouteImport } from './routes/_shell/changes/$changeId/design-docs'
@@ -39,6 +40,11 @@ const ShellDevToolsRoute = ShellDevToolsRouteImport.update({
 const ShellSystemModelRoute = ShellSystemModelRouteImport.update({
   id: '/system-model',
   path: '/system-model',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellWikiRoute = ShellWikiRouteImport.update({
+  id: '/wiki',
+  path: '/wiki',
   getParentRoute: () => ShellRoute,
 } as any)
 const ShellChangesChangeIdRoute = ShellChangesChangeIdRouteImport.update({
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/': typeof ShellIndexRoute
   '/dev-tools': typeof ShellDevToolsRoute
   '/system-model': typeof ShellSystemModelRoute
+  '/wiki': typeof ShellWikiRoute
   '/changes/$changeId': typeof ShellChangesChangeIdRouteWithChildren
   '/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRouteWithChildren
   '/changes/$changeId/documents': typeof ShellChangesChangeIdDocumentsRouteWithChildren
@@ -105,6 +112,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/dev-tools': typeof ShellDevToolsRoute
   '/system-model': typeof ShellSystemModelRoute
+  '/wiki': typeof ShellWikiRoute
   '/': typeof ShellIndexRoute
   '/changes/$changeId': typeof ShellChangesChangeIdIndexRoute
   '/changes/$changeId/design-docs/$docId': typeof ShellChangesChangeIdDesignDocsDocIdRoute
@@ -117,6 +125,7 @@ export interface FileRoutesById {
   '/_shell': typeof ShellRouteWithChildren
   '/_shell/dev-tools': typeof ShellDevToolsRoute
   '/_shell/system-model': typeof ShellSystemModelRoute
+  '/_shell/wiki': typeof ShellWikiRoute
   '/_shell/': typeof ShellIndexRoute
   '/_shell/changes/$changeId': typeof ShellChangesChangeIdRouteWithChildren
   '/_shell/changes/$changeId/design-docs': typeof ShellChangesChangeIdDesignDocsRouteWithChildren
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dev-tools'
     | '/system-model'
+    | '/wiki'
     | '/changes/$changeId'
     | '/changes/$changeId/design-docs'
     | '/changes/$changeId/documents'
@@ -145,6 +155,7 @@ export interface FileRouteTypes {
   to:
     | '/dev-tools'
     | '/system-model'
+    | '/wiki'
     | '/'
     | '/changes/$changeId'
     | '/changes/$changeId/design-docs/$docId'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/_shell'
     | '/_shell/dev-tools'
     | '/_shell/system-model'
+    | '/_shell/wiki'
     | '/_shell/'
     | '/_shell/changes/$changeId'
     | '/_shell/changes/$changeId/design-docs'
@@ -199,6 +211,13 @@ declare module '@tanstack/react-router' {
       path: '/system-model'
       fullPath: '/system-model'
       preLoaderRoute: typeof ShellSystemModelRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/wiki': {
+      id: '/_shell/wiki'
+      path: '/wiki'
+      fullPath: '/wiki'
+      preLoaderRoute: typeof ShellWikiRouteImport
       parentRoute: typeof ShellRoute
     }
     '/_shell/changes/$changeId': {
@@ -316,6 +335,7 @@ const ShellChangesChangeIdRouteWithChildren =
 interface ShellRouteChildren {
   ShellDevToolsRoute: typeof ShellDevToolsRoute
   ShellSystemModelRoute: typeof ShellSystemModelRoute
+  ShellWikiRoute: typeof ShellWikiRoute
   ShellIndexRoute: typeof ShellIndexRoute
   ShellChangesChangeIdRoute: typeof ShellChangesChangeIdRouteWithChildren
 }
@@ -323,6 +343,7 @@ interface ShellRouteChildren {
 const ShellRouteChildren: ShellRouteChildren = {
   ShellDevToolsRoute: ShellDevToolsRoute,
   ShellSystemModelRoute: ShellSystemModelRoute,
+  ShellWikiRoute: ShellWikiRoute,
   ShellIndexRoute: ShellIndexRoute,
   ShellChangesChangeIdRoute: ShellChangesChangeIdRouteWithChildren,
 }

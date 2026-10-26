@@ -4,6 +4,7 @@ import {
   IconCheck,
   IconDeviceDesktop,
   IconMoon,
+  IconSearch,
   IconSettings,
   IconSun,
 } from '@tabler/icons-react';
@@ -12,20 +13,27 @@ import { use } from 'react';
 import { currentProject } from '#/features/project/project.api.ts';
 import noesisLogo from '#/noesis.png';
 import { ActionIcon } from '#/shared/design-system/action-icon';
+import { Box } from '#/shared/design-system/box';
 import { Burger } from '#/shared/design-system/burger';
 import {
   type MantineColorScheme,
   useMantineColorScheme,
 } from '#/shared/design-system/color-scheme';
 import { Group } from '#/shared/design-system/group';
-import { useDisclosure } from '#/shared/design-system/hooks.ts';
+import {
+  useDisclosure,
+  useHotkeys,
+  useOs,
+} from '#/shared/design-system/hooks.ts';
 import { Menu } from '#/shared/design-system/menu';
 import { Text } from '#/shared/design-system/text';
 import { Tooltip } from '#/shared/design-system/tooltip';
+import { UnstyledButton } from '#/shared/design-system/unstyled-button';
 import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { ShellFullscreenContext } from '#/shared/ui/shell-fullscreen.tsx';
 import { APP_PUBLIC_NAV } from '#/shell/navigation/nav-items.ts';
 import { DevToolsDialog } from './dev-tools-dialog.tsx';
+import { SearchDialog } from './search/search-dialog.tsx';
 import classes from './top-bar.module.css';
 
 interface TopBarProps {
@@ -35,7 +43,8 @@ interface TopBarProps {
 
 /**
  * The app's own controls, apart from the change you are in: the app's name
- * and the project's on the left, over the rail; full screen and settings on the right. Below `md` the
+ * and the project's on the left, over the rail; search in the middle; full
+ * screen and settings on the right. Below `md` the
  * burger opens the rail, which is folded away there.
  */
 export function TopBar({ navbarOpened, onToggleNavbar }: TopBarProps) {
@@ -56,7 +65,8 @@ export function TopBar({ navbarOpened, onToggleNavbar }: TopBarProps) {
         aria-label="Toggle navigation"
       />
       <Brand />
-      <Group gap={2} wrap="nowrap" ml="auto">
+      <SearchTool />
+      <Group gap={2} wrap="nowrap">
         <FullscreenTool />
         <DevToolsTool />
         <SettingsTool />
@@ -85,6 +95,41 @@ function Brand() {
         </>
       )}
     </Group>
+  );
+}
+
+/**
+ * The way into search: a field-like button centred in the bar, and ⌘K (Ctrl K
+ * off a Mac) from anywhere.
+ */
+function SearchTool() {
+  const [opened, dialog] = useDisclosure(false);
+  const mac = ['macos', 'ios'].includes(useOs());
+  const shortcut = mac ? '⌘K' : 'Ctrl K';
+  useHotkeys([['mod+K', dialog.open]], []);
+  return (
+    <Box className={classes.searchSlot}>
+      <UnstyledButton
+        className={classes.search}
+        onClick={dialog.open}
+        aria-keyshortcuts="Meta+K Control+K"
+        aria-haspopup="dialog"
+      >
+        <IconSearch size={16} stroke={1.7} aria-hidden />
+        <Text
+          component="span"
+          size="sm"
+          truncate
+          className={classes.searchText}
+        >
+          Search changes, documents, model…
+        </Text>
+        <Text component="span" className={classes.shortcut} aria-hidden>
+          {shortcut}
+        </Text>
+      </UnstyledButton>
+      <SearchDialog opened={opened} onClose={dialog.close} />
+    </Box>
   );
 }
 
