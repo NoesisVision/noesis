@@ -1,3 +1,4 @@
+import { titleCase } from '#/shared/ui/title-case.ts';
 import type { ChangeStatus, ChangeType } from '#backend/app/changes/change.ts';
 
 export const CHANGE_STATUS_META: Record<
@@ -83,4 +84,19 @@ export function changeAge(id: string, now: Date): string {
   if (days < 30) return `${Math.floor(days / 7)}w`;
   if (days < 365) return `${Math.floor(days / 30)}mo`;
   return `${Math.floor(days / 365)}y`;
+}
+
+/** What a change in a list says under its name: its key, kind and stage. */
+export function changeKindLine(change: {
+  key?: string | null;
+  type: ChangeType;
+  status: ChangeStatus;
+}): string {
+  return [
+    change.key,
+    titleCase(CHANGE_TYPE_META[change.type].label),
+    CHANGE_STATUS_META[change.status].label,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 }

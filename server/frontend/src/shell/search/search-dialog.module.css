@@ -1,0 +1,64 @@
+/* The title names the dialog for a screen reader; the input says the rest. */
+.header.header {
+  display: none;
+}
+
+/* Doubled, as the header is, to outrank Mantine's own modal styles. */
+.content.content {
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  box-shadow: var(--mantine-shadow-xl);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 400px;
+  overflow: auto;
+  padding: 8px;
+}
+
+.groupLabel.groupLabel {
+  padding: 10px 10px 4px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+
+  &[aria-selected='true'] {
+    background-color: light-dark(
+      var(--mantine-color-brand-0),
+      var(--mantine-color-brand-light)
+    );
+  }
+}
+
+.tile {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-5)
+  );
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-dark-1));
+}
+
+.footer {
+  border-top: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+}
