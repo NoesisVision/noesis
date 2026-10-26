@@ -66,7 +66,8 @@ writeFileSync(
         emitDeclarationOnly: true,
         outDir: 'dist',
         rootDir: '..',
-        types: [],
+        // vite/client declares *.module.css, which theme.ts imports.
+        types: ['vite/client'],
         tsBuildInfoFile: null,
       },
       include: ['index.ts', `../${DS}/mantine.d.ts`],

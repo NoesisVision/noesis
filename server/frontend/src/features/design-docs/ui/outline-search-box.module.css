@@ -1,27 +1,55 @@
-/* The box takes what the two buttons beside it leave. */
-.search {
-  flex: 1;
+.box {
   min-width: 0;
 }
 
-/* Measured by its own width, which is the sidebar's less its padding. */
-.box {
-  container-type: inline-size;
+/* A soft grey field, no border: the tree's own, not a form's. */
+.input.input {
+  height: 36px;
+  border: none;
+  border-radius: 12px;
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
+
+  /*
+   * The ring inside the field's edge: the pane clips whatever reaches past
+   * its own, and the field sits flush with the pane's top.
+   */
+  &:focus {
+    outline: var(--noesis-focus-ring);
+    outline-offset: -2px;
+  }
 }
 
-/*
- * In a narrow sidebar the box would be squeezed down to a few letters by the
- * buttons beside it, so it takes the whole line and the buttons go under it,
- * on the right.
- * Two classes deep: `Group` sets its own wrap with a rule of one.
- */
-@container (max-width: 500px) {
-  .box .bar {
-    flex-wrap: wrap;
-    justify-content: flex-end;
+/* A filter that stays on while pressed: outlined off, raised white on. */
+.chip.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  color: var(--mantine-color-gray-6);
+  box-shadow: inset 0 0 0 1px
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+
+  &[aria-pressed='true'] {
+    color: var(--noesis-tone-light-color);
+    background-color: light-dark(
+      var(--mantine-color-white),
+      var(--mantine-color-dark-5)
+    );
+    box-shadow:
+      0 1px 3px rgba(16, 24, 40, 0.08),
+      0 0 0 1px
+        light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
   }
 
-  .box .search {
-    flex-basis: 100%;
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
   }
 }

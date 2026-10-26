@@ -84,7 +84,6 @@ export function ExplorationPicker({
         position="top"
         offset={16}
         shadow="xl"
-        radius="md"
         trapFocus
         returnFocus
         // The canvas stops a mouse press from reaching the page; a pointer's does.

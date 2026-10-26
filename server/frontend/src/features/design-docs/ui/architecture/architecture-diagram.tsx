@@ -150,6 +150,7 @@ export function ArchitectureDiagram({
         unplaced={outline.unplaced}
       >
         <ZoomControls
+          quiet
           zoom={zoom}
           disabled={flow === null}
           onZoomOut={() => void flow?.zoomOut()}

@@ -1,18 +1,24 @@
+/*
+ * A soft grey card, one line under another: the name, its type as a tag
+ * under it, and what it is for. Each has the card's whole width, so a long
+ * one wraps inside it rather than being cut short.
+ */
 .box {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 6px;
   box-sizing: border-box;
   height: 100%;
   min-height: 44px;
   min-width: 0;
   margin: 0;
-  padding: 6px var(--mantine-spacing-xs);
-  border: 1px solid var(--mantine-color-default-border);
-  border-left: 3px solid var(--mantine-color-brand-4);
-  border-radius: 6px;
-  background: var(--mantine-color-body);
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
   font-family: var(--mantine-font-family-monospace);
   list-style: none;
 
@@ -26,16 +32,26 @@
 
 /* Named with the box, to win over the button reset a linked type gets. */
 .box .name {
+  justify-self: start;
+  min-width: 0;
   font-family: inherit;
-  font-size: var(--mantine-font-size-xs);
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
   overflow-wrap: anywhere;
 }
 
+/* The type as a tag, in the brand's tint. */
 .box .type {
+  justify-self: start;
+  max-width: 100%;
+  padding: 1px 7px;
+  border-radius: 6px;
   font-family: inherit;
-  font-size: 11px;
-  color: var(--mantine-color-anchor);
+  font-size: 12px;
+  color: var(--mantine-color-brand-light-color);
+  background-color: var(--mantine-color-brand-light);
+  text-align: left;
   overflow-wrap: anywhere;
 }
 
@@ -62,12 +78,17 @@
 .box .description {
   display: block;
   font-family: var(--mantine-font-family);
-  font-size: 11px;
-  line-height: 1.45;
-  color: var(--mantine-color-dimmed);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--noesis-secondary-text);
 }
 
 /* Read at a glance, over a card: a size down. */
+[data-glance] .box {
+  padding: 6px var(--mantine-spacing-xs);
+  border-radius: 8px;
+}
+
 [data-glance] .box .name {
   font-size: 11px;
 }

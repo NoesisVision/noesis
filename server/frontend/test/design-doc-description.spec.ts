@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   descriptionTargets,
+  linkedTargets,
   linkedViews,
   readableDescription,
   targetOfHref,
@@ -77,5 +78,26 @@ describe('linkedViews', () => {
 
   it('leaves out a link that opens nothing', () => {
     expect(linkedViews('[Gone](noesis:need|gone)', resolve)).toEqual([]);
+  });
+});
+
+describe('linkedTargets', () => {
+  it('lists each place once, under the words first used for it', () => {
+    expect(
+      linkedTargets(
+        `[Offer](noesis:${OFFER}), [R](noesis:need|refund-lines), [the offer](noesis:${OFFER})`,
+        resolve,
+      ),
+    ).toEqual([
+      { label: 'Offer', target: { view: 'model', node: OFFER } },
+      {
+        label: 'R',
+        target: { view: 'requirements', entry: expect.any(String) },
+      },
+    ]);
+  });
+
+  it('leaves out a link that opens nothing', () => {
+    expect(linkedTargets('[Gone](noesis:need|gone)', resolve)).toEqual([]);
   });
 });

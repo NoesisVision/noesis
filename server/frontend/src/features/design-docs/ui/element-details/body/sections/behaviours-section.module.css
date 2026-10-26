@@ -1,7 +1,23 @@
+/* One card per behaviour, on a grey of its own. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .behaviour {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
 }
 
 /* The icon and the signature side by side, never one over the other. */
@@ -11,14 +27,25 @@
   gap: var(--mantine-spacing-xs);
 }
 
+/* The kind's icon on a tile tinted with its own colour, the tree's, by kind. */
 .mark {
   display: flex;
   flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-7)
+  );
+  box-shadow: 0 0 0 1px
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
 
-  /* The tree's icon, a size up; its colour is the tree's, by kind. */
   & svg {
-    width: 26px;
-    height: 26px;
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -28,9 +55,10 @@
   align-items: baseline;
   min-width: 0;
   min-height: 26px;
-  padding-top: 2px;
+  padding-top: 6px;
   font-family: var(--mantine-font-family-monospace);
-  font-size: 15px;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 /* What it takes and gives, wrapping inside itself once it fills a line. */
@@ -87,8 +115,9 @@
 
 .definition {
   margin: 0;
-  padding-left: 38px;
-  font-size: 13px;
+  padding-left: 40px;
+  font-size: 13.5px;
+  line-height: 1.55;
   color: var(--noesis-secondary-text);
 }
 
@@ -99,9 +128,22 @@
   font-size: var(--mantine-font-size-xs);
 }
 
+[data-glance] .mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  box-shadow: none;
+  background: none;
+}
+
 [data-glance] .mark svg {
   width: 20px;
   height: 20px;
+}
+
+[data-glance] .behaviour {
+  padding: 0;
+  background: none;
 }
 
 [data-glance] .definition {

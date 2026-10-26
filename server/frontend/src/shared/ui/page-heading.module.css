@@ -1,0 +1,39 @@
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* What kind of page, in its colour, then what else is worth a glance. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--noesis-secondary-text);
+}
+
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--noesis-tone-filled);
+}
+
+.kind {
+  color: var(--noesis-tone-light-color);
+}
+
+.title.title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}

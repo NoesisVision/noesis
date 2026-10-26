@@ -40,7 +40,6 @@ export function QuickAdd({
       position="bottom-start"
       offset={4}
       shadow="md"
-      radius="md"
       trapFocus
       // The canvas stops a mouse press from reaching the page; a pointer's does.
       clickOutsideEvents={['pointerdown']}

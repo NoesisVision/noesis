@@ -7,29 +7,75 @@
 }
 
 /*
- * The kind of page open, as a rule in its colour (`page-tone.css`) along the
- * top of the page, under the header: it stays put while the page scrolls.
+ * Beside the rail, the page is a sheet of its own, set into the top bar and the rail: behind
+ * it their tint runs on unbroken, and the sheet's top left corner is rounded,
+ * edged in the rail's faint line. Fixed where the bar and the rail leave it,
+ * so it stays put as the page scrolls; drawn under the content.
  */
-.main[data-page-tone]::after {
-  content: '';
-  position: fixed;
-  inset: var(--app-shell-header-offset, 0) 0 auto;
-  z-index: var(--app-shell-header-z-index, 100);
-  height: 3px;
-  background-color: var(--noesis-tone-filled);
-}
+@media (min-width: 62em) {
+  .main.main {
+    isolation: isolate;
+    background-color: var(--noesis-rail-background);
+  }
 
-/* Full screen, the page is the whole window: nothing to rule it off from. */
-.main:fullscreen::after {
-  display: none;
+  /* The sheet itself, under everything on it. */
+  .main::after,
+  .main:not(:fullscreen)::before {
+    content: '';
+    position: fixed;
+    top: var(--app-shell-header-offset, 0rem);
+    left: var(--app-shell-navbar-offset, 0rem);
+    right: 0;
+    bottom: 0;
+    border-top-left-radius: 16px;
+    /* Following the rail as it folds and opens. */
+    transition: left 200ms ease;
+  }
+
+  .main::after {
+    z-index: -1;
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-gray-9)
+    );
+  }
+
+  /*
+   * Its edge, over everything on it: the faint line, and outside the
+   * corner's curve the bar's and the rail's tint, so what sticks or scrolls
+   * at the top of the page is clipped to the corner too. Clear inside, and
+   * not in the pointer's way. (The bar and the rail lie over the rest of
+   * the tint.)
+   */
+  .main:not(:fullscreen)::before {
+    z-index: 3;
+    border-top: 1px solid var(--noesis-rail-border);
+    border-left: 1px solid var(--noesis-rail-border);
+    box-shadow: 0 0 0 16px var(--noesis-rail-background);
+    pointer-events: none;
+  }
+
+  /* Full screen, the page is all there is: no sheet, its own colour. */
+  .main:fullscreen {
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-gray-9)
+    );
+  }
+
+  .main:fullscreen::after {
+    display: none;
+  }
 }
 
 /*
  * Full screen, the content is the page: the browser stops painting the
- * shell's header, so there is nothing to offset by, and it scrolls itself.
+ * top bar and the rail, so there is nothing to offset by, and it scrolls
+ * itself.
  */
 .main:fullscreen {
   --app-shell-header-offset: 0rem;
+  --app-shell-navbar-offset: 0rem;
 
   overflow-y: auto;
 }

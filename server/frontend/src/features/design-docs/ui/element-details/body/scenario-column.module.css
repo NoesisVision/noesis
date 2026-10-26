@@ -24,10 +24,10 @@
   display: flex;
   align-items: center;
   gap: var(--mantine-spacing-xs);
-  font-size: 13px;
+  font-size: var(--mantine-font-size-sm);
   font-weight: 600;
   line-height: var(--mantine-line-height);
-  color: var(--noesis-secondary-text);
+  color: var(--mantine-color-text);
 }
 
 /*
@@ -132,8 +132,8 @@
 }
 
 .name {
-  font-size: var(--mantine-font-size-sm);
-  font-weight: 500;
+  font-size: 13.5px;
+  font-weight: 600;
 
   &[data-removed] {
     text-decoration: line-through;
@@ -161,7 +161,7 @@
 }
 
 .panel {
-  padding: 0 var(--mantine-spacing-sm) 6px 34px;
+  padding: 4px 14px 6px 36px;
 }
 
 /*
@@ -179,10 +179,25 @@
 .column[data-panel] .item,
 .column[data-panel] .item:last-of-type {
   overflow: hidden;
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-md);
-  background-color: var(--mantine-color-body);
-  transition: opacity 150ms ease;
+  border: none;
+  border-radius: 12px;
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-7)
+  );
+  box-shadow: 0 0 0 1px
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
+  transition:
+    opacity 150ms ease,
+    box-shadow 150ms ease;
+}
+
+/* The one being read, lifted off the others. */
+.column[data-panel] .item[data-active] {
+  box-shadow:
+    0 1px 3px rgba(16, 24, 40, 0.1),
+    0 0 0 1px
+      light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
 }
 
 /* Another rule's, while one rule's scenarios stand out: there, but behind. */

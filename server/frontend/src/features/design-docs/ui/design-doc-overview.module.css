@@ -8,32 +8,79 @@
 }
 
 /*
- * The prose centred in a column at most 900px wide, as a document's is, under
- * the title the surface centres over the same column.
+ * The prose in a card, and beside it what the prose links to; the side
+ * column drops under the prose where the two do not fit side by side.
  */
 .layout {
-  display: grid;
-  grid-template-columns: minmax(0, 900px);
-  justify-content: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+  max-width: 1180px;
+  margin-inline: auto;
   padding-bottom: calc(var(--mantine-spacing-xl) * 2);
 }
 
-/*
- * What the link icons mean, as one quiet line over the prose: no box of its
- * own, the title and each kind of link side by side.
- */
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--mantine-spacing-xs) var(--mantine-spacing-md);
-  align-items: center;
-  margin-bottom: var(--mantine-spacing-sm);
+.body.body {
+  flex: 1 1 560px;
+  min-width: 0;
 }
 
-.legendItems.legendItems {
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: var(--mantine-spacing-md);
+.aside {
+  flex: 0 1 270px;
+  min-width: 230px;
+}
+
+/*
+ * A link is a chip in the colour of the view it opens: the model's violet,
+ * the requirements' blue. The legend draws the same chip, so a reader learns
+ * it once.
+ */
+[data-view='model'],
+.body a[href*='?view=model'] {
+  --chip-bg: var(--mantine-color-violet-light);
+  --chip-bg-hover: var(--mantine-color-violet-light-hover);
+  --chip-fg: var(--mantine-color-violet-light-color);
+  --side-row-icon: var(--mantine-color-violet-6);
+}
+
+[data-view='requirements'],
+.body a[href*='?view=requirements'] {
+  --chip-bg: var(--mantine-color-brand-light);
+  --chip-bg-hover: var(--mantine-color-brand-light-hover);
+  --chip-fg: var(--mantine-color-brand-light-color);
+  --side-row-icon: var(--mantine-color-brand-6);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/*
+ * In the prose the chip flows as words do, so it sits on the line's baseline
+ * with no gap of its own before or after it.
+ */
+.chip,
+.body a[href*='?view=model'],
+.body a[href*='?view=requirements'] {
+  padding: 0 7px;
+  border-radius: 7px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--chip-fg);
+  background-color: var(--chip-bg);
+}
+
+.chip {
+  padding: 2px 8px;
+  font-size: 13px;
+}
+
+.body a[href*='?view=model']:hover,
+.body a[href*='?view=requirements']:hover {
+  background-color: var(--chip-bg-hover);
 }
 
 /*

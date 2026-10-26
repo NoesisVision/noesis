@@ -48,7 +48,6 @@ describe('DesignDocWorkbench', () => {
     expect(page).toContain('aria-label="Search the outline"');
     expect(page).toContain('aria-label="Expand everything"');
     expect(page).toContain('aria-label="Collapse everything"');
-    expect(page).toContain('aria-label="Full screen"');
   });
 
   it('opens on the model the document describes', () => {

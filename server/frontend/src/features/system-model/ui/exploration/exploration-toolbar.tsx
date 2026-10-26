@@ -1,14 +1,27 @@
-import { IconArrowBackUp, IconArrowForwardUp } from '@tabler/icons-react';
+import {
+  IconArrowBackUp,
+  IconArrowForwardUp,
+  IconArrowsHorizontal,
+  IconArrowsVertical,
+  IconChevronDown,
+  IconEye,
+  IconLayoutDistributeHorizontal,
+  IconRoute,
+} from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Badge } from '#/shared/design-system/badge.tsx';
+import { Box } from '#/shared/design-system/box.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
-import { Group } from '#/shared/design-system/group.tsx';
 import { SegmentedControl } from '#/shared/design-system/segmented-control.tsx';
-import { Switch } from '#/shared/design-system/switch.tsx';
-import { Text } from '#/shared/design-system/text.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
-import { IconBroom } from '#/shared/ui/icons/icons.ts';
+import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
+import {
+  CanvasToolbar,
+  ToolbarDivider,
+  ToolbarOptions,
+  ToolbarPill,
+} from '#/shared/ui/canvas-toolbar.tsx';
 import type { LayoutDirection } from './layout-exploration.ts';
 import classes from './exploration.module.css';
 
@@ -21,33 +34,37 @@ export interface Drawing {
   animated: boolean;
 }
 
+/** Each way the layout may run, by its arrow; its name for whoever cannot see it. */
 const DIRECTIONS = [
-  { value: 'vertical', label: 'Vertical' },
-  { value: 'horizontal', label: 'Horizontal' },
-] satisfies { value: LayoutDirection; label: string }[];
-
-/** A control with its name written before it. */
-function Labelled({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <Group gap={8} wrap="nowrap">
-      <Text
-        component="span"
-        fz="xs"
-        c="var(--noesis-secondary-text)"
-        aria-hidden
-      >
-        {label}
-      </Text>
-      {children}
-    </Group>
-  );
-}
+  {
+    value: 'vertical',
+    label: (
+      <Tooltip label="Vertical" openDelay={300}>
+        <Box component="span" className={classes.segmentIcon}>
+          <IconArrowsVertical size={16} stroke={1.6} aria-hidden />
+          <VisuallyHidden>Vertical</VisuallyHidden>
+        </Box>
+      </Tooltip>
+    ),
+  },
+  {
+    value: 'horizontal',
+    label: (
+      <Tooltip label="Horizontal" openDelay={300}>
+        <Box component="span" className={classes.segmentIcon}>
+          <IconArrowsHorizontal size={16} stroke={1.6} aria-hidden />
+          <VisuallyHidden>Horizontal</VisuallyHidden>
+        </Box>
+      </Tooltip>
+    ),
+  },
+] satisfies { value: LayoutDirection; label: ReactNode }[];
 
 /*
  * How the reader draws the exploration — what is drawn is chosen in the
  * picker on the canvas, and what shows of it in the visibility panel this
- * opens: which way the layout runs, how the edges
- * run, and how close.
+ * opens: steps back and forward, which way the layout runs, how the edges
+ * run, placing everything afresh, and — at the far end — how close.
  */
 export function ExplorationToolbar({
   canUndo,
@@ -75,23 +92,19 @@ export function ExplorationToolbar({
   drawing: Drawing;
   onDrawing: (drawing: Drawing) => void;
   onAutoPlace: () => void;
-  /** The zoom controls, last in the row. */
+  /** The zoom controls, at the row's far end. */
   children: ReactNode;
 }) {
   const set = (change: Partial<Drawing>) =>
     onDrawing({ ...drawing, ...change });
   return (
-    <Group
-      flex="none"
-      py="sm"
-      px="md"
-      gap="8px 18px"
-      className={classes.toolbar}
-    >
-      <Group gap={4} wrap="nowrap">
+    <CanvasToolbar end={children}>
+      <ToolbarPill>
         <Tooltip label="Undo">
           <ActionIcon
-            variant="default"
+            variant="subtle"
+            color="gray"
+            size="lg"
             aria-label="Undo"
             disabled={!canUndo}
             onClick={onUndo}
@@ -101,7 +114,9 @@ export function ExplorationToolbar({
         </Tooltip>
         <Tooltip label="Redo">
           <ActionIcon
-            variant="default"
+            variant="subtle"
+            color="gray"
+            size="lg"
             aria-label="Redo"
             disabled={!canRedo}
             onClick={onRedo}
@@ -109,11 +124,22 @@ export function ExplorationToolbar({
             <IconArrowForwardUp size={18} stroke={1.6} aria-hidden />
           </ActionIcon>
         </Tooltip>
-      </Group>
+      </ToolbarPill>
+      <ToolbarDivider />
       <Button
-        variant={visibility ? 'light' : 'default'}
-        size="xs"
+        variant={visibility ? 'light' : 'subtle'}
+        color={visibility ? undefined : 'gray'}
         aria-pressed={visibility}
+        leftSection={<IconEye size={16} stroke={1.6} aria-hidden />}
+        rightSection={
+          <IconChevronDown
+            size={14}
+            stroke={1.6}
+            aria-hidden
+            className={classes.chevron}
+            data-open={visibility || undefined}
+          />
+        }
         onClick={() => onVisibility(!visibility)}
       >
         Visibility
@@ -123,40 +149,43 @@ export function ExplorationToolbar({
           </Badge>
         )}
       </Button>
-      <Labelled label="Direction">
-        <SegmentedControl
-          size="xs"
-          aria-label="Direction"
-          data={DIRECTIONS}
-          value={drawing.direction}
-          onChange={(value) =>
-            set({
-              direction: value === 'horizontal' ? 'horizontal' : 'vertical',
-            })
-          }
-        />
-      </Labelled>
-      <Switch
-        size="xs"
-        label="Orthogonal edges"
-        checked={drawing.orthogonal}
-        onChange={(event) => set({ orthogonal: event.currentTarget.checked })}
+      <SegmentedControl
+        aria-label="Direction"
+        data={DIRECTIONS}
+        value={drawing.direction}
+        onChange={(value) =>
+          set({
+            direction: value === 'horizontal' ? 'horizontal' : 'vertical',
+          })
+        }
       />
-      <Switch
-        size="xs"
-        label="Animate edges"
-        checked={drawing.animated}
-        onChange={(event) => set({ animated: event.currentTarget.checked })}
+      <ToolbarOptions
+        label="Edges"
+        icon={IconRoute}
+        title="How the edges run"
+        options={[
+          {
+            label: 'Orthogonal edges',
+            checked: drawing.orthogonal,
+            onChange: (orthogonal) => set({ orthogonal }),
+          },
+          {
+            label: 'Animate edges',
+            checked: drawing.animated,
+            onChange: (animated) => set({ animated }),
+          },
+        ]}
       />
+      <ToolbarDivider />
       <Button
-        variant="default"
-        size="xs"
-        leftSection={<IconBroom size={16} stroke={1.6} aria-hidden />}
+        variant="light"
+        leftSection={
+          <IconLayoutDistributeHorizontal size={16} stroke={1.6} aria-hidden />
+        }
         onClick={onAutoPlace}
       >
         Auto-place
       </Button>
-      <Group ml="auto">{children}</Group>
-    </Group>
+    </CanvasToolbar>
   );
 }

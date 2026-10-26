@@ -77,7 +77,6 @@ export function ElementColumns({
         attributes={{ handle: { 'aria-label': 'Resize the scenarios' } }}
         sizes={shares}
         onSizeChange={(sizes) => setShares(sizes.map(Number))}
-        lineSize={4}
       >
         <Splitter.Pane
           defaultSize={shares[0] ?? DEFAULT_SHARES[0]!}
@@ -117,7 +116,6 @@ export function ElementColumns({
       attributes={{ handle: { 'aria-label': 'Resize the scenarios' } }}
       sizes={shares}
       onSizeChange={(sizes) => setShares(sizes.map(Number))}
-      lineSize={1}
     >
       <Splitter.Pane
         defaultSize={shares[0] ?? DEFAULT_SHARES[0]!}

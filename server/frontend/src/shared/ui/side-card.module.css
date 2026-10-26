@@ -1,0 +1,93 @@
+/*
+ * A small card beside a read text, saying something about it: what its links
+ * mean, what it links to, what it is made of. White, softly rounded, a quiet
+ * capitalised title with how many it holds.
+ */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 18px;
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-7)
+  );
+  box-shadow: 0 0 0 1px
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+}
+
+.title.title {
+  flex: 1;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mantine-color-gray-6);
+}
+
+.count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--noesis-secondary-text);
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-5)
+  );
+}
+
+/*
+ * One thing it lists, which opens it: its icon in its own colour
+ * (`--side-row-icon`), then its name, cut short on one line.
+ */
+.row.row {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 8px;
+  color: var(--mantine-color-text);
+  text-decoration: none;
+
+  &:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-dark-6)
+    );
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: -2px;
+  }
+
+  & svg {
+    flex: none;
+    color: var(--side-row-icon, var(--mantine-color-gray-6));
+  }
+}
+
+/* The row of where the reader is: tinted, firmer, its icon in the page's colour. */
+.row.row[aria-current='location'] {
+  font-weight: 600;
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-5)
+  );
+
+  & svg {
+    color: var(--noesis-tone-filled);
+  }
+}

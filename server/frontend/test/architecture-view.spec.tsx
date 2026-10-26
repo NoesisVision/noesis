@@ -5,6 +5,7 @@ import { architectureOf } from '../src/features/design-docs/design-doc-architect
 import { outlineOf } from '../src/features/design-docs/design-doc-outline';
 import { ArchitectureDetails } from '../src/features/design-docs/ui/architecture/architecture-details';
 import { ArchitectureView } from '../src/features/design-docs/ui/architecture/architecture-view';
+import { DetailsPanel } from '../src/features/design-docs/ui/architecture/details-panel';
 import { layoutArchitecture } from '../src/features/design-docs/ui/architecture/layout-architecture';
 import { DesignDocSurface } from '../src/features/design-docs/ui/design-doc-surface';
 import { outlineTree } from '../src/features/design-docs/ui/model-tree/outline-tree';
@@ -181,5 +182,29 @@ describe('what an element in hand is called', () => {
       'element:behavior|qdocmanagement.preparation.QDoc.create',
     );
     expect(html).toContain('>Behaviour<');
+  });
+});
+
+describe('the details panel minimized', () => {
+  const panel = (onMinimize?: () => void) =>
+    renderToStaticMarkup(
+      <MantineProvider>
+        <DetailsPanel
+          document={document}
+          modelTree={outlineTree([])}
+          onSelectElement={() => {}}
+          onMinimize={onMinimize}
+          eyebrow="Value object"
+          title="Money"
+        >
+          <p>What Money says</p>
+        </DetailsPanel>
+      </MantineProvider>,
+    );
+
+  it('offers to minimize where it may be minimized, and only there', () => {
+    expect(panel(() => {})).toContain('aria-label="Minimize the details"');
+    expect(panel()).not.toContain('Minimize the details');
+    expect(panel()).toContain('What Money says');
   });
 });

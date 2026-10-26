@@ -1,38 +1,57 @@
 /*
- * A ghost row where the next item goes: a dashed outline in the secondary
- * text, lit in the brand's colour while pointed at or focused. Named twice,
- * to win over the reset of the button it is.
+ * A ghost row where the next item goes: a dashed outline, its plus on a grey
+ * tile, its label in the secondary text; firmer while pointed at or focused.
+ * Named twice, to win over the reset of the button it is.
  */
 .ghost.ghost {
   display: flex;
-  gap: var(--mantine-spacing-xs);
+  gap: 12px;
   align-items: center;
   box-sizing: border-box;
   width: 100%;
-  padding: 9px 12px;
+  padding: 14px 16px;
   border: 1px dashed
-    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4));
-  border-radius: 6px;
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: 14px;
   font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
   color: var(--noesis-secondary-text);
   transition:
-    border-color 120ms ease,
-    color 120ms ease,
-    background-color 120ms ease;
+    border-color 150ms ease,
+    color 150ms ease,
+    background-color 150ms ease;
 
   &:hover,
   &:focus-visible {
     border-color: light-dark(
-      var(--mantine-color-brand-5),
-      var(--mantine-color-brand-4)
+      var(--mantine-color-gray-5),
+      var(--mantine-color-dark-2)
     );
-    color: var(--mantine-color-brand-light-color);
-    background-color: var(--mantine-color-brand-light);
+    color: var(--mantine-color-text);
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-dark-6)
+    );
   }
 
   &:focus-visible {
     outline: var(--noesis-focus-ring);
   }
+}
+
+/* The plus, on a small grey tile of its own. */
+.tile {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-5)
+  );
 }
 
 /* Kept off the column's edges, as its header is; as wide as what is left. */
@@ -46,8 +65,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-xs);
-  padding: 10px;
+  padding: 14px 16px;
   border: 1px solid
     light-dark(var(--mantine-color-brand-4), var(--mantine-color-brand-6));
-  border-radius: 6px;
+  border-radius: 14px;
 }

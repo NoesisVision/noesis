@@ -17,6 +17,8 @@ interface DetailSectionProps
   field?: DesignDocFieldInput<unknown>;
   /** Read last and quieter, under a rule: what is said about the element rather than what it is. */
   muted?: boolean;
+  /** How many it holds, in a bubble after the title. */
+  count?: number;
 }
 
 export function DetailSection({
@@ -26,6 +28,7 @@ export function DetailSection({
   className,
   field,
   muted,
+  count,
   ...props
 }: DetailSectionProps) {
   return (
@@ -46,6 +49,11 @@ export function DetailSection({
           )}
           {/* What it holds a human wrote: the title is marked as the text is. */}
           <WrittenBy fields={[field]}>{title}</WrittenBy>
+          {count !== undefined && count > 0 && (
+            <Box component="span" className={classes.count}>
+              {count}
+            </Box>
+          )}
         </Group>
       )}
       <Box>{children}</Box>

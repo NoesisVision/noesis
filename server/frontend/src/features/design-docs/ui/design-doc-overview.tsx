@@ -1,3 +1,4 @@
+import { clsx } from 'clsx';
 import { type MouseEvent, useCallback, useMemo } from 'react';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
@@ -7,15 +8,19 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
+import { SideCard, SideRow, SideRows } from '#/shared/ui/side-card.tsx';
 import {
   type DescriptionTarget,
   descriptionTargets,
+  type LinkedTarget,
+  linkedTargets,
   linkedViews,
   readableDescription,
   targetOfHref,
 } from '../design-doc-description.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { DESIGN_DOC_VIEW_ICONS } from '../design-docs.model.ts';
+import prose from '#/shared/ui/prose.module.css';
 import classes from './design-doc-overview.module.css';
 
 /**
@@ -51,6 +56,10 @@ export function DesignDocOverview({
     () => linkedViews(doc.description, resolve),
     [doc.description, resolve],
   );
+  const targets = useMemo(
+    () => linkedTargets(doc.description, resolve),
+    [doc.description, resolve],
+  );
   // The links are the editor's own anchors; the page takes the click from
   // them, so the reader stays on it rather than reloading it.
   const onClickCapture = (event: MouseEvent<HTMLElement>) => {
@@ -66,10 +75,9 @@ export function DesignDocOverview({
   return (
     <Box className={classes.pane}>
       <Box className={classes.layout}>
-        {views.length > 0 && <LinkLegend views={views} />}
         <Card
           withBorder
-          className={classes.body}
+          className={clsx(classes.body, prose.prose)}
           onClickCapture={onClickCapture}
         >
           <VisuallyHidden>
@@ -85,6 +93,24 @@ export function DesignDocOverview({
             <MarkdownEditor markdown={markdown} readOnly />
           )}
         </Card>
+        {views.length > 0 && (
+          <Stack
+            component="aside"
+            aria-label="Linked from the overview"
+            gap={14}
+            className={classes.aside}
+          >
+            <LinkLegend views={views} />
+            {views.map((view) => (
+              <LinkedList
+                key={view}
+                view={view}
+                targets={targets.filter(({ target }) => target.view === view)}
+                onOpen={onOpen}
+              />
+            ))}
+          </Stack>
+        )}
       </Box>
     </Box>
   );
@@ -95,30 +121,60 @@ const OPENS_IN_LABEL: Record<DescriptionTarget['view'], string> = {
   requirements: 'opens in Requirements',
 };
 
-/**
- * What the two link icons mean, in one line above the prose. Only the kinds
- * of link the overview has are listed.
- */
+/** What each kind of link looks like, as the chips in the prose draw them. */
 function LinkLegend({ views }: { views: DescriptionTarget['view'][] }) {
   return (
-    <Box component="aside" aria-label="Links" className={classes.legend}>
-      <Text size="xs" fw={600} c="dimmed">
-        Links
-      </Text>
-      <Stack gap={4} className={classes.legendItems}>
+    <SideCard title="Links">
+      <Group gap={6}>
         {views.map((view) => {
           const Icon = DESIGN_DOC_VIEW_ICONS[view];
           return (
-            <Group key={view} gap={6} wrap="nowrap">
-              <Icon size={14} stroke={1.8} aria-hidden />
-              <Text size="xs" c="dimmed">
-                {OPENS_IN_LABEL[view]}
-              </Text>
-            </Group>
+            <Box
+              key={view}
+              component="span"
+              className={classes.chip}
+              data-view={view}
+            >
+              <Icon size={12} stroke={2} aria-hidden />
+              {OPENS_IN_LABEL[view]}
+            </Box>
           );
         })}
-      </Stack>
-    </Box>
+      </Group>
+    </SideCard>
+  );
+}
+
+const LIST_TITLE: Record<DescriptionTarget['view'], string> = {
+  model: 'Model elements',
+  requirements: 'Requirements',
+};
+
+/** Every element, or every need, the overview links to, each opening it. */
+function LinkedList({
+  view,
+  targets,
+  onOpen,
+}: {
+  view: DescriptionTarget['view'];
+  targets: LinkedTarget[];
+  onOpen: (target: DescriptionTarget) => void;
+}) {
+  const Icon = DESIGN_DOC_VIEW_ICONS[view];
+  return (
+    <SideCard title={LIST_TITLE[view]} count={targets.length}>
+      <SideRows>
+        {targets.map(({ label, target }) => (
+          <SideRow
+            key={target.view === 'model' ? target.node : target.entry}
+            data-view={view}
+            icon={<Icon size={14} stroke={1.8} aria-hidden />}
+            label={label}
+            onClick={() => onOpen(target)}
+          />
+        ))}
+      </SideRows>
+    </SideCard>
   );
 }
 

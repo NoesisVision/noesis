@@ -24,9 +24,10 @@ import {
   UNADDRESSED_NEEDS_TITLE,
 } from '../../design-doc-requirements.ts';
 import type { DesignDocDetail } from '../../design-docs.api.ts';
+import { scenarioEntriesOf } from '../element-details/body/scenarios-of.ts';
 import { type EntryMark, type EntryPin, entryMark } from './entry-mark.ts';
 import { RuleEntry } from './rule-entry.tsx';
-import { Remark, Statement } from './statement.tsx';
+import { Remark } from './statement.tsx';
 import classes from './requirements-view.module.css';
 
 /** The requirements as a page to read down: what is asked, then what answers it. */
@@ -53,7 +54,6 @@ export function RequirementsDocument({
         key={path}
         path={path}
         selected={selected === path}
-        pin={setTarget}
         traced={traced}
         changeId={changeId}
         docId={doc.id}
@@ -66,8 +66,9 @@ export function RequirementsDocument({
 
   return (
     <Stack ref={pageRef} gap={0} px="lg" pt="lg" className={classes.page}>
-      {/* The entry in hand, lifted on a card that slides to it from the
-          last one: a need's heading, a group's, or a rule. */}
+      {/* The heading in hand, lifted on a card that slides to it from the
+          last one: a need's or a group's. A rule is a card of its own, and
+          is outlined instead. */}
       <FloatingIndicator
         target={target}
         parent={page}
@@ -78,17 +79,24 @@ export function RequirementsDocument({
       {requirements.needs.map(({ need, rules }) => (
         <Section key={need.id} {...mark(needPath(need.id))}>
           <SectionHead pin={pin(needPath(need.id))}>
-            <Title order={2} size="h3">
+            <NeedEyebrow need={need} />
+            <Title order={2} className={classes.needName}>
               {needNameOf(need)}
             </Title>
-            <NeedBody need={need} />
+            <NeedStatement need={need} />
+            {rules.length > 0 && <Coverage rules={rules} />}
           </SectionHead>
+          <Box className={classes.rulesLabel}>Rules</Box>
           {rules.length > 0 ? (
-            rules.map((traced) => entry(traced, needPath(need.id)))
+            <Box className={classes.rules}>
+              {rules.map((traced) => entry(traced, needPath(need.id)))}
+            </Box>
           ) : (
-            <Text c="dimmed" mt="sm">
-              No rule of this design answers this need.
-            </Text>
+            <Box className={classes.rules}>
+              <Text className={classes.emptyCard}>
+                No rule of this design answers this need.
+              </Text>
+            </Box>
           )}
         </Section>
       ))}
@@ -101,13 +109,17 @@ export function RequirementsDocument({
           <Remark>Rules the design adds that no need asks for.</Remark>
         </SectionHead>
         {requirements.designDecisions.length > 0 ? (
-          requirements.designDecisions.map((traced) =>
-            entry(traced, DESIGN_DECISIONS_PATH),
-          )
+          <Box className={classes.rules}>
+            {requirements.designDecisions.map((traced) =>
+              entry(traced, DESIGN_DECISIONS_PATH),
+            )}
+          </Box>
         ) : (
-          <Text c="dimmed" mt="sm">
-            Every rule of this design answers a need.
-          </Text>
+          <Box className={classes.rules}>
+            <Text className={classes.emptyCard}>
+              Every rule of this design answers a need.
+            </Text>
+          </Box>
         )}
       </Section>
 
@@ -122,26 +134,38 @@ export function RequirementsDocument({
           <Remark>Needs no rule of this design traces to.</Remark>
         </SectionHead>
         {requirements.unaddressedNeeds.length > 0 ? (
-          requirements.unaddressedNeeds.map((need) => (
-            <Box
-              key={need.id}
-              className={classes.rule}
-              {...entryMark(
-                needPath(need.id, UNADDRESSED_NEEDS_PATH),
-                selected === needPath(need.id, UNADDRESSED_NEEDS_PATH),
-                setTarget,
-              )}
-            >
-              <Title order={3} size="h5" className={classes.entryTitle}>
-                {needNameOf(need)}
-              </Title>
-              <NeedBody need={need} />
-            </Box>
-          ))
+          <Box className={classes.rules}>
+            {requirements.unaddressedNeeds.map((need) => (
+              <Box
+                key={need.id}
+                component="article"
+                className={classes.rule}
+                {...entryMark(
+                  needPath(need.id, UNADDRESSED_NEEDS_PATH),
+                  selected === needPath(need.id, UNADDRESSED_NEEDS_PATH),
+                )}
+              >
+                <Box component="header" className={classes.ruleHead}>
+                  <NeedEyebrow need={need} />
+                  <Title
+                    order={3}
+                    className={`${classes.ruleName} ${classes.entryTitle}`}
+                  >
+                    {needNameOf(need)}
+                  </Title>
+                </Box>
+                <Box className={classes.cardBody}>
+                  <NeedStatement need={need} small />
+                </Box>
+              </Box>
+            ))}
+          </Box>
         ) : (
-          <Text c="dimmed" mt="sm">
-            Every need has a rule that answers it.
-          </Text>
+          <Box className={classes.rules}>
+            <Text className={classes.emptyCard}>
+              Every need has a rule that answers it.
+            </Text>
+          </Box>
         )}
       </Section>
     </Stack>
@@ -203,21 +227,74 @@ function Summary({ summary }: { summary: RequirementsSummary }) {
   );
 }
 
-function NeedBody({ need }: { need: DesignedNeedInput }) {
-  const statement = valueOf(need.statement);
+/** "Need · Stakeholder X": what the section is, and who asks it. */
+function NeedEyebrow({ need }: { need: DesignedNeedInput }) {
   const stakeholder = valueOf(need.stakeholder);
   return (
-    <>
-      {statement !== null && <Statement>{statement}</Statement>}
+    <Text className={classes.needEyebrow}>
+      <Text span inherit className={classes.needKind}>
+        Need
+      </Text>
       {/* A need whose sources name nobody says so by saying nothing. */}
       {stakeholder !== null && stakeholder.trim() !== '' && (
-        <Remark>
-          Stakeholder:{' '}
-          <Text span inherit fw={700}>
+        <>
+          {' · Stakeholder '}
+          <Text span inherit fw={600} c="var(--mantine-color-text)">
             {stakeholder}
           </Text>
-        </Remark>
+        </>
       )}
-    </>
+    </Text>
+  );
+}
+
+/** What the need asks, as the paragraph the section opens on. */
+function NeedStatement({
+  need,
+  small = false,
+}: {
+  need: DesignedNeedInput;
+  /** In a card of its own rather than heading a section. */
+  small?: boolean;
+}) {
+  const statement = valueOf(need.statement);
+  if (statement === null) return null;
+  return (
+    <Text className={classes.needStatement} data-small={small || undefined}>
+      {statement}
+    </Text>
+  );
+}
+
+/**
+ * How many of the need's rules a scenario verifies, in words and as a bar:
+ * the words carry it, the bar and its colour only repeat them. A rule the
+ * design removes is not counted.
+ */
+function Coverage({ rules }: { rules: TracedRule[] }) {
+  const counted = rules.filter((traced) => traced.change !== 'removed');
+  if (counted.length === 0) return null;
+  const verified = counted.filter(
+    ({ rule }) => rule !== null && scenarioEntriesOf(rule.scenarios).length > 0,
+  ).length;
+  const complete = verified === counted.length;
+  return (
+    <Box className={classes.coverage} data-complete={complete || undefined}>
+      <Text span fw={600}>
+        {counted.length} {plural(counted.length, 'rule', 'rules')}
+      </Text>
+      <Text span c="var(--noesis-secondary-text)" aria-hidden>
+        ·
+      </Text>
+      <Text span fw={600} className={classes.coverageVerified}>
+        {verified} verified by a scenario
+      </Text>
+      <Box className={classes.coverageBar} aria-hidden>
+        <Box
+          className={classes.coverageFill}
+          style={{ width: `${(verified / counted.length) * 100}%` }}
+        />
+      </Box>
+    </Box>
   );
 }

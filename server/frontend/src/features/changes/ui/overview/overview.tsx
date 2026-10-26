@@ -1,23 +1,29 @@
+import { IconFileText } from '@tabler/icons-react';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import { designDocsList } from '#/features/design-docs/design-docs.api.ts';
-import { DesignDocsIcon } from '#/features/design-docs/design-docs.model.ts';
+import {
+  DESIGN_DOCS_TONE,
+  DesignDocsIcon,
+} from '#/features/design-docs/design-docs.model.ts';
 import { documentsList } from '#/features/documents/documents.api.ts';
 import { DocumentsIcon } from '#/features/documents/documents.model.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Card } from '#/shared/design-system/card.tsx';
-import { Grid } from '#/shared/design-system/grid.tsx';
-import { CardLink } from '#/shared/ui/card-link.tsx';
 import { FormattedDate } from '#/shared/ui/formatted-date.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
+import { TileLink } from '#/shared/ui/tile-link.tsx';
 import { useChangeId } from '../../current-change.ts';
-import { ChangesLink } from '../changes-link.tsx';
 import { OverviewSection } from './overview-section.tsx';
-import { OverviewStat } from './overview-stat.tsx';
+import classes from './overview.module.css';
 
 // The change layout loads the change once for every view under it.
 const changeRoute = getRouteApi('/_shell/changes/$changeId');
 
+/**
+ * What a change holds, on one card: what it is about, then its documents and
+ * its design docs, each a tile that opens it.
+ */
 export function OverviewView() {
   const { changeId } = useChangeId();
   const { change } = changeRoute.useLoaderData();
@@ -25,81 +31,57 @@ export function OverviewView() {
   const designDocs = useQuery(designDocsList(changeId));
 
   return (
-    <Box>
-      {!!change.description && (
-        <Box mb={16}>
-          <MarkdownEditor readOnly markdown={change.description} noMargin />
-        </Box>
-      )}
-      <Card padding="lg">
-        <Grid>
-          <Grid.Col span={6}>
-            <OverviewStat title="Documents" Icon={DocumentsIcon}>
-              <ChangesLink to="/changes/$changeId/documents">
-                {count(documents)}
-              </ChangesLink>
-            </OverviewStat>
-          </Grid.Col>
-          <Grid.Col span={6}>
-            <OverviewStat title="Design Docs" Icon={DesignDocsIcon}>
-              <ChangesLink to="/changes/$changeId/design-docs">
-                {count(designDocs)}
-              </ChangesLink>
-            </OverviewStat>
-          </Grid.Col>
-        </Grid>
-      </Card>
-      <OverviewSection
-        mt={16}
-        title="Documents"
-        empty={emptyText(documents, 'documents')}
-        items={
-          changeId
-            ? (documents.data ?? []).map((document) => ({
-                id: document.id,
-                card: (
-                  <CardLink
-                    to="/changes/$changeId/documents/$documentId"
-                    params={{ changeId, documentId: document.id }}
-                    title={document.title}
-                    icon={DocumentsIcon}
-                    description={<FormattedDate value={document.date} />}
-                    headingLevel={3}
-                  />
-                ),
-              }))
-            : []
-        }
-      />
-      <OverviewSection
-        mt={16}
-        title="Design Docs"
-        empty={emptyText(designDocs, 'design documents')}
-        items={
-          changeId
-            ? (designDocs.data ?? []).map((doc) => ({
-                id: doc.id,
-                card: (
-                  <CardLink
-                    to="/changes/$changeId/design-docs/$docId"
-                    params={{ changeId, docId: doc.id }}
-                    title={doc.name}
-                    icon={DesignDocsIcon}
-                    description={doc.implemented ? 'Implemented' : 'Draft'}
-                    headingLevel={3}
-                  />
-                ),
-              }))
-            : []
-        }
-      />
-    </Box>
+    <Card withBorder padding="xl" className={classes.card}>
+      <Box className={classes.content}>
+        {!!change.description && (
+          <Box className={classes.description}>
+            <MarkdownEditor readOnly markdown={change.description} noMargin />
+          </Box>
+        )}
+        <OverviewSection
+          title="Documents"
+          icon={DocumentsIcon}
+          count={documents.data?.length}
+          empty={emptyText(documents, 'documents')}
+        >
+          {changeId &&
+            (documents.data ?? []).map((document) => (
+              <TileLink
+                key={document.id}
+                to="/changes/$changeId/documents/$documentId"
+                params={{ changeId, documentId: document.id }}
+                title={document.title}
+                icon={IconFileText}
+                kind="Document"
+                meta={<FormattedDate value={document.date} />}
+              />
+            ))}
+        </OverviewSection>
+        <OverviewSection
+          title="Design docs"
+          icon={DesignDocsIcon}
+          count={designDocs.data?.length}
+          empty={emptyText(designDocs, 'design documents')}
+        >
+          {changeId &&
+            (designDocs.data ?? []).map((doc) => (
+              <TileLink
+                key={doc.id}
+                to="/changes/$changeId/design-docs/$docId"
+                params={{ changeId, docId: doc.id }}
+                title={doc.name}
+                icon={DesignDocsIcon}
+                tone={DESIGN_DOCS_TONE}
+                kind="Design doc"
+                meta={doc.implemented ? 'Implemented' : 'Draft'}
+                metaItalic
+                dot
+              />
+            ))}
+        </OverviewSection>
+      </Box>
+    </Card>
   );
-}
-
-/** An em dash until the list is in: a stat of 0 that turns into 12 misleads. */
-function count(query: UseQueryResult<{ length: number } | null>) {
-  return query.data?.length ?? '—';
 }
 
 // A failure never reaches here: it is thrown to the route's boundary.

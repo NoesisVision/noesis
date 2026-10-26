@@ -368,9 +368,9 @@ export function placeLocally(
       (all, rect) => (all === null ? rect : union(all, rect)),
       null,
     ) ?? { x: 0, y: 0, width: 0, height: 0 };
-  const near = (rect: Rect) => {
+  const nearTo = (toward: Rect) => (rect: Rect) => {
     const a = centreOf(rect);
-    const b = centreOf(anchorRect);
+    const b = centreOf(toward);
     return Math.hypot(a.x - b.x, a.y - b.y);
   };
 
@@ -382,7 +382,10 @@ export function placeLocally(
     standing: Rect[],
     start: { x: number; y: number } | null,
     room: Rect | null,
+    /** What it goes nearest to: the card or point it came from, else that. */
+    toward: Rect = anchorRect,
   ): Rect => {
+    const near = nearTo(toward);
     const at = (x: number, y: number) => ({ x, y, width, height });
     const candidates = [
       ...(start === null ? [] : [at(start.x, start.y)]),
@@ -461,6 +464,16 @@ export function placeLocally(
         width: container.width - padding.left - padding.right,
         height: container.height - padding.top - padding.bottom,
       };
+      // Asked for at a point outside its module, it still goes in it, among
+      // what it holds — never stretching the module out to that point.
+      const pointIn =
+        point !== null &&
+        point.x >= room.x &&
+        point.y >= room.y &&
+        point.x <= room.x + room.width &&
+        point.y <= room.y + room.height
+          ? point
+          : null;
       rects.set(
         element.id,
         spotFor(
@@ -470,15 +483,16 @@ export function placeLocally(
           siblings,
           // Asked for at a point inside the container: centred on it, kept
           // inside the room; else, with nothing beside it, at its corner.
-          point !== null
+          pointIn !== null
             ? {
-                x: Math.max(room.x, point.x - width / 2),
-                y: Math.max(room.y, point.y - height / 2),
+                x: Math.max(room.x, pointIn.x - width / 2),
+                y: Math.max(room.y, pointIn.y - height / 2),
               }
             : siblings.length === 0
               ? { x: room.x, y: room.y }
               : null,
           room,
+          point !== null && pointIn === null ? container : anchorRect,
         ),
       );
       return fit(parent);

@@ -74,6 +74,33 @@ export function linkedViews(
   return (['model', 'requirements'] as const).filter((view) => views.has(view));
 }
 
+/** A place the description links to, under the words the first link to it used. */
+export interface LinkedTarget {
+  label: string;
+  target: DescriptionTarget;
+}
+
+/**
+ * Every place the description's links open, once each, in the order they are
+ * first linked: what the overview names, listed beside it. A link that opens
+ * nothing is left out, as it is from the prose.
+ */
+export function linkedTargets(
+  markdown: string,
+  resolve: (target: string) => DescriptionTarget | null,
+): LinkedTarget[] {
+  const seen = new Map<string, LinkedTarget>();
+  for (const [, label = '', target = ''] of markdown.matchAll(
+    DESCRIPTION_LINK,
+  )) {
+    const opens = resolve(target);
+    if (opens !== null && !seen.has(target)) {
+      seen.set(target, { label, target: opens });
+    }
+  }
+  return [...seen.values()];
+}
+
 /** Where a link written by `readableDescription` for `page` takes the reader, else null. */
 export function targetOfHref(
   href: string,

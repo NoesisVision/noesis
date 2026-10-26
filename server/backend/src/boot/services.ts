@@ -1,3 +1,4 @@
+import { basename } from 'node:path';
 import { GitSourceRepository } from '#backend/adapters/out/scanners/git-source-repository';
 import { ServerScanLog } from '#backend/adapters/out/scanners/server-scan-log';
 import { ChangesFileRepository } from '#backend/adapters/out/store/changes.repository';
@@ -38,6 +39,8 @@ export function createServices(noesis: NoesisDir, clock: Clock = systemClock) {
   const documents = new DocumentsFileRepository(noesis);
   const systemModels = new SystemModelsFileRepository(noesis);
   return {
+    // Named as the scanners name the model they find: by the folder.
+    projectName: basename(noesis.root),
     createChange: createChangeHandler(changes, clock),
     updateChange: updateChangeHandler(changes),
     deleteChange: deleteChangeHandler(changes),

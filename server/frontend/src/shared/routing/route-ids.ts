@@ -1,12 +1,7 @@
 import type { RouteIds } from '@tanstack/react-router';
-import type { FileRouteTypes, routeTree } from '#/routeTree.gen.ts';
+import type { routeTree } from '#/routeTree.gen.ts';
 
 export type AppRouteIds = RouteIds<typeof routeTree>;
-type AppRoutePaths = FileRouteTypes['fullPaths'];
-export type ChangeRoutePaths = Extract<
-  AppRoutePaths,
-  `/changes/$changeId${string}`
->;
 
 const SHELL_ROUTE_ID = '/_shell';
 

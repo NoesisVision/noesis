@@ -1,5 +1,9 @@
-/* Inputs, a dashed seam, outputs: three columns side by side. */
+/*
+ * Inputs, a dashed seam, outputs: three columns side by side. Measured by its
+ * own width: in a narrow panel they stack (below).
+ */
 .flow {
+  container-type: inline-size;
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -91,4 +95,43 @@
 
 [data-glance] .list > li {
   width: 100%;
+}
+
+/*
+ * Too narrow for the two side by side: inputs over outputs, each the panel's
+ * whole width, its boxes filling it at no less than their usual 200px, and
+ * the seam lying flat between them.
+ */
+@container (max-width: 40rem) {
+  .flow .inner {
+    flex-direction: column;
+    gap: var(--mantine-spacing-md);
+    width: 100%;
+    margin: 0;
+  }
+
+  .flow .inputs,
+  .flow .outputs {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .flow .seam {
+    align-self: stretch;
+    height: 0;
+    border-inline-start: 0;
+    border-top: 1px dashed var(--mantine-color-default-border);
+  }
+
+  .list,
+  .list[data-output] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
+  .list > li {
+    width: auto;
+  }
 }

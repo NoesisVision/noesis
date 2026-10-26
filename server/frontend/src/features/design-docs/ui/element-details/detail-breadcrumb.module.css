@@ -1,0 +1,60 @@
+.trail {
+  padding: 14px 20px 0;
+}
+
+/* The steps wrap rather than run off the panel's edge. */
+.crumbs.crumbs {
+  flex-wrap: wrap;
+  row-gap: 2px;
+
+  & [aria-hidden] {
+    display: flex;
+    color: var(--mantine-color-gray-4);
+  }
+}
+
+/*
+ * A step back up, in the page's colour; the element you are on, closing the
+ * trail, on a grey of its own.
+ */
+.crumb.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--noesis-tone-light-color);
+
+  & svg {
+    color: var(--mantine-color-gray-5);
+  }
+
+  &:is(button):hover {
+    color: var(--mantine-color-text);
+    background-color: light-dark(
+      var(--mantine-color-gray-1),
+      var(--mantine-color-dark-5)
+    );
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+
+  &[data-current] {
+    font-weight: 700;
+    color: var(--mantine-color-text);
+    background-color: light-dark(
+      var(--mantine-color-gray-1),
+      var(--mantine-color-dark-5)
+    );
+
+    & svg {
+      color: var(--noesis-tone-filled);
+    }
+  }
+}

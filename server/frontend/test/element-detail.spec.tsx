@@ -291,8 +291,9 @@ describe('ElementDetail', () => {
     const html = show('building_block|pay.Hold');
     expect(html).toMatch(/<dt[^>]*>(<[^>]+>)*Implements<\/span> <span[^>]*>2</);
     expect(html).toMatch(/>Lockable<[\s\S]*>Settleable</);
-    // Not beside the name any more.
-    expect(html).toMatch(/<h2[^>]*>Hold<\/h2><\/div>/);
+    // Not beside the name any more: the name's line holds only its badges.
+    const heading = html.slice(html.indexOf('<h2'), html.indexOf('</header>'));
+    expect(heading).not.toContain('Lockable');
     // What the design removes stays, struck through.
     expect(html).toMatch(/data-removed="true"[^>]*>(<[^>]+>)*Lockable</);
     // Read flat, with nothing to group them by.
@@ -398,10 +399,13 @@ describe('ElementDetail', () => {
 
   it('steps back up the trail with a button, not with an ornament', () => {
     const html = show('building_block|pay.Hold#scenario:A hold settles');
-    expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*pay<\/span>/);
+    // The step's kind icon, then its name.
+    expect(html).toMatch(/<button[^>]*>(<svg[\s\S]*?<\/svg>)<span>pay<\/span>/);
     // The separator is drawn, not read out between every pair of steps.
     expect(html).not.toMatch(/Breadcrumbs-separator">&gt;/);
-    expect(html).toContain('<span aria-hidden="true">&gt;</span>');
+    expect(html).toMatch(
+      /<span aria-hidden="true"><svg[^>]*tabler-icon-chevron-right/,
+    );
   });
 
   it('gives a node at the top no step to go back to', () => {
@@ -472,7 +476,9 @@ describe('ElementDetail', () => {
     );
     expect(html).toContain('the hold is released');
     // The trail runs through the rule the scenario belongs to.
-    expect(html).toMatch(/<button[^>]*>(<span[^>]*>)*A hold expires<\/span>/);
+    expect(html).toMatch(
+      /<button[^>]*>(<svg[\s\S]*?<\/svg>)<span>A hold expires<\/span>/,
+    );
   });
 
   it("lists a block's properties and rules, a rule opening its row", () => {
