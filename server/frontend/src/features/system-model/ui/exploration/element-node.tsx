@@ -107,6 +107,7 @@ function Contains({
       <Menu.Target>
         <UnstyledButton
           className={`nodrag nopan ${classes.contains}`}
+          data-part="contains"
           data-frame={holds || undefined}
           data-kind={element.kind}
           aria-label={label}
@@ -542,7 +543,13 @@ function BevelRing({ width, height }: { width: number; height: number }) {
     .map((point) => point.join(','))
     .join(' ');
   return (
-    <svg className={classes.bevelRing} width={w} height={h} aria-hidden>
+    <svg
+      className={classes.bevelRing}
+      data-part="bevel-ring"
+      width={w}
+      height={h}
+      aria-hidden
+    >
       <polygon points={points} />
     </svg>
   );
@@ -581,6 +588,8 @@ export function ElementNode({
   const button = (
     <UnstyledButton
       className={holds ? classes.containerLabel : classes.card}
+      // How a diagram theme (themes/) reaches it, as it cannot name the class.
+      data-part={holds ? 'frame-label' : 'card'}
       data-kind={element.kind}
       data-pattern={element.pattern}
       data-state={holds ? undefined : state}
@@ -594,7 +603,7 @@ export function ElementNode({
       {/* A value object's bevelled face, drawn under its name: its edge is
           the card's own layer, as a cut corner cannot carry a border. */}
       {!holds && element.pattern === 'value_object' && (
-        <span className={classes.face} aria-hidden />
+        <span className={classes.face} data-part="face" aria-hidden />
       )}
       {label}
     </UnstyledButton>
@@ -613,6 +622,7 @@ export function ElementNode({
           }
           {...(holds ? viewing : {})}
           className={holds ? classes.container : classes.holder}
+          data-part={holds ? 'container' : 'holder'}
           data-kind={element.kind}
           data-pattern={element.pattern}
           data-state={holds ? state : undefined}
@@ -629,7 +639,13 @@ export function ElementNode({
           />
           {/* A frame is taken by its top, where its name is: the rest is
               room for what it holds. */}
-          {holds ? <div className={classes.frameTop}>{button}</div> : button}
+          {holds ? (
+            <div className={classes.frameTop} data-part="frame-top">
+              {button}
+            </div>
+          ) : (
+            button
+          )}
           {!holds &&
             element.pattern === 'value_object' &&
             state === 'related' && (

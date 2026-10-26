@@ -1,8 +1,8 @@
 import '@xyflow/react/dist/base.css';
 import {
   Background,
+  type BackgroundProps,
   BackgroundVariant,
-  MarkerType,
   type FitViewOptions,
   type NodeChange,
   type OnNodeDrag,
@@ -28,8 +28,10 @@ import {
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
+import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { ToolbarPill } from '#/shared/ui/canvas-toolbar.tsx';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
@@ -85,9 +87,13 @@ import {
   placeLocally,
 } from './place-locally.ts';
 import { QuickAdd, type QuickAddSpot } from './quick-add.tsx';
-import { EDGE_COLOR } from './relation-colors.ts';
+import { EDGE_ARROW, EDGE_COLOR } from './relation-colors.ts';
 import { type RelationEdge, RelationEdgeView } from './relation-edge.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
+import {
+  DiagramThemeMenu,
+  useDiagramTheme,
+} from './themes/diagram-theme-menu.tsx';
 import { VisibilityPanel } from './visibility-panel.tsx';
 import classes from './exploration.module.css';
 
@@ -175,9 +181,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     // How the edges were drawn when the diagram was left, as it is restored.
     orthogonal: opened?.edges?.orthogonal ?? true,
     animated: opened?.edges?.animated ?? true,
-    depth: opened?.edges?.depth ?? true,
   });
-  const { direction, orthogonal, animated, depth } = drawing;
+  const { direction, orthogonal, animated } = drawing;
+  const [theme, setTheme] = useDiagramTheme();
   const graph = useMemo(
     () => graphOf(exploration, { hidden, relations, picks }),
     [exploration, hidden, relations, picks],
@@ -274,12 +280,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
   // How the edges are drawn, kept with the steps, so a reload draws them so.
   useEffect(() => {
-    steps.current = {
-      ...steps.current,
-      edges: { orthogonal, animated, depth },
-    };
+    steps.current = { ...steps.current, edges: { orthogonal, animated } };
     rememberSteps(modelId, steps.current);
-  }, [orthogonal, animated, depth, modelId]);
+  }, [orthogonal, animated, modelId]);
   const undo = useCallback(() => goTo(-1), [goTo]);
   const redo = useCallback(() => goTo(1), [goTo]);
   // Ctrl+Z, or Cmd+Z on a Mac, goes back a step; with Shift, or Ctrl+Y,
@@ -600,17 +603,34 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         onDrawing={setDrawing}
         onAutoPlace={autoPlace}
       >
-        <ZoomControls
-          quiet
-          zoom={zoom}
-          disabled={flow === null}
-          onZoomOut={() => void flow?.zoomOut()}
-          onZoomIn={() => void flow?.zoomIn()}
-          onFit={() => void flow?.fitView(FIT)}
-        />
+        <Group gap={8} wrap="nowrap">
+          <ToolbarPill>
+            <DiagramThemeMenu theme={theme.id} onTheme={setTheme} />
+          </ToolbarPill>
+          <ZoomControls
+            quiet
+            zoom={zoom}
+            disabled={flow === null}
+            onZoomOut={() => void flow?.zoomOut()}
+            onZoomIn={() => void flow?.zoomIn()}
+            onFit={() => void flow?.fitView(FIT)}
+          />
+        </Group>
       </ExplorationToolbar>
     ),
-    [stepAt, undo, redo, seeing, veiled, drawing, autoPlace, zoom, flow],
+    [
+      stepAt,
+      undo,
+      redo,
+      seeing,
+      veiled,
+      drawing,
+      autoPlace,
+      zoom,
+      flow,
+      theme,
+      setTheme,
+    ],
   );
   const selectionPanel = useMemo(
     () =>
@@ -710,8 +730,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     <Stack
       gap={0}
       flex={1}
-      className={classes.exploration}
-      data-depth={depth || undefined}
+      className={
+        theme.className === undefined
+          ? classes.exploration
+          : `${classes.exploration} ${theme.className}`
+      }
+      // What a theme's stylesheet hangs its root on (themes/themes.ts).
+      data-diagram-theme={theme.id}
     >
       {toolbar}
       <Box
@@ -804,13 +829,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                     />
                   </ViewportPortal>
                 )}
-                <Background
-                  variant={BackgroundVariant.Dots}
-                  gap={20}
-                  size={1}
-                  color="light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))"
-                  bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
-                />
+                <Background {...(theme.background ?? DOTS)} />
               </ReactFlow>
               <CanvasTooltips within={canvas} dragging={dragging} />
             </ExplorationReadingContext.Provider>
@@ -1305,6 +1324,16 @@ const standingOf = (nodes: ExplorationNode[]): PlacedElement[] =>
     }));
 
 /** Where a frame is taken to be dragged: its top, by its name. */
+/** The canvas behind the diagram, unless its theme draws its own. */
+const DOTS: BackgroundProps = {
+  variant: BackgroundVariant.Dots,
+  gap: 20,
+  size: 1,
+  color: 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+  bgColor:
+    'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))',
+};
+
 const FRAME_HANDLE = `.${classes.frameTop}`;
 
 /** A node dragged as its kind is: a frame by its top, a card anywhere. */
@@ -1336,7 +1365,6 @@ function nodeOf(
 }
 
 const ARROW = {
-  type: MarkerType.ArrowClosed,
   width: 16,
   height: 16,
 };
@@ -1374,9 +1402,10 @@ function edgeOf(
     labelBgBorderRadius: 8,
     markerEnd: {
       ...ARROW,
+      type: EDGE_ARROW[relation.kind],
       color:
         highlight === 'highlighted'
-          ? 'var(--mantine-color-brand-6)'
+          ? 'var(--edge-highlight, var(--mantine-color-brand-6))'
           : EDGE_COLOR[relation.kind],
     },
   };

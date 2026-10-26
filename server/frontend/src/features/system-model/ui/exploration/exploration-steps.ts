@@ -14,12 +14,10 @@ export interface DiagramStep {
   nodes: ExplorationNode[];
 }
 
-/** How the edges are drawn, and whether in depth: kept with the diagram, but not a step of it. */
+/** How the edges are drawn: kept with the diagram, but not a step of it. */
 interface EdgeLook {
   orthogonal: boolean;
   animated: boolean;
-  /** The modules raised off the canvas (3D) rather than flat on it (2D). */
-  depth?: boolean;
 }
 
 /** The steps the diagram took, and the one it stands at. */
@@ -185,8 +183,7 @@ function isEdgeLook(value: unknown): value is EdgeLook {
     typeof value === 'object' &&
     value !== null &&
     typeof field(value, 'orthogonal') === 'boolean' &&
-    typeof field(value, 'animated') === 'boolean' &&
-    ['boolean', 'undefined'].includes(typeof field(value, 'depth'))
+    typeof field(value, 'animated') === 'boolean'
   );
 }
 

@@ -1,0 +1,158 @@
+/*
+ * A diagram theme (see ../themes.ts): every rule under the theme's root,
+ * `.theme[data-diagram-theme]`, and the diagram's parts reached by their
+ * `data-part`, as a theme's own stylesheet cannot name the exploration's
+ * classes.
+ */
+
+/*
+ * The isometric (3D) diagram theme, drawn isometric: each box stood up off the canvas
+ * by a solid side running down to the right, as if seen from above and to
+ * the left — a module a thick slab, lit along its top, and a card a thinner
+ * block on it — and, lit from that side, casting its shadow on what is
+ * under it further down to the right, the taller the box the further. A
+ * card hovered rises a step, its side growing and its shadow falling
+ * further and softer. The selection's rings are drawn over the sides.
+ */
+.theme[data-diagram-theme] {
+  --card-side: light-dark(
+    var(--mantine-color-gray-4),
+    var(--mantine-color-dark-8)
+  );
+  --frame-side: light-dark(
+    var(--mantine-color-brand-2),
+    rgb(from var(--mantine-color-brand-9) r g b / 0.6)
+  );
+  --module-side: light-dark(
+    var(--mantine-color-brand-3),
+    rgb(from var(--mantine-color-brand-9) r g b / 0.9)
+  );
+  --cast: light-dark(rgba(16, 24, 40, 0.18), rgba(0, 0, 0, 0.6));
+  --cast-raised: light-dark(rgba(16, 24, 40, 0.14), rgba(0, 0, 0, 0.5));
+  --card-sides:
+    1px 1px 0 var(--card-side), 2px 2px 0 var(--card-side),
+    3px 3px 0 var(--card-side);
+  --card-block: var(--card-sides), 8px 8px 10px -4px var(--cast);
+  --card-block-raised:
+    var(--card-sides), 4px 4px 0 var(--card-side), 5px 5px 0 var(--card-side),
+    12px 12px 14px -4px var(--cast-raised);
+  --frame-block:
+    1px 1px 0 var(--frame-side), 2px 2px 0 var(--frame-side),
+    6px 6px 8px -4px var(--cast);
+  --module-sides:
+    inset 0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.06)),
+    1px 1px 0 var(--module-side), 2px 2px 0 var(--module-side),
+    3px 3px 0 var(--module-side), 4px 4px 0 var(--module-side),
+    5px 5px 0 var(--module-side), 6px 6px 0 var(--module-side);
+  --module-block: var(--module-sides), 14px 14px 18px -6px var(--cast);
+}
+
+.theme[data-diagram-theme] [data-part='card'] {
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease,
+    transform 0.15s ease;
+
+  &:not([data-pattern='value_object'], [data-state='selected']) {
+    box-shadow: var(--card-block);
+
+    &:hover {
+      box-shadow: var(--card-block-raised);
+    }
+  }
+
+  &:hover {
+    transform: translate(-2px, -2px);
+  }
+}
+
+.theme[data-diagram-theme] [data-part='container'][data-kind='building_block'] {
+  box-shadow: var(--frame-block);
+}
+
+.theme[data-diagram-theme] [data-part='card'][data-kind='module'],
+.theme[data-diagram-theme] [data-part='container'][data-kind='module'] {
+  box-shadow: var(--module-block);
+}
+
+.theme[data-diagram-theme] [data-part='container'][data-kind='module'] {
+  background: light-dark(
+    linear-gradient(
+      to bottom,
+      rgb(from var(--mantine-color-brand-0) r g b / 0.75),
+      rgb(from var(--mantine-color-brand-1) r g b / 0.55)
+    ),
+    linear-gradient(
+      to bottom,
+      rgb(from var(--mantine-color-brand-7) r g b / 0.16),
+      rgb(from var(--mantine-color-dark-7) r g b / 0.6)
+    )
+  );
+}
+
+.theme[data-diagram-theme] [data-part='card'][data-kind='module'] {
+  background: light-dark(
+    linear-gradient(
+      to bottom,
+      var(--mantine-color-white),
+      var(--mantine-color-brand-0)
+    ),
+    linear-gradient(
+      to bottom,
+      var(--mantine-color-dark-5),
+      var(--mantine-color-dark-6)
+    )
+  );
+
+  &:hover {
+    box-shadow:
+      var(--module-sides),
+      7px 7px 0 var(--module-side),
+      8px 8px 0 var(--module-side),
+      18px 18px 22px -6px var(--cast-raised);
+  }
+}
+
+/* A value object's ring is its own bevelled layer; a box shadow would run round it square. */
+.theme[data-diagram-theme]
+  [data-part='card'][data-state='selected']:not([data-pattern='value_object']) {
+  box-shadow:
+    0 0 0 3px
+      light-dark(var(--mantine-color-brand-1), var(--mantine-color-brand-9)),
+    var(--card-block);
+}
+
+.theme[data-diagram-theme]
+  [data-part='card'][data-kind='module'][data-state='selected'],
+.theme[data-diagram-theme]
+  [data-part='container'][data-kind='module'][data-state='selected'] {
+  box-shadow:
+    0 0 0 3px
+      light-dark(var(--mantine-color-brand-1), var(--mantine-color-brand-9)),
+    var(--module-block);
+}
+
+.theme[data-diagram-theme]
+  [data-part='container'][data-kind='module'][data-state='path'] {
+  box-shadow:
+    inset 0 0 0 1px
+      light-dark(var(--mantine-color-brand-4), var(--mantine-color-brand-6)),
+    var(--module-block);
+}
+
+/* A value object's side follows its cut corners: a drop shadow a pixel at a time. */
+.theme[data-diagram-theme] [data-part='card'][data-pattern='value_object'] {
+  filter: drop-shadow(1px 1px 0 var(--card-side))
+    drop-shadow(1px 1px 0 var(--card-side))
+    drop-shadow(1px 1px 0 var(--card-side)) drop-shadow(4px 4px 4px var(--cast));
+
+  &:hover {
+    filter: drop-shadow(1px 1px 0 var(--card-side))
+      drop-shadow(1px 1px 0 var(--card-side))
+      drop-shadow(1px 1px 0 var(--card-side))
+      drop-shadow(1px 1px 0 var(--card-side))
+      drop-shadow(1px 1px 0 var(--card-side))
+      drop-shadow(6px 6px 6px var(--cast-raised));
+  }
+}
