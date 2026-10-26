@@ -727,21 +727,15 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
 
   return (
-    <Stack
-      gap={0}
-      flex={1}
-      className={
-        theme.className === undefined
-          ? classes.exploration
-          : `${classes.exploration} ${theme.className}`
-      }
-      // What a theme's stylesheet hangs its root on (themes/themes.ts).
-      data-diagram-theme={theme.id}
-    >
+    <Stack gap={0} flex={1} className={classes.exploration}>
       {toolbar}
       <Box
         ref={canvas}
         component="section"
+        // A theme draws the canvas and what lies on it, never the toolbar
+        // above: its stylesheet hangs its root here (themes/themes.ts).
+        className={theme.className}
+        data-diagram-theme={theme.id}
         pos="relative"
         flex={1}
         mih={0}
@@ -756,7 +750,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
             The scan found no modules, building blocks or behaviours.
           </Text>
         ) : graph.elements.length === 0 ? (
-          <Box h="100%" className={classes.blank} />
+          <Box h="100%" className={classes.blank} data-part="blank" />
         ) : (
           <DesignDocumentContext.Provider value={document}>
             <ExplorationReadingContext.Provider value={reading}>

@@ -52,7 +52,13 @@ export function ExplorationPicker({
   return (
     <>
       {empty && (
-        <Stack align="center" gap="sm" maw={420} className={classes.start}>
+        <Stack
+          align="center"
+          gap="sm"
+          maw={420}
+          className={classes.start}
+          data-part="start"
+        >
           <ThemeIcon size={56} radius="md" variant="light" aria-hidden>
             <IconAffiliate size={28} stroke={1.6} />
           </ThemeIcon>

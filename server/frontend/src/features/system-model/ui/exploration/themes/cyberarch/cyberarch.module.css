@@ -1,0 +1,566 @@
+/*
+ * A diagram theme (see ../themes.ts): every rule under the theme's root,
+ * `.theme[data-diagram-theme]`, and the diagram's parts reached by their
+ * `data-part`, as a theme's own stylesheet cannot name the exploration's
+ * classes.
+ */
+
+/*
+ * Cyberarch 2027: the diagram as a night city's HUD. Black glass edged in
+ * neon — a module cyan, a building block red — each box square, glowing,
+ * its corners marked with brackets; a card a dark panel with a yellow stripe
+ * down its side, a behaviour a slab of signal yellow, a value object notched
+ * at two corners. Lettering narrow and technical, what a box is in spaced
+ * capitals; the relations cyan and magenta, glowing, the selection's own
+ * yellow. Over it all, faint scanlines. By night black glass at full neon;
+ * by day pale glass, the neon deepened to read on white.
+ */
+.theme[data-diagram-theme] {
+  /* Each colour light, then dark: by day pale glass and deeper neon, so it
+     reads on white; by night black glass and the neon at full. */
+  --cy-void: light-dark(#eef2f7, #07070d);
+  --cy-glass: light-dark(#f7f9fc, #0d0f1a);
+  --cy-panel: light-dark(#ffffff, #10121f);
+  --cy-cyan: light-dark(#0089a3, #02d7f2);
+  --cy-red: light-dark(#d10034, #ff003c);
+  --cy-magenta: light-dark(#d4145a, #ff2a6d);
+  /* Signal yellow as a fill, the same by day and night… */
+  --cy-yellow: #fcee0a;
+  /* …and as a line, a ring or a glow, deeper gold by day… */
+  --cy-signal: light-dark(#c9a400, #fcee0a);
+  /* …and as lettering, deeper still. */
+  --cy-signal-text: light-dark(#7d6400, #fcee0a);
+  --cy-ink: light-dark(#0b1220, #d9f6ff);
+  --cy-muted: light-dark(#5a6b80, #7f8ea3);
+  --cy-type:
+    'Rajdhani', 'DIN Alternate', 'Bahnschrift', 'Arial Narrow', ui-sans-serif,
+    sans-serif;
+  --edge-uses: var(--cy-cyan);
+  --edge-invokes: var(--cy-magenta);
+  --edge-highlight: var(--cy-signal);
+}
+
+/*
+ * Brackets in two corners of a box, in its own neon (--cy-edge). Set on the
+ * boxes themselves: set on the root, where no box's neon is, it would be
+ * no colour at all, and take each background that draws it with it.
+ */
+.theme[data-diagram-theme] [data-part='card'],
+.theme[data-diagram-theme] [data-part='container'] {
+  --cy-brackets:
+    linear-gradient(var(--cy-edge), var(--cy-edge)) top left / 10px 2px
+      no-repeat,
+    linear-gradient(var(--cy-edge), var(--cy-edge)) top left / 2px 10px
+      no-repeat,
+    linear-gradient(var(--cy-edge), var(--cy-edge)) bottom right / 10px 2px
+      no-repeat,
+    linear-gradient(var(--cy-edge), var(--cy-edge)) bottom right / 2px 10px
+      no-repeat;
+}
+
+/* Scanlines, over the whole canvas, never in the pointer's way. */
+.theme[data-diagram-theme] :global(.react-flow)::after,
+.theme[data-diagram-theme] [data-part='blank']::after {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: repeating-linear-gradient(
+    to bottom,
+    light-dark(rgb(0 0 0 / 0.025), rgb(255 255 255 / 0.025)) 0 1px,
+    transparent 1px 3px
+  );
+  content: '';
+  pointer-events: none;
+}
+
+.theme[data-diagram-theme] :global(.react-flow__node),
+.theme[data-diagram-theme] :global(.react-flow__node) *,
+.theme[data-diagram-theme] :global(.react-flow__edge-text) {
+  font-family: var(--cy-type);
+}
+
+/* What a box is, under its name: spaced capitals, quiet. */
+.theme[data-diagram-theme] [data-part='card'] > span:last-child,
+.theme[data-diagram-theme] [data-part='frame-label'] > span:last-child {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Every card but a value object, whose shape is its own layers (below). */
+.theme[data-diagram-theme]
+  [data-part='card']:not([data-pattern='value_object']) {
+  --cy-edge: var(--cy-cyan);
+  --noesis-secondary-text: var(--cy-muted);
+
+  border: 1px solid light-dark(rgb(0 137 163 / 0.45), rgb(2 215 242 / 0.45));
+  border-left: 3px solid var(--cy-signal);
+  border-radius: 0;
+  background:
+    var(--cy-brackets),
+    linear-gradient(
+      to bottom,
+      light-dark(rgb(0 137 163 / 0.06), rgb(2 215 242 / 0.06)),
+      transparent 60%
+    ),
+    var(--cy-panel);
+  box-shadow: 0 0 12px light-dark(rgb(0 137 163 / 0.12), rgb(2 215 242 / 0.12));
+  color: var(--cy-ink);
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+
+  & svg {
+    color: var(--cy-cyan);
+  }
+
+  &:hover {
+    border-color: var(--cy-cyan);
+    border-left-color: var(--cy-signal);
+    box-shadow: 0 0 18px
+      light-dark(rgb(0 137 163 / 0.35), rgb(2 215 242 / 0.35));
+  }
+
+  /* A behaviour: a slab of signal yellow, lettered black. */
+  &[data-kind='behaviour'] {
+    --cy-edge: #000;
+    --noesis-secondary-text: rgb(0 0 0 / 0.65);
+
+    border: 1px solid var(--cy-yellow);
+    border-left: 3px solid #000;
+    background:
+      var(--cy-brackets),
+      repeating-linear-gradient(
+        -45deg,
+        transparent 0 10px,
+        rgb(0 0 0 / 0.05) 10px 12px
+      ),
+      var(--cy-yellow);
+    box-shadow: 0 0 14px light-dark(rgb(201 164 0 / 0.3), rgb(252 238 10 / 0.3));
+    color: #000;
+
+    & svg {
+      color: #000;
+    }
+
+    &:hover {
+      border-color: var(--cy-yellow);
+      border-left-color: #000;
+      box-shadow: 0 0 22px
+        light-dark(rgb(201 164 0 / 0.55), rgb(252 238 10 / 0.55));
+    }
+  }
+
+  /* A module drawn alone: its frame's cyan, brighter. */
+  &[data-kind='module'] {
+    border-color: var(--cy-cyan);
+    border-left-color: var(--cy-cyan);
+    background:
+      var(--cy-brackets),
+      linear-gradient(
+        to bottom,
+        light-dark(rgb(0 137 163 / 0.16), rgb(2 215 242 / 0.16)),
+        light-dark(rgb(0 137 163 / 0.04), rgb(2 215 242 / 0.04))
+      ),
+      var(--cy-glass);
+  }
+
+  &[data-state='selected'] {
+    border-color: var(--cy-signal);
+    box-shadow:
+      0 0 0 1px var(--cy-signal),
+      0 0 22px light-dark(rgb(201 164 0 / 0.5), rgb(252 238 10 / 0.5));
+  }
+
+  &[data-state='related'] {
+    outline: 1px dashed var(--cy-cyan);
+    outline-offset: 4px;
+  }
+}
+
+/* A frame: black glass, edged in its neon, a module cyan and a building block red. */
+.theme[data-diagram-theme] [data-part='container'] {
+  --cy-edge: var(--cy-red);
+  --noesis-secondary-text: var(--cy-muted);
+
+  border: 1px solid light-dark(rgb(209 0 52 / 0.6), rgb(255 0 60 / 0.6));
+  border-radius: 0;
+  background:
+    var(--cy-brackets),
+    linear-gradient(
+      to bottom,
+      light-dark(rgb(209 0 52 / 0.06), rgb(255 0 60 / 0.06)),
+      transparent 120px
+    ),
+    light-dark(rgb(255 255 255 / 0.92), rgb(13 15 26 / 0.92));
+  box-shadow:
+    inset 0 0 24px light-dark(rgb(209 0 52 / 0.08), rgb(255 0 60 / 0.08)),
+    0 0 14px light-dark(rgb(209 0 52 / 0.15), rgb(255 0 60 / 0.15));
+  color: var(--cy-ink);
+
+  & [data-part='frame-label'] {
+    color: light-dark(#c4002f, #ff6b8b);
+  }
+
+  &[data-kind='module'] {
+    --cy-edge: var(--cy-cyan);
+
+    border-color: light-dark(rgb(0 137 163 / 0.7), rgb(2 215 242 / 0.7));
+    background:
+      var(--cy-brackets),
+      linear-gradient(
+        to bottom,
+        light-dark(rgb(0 137 163 / 0.08), rgb(2 215 242 / 0.08)),
+        transparent 160px
+      ),
+      light-dark(rgb(246 251 253 / 0.94), rgb(10 12 22 / 0.94));
+    box-shadow:
+      inset 0 0 32px light-dark(rgb(0 137 163 / 0.08), rgb(2 215 242 / 0.08)),
+      0 0 18px light-dark(rgb(0 137 163 / 0.18), rgb(2 215 242 / 0.18));
+
+    & > [data-part='frame-top'] {
+      border-bottom: 1px solid
+        light-dark(rgb(0 137 163 / 0.35), rgb(2 215 242 / 0.35));
+      background: linear-gradient(
+        to right,
+        light-dark(rgb(0 137 163 / 0.2), rgb(2 215 242 / 0.2)),
+        transparent 70%
+      );
+    }
+
+    & [data-part='frame-label'] {
+      color: var(--cy-cyan);
+    }
+  }
+
+  &[data-state='selected'] {
+    border-color: var(--cy-signal);
+    box-shadow:
+      0 0 0 1px var(--cy-signal),
+      0 0 26px light-dark(rgb(201 164 0 / 0.4), rgb(252 238 10 / 0.4));
+  }
+
+  &[data-state='related'] {
+    outline: 1px dashed var(--cy-cyan);
+    outline-offset: 4px;
+  }
+
+  &[data-state='path'] {
+    border-color: var(--cy-signal);
+    box-shadow:
+      inset 0 0 0 1px light-dark(rgb(201 164 0 / 0.5), rgb(252 238 10 / 0.5)),
+      0 0 18px light-dark(rgb(201 164 0 / 0.2), rgb(252 238 10 / 0.2));
+  }
+}
+
+/* A frame's name and its kind's icon in the frame's own neon, glowing faintly. */
+.theme[data-diagram-theme] [data-part='frame-label'] {
+  border-radius: 0;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 8px currentColor;
+
+  & svg {
+    color: currentColor;
+  }
+
+  &:hover {
+    background: light-dark(rgb(0 0 0 / 0.04), rgb(255 255 255 / 0.06));
+  }
+}
+
+/*
+ * A value object: notched at its top right and bottom left, as a chip in
+ * the city's HUD is — its ring, edge and face the one notched shape at each
+ * layer's own size (`--cut`, from the plain look) — its face dark, edged
+ * cyan, glowing round its shape.
+ */
+.theme[data-diagram-theme] [data-part='card'][data-pattern='value_object'] {
+  --noesis-secondary-text: var(--cy-muted);
+
+  filter: drop-shadow(
+    0 0 6px light-dark(rgb(0 137 163 / 0.4), rgb(2 215 242 / 0.4))
+  );
+  color: var(--cy-ink);
+
+  &::before,
+  &::after,
+  & [data-part='face'] {
+    clip-path: polygon(
+      0 0,
+      calc(100% - var(--cut)) 0,
+      100% var(--cut),
+      100% 100%,
+      var(--cut) 100%,
+      0 calc(100% - var(--cut))
+    );
+  }
+
+  &::before {
+    background: var(--cy-signal);
+  }
+
+  &::after {
+    background: var(--cy-cyan);
+  }
+
+  & [data-part='face'] {
+    background:
+      linear-gradient(
+        to bottom,
+        light-dark(rgb(0 137 163 / 0.14), rgb(2 215 242 / 0.14)),
+        transparent
+      ),
+      light-dark(#eefafc, #0b1520);
+  }
+
+  & svg {
+    color: var(--cy-cyan);
+  }
+
+  &:hover {
+    filter: drop-shadow(
+      0 0 10px light-dark(rgb(0 137 163 / 0.6), rgb(2 215 242 / 0.6))
+    );
+  }
+
+  &[data-state='selected'] {
+    filter: drop-shadow(
+      0 0 12px light-dark(rgb(201 164 0 / 0.5), rgb(252 238 10 / 0.5))
+    );
+
+    &::after {
+      background: var(--cy-signal);
+    }
+  }
+
+  /* Related, its ring shows faint cyan: the drawn dashed one is an octagon. */
+  &[data-state='related']::before {
+    display: block;
+    background: light-dark(rgb(0 137 163 / 0.45), rgb(2 215 242 / 0.45));
+  }
+}
+
+.theme[data-diagram-theme] [data-part='bevel-ring'] {
+  display: none;
+}
+
+/* A card's menu and its ways off: quiet grey on the dark, cyan under the pointer. */
+.theme[data-diagram-theme]
+  [data-part='holder']
+  :global(.mantine-ActionIcon-root),
+.theme[data-diagram-theme]
+  [data-part='container']
+  :global(.mantine-ActionIcon-root) {
+  color: var(--cy-muted);
+
+  &:hover {
+    background: light-dark(rgb(0 137 163 / 0.12), rgb(2 215 242 / 0.12));
+    color: var(--cy-cyan);
+  }
+}
+
+.theme[data-diagram-theme]
+  [data-part='holder']:has(> [data-kind='behaviour'])
+  :global(.mantine-ActionIcon-root) {
+  color: rgb(0 0 0 / 0.6);
+
+  &:hover {
+    background: rgb(0 0 0 / 0.1);
+    color: #000;
+  }
+}
+
+.theme[data-diagram-theme] [data-part='contains'] {
+  border: 1px solid var(--cy-cyan);
+  border-radius: 0;
+  background: var(--cy-void);
+  box-shadow: 0 0 10px light-dark(rgb(0 137 163 / 0.4), rgb(2 215 242 / 0.4));
+  color: var(--cy-cyan);
+}
+
+/* The relations: neon, glowing, their words in a black tag edged in their own colour. */
+.theme[data-diagram-theme]
+  :global(.react-flow__edge)
+  :global(.react-flow__edge-path) {
+  stroke-width: 1.5px;
+  filter: drop-shadow(0 0 3px var(--relation-color, var(--cy-cyan)));
+}
+
+.theme[data-diagram-theme]
+  :global(.react-flow__edge)
+  :global(.react-flow__edge-textbg) {
+  rx: 0;
+  fill: var(--cy-void);
+  stroke: light-dark(rgb(0 137 163 / 0.5), rgb(2 215 242 / 0.5));
+}
+
+.theme[data-diagram-theme]
+  :global(.react-flow__edge)
+  :global(.react-flow__edge-text) {
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* The canvas before anything is drawn: the same dark grid (index.ts). */
+.theme[data-diagram-theme] [data-part='blank'] {
+  position: relative;
+  background-color: var(--cy-void);
+  background-image:
+    linear-gradient(
+      to right,
+      light-dark(rgb(0 137 163 / 0.08), rgb(2 215 242 / 0.08)) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      light-dark(rgb(0 137 163 / 0.08), rgb(2 215 242 / 0.08)) 1px,
+      transparent 1px
+    );
+  background-size: 40px 40px;
+}
+
+/*
+ * The way to start, on that grid: its title in yellow, split red and cyan
+ * at its edges as a signal glitches; its icon a cyan chip; its button a
+ * yellow slab.
+ */
+.theme[data-diagram-theme] [data-part='start'] {
+  --noesis-secondary-text: var(--cy-muted);
+
+  color: var(--cy-ink);
+
+  & * {
+    font-family: var(--cy-type);
+  }
+
+  & h2 {
+    color: var(--cy-signal-text);
+    letter-spacing: 0.12em;
+    text-shadow:
+      2px 0 var(--cy-red),
+      -2px 0 var(--cy-cyan);
+    text-transform: uppercase;
+  }
+
+  & :global(.mantine-ThemeIcon-root) {
+    border: 1px solid var(--cy-cyan);
+    border-radius: 0;
+    background: light-dark(rgb(0 137 163 / 0.1), rgb(2 215 242 / 0.1));
+    box-shadow: 0 0 16px light-dark(rgb(0 137 163 / 0.4), rgb(2 215 242 / 0.4));
+    color: var(--cy-cyan);
+  }
+
+  & :global(.mantine-Button-root) {
+    border: 0;
+    border-radius: 0;
+    background: var(--cy-yellow);
+    box-shadow: 0 0 18px light-dark(rgb(201 164 0 / 0.4), rgb(252 238 10 / 0.4));
+    color: #000;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+
+    &:hover {
+      background: #fff35a;
+      box-shadow: 0 0 26px
+        light-dark(rgb(201 164 0 / 0.6), rgb(252 238 10 / 0.6));
+    }
+  }
+}
+
+/*
+ * The canvas's legend and its selection panel: black glass, a yellow bar
+ * along the top, edged cyan, glowing; what the panel lists in dark slots
+ * with a yellow stripe. Its colours set to match, by day or by night. Neither is the exploration's own (CanvasLegend, DetailsDock), so
+ * each is reached by what it is: the legend the section its toggle heads,
+ * the panel the "Selection" section, its folded button the button beside
+ * that section, and what the panel lists its `li`s and grid boxes.
+ */
+.theme[data-diagram-theme]
+  section:global(.nowheel):has(> button[aria-expanded]),
+.theme[data-diagram-theme] section[aria-label='Selection'],
+.theme[data-diagram-theme]
+  div:global(.nowheel):has(> section[aria-label='Selection'])
+  > button {
+  --mantine-color-text: var(--cy-ink);
+  --noesis-secondary-text: var(--cy-muted);
+  --mantine-color-dimmed: var(--cy-muted);
+  --mantine-color-body: var(--cy-glass);
+  --mantine-color-default: var(--cy-panel);
+  --mantine-color-default-color: var(--cy-ink);
+  --mantine-color-default-border: light-dark(
+    rgb(0 137 163 / 0.3),
+    rgb(2 215 242 / 0.3)
+  );
+  --mantine-color-brand-light: light-dark(
+    rgb(0 137 163 / 0.14),
+    rgb(2 215 242 / 0.14)
+  );
+  --mantine-color-brand-light-hover: light-dark(
+    rgb(0 137 163 / 0.24),
+    rgb(2 215 242 / 0.24)
+  );
+  --mantine-color-brand-light-color: var(--cy-cyan);
+  --mantine-color-anchor: var(--cy-cyan);
+
+  border: 1px solid light-dark(rgb(0 137 163 / 0.55), rgb(2 215 242 / 0.55));
+  border-top: 3px solid var(--cy-signal);
+  border-radius: 0;
+  background: light-dark(rgb(255 255 255 / 0.96), rgb(13 15 26 / 0.96));
+  box-shadow: 0 0 22px light-dark(rgb(0 137 163 / 0.2), rgb(2 215 242 / 0.2));
+  color: var(--cy-ink);
+
+  & * {
+    border-radius: 0;
+    font-family: var(--cy-type);
+  }
+
+  & svg {
+    color: var(--cy-cyan);
+  }
+}
+
+.theme[data-diagram-theme]
+  section:global(.nowheel):has(> button[aria-expanded]) {
+  & > button {
+    border-radius: 0;
+    color: var(--cy-ink);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    &:hover {
+      background: light-dark(rgb(0 137 163 / 0.08), rgb(2 215 242 / 0.08));
+    }
+  }
+
+  & kbd {
+    border: 1px solid var(--cy-cyan);
+    background: var(--cy-void);
+    box-shadow: 0 0 6px light-dark(rgb(0 137 163 / 0.35), rgb(2 215 242 / 0.35));
+    color: var(--cy-cyan);
+  }
+}
+
+.theme[data-diagram-theme] section[aria-label='Selection'] {
+  & header {
+    border-bottom: 1px solid
+      light-dark(rgb(0 137 163 / 0.35), rgb(2 215 242 / 0.35));
+    background: var(--cy-glass);
+  }
+
+  & h2 {
+    color: var(--cy-signal-text);
+    letter-spacing: 0.04em;
+  }
+
+  /* Only the items themselves: a group of them (a behaviour's inputs or
+     outputs) is a grid box too, holding the items' list, and stays plain. */
+  & li,
+  & :global(.mantine-Grid-col) > div:not(:has(ul)) {
+    border: 1px solid light-dark(rgb(0 137 163 / 0.2), rgb(2 215 242 / 0.2));
+    border-left: 3px solid var(--cy-signal);
+    background: var(--cy-panel);
+  }
+}

@@ -1,4 +1,4 @@
-import { diagcraft } from './diagcraft/index.ts';
+import { cyberarch } from './cyberarch/index.ts';
 import type { DiagramTheme } from './diagram-theme.ts';
 import { flat } from './flat/index.ts';
 import { isometric } from './isometric/index.ts';
@@ -15,13 +15,16 @@ import { isometric } from './isometric/index.ts';
  *    `className` of its stylesheet's root, and, if the canvas behind should
  *    change, a `background` (React Flow's `<Background>` props).
  * 2. Make `<name>/<name>.module.css`, every rule under its root,
- *    `.theme[data-diagram-theme]`. That root sits on the canvas, so its
+ *    `.theme[data-diagram-theme]`. That root sits on the canvas (never
+ *    the toolbar above it, which stays the app's own), so its
  *    custom properties reach every part: `--edge-uses`, `--edge-invokes` and
  *    `--edge-highlight` recolour the relations and their arrows.
  * 3. Add it to the list below.
  *
  * A theme's stylesheet cannot name the exploration's own classes, so it
  * reaches the diagram's parts by their `data-part` (element-node.tsx):
+ * `blank` (the canvas before anything is drawn, which React Flow's
+ * background does not reach) and `start` (the way to start, over it),
  * `card`, `holder` (what a card sits in), `container` (a frame others are
  * drawn inside), `frame-top` and `frame-label` (its top and its name),
  * `contains` (the round plus on a border), `face` (a value object's
@@ -38,7 +41,7 @@ import { isometric } from './isometric/index.ts';
 export const THEMES = [
   flat,
   isometric,
-  diagcraft,
+  cyberarch,
 ] as const satisfies readonly DiagramTheme[];
 
 export type DiagramThemeId = (typeof THEMES)[number]['id'];
