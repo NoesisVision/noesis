@@ -16,7 +16,7 @@
     <!-- Type usage from NuGet packages: attribute types from JetBrains.Annotations, value types, classes,
          interfaces, enums and operators from NodaTime. -->
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
-    <PackageReference Include="NodaTime" Version="3.3.2" />
+    <PackageReference Include="NodaTime" Version="3.3.6" />
   </ItemGroup>
 
   <ItemGroup>
