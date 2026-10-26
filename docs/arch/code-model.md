@@ -1,22 +1,21 @@
-# The scanner code model: a first read
+# The code model: a first read
 
-A scanner reads one solution and writes a _code model_: a graph of what the
+A parser reads one solution and writes a _code model_: a graph of what the
 code declares and what each body does, in a vocabulary shared by every
-language. This page walks that model top down. The full design, with every
-field and every C# mapping rule, is in
-[`docs/plans/code-model-and-roslyn-csharp-scanner.md`](../plans/code-model-and-roslyn-csharp-scanner.md);
-the C# types live in `scanners/dotnet/src/Noesis.Scanner.Model`.
+language. This page walks that model top down. The contract is the zod schema
+in `server/backend/src/app/scanners/code-parsers/code-model.ts`; the parsers keep their own copies in
+`code-parsers/dotnet/src/Noesis.Parser.Model` and `code-parsers/java/model`.
 
-## 1. What a scan produces
+## 1. What a parse produces
 
-One scan covers one solution and writes one directory,
+One parse covers one solution and writes one directory,
 `code-model/<language>/`, under an output root. It holds a **manifest** and
 one **model file per artifact**. An artifact is what one build-tool unit
 produces: a C# project, a Maven module, an npm package.
 
 ```mermaid
 flowchart LR
-    S[Solution] --> SC[Scanner]
+    S[Solution] --> SC[Parser]
     SC --> M[manifest.json]
     SC --> A1[Sales.Domain.code-model.json]
     SC --> A2[Sales.Api.code-model.json]
@@ -24,20 +23,20 @@ flowchart LR
     M -. lists, in dependency order .-> A2
 ```
 
-The output is temporary. The scanner writes to
-`.noesis/tmp/scanner/` under the repository root unless `--out` says
+The output is temporary. The parser writes to
+`.noesis/tmp/parser/` under the repository root unless `--out` says
 otherwise; the server points `--out` at a fresh `.noesis/tmp/<uuid>/`, which
 git ignores and the server removes once it has read the model.
 
 The manifest is what a consumer opens first. It names the language, the
-repository and revision, the scan root, every artifact file in dependency
-order, and the diagnostics that belong to the scan as a whole. A model file
+repository and revision, the parse root, every artifact file in dependency
+order, and the diagnostics that belong to the parse as a whole. A model file
 repeats only the schema version and the generator, so it can be read on its
 own.
 
 ```mermaid
 classDiagram
-    class ScanManifest {
+    class ParseManifest {
         schemaVersion
         generator
         language
@@ -55,7 +54,7 @@ classDiagram
         stubs : StubNode[]
         diagnostics : Diagnostic[]
     }
-    ScanManifest "1" --> "*" CodeModelFile : artifacts[].file
+    ParseManifest "1" --> "*" CodeModelFile : artifacts[].file
 ```
 
 Each model file has five parts, and the rest of this page takes them in turn:
@@ -66,9 +65,9 @@ Each model file has five parts, and the rest of this page takes them in turn:
 | `nodes`       | Every declaration the artifact makes: namespaces, types, methods, properties, fields |
 | `edges`       | Relations between nodes: nesting, inheritance, calls, accesses, annotations          |
 | `stubs`       | Minimal placeholders for external symbols the artifact reaches                       |
-| `diagnostics` | Compiler and scanner problems, with locations                                        |
+| `diagnostics` | Compiler and parser problems, with locations                                         |
 
-Every list is sorted, so two scans of the same code produce byte-identical
+Every list is sorted, so two parses of the same code produce byte-identical
 files.
 
 ## 2. The graph in one picture
@@ -134,8 +133,8 @@ on parameter names. `!0` is the first type parameter of the type, `!!0` the
 first of the method. Constructors are `#.ctor`, static initialisers
 `#.cctor`, operators `#op_Addition`.
 
-An id carries no language: one scan covers one language, and the manifest
-names it. An id is unique **within one artifact file**, not across the scan:
+An id carries no language: one parse covers one language, and the manifest
+names it. An id is unique **within one artifact file**, not across the parse:
 two projects that both declare namespace `Sales.Domain` each have an
 `N:Sales.Domain` node. The join key across files is therefore
 (artifact, id). An edge or type reference may point at an id its own file
@@ -216,7 +215,7 @@ Points that surprise a first reader:
   kind, the name references bind to, the version, the root directory, the
   target platform (`net10.0`), whether it is executable, its dependencies,
   its assembly-level annotations and a `languageSpecific` bag. Each
-  dependency is an artifact id plus its kind: `source` for another scanned
+  dependency is an artifact id plus its kind: `source` for another parsed
   project, `library` for a package, `platform` for the framework.
 - **Extension members** carry the extended type in `extensionReceiver`:
   a classic `this` parameter or a C# 14 `extension(...)` block, on methods
@@ -372,16 +371,16 @@ static method that declares it, and `receiver` is the extended value.
 
 One edge per site, never aggregated. Counting is the consumer's job.
 
-## 7. Stubs: the edge of the scanned world
+## 7. Stubs: the edge of the parsed world
 
-An artifact reaches symbols that no scanned artifact declares: `System.Object`,
+An artifact reaches symbols that no parsed artifact declares: `System.Object`,
 `NodaTime.Instant`, `List<T>.Add`. For each such symbol the file carries a
 **stub**: id, kind, name, type kind for types, and the external artifact it
 belongs to. Nothing else, no visibility, no signature, no members.
 
 ```mermaid
 flowchart LR
-    subgraph scanned["Sales.Domain.code-model.json"]
+    subgraph parsed["Sales.Domain.code-model.json"]
         O["T: Order (node)"]
         subgraph stubs
             E["T: System.Object"]
@@ -398,7 +397,7 @@ flowchart LR
 
 Stubs come with their containing types and namespace, and a stubbed type
 comes with its base chain, so a consumer can place every reached symbol in
-the hierarchy without opening the library. Symbols of other scanned
+the hierarchy without opening the library. Symbols of other parsed
 artifacts are never stubbed: their ids resolve to that artifact's own file.
 
 ## 8. The small things
@@ -423,8 +422,8 @@ locations (a partial class, a namespace spread over files) or none (a
 generated member).
 
 **Diagnostics.** Severity, a code (`CS0246` from the compiler, `NS1003` from
-the scanner), a message, an optional location and a `source` of `compiler`
-or `scanner`. A scanner diagnostic is how an unbound site is reported
+the parser), a message, an optional location and a `source` of `compiler`
+or `parser`. A parser diagnostic is how an unbound site is reported
 instead of a guessed edge.
 
 ## 9. Reading a file
@@ -490,5 +489,4 @@ its type and its namespace.
 No call counts, no transitive closures, no inferred relations, no inherited
 members copied down, no local variables, no control flow. Everything here is
 one hop and one site, and the consumer composes the rest. Candidate edges
-for unbound sites and argument-level facts are designed but deferred; see
-section 8 of the design document.
+for unbound sites and argument-level facts are deferred.

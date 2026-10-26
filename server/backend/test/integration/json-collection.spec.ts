@@ -10,7 +10,11 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { JsonCollection } from '#backend/platform/files/json-collection';
+import {
+  byId,
+  JsonCollection,
+  nameFromContent,
+} from '#backend/platform/files/json-collection';
 import { JsonFileError } from '#backend/platform/files/json-file';
 
 const NoteSchema = z.strictObject({ id: z.string(), text: z.string() });
@@ -21,7 +25,7 @@ let notes: JsonCollection<Note>;
 
 beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), 'noesis-json-collection-'));
-  notes = new JsonCollection(NoteSchema, join(dir, 'notes'), 'note');
+  notes = new JsonCollection(NoteSchema, join(dir, 'notes'), byId('note'));
 });
 
 afterEach(() => rm(dir, { recursive: true, force: true }));
@@ -135,7 +139,11 @@ describe('JsonCollection', () => {
   });
 
   it('lets one of many creates of one id win, across collections too', async () => {
-    const other = new JsonCollection(NoteSchema, join(dir, 'notes'), 'note');
+    const other = new JsonCollection(
+      NoteSchema,
+      join(dir, 'notes'),
+      byId('note'),
+    );
 
     const created = await Promise.all(
       [notes, other, notes, other].map((collection, n) =>
@@ -155,16 +163,23 @@ describe('JsonCollection', () => {
     expect(await notes.list()).toEqual([note('a', 'revised')]);
   });
 
-  it('answers no last id while there is no entity', async () => {
-    expect(await notes.lastId()).toBeNull();
-  });
-
-  it('answers the highest id without reading a file', async () => {
+  it('names its files by code unit without reading one', async () => {
     await notes.create(note('2026-09-24-b'));
     await notes.create(note('2026-09-24-a'));
     await writeRaw('2026-09-25-broken.note.json', { broken: true });
 
-    expect(await notes.lastId()).toBe('2026-09-25-broken');
+    expect(await notes.names()).toEqual([
+      '2026-09-24-a.note.json',
+      '2026-09-24-b.note.json',
+      '2026-09-25-broken.note.json',
+    ]);
+  });
+
+  it('saves over whatever the file held, or where none was', async () => {
+    await notes.save(note('a', 'first'));
+    await notes.save(note('a', 'second'));
+
+    expect(await notes.list()).toEqual([note('a', 'second')]);
   });
 
   it('deletes an entity by removing its file, the others staying', async () => {
@@ -200,5 +215,65 @@ describe('JsonCollection', () => {
     await notes.create(note(id));
 
     expect(await notes.get(id)).toEqual(note(id));
+  });
+});
+
+const LogSchema = z.strictObject({ id: z.string(), day: z.string() });
+type Log = z.infer<typeof LogSchema>;
+
+describe('JsonCollection named by content', () => {
+  let logs: JsonCollection<Log>;
+
+  beforeEach(() => {
+    logs = new JsonCollection(
+      LogSchema,
+      join(dir, 'logs'),
+      nameFromContent(/^\d{4}-\d{2}-\d{2}\.json$/, (log) => `${log.day}.json`),
+    );
+  });
+
+  const log = (id: string, day: string): Log => ({ id, day });
+
+  async function writeLog(name: string, content: unknown): Promise<void> {
+    await mkdir(join(dir, 'logs'), { recursive: true });
+    await writeFile(join(dir, 'logs', name), JSON.stringify(content));
+  }
+
+  it('names each file by its content and reads it back by id', async () => {
+    await logs.save(log('b', '2026-09-24'));
+
+    expect(await readdir(join(dir, 'logs'))).toEqual(['2026-09-24.json']);
+    expect(await logs.get('b')).toEqual(log('b', '2026-09-24'));
+    expect(await logs.get('missing')).toBeNull();
+  });
+
+  it('lists by id, not by file name', async () => {
+    await logs.save(log('b', '2026-09-24'));
+    await logs.save(log('a', '2026-09-25'));
+
+    expect(await logs.list()).toEqual([
+      log('a', '2026-09-25'),
+      log('b', '2026-09-24'),
+    ]);
+  });
+
+  it('holds only files its pattern matches', async () => {
+    await logs.save(log('a', '2026-09-24'));
+    await writeLog('notes.json', log('b', 'x'));
+
+    expect(await logs.names()).toEqual(['2026-09-24.json']);
+  });
+
+  it('throws on a file whose content names another file', async () => {
+    await writeLog('2026-09-24.json', log('a', '2026-09-25'));
+
+    await expect(logs.list()).rejects.toThrow('belongs in 2026-09-25.json');
+  });
+
+  it('refuses to delete by id, which names no file', async () => {
+    await logs.save(log('a', '2026-09-24'));
+
+    await expect(logs.delete('a')).rejects.toThrow('not by id');
+    expect(await logs.list()).toEqual([log('a', '2026-09-24')]);
   });
 });

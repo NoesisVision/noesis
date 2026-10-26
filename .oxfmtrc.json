@@ -11,11 +11,11 @@
     "server/frontend/src/routeTree.gen.ts",
     "docs/**/prior-art",
     "docs/**/prototypes",
+    "docs/arch/*.html",
     ".agents/",
     "examples/*/",
-    "scanners/dotnet/test/Noesis.Scanner.Tests/golden/",
-    "scanners/java/core/src/test/resources/golden/",
-    "scanners/code-model/*.schema.json",
+    "code-parsers/dotnet/test/Noesis.Parser.Tests/golden/",
+    "code-parsers/java/core/src/test/resources/golden/",
     "server/frontend/.design-sync/"
   ]
 }

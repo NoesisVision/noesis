@@ -1,16 +1,16 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangeOwnedRepository } from '#backend/app/changes/change-owned.repository';
 import {
   type ChangesReader,
   getChangeOrThrow,
 } from '#backend/app/changes/changes.repository';
-import type { Today } from '#backend/app/clock';
+import type { Clock } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { createAtFreeSlugId } from '#backend/app/slug-id';
 import { type Document, DocumentContentSchema } from './document';
 import { DocumentId } from './document-id';
 import { type DocumentSummary, summarize } from './document-summary';
+import type { DocumentsRepository } from './documents.repository';
 
 /** A new document for the change. `document` is the working file: the server mints its id. */
 export const CreateDocumentInChange = z.object({
@@ -25,9 +25,9 @@ export type CreateDocumentInChangeHandler = Handler<
 >;
 
 export function createDocumentInChangeHandler(
-  documents: ChangeOwnedRepository<Document>,
+  documents: DocumentsRepository,
   changes: ChangesReader,
-  today: Today,
+  clock: Clock,
 ): CreateDocumentInChangeHandler {
   return {
     /**
@@ -41,7 +41,7 @@ export function createDocumentInChangeHandler(
       const id = await createAtFreeSlugId(
         DocumentId,
         document.title,
-        today(),
+        clock.today(),
         (candidate) => documents.create(change, at(candidate)),
       );
       return summarize(at(id));

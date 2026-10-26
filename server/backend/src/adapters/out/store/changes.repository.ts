@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { type Change, ChangeSchema } from '#backend/app/changes/change';
 import type { ChangeId } from '#backend/app/changes/change-id';
 import type { ChangesRepository } from '#backend/app/changes/changes.repository';
-import { JsonCollection } from '#backend/platform/files/json-collection';
+import { byId, JsonCollection } from '#backend/platform/files/json-collection';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /** `<id>.change.json` sits beside `<id>/`, which holds what the change owns. */
@@ -17,7 +17,7 @@ export class ChangesFileRepository implements ChangesRepository {
 
   constructor(noesis: NoesisDir) {
     this.dir = changesDir(noesis);
-    this.changes = new JsonCollection(ChangeSchema, this.dir, 'change');
+    this.changes = new JsonCollection(ChangeSchema, this.dir, byId('change'));
   }
 
   get(id: ChangeId): Promise<Change | null> {

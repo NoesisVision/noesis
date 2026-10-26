@@ -46,7 +46,7 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-h2console</artifactId>
 		</dependency>
-		<!-- Install it first: mvn install in scanners/java (see examples/README.md). -->
+		<!-- Install it first: mvn install in code-parsers/java (see examples/README.md). -->
 		<dependency>
 			<groupId>vision.noesis</groupId>
 			<artifactId>noesis-annotations</artifactId>
@@ -81,11 +81,11 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<!-- The Noesis code model scanner: ./mvnw process-classes noesis:scan writes .noesis/sessions/scanner/code-model/java/.
-			     Install it first: mvn install in scanners/java (see examples/README.md). -->
+			<!-- The Noesis code model parser: ./mvnw process-classes noesis:parse writes .noesis/tmp/parser/code-model/java/.
+			     Install it first: mvn install in code-parsers/java (see examples/README.md). -->
 			<plugin>
 				<groupId>vision.noesis</groupId>
-				<artifactId>noesis-scanner-maven-plugin</artifactId>
+				<artifactId>noesis-parser-maven-plugin</artifactId>
 				<version>0.1.0-SNAPSHOT</version>
 			</plugin>
 		</plugins>

@@ -1,0 +1,7 @@
+{
+  "parser": {
+    "language": "csharp"
+  },
+  "namespacePartsToSkip": ["CSharpSyntax"],
+  "namespacesToExclude": ["*.ExcludedNamespace"]
+}

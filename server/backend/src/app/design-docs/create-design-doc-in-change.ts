@@ -1,11 +1,10 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangeOwnedRepository } from '#backend/app/changes/change-owned.repository';
 import {
   type ChangesReader,
   getChangeOrThrow,
 } from '#backend/app/changes/changes.repository';
-import type { Now, Today } from '#backend/app/clock';
+import type { Clock } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { createAtFreeSlugId } from '#backend/app/slug-id';
 import type { SystemModelsReader } from '#backend/app/system-model/system-models.repository';
@@ -16,6 +15,7 @@ import {
 } from './design-doc';
 import { DesignDocId } from './design-doc-id';
 import { type DesignDocSummary, summarize } from './design-doc-summary';
+import type { DesignDocsRepository } from './design-docs.repository';
 import { assertDesignDocFollowsRules } from './invalid-design-doc-error';
 
 /** A new design document for the change. `designDoc` is the working file: the server mints its id. */
@@ -31,11 +31,10 @@ export type CreateDesignDocInChangeHandler = Handler<
 >;
 
 export function createDesignDocInChangeHandler(
-  designDocs: ChangeOwnedRepository<DesignDocument>,
+  designDocs: DesignDocsRepository,
   changes: ChangesReader,
   systemModels: SystemModelsReader,
-  today: Today,
-  now: Now,
+  clock: Clock,
 ): CreateDesignDocInChangeHandler {
   return {
     /**
@@ -49,7 +48,7 @@ export function createDesignDocInChangeHandler(
     async handle({ change, designDoc }) {
       await getChangeOrThrow(changes, change);
       await assertDesignDocFollowsRules(designDoc, 'agent', systemModels);
-      const implementedAt = implementedAtOf(designDoc, null, now);
+      const implementedAt = implementedAtOf(designDoc, null, clock);
       const at = (id: DesignDocId): DesignDocument => ({
         id,
         ...designDoc,
@@ -58,7 +57,7 @@ export function createDesignDocInChangeHandler(
       const id = await createAtFreeSlugId(
         DesignDocId,
         designDoc.name,
-        today(),
+        clock.today(),
         (candidate) => designDocs.create(change, at(candidate)),
       );
       return summarize(at(id));

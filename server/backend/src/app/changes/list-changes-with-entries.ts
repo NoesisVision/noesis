@@ -1,17 +1,16 @@
-import type { DesignDocument } from '#backend/app/design-docs/design-doc';
+import type { DesignDocsReader } from '#backend/app/design-docs/design-docs.repository';
 import type { Handler } from '#backend/app/handler';
-import type { Document } from '#backend/app/information-sources/document';
+import type { DocumentsReader } from '#backend/app/information-sources/documents.repository';
 import type { Change } from './change';
 import type { ChangeEntry, ChangeWithEntries } from './change-entry';
-import type { ChangeOwnedReader } from './change-owned.repository';
 import type { ChangesReader } from './changes.repository';
 
 export type ListChangesWithEntriesHandler = Handler<void, ChangeWithEntries[]>;
 
 export function listChangesWithEntriesHandler(
   changes: ChangesReader,
-  designDocs: ChangeOwnedReader<DesignDocument>,
-  documents: ChangeOwnedReader<Document>,
+  designDocs: DesignDocsReader,
+  documents: DocumentsReader,
 ): ListChangesWithEntriesHandler {
   /** The change's design documents, then its documents, each kind oldest first. */
   async function withEntries(change: Change): Promise<ChangeWithEntries> {

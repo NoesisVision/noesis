@@ -1,6 +1,6 @@
 /*
  * What the projection makes of the C# fixture solution under
- * scanners/dotnet/test/fixtures (its annotated part is CSharpSyntax/Projection
+ * code-parsers/dotnet/test/fixtures (its annotated part is CSharpSyntax/Projection
  * and CSharpSyntax.OtherProject/ProjectionFromOtherProject.cs). Shared by the
  * unit test over the golden code model and the e2e test over a real scan.
  *
@@ -224,7 +224,7 @@ export const INVOKES: Record<string, string[]> = {
   [behaviour('CallChains.CallsOwnOverload')]: [reached('ByOverload')],
   [behaviour('CallChains.MutualA')]: [behaviour('CallChains.MutualB')],
   [behaviour('CallChains.MutualB')]: [behaviour('CallChains.MutualA')],
-  // Known gaps in the scanner: a delegate invocation and a user-defined
+  // Known gaps in the parser: a delegate invocation and a user-defined
   // operator call produce no INVOKES edge yet.
   [behaviour('CallChains.ThroughDelegateField')]: [],
   [behaviour('CallChains.ThroughOperator')]: [],

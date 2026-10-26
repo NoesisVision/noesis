@@ -72,7 +72,7 @@ nothing.
   each option to a subagent of its own with the brief in its `references/`
   and compares what they saved; `implement-java-spring` turns a design
   document into Java domain code for a Spring Boot project, each module,
-  building block and behaviour carrying the stereotype the Java scanner
+  building block and behaviour carrying the stereotype the Java parser
   reads, with one JUnit test asserted with AssertJ per scenario, following
   the mapping, building block and testing rules in its `references/`. A skill
   and compares what they saved; `update-design-doc` fetches a design

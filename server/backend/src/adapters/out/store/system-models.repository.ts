@@ -1,13 +1,10 @@
-import { readdir } from 'node:fs/promises';
-import { join } from 'node:path';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import type { SystemModelId } from '#backend/app/system-model/system-model-id';
 import type { SystemModelsRepository } from '#backend/app/system-model/system-models.repository';
 import {
-  JsonFileError,
-  readJsonFile,
-  writeJsonFile,
-} from '#backend/platform/files/json-file';
+  JsonCollection,
+  nameFromContent,
+} from '#backend/platform/files/json-collection';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 /** `YYYY-MM-DD_HH-MM_<commit>.json`; the time is UTC, so names sort by scan time. */
@@ -22,57 +19,35 @@ const NO_COMMIT = 'uncommitted';
  * the same minute on the same commit replaces the one before.
  */
 export class SystemModelsFileRepository implements SystemModelsRepository {
-  private readonly dir: string;
+  private readonly models: JsonCollection<SystemModel>;
 
   constructor(noesis: NoesisDir) {
-    this.dir = noesis.resolve('graph', 'system-models');
-  }
-
-  async get(id: SystemModelId): Promise<SystemModel | null> {
-    return (await this.list()).find((model) => model.id === id) ?? null;
-  }
-
-  async list(): Promise<SystemModel[]> {
-    const models = await Promise.all(
-      (await this.fileNames()).map((name) => this.read(name)),
+    this.models = new JsonCollection(
+      SystemModel,
+      noesis.resolve('graph', 'system-models'),
+      nameFromContent(FILE_NAME, fileNameOf),
     );
-    return models.sort(byId);
+  }
+
+  get(id: SystemModelId): Promise<SystemModel | null> {
+    return this.models.get(id);
+  }
+
+  list(): Promise<SystemModel[]> {
+    return this.models.list();
   }
 
   /** Reads only the files of the latest minute; of those, the highest id wins. */
   async findNewest(): Promise<SystemModel | null> {
-    const names = await this.fileNames();
-    const latest = names.map(minuteOf).sort().at(-1);
+    const names = await this.models.names();
+    const latest = names.map(minuteOf).at(-1);
     if (latest === undefined) return null;
-    const models = await Promise.all(
-      names
-        .filter((name) => minuteOf(name) === latest)
-        .map((name) => this.read(name)),
-    );
-    return models.sort(byId).at(-1) ?? null;
+    const ofLatest = names.filter((name) => minuteOf(name) === latest);
+    return (await this.models.readAll(ofLatest)).at(-1) ?? null;
   }
 
-  async save(model: SystemModel): Promise<void> {
-    writeJsonFile(join(this.dir, fileNameOf(model)), SystemModel, model);
-  }
-
-  private async fileNames(): Promise<string[]> {
-    try {
-      return (await readdir(this.dir)).filter((name) => FILE_NAME.test(name));
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
-      throw error;
-    }
-  }
-
-  private async read(name: string): Promise<SystemModel> {
-    const path = join(this.dir, name);
-    return (await readJsonFile(path, SystemModel)).match(
-      (model) => model,
-      (message) => {
-        throw new JsonFileError(path, message);
-      },
-    );
+  save(model: SystemModel): Promise<void> {
+    return this.models.save(model);
   }
 }
 
@@ -94,8 +69,4 @@ function fileNameOf(model: SystemModel): string {
 
 function minuteOf(name: string): string {
   return FILE_NAME.exec(name)?.[1] ?? '';
-}
-
-function byId(a: SystemModel, b: SystemModel): number {
-  return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 }

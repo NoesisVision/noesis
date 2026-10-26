@@ -1,10 +1,10 @@
-// Stands in for a code model tool (`noesis-scan-csharp`, `mvn … noesis:scan`)
+// Stands in for a code model tool (`noesis-parse-csharp`, `mvn … noesis:parse`)
 // in the scanner adapters' unit tests. Its own flags come first, the
 // adapter's follow: `--source <dir>` copies that directory's committed
 // code-model/ into the output directory (`--out <dir>`, Maven's `-Dnoesis.out=<dir>` or
 // Gradle's `-Pnoesis.out=<dir>`),
 // `--fail <code>` exits with that code instead. The arguments are recorded
-// in `fake-scan-args.json` in the working directory, the repository root,
+// in `fake-parse-args.json` in the working directory, the repository root,
 // since the output directory is removed after the scan. The real tools run
 // in test/e2e.
 import { cp, mkdir, writeFile } from 'node:fs/promises';
@@ -27,7 +27,7 @@ if (out === undefined) {
 }
 await mkdir(out, { recursive: true });
 await writeFile(
-  join(process.cwd(), 'fake-scan-args.json'),
+  join(process.cwd(), 'fake-parse-args.json'),
   JSON.stringify(args),
 );
 

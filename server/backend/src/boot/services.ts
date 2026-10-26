@@ -1,6 +1,9 @@
 import { basename } from 'node:path';
-import { ChangeOwnedFileRepository } from '#backend/adapters/out/store/change-owned.repository';
+import { GitSourceRepository } from '#backend/adapters/out/scanners/git-source-repository';
+import { ServerScanLog } from '#backend/adapters/out/scanners/server-scan-log';
 import { ChangesFileRepository } from '#backend/adapters/out/store/changes.repository';
+import { DesignDocsFileRepository } from '#backend/adapters/out/store/design-docs.repository';
+import { DocumentsFileRepository } from '#backend/adapters/out/store/documents.repository';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import { createChangeHandler } from '#backend/app/changes/create-change';
@@ -9,50 +12,36 @@ import { findChangeHandler } from '#backend/app/changes/find-change';
 import { listChangesHandler } from '#backend/app/changes/list-changes';
 import { listChangesWithEntriesHandler } from '#backend/app/changes/list-changes-with-entries';
 import { updateChangeHandler } from '#backend/app/changes/update-change';
-import { localToday, type Now, type Today, utcNow } from '#backend/app/clock';
+import { type Clock, systemClock } from '#backend/app/clock';
 import { createDesignDocInChangeHandler } from '#backend/app/design-docs/create-design-doc-in-change';
 import { findDesignDocHandler } from '#backend/app/design-docs/find-design-doc';
 import { listDesignDocsInChangeHandler } from '#backend/app/design-docs/list-design-docs-in-change';
-import { StoredDesignDocument } from '#backend/app/design-docs/stored-design-doc';
 import { updateDesignDocInChangeHandler } from '#backend/app/design-docs/update-design-doc-in-change';
 import { createDocumentInChangeHandler } from '#backend/app/information-sources/create-document-in-change';
 import { deleteDocumentFromChangeHandler } from '#backend/app/information-sources/delete-document-from-change';
-import { DocumentSchema } from '#backend/app/information-sources/document';
 import { findDocumentHandler } from '#backend/app/information-sources/find-document';
 import { listDocumentsInChangeHandler } from '#backend/app/information-sources/list-documents-in-change';
 import { updateDocumentInChangeHandler } from '#backend/app/information-sources/update-document-in-change';
+import { scanSystemModelHandler } from '#backend/app/scanners/scan-system-model';
+import { ScannerFactory } from '#backend/app/scanners/scanner-factory';
 import { searchHandler } from '#backend/app/search/search';
 import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
-import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
-import { ScannerFactory } from '#backend/app/system-model/scanner-factory';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
-import { scannerBuilders } from './scanners';
+import { codeParserFor } from './code-parsers';
 
 /**
  * Wires the file repositories under `.noesis/` and the scanners to the
  * handlers that use them.
  */
-export function createServices(
-  noesis: NoesisDir,
-  today: Today = localToday,
-  now: Now = utcNow,
-) {
+export function createServices(noesis: NoesisDir, clock: Clock = systemClock) {
   const changes = new ChangesFileRepository(noesis);
-  const designDocs = new ChangeOwnedFileRepository(
-    noesis,
-    StoredDesignDocument,
-    'design-doc',
-  );
-  const documents = new ChangeOwnedFileRepository(
-    noesis,
-    DocumentSchema,
-    'document',
-  );
+  const designDocs = new DesignDocsFileRepository(noesis);
+  const documents = new DocumentsFileRepository(noesis);
   const systemModels = new SystemModelsFileRepository(noesis);
   return {
     // Named as the scanners name the model they find: by the folder.
     projectName: basename(noesis.root),
-    createChange: createChangeHandler(changes, today),
+    createChange: createChangeHandler(changes, clock),
     updateChange: updateChangeHandler(changes),
     deleteChange: deleteChangeHandler(changes),
     listChanges: listChangesHandler(changes),
@@ -66,21 +55,20 @@ export function createServices(
       designDocs,
       changes,
       systemModels,
-      today,
-      now,
+      clock,
     ),
     updateDesignDocInChange: updateDesignDocInChangeHandler(
       designDocs,
       changes,
       systemModels,
-      now,
+      clock,
     ),
     listDesignDocsInChange: listDesignDocsInChangeHandler(designDocs, changes),
     findDesignDoc: findDesignDocHandler(designDocs, changes),
     createDocumentInChange: createDocumentInChangeHandler(
       documents,
       changes,
-      today,
+      clock,
     ),
     updateDocumentInChange: updateDocumentInChangeHandler(documents, changes),
     deleteDocumentFromChange: deleteDocumentFromChangeHandler(
@@ -93,7 +81,10 @@ export function createServices(
     scanSystemModel: scanSystemModelHandler(
       new ScannerFactory(
         new ScannerSettingsFileRepository(noesis),
-        scannerBuilders(noesis, now),
+        codeParserFor(noesis),
+        new GitSourceRepository(noesis.root),
+        clock,
+        new ServerScanLog(),
       ),
       systemModels,
     ),

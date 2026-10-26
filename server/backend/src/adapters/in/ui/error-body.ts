@@ -4,7 +4,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import type { DesignDocViolation } from '#backend/app/design-docs/design-doc';
 import { InvalidDesignDocError } from '#backend/app/design-docs/invalid-design-doc-error';
 import { NotFoundError } from '#backend/app/not-found-error';
-import { ScanFailedError } from '#backend/app/system-model/scan-failed-error';
+import { ScanFailedError } from '#backend/app/scanners/scan-failed-error';
 import { serverLogger } from '#backend/platform/logging/server-logger';
 
 const log = serverLogger('ui');

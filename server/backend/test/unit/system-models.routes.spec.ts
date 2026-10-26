@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
 import { createUiApp } from '#backend/adapters/in/ui/ui.routes';
 import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
-import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
+import { scanSystemModelHandler } from '#backend/app/scanners/scan-system-model';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
+import { scannerFinding } from '../support/test-scanner';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 let t: TestNoesis;
@@ -19,7 +20,7 @@ beforeEach(async () => {
   app = createUiApp({
     ...t,
     scanSystemModel: scanSystemModelHandler(
-      { create: () => Promise.resolve({ scan: () => Promise.resolve(found) }) },
+      scannerFinding(found),
       new SystemModelsFileRepository(t.noesis),
     ),
   });

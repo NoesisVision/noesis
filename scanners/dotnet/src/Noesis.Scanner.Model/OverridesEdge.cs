@@ -1,6 +1,0 @@
-namespace Noesis.Scanner.Model;
-
-public sealed record OverridesEdge : Edge
-{
-    public required NodeId To { get; init; }
-}

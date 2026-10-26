@@ -1,14 +1,13 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import type { ChangeOwnedRepository } from '#backend/app/changes/change-owned.repository';
 import {
   type ChangesReader,
   getChangeOrThrow,
 } from '#backend/app/changes/changes.repository';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';
-import type { Document } from './document';
 import { DocumentId } from './document-id';
+import type { DocumentsRepository } from './documents.repository';
 
 /** A document to remove from its change. */
 export const DeleteDocumentFromChange = z.object({
@@ -23,7 +22,7 @@ export type DeleteDocumentFromChangeHandler = Handler<
 >;
 
 export function deleteDocumentFromChangeHandler(
-  documents: ChangeOwnedRepository<Document>,
+  documents: DocumentsRepository,
   changes: ChangesReader,
 ): DeleteDocumentFromChangeHandler {
   return {

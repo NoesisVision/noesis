@@ -10,7 +10,7 @@ import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-m
 import { DesignDocument } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { DocumentId } from '#backend/app/information-sources/document-id';
-import { scanSystemModelHandler } from '#backend/app/system-model/scan-system-model';
+import { scanSystemModelHandler } from '#backend/app/scanners/scan-system-model';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { MAX_WORKING_FILE_BYTES } from '#backend/platform/files/working-file-limit';
@@ -19,6 +19,7 @@ import {
   greenFieldDesignDocFixture,
 } from '../fixtures/design-doc.fixture';
 import { textOf } from '../support/service-process';
+import { scannerFinding } from '../support/test-scanner';
 import { type TestNoesis, testNoesis } from './test-noesis';
 
 // A linked InMemoryTransport pair speaks the 2025 era only; the modern
@@ -360,9 +361,7 @@ describe('scan_system_model', () => {
       noesis: noesis.noesis,
       sessionFiles: files,
       scanSystemModel: scanSystemModelHandler(
-        {
-          create: () => Promise.resolve({ scan: () => Promise.resolve(found) }),
-        },
+        scannerFinding(found),
         systemModels,
       ),
     });
@@ -404,7 +403,7 @@ describe('scan_system_model', () => {
     const result = await client.callTool({ name: 'scan_system_model' });
 
     expect(result.isError).toBe(true);
-    expect(textOf(result)).toContain('.noesis/settings.json names no scanner');
+    expect(textOf(result)).toContain('.noesis/settings.json is missing');
   });
 
   it('is advertised as adding a scan on every call', async () => {

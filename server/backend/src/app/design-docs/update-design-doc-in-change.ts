@@ -1,11 +1,7 @@
 import { z } from 'zod';
 import { ChangeId } from '#backend/app/changes/change-id';
-import {
-  type ChangeOwnedRepository,
-  getOwnedOrThrow,
-} from '#backend/app/changes/change-owned.repository';
 import type { ChangesReader } from '#backend/app/changes/changes.repository';
-import type { Now } from '#backend/app/clock';
+import type { Clock } from '#backend/app/clock';
 import type { Handler } from '#backend/app/handler';
 import { NotFoundError } from '#backend/app/not-found-error';
 import type { SystemModelsReader } from '#backend/app/system-model/system-models.repository';
@@ -17,6 +13,10 @@ import {
 import { DesignDocFieldAuthor } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
 import { type DesignDocSummary, summarize } from './design-doc-summary';
+import {
+  type DesignDocsRepository,
+  getDesignDocOrThrow,
+} from './design-docs.repository';
 import { assertDesignDocFollowsRules } from './invalid-design-doc-error';
 
 /**
@@ -37,10 +37,10 @@ export type UpdateDesignDocInChangeHandler = Handler<
 >;
 
 export function updateDesignDocInChangeHandler(
-  designDocs: ChangeOwnedRepository<DesignDocument>,
+  designDocs: DesignDocsRepository,
   changes: ChangesReader,
   systemModels: SystemModelsReader,
-  now: Now,
+  clock: Clock,
 ): UpdateDesignDocInChangeHandler {
   return {
     /**
@@ -49,13 +49,7 @@ export function updateDesignDocInChangeHandler(
      * follows against the newest scan. The time it is marked implemented is the server's to keep.
      */
     async handle({ change, id, designDoc, writer }) {
-      const before = await getOwnedOrThrow(
-        designDocs,
-        changes,
-        'design document',
-        change,
-        id,
-      );
+      const before = await getDesignDocOrThrow(designDocs, changes, change, id);
       await assertDesignDocFollowsRules(
         designDoc,
         writer,
@@ -65,7 +59,7 @@ export function updateDesignDocInChangeHandler(
       const updated: DesignDocument = {
         id,
         ...designDoc,
-        implementedAt: implementedAtOf(designDoc, before, now),
+        implementedAt: implementedAtOf(designDoc, before, clock),
       };
       if (!(await designDocs.replace(change, updated))) {
         throw new NotFoundError('design document', id, change);
