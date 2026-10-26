@@ -3,7 +3,6 @@ import {
   BackgroundVariant,
   type Edge,
   MarkerType,
-  Panel,
   ReactFlow,
   type ReactFlowInstance,
 } from '@xyflow/react';
@@ -55,7 +54,7 @@ export interface ArchitectureDiagramProps {
   layout: ArchitectureLayout;
   focus: DiagramFocus;
   onSelectElement: (id: string) => void;
-  /** What the selection says, on the canvas beside the cards it outlines; none with nothing in hand. */
+  /** The `DetailsDock` the selection is read in, on the canvas beside the cards it outlines; none with nothing in hand. */
   selection?: ReactNode;
   /** The building block types the hexagons hold, the ones to be left out, and the way to change them. */
   types: TypeRing[];
@@ -193,15 +192,7 @@ export function ArchitectureDiagram({
               }}
               onMove={(_, viewport) => setZoom(viewport.zoom)}
             >
-              {selection !== null && (
-                // Its own scroll and clicks: a wheel over it reads on rather than zooms.
-                <Panel
-                  position="top-right"
-                  className={`nowheel nopan ${classes.selection}`}
-                >
-                  <section aria-label="Selection">{selection}</section>
-                </Panel>
-              )}
+              {selection}
               {/* The dot grid the Mermaid diagrams are drawn on, moving with the cards. */}
               <Background
                 variant={BackgroundVariant.Dots}

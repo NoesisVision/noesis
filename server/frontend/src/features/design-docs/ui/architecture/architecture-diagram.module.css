@@ -277,16 +277,3 @@
   background: var(--mantine-color-yellow-light);
   color: var(--mantine-color-yellow-light-color);
 }
-
-/* What the selection says, over the canvas's top right: as long as it is, up to the canvas's height. */
-.selection {
-  width: 360px;
-  max-width: calc(100% - 30px);
-  max-height: calc(100% - 30px);
-  overflow-y: auto;
-  border: 1px solid
-    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
-  border-radius: var(--mantine-radius-md);
-  background: var(--mantine-color-body);
-  box-shadow: var(--mantine-shadow-md);
-}

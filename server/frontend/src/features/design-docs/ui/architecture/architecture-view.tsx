@@ -20,7 +20,11 @@ import { DesignDocumentContext } from '../element-details/design-document-contex
 import { OutlineSearchBox } from '../outline-search-box.tsx';
 import { Outline } from '../outline.tsx';
 import type { ViewPlace } from '../view-place.ts';
-import { ArchitectureDetails } from './architecture-details.tsx';
+import {
+  ArchitectureDetails,
+  type ArchitectureDetailsProps,
+  subjectTitleOf,
+} from './architecture-details.tsx';
 import { ArchitectureDiagram } from './architecture-diagram.tsx';
 import {
   elementSelection,
@@ -28,6 +32,7 @@ import {
   rowOf,
   subjectOf,
 } from './architecture-selection.ts';
+import { DetailsDock } from './details-dock.tsx';
 import { layoutArchitecture } from './layout-architecture.ts';
 
 /*
@@ -125,6 +130,23 @@ export function ArchitectureView({
     [addressed, tree, outline],
   );
   const focus = useMemo(() => focusOf(subject, drawn.nodes), [subject, drawn]);
+  // The details minimized: shrunk into their corner, where a button opens
+  // them again. Kept so as the selection changes.
+  const [folded, setFolded] = useState(false);
+  const details: ArchitectureDetailsProps | null =
+    subject === null
+      ? null
+      : {
+          subject,
+          outline,
+          document: doc,
+          modelTree,
+          cards,
+          onSelectElement: selectElement,
+          onClear: () => onSelect('', 'detail'),
+          onMinimize: () => setFolded(true),
+          glance: true,
+        };
   return (
     <DesignDocumentContext.Provider value={doc}>
       <Columns
@@ -140,17 +162,14 @@ export function ArchitectureView({
             focus={focus}
             onSelectElement={selectElement}
             selection={
-              subject === null ? null : (
-                <ArchitectureDetails
-                  subject={subject}
-                  outline={outline}
-                  document={doc}
-                  modelTree={modelTree}
-                  cards={cards}
-                  onSelectElement={selectElement}
-                  onClear={() => onSelect('', 'detail')}
-                  glance
-                />
+              details === null ? null : (
+                <DetailsDock
+                  folded={folded}
+                  onUnfold={() => setFolded(false)}
+                  subject={subjectTitleOf(details)}
+                >
+                  <ArchitectureDetails {...details} />
+                </DetailsDock>
               )
             }
             types={types}

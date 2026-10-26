@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { counted } from '#/features/design-docs/ui/plural.ts';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   type ArchitectureCheck,
@@ -44,10 +45,13 @@ export interface ArchitectureDetailsProps {
   onClear?: () => void;
   /** Read at a glance, over its card: smaller type, descriptions folded. */
   glance?: boolean;
+  /** Shrinks the panel out of the way; without it there is no such button. */
+  onMinimize?: () => void;
 }
 
 export function ArchitectureDetails(props: ArchitectureDetailsProps) {
-  const { subject, onClear, glance, modelTree, onSelectElement } = props;
+  const { subject, onClear, glance, onMinimize, modelTree, onSelectElement } =
+    props;
   const body = bodyOf(props);
   return (
     <DetailsPanel
@@ -56,6 +60,7 @@ export function ArchitectureDetails(props: ArchitectureDetailsProps) {
       onSelectElement={onSelectElement}
       onClear={onClear}
       glance={glance}
+      onMinimize={onMinimize}
       eyebrow={body.eyebrow}
       title={body.title}
       address={body.address}
@@ -72,6 +77,11 @@ export function ArchitectureDetails(props: ArchitectureDetailsProps) {
   );
 }
 
+/** The name the details are read under, for what points at them. */
+export function subjectTitleOf(props: ArchitectureDetailsProps): string {
+  return bodyOf(props).title;
+}
+
 interface Body {
   eyebrow: string;
   title: string;
@@ -85,16 +95,9 @@ function bodyOf({
   cards,
   document: doc,
   modelTree,
-  onSelectElement,
 }: ArchitectureDetailsProps): Body {
   const links = (title: string, ids: string[], empty?: string) => (
-    <ElementLinks
-      title={title}
-      ids={ids}
-      cards={cards}
-      empty={empty}
-      onSelect={onSelectElement}
-    />
+    <ElementLinks title={title} ids={ids} modelTree={modelTree} empty={empty} />
   );
   switch (subject.kind) {
     case 'group':
@@ -201,7 +204,7 @@ function ChecksSummary({ checks }: { checks: ArchitectureCheck[] }) {
   const warnings = count('warning');
   const notes = count('note');
   return (
-    <>
+    <Stack gap="sm">
       <DetailText>
         Read from building block types, visibility and the types each property,
         input and output uses.
@@ -213,6 +216,6 @@ function ChecksSummary({ checks }: { checks: ArchitectureCheck[] }) {
         Not checked: which service uses which driven port, and calls between
         hexagons. The design document has no call edges.
       </DetailText>
-    </>
+    </Stack>
   );
 }

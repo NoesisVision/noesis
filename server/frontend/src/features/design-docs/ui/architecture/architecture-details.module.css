@@ -17,22 +17,6 @@
   list-style: none;
 }
 
-/* Named with its list, to win over the unstyled button's own reset, which loads later. */
-.list .chip {
-  border: 1px solid var(--mantine-color-default-border);
-  border-radius: var(--mantine-radius-xl);
-
-  &:hover {
-    background: var(--mantine-color-default-hover);
-  }
-
-  /* Whatever the mouse gets, the keyboard gets. */
-  &:focus-visible {
-    outline: var(--noesis-focus-ring);
-    outline-offset: 2px;
-  }
-}
-
 /* The scenarios' own rows are padded; the line sets them apart from the sections. */
 .scenarios {
   border-top: 1px solid var(--mantine-color-default-border);

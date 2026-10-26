@@ -1,4 +1,3 @@
-import { IconListDetails } from '@tabler/icons-react';
 import '@xyflow/react/dist/base.css';
 import {
   Background,
@@ -7,7 +6,6 @@ import {
   type FitViewOptions,
   type NodeChange,
   type OnNodeDrag,
-  Panel,
   ReactFlow,
   type ReactFlowInstance,
   useNodesState,
@@ -24,15 +22,14 @@ import {
 } from 'react';
 import {
   DesignDocumentContext,
+  DetailsDock,
   ElementPanel,
 } from '#/features/design-docs/element-reader.ts';
-import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
@@ -614,43 +611,21 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const selectionPanel = useMemo(
     () =>
       inHand === null ? null : (
-        // The panel and, in its corner, the button it shrinks into: both
-        // always there, so each grows or shrinks into the other.
-        <Panel
-          position="top-right"
-          className={`nowheel nopan ${classes.selectionDock}`}
-          data-folded={folded || undefined}
+        <DetailsDock
+          folded={folded}
+          onUnfold={() => setFolded(false)}
+          subject={inHand.name}
         >
-          {/* Its own scroll and clicks: a wheel over it reads on rather than zooms. */}
-          <section
-            aria-label="Selection"
-            className={classes.selection}
-            inert={folded}
-          >
-            <ElementPanel
-              key={inHand.id}
-              id={inHand.id}
-              document={document}
-              eyebrow={kindWordOf(inHand)}
-              title={inHand.name}
-              onSelectElement={readAlone}
-              onMinimize={() => setFolded(true)}
-            />
-          </section>
-          <Tooltip label={`Show the details of ${inHand.name}`} position="left">
-            <ActionIcon
-              variant="default"
-              size={44}
-              className={classes.selectionIcon}
-              aria-label={`Show the details of ${inHand.name}`}
-              aria-expanded={false}
-              inert={!folded}
-              onClick={() => setFolded(false)}
-            >
-              <IconListDetails size={20} stroke={1.7} aria-hidden />
-            </ActionIcon>
-          </Tooltip>
-        </Panel>
+          <ElementPanel
+            key={inHand.id}
+            id={inHand.id}
+            document={document}
+            eyebrow={kindWordOf(inHand)}
+            title={inHand.name}
+            onSelectElement={readAlone}
+            onMinimize={() => setFolded(true)}
+          />
+        </DetailsDock>
       ),
     [inHand, document, readAlone, folded],
   );
