@@ -625,8 +625,8 @@ describe('a chain followed up to the next of its type', () => {
       optional: false,
     })),
   });
-  const behaviour = (on: string, name: string, invokes: string[] = []) => ({
-    ...model.behaviours[0]!,
+  const behavior = (on: string, name: string, invokes: string[] = []) => ({
+    ...model.behaviors[0]!,
     id: `behavior|shop.orders.${on}.${name}`,
     buildingBlockId: `building_block|shop.orders.${on}`,
     name,
@@ -642,12 +642,12 @@ describe('a chain followed up to the next of its type', () => {
       block('Currency', 'value_object'),
       block('Pricing', 'domain_service'),
     ],
-    behaviours: [
-      behaviour('Price', 'apply', ['Pricing.quote']),
-      behaviour('Pricing', 'quote', ['Pricing.round']),
-      behaviour('Pricing', 'round', ['Money.round']),
-      behaviour('Money', 'round', ['Currency.scale']),
-      behaviour('Currency', 'scale'),
+    behaviors: [
+      behavior('Price', 'apply', ['Pricing.quote']),
+      behavior('Pricing', 'quote', ['Pricing.round']),
+      behavior('Pricing', 'round', ['Money.round']),
+      behavior('Money', 'round', ['Currency.scale']),
+      behavior('Currency', 'scale'),
     ],
   } as unknown as SystemModel);
   const neighbours = neighboursOf(chained);
@@ -668,7 +668,7 @@ describe('a chain followed up to the next of its type', () => {
     ]);
   });
 
-  it('follows a block’s calls from its behaviours to a behaviour on a block of its type', () => {
+  it('follows a block’s calls from its behaviors to a behavior on a block of its type', () => {
     expect(follow('building_block|shop.orders.Price', 'invokes')).toEqual([
       'Price.apply',
       'Pricing.quote',
@@ -678,7 +678,7 @@ describe('a chain followed up to the next of its type', () => {
     ]);
   });
 
-  it('goes no further than the depth, from the block’s own behaviours', () => {
+  it('goes no further than the depth, from the block’s own behaviors', () => {
     expect(follow('building_block|shop.orders.Price', 'invokes', 2)).toEqual([
       'Price.apply',
       'Pricing.quote',
@@ -689,7 +689,7 @@ describe('a chain followed up to the next of its type', () => {
     ]);
   });
 
-  it('follows a behaviour’s calls up to the next behaviour of its type', () => {
+  it('follows a behavior’s calls up to the next behavior of its type', () => {
     expect(follow('behavior|shop.orders.Currency.scale', 'invokedBy')).toEqual([
       'Money.round',
     ]);

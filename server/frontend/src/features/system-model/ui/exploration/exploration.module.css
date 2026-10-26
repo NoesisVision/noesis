@@ -38,7 +38,7 @@
 /*
  * A leaf element: its name over what it is, as a button — a white card,
  * softly rounded and only just lifted off the canvas, as the app's cards are;
- * a behaviour's edge dashed. Named with its exploration, to win over the
+ * a behavior's edge dashed. Named with its exploration, to win over the
  * unstyled button's own reset, which loads later.
  */
 .exploration .card,

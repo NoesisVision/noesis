@@ -153,7 +153,7 @@ function changeEntries(change: ChangeWithEntries): SearchEntry[] {
 }
 
 /**
- * The scanned model's modules, building blocks and behaviours, each opening
+ * The scanned model's modules, building blocks and behaviors, each opening
  * the model tree at its row. Its parts — properties, rules, scenarios — are
  * left to the tree. Too many to list unasked, so each waits for a query.
  */

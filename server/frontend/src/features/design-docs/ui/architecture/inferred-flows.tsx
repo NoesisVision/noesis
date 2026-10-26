@@ -12,11 +12,11 @@ import { ElementTooltip } from '../element-details/element-tooltip.tsx';
 import classes from './architecture-details.module.css';
 
 /**
- * What the element's types suggest flows to and from other behaviours, under
- * the block each of those behaviours belongs to: `gives Money to ApplyOn`
- * under `ThresholdDiscount`. A type, a behaviour and a block each open their
+ * What the element's types suggest flows to and from other behaviors, under
+ * the block each of those behaviors belongs to: `gives Money to ApplyOn`
+ * under `ThresholdDiscount`. A type, a behavior and a block each open their
  * row when the tree has one, and say what they are on hover, as a
- * behaviour's signature does.
+ * behavior's signature does.
  */
 export function InferredFlows({
   flows,

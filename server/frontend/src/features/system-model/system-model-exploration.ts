@@ -477,11 +477,11 @@ export const relationOfChain = (reach: ChainReach): DrawnRelationKind =>
 /**
  * Everything an element reaches one way, step after step, up to the next
  * element of its own type: that one is reached, but not followed further.
- * Only behaviours invoke, so a building block's or module's calls are its
- * behaviours', and a behaviour stops the chain when the block it is on is
- * of the type it started from. Those behaviours, and the blocks such a
+ * Only behaviors invoke, so a building block's or module's calls are its
+ * behaviors', and a behavior stops the chain when the block it is on is
+ * of the type it started from. Those behaviors, and the blocks such a
  * chain ends on, are reached too, so the chain reads whole. It goes no
- * more than `depth` steps from the element, or from its behaviours.
+ * more than `depth` steps from the element, or from its behaviors.
  */
 export function chainOf(
   neighbours: ReadonlyMap<string, Neighbours>,
@@ -494,10 +494,9 @@ export function chainOf(
   if (start === undefined) return [];
   const type = groupOf(start);
   const throughBehaviours =
-    (reach === 'invokes' || reach === 'invokedBy') &&
-    start.kind !== 'behaviour';
+    (reach === 'invokes' || reach === 'invokedBy') && start.kind !== 'behavior';
   const blockOf = (element: ExploredElement) =>
-    element.kind === 'behaviour' && element.container !== null
+    element.kind === 'behavior' && element.container !== null
       ? elements.get(element.container)
       : undefined;
   const ends = (element: ExploredElement) => {
@@ -522,7 +521,7 @@ export function chainOf(
       ]);
     frontier = inside(id).filter(
       (each) =>
-        elements.get(each)?.kind === 'behaviour' &&
+        elements.get(each)?.kind === 'behavior' &&
         (neighbours.get(each)?.[reach].length ?? 0) > 0,
     );
     for (const each of frontier) reachOf(each);

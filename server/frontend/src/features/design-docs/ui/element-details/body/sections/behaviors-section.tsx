@@ -32,7 +32,7 @@ interface BehaviorsSectionProps {
 export function BehaviorsSection({ behaviors }: BehaviorsSectionProps) {
   return (
     <DetailSection
-      title="behaviors"
+      title="Behaviors"
       icon={<IconBolt />}
       count={behaviors.length}
     >
