@@ -87,7 +87,7 @@ export const PrimitiveId = z
     'Invalid PrimitiveId',
   )
   .describe(
-    `A built-in building block's id: '${PRIMITIVE_KIND}|', then one of ${PRIMITIVES.join(', ')}, e.g. '${PRIMITIVE_KIND}|uuid'.`,
+    `A built-in building block's id: '${PRIMITIVE_KIND}|', then one of ${PRIMITIVES.join(', ')}, e.g. '${PRIMITIVE_KIND}|uuid'. A property, input or output typed with one is a relation to that built-in block.`,
   )
   .brand<'PrimitiveId'>();
 export type PrimitiveId = z.infer<typeof PrimitiveId>;
@@ -127,24 +127,36 @@ export const SourceLocation = z.strictObject({
 });
 export type SourceLocation = z.infer<typeof SourceLocation>;
 
-export const ScannedProperty = z.strictObject({
-  name: ElementName,
-  type: BuildingBlockRef,
-  description: z.string().nullable().default(null),
-  optional: z.boolean().default(false),
-});
+/** One `HAS_PROPERTY` relation: the block has a property of this type, under this name. */
+export const ScannedProperty = z
+  .strictObject({
+    name: ElementName,
+    type: BuildingBlockRef,
+    description: z.string().nullable().default(null),
+    optional: z.boolean().default(false),
+  })
+  .describe(
+    'A property the block has: a HAS_PROPERTY relation to the type it is of, named by the property.',
+  );
 export type ScannedProperty = z.infer<typeof ScannedProperty>;
 
-export const ScannedParameter = z.strictObject({
-  name: ElementName,
-  type: BuildingBlockRef,
-  description: z.string().nullable().default(null),
-  optional: z.boolean().default(false),
-});
+/** One `HAS_INPUT` relation: the behaviour takes a value of this type, under this name. */
+export const ScannedParameter = z
+  .strictObject({
+    name: ElementName,
+    type: BuildingBlockRef,
+    description: z.string().nullable().default(null),
+    optional: z.boolean().default(false),
+  })
+  .describe(
+    'An input the behaviour takes: a HAS_INPUT relation to the type it is of, named by the parameter.',
+  );
 export type ScannedParameter = z.infer<typeof ScannedParameter>;
 
-/** What a behaviour gives back: known by its type, as it has no name. */
-export const ScannedResult = ScannedParameter.omit({ name: true });
+/** What a behaviour gives back: a `HAS_OUTPUT` relation, known by its type, as it has no name. */
+export const ScannedResult = ScannedParameter.omit({ name: true }).describe(
+  'An output the behaviour gives back: a HAS_OUTPUT relation to the type it is of; a result has no name.',
+);
 export type ScannedResult = z.infer<typeof ScannedResult>;
 
 /** Which part of a scenario a step is: the starting state, the action, the outcome. */
@@ -208,7 +220,18 @@ export const ScannedBuildingBlock = z.strictObject({
   name: ElementName,
   type: BuildingBlockType,
   description: z.string().nullable().default(null),
-  implements: z.array(BuildingBlockId).default([]),
+  /** `IMPLEMENTS`: the blocks among its direct supertypes. */
+  implements: z
+    .array(BuildingBlockId)
+    .default([])
+    .describe('The building blocks this one implements: IMPLEMENTS relations.'),
+  /** `USES`: the blocks this one uses, by the scanner's definition; never itself. */
+  uses: z
+    .array(BuildingBlockId)
+    .default([])
+    .describe(
+      'The building blocks this one uses, as the scanner finds it: USES relations, never the block itself. Empty until a scanner records them.',
+    ),
   properties: z.array(ScannedProperty).default([]),
   rules: z.array(ScannedRule).default([]),
   scenarios: z.array(ScannedScenario).default([]),
@@ -225,8 +248,13 @@ export const ScannedBehaviour = z.strictObject({
   visibility: Visibility,
   input: z.array(ScannedParameter).default([]),
   output: z.array(ScannedResult).default([]),
-  /** The behaviours this one calls, directly or through methods that are no behaviour; never itself. */
-  invokes: z.array(BehaviorId).default([]),
+  /** `INVOKES`: the behaviours this one calls, directly or through methods that are no behaviour; never itself. */
+  invokes: z
+    .array(BehaviorId)
+    .default([])
+    .describe(
+      'The behaviours this one calls, directly or through methods that are no behaviour: INVOKES relations, never the behaviour itself.',
+    ),
   rules: z.array(ScannedRule).default([]),
   scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,

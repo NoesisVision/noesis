@@ -9,6 +9,8 @@ import {
   type ArchitectureOutline,
   CHECK_LEVEL_META,
   placedById,
+  RELATION_LABEL,
+  TYPE_RELATIONS,
 } from '../../architecture-outline.ts';
 import { inferredFlowOf } from '../../design-doc-architecture.ts';
 import { addressOf } from '../../element-id.ts';
@@ -42,8 +44,24 @@ export function ElementFindings({
     [doc, outline, id],
   );
   // Not every element has a card of its own; the outline holds the rest.
-  const uses =
-    cards.get(id)?.element?.uses ?? placedById(outline).get(id)?.uses ?? [];
+  const element = cards.get(id)?.element ?? placedById(outline).get(id);
+  const items = (blocks: readonly string[]) =>
+    [...new Set(blocks)].map((block) => ({
+      change: modelTree.byPath.get(block)?.change ?? 'unchanged',
+      label: addressOf(block),
+      path: block,
+    }));
+  const relations = [
+    ...TYPE_RELATIONS.map((relation) => ({
+      label: RELATION_LABEL[relation],
+      items: items(
+        (element?.typedWith ?? [])
+          .filter((typed) => typed.relation === relation)
+          .map(({ block }) => block),
+      ),
+    })),
+    { label: RELATION_LABEL.uses, items: items(element?.uses ?? []) },
+  ];
   return (
     <>
       {checks.length > 0 && (
@@ -69,20 +87,7 @@ export function ElementFindings({
         </DetailSection>
       )}
       {/* As the model reads what a block implements: a box of type links. */}
-      <ElementRelations
-        relations={[
-          {
-            label: 'Speaks in',
-            items: uses.map((use) => ({
-              change: modelTree.byPath.get(use)?.change ?? 'unchanged',
-              label: addressOf(use),
-              path: use,
-            })),
-          },
-        ]}
-        tree={modelTree}
-        flush
-      />
+      <ElementRelations relations={relations} tree={modelTree} flush />
       {flows.length > 0 && (
         <InferredFlows flows={flows} modelTree={modelTree} />
       )}

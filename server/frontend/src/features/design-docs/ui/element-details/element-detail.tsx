@@ -18,7 +18,15 @@ import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
 import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
-import { implementerItems, refItems } from './change-list-items.ts';
+import {
+  type ChangeListItem,
+  implementerItems,
+  inputOfItems,
+  outputOfItems,
+  propertyOfItems,
+  refItems,
+  userItems,
+} from './change-list-items.ts';
 import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementColumns } from './element-columns.tsx';
@@ -66,11 +74,28 @@ export function ElementDetail({
       ? refItems(findById(doc.buildingBlocks, node.elementId)?.implements)
       : [];
   // And what implements it — found in the document even when it leaves the
-  // block itself alone.
-  const implementers =
-    node.kind === 'building_block' && node.elementId
-      ? implementerItems(doc, node.elementId)
-      : [];
+  // block itself alone — what it uses and is used by, and whose property,
+  // input or output it is the type of.
+  const block =
+    node.kind === 'building_block' && node.elementId ? node.elementId : null;
+  const related = (
+    items: (doc: DesignDocumentInput, id: string) => ChangeListItem[],
+  ) => (block === null ? [] : items(doc, block));
+  const relations = [
+    { label: 'Implements', items: implemented },
+    { label: 'Implemented by', items: related(implementerItems) },
+    {
+      label: 'Uses',
+      items:
+        block === null
+          ? []
+          : refItems(findById(doc.buildingBlocks, block)?.uses),
+    },
+    { label: 'Used by', items: related(userItems) },
+    { label: 'Property of', items: related(propertyOfItems) },
+    { label: 'Input of', items: related(inputOfItems) },
+    { label: 'Output of', items: related(outputOfItems) },
+  ];
   // What the element is, under its name: a module's, a block's, a behaviour's.
   const designed = designedOf(doc, node);
   // An element the design leaves alone is still shown: its definition is too.
@@ -120,10 +145,7 @@ export function ElementDetail({
       {/* Between the name and what it is; opened afresh on every element. */}
       <ElementRelations
         key={`relations:${node.path}`}
-        relations={[
-          { label: 'Implements', items: implemented },
-          { label: 'Implemented by', items: implementers },
-        ]}
+        relations={relations}
         tree={tree}
       />
       {definition !== undefined && (

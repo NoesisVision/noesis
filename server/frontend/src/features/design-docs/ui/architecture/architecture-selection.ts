@@ -4,6 +4,7 @@ import type {
   ArchitectureCheck,
   ArchitectureOutline,
 } from '../../architecture-outline.ts';
+import { blocksTypedWith } from '../../architecture-outline.ts';
 import { checkPath, needAtPortsPath } from '../../architecture-tree.ts';
 import { kindOf, ownerOf } from '../../element-id.ts';
 import type { LaidOutNode } from './layout-architecture.ts';
@@ -104,9 +105,14 @@ export function focusOf(
       const card = nodes.find(
         ({ id, element }) => id === subject.id && element !== null,
       );
+      const element = card?.element ?? null;
       return {
         selected: drawing([subject.id]),
-        related: drawing(card?.element?.uses ?? []),
+        related: drawing(
+          element === null
+            ? []
+            : [...blocksTypedWith(element), ...element.uses],
+        ),
       };
     }
   }

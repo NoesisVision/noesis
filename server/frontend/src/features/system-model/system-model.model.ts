@@ -75,6 +75,7 @@ export function designOf(model: SystemModel): DesignDocument {
         definition: optional(block.description),
         diagram: UNSET,
         implements: { added: block.implements, removed: [] },
+        uses: { added: block.uses, removed: [] },
         properties: added(
           block.properties.map((property) => ({
             name: property.name,

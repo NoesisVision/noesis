@@ -29,16 +29,18 @@ const agent = <const T>(value: T) => ({ value, author: 'agent' as const });
 const block = (
   address: string,
   type: BuildingBlockType,
+  typed: string[] = [],
   uses: string[] = [],
 ) => ({
   id: `building_block|${address}`,
   type: agent(type),
   properties: {
-    added: uses.map((used, index) => ({
+    added: typed.map((used, index) => ({
       name: `p${index}`,
       type: agent(`building_block|${used}`),
     })),
   },
+  uses: { added: uses.map((used) => `building_block|${used}`) },
 });
 
 const behaviour = (
@@ -135,24 +137,72 @@ describe('architectureOf', () => {
     ]);
   });
 
-  it('reads a type through a collection', () => {
-    expect(orders?.drivingPorts[0]?.behaviour.uses).toEqual([
-      blockIdAt('sales.orders.OrderLine'),
+  it('reads a type through a collection, as the relation the input is', () => {
+    expect(orders?.drivingPorts[0]?.behaviour.typedWith).toEqual([
+      {
+        relation: 'hasInput',
+        name: 'in0',
+        block: blockIdAt('sales.orders.OrderLine'),
+        behaviour: null,
+      },
     ]);
   });
 
-  it('counts a block’s own behaviours in what it uses', () => {
+  it('counts a block’s own behaviours in what it is typed with, naming the behaviour', () => {
     const repository = orders?.drivenPorts[0];
-    expect(repository?.uses).toEqual([blockIdAt('sales.orders.Order')]);
+    expect(repository?.typedWith).toEqual([
+      {
+        relation: 'hasInput',
+        name: 'in0',
+        block: blockIdAt('sales.orders.Order'),
+        behaviour: behaviourIdAt('sales.orders.Orders.save'),
+      },
+    ]);
+    expect(orders?.domainCore[0]?.typedWith).toEqual([
+      {
+        relation: 'hasProperty',
+        name: 'p0',
+        block: blockIdAt('sales.orders.OrderLine'),
+        behaviour: null,
+      },
+    ]);
+  });
+
+  it('reads what a block uses from the design, never itself; a behaviour uses nothing', () => {
+    const outline = architectureOf({
+      ...clean,
+      buildingBlocks: {
+        added: [
+          ...clean.buildingBlocks.added.slice(1),
+          block(
+            'sales.orders.OrderService',
+            'application_service',
+            [],
+            [
+              'sales.orders.Orders',
+              'sales.orders.OrderService',
+              'sales.orders.Orders',
+            ],
+          ),
+        ],
+      },
+    });
+    const service = outline.hexagons[0]?.applicationServices[0];
+    expect(service?.uses).toEqual([blockIdAt('sales.orders.Orders')]);
+    expect(outline.hexagons[0]?.drivingPorts[0]?.behaviour.uses).toEqual([]);
   });
 
   it('passes every check on a design that keeps to the architecture', () => {
     expect(levelsOf(outline.checks)).toEqual({
       'domain-depends-on-no-port': 'pass',
+      'domain-uses-no-port': 'pass',
       'only-application-services-are-public': 'pass',
       'type-in-no-contract': 'pass',
       'caller-unknown': 'pass',
     });
+    expect(checkOf(clean, 'domain-uses-no-port')?.text).toEndWith(
+      'the design names nothing a domain block uses.',
+    );
   });
 
   it('lists what a pass looked at', () => {
@@ -192,7 +242,53 @@ describe('the checks', () => {
         'building_block|sales.orders.Orders',
       ],
     });
+    expect(check?.text).toStartWith(
+      'Pricing has property p0 typed with Orders',
+    );
+  });
+
+  it('name the behaviour whose input or output types a domain block with a port', () => {
+    const check = checkOf(
+      {
+        ...clean,
+        behaviours: {
+          added: [
+            ...clean.behaviours.added,
+            behaviour('sales.orders.Order.price', PRIVATE, {
+              output: ['building_block|sales.orders.Orders'],
+            }),
+          ],
+        },
+      },
+      'domain-depends-on-no-port',
+    );
+    expect(check?.text).toStartWith(
+      'Order has output typed with Orders on price',
+    );
+  });
+
+  it('warn when a domain block uses a port, and pass when it uses the core', () => {
+    const using = (used: string) => ({
+      ...clean,
+      buildingBlocks: {
+        added: [
+          ...clean.buildingBlocks.added,
+          block('sales.orders.Pricing', 'domain_service', [], [used]),
+        ],
+      },
+    });
+    const check = checkOf(using('sales.orders.Orders'), 'domain-uses-no-port');
+    expect(check).toMatchObject({
+      level: 'warning',
+      elementIds: [
+        'building_block|sales.orders.Pricing',
+        'building_block|sales.orders.Orders',
+      ],
+    });
     expect(check?.text).toStartWith('Pricing uses Orders');
+    const clear = checkOf(using('sales.orders.Order'), 'domain-uses-no-port');
+    expect(clear?.level).toBe('pass');
+    expect(clear?.text).not.toContain('names nothing');
   });
 
   it('warn when a block other than an application service is public', () => {
@@ -343,6 +439,7 @@ describe('the qdoc design', () => {
       ['type-in-no-contract', 'warning'],
       ['caller-unknown', 'note'],
       ['domain-depends-on-no-port', 'pass'],
+      ['domain-uses-no-port', 'pass'],
       ['only-application-services-are-public', 'pass'],
     ]);
   });

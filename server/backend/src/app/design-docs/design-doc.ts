@@ -98,6 +98,9 @@ export const DesignedBuildingBlock = z.strictObject({
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
   implements: changeSet(BuildingBlockId),
+  uses: changeSet(BuildingBlockId).describe(
+    "The building blocks this one uses, USES relations: ids added and removed, as `implements`. What a block uses is the scanner's to find; leave it empty until its meaning is fixed.",
+  ),
   properties: changeSet(DesignedProperty, ElementName),
   rules: changeSet(DesignedRule, ElementName),
   scenarios: changeSet(DesignedScenario, ElementName),

@@ -169,6 +169,29 @@ describe('A scanned building block', () => {
       [],
     );
   });
+
+  it('lists the building blocks it uses, none unless the scan found them', () => {
+    const LINE = 'building_block|sales.orders.Line';
+    const parsed = SystemModel.parse(withBlock({ uses: [LINE] }));
+
+    expect<string[]>(parsed.buildingBlocks[0]!.uses).toEqual([LINE]);
+    expect(SystemModel.parse(model()).buildingBlocks[0]?.uses).toEqual([]);
+    expect(isValid(withBlock({ uses: [PLACE] }))).toBe(false);
+    expect(isValid(withBlock({ uses: ['primitive|uuid'] }))).toBe(false);
+  });
+
+  it('names its relations where an agent reads the contract', () => {
+    const schema = JSON.stringify(z.toJSONSchema(SystemModel, { io: 'input' }));
+    for (const relation of [
+      'HAS_PROPERTY',
+      'HAS_INPUT',
+      'HAS_OUTPUT',
+      'IMPLEMENTS',
+      'USES',
+      'INVOKES',
+    ])
+      expect(schema).toContain(relation);
+  });
 });
 
 describe('A scanned property', () => {

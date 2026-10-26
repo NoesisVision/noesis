@@ -55,7 +55,13 @@ export interface PlacedElement<
   /** The building block type, or the behaviour type. */
   pattern: Pattern | null;
   change: OutlineChange;
-  /** The building blocks its properties, inputs and outputs use, collections unwrapped; itself left out. */
+  /**
+   * The building blocks it is typed with: one per property, input and
+   * output of its own or of its behaviours, collections unwrapped, itself
+   * left out.
+   */
+  typedWith: TypedWith[];
+  /** The building blocks the design says it uses; a behaviour uses none. */
   uses: BuildingBlockId[];
   /** Its own rules and those of its behaviours the view does not draw apart from it. */
   rules: PlacedRule[];
@@ -63,6 +69,38 @@ export interface PlacedElement<
 
 export type PlacedBlock = PlacedElement<BuildingBlockType>;
 export type PlacedBehaviour = PlacedElement<BehaviourType>;
+
+/** The relations a type gives away: what has a property, an input or an output of it. */
+export type TypeRelation = 'hasProperty' | 'hasInput' | 'hasOutput';
+
+export const TYPE_RELATIONS: readonly TypeRelation[] = [
+  'hasProperty',
+  'hasInput',
+  'hasOutput',
+];
+
+/** What each relation is called wherever it is named, as the exploration of the system model calls it. */
+export const RELATION_LABEL: Record<TypeRelation | 'uses', string> = {
+  hasProperty: 'Has property',
+  hasInput: 'Has input',
+  hasOutput: 'Has output',
+  uses: 'Uses',
+};
+
+/** One property, input or output, read as the relation it is to its type. */
+export interface TypedWith {
+  relation: TypeRelation;
+  /** The property's or the parameter's name; null for an output. */
+  name: string | null;
+  block: BuildingBlockId;
+  /** The behaviour the input or output is on, when the element is its block. */
+  behaviour: BehaviorId | null;
+}
+
+/** The blocks an element is typed with, each once. */
+export const blocksTypedWith = (element: PlacedElement): BuildingBlockId[] => [
+  ...new Set(element.typedWith.map(({ block }) => block)),
+];
 
 export interface PlacedRule {
   name: string;

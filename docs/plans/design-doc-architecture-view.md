@@ -16,24 +16,24 @@ columns and the tree the requirements view reads through. The prototype is
 
 ## Decisions
 
-| Topic         | Decision                                                                                                                                                                                                       |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| What it shows | One design document, read-only, projected by the frontend from the design document. Nothing is stored for it                                                                                                   |
-| Hexagon       | A module that holds building blocks. The modules above it are the system boundary and are not drawn as hexagons                                                                                                |
-| Rings         | By building block type. Domain core: `aggregate`, `entity`, `value_object`, `domain_service`, `factory`. Application: `application_service`. Driven port: `repository`, `external_integration`                 |
-| Driving port  | A public behaviour of an application service. The actors in its visibility drive it; a public behaviour with no actors is called by another subsystem, which the view draws as an unknown caller               |
-| Adapters      | Not in the design document. Every driving port gets an in adapter and every driven port an out adapter, drawn as placeholders marked "not designed"                                                            |
-| Edges         | Only what the document holds: actor to in adapter, in adapter to driving port, a port to the service that owns it, out adapter to driven port. Calls between services and driven ports are not in the document |
-| Flow by type  | A behaviour's output type that another behaviour takes as input is listed in the details as an inferred flow, marked "type match only" where the match is not a real flow. It is never drawn as an edge        |
-| Checks        | Computed from building block types, visibility and the types properties, inputs and outputs use. Each is a warning, a note or a pass, and names the elements it concerns                                       |
-| Needs         | Each need, and the driving ports whose behaviour's rules answer it. A need no port answers says so                                                                                                             |
-| Tree          | The left pane is the pane the other views use: search, expand and collapse, rows with rails. Two groups: Checks, and Needs at the ports                                                                        |
-| Details       | Below the rows, in the tree pane, scrolling apart from them. The diagram stays whole                                                                                                                           |
-| Diagram       | The right pane. One hexagon per module, drawn by React Flow with a band layout of our own                                                                                                                      |
-| Selection     | One selection for both panes. A row selects its element, check or need; a card selects its element and opens the tree to its row. The elements a selection concerns are outlined                               |
-| Overlays      | Check markers on the cards (on by default) and rule counts (off by default), toggled in the diagram's toolbar                                                                                                  |
-| Switching     | `view: 'architecture'` on the design document route. The place is kept under names of its own, `arch` and `archQ`, as the requirements view keeps `entry` and `entryQ`                                         |
-| Changes       | A green-field design is drawn whole. In a brownfield one, an element whose type the design leaves unchanged cannot be placed from the document alone; see Data gap                                             |
+| Topic         | Decision                                                                                                                                                                                                        |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| What it shows | One design document, read-only, projected by the frontend from the design document. Nothing is stored for it                                                                                                    |
+| Hexagon       | A module that holds building blocks. The modules above it are the system boundary and are not drawn as hexagons                                                                                                 |
+| Rings         | By building block type. Domain core: `aggregate`, `entity`, `value_object`, `domain_service`, `factory`. Application: `application_service`. Driven port: `repository`, `external_integration`                  |
+| Driving port  | A public behaviour of an application service. The actors in its visibility drive it; a public behaviour with no actors is called by another subsystem, which the view draws as an unknown caller                |
+| Adapters      | Not in the design document. Every driving port gets an in adapter and every driven port an out adapter, drawn as placeholders marked "not designed"                                                             |
+| Edges         | Only what the document holds: actor to in adapter, in adapter to driving port, a port to the service that owns it, out adapter to driven port. Calls between services and driven ports are not in the document  |
+| Flow by type  | A behaviour's output type that another behaviour takes as input is listed in the details as an inferred flow, marked "type match only" where the match is not a real flow. It is never drawn as an edge         |
+| Checks        | Computed from building block types, visibility, the types properties, inputs and outputs are of, and the blocks a block says it `uses`. Each is a warning, a note or a pass, and names the elements it concerns |
+| Needs         | Each need, and the driving ports whose behaviour's rules answer it. A need no port answers says so                                                                                                              |
+| Tree          | The left pane is the pane the other views use: search, expand and collapse, rows with rails. Two groups: Checks, and Needs at the ports                                                                         |
+| Details       | Below the rows, in the tree pane, scrolling apart from them. The diagram stays whole                                                                                                                            |
+| Diagram       | The right pane. One hexagon per module, drawn by React Flow with a band layout of our own                                                                                                                       |
+| Selection     | One selection for both panes. A row selects its element, check or need; a card selects its element and opens the tree to its row. The elements a selection concerns are outlined                                |
+| Overlays      | Check markers on the cards (on by default) and rule counts (off by default), toggled in the diagram's toolbar                                                                                                   |
+| Switching     | `view: 'architecture'` on the design document route. The place is kept under names of its own, `arch` and `archQ`, as the requirements view keeps `entry` and `entryQ`                                          |
+| Changes       | A green-field design is drawn whole. In a brownfield one, an element whose type the design leaves unchanged cannot be placed from the document alone; see Data gap                                              |
 
 ## Library
 
@@ -90,12 +90,13 @@ Considered and left out:
 
 ## Checks
 
-| Check                                | Level   | Fails when                                                                                                      |
-| ------------------------------------ | ------- | --------------------------------------------------------------------------------------------------------------- |
-| Domain depends on no port            | Warning | A domain block's property, input or output uses a repository, an external integration or an application service |
-| Only application services are public | Warning | A behaviour of any other building block is public: the core is exposed past its ports                           |
-| Type in no contract                  | Warning | A building block is used by no property, input or output                                                        |
-| Caller unknown                       | Note    | A public behaviour names no actor                                                                               |
+| Check                                | Level   | Fails when                                                                                                                                              |
+| ------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Domain depends on no port            | Warning | A domain block's property, input or output is typed with a repository, an external integration or an application service                                |
+| Domain uses no port                  | Warning | A domain block's `uses` names a repository, an external integration or an application service; passes vacuously, and says so, while no design names any |
+| Only application services are public | Warning | A behaviour of any other building block is public: the core is exposed past its ports                                                                   |
+| Type in no contract                  | Warning | A building block is the type of no property, input or output                                                                                            |
+| Caller unknown                       | Note    | A public behaviour names no actor                                                                                                                       |
 
 A check that finds nothing is a pass and lists the elements it checked. On
 the qdoc design the first two pass, `NewQDocNotification` is in no contract (only `createQDoc`'s sequence diagram
@@ -136,7 +137,9 @@ interface PlacedElement {
   name: string;
   pattern: string; // building block type or behaviour type
   change: OutlineChange;
-  /** The building blocks its properties, inputs and outputs use, collections unwrapped. */
+  /** One per property, input and output: the relation, its name, the block, the behaviour it is on. */
+  typedWith: TypedWith[];
+  /** The building blocks the design says it uses; a behaviour uses none. */
   uses: BuildingBlockId[];
 }
 
@@ -210,10 +213,12 @@ type from the model.
 
 ## Not in this plan
 
-- Calls. The design document has no call edges, so the view cannot draw which
-  service uses which port, or a call from one hexagon to another
-  (`createQDoc` to `notifyUsers`). A `calls` field on behaviours would add
-  both, and a check that the domain calls no port.
+- Calls. The design document has no call edges, so the view cannot draw a
+  call from one hexagon to another (`createQDoc` to `notifyUsers`). A `calls`
+  field on behaviours would add it, and a check that the domain calls no
+  port. Which block uses which port is in the document since
+  `system-model-relations.md` gave a building block `uses`, and "Domain uses
+  no port" checks it.
 - Adapters as building blocks. A placeholder is drawn for each port until the
   design document can say what sits there.
 - Editing the design from the diagram.

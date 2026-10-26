@@ -1,6 +1,8 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
+  DesignedBehaviourInput,
+  DesignedBuildingBlockInput,
   DesignedParameterInput,
   DesignedPropertyInput,
   DesignedResultInput,
@@ -9,7 +11,7 @@ import type {
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { type ChangeSetInput, writtenIn } from '../../change-set.ts';
 import { refKeyOf } from '../../design-doc-edit.ts';
-import { valueOf } from '../../design-doc-field.ts';
+import { type DesignDocFieldInput, valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
 import {
   classificationOf,
@@ -85,9 +87,24 @@ export const refItems = (
 export const implementerItems = (
   doc: DesignDocumentInput,
   id: string,
+): ChangeListItem[] => blocksRelatedBy(doc, id, (block) => block.implements);
+
+/** The building blocks the document says use a block, as `implementerItems` lists implementers. */
+export const userItems = (
+  doc: DesignDocumentInput,
+  id: string,
+): ChangeListItem[] => blocksRelatedBy(doc, id, (block) => block.uses);
+
+/** Every block whose change set of ids names the one, with what the design does to that entry. */
+const blocksRelatedBy = (
+  doc: DesignDocumentInput,
+  id: string,
+  setOf: (
+    block: DesignedBuildingBlockInput,
+  ) => ChangeSetInput<string, string> | undefined,
 ): ChangeListItem[] =>
   writtenIn(doc.buildingBlocks).flatMap((block) =>
-    [...changed(block.implements)]
+    [...changed(setOf(block))]
       .filter(([ref]) => ref === id)
       .map(([, change]) => ({
         change,
@@ -95,6 +112,90 @@ export const implementerItems = (
         path: block.id,
       })),
   );
+
+/**
+ * The building blocks with a property typed with a block, each once, by
+ * its address and opening its row: the block's `HAS_PROPERTY` relation read
+ * from the type. A collection of the type counts; the block itself does not.
+ */
+export const propertyOfItems = (
+  doc: DesignDocumentInput,
+  id: string,
+): ChangeListItem[] =>
+  writtenIn(doc.buildingBlocks)
+    .filter(
+      (block) =>
+        block.id !== id &&
+        [...changed(block.properties)].some(
+          ([property]) =>
+            typeof property !== 'string' && namesBlock(property.type, id),
+        ),
+    )
+    .map((block) => ({
+      change: 'unchanged' as const,
+      label: refAddressOf(block.id),
+      path: block.id,
+    }));
+
+/** The behaviours with an input (`HAS_INPUT`) or an output (`HAS_OUTPUT`) typed with a block, each once. */
+export const inputOfItems = (
+  doc: DesignDocumentInput,
+  id: string,
+): ChangeListItem[] =>
+  behavioursTypedWith(doc, id, (behaviour) =>
+    [...changed(behaviour.input)].map(([parameter]) =>
+      typeof parameter === 'string' ? null : parameter.type,
+    ),
+  );
+
+export const outputOfItems = (
+  doc: DesignDocumentInput,
+  id: string,
+): ChangeListItem[] =>
+  behavioursTypedWith(doc, id, (behaviour) =>
+    [...changed(behaviour.output)].map(([result]) =>
+      isResult(result) ? result.type : result,
+    ),
+  );
+
+const behavioursTypedWith = (
+  doc: DesignDocumentInput,
+  id: string,
+  typesOf: (
+    behaviour: DesignedBehaviourInput,
+  ) => (
+    | DesignDocFieldInput<BuildingBlockRefInput>
+    | BuildingBlockRefInput
+    | null
+  )[],
+): ChangeListItem[] =>
+  writtenIn(doc.behaviours)
+    .filter((behaviour) =>
+      typesOf(behaviour).some((type) => type !== null && namesBlock(type, id)),
+    )
+    .map((behaviour) => ({
+      change: 'unchanged' as const,
+      label: refAddressOf(behaviour.id),
+      path: behaviour.id,
+    }));
+
+/** Whether a type, written or kept, names the block, through any collection. */
+const namesBlock = (
+  type: DesignDocFieldInput<BuildingBlockRefInput> | BuildingBlockRefInput,
+  id: string,
+): boolean => {
+  if (type === undefined) return false;
+  const ref = isField(type) ? valueOf(type) : type;
+  return ref !== null && blockOfRef(ref) === id;
+};
+
+/** A field holds a value or says it is unchanged; a reference is a string or a collection. */
+const isField = (
+  type: NonNullable<
+    DesignDocFieldInput<BuildingBlockRefInput> | BuildingBlockRefInput
+  >,
+): type is NonNullable<DesignDocFieldInput<BuildingBlockRefInput>> =>
+  typeof type === 'object' && ('value' in type || 'changed' in type);
 
 /** A behaviour's inputs as they would be declared, or by name when the type is kept; each opens its type. */
 export const parameterItems = (

@@ -23,6 +23,7 @@ import {
   type PlacedBlock,
   type PlacedElement,
   type PlacedRule,
+  type TypedWith,
 } from './architecture-outline.ts';
 import {
   type ChangeSetInput,
@@ -251,10 +252,21 @@ function blockElement(
     name: nameOf(block.id),
     pattern: valueOf(block.type),
     change,
-    uses: usesOf(block.id, [
-      ...writtenIn(block.properties).map(({ type }) => valueOf(type)),
-      ...behaviours.flatMap(typesOfBehaviour),
-    ]),
+    typedWith: [
+      ...typedWithOf(
+        block.id,
+        'hasProperty',
+        writtenIn(block.properties).map((property) => ({
+          name: property.name,
+          type: valueOf(property.type),
+        })),
+        null,
+      ),
+      ...behaviours.flatMap((behaviour) =>
+        typedWithOfBehaviour(block.id, behaviour),
+      ),
+    ],
+    uses: usesOf(block),
     rules: [block, ...behaviours].flatMap(rulesOf),
   };
 }
@@ -268,7 +280,8 @@ function behaviourElement(
     name: nameOf(behaviour.id),
     pattern: valueOf(behaviour.type),
     change,
-    uses: usesOf(behaviour.id, typesOfBehaviour(behaviour)),
+    typedWith: typedWithOfBehaviour(behaviour.id, behaviour),
+    uses: [],
     rules: rulesOf(behaviour),
   };
 }
@@ -279,15 +292,65 @@ const inputTypesOf = (behaviour: DesignedBehaviourInput) =>
 const outputTypesOf = (behaviour: DesignedBehaviourInput) =>
   writtenIn(behaviour.output).map(({ type }) => type);
 
-const typesOfBehaviour = (
-  behaviour: DesignedBehaviourInput,
-): (BuildingBlockRefInput | null)[] => [
-  ...inputTypesOf(behaviour),
-  ...outputTypesOf(behaviour),
-];
-
+/** The blocks a list of types names, each once; primitives left out. */
 const blocksOf = (types: (BuildingBlockRefInput | null)[]) =>
-  new Set(usesOf('', types));
+  new Set(
+    types.flatMap((type) => {
+      const block = type === null ? null : blockOfRef(type);
+      return block === null ? [] : [block];
+    }),
+  );
+
+/** What a behaviour takes and gives back, as relations of the element read: itself or its block. */
+function typedWithOfBehaviour(
+  self: string,
+  behaviour: DesignedBehaviourInput,
+): TypedWith[] {
+  const on = self === behaviour.id ? null : asBehaviour(behaviour.id);
+  return [
+    ...typedWithOf(
+      self,
+      'hasInput',
+      writtenIn(behaviour.input).map((parameter) => ({
+        name: parameter.name,
+        type: valueOf(parameter.type),
+      })),
+      on,
+    ),
+    ...typedWithOf(
+      self,
+      'hasOutput',
+      writtenIn(behaviour.output).map(({ type }) => ({ name: null, type })),
+      on,
+    ),
+  ];
+}
+
+/** One relation per member whose type names a building block, collections unwrapped; the element itself left out. */
+function typedWithOf(
+  self: string,
+  relation: TypedWith['relation'],
+  members: { name: string | null; type: BuildingBlockRefInput | null }[],
+  behaviour: TypedWith['behaviour'],
+): TypedWith[] {
+  return members.flatMap(({ name, type }) => {
+    const block = type === null ? null : blockOfRef(type);
+    return block === null || block === self
+      ? []
+      : [{ relation, name, block, behaviour }];
+  });
+}
+
+/** The blocks the design says a block uses, each once; itself left out. */
+function usesOf(block: DesignedBuildingBlockInput): BuildingBlockId[] {
+  return [
+    ...new Set(
+      writtenIn(block.uses)
+        .map(asBuildingBlock)
+        .filter((used) => used !== block.id),
+    ),
+  ];
+}
 
 function rulesOf(owner: {
   rules?: ChangeSetInput<DesignedRuleInput, string> | undefined;
@@ -298,19 +361,6 @@ function rulesOf(owner: {
     ruleType: valueOf(rule.ruleType),
     needs: valueOf(rule.needs) ?? [],
   }));
-}
-
-/** The building blocks a list of types names, each once; primitives and the element itself left out. */
-function usesOf(
-  self: string,
-  types: (BuildingBlockRefInput | null)[],
-): BuildingBlockId[] {
-  const uses = new Set<BuildingBlockId>();
-  for (const type of types) {
-    const block = type === null ? null : blockOfRef(type);
-    if (block !== null && block !== self) uses.add(block);
-  }
-  return [...uses];
 }
 
 function emptyHexagon(id: ModuleId, name: string): Hexagon {

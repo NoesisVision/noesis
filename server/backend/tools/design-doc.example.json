@@ -209,6 +209,9 @@
         },
         "implements": {
           "added": ["building_block|sales.shared.Repository"]
+        },
+        "uses": {
+          "added": []
         }
       }
     ],

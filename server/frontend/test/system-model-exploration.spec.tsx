@@ -7,6 +7,7 @@ import {
   ElementSearch,
 } from '../src/features/design-docs/element-reader';
 import {
+  type ChainReach,
   chainOf,
   choiceWithin,
   elementSectionsOf,
@@ -18,6 +19,7 @@ import {
   NO_PICKS,
   NOTHING_CHOSEN,
   picked,
+  type Relation,
   RELATIONS,
   type RelationKind,
   relatedTo,
@@ -62,6 +64,7 @@ const model = {
       type: 'aggregate',
       description: null,
       implements: [],
+      uses: [],
       properties: [
         {
           name: 'lines',
@@ -86,6 +89,7 @@ const model = {
       type: 'value_object',
       description: null,
       implements: [],
+      uses: [],
       properties: [],
       rules: [],
       scenarios: [],
@@ -137,21 +141,74 @@ describe('the exploration of a system model', () => {
     ]);
   });
 
-  it('finds use in property and parameter types, through collections, never of primitives', () => {
-    expect(exploration.uses).toEqual([
-      ['building_block|shop.orders.Order', 'building_block|shop.orders.Line'],
-      ['behavior|shop.orders.Order.place', 'building_block|shop.orders.Line'],
+  it('finds a property and an input in the types, through collections, never of primitives, each under its name', () => {
+    expect(exploration.relations).toEqual<Relation[]>([
+      {
+        kind: 'hasProperty',
+        source: 'building_block|shop.orders.Order',
+        target: 'building_block|shop.orders.Line',
+        name: 'lines',
+      },
+      {
+        kind: 'hasInput',
+        source: 'behavior|shop.orders.Order.place',
+        target: 'building_block|shop.orders.Line',
+        name: 'line',
+      },
+    ]);
+  });
+
+  it('finds an output, a use and a call, the last two each once and never of itself', () => {
+    const line = model.buildingBlocks[1]!;
+    const place = model.behaviours[0]!;
+    const found = explorationOf({
+      ...model,
+      buildingBlocks: [
+        { ...model.buildingBlocks[0]!, uses: [line.id, line.id] },
+        { ...line, uses: [line.id] },
+      ],
+      behaviours: [
+        {
+          ...place,
+          input: [],
+          output: [{ type: line.id, description: null, optional: false }],
+          invokes: [place.id, 'behavior|shop.orders.Line.check'],
+        },
+        {
+          ...place,
+          id: 'behavior|shop.orders.Line.check',
+          invokes: [place.id],
+        },
+      ],
+    } as unknown as SystemModel);
+    expect(
+      found.relations.map(({ kind, source, target, name }) => [
+        kind,
+        source,
+        target,
+        name,
+      ]),
+    ).toEqual([
+      ['hasProperty', 'building_block|shop.orders.Order', line.id, 'lines'],
+      ['uses', 'building_block|shop.orders.Order', line.id, null],
+      ['hasOutput', place.id, line.id, null],
+      ['invokes', place.id, 'behavior|shop.orders.Line.check', null],
+      ['hasInput', 'behavior|shop.orders.Line.check', line.id, 'line'],
+      ['invokes', 'behavior|shop.orders.Line.check', place.id, null],
     ]);
   });
 
   it('nests elements in their nearest shown container', () => {
-    const graph = draw(['contains', 'uses'], ['module']);
+    const graph = draw(['contains', 'hasProperty', 'hasInput'], ['module']);
     expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
       ['building_block|shop.orders.Order', null],
       ['building_block|shop.orders.Line', null],
       ['behavior|shop.orders.Order.place', 'building_block|shop.orders.Order'],
     ]);
-    expect(graph.relations.map(({ kind }) => kind)).toEqual(['uses', 'uses']);
+    expect(graph.relations.map(({ kind }) => kind)).toEqual([
+      'hasProperty',
+      'hasInput',
+    ]);
   });
 
   it('draws containment either way round as nesting, never as an edge', () => {
@@ -166,7 +223,7 @@ describe('the exploration of a system model', () => {
   });
 
   it('leaves out a relation to a hidden element rather than moving it', () => {
-    const graph = draw(['uses'], ['value_object']);
+    const graph = draw(['hasProperty'], ['value_object']);
     expect(graph.relations).toEqual([]);
   });
 
@@ -186,8 +243,13 @@ describe('the exploration of a system model', () => {
         { ...check, invokes: [] },
       ],
     } as unknown as SystemModel);
-    expect(calling.invokes).toEqual([
-      ['behavior|shop.orders.Order.place', 'behavior|shop.orders.Line.check'],
+    expect(calling.relations.filter(({ kind }) => kind === 'invokes')).toEqual([
+      {
+        kind: 'invokes',
+        source: 'behavior|shop.orders.Order.place',
+        target: 'behavior|shop.orders.Line.check',
+        name: null,
+      },
     ]);
     const graph = graphOf(calling, {
       hidden: new Set(),
@@ -228,16 +290,16 @@ describe('the exploration of a system model', () => {
       ],
     } as unknown as SystemModel);
     const id =
-      'uses:behavior|shop.orders.Order.place->building_block|shop.orders.Order';
+      'hasInput:behavior|shop.orders.Order.place->building_block|shop.orders.Order:order';
     const nested = graphOf(own, {
       hidden: new Set(),
-      relations: new Set(['contains', 'uses']),
+      relations: new Set(['contains', 'hasInput']),
     });
     expect(nested.relations.map(({ id }) => id)).not.toContain(id);
     // Not nested, the two are cards apart, and the edge is drawn.
     const apart = graphOf(own, {
       hidden: new Set(),
-      relations: new Set(['uses']),
+      relations: new Set(['hasInput']),
     });
     expect(apart.relations.map(({ id }) => id)).toContain(id);
   });
@@ -261,6 +323,9 @@ it('lays out every relation and every kind in the visibility panel', () => {
   expect(RELATIONS.map(({ kind }) => kind)).toEqual([
     'contains',
     'isPartOf',
+    'hasProperty',
+    'hasInput',
+    'hasOutput',
     'uses',
     'invokes',
   ]);
@@ -278,7 +343,15 @@ it('lays out every relation and every kind in the visibility panel', () => {
   );
   expect(html).toMatch(/<h2[^>]*>Visibility<\/h2>/);
   expect(html).toContain('aria-label="Close the visibility panel"');
-  for (const label of ['Contains', 'Is part of', 'Uses', 'Invokes'])
+  for (const label of [
+    'Contains',
+    'Is part of',
+    'Has property',
+    'Has input',
+    'Has output',
+    'Uses',
+    'Invokes',
+  ])
     expect(html).toContain(`>${label}<`);
   expect(html).not.toContain('Not implemented');
   expect(html).toContain('Value Object');
@@ -296,7 +369,7 @@ describe('placing the exploration', () => {
     if (stubbed) Object.assign(globalThis, { document: {} });
     try {
       return await layoutExploration(
-        draw(['contains', 'uses']),
+        draw(['contains', 'hasProperty']),
         algorithm,
         direction,
       );
@@ -322,7 +395,7 @@ describe('placing the exploration', () => {
     expect(order!.width).toBeGreaterThan(behaviour!.width);
   });
 
-  it('runs the uses edge down or across, as asked', async () => {
+  it('runs the property edge down or across, as asked', async () => {
     const at = (placed: Awaited<ReturnType<typeof place>>, id: string) =>
       placed.elements.find(({ element }) => element.id === id)!;
     const down = await place('vertical');
@@ -366,13 +439,13 @@ describe('a floating edge', () => {
 
 describe('the selection', () => {
   it('joins an element to what its drawn relations and its nesting join it to', () => {
-    const graph = draw(['contains', 'uses']);
+    const graph = draw(['contains', 'hasProperty']);
     const { relations, elements } = relatedTo(
       graph,
       'building_block|shop.orders.Order',
     );
     expect([...relations]).toEqual([
-      'uses:building_block|shop.orders.Order->building_block|shop.orders.Line',
+      'hasProperty:building_block|shop.orders.Order->building_block|shop.orders.Line:lines',
     ]);
     expect([...elements].sort()).toEqual([
       'behavior|shop.orders.Order.place',
@@ -390,7 +463,7 @@ describe('the selection', () => {
   });
 
   it('draws a card as a button that says where it stands to the selection', () => {
-    const graph = draw(['uses']);
+    const graph = draw(['hasProperty']);
     const line = graph.elements.find(
       ({ id }) => id === 'building_block|shop.orders.Line',
     )!;
@@ -510,7 +583,7 @@ describe('elements put in or taken out one by one', () => {
     picks = picked(picks, 'behavior|shop.orders.Order.place', false);
     const graph = graphOf(exploration, {
       hidden: new Set(['value_object']),
-      relations: new Set(['contains', 'uses']),
+      relations: new Set(['contains', 'hasProperty']),
       picks,
     });
     const ids = graph.elements.map(({ id }) => id);
@@ -597,13 +670,14 @@ describe('the way into the picker', () => {
 describe('whom each element reaches', () => {
   const neighbours = neighboursOf(exploration);
 
-  it('reads containment and use from both sides', () => {
+  it('reads containment and each relation from both sides', () => {
     const order = neighbours.get('building_block|shop.orders.Order')!;
     expect(order.isPartOf).toEqual(['module|shop.orders']);
-    expect(order.uses).toContain('building_block|shop.orders.Line');
-    expect(neighbours.get('building_block|shop.orders.Line')!.usedBy).toContain(
-      'building_block|shop.orders.Order',
-    );
+    expect(order.hasProperty).toContain('building_block|shop.orders.Line');
+    const line = neighbours.get('building_block|shop.orders.Line')!;
+    expect(line.propertyOf).toEqual(['building_block|shop.orders.Order']);
+    expect(line.inputOf).toEqual(['behavior|shop.orders.Order.place']);
+    expect(line.uses).toEqual([]);
     expect(neighbours.get('module|shop.orders')!.contains).toContain(
       'building_block|shop.orders.Order',
     );
@@ -611,37 +685,53 @@ describe('whom each element reaches', () => {
 });
 
 describe('a chain followed up to the next of its type', () => {
-  const block = (name: string, type: string, uses: string[] = []) => ({
+  const block = (
+    name: string,
+    type: string,
+    typed: string[] = [],
+    uses: string[] = [],
+  ) => ({
     ...model.buildingBlocks[1]!,
     id: `building_block|shop.orders.${name}`,
     name,
     type,
-    properties: uses.map((used) => ({
+    properties: typed.map((used) => ({
       name: used,
       type: `building_block|shop.orders.${used}`,
       description: null,
       optional: false,
     })),
+    uses: uses.map((used) => `building_block|shop.orders.${used}`),
   });
-  const behaviour = (on: string, name: string, invokes: string[] = []) => ({
+  const behaviour = (
+    on: string,
+    name: string,
+    invokes: string[] = [],
+    takes: string[] = [],
+  ) => ({
     ...model.behaviours[0]!,
     id: `behavior|shop.orders.${on}.${name}`,
     buildingBlockId: `building_block|shop.orders.${on}`,
     name,
-    input: [],
+    input: takes.map((taken) => ({
+      name: taken,
+      type: `building_block|shop.orders.${taken}`,
+      description: null,
+      optional: false,
+    })),
     invokes: invokes.map((called) => `behavior|shop.orders.${called}`),
   });
   const chained = explorationOf({
     ...model,
     buildingBlocks: [
-      block('Price', 'value_object', ['Product']),
+      block('Price', 'value_object', ['Product'], ['Pricing']),
       block('Product', 'entity', ['Money']),
       block('Money', 'value_object', ['Currency']),
       block('Currency', 'value_object'),
-      block('Pricing', 'domain_service'),
+      block('Pricing', 'domain_service', [], ['Money']),
     ],
     behaviours: [
-      behaviour('Price', 'apply', ['Pricing.quote']),
+      behaviour('Price', 'apply', ['Pricing.quote'], ['Product']),
       behaviour('Pricing', 'quote', ['Pricing.round']),
       behaviour('Pricing', 'round', ['Money.round']),
       behaviour('Money', 'round', ['Currency.scale']),
@@ -650,19 +740,32 @@ describe('a chain followed up to the next of its type', () => {
   } as unknown as SystemModel);
   const neighbours = neighboursOf(chained);
   const elements = new Map(chained.elements.map((each) => [each.id, each]));
-  const follow = (
-    id: string,
-    reach: 'uses' | 'invokes' | 'invokedBy',
-    depth?: number,
-  ) =>
+  const follow = (id: string, reach: ChainReach, depth?: number) =>
     chainOf(neighbours, elements, id, reach, depth).map((each) =>
       each.replace(/^\w+\|shop\.orders\./, ''),
     );
 
-  it('follows use through other types and stops at the first of its own', () => {
-    expect(follow('building_block|shop.orders.Price', 'uses')).toEqual([
+  it('follows a property through other types and stops at the first of its own', () => {
+    expect(follow('building_block|shop.orders.Price', 'hasProperty')).toEqual([
       'Product',
       'Money',
+    ]);
+  });
+
+  it('follows what a block uses, as the scan records it', () => {
+    expect(follow('building_block|shop.orders.Price', 'uses')).toEqual([
+      'Pricing',
+      'Money',
+    ]);
+  });
+
+  it('follows a block’s inputs from its behaviours to the next block of its type', () => {
+    expect(follow('building_block|shop.orders.Price', 'hasInput')).toEqual([
+      'Price.apply',
+      'Product',
+    ]);
+    expect(follow('building_block|shop.orders.Product', 'inputOf')).toEqual([
+      'Price.apply',
     ]);
   });
 
@@ -682,9 +785,9 @@ describe('a chain followed up to the next of its type', () => {
       'Pricing.quote',
       'Pricing.round',
     ]);
-    expect(follow('building_block|shop.orders.Price', 'uses', 1)).toEqual([
-      'Product',
-    ]);
+    expect(
+      follow('building_block|shop.orders.Price', 'hasProperty', 1),
+    ).toEqual(['Product']);
   });
 
   it('follows a behaviour’s calls up to the next behaviour of its type', () => {
