@@ -31,6 +31,7 @@ import {
 import { useCardActions, useSelectionState } from './exploration-reading.ts';
 import type { LayoutDirection, PlacedElement } from './layout-exploration.ts';
 import type { CanvasPoint } from './place-locally.ts';
+import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import classes from './exploration.module.css';
 
 /*
@@ -91,6 +92,7 @@ function Contains({
   const contains = useMissing(id)?.find(({ each }) => each === 'contains');
   // Held here, so the button can say so: the menu's own word on it.
   const [open, setOpen] = useState(false);
+  const surface = useThemedSurface('menu', `nowheel ${classes.reachMenu}`);
   if (contains === undefined) return null;
   const { missing } = contains;
   const label = containsLabel(name, missing.length);
@@ -117,10 +119,7 @@ function Contains({
           <IconPlus size={12} stroke={2.4} aria-hidden />
         </UnstyledButton>
       </Menu.Target>
-      <Menu.Dropdown
-        className={`nowheel ${classes.reachMenu}`}
-        onContextMenu={keepInMenu}
-      >
+      <Menu.Dropdown {...surface} onContextMenu={keepInMenu}>
         <Menu.Label>Contains:</Menu.Label>
         <ReachItems id={id} reach="contains" missing={missing} />
       </Menu.Dropdown>
@@ -279,11 +278,9 @@ function NodeMenuDropdown({
   const missing = useMissing(id) ?? [];
   const chains = useChains(id);
   const element = elements.get(id);
+  const surface = useThemedSurface('menu', `nowheel ${classes.nodeMenu}`);
   return (
-    <Menu.Dropdown
-      className={`nowheel ${classes.nodeMenu}`}
-      onContextMenu={keepInMenu}
-    >
+    <Menu.Dropdown {...surface} onContextMenu={keepInMenu}>
       {/* Whose menu it is, set apart from what it offers. */}
       <Menu.Label className={classes.nodeMenuTitle}>{name}</Menu.Label>
       <Menu.Divider />
@@ -329,6 +326,7 @@ function NodeMenuEntry({
   at: CanvasPoint | null;
 }) {
   const add = useAdd(id, reach, at);
+  const surface = useThemedSurface('menu', `nowheel ${classes.reachMenu}`);
   if (reach === 'isPartOf' && missing.length === 1)
     return (
       <Menu.Item onClick={() => add(missing)}>
@@ -342,7 +340,7 @@ function NodeMenuEntry({
           {`${REACH_ACTION[reach]}: ${missing.length}`}
         </Menu.Sub.Item>
       </Menu.Sub.Target>
-      <Menu.Sub.Dropdown className={`nowheel ${classes.reachMenu}`}>
+      <Menu.Sub.Dropdown {...surface}>
         <ReachItems id={id} reach={reach} missing={missing} at={at} />
       </Menu.Sub.Dropdown>
     </Menu.Sub>

@@ -161,6 +161,7 @@ export function ElementTooltip({
   disabled = false,
   openDelay = 300,
   opened,
+  tooltipProps,
   children,
 }: {
   name: string;
@@ -180,6 +181,11 @@ export function ElementTooltip({
   openDelay?: number;
   /** Shown, or not, by whoever holds it, rather than by hovering the child. */
   opened?: boolean;
+  /**
+   * Set on the floating card itself — a class, data attributes — for a
+   * surface that draws it its own way, as a diagram's theme does.
+   */
+  tooltipProps?: { className?: string } & Record<`data-${string}`, string>;
   children: ReactElement<{ className?: string }>;
 }) {
   const doc = useDesignDocument();
@@ -190,6 +196,7 @@ export function ElementTooltip({
   }
   return (
     <CardTooltip
+      {...tooltipProps}
       openDelay={openDelay}
       multiline
       disabled={disabled}

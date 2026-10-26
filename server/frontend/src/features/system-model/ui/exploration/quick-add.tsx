@@ -2,6 +2,7 @@ import { ElementSearch } from '#/features/design-docs/element-reader.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Popover } from '#/shared/design-system/popover.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import classes from './exploration.module.css';
 
 /** Where on the canvas the reader right-clicked, in its own pixels. */
@@ -31,6 +32,10 @@ export function QuickAdd({
   onPick: (id: string) => void;
   onClose: () => void;
 }) {
+  const surface = useThemedSurface(
+    'quick-add',
+    `nowheel nopan ${classes.quickAdd}`,
+  );
   return (
     <Popover
       opened={spot !== null}
@@ -50,11 +55,7 @@ export function QuickAdd({
           style={{ left: spot?.left ?? 0, top: spot?.top ?? 0 }}
         />
       </Popover.Target>
-      <Popover.Dropdown
-        p={0}
-        aria-label="Add an element here"
-        className={`nowheel nopan ${classes.quickAdd}`}
-      >
+      <Popover.Dropdown p={0} aria-label="Add an element here" {...surface}>
         <ElementSearch document={document} isDrawn={isDrawn} onPick={onPick} />
       </Popover.Dropdown>
     </Popover>

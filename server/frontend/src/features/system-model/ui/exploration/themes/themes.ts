@@ -32,7 +32,15 @@ import { isometric } from './isometric/index.ts';
  * what it draws, to be told apart: `data-kind` (module, building_block,
  * behaviour), `data-pattern` (value_object, aggregate…) and `data-state`
  * (selected, related, path). Relations are React Flow's own
- * `.react-flow__edge`, reached with `:global(…)`.
+ * `.react-flow__edge`, reached with `:global(…)`. On the canvas too: `add`
+ * (the round plus) and `visibility` (the visibility panel).
+ *
+ * What floats over the canvas is drawn at the page's end, outside that
+ * root, so it carries the theme itself (`useThemedSurface`, in
+ * diagram-theme-context.ts): it is a root and a part at once, reached as
+ * `.theme[data-diagram-theme][data-part='…']` — `menu` (a card's menus),
+ * `picker` (what the plus opens), `quick-add` (a right click on the
+ * canvas) and `tooltip`. A new surface over the canvas takes the hook.
  *
  * The root and a part weigh as the exploration's own rules for that part
  * do, with one attribute more, so a theme wins over them wherever both

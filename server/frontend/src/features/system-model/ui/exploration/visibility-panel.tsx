@@ -39,6 +39,7 @@ export function VisibilityPanel({
       component="aside"
       aria-labelledby={title}
       className={`nowheel nopan ${classes.visibility}`}
+      data-part="visibility"
     >
       <Group
         justify="space-between"

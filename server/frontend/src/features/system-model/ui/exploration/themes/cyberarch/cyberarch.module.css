@@ -564,3 +564,177 @@
     background: var(--cy-panel);
   }
 }
+
+/*
+ * What floats over the canvas — a card's menus, the picker and the quick
+ * add, the visibility panel, the tooltips — as the HUD's panels: glass edged
+ * in cyan, a gold rule along the top, square, lettered as the canvas is.
+ * The menus, the picker, the quick add and the tooltips live at the page's
+ * end and carry the theme themselves (diagram-theme-context.ts); the
+ * visibility panel lies on the canvas. Mantine's own colours inside are set
+ * to the theme's, so its inputs, rows and checkboxes follow.
+ */
+.theme[data-diagram-theme]:is(
+    [data-part='menu'],
+    [data-part='picker'],
+    [data-part='quick-add'],
+    [data-part='tooltip']
+  ),
+.theme[data-diagram-theme] [data-part='visibility'] {
+  --mantine-color-text: var(--cy-ink);
+  --mantine-color-black: var(--cy-ink);
+  --mantine-color-brand-0: var(--cy-ink);
+  --mantine-color-brand-4: light-dark(
+    rgb(0 137 163 / 0.55),
+    rgb(2 215 242 / 0.55)
+  );
+  --noesis-secondary-text: var(--cy-muted);
+  --mantine-color-dimmed: var(--cy-muted);
+  --mantine-color-body: var(--cy-glass);
+  --mantine-color-default: var(--cy-panel);
+  --mantine-color-default-color: var(--cy-ink);
+  --mantine-color-default-border: light-dark(
+    rgb(0 137 163 / 0.3),
+    rgb(2 215 242 / 0.3)
+  );
+  --mantine-color-default-hover: light-dark(
+    rgb(0 137 163 / 0.1),
+    rgb(2 215 242 / 0.1)
+  );
+  --mantine-color-placeholder: var(--cy-muted);
+  --mantine-color-brand-light: light-dark(
+    rgb(0 137 163 / 0.14),
+    rgb(2 215 242 / 0.14)
+  );
+  --mantine-color-brand-light-hover: light-dark(
+    rgb(0 137 163 / 0.24),
+    rgb(2 215 242 / 0.24)
+  );
+  --mantine-color-brand-light-color: var(--cy-cyan);
+  --mantine-color-anchor: var(--cy-cyan);
+  --mantine-primary-color-filled: var(--cy-cyan);
+  --mantine-primary-color-filled-hover: var(--cy-cyan);
+  /* The brand's own shades, which checkboxes, the tree's ticks and its rows
+     in hand are drawn in, here the HUD's cyan. */
+  --mantine-color-brand-filled: var(--cy-cyan);
+  --mantine-color-brand-filled-hover: var(--cy-cyan);
+  --mantine-color-brand-5: var(--cy-cyan);
+  --mantine-color-brand-6: var(--cy-cyan);
+  --mantine-color-brand-7: var(--cy-cyan);
+  --mantine-shadow-lg: 0 0 22px
+    light-dark(rgb(0 137 163 / 0.2), rgb(2 215 242 / 0.2));
+  /* The plain look's tints, here the glass's own. */
+  --mantine-color-gray-0: var(--cy-glass);
+  --mantine-color-gray-1: var(--cy-panel);
+  --mantine-color-dark-6: var(--cy-panel);
+  --mantine-color-dark-7: var(--cy-glass);
+
+  border: 1px solid light-dark(rgb(0 137 163 / 0.55), rgb(2 215 242 / 0.55));
+  border-top: 2px solid var(--cy-signal);
+  border-radius: 0;
+  background: light-dark(rgb(255 255 255 / 0.97), rgb(13 15 26 / 0.97));
+  box-shadow: 0 0 22px light-dark(rgb(0 137 163 / 0.2), rgb(2 215 242 / 0.2));
+  color: var(--cy-ink);
+
+  & * {
+    border-radius: 0;
+    font-family: var(--cy-type);
+  }
+}
+
+/* A menu's labels in spaced capitals; its items cyan under the pointer. */
+.theme[data-diagram-theme]:is([data-part='menu']) {
+  & :global(.mantine-Menu-label) {
+    color: var(--cy-muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  & :global(.mantine-Menu-item) {
+    color: var(--cy-ink);
+
+    &:where([data-hovered], :hover):not(:disabled, [data-disabled]) {
+      background: light-dark(rgb(0 137 163 / 0.12), rgb(2 215 242 / 0.12));
+      color: var(--cy-cyan);
+    }
+
+    &:where(:disabled, [data-disabled]) {
+      color: var(--cy-muted);
+    }
+  }
+
+  & :global(.mantine-Menu-divider) {
+    border-color: light-dark(rgb(0 137 163 / 0.25), rgb(2 215 242 / 0.25));
+  }
+}
+
+/* The picker's and the quick add's filter: a dark slot edged cyan. */
+.theme[data-diagram-theme]:is([data-part='picker'], [data-part='quick-add'])
+  :global(.mantine-Input-input) {
+  border: 1px solid light-dark(rgb(0 137 163 / 0.45), rgb(2 215 242 / 0.45));
+  background: var(--cy-void);
+  color: var(--cy-ink);
+
+  &:focus {
+    border-color: var(--cy-cyan);
+    box-shadow: 0 0 10px light-dark(rgb(0 137 163 / 0.3), rgb(2 215 242 / 0.3));
+  }
+}
+
+/* Its buttons: the one that does it a yellow slab, the rest edged cyan. */
+.theme[data-diagram-theme]:is([data-part='picker'], [data-part='quick-add'])
+  :global(.mantine-Button-root) {
+  border: 1px solid light-dark(rgb(0 137 163 / 0.5), rgb(2 215 242 / 0.5));
+  background: transparent;
+  color: var(--cy-cyan);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  &:hover:not(:disabled, [data-disabled]) {
+    background: light-dark(rgb(0 137 163 / 0.1), rgb(2 215 242 / 0.1));
+  }
+
+  /* Filled, Mantine's default, carries no variant of its own. */
+  &:is([data-variant='filled'], :not([data-variant])) {
+    border-color: var(--cy-yellow);
+    background: var(--cy-yellow);
+    box-shadow: 0 0 12px
+      light-dark(rgb(201 164 0 / 0.35), rgb(252 238 10 / 0.35));
+    color: #000;
+
+    &:hover {
+      background: #fff35a;
+    }
+  }
+
+  &:where(:disabled, [data-disabled]) {
+    border-color: light-dark(rgb(0 0 0 / 0.12), rgb(255 255 255 / 0.12));
+    background: transparent;
+    color: var(--cy-muted);
+  }
+}
+
+.theme[data-diagram-theme]:is([data-part='tooltip']) {
+  background: light-dark(rgb(255 255 255 / 0.97), rgb(13 15 26 / 0.97));
+}
+
+/* The way to add: a yellow slab, lettered black, glowing; shut, it shows black glass. */
+.theme[data-diagram-theme] [data-part='add'] {
+  border: 1px solid var(--cy-yellow);
+  border-radius: 0;
+  background: var(--cy-yellow);
+  box-shadow: 0 0 22px light-dark(rgb(201 164 0 / 0.45), rgb(252 238 10 / 0.45));
+  color: #000;
+
+  &:hover {
+    background: #fff35a;
+    box-shadow: 0 0 30px light-dark(rgb(201 164 0 / 0.6), rgb(252 238 10 / 0.6));
+  }
+
+  &[aria-expanded='true'] {
+    border-color: var(--cy-cyan);
+    background: var(--cy-void);
+    box-shadow: 0 0 18px light-dark(rgb(0 137 163 / 0.4), rgb(2 215 242 / 0.4));
+    color: var(--cy-cyan);
+  }
+}

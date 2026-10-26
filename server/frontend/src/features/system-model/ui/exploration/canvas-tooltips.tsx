@@ -1,6 +1,7 @@
 import { type RefObject, useEffect, useRef, useState } from 'react';
 import { ElementTooltip } from '#/features/design-docs/element-reader.ts';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
+import { useThemedSurface } from './themes/diagram-theme-context.ts';
 
 /** How long the pointer rests on a card before it says what it is, in ms. */
 const ELEMENT_DELAY = 600;
@@ -29,6 +30,7 @@ export function CanvasTooltips({
   dragging: boolean;
 }) {
   const [tip, setTip] = useState<Tip | null>(null);
+  const surface = useThemedSurface('tooltip');
   const held = useRef(dragging);
   const shut = useRef<() => void>(() => {});
   useEffect(() => {
@@ -110,11 +112,11 @@ export function CanvasTooltips({
     />
   );
   return tip.kind === 'plain' ? (
-    <Tooltip label={tip.label} opened>
+    <Tooltip label={tip.label} opened {...surface}>
       {anchor}
     </Tooltip>
   ) : (
-    <ElementTooltip name={tip.name} opened openDelay={0}>
+    <ElementTooltip name={tip.name} opened openDelay={0} tooltipProps={surface}>
       {anchor}
     </ElementTooltip>
   );
