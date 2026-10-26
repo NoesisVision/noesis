@@ -467,6 +467,9 @@ export const CHAIN_REACHES = [
 
 export type ChainReach = (typeof CHAIN_REACHES)[number];
 
+/** How many steps a chain is followed at most, when the card's type is far off or never met. */
+export const CHAIN_DEPTH = 5;
+
 /** The relation a chain is drawn with. */
 export const relationOfChain = (reach: ChainReach): DrawnRelationKind =>
   reach === 'uses' || reach === 'usedBy' ? 'uses' : 'invokes';
@@ -477,13 +480,15 @@ export const relationOfChain = (reach: ChainReach): DrawnRelationKind =>
  * Only behaviours invoke, so a building block's or module's calls are its
  * behaviours', and a behaviour stops the chain when the block it is on is
  * of the type it started from. Those behaviours, and the blocks such a
- * chain ends on, are reached too, so the chain reads whole.
+ * chain ends on, are reached too, so the chain reads whole. It goes no
+ * more than `depth` steps from the element, or from its behaviours.
  */
 export function chainOf(
   neighbours: ReadonlyMap<string, Neighbours>,
   elements: ReadonlyMap<string, ExploredElement>,
   id: string,
   reach: ChainReach,
+  depth: number = CHAIN_DEPTH,
 ): string[] {
   const start = elements.get(id);
   if (start === undefined) return [];
@@ -522,7 +527,7 @@ export function chainOf(
     );
     for (const each of frontier) reachOf(each);
   }
-  while (frontier.length > 0) {
+  for (let step = 0; step < depth && frontier.length > 0; step++) {
     const next: string[] = [];
     for (const from of frontier)
       for (const to of neighbours.get(from)?.[reach] ?? []) {

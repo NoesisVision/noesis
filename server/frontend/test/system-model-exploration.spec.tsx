@@ -650,8 +650,12 @@ describe('a chain followed up to the next of its type', () => {
   } as unknown as SystemModel);
   const neighbours = neighboursOf(chained);
   const elements = new Map(chained.elements.map((each) => [each.id, each]));
-  const follow = (id: string, reach: 'uses' | 'invokes' | 'invokedBy') =>
-    chainOf(neighbours, elements, id, reach).map((each) =>
+  const follow = (
+    id: string,
+    reach: 'uses' | 'invokes' | 'invokedBy',
+    depth?: number,
+  ) =>
+    chainOf(neighbours, elements, id, reach, depth).map((each) =>
       each.replace(/^\w+\|shop\.orders\./, ''),
     );
 
@@ -669,6 +673,17 @@ describe('a chain followed up to the next of its type', () => {
       'Pricing.round',
       'Money.round',
       'Money',
+    ]);
+  });
+
+  it('goes no further than the depth, from the block’s own behaviours', () => {
+    expect(follow('building_block|shop.orders.Price', 'invokes', 2)).toEqual([
+      'Price.apply',
+      'Pricing.quote',
+      'Pricing.round',
+    ]);
+    expect(follow('building_block|shop.orders.Price', 'uses', 1)).toEqual([
+      'Product',
     ]);
   });
 

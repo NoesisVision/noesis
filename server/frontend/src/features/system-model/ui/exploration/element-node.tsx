@@ -17,6 +17,7 @@ import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { IconFrameX } from '#/shared/ui/icons/icons.ts';
 import {
   addressOf,
+  CHAIN_DEPTH,
   CHAIN_REACHES,
   type ChainReach,
   chainOf,
@@ -209,7 +210,7 @@ const keepInMenu = (event: MouseEvent) => {
   event.stopPropagation();
 };
 
-/** What each way reaches step after step, up to its own type, that is not drawn. */
+/** What each way reaches step after step, up to its own type or the depth, that is not drawn. */
 function useChains(id: string) {
   const { drawn, neighbours, elements } = useCardActions();
   return CHAIN_REACHES.map((each) => ({
@@ -304,7 +305,7 @@ function NodeMenuDropdown({
         <>
           <Menu.Divider />
           <Menu.Label>
-            {`Follow up to the next ${groupLabelOf(element.pattern ?? element.kind)}`}
+            {`Follow up to the next ${groupLabelOf(element.pattern ?? element.kind)}, ${CHAIN_DEPTH} steps at most`}
           </Menu.Label>
           {chains.map(({ each, missing: them }) => (
             <ChainEntry key={each} id={id} reach={each} missing={them} />
