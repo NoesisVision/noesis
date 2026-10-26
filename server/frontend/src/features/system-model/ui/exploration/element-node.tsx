@@ -17,11 +17,16 @@ import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { IconFrameX } from '#/shared/ui/icons/icons.ts';
 import {
   addressOf,
+  CHAIN_DEPTH,
+  CHAIN_REACHES,
+  type ChainReach,
+  chainOf,
   type DrawnElement,
   groupLabelOf,
   kindWordOf,
   type Reach,
   REACHES,
+  relationOfChain,
 } from '../../system-model-exploration.ts';
 import { useCardActions, useSelectionState } from './exploration-reading.ts';
 import type { LayoutDirection, PlacedElement } from './layout-exploration.ts';
@@ -205,6 +210,43 @@ const keepInMenu = (event: MouseEvent) => {
   event.stopPropagation();
 };
 
+/** What each way reaches step after step, up to its own type or the depth, that is not drawn. */
+function useChains(id: string) {
+  const { drawn, neighbours, elements } = useCardActions();
+  return CHAIN_REACHES.map((each) => ({
+    each,
+    missing: chainOf(neighbours, elements, id, each).filter(
+      (other) => !drawn.has(other),
+    ),
+  })).filter(({ missing }) => missing.length > 0);
+}
+
+/**
+ * A chain followed: all it reaches, beside the card, with the edges of its
+ * relation drawn so the chain reads as one.
+ */
+function ChainEntry({
+  id,
+  reach,
+  missing,
+}: {
+  id: string;
+  reach: ChainReach;
+  missing: string[];
+}) {
+  const { onShow, onDraw } = useCardActions();
+  return (
+    <Menu.Item
+      onClick={() => {
+        onDraw(relationOfChain(reach));
+        onShow(missing, true, id);
+      }}
+    >
+      {`${REACH_ACTION[reach]}: ${missing.length}`}
+    </Menu.Item>
+  );
+}
+
 /** What the card's own menu calls each way, under its "Add" heading. */
 const REACH_ACTION = {
   contains: 'Contains',
@@ -232,8 +274,10 @@ function NodeMenuDropdown({
   /** Where on the canvas a frame was right-clicked, for what it contains to go. */
   at?: CanvasPoint | null;
 }) {
-  const { onArrange } = useCardActions();
+  const { onArrange, elements } = useCardActions();
   const missing = useMissing(id) ?? [];
+  const chains = useChains(id);
+  const element = elements.get(id);
   return (
     <Menu.Dropdown
       className={`nowheel ${classes.nodeMenu}`}
@@ -250,12 +294,24 @@ function NodeMenuDropdown({
         </>
       )}
       <Menu.Label>Add</Menu.Label>
-      {missing.length === 0 && (
+      {missing.length === 0 && chains.length === 0 && (
         <Menu.Item disabled>Nothing more to add</Menu.Item>
       )}
       {missing.map(({ each, missing: them }) => (
         <NodeMenuEntry key={each} id={id} reach={each} missing={them} at={at} />
       ))}
+      {/* Each way followed through all it reaches, up to the next of its type. */}
+      {chains.length > 0 && element !== undefined && (
+        <>
+          <Menu.Divider />
+          <Menu.Label>
+            {`Follow up to the next ${groupLabelOf(element.pattern ?? element.kind)}, ${CHAIN_DEPTH} steps at most`}
+          </Menu.Label>
+          {chains.map(({ each, missing: them }) => (
+            <ChainEntry key={each} id={id} reach={each} missing={them} />
+          ))}
+        </>
+      )}
     </Menu.Dropdown>
   );
 }

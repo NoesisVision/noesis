@@ -7,6 +7,7 @@ import {
   ElementSearch,
 } from '../src/features/design-docs/element-reader';
 import {
+  chainOf,
   choiceWithin,
   elementSectionsOf,
   explorationOf,
@@ -414,6 +415,7 @@ describe('the selection', () => {
                   exploration.elements.map((each) => [each.id, each]),
                 ),
                 onShow: () => {},
+                onDraw: () => {},
                 onArrange: () => {},
                 onRemoveAlone: () => {},
               }}
@@ -605,6 +607,90 @@ describe('whom each element reaches', () => {
     expect(neighbours.get('module|shop.orders')!.contains).toContain(
       'building_block|shop.orders.Order',
     );
+  });
+});
+
+describe('a chain followed up to the next of its type', () => {
+  const block = (name: string, type: string, uses: string[] = []) => ({
+    ...model.buildingBlocks[1]!,
+    id: `building_block|shop.orders.${name}`,
+    name,
+    type,
+    properties: uses.map((used) => ({
+      name: used,
+      type: `building_block|shop.orders.${used}`,
+      description: null,
+      optional: false,
+    })),
+  });
+  const behaviour = (on: string, name: string, invokes: string[] = []) => ({
+    ...model.behaviours[0]!,
+    id: `behavior|shop.orders.${on}.${name}`,
+    buildingBlockId: `building_block|shop.orders.${on}`,
+    name,
+    input: [],
+    invokes: invokes.map((called) => `behavior|shop.orders.${called}`),
+  });
+  const chained = explorationOf({
+    ...model,
+    buildingBlocks: [
+      block('Price', 'value_object', ['Product']),
+      block('Product', 'entity', ['Money']),
+      block('Money', 'value_object', ['Currency']),
+      block('Currency', 'value_object'),
+      block('Pricing', 'domain_service'),
+    ],
+    behaviours: [
+      behaviour('Price', 'apply', ['Pricing.quote']),
+      behaviour('Pricing', 'quote', ['Pricing.round']),
+      behaviour('Pricing', 'round', ['Money.round']),
+      behaviour('Money', 'round', ['Currency.scale']),
+      behaviour('Currency', 'scale'),
+    ],
+  } as unknown as SystemModel);
+  const neighbours = neighboursOf(chained);
+  const elements = new Map(chained.elements.map((each) => [each.id, each]));
+  const follow = (
+    id: string,
+    reach: 'uses' | 'invokes' | 'invokedBy',
+    depth?: number,
+  ) =>
+    chainOf(neighbours, elements, id, reach, depth).map((each) =>
+      each.replace(/^\w+\|shop\.orders\./, ''),
+    );
+
+  it('follows use through other types and stops at the first of its own', () => {
+    expect(follow('building_block|shop.orders.Price', 'uses')).toEqual([
+      'Product',
+      'Money',
+    ]);
+  });
+
+  it('follows a block’s calls from its behaviours to a behaviour on a block of its type', () => {
+    expect(follow('building_block|shop.orders.Price', 'invokes')).toEqual([
+      'Price.apply',
+      'Pricing.quote',
+      'Pricing.round',
+      'Money.round',
+      'Money',
+    ]);
+  });
+
+  it('goes no further than the depth, from the block’s own behaviours', () => {
+    expect(follow('building_block|shop.orders.Price', 'invokes', 2)).toEqual([
+      'Price.apply',
+      'Pricing.quote',
+      'Pricing.round',
+    ]);
+    expect(follow('building_block|shop.orders.Price', 'uses', 1)).toEqual([
+      'Product',
+    ]);
+  });
+
+  it('follows a behaviour’s calls up to the next behaviour of its type', () => {
+    expect(follow('behavior|shop.orders.Currency.scale', 'invokedBy')).toEqual([
+      'Money.round',
+    ]);
   });
 });
 
