@@ -165,7 +165,13 @@ export function UnitEditorModal({
             />
           )}
           {problems.length > 0 && (
-            <Alert color="red" title="The design was not saved">
+            <Alert
+              color="red"
+              title="The design was not saved"
+              withCloseButton
+              closeButtonLabel="Dismiss"
+              onClose={() => setProblems([])}
+            >
               <Stack gap={4}>
                 {problems.map((problem) => (
                   <Text key={problem} size="sm">
