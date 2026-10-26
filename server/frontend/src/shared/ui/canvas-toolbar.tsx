@@ -82,7 +82,13 @@ export function ToolbarOptions({
 }) {
   const on = options.filter(({ checked }) => checked).length;
   return (
-    <Popover position="bottom-start" width={220} shadow="md">
+    <Popover
+      position="bottom-start"
+      width={220}
+      shadow="md"
+      // The canvas stops a mouse press from reaching the page; a pointer's does.
+      clickOutsideEvents={['pointerdown']}
+    >
       <Popover.Target>
         <Button
           variant="subtle"

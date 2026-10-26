@@ -41,7 +41,13 @@ export function BuildingBlockFilter({
 
   return (
     // Drawn as the toolbar's other options are (ToolbarOptions).
-    <Popover position="bottom-start" shadow="md" trapFocus>
+    <Popover
+      position="bottom-start"
+      shadow="md"
+      trapFocus
+      // The canvas stops a mouse press from reaching the page; a pointer's does.
+      clickOutsideEvents={['pointerdown']}
+    >
       <Popover.Target>
         <Button
           variant="subtle"
