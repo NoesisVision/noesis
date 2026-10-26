@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import type {
+  DrawnRelationKind,
   ExploredElement,
   Neighbours,
 } from '../../system-model-exploration.ts';
@@ -39,6 +40,8 @@ export interface ExplorationReading {
     /** Where on the canvas they were asked for, to stand round, if anywhere. */
     at?: CanvasPoint,
   ) => void;
+  /** Draws a relation's edges, if they are not drawn already. */
+  onDraw: (relation: DrawnRelationKind) => void;
   /** Places what a container holds anew, inside it, the rest left standing. */
   onArrange: (id: string) => void;
   /** Takes a container off the diagram and leaves what it holds where it stands. */
@@ -55,15 +58,31 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   neighbours: new Map(),
   elements: new Map(),
   onShow: () => {},
+  onDraw: () => {},
   onArrange: () => {},
   onRemoveAlone: () => {},
 });
 
 /** What a card may put on the diagram beside it, or take off it. */
 export function useCardActions() {
-  const { drawn, neighbours, elements, onShow, onArrange, onRemoveAlone } =
-    useContext(ExplorationReadingContext);
-  return { drawn, neighbours, elements, onShow, onArrange, onRemoveAlone };
+  const {
+    drawn,
+    neighbours,
+    elements,
+    onShow,
+    onDraw,
+    onArrange,
+    onRemoveAlone,
+  } = useContext(ExplorationReadingContext);
+  return {
+    drawn,
+    neighbours,
+    elements,
+    onShow,
+    onDraw,
+    onArrange,
+    onRemoveAlone,
+  };
 }
 
 /**

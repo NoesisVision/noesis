@@ -499,6 +499,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         onShowAll(ids, shown);
         bringIn(ids, from);
       },
+      onDraw: (relation) =>
+        setRelations((current) =>
+          current.has(relation) ? current : new Set([...current, relation]),
+        ),
       onArrange: (id: string) => void arrange(id),
       onRemoveAlone: (id: string) => remove([id], id, true),
     }),

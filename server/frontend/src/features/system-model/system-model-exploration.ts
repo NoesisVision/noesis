@@ -456,3 +456,87 @@ export function removalOf(
   for (const id of ids) take(id);
   return [...gone];
 }
+
+/** The ways a chain can be followed: the relations drawn as edges, either way. */
+export const CHAIN_REACHES = [
+  'uses',
+  'usedBy',
+  'invokes',
+  'invokedBy',
+] as const satisfies readonly Reach[];
+
+export type ChainReach = (typeof CHAIN_REACHES)[number];
+
+/** The relation a chain is drawn with. */
+export const relationOfChain = (reach: ChainReach): DrawnRelationKind =>
+  reach === 'uses' || reach === 'usedBy' ? 'uses' : 'invokes';
+
+/**
+ * Everything an element reaches one way, step after step, up to the next
+ * element of its own type: that one is reached, but not followed further.
+ * Only behaviours invoke, so a building block's or module's calls are its
+ * behaviours', and a behaviour stops the chain when the block it is on is
+ * of the type it started from. Those behaviours, and the blocks such a
+ * chain ends on, are reached too, so the chain reads whole.
+ */
+export function chainOf(
+  neighbours: ReadonlyMap<string, Neighbours>,
+  elements: ReadonlyMap<string, ExploredElement>,
+  id: string,
+  reach: ChainReach,
+): string[] {
+  const start = elements.get(id);
+  if (start === undefined) return [];
+  const type = groupOf(start);
+  const throughBehaviours =
+    (reach === 'invokes' || reach === 'invokedBy') &&
+    start.kind !== 'behaviour';
+  const blockOf = (element: ExploredElement) =>
+    element.kind === 'behaviour' && element.container !== null
+      ? elements.get(element.container)
+      : undefined;
+  const ends = (element: ExploredElement) => {
+    if (groupOf(element) === type) return true;
+    const block = throughBehaviours ? blockOf(element) : undefined;
+    return block !== undefined && block.id !== id && groupOf(block) === type;
+  };
+
+  const reached = new Set<string>([id]);
+  const order: string[] = [];
+  const reachOf = (each: string) => {
+    reached.add(each);
+    order.push(each);
+  };
+  let frontier = [id];
+  if (throughBehaviours) {
+    // What is inside it, all the way down, that calls or is called.
+    const inside = (holder: string): string[] =>
+      (neighbours.get(holder)?.contains ?? []).flatMap((kid) => [
+        kid,
+        ...inside(kid),
+      ]);
+    frontier = inside(id).filter(
+      (each) =>
+        elements.get(each)?.kind === 'behaviour' &&
+        (neighbours.get(each)?.[reach].length ?? 0) > 0,
+    );
+    for (const each of frontier) reachOf(each);
+  }
+  while (frontier.length > 0) {
+    const next: string[] = [];
+    for (const from of frontier)
+      for (const to of neighbours.get(from)?.[reach] ?? []) {
+        const element = elements.get(to);
+        if (reached.has(to) || element === undefined) continue;
+        reachOf(to);
+        if (!ends(element)) {
+          next.push(to);
+          continue;
+        }
+        const block = throughBehaviours ? blockOf(element) : undefined;
+        if (block !== undefined && !reached.has(block.id)) reachOf(block.id);
+      }
+    frontier = next;
+  }
+  return order;
+}
