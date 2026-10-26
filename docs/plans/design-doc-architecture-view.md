@@ -93,7 +93,7 @@ Considered and left out:
 | Check                                | Level   | Fails when                                                                                                      |
 | ------------------------------------ | ------- | --------------------------------------------------------------------------------------------------------------- |
 | Domain depends on no port            | Warning | A domain block's property, input or output uses a repository, an external integration or an application service |
-| Only application services are public | Warning | A behavior of any other building block is public: the core is exposed past its ports                           |
+| Only application services are public | Warning | A behavior of any other building block is public: the core is exposed past its ports                            |
 | Type in no contract                  | Warning | A building block is used by no property, input or output                                                        |
 | Caller unknown                       | Note    | A public behavior names no actor                                                                                |
 

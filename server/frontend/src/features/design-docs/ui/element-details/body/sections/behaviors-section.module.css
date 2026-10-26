@@ -1,4 +1,4 @@
-/* One card per behaviour, on a grey of its own. */
+/* One card per behavior, on a grey of its own. */
 .list {
   display: flex;
   flex-direction: column;
@@ -142,7 +142,7 @@
 }
 
 /* On its grey still, as the model reads it, only closer in. */
-[data-glance] .behaviour {
+[data-glance] .behavior {
   padding: 10px 12px;
   border-radius: 12px;
 }

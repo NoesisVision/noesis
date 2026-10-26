@@ -14,7 +14,6 @@ import { ElementTooltip } from '../../element-tooltip.tsx';
 import { MarkdownReading } from '../../markdown-reading.tsx';
 import { DetailSection } from './detail-section.tsx';
 import classes from './behaviors-section.module.css';
-import canvas from './canvas.module.css';
 
 interface BehaviorsSectionProps {
   element: ElementRef;
@@ -38,8 +37,8 @@ export function BehaviorsSection({ behaviors }: BehaviorsSectionProps) {
       count={behaviors.length}
     >
       <ul className={classes.list}>
-        {behaviors.map(({ node, behaviour }) => (
-          <li key={node.path} className={classes.behaviour}>
+        {behaviors.map(({ node, behavior }) => (
+          <li key={node.path} className={classes.behavior}>
             <div className={classes.signature}>
               <Mark node={node} />
               {/* The name never breaks; what it takes and gives moves under
