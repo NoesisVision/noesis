@@ -21,6 +21,7 @@ import {
   type ChangeNavChild,
   useChangeNav,
 } from '#/shell/navigation/use-change-nav.ts';
+import { appLinkTo } from './rail-parts.tsx';
 import classes from './rail.module.css';
 
 /** An icon-only link: no label box beside the icon, no gap before it. */
@@ -108,15 +109,7 @@ export function RailIcons({ onNavigate }: RailIconsProps) {
             classNames={ICON_PARTS}
             aria-label={entry.label}
             leftSection={<entry.icon size={19} stroke={1.7} />}
-            onClick={onNavigate}
-            renderRoot={(props) => (
-              <Link
-                {...props}
-                to={entry.to}
-                activeOptions={ACTIVE_OPTIONS}
-                viewTransition
-              />
-            )}
+            {...appLinkTo(entry, onNavigate)}
           />
         </Tooltip>
       ))}

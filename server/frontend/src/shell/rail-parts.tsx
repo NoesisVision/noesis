@@ -1,4 +1,5 @@
 import { Link, useSearch } from '@tanstack/react-router';
+import type { ComponentProps } from 'react';
 import {
   DESIGN_DOC_VIEW_ICONS,
   DESIGN_DOC_VIEWS,
@@ -10,6 +11,10 @@ import { Box } from '#/shared/design-system/box';
 import { NavLink } from '#/shared/design-system/nav-link';
 import { ThemeIcon } from '#/shared/design-system/theme-icon';
 import { titleCase } from '#/shared/ui/title-case.ts';
+import {
+  ACTIVE_OPTIONS,
+  APP_PUBLIC_NAV,
+} from '#/shell/navigation/nav-items.ts';
 import type { ChangeNavChild } from '#/shell/navigation/use-change-nav.ts';
 import classes from './rail.module.css';
 
@@ -75,4 +80,27 @@ export function DesignDocViews({ item, onNavigate }: DesignDocViewsProps) {
       })}
     </Box>
   );
+}
+
+/**
+ * What makes an app-level row a link: the route it opens, or — while the
+ * entry is not open yet — nothing to follow, so it stays named but inert.
+ */
+export function appLinkTo(
+  entry: (typeof APP_PUBLIC_NAV.documentation)[number],
+  onNavigate: (() => void) | undefined,
+): Partial<ComponentProps<typeof NavLink>> {
+  if ('disabled' in entry && entry.disabled)
+    return { disabled: true, 'aria-disabled': true };
+  return {
+    onClick: onNavigate,
+    renderRoot: (props: Record<string, unknown>) => (
+      <Link
+        {...props}
+        to={entry.to}
+        activeOptions={ACTIVE_OPTIONS}
+        viewTransition
+      />
+    ),
+  };
 }

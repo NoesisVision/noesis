@@ -1,4 +1,5 @@
 import {
+  IconBook2,
   IconLayoutDashboard,
   IconTopologyStar3,
   IconTools,
@@ -19,6 +20,7 @@ import {
   DOCUMENTS_ROUTE_ID,
   OVERVIEW_ROUTE_ID,
   SYSTEM_MODEL_ROUTE_ID,
+  WIKI_ROUTE_ID,
 } from '#/shared/routing/route-ids.ts';
 import type { IconComponent, PageTone } from '#/shared/ui/icon-heading.tsx';
 
@@ -49,6 +51,8 @@ export interface NavItem {
   tone: PageTone;
   /** The route also matches under its children, so match the leaf exactly. */
   exact?: boolean;
+  /** Named in the navigation, but not yet open to a reader. */
+  disabled?: boolean;
 }
 
 const OVERVIEW_NAV = {
@@ -81,6 +85,16 @@ export const DESIGN_DOCS_NAV = {
   exact: true,
 } satisfies NavItem;
 
+const WIKI_NAV = {
+  to: '/wiki',
+  routeId: WIKI_ROUTE_ID,
+  label: 'Wiki',
+  description: 'What is known about the project',
+  icon: IconBook2,
+  tone: 'gray',
+  disabled: true,
+} satisfies NavItem;
+
 const SYSTEM_MODEL_NAV = {
   to: '/system-model',
   routeId: SYSTEM_MODEL_ROUTE_ID,
@@ -102,7 +116,7 @@ const DEV_TOOLS_NAV = {
 /** The two groups the sidebar renders, in the order it renders them. */
 export const APP_PUBLIC_NAV = {
   changes: [OVERVIEW_NAV, DOCUMENTS_NAV, DESIGN_DOCS_NAV],
-  documentation: [SYSTEM_MODEL_NAV],
+  documentation: [WIKI_NAV, SYSTEM_MODEL_NAV],
   devTools: [DEV_TOOLS_NAV],
 } satisfies {
   changes: NavItem[];
