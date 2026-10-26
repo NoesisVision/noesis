@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { type KeyboardEvent, useId, useMemo, useState } from 'react';
 import { currentProject } from '#/features/project/project.api.ts';
+import { newestSystemModel } from '#/features/system-model/system-model.api.ts';
 import { Box } from '#/shared/design-system/box';
 import { Divider } from '#/shared/design-system/divider';
 import { Group } from '#/shared/design-system/group';
@@ -53,6 +54,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
   const navigate = useNavigate();
   const { changes, activeChange } = useChangeNav();
   const { data: project } = useQuery(currentProject);
+  const { data: systemModel = null } = useQuery(newestSystemModel);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
   const listId = useId();
@@ -60,10 +62,15 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
   const groups = useMemo(
     () =>
       matchingGroups(
-        searchGroups({ changes, activeChange, projectName: project?.name }),
+        searchGroups({
+          changes,
+          activeChange,
+          projectName: project?.name,
+          systemModel,
+        }),
         query,
       ),
-    [changes, activeChange, project?.name, query],
+    [changes, activeChange, project?.name, systemModel, query],
   );
   const entries = groups.flatMap((group) => group.entries);
   const current = Math.min(selected, Math.max(entries.length - 1, 0));
@@ -147,6 +154,8 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
                 className={classes.groupLabel}
               >
                 {group.label}
+                {group.more > 0 &&
+                  ` · ${group.entries.length} of ${group.entries.length + group.more}, type more to narrow`}
               </Text>
               {group.entries.map((entry) => {
                 const at = index++;

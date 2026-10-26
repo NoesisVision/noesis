@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import type { ChangeWithEntries } from '#backend/app/changes/change-entry.ts';
+import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
   matchingGroups,
   searchGroups,
@@ -25,10 +26,51 @@ const weather = change('2026-09-17-weather', 'Weather-based discount', [
 ] as unknown as ChangeWithEntries['entries']);
 const loyalty = change('2026-10-01-loyalty', 'Loyalty points expiry');
 
+const source = { path: 'X.java', line: null };
+const block = (id: string, name: string, type: string) => ({
+  id,
+  name,
+  type,
+  description: null,
+  implements: [],
+  properties: [],
+  rules: [],
+  scenarios: [],
+  source,
+});
+const systemModel = {
+  id: '01a15509-0909-725f-8ab8-25ab23fc10d3',
+  name: 'shop',
+  scanned_at: '2026-10-19T10:00:00Z',
+  modules: [
+    { id: 'module|shop', name: 'shop', description: null, rules: [], source },
+  ],
+  buildingBlocks: [
+    block('building_block|shop.Basket', 'Basket', 'aggregate'),
+    block('building_block|shop.Price', 'Price', 'value_object'),
+  ],
+  behaviours: [
+    {
+      id: 'behavior|shop.Basket.checkOut',
+      buildingBlockId: 'building_block|shop.Basket',
+      name: 'checkOut',
+      type: 'Command',
+      description: null,
+      visibility: { kind: 'public' },
+      input: [],
+      output: [],
+      rules: [],
+      scenarios: [],
+      source,
+    },
+  ],
+} as unknown as SystemModel;
+
 const groups = searchGroups({
   changes: [weather, loyalty],
   activeChange: weather,
   projectName: 'discounts-java',
+  systemModel,
 });
 
 const labels = (query: string) =>
@@ -72,5 +114,41 @@ describe('search', () => {
       params: { changeId: '2026-09-17-weather', docId: 'doc' },
       search: { view: 'model' },
     });
+  });
+
+  it("finds the system model's elements by name or pattern, under their owner", () => {
+    const [found] = matchingGroups(groups, 'basket');
+    expect(found?.label).toBe('System model');
+    expect(found?.entries.map((entry) => [entry.label, entry.context])).toEqual(
+      [
+        ['Basket', 'Aggregate · shop'],
+        ['checkOut', 'Command · shop.Basket'],
+      ],
+    );
+    expect(labels('value object')).toEqual([['System model', ['Price']]]);
+  });
+
+  it("opens the model tree at the element's row", () => {
+    const [found] = matchingGroups(groups, 'price');
+    expect(found?.entries[0]?.link).toEqual({
+      to: '/system-model',
+      search: { node: 'building_block|shop.Price' },
+    });
+  });
+
+  it('lists a group only up to its limit, and counts the rest', () => {
+    const [some] = matchingGroups(
+      [
+        {
+          label: 'System model',
+          entries:
+            groups.find((g) => g.label === 'System model')?.entries ?? [],
+          limit: 1,
+        },
+      ],
+      'shop',
+    );
+    expect(some?.entries).toHaveLength(1);
+    expect(some?.more).toBe(3);
   });
 });
