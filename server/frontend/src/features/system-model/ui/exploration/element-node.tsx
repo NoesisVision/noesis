@@ -515,7 +515,44 @@ const withState = (
       ? `${label}, holds the selection`
       : label;
 
-export function ElementNode({ data }: NodeProps<ExplorationNode>) {
+/** How far a value object's corners are cut: its `--bevel` in exploration.module.css. */
+const BEVEL = 12;
+/** How far out the related ring runs, to the middle of its line: the cards' outline offset (3px) and half its width. */
+const RING_OUT = 4;
+
+/*
+ * The dashed ring round a value object related to the selection, along its
+ * cut corners: the other cards' ring is an outline, which cannot follow a
+ * cut corner, so this one is drawn — a polygon the card's size, a little out.
+ */
+function BevelRing({ width, height }: { width: number; height: number }) {
+  const cut = BEVEL + RING_OUT * Math.tan(Math.PI / 8);
+  const w = width + 2 * RING_OUT;
+  const h = height + 2 * RING_OUT;
+  const points = [
+    [cut, 0],
+    [w - cut, 0],
+    [w, cut],
+    [w, h - cut],
+    [w - cut, h],
+    [cut, h],
+    [0, h - cut],
+    [0, cut],
+  ]
+    .map((point) => point.join(','))
+    .join(' ');
+  return (
+    <svg className={classes.bevelRing} width={w} height={h} aria-hidden>
+      <polygon points={points} />
+    </svg>
+  );
+}
+
+export function ElementNode({
+  data,
+  width,
+  height,
+}: NodeProps<ExplorationNode>) {
   const { element, holds } = data.placed;
   const { state, onSelect, onLetGo } = useSelectionState(element.id);
   const [menu, setMenu] = useState(false);
@@ -593,6 +630,14 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
           {/* A frame is taken by its top, where its name is: the rest is
               room for what it holds. */}
           {holds ? <div className={classes.frameTop}>{button}</div> : button}
+          {!holds &&
+            element.pattern === 'value_object' &&
+            state === 'related' && (
+              <BevelRing
+                width={width ?? data.placed.width}
+                height={height ?? data.placed.height}
+              />
+            )}
           <Contains element={element} holds={holds} />
           <Remove id={element.id} name={element.name} holds={holds} />
           <Handle

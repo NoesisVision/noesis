@@ -483,6 +483,34 @@
   }
 }
 
+/*
+ * A value object related to the selection: its ring, dashed as the other
+ * cards' is, drawn along its cut corners (`BevelRing`) in place of the
+ * outline, which would run square round them.
+ */
+.exploration
+  .card[data-pattern='value_object'][data-state='related']:not(:focus-visible) {
+  outline: none;
+}
+
+.bevelRing {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  overflow: visible;
+  pointer-events: none;
+
+  & polygon {
+    fill: none;
+    stroke: light-dark(
+      var(--mantine-color-brand-3),
+      var(--mantine-color-brand-7)
+    );
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+}
+
 .handle {
   visibility: hidden;
 }
