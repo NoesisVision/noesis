@@ -242,7 +242,7 @@ interface DesignDocsRepository {
   `designDocs.list(id)` and `documents.list(id)` mapped to `ChangeEntry`,
   design docs first, each kind by id. `listWithEntries()` is `list()` plus
   `entries()` per change, replacing `listNavigation()`. `list()` reverses
-  the collection's order (newest first). The rest keeps its behaviour on the
+  the collection's order (newest first). The rest keeps its behavior on the
   new repository methods.
 - `DocumentsService` / `DesignDocsService`: unchanged apart from the
   repository method names.
@@ -292,7 +292,7 @@ answers in-band:
 - The indexer is out of scope; it changes only because the methods it calls
   (`keys()`, `children()`, `values()`) go. `IndexService.collect`:
   `await changes.list()`, then per change `designDocs.list(id)` and
-  `documents.list(id)`; `systemModels.list()`. Its behaviour stays: the
+  `documents.list(id)`; `systemModels.list()`. Its behavior stays: the
   `objects()` helper becomes a wrapper around one `list()` call that catches
   `JsonFileError`, logs the path and message as today, and answers `[]` for
   that list. The grain coarsens from one file to one list (a broken document

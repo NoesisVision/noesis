@@ -15,7 +15,7 @@ export const Horizontal = () => (
   <DataList orientation="horizontal" labelWidth={100} maw={420}>
     <DataList.Item>
       <DataList.ItemLabel>Kind</DataList.ItemLabel>
-      <DataList.ItemValue>Behaviour</DataList.ItemValue>
+      <DataList.ItemValue>Behavior</DataList.ItemValue>
     </DataList.Item>
     <DataList.Item>
       <DataList.ItemLabel>Input</DataList.ItemLabel>

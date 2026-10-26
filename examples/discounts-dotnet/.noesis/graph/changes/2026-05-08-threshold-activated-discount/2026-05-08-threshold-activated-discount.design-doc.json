@@ -491,7 +491,7 @@
                 "author": "agent"
               },
               "description": {
-                "value": "Trigger: any change to the `Discount` type that touches its factory surface. Pre-conditions: the existing public static factories `Discount.Percentage(Percentage value)` and `Discount.Value(Money value)` exist and have known signatures relied upon by call sites across the solution. Algorithm: 1. The two existing factory methods MUST keep their exact current signatures and observable behaviour. 2. New variants are added via additional public static factories (here: `Discount.Threshold(Percentage value, Money threshold)`); they do not replace, rename, or alter the existing two. 3. The internal discriminator implementation is allowed to change (e.g. bool → enum-like) provided this stability rule for the public factories is preserved. Post-conditions: existing call sites compile and behave identically; the only API surface change visible to callers is the new factory. Edge cases: any rename or signature change of the existing factories is treated as a breaking change and is out of scope of this design doc.",
+                "value": "Trigger: any change to the `Discount` type that touches its factory surface. Pre-conditions: the existing public static factories `Discount.Percentage(Percentage value)` and `Discount.Value(Money value)` exist and have known signatures relied upon by call sites across the solution. Algorithm: 1. The two existing factory methods MUST keep their exact current signatures and observable behavior. 2. New variants are added via additional public static factories (here: `Discount.Threshold(Percentage value, Money threshold)`); they do not replace, rename, or alter the existing two. 3. The internal discriminator implementation is allowed to change (e.g. bool → enum-like) provided this stability rule for the public factories is preserved. Post-conditions: existing call sites compile and behave identically; the only API surface change visible to callers is the new factory. Edge cases: any rename or signature change of the existing factories is treated as a breaking change and is out of scope of this design doc.",
                 "author": "agent"
               },
               "needs": {
@@ -654,7 +654,7 @@
             {
               "name": "Existing Discount/Percentage and Discount/Value continue to behave unchanged",
               "description": {
-                "value": "Regression guard — verifies that adding the third variant did not alter the behaviour or signatures of the two existing factories.",
+                "value": "Regression guard — verifies that adding the third variant did not alter the behavior or signatures of the two existing factories.",
                 "author": "agent"
               },
               "steps": {
@@ -680,7 +680,7 @@
       }
     ]
   },
-  "behaviours": {
+  "behaviors": {
     "added": [
       {
         "id": "behavior|Sales.Pricing.Discounts.ThresholdDiscount.ApplyOn",

@@ -72,7 +72,7 @@ export const Vertical = () => (
       </Splitter.Pane>
       <Splitter.Pane defaultSize={40} style={paneStyle}>
         <Text size="sm" c="dimmed">
-          Scanner output: 3 behaviours, 5 elements matched.
+          Scanner output: 3 behaviors, 5 elements matched.
         </Text>
       </Splitter.Pane>
     </Splitter>

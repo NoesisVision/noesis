@@ -33,7 +33,7 @@ import classes from './model-tree.module.css';
 const KIND_ICONS = {
   module: IconFolder,
   building_block: IconBlocks,
-  behaviour: IconActivity,
+  behavior: IconActivity,
   property: IconPoint,
   rule: IconScale,
   scenario: IconListCheck,
@@ -53,7 +53,7 @@ const PATTERNS = [
   'repository',
   'factory',
   'external_integration',
-  // behaviours
+  // behaviors
   'Command',
   'Event',
   'Query',

@@ -2522,7 +2522,7 @@
     "removed": [],
     "modified": []
   },
-  "behaviours": {
+  "behaviors": {
     "added": [
       {
         "id": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",

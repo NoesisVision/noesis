@@ -8,18 +8,18 @@ upsert tool into a create tool and an update tool. The id shape
 
 ## Decisions
 
-| Topic         | Decision                                                                                                                                                                                                   |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Who mints ids | The server, on create: today's date, then a slug of the change's or design doc's `name` or the document's `title`. The agent never writes an id                                                            |
-| Tools         | One create and one update tool per entity (POST/PUT). No upsert tool is left                                                                                                                               |
-| Working file  | Never carries `id`. Its schema is the entity schema with `id` omitted; the update tools take the id as an argument                                                                                         |
-| Collisions    | A create never overwrites. When the minted id is taken (same title, same day), the server appends `-2`, `-3`, … and answers with the id it used                                                            |
-| Update target | An update of an id that does not exist fails in-band; it never creates                                                                                                                                     |
-| Creation date | The server's local calendar date, from an injected `today()` so tests pin it. The service runs on the developer's machine, so this is the date the plugin script used                                      |
-| Id stability  | Unchanged: minted once, never re-derived. A rename is an ordinary update at the same id                                                                                                                    |
-| Change status | `create_change` takes no `status`: a new change starts in `discovery`. `update_change` keeps today's behaviour (the file carries the status `list_changes` returned; left out, it defaults to `discovery`) |
-| Retries       | A retried create makes a second entity (standard POST). No idempotency key for now                                                                                                                         |
-| Skill names   | `add-change` and `add-document-to-change` keep their names: they describe what the user wants; each picks the create or update tool                                                                        |
+| Topic         | Decision                                                                                                                                                                                                  |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Who mints ids | The server, on create: today's date, then a slug of the change's or design doc's `name` or the document's `title`. The agent never writes an id                                                           |
+| Tools         | One create and one update tool per entity (POST/PUT). No upsert tool is left                                                                                                                              |
+| Working file  | Never carries `id`. Its schema is the entity schema with `id` omitted; the update tools take the id as an argument                                                                                        |
+| Collisions    | A create never overwrites. When the minted id is taken (same title, same day), the server appends `-2`, `-3`, … and answers with the id it used                                                           |
+| Update target | An update of an id that does not exist fails in-band; it never creates                                                                                                                                    |
+| Creation date | The server's local calendar date, from an injected `today()` so tests pin it. The service runs on the developer's machine, so this is the date the plugin script used                                     |
+| Id stability  | Unchanged: minted once, never re-derived. A rename is an ordinary update at the same id                                                                                                                   |
+| Change status | `create_change` takes no `status`: a new change starts in `discovery`. `update_change` keeps today's behavior (the file carries the status `list_changes` returned; left out, it defaults to `discovery`) |
+| Retries       | A retried create makes a second entity (standard POST). No idempotency key for now                                                                                                                        |
+| Skill names   | `add-change` and `add-document-to-change` keep their names: they describe what the user wants; each picks the create or update tool                                                                       |
 
 ## Models
 

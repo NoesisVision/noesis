@@ -40,9 +40,9 @@ const ROLES = new Map<string, AnnotationRole>([
     ],
   ),
   // The handler annotations carry no argument: the annotation itself fixes the type.
-  [`${ANNOTATIONS}.CommandHandler`, { role: 'behaviour', type: 'Command' }],
-  [`${ANNOTATIONS}.QueryHandler`, { role: 'behaviour', type: 'Query' }],
-  [`${ANNOTATIONS}.EventHandler`, { role: 'behaviour', type: 'Event' }],
+  [`${ANNOTATIONS}.CommandHandler`, { role: 'behavior', type: 'Command' }],
+  [`${ANNOTATIONS}.QueryHandler`, { role: 'behavior', type: 'Query' }],
+  [`${ANNOTATIONS}.EventHandler`, { role: 'behavior', type: 'Event' }],
   // `Module` is a package annotation: no namespace-wide annotations yet (section 12).
 ]);
 

@@ -33,7 +33,7 @@ export const StyleProps = () => (
       payments-service
     </Text>
     <Text size="xs" c="dimmed" mt={4}>
-      Scanned 12 minutes ago · 48 elements · 3 behaviours changed
+      Scanned 12 minutes ago · 48 elements · 3 behaviors changed
     </Text>
   </Box>
 );

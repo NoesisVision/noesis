@@ -55,10 +55,10 @@ export function ElementDetail({
     () => ({ has: (path: string) => tree.byPath.has(path), select: onSelect }),
     [tree, onSelect],
   );
-  // Only a behaviour says who may call it.
+  // Only a behavior says who may call it.
   const visibility =
-    node.kind === 'behaviour' && node.elementId
-      ? valueOf(findById(doc.behaviours, node.elementId)?.visibility)
+    node.kind === 'behavior' && node.elementId
+      ? valueOf(findById(doc.behaviors, node.elementId)?.visibility)
       : null;
   // Only a building block implements anything, or is implemented.
   const implemented =
@@ -71,7 +71,7 @@ export function ElementDetail({
     node.kind === 'building_block' && node.elementId
       ? implementerItems(doc, node.elementId)
       : [];
-  // What the element is, under its name: a module's, a block's, a behaviour's.
+  // What the element is, under its name: a module's, a block's, a behavior's.
   const designed = designedOf(doc, node);
   // An element the design leaves alone is still shown: its definition is too.
   const definition: DesignDocFieldInput<string> | undefined =
@@ -168,7 +168,7 @@ function elementRefOf(node: OutlineNode): UnitRef | null {
   if (node.elementId === null) return null;
   return node.kind === 'module' ||
     node.kind === 'building_block' ||
-    node.kind === 'behaviour'
+    node.kind === 'behavior'
     ? { kind: node.kind, id: node.elementId }
     : null;
 }
@@ -205,8 +205,8 @@ function designedOf(doc: DesignDocumentInput, node: OutlineNode) {
       ? doc.modules
       : node.kind === 'building_block'
         ? doc.buildingBlocks
-        : node.kind === 'behaviour'
-          ? doc.behaviours
+        : node.kind === 'behavior'
+          ? doc.behaviors
           : undefined;
   return collection === undefined
     ? undefined

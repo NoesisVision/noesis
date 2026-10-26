@@ -76,7 +76,7 @@ export const Visibility = () => (
       public
     </Badge>
     <Badge size="xs" variant="default">
-      behaviour
+      behavior
     </Badge>
   </Group>
 );

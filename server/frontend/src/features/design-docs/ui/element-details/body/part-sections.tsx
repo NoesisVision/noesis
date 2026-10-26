@@ -19,15 +19,15 @@ export const partSections = (
   if (node.parentPath === null) return [];
   const { elementId: ownerId, rule: ruleName } = ownerOfPart(node.parentPath);
   const block = findById(doc.buildingBlocks, ownerId);
-  const behaviour = block ? null : findById(doc.behaviours, ownerId);
-  const module = block || behaviour ? null : findById(doc.modules, ownerId);
-  const parts = block ?? behaviour ?? module;
+  const behavior = block ? null : findById(doc.behaviors, ownerId);
+  const module = block || behavior ? null : findById(doc.modules, ownerId);
+  const parts = block ?? behavior ?? module;
   if (parts === null) return [];
   const owner: OwnerRef = {
-    collection: block ? 'buildingBlocks' : behaviour ? 'behaviours' : 'modules',
+    collection: block ? 'buildingBlocks' : behavior ? 'behaviors' : 'modules',
     id: ownerId,
   };
-  const scenarios = (block ?? behaviour)?.scenarios;
+  const scenarios = (block ?? behavior)?.scenarios;
 
   if (node.kind === 'property') {
     const property = block && findByName(block.properties, node.name);

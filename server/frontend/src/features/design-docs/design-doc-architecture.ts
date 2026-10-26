@@ -1,7 +1,7 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
-  DesignedBehaviourInput,
+  DesignedBehaviorInput,
   DesignedBuildingBlockInput,
   DesignedRuleInput,
 } from '#backend/app/design-docs/design-doc.ts';
@@ -19,7 +19,7 @@ import {
   type ArchitectureOutline,
   type Hexagon,
   isDrivenPort,
-  type PlacedBehaviour,
+  type PlacedBehavior,
   type PlacedBlock,
   type PlacedElement,
   type PlacedRule,
@@ -32,7 +32,7 @@ import {
 } from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
 import {
-  asBehaviour,
+  asBehavior,
   asBuildingBlock,
   blockOfRef,
   moduleOf,
@@ -43,7 +43,7 @@ import {
 /*
  * The design read on the assumption that the system it designs is built as
  * hexagons: each module that holds building blocks is one, its application
- * services' public behaviours are the ports that drive it, and its
+ * services' public behaviors are the ports that drive it, and its
  * repositories and external integrations are the ports it drives. Nothing
  * here is stored — it is the same document, placed in rings by the building
  * block types it already names.
@@ -65,7 +65,7 @@ export function architectureOf(
   document: DesignDocumentInput,
 ): ArchitectureOutline {
   const blocks = [...named(document.buildingBlocks)];
-  const behaviours = [...named(document.behaviours)];
+  const behaviors = [...named(document.behaviors)];
   const typeOf = new Map(
     blocks.map(([block]) => [block.id, valueOf(block.type)]),
   );
@@ -82,42 +82,42 @@ export function architectureOf(
   };
 
   const ports = new Set<BehaviorId>();
-  for (const [item, change] of behaviours) {
+  for (const [item, change] of behaviors) {
     const owner = ownerOf(item.id);
     const visibility = valueOf(item.visibility);
     const type = typeOf.get(owner);
-    // A design may change a behaviour and leave its block out: nothing says
-    // what the block is, and the behaviour has no block here to be read with.
+    // A design may change a behavior and leave its block out: nothing says
+    // what the block is, and the behavior has no block here to be read with.
     if (type === undefined) {
-      unplaced.push(behaviourElement(item, change));
+      unplaced.push(behaviorElement(item, change));
       continue;
     }
     if (type !== APPLICATION_SERVICE) {
       // A block whose type the design leaves alone may well be a service.
       if (visibility?.kind === 'public' && type !== null)
-        hexagonOf(owner).exposed.push(behaviourElement(item, change));
+        hexagonOf(owner).exposed.push(behaviorElement(item, change));
       continue;
     }
     if (visibility === null) {
-      unplaced.push(behaviourElement(item, change));
+      unplaced.push(behaviorElement(item, change));
       continue;
     }
     if (visibility.kind !== 'public') continue;
-    ports.add(asBehaviour(item.id));
+    ports.add(asBehavior(item.id));
     hexagonOf(owner).drivingPorts.push({
-      behaviour: behaviourElement(item, change),
+      behavior: behaviorElement(item, change),
       service: owner,
       actors: visibility.actors,
     });
   }
 
   for (const [item, change] of blocks) {
-    const own = behaviours
-      .map(([behaviour]) => behaviour)
+    const own = behaviors
+      .map(([behavior]) => behavior)
       .filter(
-        (behaviour) =>
-          ownerOf(behaviour.id) === item.id &&
-          !ports.has(asBehaviour(behaviour.id)),
+        (behavior) =>
+          ownerOf(behavior.id) === item.id &&
+          !ports.has(asBehavior(behavior.id)),
       );
     const element = blockElement(item, change, own);
     const ring = ringOf(element.pattern);
@@ -150,29 +150,29 @@ function needsAtPorts(
   return writtenIn(document.needs).map((need) => ({
     need,
     ports: ports
-      .filter(({ behaviour }) =>
-        behaviour.rules.some((rule) => rule.needs.includes(need.id)),
+      .filter(({ behavior }) =>
+        behavior.rules.some((rule) => rule.needs.includes(need.id)),
       )
-      .map(({ behaviour }) => behaviour.id),
+      .map(({ behavior }) => behavior.id),
   }));
 }
 
-/** A type one behaviour gives back and another takes, read from the types alone. */
+/** A type one behavior gives back and another takes, read from the types alone. */
 export interface InferredFlow {
   direction: 'gives' | 'takes';
   type: BuildingBlockId;
-  /** The behaviour at the other end. */
+  /** The behavior at the other end. */
   other: { id: BehaviorId; name: string; owner: string };
   /**
-   * The types match, but the design keeps the two apart: a private behaviour
+   * The types match, but the design keeps the two apart: a private behavior
    * in another hexagon cannot be what takes it.
    */
   typeMatchOnly: boolean;
 }
 
 /**
- * For one element — a behaviour, or a building block through its behaviours —
- * every behaviour that takes a type it gives back, or gives back a type it
+ * For one element — a behavior, or a building block through its behaviors —
+ * every behavior that takes a type it gives back, or gives back a type it
  * takes. The document has no calls, so this is a guess from the types, never
  * drawn as an edge.
  */
@@ -181,22 +181,22 @@ export function inferredFlowOf(
   outline: ArchitectureOutline,
   elementId: string,
 ): InferredFlow[] {
-  const behaviours = writtenIn(document.behaviours).map((behaviour) => ({
-    id: asBehaviour(behaviour.id),
-    inputs: blocksOf(inputTypesOf(behaviour)),
-    outputs: blocksOf(outputTypesOf(behaviour)),
+  const behaviors = writtenIn(document.behaviors).map((behavior) => ({
+    id: asBehavior(behavior.id),
+    inputs: blocksOf(inputTypesOf(behavior)),
+    outputs: blocksOf(outputTypesOf(behavior)),
   }));
   const isOwn = (id: string) => id === elementId || ownerOf(id) === elementId;
   const ports = new Set(
     outline.hexagons.flatMap(({ drivingPorts }) =>
-      drivingPorts.map(({ behaviour }) => behaviour.id),
+      drivingPorts.map(({ behavior }) => behavior.id),
     ),
   );
-  // By what a reader is told: a block whose behaviours share a type would
+  // By what a reader is told: a block whose behaviors share a type would
   // otherwise say the same flow once for each of them.
   const flows = new Map<string, InferredFlow>();
-  for (const mine of behaviours.filter(({ id }) => isOwn(id)))
-    for (const other of behaviours.filter(({ id }) => !isOwn(id))) {
+  for (const mine of behaviors.filter(({ id }) => isOwn(id)))
+    for (const other of behaviors.filter(({ id }) => !isOwn(id))) {
       const flow = (
         direction: InferredFlow['direction'],
         type: BuildingBlockId,
@@ -206,7 +206,7 @@ export function inferredFlowOf(
           moduleOf(mine.id) !== moduleOf(other.id) && !ports.has(taker);
         const key = `${direction}:${type}:${other.id}`;
         const known = flows.get(key);
-        // One behaviour that can take it is enough for more than a match.
+        // One behavior that can take it is enough for more than a match.
         if (known) known.typeMatchOnly &&= typeMatchOnly;
         else
           flows.set(key, {
@@ -244,7 +244,7 @@ const coreRank = (pattern: BuildingBlockType | null) =>
 function blockElement(
   block: DesignedBuildingBlockInput,
   change: OutlineChange,
-  behaviours: DesignedBehaviourInput[],
+  behaviors: DesignedBehaviorInput[],
 ): PlacedBlock {
   return {
     id: asBuildingBlock(block.id),
@@ -253,37 +253,37 @@ function blockElement(
     change,
     uses: usesOf(block.id, [
       ...writtenIn(block.properties).map(({ type }) => valueOf(type)),
-      ...behaviours.flatMap(typesOfBehaviour),
+      ...behaviors.flatMap(typesOfBehavior),
     ]),
-    rules: [block, ...behaviours].flatMap(rulesOf),
+    rules: [block, ...behaviors].flatMap(rulesOf),
   };
 }
 
-function behaviourElement(
-  behaviour: DesignedBehaviourInput,
+function behaviorElement(
+  behavior: DesignedBehaviorInput,
   change: OutlineChange,
-): PlacedBehaviour {
+): PlacedBehavior {
   return {
-    id: asBehaviour(behaviour.id),
-    name: nameOf(behaviour.id),
-    pattern: valueOf(behaviour.type),
+    id: asBehavior(behavior.id),
+    name: nameOf(behavior.id),
+    pattern: valueOf(behavior.type),
     change,
-    uses: usesOf(behaviour.id, typesOfBehaviour(behaviour)),
-    rules: rulesOf(behaviour),
+    uses: usesOf(behavior.id, typesOfBehavior(behavior)),
+    rules: rulesOf(behavior),
   };
 }
 
-const inputTypesOf = (behaviour: DesignedBehaviourInput) =>
-  writtenIn(behaviour.input).map(({ type }) => valueOf(type));
+const inputTypesOf = (behavior: DesignedBehaviorInput) =>
+  writtenIn(behavior.input).map(({ type }) => valueOf(type));
 
-const outputTypesOf = (behaviour: DesignedBehaviourInput) =>
-  writtenIn(behaviour.output).map(({ type }) => type);
+const outputTypesOf = (behavior: DesignedBehaviorInput) =>
+  writtenIn(behavior.output).map(({ type }) => type);
 
-const typesOfBehaviour = (
-  behaviour: DesignedBehaviourInput,
+const typesOfBehavior = (
+  behavior: DesignedBehaviorInput,
 ): (BuildingBlockRefInput | null)[] => [
-  ...inputTypesOf(behaviour),
-  ...outputTypesOf(behaviour),
+  ...inputTypesOf(behavior),
+  ...outputTypesOf(behavior),
 ];
 
 const blocksOf = (types: (BuildingBlockRefInput | null)[]) =>

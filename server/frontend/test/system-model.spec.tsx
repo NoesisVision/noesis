@@ -36,14 +36,14 @@ describe('The scanned model as a design', () => {
     expect(document.buildingBlocks.added).toHaveLength(
       model.buildingBlocks.length,
     );
-    expect(document.behaviours.added).toHaveLength(model.behaviours.length);
+    expect(document.behaviors.added).toHaveLength(model.behaviors.length);
   });
 });
 
 describe('ModelReader', () => {
   const page = reading(OFFER);
 
-  it('reads the element in hand, with its behaviours and properties', () => {
+  it('reads the element in hand, with its behaviors and properties', () => {
     expect(page).toMatch(/<h2[^>]*>.*DiscountedOffer.*<\/h2>/);
     expect(page).toContain('applyDiscount');
     expect(page).toContain('offerLevelDiscounts');

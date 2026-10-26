@@ -191,11 +191,11 @@ describe('what an element in hand is called', () => {
     );
   });
 
-  it('calls a behaviour no card draws a behaviour, not the ring of a card', () => {
+  it('calls a behavior no card draws a behavior, not the ring of a card', () => {
     const html = render(
       'element:behavior|qdocmanagement.preparation.QDoc.create',
     );
-    expect(html).toContain('>Behaviour<');
+    expect(html).toContain('>Behavior<');
   });
 });
 

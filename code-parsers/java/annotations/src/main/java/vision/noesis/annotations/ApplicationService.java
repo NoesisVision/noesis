@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 /**
  * Marks a class as an application service — the building block that exposes
- * handler behaviours for {@link Command}, {@link Query} and {@link Event} messages.
+ * handler behaviors for {@link Command}, {@link Query} and {@link Event} messages.
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

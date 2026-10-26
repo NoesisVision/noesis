@@ -145,7 +145,7 @@ export const changedEverywhereFixture = {
       },
     ],
   },
-  behaviours: {
+  behaviors: {
     added: [
       {
         id: 'behavior|sales.refunds.Refund.issue',

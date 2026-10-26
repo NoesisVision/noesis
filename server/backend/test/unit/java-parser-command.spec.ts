@@ -142,9 +142,9 @@ describe('The java parser configured in .noesis/settings.json', () => {
     expect<unknown>(
       model.buildingBlocks.map((b) => [b.id, b.type]),
     ).toContainEqual(['building_block|shop.orders.Order', 'aggregate']);
-    expect<unknown>(
-      model.behaviours.find((b) => b.name === 'total')?.type,
-    ).toBe('Query');
+    expect<unknown>(model.behaviors.find((b) => b.name === 'total')?.type).toBe(
+      'Query',
+    );
   });
 
   it('refuses a command that writes a C# code model', async () => {

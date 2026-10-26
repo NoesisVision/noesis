@@ -21,16 +21,16 @@ more about its language changes its own output and nothing in the service.
 
 ## 1. What the projection knows about languages today
 
-| Knowledge                                                        | Where                                                         | Projection rules       |
-| ---------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------- |
-| Which annotation means which role (aggregate, behaviour, actor…) | `roles`, `arguments` of each vocabulary                       | section 2, R4, R9.2    |
-| Which types are the model's primitives                           | `primitives` (keywords and platform type ids)                 | R7.2                   |
-| Which types are collections, dictionaries, wrappers, optional    | `collections`, `dictionaries`, `wrappers`, `optionalWrappers` | R7.1, R7.3             |
-| Which types mean no value                                        | `voidTypes`                                                   | R7.1, R9.7             |
-| Which methods are never behaviours (`equals`, `ToString`…)       | `technicalMembers`                                            | R9.1                   |
-| A Java record's components are properties, their accessors not   | the bag key `java.isRecordComponent`, read in the projection  | R5.7, R9.1             |
-| A Java field behind a getter is a property, the getter not       | `language === 'java'` and `T:java.lang.Boolean` in the code   | R5.8, R9.1             |
-| A C# event is no property                                        | `PropertyNode.accessors` `add`/`remove`                       | R5.1 (already neutral) |
+| Knowledge                                                       | Where                                                         | Projection rules       |
+| --------------------------------------------------------------- | ------------------------------------------------------------- | ---------------------- |
+| Which annotation means which role (aggregate, behavior, actor…) | `roles`, `arguments` of each vocabulary                       | section 2, R4, R9.2    |
+| Which types are the model's primitives                          | `primitives` (keywords and platform type ids)                 | R7.2                   |
+| Which types are collections, dictionaries, wrappers, optional   | `collections`, `dictionaries`, `wrappers`, `optionalWrappers` | R7.1, R7.3             |
+| Which types mean no value                                       | `voidTypes`                                                   | R7.1, R9.7             |
+| Which methods are never behaviors (`equals`, `ToString`…)       | `technicalMembers`                                            | R9.1                   |
+| A Java record's components are properties, their accessors not  | the bag key `java.isRecordComponent`, read in the projection  | R5.7, R9.1             |
+| A Java field behind a getter is a property, the getter not      | `language === 'java'` and `T:java.lang.Boolean` in the code   | R5.8, R9.1             |
+| A C# event is no property                                       | `PropertyNode.accessors` `add`/`remove`                       | R5.1 (already neutral) |
 
 Only the first row is about Noesis; every other row is a fact about the
 language or its platform, which the parser knows better than any table:
@@ -46,7 +46,7 @@ those values, and a test fails when the projection's sources mention a
 language (section 7).
 
 What stays in the projection is what Noesis means by a system model: which
-declarations become modules, building blocks and behaviours, how overloads
+declarations become modules, building blocks and behaviors, how overloads
 collapse (R9.3), how a type parameter resolves through its constraint (R7.5),
 how an unmapped generic is looked through (R7.6), how roles are inherited
 along `OVERRIDES` and `IMPLEMENTS_MEMBER` (R9.2), and the repository's
@@ -115,9 +115,9 @@ language makes technical without overriding anything (C#'s `Deconstruct`,
 `PrintMembers`) is classified on its own node by the parser.
 
 Not every member of a platform type is technical: a domain class that
-implements `Function<Order, Money>` has a behaviour `apply`. The parser
+implements `Function<Order, Money>` has a behavior `apply`. The parser
 classifies the members above, not every platform member, so that stays a
-behaviour, as today.
+behavior, as today.
 
 ### 3.3 Properties: Java property nodes, and `accessorOf`
 
@@ -142,7 +142,7 @@ Each accessor method gets a link to its property:
 MethodNode.accessorOf: NodeId | null     // the P: id of the property it reads or writes
 ```
 
-R9.1 then excludes a method whose `accessorOf` is set, unless a `behaviour`
+R9.1 then excludes a method whose `accessorOf` is set, unless a `behavior`
 role says otherwise, which replaces both R5.7 and R5.8 and removes the read
 of `java.isRecordComponent` (the parser may keep the bag key for its own
 readers). C# accessors are not method nodes, so `accessorOf` stays `null`
@@ -164,7 +164,7 @@ Annotation.role: AnnotationRole | null
 
 AnnotationRole =
   | { role: 'buildingBlock', type: BuildingBlockType, name: string | null }
-  | { role: 'behaviour', type: BehaviourType | null, name: string | null }
+  | { role: 'behavior', type: BehaviorType | null, name: string | null }
   | { role: 'actor', name: string }
   | { role: 'description', text: string }
   | { role: 'scenario', name: string }
@@ -174,9 +174,9 @@ AnnotationRole =
 The arguments a role reads (`name`, `TriggeredBy`, `markdownText`) are
 resolved by the parser into the role's fields, so `arguments` leaves the
 vocabulary too; the annotation's own arguments stay for whoever reads them.
-Java's `@QueryHandler` fixing the behaviour's type (R9.4) is a role with a
+Java's `@QueryHandler` fixing the behavior's type (R9.4) is a role with a
 `type`, written by the parser. R9.2 (a role on the member overridden or
-implemented names the behaviour too) keeps working, because roles travel with
+implemented names the behavior too) keeps working, because roles travel with
 the annotations on every node.
 
 Where the parser takes the table from is a choice, in two steps:

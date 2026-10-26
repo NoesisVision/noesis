@@ -42,7 +42,7 @@ export function getDesignDocInChangeTool(
     GET_DESIGN_DOC_IN_CHANGE,
     {
       title: 'Get design document in change',
-      description: `Answers with one design document of a change, whole and as stored now: its name, description, needs, modules, building blocks and behaviours, each field with its author. Find the id with ${LIST_DESIGN_DOCS_IN_CHANGE}. To revise it, name a "workingFile": the design document is written there as the working file ${UPDATE_DESIGN_DOC_IN_CHANGE} reads, without "id" and "implementedAt", and only its path comes back.`,
+      description: `Answers with one design document of a change, whole and as stored now: its name, description, needs, modules, building blocks and behaviors, each field with its author. Find the id with ${LIST_DESIGN_DOCS_IN_CHANGE}. To revise it, name a "workingFile": the design document is written there as the working file ${UPDATE_DESIGN_DOC_IN_CHANGE} reads, without "id" and "implementedAt", and only its path comes back.`,
       inputSchema: inputSchema(files),
       outputSchema,
       annotations: READ_ONLY,

@@ -48,7 +48,7 @@
   list-style: none;
 }
 
-/* What a behaviour gives back, one under another however few there are. */
+/* What a behavior gives back, one under another however few there are. */
 .list[data-output] {
   flex-direction: column;
 }

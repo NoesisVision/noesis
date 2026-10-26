@@ -1,7 +1,7 @@
 import type {
   DesignDocumentInput,
   DesignDocViolation,
-  DesignedBehaviourInput,
+  DesignedBehaviorInput,
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
   DesignedNeedInput,
@@ -12,7 +12,7 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BehaviourType,
+  BehaviorType,
   BuildingBlockRefInput,
   BuildingBlockType,
   RuleCategory,
@@ -48,7 +48,7 @@ import {
  * once it has found that set.
  */
 
-export type ElementKind = 'module' | 'building_block' | 'behaviour';
+export type ElementKind = 'module' | 'building_block' | 'behavior';
 type PartKind =
   | 'rule'
   | 'scenario'
@@ -80,7 +80,7 @@ interface UnitOf {
   need: DesignedNeedInput;
   module: DesignedDomainModuleInput;
   building_block: DesignedBuildingBlockInput;
-  behaviour: DesignedBehaviourInput;
+  behavior: DesignedBehaviorInput;
   rule: DesignedRuleInput;
   scenario: DesignedScenarioInput;
   property: DesignedPropertyInput;
@@ -94,7 +94,7 @@ export const UNIT_LABEL: Record<UnitKind, string> = {
   need: 'need',
   module: 'module',
   building_block: 'building block',
-  behaviour: 'behaviour',
+  behavior: 'behavior',
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',
@@ -107,7 +107,7 @@ const COLLECTION_OF = {
   need: 'needs',
   module: 'modules',
   building_block: 'buildingBlocks',
-  behaviour: 'behaviours',
+  behavior: 'behaviors',
 } as const satisfies Record<'need' | ElementKind, keyof DesignDocumentInput>;
 
 const PART_SET: Record<PartKind, string> = {
@@ -119,7 +119,7 @@ const PART_SET: Record<PartKind, string> = {
   implements: 'implements',
 };
 
-const ELEMENT_KINDS = ['module', 'building_block', 'behaviour'] as const;
+const ELEMENT_KINDS = ['module', 'building_block', 'behavior'] as const;
 
 const isPart = (kind: UnitKind): kind is PartKind => kind in PART_SET;
 
@@ -213,7 +213,7 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
     }
     case 'module':
     case 'building_block':
-    case 'behaviour':
+    case 'behavior':
     case 'implements':
       return nameOf(ref.id);
     case 'result':
@@ -319,7 +319,7 @@ export function unitsWithin(doc: DesignDocumentInput, ref: UnitRef): number {
 export const canMove = (doc: DesignDocumentInput, ref: UnitRef): boolean =>
   (ref.kind === 'module' ||
     ref.kind === 'building_block' ||
-    ref.kind === 'behaviour') &&
+    ref.kind === 'behavior') &&
   unitStateOf(doc, ref) === 'added';
 
 /** The id an element takes under another parent: its name stays, its place changes. */
@@ -328,7 +328,7 @@ export const movedIdOf = (ref: UnitRef, to: string | null): string =>
 
 /**
  * Where an element may go: a module or a building block into any module the
- * design names or stands in, a module to the top as well, a behaviour into
+ * design names or stands in, a module to the top as well, a behavior into
  * any building block. Never into itself, nowhere the design removes, not
  * where it already is, and not where one of its name already stands.
  */
@@ -337,7 +337,7 @@ export function moveDestinationsOf(
   ref: UnitRef,
 ): (string | null)[] {
   if (!canMove(doc, ref)) return [];
-  const parentKind = ref.kind === 'behaviour' ? 'building_block' : 'module';
+  const parentKind = ref.kind === 'behavior' ? 'building_block' : 'module';
   const candidates: (string | null)[] = [
     ...(ref.kind === 'module' ? [null] : []),
     ...parentsNamedIn(doc, parentKind),
@@ -454,7 +454,7 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
     field('definition'),
     field('diagram'),
   ],
-  behaviour: [
+  behavior: [
     field('name'),
     field('type'),
     field('visibility'),
@@ -488,7 +488,7 @@ export const TYPES_OF: Partial<Record<UnitKind, readonly string[]>> = {
     'factory',
     'external_integration',
   ] satisfies BuildingBlockType[],
-  behaviour: ['Command', 'Event', 'Query'] satisfies BehaviourType[],
+  behavior: ['Command', 'Event', 'Query'] satisfies BehaviorType[],
 };
 
 /** The rule types each category allows, as the server's `RULE_TYPES_OF` has them. */

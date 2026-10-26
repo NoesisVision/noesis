@@ -18,7 +18,7 @@ const outputSchema = z
       .extend({
         modules: z.int().describe('How many domain modules it holds.'),
         buildingBlocks: z.int().describe('How many building blocks it holds.'),
-        behaviours: z.int().describe('How many behaviours it holds.'),
+        behaviors: z.int().describe('How many behaviors it holds.'),
       })
       .describe('The model as stored, counted rather than inlined.'),
   })
@@ -31,7 +31,7 @@ export function scanSystemModelTool(
     SCAN_SYSTEM_MODEL,
     {
       title: 'Scan system model',
-      description: `Scans the repository's code and stores the system model found — its modules, building blocks and behaviours — as a new scan, keeping every one before; ${GET_NEWEST_SYSTEM_MODEL} answers with the latest. Design documents are diffs against this model, so scan before designing a change against code that has moved on. Answers with the id the scanner minted, the model's name, scan time and how many elements of each kind it holds.`,
+      description: `Scans the repository's code and stores the system model found — its modules, building blocks and behaviors — as a new scan, keeping every one before; ${GET_NEWEST_SYSTEM_MODEL} answers with the latest. Design documents are diffs against this model, so scan before designing a change against code that has moved on. Answers with the id the scanner minted, the model's name, scan time and how many elements of each kind it holds.`,
       inputSchema,
       outputSchema,
       annotations: CREATE,
@@ -47,10 +47,10 @@ function scanned(model: SystemModel): CallToolResult {
     scanned_at: model.scanned_at,
     modules: model.modules.length,
     buildingBlocks: model.buildingBlocks.length,
-    behaviours: model.behaviours.length,
+    behaviors: model.behaviors.length,
   };
   return success(
-    `Scanned ${model.name} (${model.id}): ${systemModel.modules} modules, ${systemModel.buildingBlocks} building blocks, ${systemModel.behaviours} behaviours.`,
+    `Scanned ${model.name} (${model.id}): ${systemModel.modules} modules, ${systemModel.buildingBlocks} building blocks, ${systemModel.behaviors} behaviors.`,
     { systemModel },
   );
 }

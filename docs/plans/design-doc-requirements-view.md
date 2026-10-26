@@ -1,7 +1,7 @@
 # Plan: the requirements view of a design document
 
 A design document is read today as a model: an outline of modules, building
-blocks and behaviours, with the rules and scenarios of the element selected.
+blocks and behaviors, with the rules and scenarios of the element selected.
 Once `design-doc-needs.md` is in, the same document also holds the
 stakeholder needs and, on every rule, its category, the needs it answers and
 its rationale. This plan adds a second view of a design document that lays
@@ -48,7 +48,7 @@ Change note: <the change note of a modified rule>
 ▸ Details  <category> · <module name> › <element name>     (collapsed)
   - Category: <category> · <ruleType>
   - Subsystem: <name of the module the rule's element sits in>
-  - Element: <the module, building block or behaviour the rule is on>, linked to the model view
+  - Element: <the module, building block or behavior the rule is on>, linked to the model view
   - Rationale: <rule.rationale>
   - Trace: <names of rule.needs>
 Verification: <each scenario as given / when / then>, or "No scenario verifies this rule"
@@ -107,13 +107,13 @@ interface TracedRule {
   element: {
     id: string;
     name: string;
-    kind: 'module' | 'buildingBlock' | 'behaviour';
+    kind: 'module' | 'buildingBlock' | 'behavior';
   };
   module: { id: ModuleId; name: string };
 }
 ```
 
-It walks the rules of every module, building block and behaviour, in the
+It walks the rules of every module, building block and behavior, in the
 order the outline walks them. A name the design leaves unchanged on a
 modified element comes from the system model the model view already loads.
 

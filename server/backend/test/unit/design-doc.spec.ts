@@ -9,7 +9,7 @@ import {
 
 /*
  * A design document is a diff against the scanned model: the modules,
- * building blocks and behaviours a change adds, modifies or removes. An agent
+ * building blocks and behaviors a change adds, modifies or removes. An agent
  * writes it; a human reviews it.
  */
 
@@ -31,11 +31,11 @@ const addingRefund = (block: object) =>
     },
   });
 
-/** A design that adds one behaviour, with the given fields. */
-const addingIssue = (behaviour: object) =>
+/** A design that adds one behavior, with the given fields. */
+const addingIssue = (behavior: object) =>
   design({
-    behaviours: {
-      added: [{ id: ISSUE, name: { value: 'issue' }, ...behaviour }],
+    behaviors: {
+      added: [{ id: ISSUE, name: { value: 'issue' }, ...behavior }],
     },
   });
 
@@ -124,7 +124,7 @@ describe('The elements a design changes', () => {
     ]);
   });
 
-  it('names a module, a building block and a behaviour each by an id of its own kind', () => {
+  it('names a module, a building block and a behavior each by an id of its own kind', () => {
     expect(isValid(design({ modules: { added: [{ id: REFUND }] } }))).toBe(
       false,
     );
@@ -133,7 +133,7 @@ describe('The elements a design changes', () => {
         design({ buildingBlocks: { removed: ['module|sales.refunds'] } }),
       ),
     ).toBe(false);
-    expect(isValid(design({ behaviours: { removed: [REFUND] } }))).toBe(false);
+    expect(isValid(design({ behaviors: { removed: [REFUND] } }))).toBe(false);
   });
 
   it('removes a property, a rule or a scenario by its name', () => {
@@ -151,7 +151,7 @@ describe('The elements a design changes', () => {
     expect(block.scenarios.removed).toEqual(['Refunding a whole order']);
   });
 
-  it('holds the scenarios of a building block, a behaviour and a rule', () => {
+  it('holds the scenarios of a building block, a behavior and a rule', () => {
     const parsed = DesignDocument.parse(
       addingRefund({
         rules: {
@@ -213,7 +213,7 @@ describe('The elements a design changes', () => {
   it('knows an input by its name and an output by its type', () => {
     const parsed = DesignDocument.parse(
       design({
-        behaviours: {
+        behaviors: {
           modified: [
             {
               id: ISSUE,
@@ -230,7 +230,7 @@ describe('The elements a design changes', () => {
         },
       }),
     );
-    const issue = parsed.behaviours.modified[0]!;
+    const issue = parsed.behaviors.modified[0]!;
 
     expect(issue.input.removed).toEqual(['note']);
     expect(issue.input.modified[0]?.name).toBe('reason');
@@ -250,7 +250,7 @@ describe('The elements a design changes', () => {
     expect(isValid(addingIssue({ input: { removed: [REFUND] } }))).toBe(false);
   });
 
-  it('classifies a building block, a behaviour and a rule only by the known types', () => {
+  it('classifies a building block, a behavior and a rule only by the known types', () => {
     expect(isValid(addingRefund({ type: { value: 'aggregate' } }))).toBe(true);
     expect(isValid(addingRefund({ type: { value: 'controller' } }))).toBe(
       false,
@@ -335,12 +335,12 @@ describe('The type of a property, an input or an output', () => {
     expect(isValid(withType('decimal'))).toBe(false);
   });
 
-  it('is never a module or a behaviour', () => {
+  it('is never a module or a behavior', () => {
     expect(isValid(withType('module|sales.refunds'))).toBe(false);
     expect(isValid(withType(ISSUE))).toBe(false);
   });
 
-  it('types the inputs and outputs of a behaviour the same way', () => {
+  it('types the inputs and outputs of a behavior the same way', () => {
     expect(
       isValid(
         addingIssue({
@@ -373,8 +373,8 @@ describe('The type of a property, an input or an output', () => {
   });
 });
 
-describe('The visibility of a behaviour', () => {
-  it('names the actors that may call a public behaviour', () => {
+describe('The visibility of a behavior', () => {
+  it('names the actors that may call a public behavior', () => {
     expect(
       isValid(
         addingIssue({
@@ -384,7 +384,7 @@ describe('The visibility of a behaviour', () => {
     ).toBe(true);
   });
 
-  it('names no actor for a private behaviour', () => {
+  it('names no actor for a private behavior', () => {
     expect(
       isValid(addingIssue({ visibility: { value: { kind: 'private' } } })),
     ).toBe(true);
@@ -443,7 +443,7 @@ describe('A design document an agent wrote', () => {
         source,
       },
     ],
-    behaviours: [
+    behaviors: [
       {
         id: CANCEL,
         buildingBlockId: ORDER,
@@ -474,7 +474,7 @@ describe('A design document an agent wrote', () => {
           design({
             modules: { modified: [{ id: ORDERS }] },
             buildingBlocks: { removed: [ORDER] },
-            behaviours: { modified: [{ id: CANCEL }] },
+            behaviors: { modified: [{ id: CANCEL }] },
           }),
         ),
       ).toEqual([
@@ -484,7 +484,7 @@ describe('A design document an agent wrote', () => {
           reason: 'changedInGreenField',
         },
         {
-          path: `behaviours.modified[${CANCEL}]`,
+          path: `behaviors.modified[${CANCEL}]`,
           reason: 'changedInGreenField',
         },
       ]);
@@ -522,7 +522,7 @@ describe('A design document an agent wrote', () => {
           design({
             modules: { modified: [{ id: ORDERS }] },
             buildingBlocks: { modified: [{ id: ORDER }] },
-            behaviours: { removed: [CANCEL] },
+            behaviors: { removed: [CANCEL] },
           }),
           scanned,
         ),
@@ -536,7 +536,7 @@ describe('A design document an agent wrote', () => {
         validate(
           design({
             buildingBlocks: { modified: [{ id: missing }] },
-            behaviours: { removed: ['behavior|sales.orders.Order.ship'] },
+            behaviors: { removed: ['behavior|sales.orders.Order.ship'] },
           }),
           scanned,
         ),
@@ -546,7 +546,7 @@ describe('A design document an agent wrote', () => {
           reason: 'unknownElement',
         },
         {
-          path: 'behaviours.removed[behavior|sales.orders.Order.ship]',
+          path: 'behaviors.removed[behavior|sales.orders.Order.ship]',
           reason: 'unknownElement',
         },
       ]);
@@ -577,7 +577,7 @@ describe('A design document an agent wrote', () => {
                 },
               ],
             },
-            behaviours: {
+            behaviors: {
               modified: [
                 {
                   id: CANCEL,
@@ -623,7 +623,7 @@ describe('A design document an agent wrote', () => {
                 },
               ],
             },
-            behaviours: {
+            behaviors: {
               modified: [
                 {
                   id: CANCEL,
@@ -653,11 +653,11 @@ describe('A design document an agent wrote', () => {
           reason: 'unknownElement',
         },
         {
-          path: `behaviours.modified[${CANCEL}].input.removed[orders]`,
+          path: `behaviors.modified[${CANCEL}].input.removed[orders]`,
           reason: 'unknownElement',
         },
         {
-          path: `behaviours.modified[${CANCEL}].output.removed[{"collectionOf":"${ORDER}"}]`,
+          path: `behaviors.modified[${CANCEL}].output.removed[{"collectionOf":"${ORDER}"}]`,
           reason: 'unknownElement',
         },
       ]);
@@ -797,7 +797,7 @@ describe('A design document an agent wrote', () => {
         ),
       ).toEqual([
         {
-          path: `behaviours.added[${ISSUE}].definition`,
+          path: `behaviors.added[${ISSUE}].definition`,
           reason: 'diagramInDefinition',
         },
       ]);

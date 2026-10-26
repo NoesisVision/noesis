@@ -10,7 +10,7 @@ sees when they open the design, before the tree of what it changes. It is a
 short guide to reading the changes in the model, from the general to the
 particular: a skeleton the reader hangs their own understanding on while
 they walk the elements. It speaks the model's language, names building
-blocks and behaviours as the design does, and links them.
+blocks and behaviors as the design does, and links them.
 
 Readers learn the domain from the requirements view and the change's
 documents; the overview does not teach it again. It says what changes in the
@@ -19,7 +19,7 @@ model and which need or requirement each change answers, nothing more.
 ## Facts only
 
 - Every sentence states something the design itself shows (a module, a
-  building block, a behaviour, a rule, an event) or something a source
+  building block, a behavior, a rule, an event) or something a source
   states.
 - Give a reason only when a source states it, and cite the source: link the
   need (`noesis:need|…`), or name the requirement or decision id the
@@ -58,8 +58,8 @@ model and which need or requirement each change answers, nothing more.
 
 Write links as the contract says, to elements and to needs.
 
-- **Elements:** the label is the element's name, or `Block.behaviour` for a
-  behaviour. A property, rule or scenario has no id: name it in words beside
+- **Elements:** the label is the element's name, or `Block.behavior` for a
+  behavior. A property, rule or scenario has no id: name it in words beside
   its element's link. An element opens in the model view.
 - **Needs:** link every need the design states where a change answers it.
   A need opens in the requirements view.

@@ -1,6 +1,6 @@
 using NoesisVision.Annotations.Domain.DDD;
 
-// The behaviours every invocation chain in this folder ends at: one per chain, so the
+// The behaviors every invocation chain in this folder ends at: one per chain, so the
 // expected `invokes` of each caller names exactly what reached it.
 namespace CSharpSyntax.Projection.Invocations;
 
@@ -56,5 +56,5 @@ public static class Reached
     public static void ByOperatorBody() { }
     public static void ByPropertyGetter() { }
     public static int ByFieldInitializer() => 0;
-    public static void ByPrivateBehaviour() { }
+    public static void ByPrivateBehavior() { }
 }

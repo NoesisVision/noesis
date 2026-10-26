@@ -7,12 +7,12 @@ import type { PartOwner } from '../../design-doc-edit.ts';
  * write from it can name exactly what it changes.
  */
 export type OwnerRef = {
-  collection: 'modules' | 'buildingBlocks' | 'behaviours';
+  collection: 'modules' | 'buildingBlocks' | 'behaviors';
   id: string;
 };
 
 export type ElementRef =
-  | { collection: 'modules' | 'buildingBlocks' | 'behaviours'; id: string }
+  | { collection: 'modules' | 'buildingBlocks' | 'behaviors'; id: string }
   | {
       owner: OwnerRef;
       part: 'properties' | 'rules' | 'scenarios';
@@ -24,7 +24,7 @@ export type ElementRef =
 const KIND_OF = {
   modules: 'module',
   buildingBlocks: 'building_block',
-  behaviours: 'behaviour',
+  behaviors: 'behavior',
 } as const;
 
 /** The element a section's parts are written in; none for a part's own section. */

@@ -8,7 +8,7 @@ import {
  * encoding it again gives back exactly this object. Keeps one of every shape
  * the specs rely on: an element added, modified and removed at every level,
  * a part of each kind, unchanged fields and changed fields of both authors,
- * every kind of type including a nested collection, a public behaviour.
+ * every kind of type including a nested collection, a public behavior.
  */
 
 const byHuman = <const T>(value: T) => ({
@@ -225,7 +225,7 @@ export const designDocFixture = {
       },
     ],
   },
-  behaviours: {
+  behaviors: {
     added: [
       {
         id: 'behavior|sales.refunds.Refund.issue',
@@ -346,7 +346,7 @@ export const greenFieldDesignDocFixture: DesignDocumentInput = {
   needs: { added: byAgentOnly.needs.added },
   modules: { added: byAgentOnly.modules.added },
   buildingBlocks: { added: byAgentOnly.buildingBlocks.added },
-  behaviours: { added: byAgentOnly.behaviours.added },
+  behaviors: { added: byAgentOnly.behaviors.added },
 };
 
 /*
@@ -358,7 +358,7 @@ export const humanEditedDesignDocFixture: DesignDocumentInput = {
   needs: { added: designDocFixture.needs.added },
   modules: { added: designDocFixture.modules.added },
   buildingBlocks: { added: designDocFixture.buildingBlocks.added },
-  behaviours: { added: designDocFixture.behaviours.added },
+  behaviors: { added: designDocFixture.behaviors.added },
 };
 
 function asAgent(node: unknown): unknown {

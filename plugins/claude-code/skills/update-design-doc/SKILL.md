@@ -1,6 +1,6 @@
 ---
 name: update-design-doc
-description: Revise an existing Noesis design document as the user asks — add, change, move, rename or remove its needs, modules, building blocks, behaviours, rules, scenarios or diagrams — starting from the version stored now, edits made in the Noesis page included, and store it in place under the same id. Use when the user asks to change, revise, correct, extend, rework or apply feedback to a design document (design doc) of a change.
+description: Revise an existing Noesis design document as the user asks — add, change, move, rename or remove its needs, modules, building blocks, behaviors, rules, scenarios or diagrams — starting from the version stored now, edits made in the Noesis page included, and store it in place under the same id. Use when the user asks to change, revise, correct, extend, rework or apply feedback to a design document (design doc) of a change.
 argument-hint: [change-id] [design-doc-id] [what to change]
 ---
 
@@ -94,7 +94,7 @@ step 6.
      element beneath it, and a name is always the last segment of its id.
      Follow the casing of the ids in the system model.
    - **Diagrams.** Every diagram that draws a changed element: a module's
-     flowchart, a behaviour's sequence diagram, an aggregate's entity
+     flowchart, a behavior's sequence diagram, an aggregate's entity
      diagram.
    - **Rules and scenarios.** A rule or scenario that states what the
      revision changes is rewritten with it; one that no longer holds is
@@ -137,7 +137,7 @@ step 6.
      changes and why. An element's `definition` is never one, nor is a
      rule's `description`.
    - **In the model and retired:** `removed`, by id. Remove a building
-     block's behaviours with it.
+     block's behaviors with it.
    - **In the model and unchanged:** left out. A rename of an element in
      the model is a removal of the old id and an addition of the new one.
 
@@ -153,7 +153,7 @@ step 6.
    design document's id and the working file's `path`. The id stays as it
    was, even when the name changes.
 9. **Report** what the revision changed, counted per needs, modules,
-   building blocks and behaviours added, modified and removed by this
+   building blocks and behaviors added, modified and removed by this
    revision (not by the whole design); the accepted fields the user let you
    change, which now wait to be accepted again, and the ones kept because
    the user said no; the needs no rule answers and the rules no need asks
@@ -184,7 +184,7 @@ step 6.
   - _the rule's type belongs to another category_: pick a `ruleType` of the
     rule's `category`, or the `category` of its type.
   - _a module holds only quality and constraint rules_: move the business
-    rule to the building block or behaviour it governs.
+    rule to the building block or behavior it governs.
 
   Fix every line, then call again; repeat until the tool accepts the file.
   An element the newest scan dropped since the design was written fails

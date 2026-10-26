@@ -92,7 +92,7 @@ const model = {
       source,
     },
   ],
-  behaviours: [
+  behaviors: [
     {
       id: 'behavior|shop.orders.Order.place',
       buildingBlockId: 'building_block|shop.orders.Order',
@@ -125,7 +125,7 @@ const draw = (relations: RelationKind[], hidden: string[] = []) =>
   });
 
 describe('the exploration of a system model', () => {
-  it('finds containment in the ids and the block a behaviour is on', () => {
+  it('finds containment in the ids and the block a behavior is on', () => {
     expect(
       exploration.elements.map(({ id, container }) => [id, container]),
     ).toEqual([
@@ -170,10 +170,10 @@ describe('the exploration of a system model', () => {
     expect(graph.relations).toEqual([]);
   });
 
-  it('draws a call between behaviours as an edge, and reads it from both sides', () => {
+  it('draws a call between behaviors as an edge, and reads it from both sides', () => {
     // The order's place calls a check on its line, as a scanner records it.
     const check = {
-      ...model.behaviours[0]!,
+      ...model.behaviors[0]!,
       id: 'behavior|shop.orders.Line.check',
       buildingBlockId: 'building_block|shop.orders.Line',
       name: 'check',
@@ -181,8 +181,8 @@ describe('the exploration of a system model', () => {
     };
     const calling = explorationOf({
       ...model,
-      behaviours: [
-        { ...model.behaviours[0]!, invokes: [check.id] },
+      behaviors: [
+        { ...model.behaviors[0]!, invokes: [check.id] },
         { ...check, invokes: [] },
       ],
     } as unknown as SystemModel);
@@ -213,9 +213,9 @@ describe('the exploration of a system model', () => {
     // The order's place takes an order: it uses the block it belongs to.
     const own = explorationOf({
       ...model,
-      behaviours: [
+      behaviors: [
         {
-          ...model.behaviours[0]!,
+          ...model.behaviors[0]!,
           input: [
             {
               name: 'order',
@@ -252,7 +252,7 @@ describe('the exploration of a system model', () => {
           { group: 'value_object', count: 1 },
         ],
       },
-      { title: 'Behaviours', groups: [{ group: 'Command', count: 1 }] },
+      { title: 'Behaviors', groups: [{ group: 'Command', count: 1 }] },
     ]);
   });
 });
@@ -316,10 +316,10 @@ describe('placing the exploration', () => {
     );
     expect(ids.indexOf(ORDER)).toBeLessThan(ids.indexOf(PLACE));
     const order = elements.find(({ element }) => element.id === ORDER);
-    const behaviour = elements.find(({ element }) => element.id === PLACE);
+    const behavior = elements.find(({ element }) => element.id === PLACE);
     expect(order?.holds).toBe(true);
-    expect(behaviour?.holds).toBe(false);
-    expect(order!.width).toBeGreaterThan(behaviour!.width);
+    expect(behavior?.holds).toBe(false);
+    expect(order!.width).toBeGreaterThan(behavior!.width);
   });
 
   it('runs the uses edge down or across, as asked', async () => {
@@ -383,10 +383,12 @@ describe('the selection', () => {
   });
 
   it('names what an element is in words', () => {
-    const [module, , order, , behaviour] = exploration.elements;
-    expect([module, order, behaviour].map((each) => kindWordOf(each!))).toEqual(
-      ['Module', 'Building block · Aggregate', 'Behaviour · Command'],
-    );
+    const [module, , order, , behavior] = exploration.elements;
+    expect([module, order, behavior].map((each) => kindWordOf(each!))).toEqual([
+      'Module',
+      'Building block · Aggregate',
+      'Behavior · Command',
+    ]);
   });
 
   it('draws a card as a button that says where it stands to the selection', () => {

@@ -7,10 +7,10 @@ import type { OutlineNode } from './model-outline.ts';
 export type OutlineScope = 'all' | 'public';
 
 /**
- * The model as another subsystem meets it: the behaviours the design makes
+ * The model as another subsystem meets it: the behaviors the design makes
  * public, the blocks they are on, and the modules down to them. A module
  * with nothing public in it is left out, and so is every other row. Kept in
- * reading order; a behaviour the design leaves alone says nothing of its
+ * reading order; a behavior the design leaves alone says nothing of its
  * visibility here, so it is not counted public.
  */
 export function publicOutline(
@@ -18,16 +18,16 @@ export function publicOutline(
   doc: DesignDocumentInput,
 ): OutlineNode[] {
   const isPublic = new Set(
-    writtenIn(doc.behaviours)
-      .filter((behaviour) => valueOf(behaviour.visibility)?.kind === 'public')
-      .map((behaviour) => behaviour.id),
+    writtenIn(doc.behaviors)
+      .filter((behavior) => valueOf(behavior.visibility)?.kind === 'public')
+      .map((behavior) => behavior.id),
   );
   const byPath = new Map(outline.map((node) => [node.path, node]));
   const kept = new Set<string>();
   for (const node of outline) {
-    if (node.kind !== 'behaviour' || node.elementId === null) continue;
+    if (node.kind !== 'behavior' || node.elementId === null) continue;
     if (!isPublic.has(node.elementId)) continue;
-    // The behaviour, and the way down to it.
+    // The behavior, and the way down to it.
     for (
       let step: OutlineNode | undefined = node;
       step !== undefined && !kept.has(step.path);

@@ -102,7 +102,7 @@ export const requirementsFixture = {
       },
     ],
   },
-  behaviours: {
+  behaviors: {
     added: [
       {
         id: 'behavior|sales.refunds.Refund.issue',

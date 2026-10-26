@@ -49,7 +49,7 @@ describe('searchOutline', () => {
       'behavior|shop.orders.Order.place',
     ]);
     expect(found('place nonsense')).toEqual([]);
-    // The name searched is the row's own; a behaviour is not found by the
+    // The name searched is the row's own; a behavior is not found by the
     // block that holds it, or every row under a match would be one too.
     expect(found('order place')).toEqual([]);
   });

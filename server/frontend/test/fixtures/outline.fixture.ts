@@ -18,7 +18,7 @@ const node = (over: Partial<OutlineNode> & Pick<OutlineNode, 'path'>) =>
  * A whole small model in the order it is projected in: a context nothing
  * changed, a module removed with nothing under it, a module added, and inside
  * it a repository before an aggregate — the reading order, not the alphabet —
- * with the aggregate holding a behaviour, a property and a diagram.
+ * with the aggregate holding a behavior, a property and a diagram.
  */
 export const outlineFixture: OutlineNode[] = [
   node({ path: 'module|shop', name: 'shop' }),
@@ -60,7 +60,7 @@ export const outlineFixture: OutlineNode[] = [
   node({
     path: 'behavior|shop.orders.Order.place',
     parentPath: 'building_block|shop.orders.Order',
-    kind: 'behaviour',
+    kind: 'behavior',
     name: 'place',
     depth: 3,
     change: 'added',

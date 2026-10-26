@@ -12,15 +12,15 @@ use AssertJ only.
 ## Which test a scenario gets
 
 Find the element a scenario belongs to: the rule it is attached to belongs
-to a behaviour or a building block, and so does a scenario attached
+to a behavior or a building block, and so does a scenario attached
 directly.
 
-| The scenario belongs to                                                                         | Test                                                                                    |
-| ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| a `public` behaviour of an `application_service`, or a rule of one                              | a **full-graph test** of that behaviour                                                 |
-| an `application_service` building block, or one of its rules                                    | a **full-graph test** of the behaviour the scenario's _when_ calls                      |
-| any other building block or behaviour: value object, entity, aggregate, domain service, factory | a **unit test** of that element                                                         |
-| a `repository` or an `external_integration`, or a behaviour of one                              | **no test now**: there is no implementation in scope. Report it for the adapter's tests |
+| The scenario belongs to                                                                        | Test                                                                                    |
+| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| a `public` behavior of an `application_service`, or a rule of one                              | a **full-graph test** of that behavior                                                  |
+| an `application_service` building block, or one of its rules                                   | a **full-graph test** of the behavior the scenario's _when_ calls                       |
+| any other building block or behavior: value object, entity, aggregate, domain service, factory | a **unit test** of that element                                                         |
+| a `repository` or an `external_integration`, or a behavior of one                              | **no test now**: there is no implementation in scope. Report it for the adapter's tests |
 
 ### Full-graph tests
 
@@ -37,15 +37,15 @@ services, factories and policies are the production classes, built with
 Never replace a domain building block with a mock, a stub or a subclass,
 even when that would make the test shorter. The test asserts what the
 scenario's _then_ says, through what the outside world sees: the
-behaviour's result, the aggregate the in-memory repository holds, the
+behavior's result, the aggregate the in-memory repository holds, the
 events the recording publisher received, the calls the recording fake of an
 external integration took.
 
 ### Unit tests
 
-Any other building block is tested alone, through its own behaviours and
+Any other building block is tested alone, through its own behaviors and
 constructor: a value object by constructing it, an aggregate by calling its
-behaviours, a domain service with its collaborators passed in. No mocks:
+behaviors, a domain service with its collaborators passed in. No mocks:
 build the real value objects and aggregates it takes. A domain service's
 external integration collaborator, when it has one, gets the same test
 double a full-graph test would use.
@@ -64,15 +64,15 @@ faked.
 - One test class per building block, `<BuildingBlock>Test`, in
   `src/test/java` under the building block's package, so it reads
   package-private accessors.
-- Inside it, one `@Nested` class per behaviour that has scenarios, named
-  after the behaviour in upper camel case plus `Tests`
-  (`CreateQDocTests`), with `@DisplayName("<behaviour name>")`.
-- Inside the building block's or the behaviour's class, one `@Nested`
+- Inside it, one `@Nested` class per behavior that has scenarios, named
+  after the behavior in upper camel case plus `Tests`
+  (`CreateQDocTests`), with `@DisplayName("<behavior name>")`.
+- Inside the building block's or the behavior's class, one `@Nested`
   class per rule that has scenarios, named after the rule in upper camel
   case (`OnlyQualityManagersCreateQDocs`), with
   `@DisplayName("<rule name>")`.
 - One test method per scenario, where it is attached: in its rule's class,
-  or directly in its behaviour's or building block's class.
+  or directly in its behavior's or building block's class.
   `@DisplayName("<scenario name>")` verbatim, the method named after the
   scenario in snake case (`a_quality_manager_is_accepted`).
 - The method's body falls into three parts, each opened by a comment that

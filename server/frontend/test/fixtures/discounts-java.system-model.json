@@ -425,7 +425,7 @@
       }
     }
   ],
-  "behaviours": [
+  "behaviors": [
     {
       "id": "behavior|discounts.calculation.Discount.apply",
       "buildingBlockId": "building_block|discounts.calculation.Discount",

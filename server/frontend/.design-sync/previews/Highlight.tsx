@@ -17,7 +17,7 @@ export const MultipleTerms = () => (
 export const Colors = () => (
   <Stack gap="xs" maw={420}>
     <Highlight highlight="PlaceOrder" color="brand.2" size="sm">
-      Behaviour PlaceOrder accepts a cart and emits OrderPlaced.
+      Behavior PlaceOrder accepts a cart and emits OrderPlaced.
     </Highlight>
     <Highlight highlight="removed" color="red.2" size="sm">
       The legacy refund endpoint is removed in this change.

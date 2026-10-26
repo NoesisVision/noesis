@@ -3,7 +3,7 @@ using CSharpSyntax.Projection.ExcludedNamespace;
 using NoesisVision.Annotations.Domain;
 using NoesisVision.Annotations.Domain.DDD;
 
-// Chains from a behaviour through methods that are no behaviour: private steps, a generic
+// Chains from a behavior through methods that are no behavior: private steps, a generic
 // step, a cycle, an excluded namespace, the other project, async, lambdas, local
 // functions; and the forms that end or never start a chain.
 namespace CSharpSyntax.Projection.Invocations;
@@ -90,7 +90,7 @@ public class CallChains
         _ = block + block;
     }
 
-    public int PropertyCallingBehaviour
+    public int PropertyCallingBehavior
     {
         get
         {
@@ -99,10 +99,10 @@ public class CallChains
         }
     }
 
-    public void CallsPrivateBehaviour() => PrivateBehaviour();
+    public void CallsPrivateBehavior() => PrivateBehavior();
 
-    [DomainBehavior("Private behaviour")]
-    private void PrivateBehaviour() => Reached.ByPrivateBehaviour();
+    [DomainBehavior("Private behavior")]
+    private void PrivateBehavior() => Reached.ByPrivateBehavior();
 }
 
 public class ConstructedInChain

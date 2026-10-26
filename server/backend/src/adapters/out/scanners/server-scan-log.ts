@@ -18,7 +18,7 @@ export class ServerScanLog implements ScanLog {
 
   scanned(summary: ScanSummary): void {
     this.log.info(
-      'Scanned {name}: {artifacts} {language} artifacts in {parseMs} ms, built {blocks} building blocks and {behaviours} behaviours in {buildMs} ms',
+      'Scanned {name}: {artifacts} {language} artifacts in {parseMs} ms, built {blocks} building blocks and {behaviors} behaviors in {buildMs} ms',
       { ...summary },
     );
   }

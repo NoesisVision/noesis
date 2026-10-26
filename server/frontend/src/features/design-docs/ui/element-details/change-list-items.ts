@@ -67,7 +67,7 @@ const declared = (name: string, type: BuildingBlockRefInput) => ({
   ...(isReference(type) ? { typePath: refIdOf(type) } : {}),
 });
 
-/** Type references — what a block implements, what a behaviour takes and gives. */
+/** Type references — what a block implements, what a behavior takes and gives. */
 export const refItems = (
   set: ChangeSetInput<BuildingBlockRefInput, BuildingBlockRefInput> | undefined,
 ): ChangeListItem[] =>
@@ -96,7 +96,7 @@ export const implementerItems = (
       })),
   );
 
-/** A behaviour's inputs as they would be declared, or by name when the type is kept; each opens its type. */
+/** A behavior's inputs as they would be declared, or by name when the type is kept; each opens its type. */
 export const parameterItems = (
   set: ChangeSetInput<DesignedParameterInput, string> | undefined,
 ): ChangeListItem[] =>
@@ -127,7 +127,7 @@ export const parameterItems = (
     };
   });
 
-/** A behaviour's results, each by its type, which it opens. */
+/** A behavior's results, each by its type, which it opens. */
 export const resultItems = (
   set: ChangeSetInput<DesignedResultInput, BuildingBlockRefInput> | undefined,
 ): ChangeListItem[] =>

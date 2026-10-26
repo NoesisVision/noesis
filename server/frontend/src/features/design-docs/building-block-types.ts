@@ -7,7 +7,7 @@ import {
 
 /*
  * The building block types a reader may leave out of the hexagons. Driving
- * ports are behaviours, not building blocks, so they are always drawn, as are
+ * ports are behaviors, not building blocks, so they are always drawn, as are
  * the actors and callers before them; an element whose type the design leaves
  * unset has nothing to be left out by.
  */

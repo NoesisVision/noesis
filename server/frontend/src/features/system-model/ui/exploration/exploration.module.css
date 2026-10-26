@@ -63,7 +63,7 @@
   line-height: 1.3;
   text-align: start;
 
-  &[data-kind='behaviour'] {
+  &[data-kind='behavior'] {
     border-style: dashed;
   }
 }

@@ -477,7 +477,7 @@ facts. `examples/discounts-java` applies the plugin with the hybrid engine
 (section 4a), its sources being Lombok's, and its `.noesis/settings.json` runs it
 through the `java` parser (section 5a); its shipped system model has
 the source lines of every building block and, Lombok's accessors being
-`generated`, only the written methods as behaviours.
+`generated`, only the written methods as behaviors.
 
 ## 5a. The service adapter
 
@@ -540,10 +540,10 @@ Both plugins write the same files, so the two presets differ only in the
 command line; a build tool the plugins do not cover yet is a new `command`,
 not a change to the service. The Java
 vocabulary is `app/scanners/system-model-builders/java.vocabulary.ts`; it needed two
-small projection rules the C# one did not: a `behaviour` role may fix the
-behaviour type itself (R9.4, for the argument-less handler annotations) and a
+small projection rules the C# one did not: a `behavior` role may fix the
+behavior type itself (R9.4, for the argument-less handler annotations) and a
 record component's private field is a property while its accessor is not a
-behaviour (R5.7). The regex-based `java` parser, kept for Gradle builds
+behavior (R5.7). The regex-based `java` parser, kept for Gradle builds
 until the Gradle plugin covered them, has since been removed.
 
 ## 6. Testing

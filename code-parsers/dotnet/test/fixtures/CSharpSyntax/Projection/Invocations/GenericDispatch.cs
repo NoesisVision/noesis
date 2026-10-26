@@ -24,7 +24,7 @@ public record struct ModifierB : Modifier
 [DddDomainService]
 public class ConstrainedGenericSteps
 {
-    /// <summary>A step: internal, so no behaviour; the call on its type parameter is what dispatches.</summary>
+    /// <summary>A step: internal, so no behavior; the call on its type parameter is what dispatches.</summary>
     internal void ApplyStep<TModifier>(TModifier modifier) where TModifier : Modifier => modifier.Modify();
 
     public void ApplyInferred() => ApplyStep(new ModifierA());

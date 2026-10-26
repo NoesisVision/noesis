@@ -42,7 +42,7 @@ export const ChangeSchema = z
     type: z
       .enum(CHANGE_TYPES)
       .describe(
-        'What kind of change this is: feature (new behaviour), fix (a bug), improvement (better once, no new behaviour), chore (recurring upkeep).',
+        'What kind of change this is: feature (new behavior), fix (a bug), improvement (better once, no new behavior), chore (recurring upkeep).',
       ),
     status: z
       .enum(CHANGE_STATUSES)

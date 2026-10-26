@@ -66,8 +66,8 @@ export const RULE_TYPES_OF: Record<RuleCategory, readonly RuleType[]> = {
   Constraint: CONSTRAINT_RULE_TYPES,
 };
 
-export const BehaviourType = z.enum(['Command', 'Event', 'Query']);
-export type BehaviourType = z.infer<typeof BehaviourType>;
+export const BehaviorType = z.enum(['Command', 'Event', 'Query']);
+export type BehaviorType = z.infer<typeof BehaviorType>;
 
 const PRIMITIVE_KIND = 'primitive';
 const PRIMITIVES = [
@@ -143,7 +143,7 @@ export const ScannedParameter = z.strictObject({
 });
 export type ScannedParameter = z.infer<typeof ScannedParameter>;
 
-/** What a behaviour gives back: known by its type, as it has no name. */
+/** What a behavior gives back: known by its type, as it has no name. */
 export const ScannedResult = ScannedParameter.omit({ name: true });
 export type ScannedResult = z.infer<typeof ScannedResult>;
 
@@ -216,22 +216,22 @@ export const ScannedBuildingBlock = z.strictObject({
 });
 export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
 
-export const ScannedBehaviour = z.strictObject({
+export const ScannedBehavior = z.strictObject({
   id: BehaviorId,
   buildingBlockId: BuildingBlockId,
   name: ElementName,
-  type: BehaviourType,
+  type: BehaviorType,
   description: z.string().nullable().default(null),
   visibility: Visibility,
   input: z.array(ScannedParameter).default([]),
   output: z.array(ScannedResult).default([]),
-  /** The behaviours this one calls, directly or through methods that are no behaviour; never itself. */
+  /** The behaviors this one calls, directly or through methods that are no behavior; never itself. */
   invokes: z.array(BehaviorId).default([]),
   rules: z.array(ScannedRule).default([]),
   scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,
 });
-export type ScannedBehaviour = z.infer<typeof ScannedBehaviour>;
+export type ScannedBehavior = z.infer<typeof ScannedBehavior>;
 
 export const SystemModel = z
   .strictObject({
@@ -246,7 +246,7 @@ export const SystemModel = z
       .default(null),
     modules: z.array(ScannedDomainModule).default([]),
     buildingBlocks: z.array(ScannedBuildingBlock).default([]),
-    behaviours: z.array(ScannedBehaviour).default([]),
+    behaviors: z.array(ScannedBehavior).default([]),
   })
   .describe(
     'The implemented model as one scan found it: graph/system-models/YYYY-MM-DD_HH-MM_<commit>.json, the scan minute in UTC. Every scan is kept, except that one in the same minute on the same commit replaces the one before; the highest id is the newest.',

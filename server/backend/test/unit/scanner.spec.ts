@@ -62,7 +62,7 @@ describe('Scanner', () => {
       commit: '7ba8217',
       modules: [],
       buildingBlocks: [],
-      behaviours: [],
+      behaviors: [],
     });
   });
 
@@ -77,7 +77,7 @@ describe('Scanner', () => {
         language: 'csharp',
         artifacts: 0,
         blocks: 0,
-        behaviours: 0,
+        behaviors: 0,
       }),
     ]);
   });

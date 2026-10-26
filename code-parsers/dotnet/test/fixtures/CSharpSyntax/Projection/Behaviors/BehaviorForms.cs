@@ -4,11 +4,11 @@ using NoesisVision.Annotations.Domain;
 using NoesisVision.Annotations.People;
 using NoesisVision.Annotations.Domain.DDD;
 
-// Methods that become (or do not become) behaviours, with every input and output form.
-namespace CSharpSyntax.Projection.Behaviours;
+// Methods that become (or do not become) behaviors, with every input and output form.
+namespace CSharpSyntax.Projection.Behaviors;
 
 [DddDomainService]
-public class BehaviourForms
+public class BehaviorForms
 {
     [Actor("Customer")]
     public void WithActor() { }
@@ -20,8 +20,8 @@ public class BehaviourForms
     public void EntryPointCommand() { }
 
     /// <summary>Named by its annotation.</summary>
-    [DomainBehavior("Named behaviour")]
-    [Scenario("Behaviour scenario")]
+    [DomainBehavior("Named behavior")]
+    [Scenario("Behavior scenario")]
     public void NamedByAnnotation() { }
 
     public void Overloaded(int first) => Overloaded(first, 0);
@@ -42,29 +42,29 @@ public class BehaviourForms
 
     public void InputWithoutWord(UnannotatedInterface unannotated, Dictionary<string, int> dictionary) { }
 
-    public static BehaviourForms StaticFactory() => new();
+    public static BehaviorForms StaticFactory() => new();
 
     [ExcludeFromDocs]
-    public void ExcludedIsNoBehaviour() { }
+    public void ExcludedIsNoBehavior() { }
 
-    public override string ToString() => nameof(BehaviourForms);
+    public override string ToString() => nameof(BehaviorForms);
 
     public override bool Equals(object? obj) => ReferenceEquals(this, obj);
 
     public override int GetHashCode() => 0;
 
-    internal void InternalIsNoBehaviour() { }
+    internal void InternalIsNoBehavior() { }
 
-    protected void ProtectedIsNoBehaviour() { }
+    protected void ProtectedIsNoBehavior() { }
 
-    private void PrivateIsNoBehaviour() { }
+    private void PrivateIsNoBehavior() { }
 
-    public static BehaviourForms operator +(BehaviourForms left, BehaviourForms right) => left;
+    public static BehaviorForms operator +(BehaviorForms left, BehaviorForms right) => left;
 }
 
-/// <summary>A behaviour annotation on a type that is no block has no home.</summary>
+/// <summary>A behavior annotation on a type that is no block has no home.</summary>
 public static class TypeThatIsNoBlock
 {
     [DomainBehavior("Lost")]
-    public static void BehaviourWithoutHome() { }
+    public static void BehaviorWithoutHome() { }
 }

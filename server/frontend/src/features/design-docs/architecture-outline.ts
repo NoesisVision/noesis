@@ -7,7 +7,7 @@ import type {
   ModuleId,
 } from '#backend/app/element-id.ts';
 import type {
-  BehaviourType,
+  BehaviorType,
   BuildingBlockType,
   RuleCategory,
   RuleType,
@@ -33,36 +33,36 @@ export interface Hexagon {
   applicationServices: PlacedBlock[];
   domainCore: PlacedBlock[];
   drivenPorts: PlacedBlock[];
-  /** Public behaviours of any block but an application service: the core reached past its ports. */
-  exposed: PlacedBehaviour[];
+  /** Public behaviors of any block but an application service: the core reached past its ports. */
+  exposed: PlacedBehavior[];
 }
 
 interface DrivingPort {
-  behaviour: PlacedBehaviour;
-  /** The application service the behaviour is on. */
+  behavior: PlacedBehavior;
+  /** The application service the behavior is on. */
   service: BuildingBlockId;
   /** Empty when another subsystem calls it. */
   actors: string[];
 }
 
 export interface PlacedElement<
-  Pattern extends BuildingBlockType | BehaviourType =
+  Pattern extends BuildingBlockType | BehaviorType =
     | BuildingBlockType
-    | BehaviourType,
+    | BehaviorType,
 > {
   id: Pattern extends BuildingBlockType ? BuildingBlockId : BehaviorId;
   name: string;
-  /** The building block type, or the behaviour type. */
+  /** The building block type, or the behavior type. */
   pattern: Pattern | null;
   change: OutlineChange;
   /** The building blocks its properties, inputs and outputs use, collections unwrapped; itself left out. */
   uses: BuildingBlockId[];
-  /** Its own rules and those of its behaviours the view does not draw apart from it. */
+  /** Its own rules and those of its behaviors the view does not draw apart from it. */
   rules: PlacedRule[];
 }
 
 export type PlacedBlock = PlacedElement<BuildingBlockType>;
-export type PlacedBehaviour = PlacedElement<BehaviourType>;
+export type PlacedBehavior = PlacedElement<BehaviorType>;
 
 export interface PlacedRule {
   name: string;
@@ -100,7 +100,7 @@ const DRIVEN_PORTS = [
 
 /** Every element in a hexagon, in the order the rings are drawn. */
 export const elementsOf = (hexagon: Hexagon): PlacedElement[] => [
-  ...hexagon.drivingPorts.map(({ behaviour }) => behaviour),
+  ...hexagon.drivingPorts.map(({ behavior }) => behavior),
   ...hexagon.applicationServices,
   ...hexagon.domainCore,
   ...hexagon.drivenPorts,
@@ -108,7 +108,7 @@ export const elementsOf = (hexagon: Hexagon): PlacedElement[] => [
 
 /**
  * Every element the outline holds, by id: the ones the hexagons draw, the
- * behaviours that expose a core — on their block's card, not one of their
+ * behaviors that expose a core — on their block's card, not one of their
  * own — and the ones no ring could take.
  */
 export const placedById = (
@@ -178,7 +178,7 @@ export const ARCHITECTURE_KIND_META: Record<
     about: {
       eyebrow: 'Actor',
       text: () =>
-        'Named on a public behaviour as the actor that calls it, through an in adapter.',
+        'Named on a public behavior as the actor that calls it, through an in adapter.',
     },
   },
   caller: {
@@ -228,5 +228,5 @@ export const ARCHITECTURE_KIND_META: Record<
 export const UNDRAWN_NAME: Record<ReturnType<typeof kindOf>, string> = {
   module: 'Module',
   building_block: 'Building block',
-  behaviour: 'Behaviour',
+  behavior: 'Behavior',
 };

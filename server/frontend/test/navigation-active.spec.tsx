@@ -43,7 +43,7 @@ const EMPTY_DESIGN_DOC = {
   description: { value: '' },
   modules: { added: [], removed: [], modified: [] },
   buildingBlocks: { added: [], removed: [], modified: [] },
-  behaviours: { added: [], removed: [], modified: [] },
+  behaviors: { added: [], removed: [], modified: [] },
   implemented: false,
 };
 

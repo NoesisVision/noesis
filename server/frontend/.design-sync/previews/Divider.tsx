@@ -13,7 +13,7 @@ export const BetweenSections = () => (
 export const WithLabel = () => (
   <Stack gap="sm" maw={360}>
     <Divider label="Scenarios" labelPosition="left" />
-    <Divider label="Behaviours" labelPosition="center" />
+    <Divider label="Behaviors" labelPosition="center" />
     <Divider label="Properties" labelPosition="right" />
   </Stack>
 );

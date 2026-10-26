@@ -2214,7 +2214,7 @@
     "removed": [],
     "modified": []
   },
-  "behaviours": {
+  "behaviors": {
     "added": [
       {
         "id": "behavior|Sales.Clients.ClientId.New",

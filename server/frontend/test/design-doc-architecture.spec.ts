@@ -16,7 +16,7 @@ import {
   inferredFlowOf,
 } from '../src/features/design-docs/design-doc-architecture';
 import {
-  behaviourIdAt,
+  behaviorIdAt,
   blockIdAt,
   moduleOf,
 } from '../src/features/design-docs/element-id';
@@ -41,7 +41,7 @@ const block = (
   },
 });
 
-const behaviour = (
+const behavior = (
   address: string,
   visibility: { kind: 'private' } | { kind: 'public'; actors: string[] },
   io: {
@@ -78,17 +78,17 @@ const clean = {
       block('sales.billing.Invoice', 'aggregate'),
     ],
   },
-  behaviours: {
+  behaviors: {
     added: [
-      behaviour(
+      behavior(
         'sales.orders.OrderService.place',
         { kind: 'public', actors: ['Customer'] },
         { input: [{ collectionOf: 'building_block|sales.orders.OrderLine' }] },
       ),
-      behaviour('sales.orders.Orders.save', PRIVATE, {
+      behavior('sales.orders.Orders.save', PRIVATE, {
         input: ['building_block|sales.orders.Order'],
       }),
-      behaviour(
+      behavior(
         'sales.billing.BillingService.bill',
         { kind: 'public', actors: ['Clerk'] },
         { output: ['building_block|sales.billing.Invoice'] },
@@ -125,10 +125,10 @@ describe('architectureOf', () => {
     expect(orders?.drivenPorts.map(({ name }) => name)).toEqual(['Orders']);
   });
 
-  it('makes a public behaviour of an application service a driving port, with its actors', () => {
+  it('makes a public behavior of an application service a driving port, with its actors', () => {
     expect(orders?.drivingPorts).toEqual([
       expect.objectContaining({
-        behaviour: expect.objectContaining({ name: 'place' }),
+        behavior: expect.objectContaining({ name: 'place' }),
         service: blockIdAt('sales.orders.OrderService'),
         actors: ['Customer'],
       }),
@@ -136,12 +136,12 @@ describe('architectureOf', () => {
   });
 
   it('reads a type through a collection', () => {
-    expect(orders?.drivingPorts[0]?.behaviour.uses).toEqual([
+    expect(orders?.drivingPorts[0]?.behavior.uses).toEqual([
       blockIdAt('sales.orders.OrderLine'),
     ]);
   });
 
-  it('counts a block’s own behaviours in what it uses', () => {
+  it('counts a block’s own behaviors in what it uses', () => {
     const repository = orders?.drivenPorts[0];
     expect(repository?.uses).toEqual([blockIdAt('sales.orders.Order')]);
   });
@@ -199,10 +199,10 @@ describe('the checks', () => {
     const check = checkOf(
       {
         ...clean,
-        behaviours: {
+        behaviors: {
           added: [
-            ...clean.behaviours.added,
-            behaviour('sales.orders.Order.cancel', {
+            ...clean.behaviors.added,
+            behavior('sales.orders.Order.cancel', {
               kind: 'public',
               actors: [],
             }),
@@ -236,13 +236,13 @@ describe('the checks', () => {
     });
   });
 
-  it('note a public behaviour with no actors as called by another subsystem', () => {
+  it('note a public behavior with no actors as called by another subsystem', () => {
     const check = checkOf(
       {
         ...clean,
-        behaviours: {
+        behaviors: {
           added: [
-            behaviour('sales.billing.BillingService.bill', {
+            behavior('sales.billing.BillingService.bill', {
               kind: 'public',
               actors: [],
             }),
@@ -274,17 +274,17 @@ describe('an element the design leaves the type of alone', () => {
     ).not.toContainEqual(expect.objectContaining({ name: 'Customer' }));
   });
 
-  it('does not take a public behaviour on it for the core exposed', () => {
+  it('does not take a public behavior on it for the core exposed', () => {
     const withPublic = architectureOf({
       ...clean,
       buildingBlocks: {
         added: clean.buildingBlocks.added,
         modified: [{ id: 'building_block|sales.crm.CustomerService' }],
       },
-      behaviours: {
+      behaviors: {
         added: [
-          ...clean.behaviours.added,
-          behaviour('sales.crm.CustomerService.refund', {
+          ...clean.behaviors.added,
+          behavior('sales.crm.CustomerService.refund', {
             kind: 'public',
             actors: ['Clerk'],
           }),
@@ -304,7 +304,7 @@ describe('an element the design leaves the type of alone', () => {
   });
 });
 
-describe('a behaviour whose building block the design leaves out', () => {
+describe('a behavior whose building block the design leaves out', () => {
   const outline = architectureOf({
     ...clean,
     buildingBlocks: {
@@ -313,10 +313,10 @@ describe('a behaviour whose building block the design leaves out', () => {
         block('sales.orders.Discount', 'value_object'),
       ],
     },
-    behaviours: {
-      added: clean.behaviours.added,
+    behaviors: {
+      added: clean.behaviors.added,
       modified: [
-        behaviour('sales.orders.Basket.applyDiscount', PRIVATE, {
+        behavior('sales.orders.Basket.applyDiscount', PRIVATE, {
           input: ['building_block|sales.orders.Discount'],
         }),
       ],
@@ -355,7 +355,7 @@ describe('the qdoc design', () => {
 
   it('finds notifyUsers called by another subsystem', () => {
     expect(check('caller-unknown')?.elementIds).toEqual([
-      behaviourIdAt(
+      behaviorIdAt(
         'qdocmanagement.notifications.NotificationService.notifyUsers',
       ),
     ]);
@@ -368,7 +368,7 @@ describe('the qdoc design', () => {
       [
         'start-a-qdoc',
         [
-          behaviourIdAt(
+          behaviorIdAt(
             'qdocmanagement.preparation.QDocCreationService.createQDoc',
           ),
         ],
@@ -376,10 +376,10 @@ describe('the qdoc design', () => {
       [
         'know-about-new-qdocs',
         [
-          behaviourIdAt(
+          behaviorIdAt(
             'qdocmanagement.preparation.QDocCreationService.createQDoc',
           ),
-          behaviourIdAt(
+          behaviorIdAt(
             'qdocmanagement.notifications.NotificationService.notifyUsers',
           ),
         ],
@@ -399,7 +399,7 @@ describe('the qdoc design', () => {
       direction: 'takes',
       type: blockIdAt('qdocmanagement.preparation.DocumentNumber'),
       other: {
-        id: behaviourIdAt(
+        id: behaviorIdAt(
           'qdocmanagement.preparation.DocumentNumberGenerator.next',
         ),
         name: 'next',
@@ -411,13 +411,13 @@ describe('the qdoc design', () => {
 });
 
 describe('an inferred flow', () => {
-  it('is a type match only when a private behaviour of another hexagon would take it', () => {
+  it('is a type match only when a private behavior of another hexagon would take it', () => {
     const document = {
       ...clean,
-      behaviours: {
+      behaviors: {
         added: [
-          ...clean.behaviours.added,
-          behaviour('sales.orders.Order.invoice', PRIVATE, {
+          ...clean.behaviors.added,
+          behavior('sales.orders.Order.invoice', PRIVATE, {
             input: ['building_block|sales.billing.Invoice'],
           }),
         ],
@@ -434,7 +434,7 @@ describe('an inferred flow', () => {
         direction: 'gives',
         type: blockIdAt('sales.billing.Invoice'),
         other: {
-          id: behaviourIdAt('sales.orders.Order.invoice'),
+          id: behaviorIdAt('sales.orders.Order.invoice'),
           name: 'invoice',
           owner: 'Order',
         },
@@ -488,14 +488,14 @@ describe('architectureTreeOf', () => {
   });
 });
 
-describe('a public behaviour off an application service', () => {
+describe('a public behavior off an application service', () => {
   const CANCEL = 'behavior|sales.orders.Order.cancel';
   const document = {
     ...clean,
-    behaviours: {
+    behaviors: {
       added: [
-        ...clean.behaviours.added,
-        behaviour('sales.orders.Order.cancel', {
+        ...clean.behaviors.added,
+        behavior('sales.orders.Order.cancel', {
           kind: 'public',
           actors: ['Customer'],
         }),
@@ -526,20 +526,20 @@ describe('a public behaviour off an application service', () => {
   });
 });
 
-describe('a block whose behaviours share a type', () => {
+describe('a block whose behaviors share a type', () => {
   it('is told each inferred flow once', () => {
     const document = {
       ...clean,
-      behaviours: {
+      behaviors: {
         added: [
-          ...clean.behaviours.added,
-          behaviour('sales.orders.Orders.find', PRIVATE, {
+          ...clean.behaviors.added,
+          behavior('sales.orders.Orders.find', PRIVATE, {
             output: ['building_block|sales.orders.Order'],
           }),
-          behaviour('sales.orders.Orders.all', PRIVATE, {
+          behavior('sales.orders.Orders.all', PRIVATE, {
             output: [{ collectionOf: 'building_block|sales.orders.Order' }],
           }),
-          behaviour('sales.orders.OrderService.ship', PRIVATE, {
+          behavior('sales.orders.OrderService.ship', PRIVATE, {
             input: ['building_block|sales.orders.Order'],
           }),
         ],

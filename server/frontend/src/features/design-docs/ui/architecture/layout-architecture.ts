@@ -117,20 +117,20 @@ const rowWidth = (count: number, width: number) =>
 function measure(hexagon: Hexagon): Column {
   const { module, drivingPorts, applicationServices, domainCore } = hexagon;
   const drivers: Column['drivers'] = [];
-  for (const { behaviour, actors } of drivingPorts) {
+  for (const { behavior, actors } of drivingPorts) {
     if (actors.length === 0)
       drivers.push({
-        id: callerId(behaviour.id),
+        id: callerId(behavior.id),
         label: labelOf('caller'),
-        ports: [behaviour.id],
+        ports: [behavior.id],
         known: false,
       });
     for (const actor of actors) {
       const id = actorId(module.id, actor);
       const driver = drivers.find((known) => known.id === id);
-      if (driver) driver.ports.push(behaviour.id);
+      if (driver) driver.ports.push(behavior.id);
       else
-        drivers.push({ id, label: actor, ports: [behaviour.id], known: true });
+        drivers.push({ id, label: actor, ports: [behavior.id], known: true });
     }
   }
   const coreColumns = Math.min(CORE_COLUMNS, domainCore.length);
@@ -247,30 +247,30 @@ function placeColumn(
   const ports = hexagon.drivingPorts;
   if (ports.length > 0) {
     const portAt = row(ports.length, CARD.width);
-    for (const [index, { behaviour, service }] of ports.entries()) {
+    for (const [index, { behavior, service }] of ports.entries()) {
       const x = portAt(index);
-      card(behaviour, 'drivingPort', x, y);
+      card(behavior, 'drivingPort', x, y);
       nodes.push({
-        id: adapterInId(behaviour.id),
+        id: adapterInId(behavior.id),
         kind: 'adapterIn',
         x: x + (CARD.width - ADAPTER.width) / 2,
         y: ACTOR.height + BAND_GAP,
         ...ADAPTER,
         label: labelOf('adapterIn'),
         element: null,
-        selects: adapterInId(behaviour.id),
+        selects: adapterInId(behavior.id),
       });
       edges.push({
-        id: `${adapterInId(behaviour.id)}->${behaviour.id}`,
-        source: adapterInId(behaviour.id),
-        target: behaviour.id,
+        id: `${adapterInId(behavior.id)}->${behavior.id}`,
+        source: adapterInId(behavior.id),
+        target: behavior.id,
         kind: 'adapts',
       });
       // A service the reader has left out has no card to join the port to.
       if (hexagon.applicationServices.some(({ id }) => id === service))
         edges.push({
-          id: `${behaviour.id}->${service}`,
-          source: behaviour.id,
+          id: `${behavior.id}->${service}`,
+          source: behavior.id,
           target: service,
           kind: 'owns',
         });

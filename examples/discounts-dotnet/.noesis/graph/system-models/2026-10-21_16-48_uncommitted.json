@@ -1219,7 +1219,7 @@
       }
     }
   ],
-  "behaviours": [
+  "behaviors": [
     {
       "id": "behavior|Sales.Clients.ClientId.From",
       "buildingBlockId": "building_block|Sales.Clients.ClientId",

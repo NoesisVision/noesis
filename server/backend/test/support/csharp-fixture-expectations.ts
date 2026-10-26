@@ -4,7 +4,7 @@
  * and CSharpSyntax.OtherProject/ProjectionFromOtherProject.cs). Shared by the
  * unit test over the golden code model and the e2e test over a real scan.
  *
- * `INVOKES` is the expected `invokes` of every behaviour declared under
+ * `INVOKES` is the expected `invokes` of every behavior declared under
  * CSharpSyntax/Projection/Invocations, by the rules of section 11 of
  * docs/plans/code-model-to-system-model.md as they stand today. Entries that
  * pin a known gap say so, so the test that flips when the gap is closed is
@@ -13,110 +13,110 @@
 
 const INVOCATIONS = 'Projection.Invocations';
 
-/** A behaviour of the Invocations module. */
-export const behaviour = (name: string): string =>
+/** A behavior of the Invocations module. */
+export const behavior = (name: string): string =>
   `behavior|${INVOCATIONS}.${name}`;
 
-/** One of the leaf behaviours every chain ends at. */
-const reached = (name: string): string => behaviour(`Reached.${name}`);
+/** One of the leaf behaviors every chain ends at. */
+const reached = (name: string): string => behavior(`Reached.${name}`);
 
 /**
- * Expected `invokes` by behaviour id, for every behaviour under
+ * Expected `invokes` by behavior id, for every behavior under
  * Projection.Invocations except the leaves (`Reached.*`), which invoke nothing.
  */
 export const INVOKES: Record<string, string[]> = {
   // --- InterfaceDispatch.cs ------------------------------------------------
-  // A call through a block interface reaches the interface's behaviour, and
+  // A call through a block interface reaches the interface's behavior, and
   // nothing below it: the walk never goes down to the implementors.
-  [behaviour('CallsThroughBlockInterface.ViaParameter')]: [
-    behaviour('BlockInterface.Contract'),
+  [behavior('CallsThroughBlockInterface.ViaParameter')]: [
+    behavior('BlockInterface.Contract'),
   ],
-  [behaviour('CallsThroughBlockInterface.ViaField')]: [
-    behaviour('BlockInterface.Contract'),
+  [behavior('CallsThroughBlockInterface.ViaField')]: [
+    behavior('BlockInterface.Contract'),
   ],
-  [behaviour('CallsThroughBlockInterface.ViaCastToInterface')]: [
-    behaviour('BlockInterface.Contract'),
+  [behavior('CallsThroughBlockInterface.ViaCastToInterface')]: [
+    behavior('BlockInterface.Contract'),
   ],
-  // A call on a block implementor reaches its own behaviour and, upwards, the
+  // A call on a block implementor reaches its own behavior and, upwards, the
   // interface's (R11.2).
-  [behaviour('CallsThroughBlockInterface.ViaBlockImplementor')]: [
-    behaviour('BlockImplementorA.Contract'),
-    behaviour('BlockInterface.Contract'),
+  [behavior('CallsThroughBlockInterface.ViaBlockImplementor')]: [
+    behavior('BlockImplementorA.Contract'),
+    behavior('BlockInterface.Contract'),
   ],
   // A call on a non-block implementor resolves upwards to the interface's.
-  [behaviour('CallsThroughBlockInterface.ViaNonBlockImplementor')]: [
-    behaviour('BlockInterface.Contract'),
+  [behavior('CallsThroughBlockInterface.ViaNonBlockImplementor')]: [
+    behavior('BlockInterface.Contract'),
   ],
   // R11.1: every implementor's calls are attributed to the interface
-  // behaviour, block implementors and explicit implementations included.
-  [behaviour('BlockInterface.Contract')]: [
+  // behavior, block implementors and explicit implementations included.
+  [behavior('BlockInterface.Contract')]: [
     reached('ByBlockImplementorA'),
     reached('ByBlockImplementorB'),
     reached('ByExplicitBlockImplementor'),
     reached('ByExplicitNonBlockImplementor'),
     reached('ByNonBlockImplementor'),
   ],
-  [behaviour('BlockImplementorA.Contract')]: [reached('ByBlockImplementorA')],
-  [behaviour('BlockImplementorB.Contract')]: [reached('ByBlockImplementorB')],
+  [behavior('BlockImplementorA.Contract')]: [reached('ByBlockImplementorA')],
+  [behavior('BlockImplementorB.Contract')]: [reached('ByBlockImplementorB')],
   // Known gap: an interface that is no block has a bodiless member with no
   // outgoing calls, so the walk ends there and the implementors are invisible.
-  [behaviour('CallsThroughNonBlockInterface.Via')]: [],
-  [behaviour('NonBlockInterfaceImplementorA.Contract')]: [
+  [behavior('CallsThroughNonBlockInterface.Via')]: [],
+  [behavior('NonBlockInterfaceImplementorA.Contract')]: [
     reached('ByNonBlockInterfaceImplementorA'),
   ],
-  [behaviour('NonBlockInterfaceImplementorB.Contract')]: [
+  [behavior('NonBlockInterfaceImplementorB.Contract')]: [
     reached('ByNonBlockInterfaceImplementorB'),
   ],
-  // A default interface member is a behaviour with a body of its own.
-  [behaviour('CallsDefaultMember.Via')]: [
-    behaviour('InterfaceWithDefaultMember.WithDefaultBody'),
+  // A default interface member is a behavior with a body of its own.
+  [behavior('CallsDefaultMember.Via')]: [
+    behavior('InterfaceWithDefaultMember.WithDefaultBody'),
   ],
-  [behaviour('InterfaceWithDefaultMember.WithDefaultBody')]: [
-    behaviour('InterfaceWithDefaultMember.Required'),
+  [behavior('InterfaceWithDefaultMember.WithDefaultBody')]: [
+    behavior('InterfaceWithDefaultMember.Required'),
   ],
-  [behaviour('InterfaceWithDefaultMember.Required')]: [
+  [behavior('InterfaceWithDefaultMember.Required')]: [
     reached('ByRequiredMember'),
   ],
-  [behaviour('ImplementsRequiredMemberOnly.Required')]: [
+  [behavior('ImplementsRequiredMemberOnly.Required')]: [
     reached('ByRequiredMember'),
   ],
   // The interface member is satisfied by a non-block base class's method:
-  // its calls land on the interface behaviour; the block has no behaviour of
+  // its calls land on the interface behavior; the block has no behavior of
   // its own for it.
-  [behaviour('ContractSatisfiedByBase.Provided')]: [
+  [behavior('ContractSatisfiedByBase.Provided')]: [
     reached('ByBaseProvidedMember'),
   ],
-  // Overloads collapse into one behaviour (R9.3) whose invokes is the union,
+  // Overloads collapse into one behavior (R9.3) whose invokes is the union,
   // although they implement members of two different interfaces.
-  [behaviour('ImplementsTwoContracts.ApplyOn')]: [
+  [behavior('ImplementsTwoContracts.ApplyOn')]: [
     reached('ByFirstContract'),
     reached('BySecondContract'),
   ],
-  [behaviour('FirstContract.ApplyOn')]: [reached('ByFirstContract')],
-  [behaviour('SecondContract.ApplyOn')]: [reached('BySecondContract')],
+  [behavior('FirstContract.ApplyOn')]: [reached('ByFirstContract')],
+  [behavior('SecondContract.ApplyOn')]: [reached('BySecondContract')],
 
   // --- BaseClassDispatch.cs ------------------------------------------------
-  [behaviour('CallsThroughBase.Template')]: [
-    behaviour('BlockBase.TemplateMethod'),
+  [behavior('CallsThroughBase.Template')]: [
+    behavior('BlockBase.TemplateMethod'),
   ],
-  [behaviour('CallsThroughBase.Virtual')]: [
-    behaviour('BlockBase.VirtualWithBody'),
+  [behavior('CallsThroughBase.Virtual')]: [
+    behavior('BlockBase.VirtualWithBody'),
   ],
-  [behaviour('CallsThroughBase.Hook')]: [behaviour('BlockBase.PublicHook')],
-  [behaviour('CallsThroughBase.OverrideOnDerived')]: [
-    behaviour('BlockBase.PublicHook'),
-    behaviour('BlockDerivedA.PublicHook'),
+  [behavior('CallsThroughBase.Hook')]: [behavior('BlockBase.PublicHook')],
+  [behavior('CallsThroughBase.OverrideOnDerived')]: [
+    behavior('BlockBase.PublicHook'),
+    behavior('BlockDerivedA.PublicHook'),
   ],
-  [behaviour('CallsThroughBase.NonVirtualOnDerived')]: [
-    behaviour('BlockBase.NonVirtual'),
+  [behavior('CallsThroughBase.NonVirtualOnDerived')]: [
+    behavior('BlockBase.NonVirtual'),
   ],
-  // The template method reaches the public abstract hook, a behaviour. The
-  // protected hook is no behaviour and has no body: known gap, the calls made
+  // The template method reaches the public abstract hook, a behavior. The
+  // protected hook is no behavior and has no body: known gap, the calls made
   // by its overrides (Reached.By*ProtectedHook) are attributed to nothing.
-  [behaviour('BlockBase.TemplateMethod')]: [behaviour('BlockBase.PublicHook')],
-  // R11.1: every override's calls are attributed to the abstract behaviour,
+  [behavior('BlockBase.TemplateMethod')]: [behavior('BlockBase.PublicHook')],
+  // R11.1: every override's calls are attributed to the abstract behavior,
   // through a non-block intermediate too.
-  [behaviour('BlockBase.PublicHook')]: [
+  [behavior('BlockBase.PublicHook')]: [
     reached('ByDerivedAPublicHook'),
     reached('ByDerivedBPublicHook'),
     reached('ByDerivedThroughIntermediate'),
@@ -124,22 +124,22 @@ export const INVOKES: Record<string, string[]> = {
     reached('ByNonBlockDerivedPublicHook'),
   ],
   // The virtual's own body, plus what its override adds; `base.VirtualWithBody()`
-  // resolves to the behaviour itself and is dropped (R11.3).
-  [behaviour('BlockBase.VirtualWithBody')]: [
+  // resolves to the behavior itself and is dropped (R11.3).
+  [behavior('BlockBase.VirtualWithBody')]: [
     reached('ByBaseBody'),
     reached('ByDerivedAVirtual'),
   ],
-  [behaviour('BlockBase.NonVirtual')]: [reached('ByBaseOnly')],
-  [behaviour('BlockDerivedA.PublicHook')]: [reached('ByDerivedAPublicHook')],
-  [behaviour('BlockDerivedA.VirtualWithBody')]: [
-    behaviour('BlockBase.VirtualWithBody'),
+  [behavior('BlockBase.NonVirtual')]: [reached('ByBaseOnly')],
+  [behavior('BlockDerivedA.PublicHook')]: [reached('ByDerivedAPublicHook')],
+  [behavior('BlockDerivedA.VirtualWithBody')]: [
+    behavior('BlockBase.VirtualWithBody'),
     reached('ByDerivedAVirtual'),
   ],
-  [behaviour('BlockDerivedB.PublicHook')]: [reached('ByDerivedBPublicHook')],
+  [behavior('BlockDerivedB.PublicHook')]: [reached('ByDerivedBPublicHook')],
   // `base.PublicHook()` on the non-block intermediate resolves upwards to the
-  // abstract behaviour.
-  [behaviour('BlockDerivedThroughIntermediate.PublicHook')]: [
-    behaviour('BlockBase.PublicHook'),
+  // abstract behavior.
+  [behavior('BlockDerivedThroughIntermediate.PublicHook')]: [
+    behavior('BlockBase.PublicHook'),
     reached('ByDerivedThroughIntermediate'),
   ],
 
@@ -147,93 +147,93 @@ export const INVOKES: Record<string, string[]> = {
   // Known gap: the call on the constrained type parameter resolves to the
   // non-block constraint interface's bodiless member, whatever the type
   // argument (inferred, explicit or open), so the modifiers are invisible.
-  [behaviour('ConstrainedGenericSteps.ApplyInferred')]: [],
-  [behaviour('ConstrainedGenericSteps.ApplyExplicit')]: [],
-  [behaviour('ConstrainedGenericSteps.ApplyOpen')]: [],
-  [behaviour('ConstrainedGenericSteps.ApplyDirect')]: [
-    behaviour('ModifierA.Modify'),
+  [behavior('ConstrainedGenericSteps.ApplyInferred')]: [],
+  [behavior('ConstrainedGenericSteps.ApplyExplicit')]: [],
+  [behavior('ConstrainedGenericSteps.ApplyOpen')]: [],
+  [behavior('ConstrainedGenericSteps.ApplyDirect')]: [
+    behavior('ModifierA.Modify'),
   ],
-  [behaviour('ModifierA.Modify')]: [reached('ByModifierA')],
-  [behaviour('ModifierB.Modify')]: [reached('ByModifierB')],
-  // A generic block interface has one behaviour whatever the type argument
+  [behavior('ModifierA.Modify')]: [reached('ByModifierA')],
+  [behavior('ModifierB.Modify')]: [reached('ByModifierB')],
+  // A generic block interface has one behavior whatever the type argument
   // at the call site: closed, open, or cast to two closings.
-  [behaviour('CallsThroughGenericInterface.ViaClosed')]: [
-    behaviour('GenericBlockInterface.Load'),
+  [behavior('CallsThroughGenericInterface.ViaClosed')]: [
+    behavior('GenericBlockInterface.Load'),
   ],
-  [behaviour('CallsThroughGenericInterface.ViaOpen')]: [
-    behaviour('GenericBlockInterface.Load'),
+  [behavior('CallsThroughGenericInterface.ViaOpen')]: [
+    behavior('GenericBlockInterface.Load'),
   ],
-  [behaviour('CallsThroughGenericInterface.ViaImplementedTwice')]: [
-    behaviour('GenericBlockInterface.Load'),
+  [behavior('CallsThroughGenericInterface.ViaImplementedTwice')]: [
+    behavior('GenericBlockInterface.Load'),
   ],
-  [behaviour('CallsThroughGenericInterface.ViaClosedImplementor')]: [
-    behaviour('ClosedImplementor.Load'),
-    behaviour('GenericBlockInterface.Load'),
+  [behavior('CallsThroughGenericInterface.ViaClosedImplementor')]: [
+    behavior('ClosedImplementor.Load'),
+    behavior('GenericBlockInterface.Load'),
   ],
-  [behaviour('CallsThroughGenericInterface.ViaOpenImplementorClosed')]: [
-    behaviour('GenericBlockInterface.Load'),
-    behaviour('OpenImplementor.Load'),
+  [behavior('CallsThroughGenericInterface.ViaOpenImplementorClosed')]: [
+    behavior('GenericBlockInterface.Load'),
+    behavior('OpenImplementor.Load'),
   ],
-  [behaviour('GenericBlockInterface.Load')]: [
+  [behavior('GenericBlockInterface.Load')]: [
     reached('ByClosedImplementor'),
     reached('ByImplementedTwiceA'),
     reached('ByImplementedTwiceB'),
     reached('ByOpenImplementor'),
   ],
-  [behaviour('ClosedImplementor.Load')]: [reached('ByClosedImplementor')],
-  [behaviour('OpenImplementor.Load')]: [reached('ByOpenImplementor')],
+  [behavior('ClosedImplementor.Load')]: [reached('ByClosedImplementor')],
+  [behavior('OpenImplementor.Load')]: [reached('ByOpenImplementor')],
   // A static abstract member called through the type parameter.
-  [behaviour('CallsThroughTypeParameter.Create')]: [
-    behaviour('StaticAbstractBlockInterface.Create'),
+  [behavior('CallsThroughTypeParameter.Create')]: [
+    behavior('StaticAbstractBlockInterface.Create'),
   ],
-  [behaviour('CallsThroughTypeParameter.CreateConcrete')]: [
-    behaviour('CreatedViaStaticAbstract.Create'),
-    behaviour('StaticAbstractBlockInterface.Create'),
+  [behavior('CallsThroughTypeParameter.CreateConcrete')]: [
+    behavior('CreatedViaStaticAbstract.Create'),
+    behavior('StaticAbstractBlockInterface.Create'),
   ],
-  [behaviour('StaticAbstractBlockInterface.Create')]: [
+  [behavior('StaticAbstractBlockInterface.Create')]: [
     reached('ByStaticAbstractImplementor'),
   ],
-  [behaviour('CreatedViaStaticAbstract.Create')]: [
+  [behavior('CreatedViaStaticAbstract.Create')]: [
     reached('ByStaticAbstractImplementor'),
   ],
 
   // --- CallChains.cs -------------------------------------------------------
-  [behaviour('CallChains.ThreeStepsDeep')]: [reached('ByThreeSteps')],
-  [behaviour('CallChains.ThroughGenericStep')]: [
-    behaviour('ModifierA.Modify'),
+  [behavior('CallChains.ThreeStepsDeep')]: [reached('ByThreeSteps')],
+  [behavior('CallChains.ThroughGenericStep')]: [
+    behavior('ModifierA.Modify'),
     reached('ByGenericStep'),
   ],
-  [behaviour('CallChains.ThroughCycle')]: [reached('ByCycle')],
+  [behavior('CallChains.ThroughCycle')]: [reached('ByCycle')],
   // Steps may pass through an excluded namespace and another artifact.
-  [behaviour('CallChains.ThroughExcludedNamespace')]: [
+  [behavior('CallChains.ThroughExcludedNamespace')]: [
     reached('ByExcludedStep'),
   ],
-  [behaviour('CallChains.ThroughOtherProject')]: [
+  [behavior('CallChains.ThroughOtherProject')]: [
     'behavior|OtherProject.Projection.BlockFromOtherProject.Target',
   ],
-  [behaviour('CallChains.ThroughAwaitedStep')]: [reached('ByAwaitedStep')],
+  [behavior('CallChains.ThroughAwaitedStep')]: [reached('ByAwaitedStep')],
   // Calls inside lambdas and local functions belong to the enclosing method.
-  [behaviour('CallChains.ThroughLambda')]: [
-    behaviour('ModifierA.Modify'),
+  [behavior('CallChains.ThroughLambda')]: [
+    behavior('ModifierA.Modify'),
     reached('ByLambda'),
   ],
-  [behaviour('CallChains.ThroughLocalFunction')]: [reached('ByLocalFunction')],
+  [behavior('CallChains.ThroughLocalFunction')]: [reached('ByLocalFunction')],
   // R11.4: a constructor ends the walk, whatever its body calls.
-  [behaviour('CallChains.ThroughConstructor')]: [],
-  // R11.3: the overload is the same behaviour and is dropped.
-  [behaviour('CallChains.CallsOwnOverload')]: [reached('ByOverload')],
-  [behaviour('CallChains.MutualA')]: [behaviour('CallChains.MutualB')],
-  [behaviour('CallChains.MutualB')]: [behaviour('CallChains.MutualA')],
+  [behavior('CallChains.ThroughConstructor')]: [],
+  // R11.3: the overload is the same behavior and is dropped.
+  [behavior('CallChains.CallsOwnOverload')]: [reached('ByOverload')],
+  [behavior('CallChains.MutualA')]: [behavior('CallChains.MutualB')],
+  [behavior('CallChains.MutualB')]: [behavior('CallChains.MutualA')],
   // Known gaps in the parser: a delegate invocation and a user-defined
   // operator call produce no INVOKES edge yet.
-  [behaviour('CallChains.ThroughDelegateField')]: [],
-  [behaviour('CallChains.ThroughOperator')]: [],
-  [behaviour('OperatorBlock.Add')]: [reached('ByOperatorBody')],
-  // An annotated private method is a behaviour: the walk stops at it.
-  [behaviour('CallChains.CallsPrivateBehaviour')]: [
-    behaviour('CallChains.Private behaviour'),
+  [behavior('CallChains.ThroughDelegateField')]: [],
+  [behavior('CallChains.ThroughOperator')]: [],
+  [behavior('OperatorBlock.Add')]: [reached('ByOperatorBody')],
+  // An annotated private method is a behavior: the walk stops at it.
+  [behavior('CallChains.CallsPrivateBehavior')]: [
+    behavior('CallChains.Private behavior'),
   ],
-  [behaviour('CallChains.Private behaviour')]: [reached('ByPrivateBehaviour')],
+  [behavior('CallChains.Private behavior')]: [reached('ByPrivateBehavior')],
 };
 
 /** Leaves nothing reaches: a call from a property getter or a field initialiser is attributed to nothing (R11.1). */
@@ -252,7 +252,7 @@ export const MODULES = [
   'module|OtherProject',
   'module|OtherProject.Projection',
   'module|Projection',
-  'module|Projection.Behaviours',
+  'module|Projection.Behaviors',
   'module|Projection.Blocks',
   'module|Projection.Invocations',
 ];

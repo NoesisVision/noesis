@@ -200,7 +200,7 @@ glossary.
 - Better: one requirement each for create, share, approve, publish,
   archive.
 
-**R23 Supporting diagrams.** When behaviour is too complex for one sentence
+**R23 Supporting diagrams.** When behavior is too complex for one sentence
 (a state machine, a message exchange, a data format), the requirement
 points at a named diagram, model, table or interface definition, which is
 under the same change control.

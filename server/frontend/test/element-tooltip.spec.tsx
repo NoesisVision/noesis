@@ -32,7 +32,7 @@ const document = {
       },
     ],
   },
-  behaviours: {
+  behaviors: {
     added: [
       {
         id: 'behavior|pay.Hold.place',
@@ -89,7 +89,7 @@ describe('ElementTooltip', () => {
     expect(html).not.toContain('legacyId');
   });
 
-  it("lists a behaviour's input and output", () => {
+  it("lists a behavior's input and output", () => {
     const html = render('pay.Hold.place');
     expect(html).toContain('>Input<');
     expect(html).toMatch(/>amount: <span[^>]*>Money<\/span>/);
@@ -98,9 +98,9 @@ describe('ElementTooltip', () => {
     expect(html).toMatch(/<span[^>]*><span[^>]*>Hold<\/span><\/span>/);
   });
 
-  it("lists a block's behaviours as signatures, over its properties", () => {
+  it("lists a block's behaviors as signatures, over its properties", () => {
     const html = render('pay.Hold');
-    expect(html.indexOf('>Behaviours<')).toBeLessThan(
+    expect(html.indexOf('>Behaviors<')).toBeLessThan(
       html.indexOf('>Properties<'),
     );
     expect(html).toMatch(/>release\(reason: string\)</);
@@ -109,7 +109,7 @@ describe('ElementTooltip', () => {
     expect(html).toMatch(/>place\(amount: Money\): <span[^>]*>Hold<\/span>/);
   });
 
-  it('marks each behaviour by its kind and each property with braces', () => {
+  it('marks each behavior by its kind and each property with braces', () => {
     const html = render('pay.Hold');
     expect(html).toContain('tabler-icon-circle-letter-c');
     expect(html).toContain('tabler-icon-circle-letter-q');

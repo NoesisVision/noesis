@@ -1,6 +1,6 @@
 import { Chip, Group, Stack, Text } from '@noesis/design-system';
 
-/** One of a few: a behaviour's visibility, a rule's category. */
+/** One of a few: a behavior's visibility, a rule's category. */
 export const SingleChoice = () => (
   <Stack gap="md">
     <Stack gap={6}>

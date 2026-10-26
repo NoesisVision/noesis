@@ -595,7 +595,7 @@
       }
     }
   ],
-  "behaviours": [
+  "behaviors": [
     {
       "id": "behavior|qdocmanagement.notifications.NotificationSender.send",
       "buildingBlockId": "building_block|qdocmanagement.notifications.NotificationSender",

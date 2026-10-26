@@ -37,10 +37,10 @@ export const ContentWidth = () => (
 
 export const TextLabels = () => (
   <SegmentedControl
-    defaultValue="behaviours"
+    defaultValue="behaviors"
     data={[
       { value: 'elements', label: 'Elements' },
-      { value: 'behaviours', label: 'Behaviours' },
+      { value: 'behaviors', label: 'Behaviors' },
       { value: 'scenarios', label: 'Scenarios' },
     ]}
   />

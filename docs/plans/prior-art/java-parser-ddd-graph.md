@@ -9,7 +9,7 @@
 
 # Java Parser — Design Doc
 
-Status: **Decided** — ArchUnit importer as the engine, Spoon for source fidelity; graph schema is variant B modified — messages + behaviour-level invocation (§9.4).
+Status: **Decided** — ArchUnit importer as the engine, Spoon for source fidelity; graph schema is variant B modified — messages + behavior-level invocation (§9.4).
 Date: 2026-06-10
 
 ## 1. Goal
@@ -17,7 +17,7 @@ Date: 2026-06-10
 A Java code parser that extracts a graph from a codebase:
 
 - **Objects** — classes, interfaces, enums, records, methods, constructors, fields, annotations, packages.
-- **Behaviours** — method calls, constructor calls (instantiations), field reads/writes, method references.
+- **Behaviors** — method calls, constructor calls (instantiations), field reads/writes, method references.
 - **Relations** — inheritance (`extends`/`implements`), containment (package → class → member), dependencies (field/parameter/return/throws/annotation types).
 
 The parser runs inside the user's build as a **Maven plugin and a Gradle plugin**, serializes the graph to JSON conforming to a Noesis contract schema, and ships it to the backend (`POST` to `apps/server` REST API), which loads it into the embedded graph DB (see archived decision 17). The parser never talks to the DB directly. (superseded: integration with the service is undecided)
@@ -26,7 +26,7 @@ The parser runs inside the user's build as a **Maven plugin and a Gradle plugin*
 
 | #   | Requirement                                                      | Notes                                                         |
 | --- | ---------------------------------------------------------------- | ------------------------------------------------------------- |
-| R1  | Extract objects, behaviours, relations listed above              | Core                                                          |
+| R1  | Extract objects, behaviors, relations listed above              | Core                                                          |
 | R2  | Distributable as Maven plugin **and** Gradle plugin              | Maven Central + Gradle Plugin Portal                          |
 | R3  | Permissive licensing                                             | Parser is redistributed; copyleft (GPL) engines are a hazard  |
 | R4  | Stable, maintained foundation                                    | Must keep up with new Java versions                           |
@@ -43,10 +43,10 @@ Nice-to-have (drives the source-vs-bytecode tradeoff): source positions, comment
 
 - **Entry point**: `ClassFileImporter` → `JavaClasses`. Imports from packages, paths, JARs, or the classpath, with filtering via `ImportOption` (e.g. `DoNotIncludeTests`).
 - **Objects**: `JavaClass`, `JavaPackage`, `JavaField`, `JavaMethod`, `JavaConstructor`, `JavaStaticInitializer`, `JavaParameter`, `JavaAnnotation` (with structured values and meta-annotations), `JavaModifier`, `JavaEnumConstant`. Full declaration-site generics model (`JavaParameterizedType`, `JavaTypeVariable`, `JavaWildcardType`).
-- **Behaviours**: the `JavaAccess` hierarchy — `JavaMethodCall`, `JavaConstructorCall` (instantiations), `JavaFieldAccess` (with read/write `AccessType`), `JavaMethodReference`/`JavaConstructorReference` — each with origin code unit, target, and line number. Lambda bodies are attributed to the declaring method (`isDeclaredInLambda()`).
+- **Behaviors**: the `JavaAccess` hierarchy — `JavaMethodCall`, `JavaConstructorCall` (instantiations), `JavaFieldAccess` (with read/write `AccessType`), `JavaMethodReference`/`JavaConstructorReference` — each with origin code unit, target, and line number. Lambda bodies are attributed to the declaring method (`isDeclaredInLambda()`).
 - **Relations**: inheritance (superclass/interfaces/subclasses), containment (members, inner classes, package tree), and a unified `Dependency` abstraction (`getDirectDependenciesFromSelf/ToSelf`) covering extends/implements, field/parameter/return/throws/annotation types, accesses, `instanceof`, class literals. All relations are bidirectional (`...fromSelf` / `...toSelf`).
 
-This maps almost 1:1 onto our objects/behaviours/relations model — the extraction step becomes a straightforward walk over `JavaClasses` emitting JSON.
+This maps almost 1:1 onto our objects/behaviors/relations model — the extraction step becomes a straightforward walk over `JavaClasses` emitting JSON.
 
 ### Practicalities
 
@@ -143,7 +143,7 @@ Rules of the pattern:
 
 ## 7. Decision
 
-**ArchUnit's `ClassFileImporter` is the primary engine inside `scanner-core`** — best effort-to-coverage ratio: Apache-2.0, single shaded dependency, `@PublicAPI`-stable, proven standalone by Spring Modulith, and its metamodel maps directly onto our objects/behaviours/relations.
+**ArchUnit's `ClassFileImporter` is the primary engine inside `scanner-core`** — best effort-to-coverage ratio: Apache-2.0, single shaded dependency, `@PublicAPI`-stable, proven standalone by Spring Modulith, and its metamodel maps directly onto our objects/behaviors/relations.
 
 **Spoon provides the source-fidelity enrichment pass** — exact source positions, comments/Javadoc, and parameter names, merged into the graph as **optional fields keyed by FQN + member descriptor**. Spoon over JavaParser because of its no-classpath mode (best-effort model instead of resolution exceptions) and the MIT license option. The pass may be skipped or partial; the contract schema must treat its fields as optional. Because Spoon's JDT dependency is unshaded, the classloader isolation in §6 is mandatory.
 
@@ -249,8 +249,8 @@ Recommendation was Variant B with C's `evidence` field borrowed (optional `evide
 Variant B as above, with three modifications:
 
 1. **All communication is modeled as messages.** Three message node types: **`Command`**, **`Query`**, **`Event`** (replacing B's lone `DomainEvent`). A message is itself an annotated class; communication edges point at message nodes, never directly block-to-block.
-2. **Building blocks have behaviours.** A **`Behaviour`** node is an operation of a building block (a public method — e.g. `Order#place`, `OrderAppService#handle(PlaceOrder)`), owned via `CONTAINS`. An `ApplicationService` exposes its message handlers as behaviours: a behaviour with a `HANDLES` edge to a `Command`, `Query`, or `Event`.
-3. **Invocation is behaviour-level.** **`INVOKES`** edges connect behaviours (replacing B's block-level `USES`). Block-to-block usage is not stored — the server derives it by lifting `INVOKES` through `CONTAINS` when a coarser view is rendered.
+2. **Building blocks have behaviors.** A **`Behavior`** node is an operation of a building block (a public method — e.g. `Order#place`, `OrderAppService#handle(PlaceOrder)`), owned via `CONTAINS`. An `ApplicationService` exposes its message handlers as behaviors: a behavior with a `HANDLES` edge to a `Command`, `Query`, or `Event`.
+3. **Invocation is behavior-level.** **`INVOKES`** edges connect behaviors (replacing B's block-level `USES`). Block-to-block usage is not stored — the server derives it by lifting `INVOKES` through `CONTAINS` when a coarser view is rendered.
 
 ```text
 nodes (discriminated on `type`):
@@ -260,50 +260,50 @@ nodes (discriminated on `type`):
               Port    { direction: "primary" | "secondary" }
               Adapter { direction: "primary" | "secondary" }
   messages:   Command | Query | Event                 // class-backed, own category
-  behaviour:  Behaviour { name, signature }           // method-backed, id = "fqn#method(paramTypes)"
+  behavior:  Behavior { name, signature }           // method-backed, id = "fqn#method(paramTypes)"
 
 type aliases (zod unions, not node types):
   block   = any node in the `blocks` category (one node per annotated class)
   message = Command | Query | Event
 
 edges (discriminated on `type`; derived edges carry optional evidence: string[]):
-  CONTAINS     module → block | message · aggregate → entity/VO · block → Behaviour
+  CONTAINS     module → block | message · aggregate → entity/VO · block → Behavior
   ASSOCIATION  aggregate → aggregate (by id reference)
-  INVOKES      Behaviour → Behaviour
-  SENDS        Behaviour → message   (producer side)
-  HANDLES      Behaviour → message   (consumer side)
+  INVOKES      Behavior → Behavior
+  SENDS        Behavior → message   (producer side)
+  HANDLES      Behavior → message   (consumer side)
   EXPOSES      module → Port
   IMPLEMENTS   Adapter → Port
-  DEPENDS_ON   block → block (fallback for non-behavioural dependencies, e.g. type-only)
+  DEPENDS_ON   block → block (fallback for non-behavioral dependencies, e.g. type-only)
 ```
 
-A **block** is a node backed by a single annotated class — the structural stereotypes including ports and adapters. Grouping nodes (`BoundedContext`, `Module`) and messages are _not_ blocks: groupings are package-backed, and messages get their own category because `SENDS`/`HANDLES` may only target them. Every `Behaviour` is owned by exactly one block.
+A **block** is a node backed by a single annotated class — the structural stereotypes including ports and adapters. Grouping nodes (`BoundedContext`, `Module`) and messages are _not_ blocks: groupings are package-backed, and messages get their own category because `SENDS`/`HANDLES` may only target them. Every `Behavior` is owned by exactly one block.
 
 **Invariants** (validated at ingest):
 
-- A `Command` and a `Query` each have **exactly one** `HANDLES` behaviour, owned by an `ApplicationService`; an `Event` has **0..n** handlers.
-- `INVOKES`, `SENDS`, `HANDLES` connect behaviours/messages only; every `Behaviour` has exactly one `CONTAINS` owner.
+- A `Command` and a `Query` each have **exactly one** `HANDLES` behavior, owned by an `ApplicationService`; an `Event` has **0..n** handlers.
+- `INVOKES`, `SENDS`, `HANDLES` connect behaviors/messages only; every `Behavior` has exactly one `CONTAINS` owner.
 - One edge vocabulary for all three message kinds — the message node's type (not the edge name) distinguishes command/query/event rendering, so the edge set stays small.
 
 **Derivation from the ArchUnit graph:**
 
 | Element     | Derived from                                                                                                                                            |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Behaviour` | public, non-synthetic `JavaMethod`s of annotated blocks, except record accessors, `equals`, `hashCode`, `toString` and an enum's `values` and `valueOf` |
-| `INVOKES`   | `JavaMethodCall` between behaviours; calls routed through private helpers of the same block are collapsed onto the public behaviour                     |
-| `SENDS`     | `JavaConstructorCall` of a message-typed class inside a behaviour (dispatcher-call patterns can be added later)                                         |
-| `HANDLES`   | behaviour with a message-typed parameter: a handler annotation of that message's kind, or an unannotated `ApplicationService` behaviour                 |
+| `Behavior` | public, non-synthetic `JavaMethod`s of annotated blocks, except record accessors, `equals`, `hashCode`, `toString` and an enum's `values` and `valueOf` |
+| `INVOKES`   | `JavaMethodCall` between behaviors; calls routed through private helpers of the same block are collapsed onto the public behavior                     |
+| `SENDS`     | `JavaConstructorCall` of a message-typed class inside a behavior (dispatcher-call patterns can be added later)                                         |
+| `HANDLES`   | behavior with a message-typed parameter: a handler annotation of that message's kind, or an unannotated `ApplicationService` behavior                 |
 | evidence    | `SourceCodeLocation` (class + line) of the underlying accesses                                                                                          |
 
-**Behaviour types:** a handler annotation on a method — noesis `@CommandHandler`, `@QueryHandler`, `@EventHandler`, or jMolecules `@CommandHandler`, `@DomainEventHandler` — gives its `Behaviour` a `behaviourType` (`COMMAND`, `QUERY`, `EVENT`) and makes it a handler of the messages of its own kind it takes as parameters (an `@EventHandler` handles events, not commands), wherever it lives.
+**Behavior types:** a handler annotation on a method — noesis `@CommandHandler`, `@QueryHandler`, `@EventHandler`, or jMolecules `@CommandHandler`, `@DomainEventHandler` — gives its `Behavior` a `behaviorType` (`COMMAND`, `QUERY`, `EVENT`) and makes it a handler of the messages of its own kind it takes as parameters (an `@EventHandler` handles events, not commands), wherever it lives.
 
 **Annotation mapping:** jMolecules covers most of the vocabulary — `jmolecules-ddd` for the tactical blocks, `@DomainEvent`/`@DomainEventHandler` (`jmolecules-events`), `@Command`/`@CommandHandler` (CQRS architecture module), and the hexagonal port/adapter set. A `Query` stereotype has no jMolecules annotation — provide it via the configurable mapping (team annotation or a small `noesis-annotations` artifact).
 
-**Payload note:** behaviours multiply node count by roughly the average number of public methods per block (~5–10×) — still orders of magnitude below variant C's class-level graph; R5 unaffected.
+**Payload note:** behaviors multiply node count by roughly the average number of public methods per block (~5–10×) — still orders of magnitude below variant C's class-level graph; R5 unaffected.
 
 ## 10. Open questions (once resolved)
 
-1. **Derivation details** — `SENDS` beyond constructor calls (dispatcher/bus invocation patterns); how ambiguous access targets (0..n resolution) affect `INVOKES`; whether non-public methods ever become behaviours (e.g. private event listeners).
+1. **Derivation details** — `SENDS` beyond constructor calls (dispatcher/bus invocation patterns); how ambiguous access targets (0..n resolution) affect `INVOKES`; whether non-public methods ever become behaviors (e.g. private event listeners).
 2. **Multi-module builds** — one graph per module with cross-module linking server-side, or aggregate in the plugin (Maven aggregator mojo / Gradle root task)?
 3. **Transport** — file artifact only (CI uploads it) vs. direct POST from the plugin (needs auth story)?
 4. **Coordinates** — group ID (`vision.noesis`?), plugin IDs (`noesis-parser-maven-plugin`, `vision.noesis.parser` on the Portal), and repo layout (stay in monorepo outside the bun workspace, per README).

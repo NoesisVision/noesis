@@ -19,7 +19,7 @@ and find the model in them: which things must change together, which facts
 are computed, which rules guard a transition, who is allowed to do what, and
 what happens as a reaction somewhere else.
 
-The document therefore describes behaviour only. It names no subsystem, no
+The document therefore describes behavior only. It names no subsystem, no
 bounded context, no aggregate and no event; finding them is the work of the
 workshop. The exception are the three platform services the QDoc System
 builds on (see 1.3). Each rule has the QDoc System as its subject.
@@ -30,7 +30,7 @@ builds on (see 1.3). Each rule has the QDoc System as its subject.
   concepts and the rules in short.
 - [QDoc UI prototype](qdoc-ui.prototype.html): the screens of the owner, the
   author, the quality manager and the employee. Where the one-pager is
-  silent, the behaviour of the prototype is taken as decided.
+  silent, the behavior of the prototype is taken as decided.
 - [QDoc System: preparation requirements](qdoc-preparation-requirements.md):
   the companion document, for the other part of the life of a version.
 - [Content File Service](content-files-requirements.md),

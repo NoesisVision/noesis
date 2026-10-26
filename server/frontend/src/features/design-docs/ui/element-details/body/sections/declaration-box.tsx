@@ -30,7 +30,7 @@ export function DeclarationBox({
   typePath: string | null | undefined;
   /** `li` inside a list of them. */
   component?: 'div' | 'li';
-  /** What a behaviour gives back, drawn in the brand's tint. */
+  /** What a behavior gives back, drawn in the brand's tint. */
   output?: boolean;
   /** The fields the description is, for who wrote it. */
   writtenOf?: readonly (DesignDocFieldInput<unknown> | undefined)[];

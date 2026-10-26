@@ -231,9 +231,9 @@ function FieldInput({
         value: type,
         label: titleCase(type).replaceAll('_', ' '),
       }));
-      // A behaviour's three kinds read at a glance as chips; a building
+      // A behavior's three kinds read at a glance as chips; a building
       // block's eight patterns need a list.
-      return kind === 'behaviour' ? (
+      return kind === 'behavior' ? (
         <ChipChoice
           label={label}
           options={options}

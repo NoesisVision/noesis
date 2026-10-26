@@ -1,5 +1,5 @@
 import type {
-  BehaviourType,
+  BehaviorType,
   BuildingBlockType,
 } from '#backend/app/system-model/system-model';
 import type { Language, NodeId } from '../code-parsers/code-model';
@@ -26,13 +26,13 @@ export type PrimitiveName =
 export type AnnotationRole =
   /** The type is a building block of `type`; the `name` argument overrides its name. */
   | { readonly role: 'buildingBlock'; readonly type: BuildingBlockType }
-  /** The method is a behaviour; `name` overrides its name, `triggeredBy` fixes its type, or the role's own `type` does (Java's `@QueryHandler`). */
-  | { readonly role: 'behaviour'; readonly type?: BehaviourType }
-  /** Who calls the behaviour: the `name` argument. */
+  /** The method is a behavior; `name` overrides its name, `triggeredBy` fixes its type, or the role's own `type` does (Java's `@QueryHandler`). */
+  | { readonly role: 'behavior'; readonly type?: BehaviorType }
+  /** Who calls the behavior: the `name` argument. */
   | { readonly role: 'actor' }
   /** The element's description, Markdown, in the `description` argument. */
   | { readonly role: 'description' }
-  /** A scenario of the block or behaviour, by its `name` only. */
+  /** A scenario of the block or behavior, by its `name` only. */
   | { readonly role: 'scenario' }
   /** The element is not in the system model. */
   | { readonly role: 'exclude' };
@@ -61,6 +61,6 @@ export interface AnnotationVocabulary {
   readonly optionalWrappers: ReadonlySet<NodeId>;
   /** Non-generic type ids that stand for no value (`Task`). */
   readonly voidTypes: ReadonlySet<NodeId>;
-  /** Method names never taken for behaviours (`Equals`, `ToString`, ...). */
+  /** Method names never taken for behaviors (`Equals`, `ToString`, ...). */
   readonly technicalMembers: ReadonlySet<string>;
 }

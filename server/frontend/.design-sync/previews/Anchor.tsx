@@ -2,7 +2,7 @@ import { Anchor, Group, Stack, Text } from '@noesis/design-system';
 
 export const Inline = () => (
   <Text size="sm" maw={420}>
-    This behaviour is described in the{' '}
+    This behavior is described in the{' '}
     <Anchor href="#">Payment flow design document</Anchor> and covered by{' '}
     <Anchor href="#">three scenarios</Anchor>.
   </Text>

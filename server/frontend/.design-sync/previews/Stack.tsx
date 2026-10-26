@@ -34,7 +34,7 @@ export const ElementHeader = () => (
       <Title order={2} size="h3">
         PlaceOrder
       </Title>
-      <Badge variant="light">Behaviour</Badge>
+      <Badge variant="light">Behavior</Badge>
     </Group>
     <Text size="sm" c="dimmed">
       Validates the basket, reserves stock and emits OrderPlaced for the

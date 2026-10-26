@@ -6,8 +6,8 @@ import {
   ModuleId,
 } from '#backend/app/element-id';
 import type {
-  BehaviourType,
-  ScannedBehaviour,
+  BehaviorType,
+  ScannedBehavior,
   ScannedBuildingBlock,
   ScannedDomainModule,
   ScannedParameter,
@@ -65,10 +65,7 @@ export interface BuildDiagnostic {
   readonly source: SourceLocation | null;
 }
 
-type BuiltModel = Pick<
-  SystemModel,
-  'modules' | 'buildingBlocks' | 'behaviours'
->;
+type BuiltModel = Pick<SystemModel, 'modules' | 'buildingBlocks' | 'behaviors'>;
 
 export interface BuiltSystemModel {
   readonly model: BuiltModel;
@@ -86,11 +83,11 @@ interface Block {
   readonly name: ElementName;
 }
 
-interface Behaviour {
+interface Behavior {
   readonly id: BehaviorId;
   readonly block: Block;
   readonly name: ElementName;
-  /** The overload that stands for the behaviour (R9.3). */
+  /** The overload that stands for the behavior (R9.3). */
   readonly chosen: Located<MethodNode>;
   readonly overloads: readonly Located<MethodNode>[];
 }
@@ -107,10 +104,10 @@ class ModelAssembly {
   private readonly index: CodeModelIndex;
   private readonly diagnostics: BuildDiagnostic[] = [];
   private readonly blocks = new Map<GlobalId, Block>();
-  private readonly behaviours = new Map<BehaviorId, Behaviour>();
-  /** Every overload's behaviour, by the method's global id. */
-  private readonly behaviourOfMethod = new Map<GlobalId, BehaviorId>();
-  private readonly memberBehaviours = new Map<GlobalId, Set<BehaviorId>>();
+  private readonly behaviors = new Map<BehaviorId, Behavior>();
+  /** Every overload's behavior, by the method's global id. */
+  private readonly behaviorOfMethod = new Map<GlobalId, BehaviorId>();
+  private readonly memberBehaviors = new Map<GlobalId, Set<BehaviorId>>();
   private readonly callTargets = new Map<GlobalId, Set<BehaviorId>>();
   /** R5.8: each block's fields a getter exposes, with the getter, by field id. */
   private readonly getters = new Map<GlobalId, Map<NodeId, MethodNode>>();
@@ -123,16 +120,16 @@ class ModelAssembly {
 
   assemble(): BuiltSystemModel {
     this.collectBlocks();
-    this.collectBehaviours();
+    this.collectBehaviors();
     const invokes = this.collectInvocations();
     const model: BuiltModel = {
       modules: this.modules(),
       buildingBlocks: [...this.blocks.values()]
         .map((block) => this.toBuildingBlock(block))
         .sort(byId),
-      behaviours: [...this.behaviours.values()]
-        .map((behaviour) =>
-          this.toBehaviour(behaviour, invokes.get(behaviour.id) ?? new Set()),
+      behaviors: [...this.behaviors.values()]
+        .map((behavior) =>
+          this.toBehavior(behavior, invokes.get(behavior.id) ?? new Set()),
         )
         .sort(byId),
     };
@@ -443,10 +440,10 @@ class ModelAssembly {
     return found;
   }
 
-  /* -------------------------------------------------------- behaviours */
+  /* -------------------------------------------------------- behaviors */
 
   /** R9.1 to R9.3: the public methods of each block, overloads collapsed. */
-  private collectBehaviours(): void {
+  private collectBehaviors(): void {
     for (const block of this.blocks.values()) {
       const getters = new Set(this.gettersOf(block).values());
       const methods = block.artifact
@@ -454,12 +451,12 @@ class ModelAssembly {
         .filter(
           (member): member is MethodNode =>
             member.kind === 'method' &&
-            this.isBehaviourCandidate(member, getters),
+            this.isBehaviorCandidate(member, getters),
         );
       const byName = new Map<ElementName, Located<MethodNode>[]>();
       for (const node of methods) {
         const located: Located<MethodNode> = { artifact: block.artifact, node };
-        const name = this.behaviourNameOf(located);
+        const name = this.behaviorNameOf(located);
         const list = byName.get(name) ?? [];
         list.push(located);
         byName.set(name, list);
@@ -473,23 +470,23 @@ class ModelAssembly {
             ? candidate
             : best,
         );
-        this.behaviours.set(id, { id, block, name, chosen, overloads });
+        this.behaviors.set(id, { id, block, name, chosen, overloads });
         for (const overload of overloads) {
-          this.behaviourOfMethod.set(
+          this.behaviorOfMethod.set(
             globalId(overload.artifact, overload.node.id),
             id,
           );
         }
       }
     }
-    this.reportHomelessBehaviours();
+    this.reportHomelessBehaviors();
   }
 
   /**
    * R9.1, and R5.7, R5.8: a record component's accessor, and a getter that
-   * makes its field a property, are the property, not a behaviour.
+   * makes its field a property, are the property, not a behavior.
    */
-  private isBehaviourCandidate(
+  private isBehaviorCandidate(
     method: MethodNode,
     getters: ReadonlySet<MethodNode>,
   ): boolean {
@@ -497,7 +494,7 @@ class ModelAssembly {
       return false;
     if (isRecordComponent(method)) return false;
     if (this.excluded(method.annotations)) return false;
-    if (hasRole(method.annotations, 'behaviour', this.vocabulary)) return true;
+    if (hasRole(method.annotations, 'behavior', this.vocabulary)) return true;
     return (
       method.visibility === 'public' &&
       !getters.has(method) &&
@@ -505,12 +502,12 @@ class ModelAssembly {
     );
   }
 
-  /** R9.2: the behaviour role's name on the method or the members it stands in for, else the code's. */
-  private behaviourNameOf(method: Located<MethodNode>): ElementName {
+  /** R9.2: the behavior role's name on the method or the members it stands in for, else the code's. */
+  private behaviorNameOf(method: Located<MethodNode>): ElementName {
     for (const member of this.memberHierarchy(method)) {
       for (const { annotation } of rolesOf(
         member.node.annotations,
-        'behaviour',
+        'behavior',
         this.vocabulary,
       )) {
         const override = stringArgument(
@@ -521,7 +518,7 @@ class ModelAssembly {
         const parsed = ElementName.safeParse(override);
         if (parsed.success) return parsed.data;
         this.info(
-          `${member.node.id}: the behaviour name "${override}" is no element name; the code's name is used`,
+          `${member.node.id}: the behavior name "${override}" is no element name; the code's name is used`,
           member.node,
         );
       }
@@ -549,19 +546,19 @@ class ModelAssembly {
     return result;
   }
 
-  /** R9.11: a behaviour role on a method whose type is no block has no home. */
-  private reportHomelessBehaviours(): void {
+  /** R9.11: a behavior role on a method whose type is no block has no home. */
+  private reportHomelessBehaviors(): void {
     for (const artifact of this.index.artifacts) {
       for (const node of artifact.file.nodes) {
         if (
           node.kind !== 'method' ||
-          !hasRole(node.annotations, 'behaviour', this.vocabulary)
+          !hasRole(node.annotations, 'behavior', this.vocabulary)
         ) {
           continue;
         }
-        if (!this.behaviourOfMethod.has(globalId(artifact, node.id))) {
+        if (!this.behaviorOfMethod.has(globalId(artifact, node.id))) {
           this.info(
-            `${node.id} is marked a behaviour but its type is no building block; dropped`,
+            `${node.id} is marked a behavior but its type is no building block; dropped`,
             node,
           );
         }
@@ -569,11 +566,11 @@ class ModelAssembly {
     }
   }
 
-  private toBehaviour(
-    behaviour: Behaviour,
+  private toBehavior(
+    behavior: Behavior,
     invokes: Set<BehaviorId>,
-  ): ScannedBehaviour {
-    const { chosen, block } = behaviour;
+  ): ScannedBehavior {
+    const { chosen, block } = behavior;
     const hierarchy = this.memberHierarchy(chosen);
     const scope = this.scopeFor(chosen.artifact, chosen.node);
     const input: ScannedParameter[] = [];
@@ -596,13 +593,13 @@ class ModelAssembly {
     }
     const returned = resolveTypeRef(chosen.node.signature.returnType, scope);
     return {
-      id: behaviour.id,
+      id: behavior.id,
       buildingBlockId: block.id,
-      name: behaviour.name,
-      type: this.behaviourTypeOf(hierarchy),
+      name: behavior.name,
+      type: this.behaviorTypeOf(hierarchy),
       description:
         this.descriptionOf(chosen.node) ??
-        behaviour.overloads
+        behavior.overloads
           .map((overload) => this.descriptionOf(overload.node))
           .find((text) => text !== null) ??
         null,
@@ -621,25 +618,23 @@ class ModelAssembly {
                 optional: returned.optional,
               },
             ],
-      invokes: [...invokes]
-        .filter((id) => id !== behaviour.id)
-        .sort(byCodeUnit),
+      invokes: [...invokes].filter((id) => id !== behavior.id).sort(byCodeUnit),
       rules: [],
       scenarios: this.scenariosOf(
-        behaviour.overloads.map((overload) => overload.node),
+        behavior.overloads.map((overload) => overload.node),
       ),
       source: locationOf(chosen.node),
     };
   }
 
-  /** R9.4: `TriggeredBy` of a behaviour role, or the type the role itself fixes, nearest member first; a Command without one. */
-  private behaviourTypeOf(
+  /** R9.4: `TriggeredBy` of a behavior role, or the type the role itself fixes, nearest member first; a Command without one. */
+  private behaviorTypeOf(
     hierarchy: readonly Located<MethodNode>[],
-  ): BehaviourType {
+  ): BehaviorType {
     for (const member of hierarchy) {
       for (const { annotation, role } of rolesOf(
         member.node.annotations,
-        'behaviour',
+        'behavior',
         this.vocabulary,
       )) {
         const triggeredBy = enumArgument(
@@ -683,14 +678,14 @@ class ModelAssembly {
 
   /* ------------------------------------------------------- invocations */
 
-  /** R11.1 to R11.3: which behaviours each behaviour calls. */
+  /** R11.1 to R11.3: which behaviors each behavior calls. */
   private collectInvocations(): Map<BehaviorId, Set<BehaviorId>> {
     const invokes = new Map<BehaviorId, Set<BehaviorId>>();
     for (const artifact of this.index.artifacts) {
       for (const [from, targets] of artifact.invokedBy) {
         const caller = artifact.nodes.get(from);
         if (caller?.kind !== 'method') continue;
-        const sources = this.behavioursOfMember({ artifact, node: caller });
+        const sources = this.behaviorsOfMember({ artifact, node: caller });
         if (sources.size === 0) continue;
         for (const to of targets) {
           for (const target of this.callTargetsOf(artifact, to)) {
@@ -707,25 +702,25 @@ class ModelAssembly {
     return invokes;
   }
 
-  /** The behaviours a method stands for: its own and those of the members it overrides or implements. */
-  private behavioursOfMember(method: Located<MethodNode>): Set<BehaviorId> {
+  /** The behaviors a method stands for: its own and those of the members it overrides or implements. */
+  private behaviorsOfMember(method: Located<MethodNode>): Set<BehaviorId> {
     const key = globalId(method.artifact, method.node.id);
-    let found = this.memberBehaviours.get(key);
+    let found = this.memberBehaviors.get(key);
     if (found === undefined) {
       found = new Set();
       for (const member of this.memberHierarchy(method)) {
-        const id = this.behaviourOfMethod.get(
+        const id = this.behaviorOfMethod.get(
           globalId(member.artifact, member.node.id),
         );
         if (id !== undefined) found.add(id);
       }
-      this.memberBehaviours.set(key, found);
+      this.memberBehaviors.set(key, found);
     }
     return found;
   }
 
   /**
-   * R11.2: the behaviours a call to `to` reaches: those of the method, or,
+   * R11.2: the behaviors a call to `to` reaches: those of the method, or,
    * when it has none, those its own calls reach, transitively. A method on a
    * cycle contributes what was found before the cycle closed.
    */
@@ -735,7 +730,7 @@ class ModelAssembly {
     const key = globalId(located.artifact, located.node.id);
     const known = this.callTargets.get(key);
     if (known !== undefined) return known;
-    const direct = this.behavioursOfMember(located);
+    const direct = this.behaviorsOfMember(located);
     if (direct.size > 0) {
       this.callTargets.set(key, direct);
       return direct;

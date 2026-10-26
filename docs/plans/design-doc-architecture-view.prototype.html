@@ -1657,7 +1657,7 @@
           kind: 'Actor',
           title: 'Quality manager',
           where: 'visibility.actors of createQDoc',
-          def: 'The one actor named on a public behaviour of preparation. Reaches createQDoc through an in adapter.',
+          def: 'The one actor named on a public behavior of preparation. Reaches createQDoc through an in adapter.',
         },
         adInQM: inAdapter('createQDoc', 'a quality manager'),
         createQDoc: {
@@ -1964,9 +1964,7 @@
             sig('notifyUsers(command: NotifyUsers)', 'public · no actors'),
           ],
           speaks: types('NotifyUsers'),
-          flow: [
-            from('NotifyUsers', 'returned by no behaviour in this design'),
-          ],
+          flow: [from('NotifyUsers', 'returned by no behavior in this design')],
           checks: [
             noConstraintIn,
             check(
@@ -2033,7 +2031,7 @@
           contract: [sig('send(notification: Notification)', 'private')],
           speaks: types('Notification'),
           flow: [
-            from('Notification', 'returned by no behaviour in this design'),
+            from('Notification', 'returned by no behavior in this design'),
           ],
           checks: [noConstraintOut, check('Pass', 'Speaks only domain types.')],
         },
@@ -2083,7 +2081,7 @@
         'chk-public': {
           level: 'Pass',
           title: 'Only application services are public',
-          text: 'The two public behaviours, createQDoc and notifyUsers, are both on application services.',
+          text: 'The two public behaviors, createQDoc and notifyUsers, are both on application services.',
           els: ['createQDoc', 'notifyUsers'],
         },
         'chk-cross': {

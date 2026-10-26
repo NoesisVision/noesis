@@ -158,7 +158,7 @@ describe('the fixture solution through the C# parser (e2e)', () => {
       expect<unknown>(await readdir(noesis.resolve('tmp'))).toEqual([]);
 
       console.log(
-        `[e2e] fixture: first stage ${Math.round(firstStage)} ms, builder alone ${building.toFixed(1)} ms, ${files.length} artifacts, ${model.buildingBlocks.length} blocks, ${model.behaviours.length} behaviours`,
+        `[e2e] fixture: first stage ${Math.round(firstStage)} ms, builder alone ${building.toFixed(1)} ms, ${files.length} artifacts, ${model.buildingBlocks.length} blocks, ${model.behaviors.length} behaviors`,
       );
       expect<unknown>(firstStage).toBeLessThan(FIRST_STAGE_BUDGET_MS);
       expect<unknown>(building).toBeLessThan(BUILD_BUDGET_MS);
@@ -190,7 +190,7 @@ describe('the fixture solution through the C# parser (e2e)', () => {
         'building_block|Projection.Invocations.SecondContract',
       ]);
 
-      const invocations = model.behaviours.filter(
+      const invocations = model.behaviors.filter(
         (b) =>
           b.id.startsWith('behavior|Projection.Invocations.') &&
           !b.id.startsWith('behavior|Projection.Invocations.Reached.'),
@@ -199,14 +199,14 @@ describe('the fixture solution through the C# parser (e2e)', () => {
         Object.fromEntries(invocations.map((b) => [b.id, b.invokes])),
       ).toEqual(INVOKES);
       const reachedByAnyone = new Set<string>(
-        model.behaviours.flatMap((b) => b.invokes),
+        model.behaviors.flatMap((b) => b.invokes),
       );
       for (const leaf of UNREACHED)
         expect<unknown>(reachedByAnyone.has(leaf)).toBe(false);
-      expect<unknown>(model.behaviours.map((b) => b.name)).not.toContain(
+      expect<unknown>(model.behaviors.map((b) => b.name)).not.toContain(
         'ToString',
       );
-      expect<unknown>(model.behaviours.map((b) => b.name)).not.toContain(
+      expect<unknown>(model.behaviors.map((b) => b.name)).not.toContain(
         'Equals',
       );
     },

@@ -115,7 +115,7 @@ const document = {
     removed: ['building_block|pay.Voucher'],
     modified: [],
   },
-  behaviours: {
+  behaviors: {
     added: [
       {
         id: 'behavior|pay.Hold.place',
@@ -214,7 +214,7 @@ const outline: OutlineNode[] = [
   node({
     path: 'behavior|pay.Hold.place',
     parentPath: 'building_block|pay.Hold',
-    kind: 'behaviour',
+    kind: 'behavior',
     name: 'place',
     depth: 2,
     change: 'added',
@@ -230,7 +230,7 @@ const outline: OutlineNode[] = [
   node({
     path: 'behavior|pay.Voucher.redeem',
     parentPath: 'building_block|pay.Voucher',
-    kind: 'behaviour',
+    kind: 'behavior',
     name: 'redeem',
     depth: 2,
     change: 'removed',
@@ -261,11 +261,11 @@ const show = (path: string, from = tree) => {
   );
 };
 
-/** A behaviour the tree has no row for, read on its own. */
-const behaviour = () => {
+/** A behavior the tree has no row for, read on its own. */
+const behavior = () => {
   const place = node({
     path: 'behavior|pay.Hold.place',
-    kind: 'behaviour',
+    kind: 'behavior',
     name: 'place',
     change: 'added',
   });
@@ -611,17 +611,17 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/An unpaid hold lapses<.*>A hold expires</);
   });
 
-  it("reads a block's behaviours before its properties", () => {
+  it("reads a block's behaviors before its properties", () => {
     const html = show('building_block|pay.Hold');
-    expect(html.indexOf('>Behaviours<')).toBeGreaterThan(-1);
-    expect(html.indexOf('>Behaviours<')).toBeLessThan(
+    expect(html.indexOf('>Behaviors<')).toBeGreaterThan(-1);
+    expect(html.indexOf('>Behaviors<')).toBeLessThan(
       html.indexOf('>Properties<'),
     );
   });
 
-  it("reads each of a block's behaviours as a signature", () => {
+  it("reads each of a block's behaviors as a signature", () => {
     const html = show('building_block|pay.Hold');
-    expect(html).toContain('>Behaviours<');
+    expect(html).toContain('>Behaviors<');
     // Its name, which opens its row, then what it takes and gives back.
     expect(html).toMatch(/<button[^>]*>place<\/button>/);
     // Each input by its name and its type, read short.
@@ -631,11 +631,11 @@ describe('ElementDetail', () => {
     // What it gives back opens its type's row, as its name opens its own.
     expect(html).toMatch(/→ <\/span><button[^>]*data-link[^>]*>Hold<\/button>/);
     expect(html).toContain('Holds a card for a booking.');
-    // What each input is for is on the behaviour's own page.
+    // What each input is for is on the behavior's own page.
     expect(html).not.toContain('What to hold.');
   });
 
-  it('lists a behaviour the design only removes by its name alone', () => {
+  it('lists a behavior the design only removes by its name alone', () => {
     const html = show('building_block|pay.Voucher');
     expect(html).toMatch(/<button[^>]*>(<[^>]+>|<svg.*?<\/svg>)*redeem</);
     expect(html).not.toContain('>Input<');
@@ -698,7 +698,7 @@ describe('ElementDetail', () => {
   });
 
   it('gives an element without scenarios no column for them', () => {
-    expect(behaviour()).not.toContain('>Scenarios<');
+    expect(behavior()).not.toContain('>Scenarios<');
   });
 
   it('gives an element the design removes no scenarios', () => {
@@ -706,8 +706,8 @@ describe('ElementDetail', () => {
     expect(scenariosOf(voucher, document)).toEqual([]);
   });
 
-  it("reads a behaviour's input and output as one section", () => {
-    const html = behaviour();
+  it("reads a behavior's input and output as one section", () => {
+    const html = behavior();
     expect(html.match(/>Input \/ Output</g)).toHaveLength(1);
     // Each side a list, named by its caption.
     expect(html).toMatch(/<ul aria-labelledby="[^"]+"/);
@@ -739,7 +739,7 @@ describe('ElementDetail', () => {
   });
 
   it('reads each rule by its name and its description', () => {
-    const html = behaviour();
+    const html = behavior();
     expect(html).toContain('>Rules<');
     expect(html).toContain('>Only once<');
     expect(html).toMatch(
@@ -776,7 +776,7 @@ describe('ElementDetail', () => {
   it('says an element is removed, and lists what went with it', () => {
     const html = show('building_block|pay.Voucher');
     expect(html).toContain('removes it');
-    expect(html).toContain('>Behaviours<');
+    expect(html).toContain('>Behaviors<');
     expect(html).toMatch(/<button[^>]*>(<[^>]+>)*redeem</);
   });
 

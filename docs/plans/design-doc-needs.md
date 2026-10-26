@@ -1,7 +1,7 @@
 # Plan: needs and rule categories in the design document
 
 A design document today holds what a change does to the domain model
-(modules, building blocks, behaviours) and the rules and scenarios on them.
+(modules, building blocks, behaviors) and the rules and scenarios on them.
 It does not say why: the stakeholder needs the rules answer live only in the
 change's documents, and future documents will not be structured enough to
 point at. This plan adds needs to the design document, links every rule to
@@ -23,11 +23,11 @@ has its own: `design-doc-requirements-view.md`.
 | Trace                | A rule names the needs it answers in `needs`. An added rule always writes it; `[]` marks a design decision no need asks for                                                                                                                 |
 | Rationale            | A rule's `rationale`: why the rule holds. Optional, so a rule whose source gives no reason is not forced to invent one                                                                                                                      |
 | Rule categories      | `category`: `Business`, `Quality` or `Constraint`. `ruleType` names the kind within the category; the validator refuses a type of another category                                                                                          |
-| Business rules       | Today's rule types: `Consistency`, `Structure`, `Computation`, `State change`. On a building block or a behaviour only, never on a module                                                                                                   |
+| Business rules       | Today's rule types: `Consistency`, `Structure`, `Computation`, `State change`. On a building block or a behavior only, never on a module                                                                                                    |
 | Quality rules        | A measurable quality the system must have. Types follow ISO/IEC 25010: `Performance`, `Security`, `Reliability`, `Usability`, `Compatibility`, `Maintainability`, `Portability`                                                             |
 | Constraint rules     | A limit imposed on the solution from outside the domain. Types: `Technology`, `Regulation`, `Interface`, `Organisation`                                                                                                                     |
-| Placement            | Quality and constraint rules go on the narrowest element they constrain: a module, a building block or a behaviour. A constraint on a part (a property, an input, an output) goes on the element that owns it. Modules gain `rules`         |
-| Authorisation guards | A guard on who may do an operation ("only quality managers create QDocs") is a `Business` / `State change` rule on the behaviour. `Security` is for how the system protects itself (authentication, encryption, audit)                      |
+| Placement            | Quality and constraint rules go on the narrowest element they constrain: a module, a building block or a behavior. A constraint on a part (a property, an input, an output) goes on the element that owns it. Modules gain `rules`          |
+| Authorisation guards | A guard on who may do an operation ("only quality managers create QDocs") is a `Business` / `State change` rule on the behavior. `Security` is for how the system protects itself (authentication, encryption, audit)                       |
 | System model         | `ScannedRule` gains `category` (default `Business`), `ScannedDomainModule` gains `rules` (default `[]`). Needs and rationale stay out of the system model: a scanner cannot find them in code, and the dummy scanner drops them on replay   |
 | Stored design docs   | Keep parsing: the new fields prefault to unchanged. A stored design document fails validation only when it is saved again                                                                                                                   |
 
@@ -153,7 +153,7 @@ and a module's rules (`module-sections.tsx`, `rule-sections.tsx`,
   scenarios: a modified rule's `description` is the whole new statement, as a
   modified element's `definition` is the whole new definition.
 - Step 8 (working file) lists `needs` beside `modules`, `buildingBlocks` and
-  `behaviours`.
+  `behaviors`.
 - Step 10 (report) names the needs no rule answers and the rules no need asks
   for.
 
@@ -210,7 +210,7 @@ and a module's rules (`module-sections.tsx`, `rule-sections.tsx`,
 
 - The requirements view: `design-doc-requirements-view.md`.
 - A glossary view built from the `definition` of modules, building blocks
-  and behaviours; it gets its own plan. Needs and rules carry no definition.
+  and behaviors; it gets its own plan. Needs and rules carry no definition.
 - The source passage a need was extracted from.
 - Requirement ids from the source documents.
 - Open issues (TBD-n) as their own part of the design document; they stay in
