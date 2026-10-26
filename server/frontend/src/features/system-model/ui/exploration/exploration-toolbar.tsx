@@ -32,7 +32,15 @@ export interface Drawing {
   orthogonal: boolean;
   /** Edges as dashes running towards their target. */
   animated: boolean;
+  /** Modules raised off the canvas, in 3D, rather than flat on it. */
+  depth: boolean;
 }
+
+/** The two views: flat, or with the modules raised off the canvas. */
+const VIEWS = [
+  { value: '2d', label: '2D' },
+  { value: '3d', label: '3D' },
+];
 
 /** Each way the layout may run, by its arrow; its name for whoever cannot see it. */
 const DIRECTIONS = [
@@ -64,7 +72,7 @@ const DIRECTIONS = [
  * How the reader draws the exploration — what is drawn is chosen in the
  * picker on the canvas, and what shows of it in the visibility panel this
  * opens: steps back and forward, which way the layout runs, how the edges
- * run, placing everything afresh, and — at the far end — how close.
+ * run, flat or in depth, placing everything afresh, and — at the far end — how close.
  */
 export function ExplorationToolbar({
   canUndo,
@@ -175,6 +183,12 @@ export function ExplorationToolbar({
             onChange: (animated) => set({ animated }),
           },
         ]}
+      />
+      <SegmentedControl
+        aria-label="View"
+        data={VIEWS}
+        value={drawing.depth ? '3d' : '2d'}
+        onChange={(value) => set({ depth: value === '3d' })}
       />
       <ToolbarDivider />
       <Button

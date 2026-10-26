@@ -545,6 +545,7 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
     <UnstyledButton
       className={holds ? classes.containerLabel : classes.card}
       data-kind={element.kind}
+      data-pattern={element.pattern}
       data-state={holds ? undefined : state}
       aria-pressed={state === 'selected'}
       aria-label={withState(`${element.name}, ${kindWordOf(element)}`, state)}
@@ -553,6 +554,11 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
       // Ctrl, or Cmd on a Mac, adds it to the hand or takes it out.
       onClick={(event) => onSelect(element.id, event.ctrlKey || event.metaKey)}
     >
+      {/* A value object's bevelled face, drawn under its name: its edge is
+          the card's own layer, as a cut corner cannot carry a border. */}
+      {!holds && element.pattern === 'value_object' && (
+        <span className={classes.face} aria-hidden />
+      )}
       {label}
     </UnstyledButton>
   );
@@ -571,6 +577,7 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
           {...(holds ? viewing : {})}
           className={holds ? classes.container : classes.holder}
           data-kind={element.kind}
+          data-pattern={element.pattern}
           data-state={holds ? state : undefined}
           data-leaving={data.leaving || undefined}
         >

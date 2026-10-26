@@ -175,8 +175,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     // How the edges were drawn when the diagram was left, as it is restored.
     orthogonal: opened?.edges?.orthogonal ?? true,
     animated: opened?.edges?.animated ?? true,
+    depth: opened?.edges?.depth ?? true,
   });
-  const { direction, orthogonal, animated } = drawing;
+  const { direction, orthogonal, animated, depth } = drawing;
   const graph = useMemo(
     () => graphOf(exploration, { hidden, relations, picks }),
     [exploration, hidden, relations, picks],
@@ -273,9 +274,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
   // How the edges are drawn, kept with the steps, so a reload draws them so.
   useEffect(() => {
-    steps.current = { ...steps.current, edges: { orthogonal, animated } };
+    steps.current = {
+      ...steps.current,
+      edges: { orthogonal, animated, depth },
+    };
     rememberSteps(modelId, steps.current);
-  }, [orthogonal, animated, modelId]);
+  }, [orthogonal, animated, depth, modelId]);
   const undo = useCallback(() => goTo(-1), [goTo]);
   const redo = useCallback(() => goTo(1), [goTo]);
   // Ctrl+Z, or Cmd+Z on a Mac, goes back a step; with Shift, or Ctrl+Y,
@@ -703,7 +707,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
 
   return (
-    <Stack gap={0} flex={1} className={classes.exploration}>
+    <Stack
+      gap={0}
+      flex={1}
+      className={classes.exploration}
+      data-depth={depth || undefined}
+    >
       {toolbar}
       <Box
         ref={canvas}
