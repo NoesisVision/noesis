@@ -316,9 +316,9 @@ projects is one module.
 ## 10. Order, determinism, diagnostics
 
 - **R10.1** `modules`, `buildingBlocks` and `behaviours` are sorted by id
-  (code unit order), `implements`, `actors` and `invokes` too; properties by
-  R5.5; input by declaration order. Two builds from one code model give one
-  output.
+  (code unit order), `implements`, `uses`, `actors` and `invokes` too;
+  properties by R5.5; input by declaration order. Two builds from one code
+  model give one output.
 - **R10.2** Every drop and every fallback above is a diagnostic: the stage
   returns them beside the model (`{ model, diagnostics }`), the adapter logs
   them (`info` for a dropped element or override, `debug` for a member whose
@@ -327,13 +327,17 @@ projects is one module.
 
 ## 11. Relations derived from invocations
 
-The old scanner derived three relations between elements:
+The old scanner derived three relations between elements. The system
+model names its relations as `docs/plans/system-model-relations.md` lays
+them out: `HAS_PROPERTY`, `HAS_INPUT`, `HAS_OUTPUT`, `IMPLEMENTS`, `USES`
+and `INVOKES`.
 
-| Old relation                     | How it was found                                                                                                                                                                                                                                                                | Home in the system model                                                                                  |
-| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `DomainObject.UsesObject`        | The types of a type's fields and properties, generic arguments walked, arrays unwrapped; the source is the type and every base type and interface that is a domain object                                                                                                       | `ScannedBuildingBlock.properties` (sections 5, 7)                                                         |
-| `DomainBehavior.UsesObject`      | The parameter, return and constraint types of the behaviour's method, and of every method it calls                                                                                                                                                                              | `input` and `output` (section 9) for the method's own signature; the called methods' signatures have none |
-| `DomainBehavior.InvokesBehavior` | From a method call: the caller resolved to its behaviours (the method, its base methods and the interface members it implements), the callee to a behaviour; a callee that is no behaviour is walked through its own outgoing calls, transitively, until behaviours are reached | `ScannedBehaviour.invokes` (added by this design, section 12)                                             |
+| Old relation                       | How it was found                                                                                                                                                                                                                                                                | Home in the system model                                                                                                                                       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DomainObject.UsesObject`          | The types of a type's fields and properties, generic arguments walked, arrays unwrapped; the source is the type and every base type and interface that is a domain object                                                                                                       | `ScannedBuildingBlock.properties` (sections 5, 7): one `HAS_PROPERTY` relation per property, named by it                                                       |
+| `DomainBehavior.UsesObject`        | The parameter, return and constraint types of the behaviour's method, and of every method it calls                                                                                                                                                                              | `input` and `output` (section 9) for the method's own signature, `HAS_INPUT` named by the parameter and `HAS_OUTPUT`; the called methods' signatures have none |
+| `DomainBehavior.InvokesBehavior`   | From a method call: the caller resolved to its behaviours (the method, its base methods and the interface members it implements), the callee to a behaviour; a callee that is no behaviour is walked through its own outgoing calls, transitively, until behaviours are reached | `ScannedBehaviour.invokes` (added by this design, section 12)                                                                                                  |
+| `BuildingBlock USES BuildingBlock` | Not derived by this builder: the scanner's redesign defines what a block uses and how it is found                                                                                                                                                                               | `ScannedBuildingBlock.uses`, emitted empty (section 12, decision 14)                                                                                           |
 
 - **R11.1 Source of a call.** An `INVOKES` edge whose `from` is a method
   is attributed to the behaviours of that method: the behaviour the method
@@ -395,6 +399,10 @@ them.
     (R4.2).
 13. **`NotDomainModel`** and every **namespace-wide annotation**
     (`ApplyOnNamespace = true`) are not supported yet.
+14. **`uses`** is in the system model as an opaque edge,
+    `ScannedBuildingBlock.uses: BuildingBlockId[]` (default empty), which this
+    builder emits empty; its derivation and its meaning are the new scanner's
+    (`docs/plans/system-model-relations.md`).
 
 ## 13. Implementation
 

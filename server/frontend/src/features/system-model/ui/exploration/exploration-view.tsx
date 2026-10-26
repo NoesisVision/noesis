@@ -1351,7 +1351,11 @@ function edgeOf(
     target: relation.target,
     data: { orthogonal },
     animated,
-    label: RELATION_WORD[relation.kind],
+    // The relation's word, then the name it carries: "has property price".
+    label:
+      relation.name === null
+        ? RELATION_WORD[relation.kind]
+        : `${RELATION_WORD[relation.kind]} ${relation.name}`,
     className:
       highlight === undefined
         ? classes.edge

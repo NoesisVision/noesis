@@ -59,6 +59,10 @@ const document = {
           added: ['building_block|pay.Settleable'],
           removed: ['building_block|pay.Lockable'],
         },
+        uses: {
+          added: ['building_block|pay.Ledger'],
+          removed: [],
+        },
         properties: {
           added: [
             {
@@ -319,6 +323,42 @@ describe('ElementDetail', () => {
     );
     // Nothing implements Hold itself, so it has no such relation.
     expect(show('building_block|pay.Hold')).not.toContain('Implemented by');
+  });
+
+  it('says what a block uses, and what uses it', () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toMatch(/<dt[^>]*>(<[^>]+>)*Uses<\/span> <span[^>]*>1</);
+    expect(html).toMatch(/Uses[\s\S]*>Ledger</);
+    expect(html).not.toContain('Used by');
+    const ledger = node({
+      path: 'building_block|pay.Ledger',
+      parentPath: 'module|pay',
+      kind: 'building_block',
+      name: 'Ledger',
+      depth: 1,
+    });
+    expect(
+      show('building_block|pay.Ledger', outlineTree([...outline, ledger], [])),
+    ).toMatch(/Used by[\s\S]*>Hold</);
+  });
+
+  it('says whose property, input or output a block is the type of', () => {
+    const money = node({
+      path: 'building_block|pay.Money',
+      parentPath: 'module|pay',
+      kind: 'building_block',
+      name: 'Money',
+      depth: 1,
+    });
+    const html = show(
+      'building_block|pay.Money',
+      outlineTree([...outline, money], []),
+    );
+    expect(html).toMatch(/Property of[\s\S]*>Hold</);
+    expect(html).toMatch(/Input of[\s\S]*>place</);
+    expect(html).not.toContain('Output of');
+    // Its own rows say nothing of what is typed with it.
+    expect(show('building_block|pay.Hold')).not.toContain('Property of');
   });
 
   const block = (name: string, pattern: string) =>

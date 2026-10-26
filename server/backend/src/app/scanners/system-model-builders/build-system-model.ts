@@ -259,6 +259,8 @@ class ModelAssembly {
           return id === null || id === block.id ? [] : [id];
         }),
       ),
+      // Not derived by this builder; the scanner's redesign defines it.
+      uses: [],
       properties: this.propertiesOf(block),
       rules: [],
       scenarios: this.scenariosOf([node]),

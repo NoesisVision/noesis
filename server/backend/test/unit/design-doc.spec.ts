@@ -73,6 +73,10 @@ describe('A design document', () => {
       added: [],
       removed: [],
     });
+    expect(parsed.buildingBlocks.added[0]?.uses).toEqual({
+      added: [],
+      removed: [],
+    });
   });
 
   it('refuses a key it does not know, so nothing written is lost', () => {
@@ -196,6 +200,42 @@ describe('The elements a design changes', () => {
       added: ['building_block|sales.shared.Auditable'],
       removed: ['building_block|sales.shared.Legacy'],
     });
+  });
+
+  it('adds and removes the building blocks a block uses, by id, as it implements them', () => {
+    const LINE = 'building_block|sales.orders.Line';
+    const LEGACY = 'building_block|sales.shared.Legacy';
+    const parsed = DesignDocument.parse(
+      design({
+        buildingBlocks: {
+          modified: [
+            { id: REFUND, uses: { added: [LINE], removed: [LEGACY] } },
+          ],
+        },
+      }),
+    );
+
+    expect<object | undefined>(parsed.buildingBlocks.modified[0]?.uses).toEqual(
+      { added: [LINE], removed: [LEGACY] },
+    );
+    expect(
+      isValid(
+        design({
+          buildingBlocks: {
+            modified: [{ id: REFUND, uses: { modified: [LINE] } }],
+          },
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        design({
+          buildingBlocks: {
+            modified: [{ id: REFUND, uses: { added: ['primitive|uuid'] } }],
+          },
+        }),
+      ),
+    ).toBe(false);
   });
 
   it('never modifies an implemented interface: it removes one and adds another', () => {
@@ -405,6 +445,7 @@ describe('A design document an agent wrote', () => {
   const source = { path: 'src/sales/orders/order.ts' };
 
   const AUDITABLE = 'building_block|sales.shared.Auditable';
+  const LINE = 'building_block|sales.orders.Line';
 
   /**
    * What the scanner found: the orders module; its Order, which implements
@@ -422,6 +463,7 @@ describe('A design document an agent wrote', () => {
         name: 'Order',
         type: 'aggregate',
         implements: [AUDITABLE],
+        uses: [LINE],
         properties: [{ name: 'total', type: 'primitive|decimal' }],
         rules: [
           {
@@ -499,12 +541,17 @@ describe('A design document an agent wrote', () => {
             definition: { value: 'Money back.' },
             type: { value: 'aggregate' },
             implements: { removed: [AUDITABLE] },
+            uses: { removed: [ORDER] },
             properties: { removed: ['legacyFlag'] },
           }),
         ),
       ).toEqual([
         {
           path: `buildingBlocks.added[${REFUND}].implements.removed[${AUDITABLE}]`,
+          reason: 'changedInGreenField',
+        },
+        {
+          path: `buildingBlocks.added[${REFUND}].uses.removed[${ORDER}]`,
           reason: 'changedInGreenField',
         },
         {
@@ -561,6 +608,7 @@ describe('A design document an agent wrote', () => {
                 {
                   id: ORDER,
                   implements: { removed: [AUDITABLE] },
+                  uses: { removed: [LINE] },
                   properties: {
                     modified: [
                       { name: 'total', description: { value: 'The sum.' } },
@@ -607,6 +655,7 @@ describe('A design document an agent wrote', () => {
               modified: [
                 {
                   id: ORDER,
+                  uses: { removed: [AUDITABLE] },
                   properties: {
                     removed: ['legacyFlag'],
                     modified: [{ name: 'discount' }],
@@ -636,6 +685,10 @@ describe('A design document an agent wrote', () => {
           scanned,
         ),
       ).toEqual([
+        {
+          path: `buildingBlocks.modified[${ORDER}].uses.removed[${AUDITABLE}]`,
+          reason: 'unknownElement',
+        },
         {
           path: `buildingBlocks.modified[${ORDER}].properties.removed[legacyFlag]`,
           reason: 'unknownElement',

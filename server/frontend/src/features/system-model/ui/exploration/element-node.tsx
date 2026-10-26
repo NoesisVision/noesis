@@ -251,6 +251,12 @@ function ChainEntry({
 const REACH_ACTION = {
   contains: 'Contains',
   isPartOf: 'Part of',
+  hasProperty: 'Has property',
+  propertyOf: 'Property of',
+  hasInput: 'Has input',
+  inputOf: 'Input of',
+  hasOutput: 'Has output',
+  outputOf: 'Output of',
   uses: 'Uses',
   usedBy: 'Used by',
   invokes: 'Invokes',

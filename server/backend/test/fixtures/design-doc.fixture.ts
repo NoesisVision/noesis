@@ -97,6 +97,7 @@ export const designDocFixture = {
         definition: byAgent('A refund of one or more lines of a single order.'),
         diagram: unchanged,
         implements: noAdditions,
+        uses: noAdditions,
         properties: {
           added: [
             {
@@ -173,6 +174,7 @@ export const designDocFixture = {
         definition: byAgent('Tells the ledger a refund went out.'),
         diagram: unchanged,
         implements: noAdditions,
+        uses: noAdditions,
         properties: noChanges,
         rules: noChanges,
         scenarios: noChanges,
@@ -187,6 +189,7 @@ export const designDocFixture = {
           added: ['building_block|sales.shared.Repository'],
           removed: [],
         },
+        uses: noAdditions,
         properties: noChanges,
         rules: noChanges,
         scenarios: noChanges,
@@ -201,6 +204,7 @@ export const designDocFixture = {
         definition: unchanged,
         diagram: unchanged,
         implements: noAdditions,
+        uses: noAdditions,
         properties: {
           added: [
             {

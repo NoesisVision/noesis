@@ -136,7 +136,8 @@ describe('ArchitectureView', () => {
   it('reads an element in the panel as the model does, after what the architecture finds', () => {
     const html = read(NOTIFY);
     expect(headingsOf(html)).toContainEqual([2, 'notifyUsers']);
-    expect(html).toContain('Speaks in');
+    expect(html).toContain('Has input');
+    expect(html).not.toContain('Speaks in');
     expect(html).not.toContain('Clear the selection');
   });
 

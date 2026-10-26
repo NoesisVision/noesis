@@ -529,6 +529,44 @@ describe('a part', () => {
     expect(unitNameOf(next, ref)).toBe('Lockable');
   });
 
+  it('carries what a block uses through an edit, untouched', () => {
+    const before = doc();
+    const hold = before.buildingBlocks!.added![0]!;
+    const using = {
+      ...before,
+      buildingBlocks: {
+        ...before.buildingBlocks,
+        added: [{ ...hold, uses: { added: [LEDGER], removed: [] } }],
+      },
+    };
+    const ref = {
+      kind: 'implements',
+      id: 'building_block|pay.Lockable',
+      owner: { kind: 'building_block', id: HOLD },
+    } as const;
+    const draft = draftOfUnit('implements', null, 'added');
+    draft.fields.ref = { written: true, value: ref.id };
+    const target = {
+      mode: 'add',
+      kind: 'implements',
+      owner: ref.owner,
+    } as const;
+    const next = applyEdit(using, {
+      op: 'add',
+      ref,
+      unit: unitFromDraft(
+        'implements',
+        draft,
+        null,
+        idOfDraft(using, target, draft),
+      ),
+    });
+    expect(next.buildingBlocks?.added?.[0]?.uses).toEqual({
+      added: [LEDGER],
+      removed: [],
+    });
+  });
+
   it('is refused a rule type outside its category, and a module a business rule', () => {
     const owner = { kind: 'module', id: MODULE } as const;
     const draft = draftOfUnit('rule', null, 'added');

@@ -206,15 +206,15 @@ function ChecksSummary({ checks }: { checks: ArchitectureCheck[] }) {
   return (
     <Stack gap="sm">
       <DetailText>
-        Read from building block types, visibility and the types each property,
-        input and output uses.
+        Read from building block types, visibility, the types each property,
+        input and output is of, and the blocks each block says it uses.
       </DetailText>
       <DetailText>
         {`${counted(warnings, 'warning')} · ${counted(notes, 'note')} · ${count('pass')} passed.`}
       </DetailText>
       <DetailText>
-        Not checked: which service uses which driven port, and calls between
-        hexagons. The design document has no call edges.
+        Not checked: calls between behaviours, within a hexagon or across them.
+        The design document has no call edges.
       </DetailText>
     </Stack>
   );
