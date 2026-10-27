@@ -1,6 +1,6 @@
 {
   "name": "@noesis-vision/claude-code-plugin",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "private": false,
   "description": "Noesis Claude Code plugin — the Noesis service, the skills that drive it and the contracts an agent reads",
   "license": "MIT",
