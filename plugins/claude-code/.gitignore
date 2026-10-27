@@ -3,3 +3,7 @@
 # README describing the directory is committed.
 /contracts/*
 !/contracts/README.md
+
+# The built service, copied in from server/backend/dist/ by `bun run build`
+# (also on `bun pm pack`) and shipped in the tarball. Nothing in it is committed.
+/server/

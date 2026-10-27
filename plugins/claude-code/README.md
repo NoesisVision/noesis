@@ -4,8 +4,8 @@ Plugin for visual spec-driven development.
 
 ## Requirements
 
-- [bun](https://bun.com) on your `PATH` — the Noesis service is launched with
-  `bunx` (fetched from npm on first run, cached afterwards).
+- [bun](https://bun.com) on your `PATH` — the Noesis service ships inside
+  the plugin and runs on bun. Nothing is fetched when a session starts.
 
 ## Install
 
@@ -86,42 +86,45 @@ nothing.
   skill writes its working file to the session's scratch directory and hands
   the path to the tool that consumes it, correcting the file from the issue
   list the tool returns.
-- `.mcp.json` — launches the Noesis service as a stdio MCP server via
-  `${NOESIS_SERVICE_COMMAND:-bunx} ${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@<version>}`
-  (same repo, released in lockstep with the plugin). The two variables
-  replace the command and its one argument; unset, the defaults apply. The pin is stamped by `bun run generate`.
+- `server/` — the built Noesis service: `main.js` and the page in `ui/`,
+  copied from `server/backend/dist/` by `bun run build` and gitignored.
+- `.mcp.json` — launches the bundled service as a stdio MCP server via
+  `bun ${NOESIS_SERVICE_ENTRY:-${CLAUDE_PLUGIN_ROOT}/server/main.js}`. Set
+  `NOESIS_SERVICE_ENTRY` to run another entry, such as the checkout's source;
+  unset, the bundle runs.
 - `.claude-plugin/plugin.json` — the plugin manifest, its version stamped by
   `bun run generate`; `marketplace.json` beside it is the catalog users add
   by URL, with one entry per channel pinned to a published npm version.
-- `tools/` — `build-contracts.ts`, `stamp-plugin-version.ts`,
+- `tools/` — `build-contracts.ts`, `build-service.ts`, `stamp-plugin-version.ts`,
   `bump-version.ts` and `release-beta.ts`; behind the scripts below and not
   shipped.
 - `test/` — asserts a build leaves only fresh contracts, that every
-  contract a skill names is among them, that a packed tarball carries exactly the shipped files, skills included,
+  contract a skill names is among them, that a packed tarball carries exactly the shipped files, skills and service included,
+  that the service in it boots, lists its tools and serves the page,
   and that the skill scripts do what their skills say: the working-file
   script copies its source verbatim, the human-fields script names every
   field a person wrote or accepted.
 
-Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/` and `skills/` are published
+Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/`, `skills/` and `server/` are published
 (the `files` field in `package.json`).
 
 ## Scripts
 
-| Script                 | What it does                                                       |
-| ---------------------- | ------------------------------------------------------------------ |
-| `bun run build`        | Generate the contracts into `contracts/` (also runs as `prepack`)  |
-| `bun run generate`     | Stamp the version into `plugin.json` and the `.mcp.json` pin       |
-| `bun test`             | Contracts build + tarball contents                                 |
-| `bun run check-types`  | `tsc --noEmit`                                                     |
-| `bun run bump <v>`     | Bump plugin + service versions and the matching marketplace pin    |
-| `bun run release:beta` | Bump, generate, smoke-test the tarball, commit, tag, push          |
-| `bun run publish:beta` | Local fallback: `bun publish --tag beta` (never raw `npm publish`) |
+| Script                 | What it does                                                        |
+| ---------------------- | ------------------------------------------------------------------- |
+| `bun run build`        | Generate `contracts/`, build the service into `server/` (`prepack`) |
+| `bun run generate`     | Stamp the version into `plugin.json`                                |
+| `bun test`             | Contracts build, tarball contents, the shipped service boots        |
+| `bun run check-types`  | `tsc --noEmit`                                                      |
+| `bun run bump <v>`     | Bump plugin + service versions and the matching marketplace pin     |
+| `bun run release:beta` | Bump, generate, smoke-test the tarball, commit, tag, push           |
+| `bun run publish:beta` | Local fallback: `bun publish --tag beta` (never raw `npm publish`)  |
 
 ## Developing against the checkout
 
 Load the plugin from the source folder into a session in another repository
 (the sample app you exercise it on), with the service running from the
-checkout's source instead of the published bin.
+checkout's source instead of the bundled `server/main.js`.
 
 Once in the checkout, and again after every contract change, generate the
 contracts into the plugin:
@@ -133,7 +136,6 @@ bun run build:plugin
 Then, in the sample app repository:
 
 ```
-NOESIS_SERVICE_COMMAND=bun \
 NOESIS_SERVICE_ENTRY=/path/to/noesis/server/backend/src/main.ts \
 claude --plugin-dir /path/to/noesis/plugins/claude-code
 ```
@@ -141,8 +143,8 @@ claude --plugin-dir /path/to/noesis/plugins/claude-code
 The service runs from `src/main.ts` with no build (the page is bundled on
 request) and serves the repository Claude Code started in. The local plugin
 takes precedence over an installed `noesis` for that session. After editing
-a skill or the service, run `/reload-plugins`. Set the two variables in the
-sample app's `.claude/settings.local.json` under `env` to skip typing them.
+a skill or the service, run `/reload-plugins`. Set the variable in the
+sample app's `.claude/settings.local.json` under `env` to skip typing it.
 
 ## Releasing (maintainers)
 
@@ -153,23 +155,24 @@ bun run release:beta                # next beta counter (0.1.0-beta.2 -> 0.1.0-b
 bun run release:beta 0.2.0-beta.1   # explicit target prerelease
 ```
 
-The script verifies a clean, up-to-date `main`, bumps the plugin +
-`@noesis-vision/noesis` `package.json`s and the beta marketplace pin (one
-version train), regenerates stamped artifacts (the
-`.mcp.json` service pin), smoke-tests the packed tarball (whose `prepack`
-generates `contracts/`), then commits, tags, and pushes. The `v*` tag triggers the `Release`
-workflow (`.github/workflows/release.yml`), which re-runs the verify steps,
-checks the stamped pins are committed, verifies the tag against both package
-versions, packs with `bun pm pack` and publishes both packages to npm via
-trusted publishing (service first, so the plugin's pin always resolves;
-prereleases go to the `beta` dist-tag, stable releases to `latest`).
+The script verifies a clean, up-to-date `main`, bumps the plugin and
+service `package.json`s (the service reports its version over MCP) and the
+beta marketplace pin, regenerates stamped artifacts (`plugin.json`),
+smoke-tests the packed tarball (whose `prepack` generates `contracts/` and
+builds the service into `server/`), then commits, tags, and pushes. The `v*`
+tag triggers the `Release` workflow (`.github/workflows/release.yml`), which
+re-runs the verify steps, checks the stamped files are committed, verifies
+the tag against both versions, packs with `bun pm pack` and publishes the one
+package to npm via trusted publishing (prereleases go to the `beta`
+dist-tag, stable releases to `latest`). The service is not published on its
+own: `server/backend` is private.
 
 Stable releases follow the same steps by hand — versions are single-sourced
 from the plugin's `package.json`:
 
 ```
 bun run bump 0.2.0   # plugin + service package.json + matching marketplace channel pin
-bun run generate     # stamps .claude-plugin/plugin.json + .mcp.json pin
+bun run generate     # stamps .claude-plugin/plugin.json
 git commit -am "Release 0.2.0"
 git tag -a v0.2.0 -m "Release 0.2.0" && git push origin main v0.2.0
 ```

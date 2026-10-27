@@ -2,7 +2,7 @@
   "name": "@noesis-vision/claude-code-plugin",
   "version": "0.1.0-beta.4",
   "private": false,
-  "description": "Noesis Claude Code plugin — the contracts an agent reads and the launch config for the Noesis service",
+  "description": "Noesis Claude Code plugin — the Noesis service, the skills that drive it and the contracts an agent reads",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -13,14 +13,15 @@
     ".claude-plugin/plugin.json",
     ".mcp.json",
     "contracts",
-    "skills"
+    "skills",
+    "server"
   ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "generate": "bun run tools/stamp-plugin-version.ts",
-    "build": "bun run tools/build-contracts.ts contracts",
+    "build": "bun run tools/build-contracts.ts contracts && bun run tools/build-service.ts server",
     "prepack": "bun run build",
     "test": "bun test",
     "check-types": "tsc --noEmit",

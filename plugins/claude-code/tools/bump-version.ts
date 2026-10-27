@@ -1,4 +1,5 @@
-// The service package is released in lockstep with the plugin.
+// The service ships inside the plugin and reports its own version over MCP,
+// so its package.json version moves with the plugin's.
 // Marketplace npm sources only document exact-semver pins (no dist-tags), so
 // each channel entry stays pinned: beta to a prerelease, stable to a stable
 // release.
