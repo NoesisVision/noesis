@@ -4,8 +4,9 @@ import { flat } from './flat/index.ts';
 import { isometric } from './isometric/index.ts';
 
 /*
- * The ways the exploration's diagram can be drawn, in the order the theme
- * menu lists them; the first is the one a reader starts with.
+ * The ways the exploration's diagram can be drawn, in the order the Dev
+ * Tools page lists them (diagram-theme-choice.tsx); the first is the one a
+ * reader starts with.
  *
  * A theme is a folder of its own here, and this list is all that knows of
  * it. To add one:

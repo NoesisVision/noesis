@@ -28,10 +28,8 @@ import {
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
-import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { ToolbarPill } from '#/shared/ui/canvas-toolbar.tsx';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
@@ -91,10 +89,7 @@ import { EDGE_ARROW, EDGE_COLOR } from './relation-colors.ts';
 import { type RelationEdge, RelationEdgeView } from './relation-edge.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
 import { DiagramThemeContext } from './themes/diagram-theme-context.ts';
-import {
-  DiagramThemeMenu,
-  useDiagramTheme,
-} from './themes/diagram-theme-menu.tsx';
+import { useDiagramTheme } from './themes/use-diagram-theme.ts';
 import { VisibilityPanel } from './visibility-panel.tsx';
 import classes from './exploration.module.css';
 
@@ -184,7 +179,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     animated: opened?.edges?.animated ?? true,
   });
   const { direction, orthogonal, animated } = drawing;
-  const [theme, setTheme] = useDiagramTheme();
+  // Chosen on the Dev Tools page; the exploration only draws in it.
+  const theme = useDiagramTheme();
   const graph = useMemo(
     () => graphOf(exploration, { hidden, relations, picks }),
     [exploration, hidden, relations, picks],
@@ -604,34 +600,17 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         onDrawing={setDrawing}
         onAutoPlace={autoPlace}
       >
-        <Group gap={8} wrap="nowrap">
-          <ToolbarPill>
-            <DiagramThemeMenu theme={theme.id} onTheme={setTheme} />
-          </ToolbarPill>
-          <ZoomControls
-            quiet
-            zoom={zoom}
-            disabled={flow === null}
-            onZoomOut={() => void flow?.zoomOut()}
-            onZoomIn={() => void flow?.zoomIn()}
-            onFit={() => void flow?.fitView(FIT)}
-          />
-        </Group>
+        <ZoomControls
+          quiet
+          zoom={zoom}
+          disabled={flow === null}
+          onZoomOut={() => void flow?.zoomOut()}
+          onZoomIn={() => void flow?.zoomIn()}
+          onFit={() => void flow?.fitView(FIT)}
+        />
       </ExplorationToolbar>
     ),
-    [
-      stepAt,
-      undo,
-      redo,
-      seeing,
-      veiled,
-      drawing,
-      autoPlace,
-      zoom,
-      flow,
-      theme,
-      setTheme,
-    ],
+    [stepAt, undo, redo, seeing, veiled, drawing, autoPlace, zoom, flow],
   );
   const selectionPanel = useMemo(
     () =>

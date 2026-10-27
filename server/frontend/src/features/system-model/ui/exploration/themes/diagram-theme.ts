@@ -4,7 +4,7 @@ import type { BackgroundProps } from '@xyflow/react';
 export interface DiagramTheme {
   /** Kept in the reader's storage: once a theme is out, never changed. */
   id: string;
-  /** Its name in the theme menu. */
+  /** Its name where it is chosen, on the Dev Tools page. */
   label: string;
   /** The root class of its stylesheet, set on the canvas; none draws it plain. */
   className?: string;
