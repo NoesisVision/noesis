@@ -31,7 +31,7 @@ async function update(
 await update('package.json', (json) => {
   json.version = version;
 });
-await update('../../../server/backend/package.json', (json) => {
+await update('../../server/backend/package.json', (json) => {
   json.version = version;
 });
 await update('.claude-plugin/marketplace.json', (json) => {
