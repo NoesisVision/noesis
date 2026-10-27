@@ -21,7 +21,7 @@
   },
   "scripts": {
     "generate": "bun run tools/stamp-plugin-version.ts",
-    "build": "bun run tools/build-contracts.ts contracts && bun run tools/build-service.ts server",
+    "build": "bun run tools/build-contracts.ts contracts && bun run tools/build-service.ts",
     "prepack": "bun run build",
     "test": "bun test",
     "check-types": "tsc --noEmit",
