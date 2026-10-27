@@ -1,0 +1,75 @@
+name: Release Java
+
+# Publishes the Java parser to Maven Central when a java-v* tag is pushed
+# (java-v0.1.0 publishes 0.1.0): first the Maven build (the parent POM, the
+# annotations, the model, the core and the Maven plugin), then the Gradle
+# plugin and its marker, which depend on the core. The version comes from the
+# tag; the repository stays on its -SNAPSHOT version.
+#
+# Secrets: CENTRAL_USERNAME and CENTRAL_PASSWORD (a Central Portal user token
+# for the verified vision.noesis namespace), GPG_PRIVATE_KEY (armored) and
+# GPG_PASSPHRASE (its public half on keyserver.ubuntu.com).
+on:
+  push:
+    tags: ['java-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-java
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish the Java parser to Maven Central
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          # Matches maven.compiler.release in code-parsers/java/pom.xml.
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: code-parsers/java/**/pom.xml
+          # Writes the "central" server of settings.xml, read from these environment variables.
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+
+      - name: Version from the tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#java-v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] || [[ "$VERSION" == *SNAPSHOT* ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not name a release version (java-v<major>.<minor>.<patch>[-<label>])."
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Set the version
+        working-directory: code-parsers/java
+        run: mvn -B -ntp versions:set -DnewVersion="$VERSION" -DgenerateBackupPoms=false -DprocessAllModules
+
+      # Tests are skipped: the core's tests pin the -SNAPSHOT version the
+      # repository is on, and the tagged commit was tested by the CI's Java
+      # parser job. deploy also installs into the local repository, where the
+      # Gradle plugin's build finds the core.
+      - name: Publish the Maven artifacts
+        working-directory: code-parsers/java
+        run: mvn -B -ntp -P release -DskipTests -Dinvoker.skip=true deploy
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          MAVEN_GPG_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Publish the Gradle plugin
+        working-directory: code-parsers/java/gradle-plugin
+        run: ./gradlew --no-daemon -Pversion="$VERSION" publishAndReleaseToMavenCentral
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_PASSPHRASE }}

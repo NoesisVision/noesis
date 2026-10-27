@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- The URL and SCM links name the whole build, so modules inherit them as they are, without their artifactId appended. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+         child.project.url.inherit.append.path="false">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>vision.noesis</groupId>
@@ -11,6 +13,28 @@
 
   <name>Noesis Java Parser</name>
   <description>Parses Java code into the common Noesis code model (see docs/plans/code-model-java-parser.md)</description>
+  <url>https://github.com/NoesisVision/noesis/tree/main/code-parsers/java</url>
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://opensource.org/license/mit</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>NoesisVision</name>
+      <organization>NoesisVision</organization>
+      <organizationUrl>https://github.com/NoesisVision</organizationUrl>
+    </developer>
+  </developers>
+  <scm child.scm.connection.inherit.append.path="false"
+       child.scm.developerConnection.inherit.append.path="false"
+       child.scm.url.inherit.append.path="false">
+    <connection>scm:git:https://github.com/NoesisVision/noesis.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/NoesisVision/noesis.git</developerConnection>
+    <url>https://github.com/NoesisVision/noesis/tree/main/code-parsers/java</url>
+  </scm>
 
   <modules>
     <module>annotations</module>
@@ -110,4 +134,82 @@
       </plugins>
     </pluginManagement>
   </build>
+  <profiles>
+    <!-- Publishes to Maven Central: mvn -P release deploy, run by .github/workflows/release-java.yml on a java-v* tag.
+         Needs the Central Portal token as the "central" server in settings.xml, and the signing key in MAVEN_GPG_KEY
+         with its passphrase in MAVEN_GPG_PASSPHRASE. -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.4.0</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.12.0</version>
+            <configuration>
+              <doclint>none</doclint>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.8</version>
+            <configuration>
+              <!-- Bouncy Castle signs in-process from the key in the environment: no gpg binary or agent needed. -->
+              <signer>bc</signer>
+            </configuration>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.12.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <deploymentName>noesis-parser ${project.version}</deploymentName>
+              <autoPublish>true</autoPublish>
+              <!-- The Gradle plugin is published next and depends on the core, so wait until Central serves it. -->
+              <waitUntil>published</waitUntil>
+              <!-- The fixtures are parsed by the core's tests only. -->
+              <excludeArtifacts>
+                <artifact>java-syntax</artifact>
+                <artifact>java-syntax-other</artifact>
+                <artifact>java-lombok</artifact>
+              </excludeArtifacts>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
