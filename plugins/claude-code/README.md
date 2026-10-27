@@ -9,18 +9,48 @@ Plugin for visual spec-driven development.
 
 ## Install
 
-Add the marketplace (fetches a single JSON file, no clone), then install:
+In Claude Code, add the marketplace (it fetches a single JSON file, no clone)
+and install the plugin:
 
 ```
 /plugin marketplace add https://raw.githubusercontent.com/NoesisVision/noesis/main/plugins/claude-code/.claude-plugin/marketplace.json
-/plugin install noesis
+/plugin install noesis-beta@noesis
 ```
 
-Channels:
+Then restart Claude Code, or run `/reload-plugins`, and check that `/mcp`
+lists `noesis` as connected.
 
-- `noesis` — stable releases (pinned semver, advanced on each stable release)
-- `noesis-beta` — prerelease builds for testers (pinned semver, advanced on
-  each prerelease)
+Channels, one entry each in the marketplace:
+
+- `noesis-beta` — prerelease builds (pinned semver, advanced on each
+  prerelease). The only channel with a release so far.
+- `noesis` — stable releases (pinned semver, advanced on each stable
+  release). Its pin, `0.1.0`, is not published yet, so installing it fails
+  until the first stable release.
+
+To update, refresh the marketplace and update the plugin:
+
+```
+/plugin marketplace update noesis
+/plugin update noesis-beta@noesis
+```
+
+To share it with a team, add the marketplace to the project's
+`.claude/settings.json`, so everyone who opens the project is offered it:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "noesis": {
+      "source": {
+        "source": "url",
+        "url": "https://raw.githubusercontent.com/NoesisVision/noesis/main/plugins/claude-code/.claude-plugin/marketplace.json"
+      }
+    }
+  },
+  "enabledPlugins": { "noesis-beta@noesis": true }
+}
+```
 
 ## How it runs
 
