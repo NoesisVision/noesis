@@ -149,11 +149,11 @@ describe('the fields of a unit', () => {
     expect(html).toContain('value="Aggregate"');
   });
 
-  it("choose a behaviour's kind from chips, and a block's pattern from a list", () => {
-    const behaviour = render(<Fields kind="behaviour" id={null} />);
-    expect(behaviour).toMatch(/role="radiogroup" aria-label="Type"/);
+  it("choose a behavior's kind from chips, and a block's pattern from a list", () => {
+    const behavior = render(<Fields kind="behavior" id={null} />);
+    expect(behavior).toMatch(/role="radiogroup" aria-label="Type"/);
     for (const kind of ['Command', 'Event', 'Query'])
-      expect(behaviour).toContain(`<span>${kind}</span>`);
+      expect(behavior).toContain(`<span>${kind}</span>`);
     expect(render(<Fields kind="building_block" id={null} />)).toMatch(
       /role="combobox"[^>]*>|aria-label="Type"[^>]*role="combobox"/,
     );

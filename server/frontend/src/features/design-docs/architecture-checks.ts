@@ -70,14 +70,14 @@ function onlyApplicationServicesArePublic({
   const title = 'Only application services are public';
   if (exposed.length === 0) {
     const ports = hexagons.flatMap(({ drivingPorts }) =>
-      drivingPorts.map(({ behaviour }) => behaviour),
+      drivingPorts.map(({ behavior }) => behavior),
     );
     return pass(
       'only-application-services-are-public',
       title,
       ports.length === 0
-        ? 'The design makes no behaviour public.'
-        : `Every public behaviour, ${list(ports)}, is on an application service.`,
+        ? 'The design makes no behavior public.'
+        : `Every public behavior, ${list(ports)}, is on an application service.`,
       ports.map(({ id }) => id),
     );
   }
@@ -130,16 +130,16 @@ function callerUnknown({ hexagons }: Placed): ArchitectureCheck {
     return pass(
       'caller-unknown',
       title,
-      'Every public behaviour names the actors that call it.',
-      ports.map(({ behaviour }) => behaviour.id),
+      'Every public behavior names the actors that call it.',
+      ports.map(({ behavior }) => behavior.id),
     );
-  const behaviours = unknown.map(({ behaviour }) => behaviour);
+  const behaviors = unknown.map(({ behavior }) => behavior);
   return {
     id: 'caller-unknown',
     level: 'note',
     title,
-    text: `${list(behaviours)} ${plural(behaviours.length, 'is', 'are')} public and ${plural(behaviours.length, 'names', 'name')} no actor, so another subsystem calls ${plural(behaviours.length, 'it', 'them')}. Which one is not in the design document.`,
-    elementIds: behaviours.map(({ id }) => id),
+    text: `${list(behaviors)} ${plural(behaviors.length, 'is', 'are')} public and ${plural(behaviors.length, 'names', 'name')} no actor, so another subsystem calls ${plural(behaviors.length, 'it', 'them')}. Which one is not in the design document.`,
+    elementIds: behaviors.map(({ id }) => id),
   };
 }
 

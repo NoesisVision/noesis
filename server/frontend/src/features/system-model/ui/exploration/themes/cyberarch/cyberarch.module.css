@@ -9,7 +9,7 @@
  * Cyberarch 2027: the diagram as a night city's HUD. Black glass edged in
  * neon — a module cyan, a building block red — each box square, glowing,
  * its corners marked with brackets; a card a dark panel with a yellow stripe
- * down its side, a behaviour a slab of signal yellow, a value object notched
+ * down its side, a behavior a slab of signal yellow, a value object notched
  * at two corners. Lettering narrow and technical, what a box is in spaced
  * capitals; the relations cyan and magenta, glowing, the selection's own
  * yellow. Over it all, faint scanlines. By night black glass at full neon;
@@ -121,8 +121,8 @@
       light-dark(rgb(0 137 163 / 0.35), rgb(2 215 242 / 0.35));
   }
 
-  /* A behaviour: a slab of signal yellow, lettered black. */
-  &[data-kind='behaviour'] {
+  /* A behavior: a slab of signal yellow, lettered black. */
+  &[data-kind='behavior'] {
     --cy-edge: #000;
     --noesis-secondary-text: rgb(0 0 0 / 0.65);
 
@@ -361,7 +361,7 @@
 }
 
 .theme[data-diagram-theme]
-  [data-part='holder']:has(> [data-kind='behaviour'])
+  [data-part='holder']:has(> [data-kind='behavior'])
   :global(.mantine-ActionIcon-root) {
   color: rgb(0 0 0 / 0.6);
 
@@ -555,7 +555,7 @@
     letter-spacing: 0.04em;
   }
 
-  /* Only the items themselves: a group of them (a behaviour's inputs or
+  /* Only the items themselves: a group of them (a behavior's inputs or
      outputs) is a grid box too, holding the items' list, and stays plain. */
   & li,
   & :global(.mantine-Grid-col) > div:not(:has(ul)) {

@@ -286,7 +286,7 @@
         }
       ],
       "annotations": [],
-      "documentation": "Unannotated: its calls count for the interface's behaviours.",
+      "documentation": "Unannotated: its calls count for the interface's behaviors.",
       "languageSpecific": {},
       "typeKind": "class",
       "visibility": "public",

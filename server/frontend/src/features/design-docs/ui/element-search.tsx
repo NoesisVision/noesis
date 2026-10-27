@@ -24,10 +24,10 @@ import { Outline } from './outline.tsx';
 import classes from './element-search.module.css';
 
 /** The rows that stand for an element of a view; a group only opens and shuts. */
-const SHOWABLE = new Set(['module', 'building_block', 'behaviour']);
+const SHOWABLE = new Set(['module', 'building_block', 'behavior']);
 
 /**
- * A model's tree, its modules down to their building blocks and behaviours,
+ * A model's tree, its modules down to their building blocks and behaviors,
  * narrowed by what is typed in the box above it: names and patterns, each
  * match with the line of modules down to it. Arrow Down from the box steps
  * into the tree; the box is what takes the focus when a dialog round it

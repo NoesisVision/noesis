@@ -65,11 +65,11 @@ export interface DiagramFocus {
 }
 
 /**
- * The card an element is found on: its own, or, for a behaviour drawn on
+ * The card an element is found on: its own, or, for a behavior drawn on
  * none — only a driving port is — its building block's.
  */
 export const cardIdOf = (id: string, drawn: ReadonlySet<string>) =>
-  drawn.has(id) || kindOf(id) !== 'behaviour' ? id : ownerOf(id);
+  drawn.has(id) || kindOf(id) !== 'behavior' ? id : ownerOf(id);
 
 const NOTHING: DiagramFocus = { selected: new Set(), related: new Set() };
 

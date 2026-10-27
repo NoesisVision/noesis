@@ -130,7 +130,7 @@ function useTreeMoving(): TreeMoving | undefined {
       node.elementId !== null &&
       (node.kind === 'module' ||
         node.kind === 'building_block' ||
-        node.kind === 'behaviour')
+        node.kind === 'behavior')
         ? { kind: node.kind, id: node.elementId }
         : null;
     return {

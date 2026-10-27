@@ -31,7 +31,7 @@ import { isometric } from './isometric/index.ts';
  * `contains` (the round plus on a border), `face` (a value object's
  * bevelled face) and `bevel-ring` (its related ring). Each part also says
  * what it draws, to be told apart: `data-kind` (module, building_block,
- * behaviour), `data-pattern` (value_object, aggregate…) and `data-state`
+ * behavior), `data-pattern` (value_object, aggregate…) and `data-state`
  * (selected, related, path). Relations are React Flow's own
  * `.react-flow__edge`, reached with `:global(…)`. On the canvas too: `add`
  * (the round plus) and `visibility` (the visibility panel).

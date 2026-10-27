@@ -17,7 +17,7 @@ interface InputOutputSectionProps {
 }
 
 /**
- * What a behaviour takes and what it gives back, in three columns: its inputs
+ * What a behavior takes and what it gives back, in three columns: its inputs
  * in the order it declares them, a dashed seam, and what it returns, each a
  * `DeclarationBox` as a block's properties are. Inputs that outgrow the
  * panel run on to the next row; the seam and the outputs stay beside them.

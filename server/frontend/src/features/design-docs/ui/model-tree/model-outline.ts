@@ -15,7 +15,7 @@ import { titleCase } from '#/shared/ui/title-case.ts';
 const OUTLINE_KINDS = [
   'module',
   'building_block',
-  'behaviour',
+  'behavior',
   'property',
   'rule',
   'scenario',
@@ -91,7 +91,7 @@ const BUILDING_BLOCK_READING_ORDER = [
 const KIND_ORDER: readonly OutlineKind[] = [
   'module',
   'building_block',
-  'behaviour',
+  'behavior',
   'property',
   'rule',
   'scenario',

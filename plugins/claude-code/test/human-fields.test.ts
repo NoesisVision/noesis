@@ -32,7 +32,7 @@ const DESIGN_DOC = {
     removed: ['module|legacy'],
     modified: [],
   },
-  behaviours: {
+  behaviors: {
     added: [],
     removed: [],
     modified: [
@@ -56,11 +56,11 @@ const HUMAN_FIELDS = [
     value: 'Selling to customers.',
   },
   {
-    path: 'behaviours.modified[behavior|sales.Order.refund].visibility',
+    path: 'behaviors.modified[behavior|sales.Order.refund].visibility',
     value: { kind: 'public', actors: ['Support agent'] },
   },
   {
-    path: 'behaviours.modified[behavior|sales.Order.refund].output.added[primitive|boolean].description',
+    path: 'behaviors.modified[behavior|sales.Order.refund].output.added[primitive|boolean].description',
     value: 'Done.',
   },
 ];

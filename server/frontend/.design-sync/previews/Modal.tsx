@@ -31,12 +31,12 @@ export const DevToolsDialog = () => (
       </Group>
       <Group justify="space-between">
         <div>
-          <Text fw={600}>Verbose behaviour logs</Text>
+          <Text fw={600}>Verbose behavior logs</Text>
           <Text size="sm" c="dimmed">
-            Log each behaviour's input and output to the console.
+            Log each behavior's input and output to the console.
           </Text>
         </div>
-        <Switch aria-label="Verbose behaviour logs" />
+        <Switch aria-label="Verbose behavior logs" />
       </Group>
       <Group justify="flex-end" gap="sm">
         <Button variant="default">Reset</Button>

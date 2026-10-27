@@ -129,7 +129,7 @@ const valueObject = (name: string | null = null) =>
 const repository = (name: string | null = null) =>
   attr('Domain.DDD.DddRepositoryAttribute', { name });
 const domainService = () => attr('Domain.DDD.DddDomainServiceAttribute');
-const behaviour = (name: string | null = null) =>
+const behavior = (name: string | null = null) =>
   attr('Domain.DomainBehaviorAttribute', { name });
 const entryPoint = (triggeredBy: string, name: string | null = null) =>
   attr('Domain.EntryPointAttribute', {
@@ -598,7 +598,7 @@ describe('2. the annotation vocabulary', () => {
 /* ============================================================ 3 scope */
 
 describe('3. scope', () => {
-  it('R3.1 reads an excluded artifact for resolution only: no block, module or behaviour from it', () => {
+  it('R3.1 reads an excluded artifact for resolution only: no block, module or behavior from it', () => {
     const technical = artifact('Technical', { annotations: [exclude()] })
       .type('T:Technical.Entity', { annotations: [entity()] })
       .type('T:Technical.Guard', { modifiers: ['static'] })
@@ -622,7 +622,7 @@ describe('3. scope', () => {
     ]);
     expect<unknown>(model.buildingBlocks[0]?.implements).toEqual([]);
     expect<unknown>(
-      model.behaviours.find((b) => b.name === 'Place')?.invokes,
+      model.behaviors.find((b) => b.name === 'Place')?.invokes,
     ).toEqual(['behavior|Sales.Order.Total']);
   });
 
@@ -668,7 +668,7 @@ describe('3. scope', () => {
       ORDER,
       'building_block|Sales.Orders.Special',
     ]);
-    expect<unknown>(ids(model.behaviours)).toEqual([
+    expect<unknown>(ids(model.behaviors)).toEqual([
       'behavior|Sales.Orders.Order.Place',
     ]);
     expect<unknown>(
@@ -676,7 +676,7 @@ describe('3. scope', () => {
     ).toEqual(['Total']);
   });
 
-  it('R3.4 never makes a generated member a behaviour or a property', () => {
+  it('R3.4 never makes a generated member a behavior or a property', () => {
     const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#<Clone>$()', { origin: 'generated' })
@@ -686,7 +686,7 @@ describe('3. scope', () => {
         })
         .property('P:Sales.Orders.Order.Total', prim('decimal')),
     ]);
-    expect<unknown>(ids(model.behaviours)).toEqual([
+    expect<unknown>(ids(model.behaviors)).toEqual([
       'behavior|Sales.Orders.Order.Place',
     ]);
     expect<unknown>(
@@ -1009,7 +1009,7 @@ describe('5. properties', () => {
     ).toEqual(['C', 'A', 'B', 'Z']);
   });
 
-  it("R5.7 takes a Java record's components as properties although their fields are private, and their accessors as no behaviours", () => {
+  it("R5.7 takes a Java record's components as properties although their fields are private, and their accessors as no behaviors", () => {
     const { model } = buildFrom(
       [
         artifact('shop')
@@ -1040,7 +1040,7 @@ describe('5. properties', () => {
     expect<unknown>(money?.properties.map((p) => [p.name, p.type])).toEqual([
       ['amount', 'primitive|integer'],
     ]);
-    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual(['negate']);
+    expect<unknown>(model.behaviors.map((b) => b.name)).toEqual(['negate']);
   });
 
   /** A Java value object `com.acme.Offer`, to hang private fields and getters on. */
@@ -1093,10 +1093,10 @@ describe('5. properties', () => {
       ['products', 'The products offered.'],
       ['total', 'What is owed.'],
     ]);
-    expect<unknown>(model.behaviours).toEqual([]);
+    expect<unknown>(model.behaviors).toEqual([]);
   });
 
-  it('R5.8 takes a Java field behind a hand-written getter as a property, and the getter as no behaviour', () => {
+  it('R5.8 takes a Java field behind a hand-written getter as a property, and the getter as no behavior', () => {
     const model = javaModel(
       offer()
         .field('F:com.acme.Offer.total', prim('long'), privateField)
@@ -1106,7 +1106,7 @@ describe('5. properties', () => {
     expect<unknown>(propertiesOfOffer(model)).toEqual([
       ['total', 'primitive|integer'],
     ]);
-    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual(['discount']);
+    expect<unknown>(model.behaviors.map((b) => b.name)).toEqual(['discount']);
   });
 
   it('R5.8 takes isX() as the getter of a boolean or Boolean field, and only of one', () => {
@@ -1125,7 +1125,7 @@ describe('5. properties', () => {
       ['paid', 'primitive|boolean'],
       ['signed', 'primitive|boolean'],
     ]);
-    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual(['isCount']);
+    expect<unknown>(model.behaviors.map((b) => b.name)).toEqual(['isCount']);
   });
 
   it("R5.8 takes Lombok's fluent accessor x() as the getter of x", () => {
@@ -1164,7 +1164,7 @@ describe('5. properties', () => {
         }),
     );
     expect<unknown>(propertiesOfOffer(model)).toEqual([]);
-    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual([
+    expect<unknown>(model.behaviors.map((b) => b.name)).toEqual([
       'getCode',
       'getName',
       'getTotal',
@@ -1186,13 +1186,13 @@ describe('5. properties', () => {
         .method('M:com.acme.Offer#getLimit()', { returns: prim('long') }),
     );
     expect<unknown>(propertiesOfOffer(model)).toEqual([]);
-    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual([
+    expect<unknown>(model.behaviors.map((b) => b.name)).toEqual([
       'getInstances',
       'getLimit',
     ]);
   });
 
-  it('R5.8 leaves C# alone: a private field behind a getter method is no property, the method a behaviour', () => {
+  it('R5.8 leaves C# alone: a private field behind a getter method is no property, the method a behavior', () => {
     const { model } = buildFrom([
       sales()
         .field('F:Sales.Orders.Order.total', prim('decimal'), {
@@ -1202,7 +1202,7 @@ describe('5. properties', () => {
         .method('M:Sales.Orders.Order#total()', { returns: prim('decimal') }),
     ]);
     expect<unknown>(model.buildingBlocks[0]?.properties).toEqual([]);
-    expect<unknown>(model.behaviours.map((b) => b.name)).toEqual([
+    expect<unknown>(model.behaviors.map((b) => b.name)).toEqual([
       'getTotal',
       'total',
     ]);
@@ -1537,9 +1537,9 @@ describe('8. resolving ids across artifacts', () => {
   });
 });
 
-/* ======================================================= 9 behaviours */
+/* ======================================================= 9 behaviors */
 
-describe('9. behaviours', () => {
+describe('9. behaviors', () => {
   it('R9.1 takes the public methods of a block, static ones too; not constructors, operators, technical or non-public ones', () => {
     const { model } = buildFrom([
       sales()
@@ -1561,32 +1561,32 @@ describe('9. behaviours', () => {
         .method('M:Sales.Orders.Order#Audit()', { visibility: 'private' })
         .method('M:Sales.Orders.Order#Guarded()', { visibility: 'protected' }),
     ]);
-    expect<unknown>(ids(model.behaviours)).toEqual([
+    expect<unknown>(ids(model.behaviors)).toEqual([
       'behavior|Sales.Orders.Order.Create',
       'behavior|Sales.Orders.Order.Place',
     ]);
   });
 
-  it('R9.1 takes a method with a behaviour annotation whatever its visibility or name, as a private behaviour when not public', () => {
+  it('R9.1 takes a method with a behavior annotation whatever its visibility or name, as a private behavior when not public', () => {
     const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#Audit()', {
           visibility: 'private',
-          annotations: [behaviour()],
+          annotations: [behavior()],
         })
         .method('M:Sales.Orders.Order#ToString()', {
-          annotations: [behaviour('Describe')],
+          annotations: [behavior('Describe')],
         }),
     ]);
-    expect<unknown>(
-      model.behaviours.map((b) => [b.name, b.visibility]),
-    ).toEqual([
-      ['Audit', { kind: 'private' }],
-      ['Describe', { kind: 'public', actors: [] }],
-    ]);
+    expect<unknown>(model.behaviors.map((b) => [b.name, b.visibility])).toEqual(
+      [
+        ['Audit', { kind: 'private' }],
+        ['Describe', { kind: 'public', actors: [] }],
+      ],
+    );
   });
 
-  it('R9.2 names a behaviour by the annotation on the method, else on the member it implements or overrides, else the code', () => {
+  it('R9.2 names a behavior by the annotation on the method, else on the member it implements or overrides, else the code', () => {
     const built = buildFrom([
       sales()
         .type('T:Sales.Orders.IOrder', {
@@ -1594,10 +1594,10 @@ describe('9. behaviours', () => {
           annotations: [repository()],
         })
         .method('M:Sales.Orders.IOrder#Place()', {
-          annotations: [behaviour('Place order')],
+          annotations: [behavior('Place order')],
         })
         .method('M:Sales.Orders.IOrder#Cancel()', {
-          annotations: [behaviour('Sales.Cancel')],
+          annotations: [behavior('Sales.Cancel')],
         })
         .method('M:Sales.Orders.Order#Place()', {
           implementsMember: ['M:Sales.Orders.IOrder#Place()'],
@@ -1606,10 +1606,10 @@ describe('9. behaviours', () => {
           implementsMember: ['M:Sales.Orders.IOrder#Cancel()'],
         })
         .method('M:Sales.Orders.Order#Ship()', {
-          annotations: [behaviour('Ship it')],
+          annotations: [behavior('Ship it')],
         }),
     ]);
-    expect<unknown>(ids(built.model.behaviours)).toEqual([
+    expect<unknown>(ids(built.model.behaviors)).toEqual([
       'behavior|Sales.Orders.IOrder.Cancel',
       'behavior|Sales.Orders.IOrder.Place order',
       'behavior|Sales.Orders.Order.Cancel',
@@ -1622,7 +1622,7 @@ describe('9. behaviours', () => {
     ]);
   });
 
-  it('R9.3 collapses overloads into one behaviour that the overload with the most parameters stands for, the first declared of those', () => {
+  it('R9.3 collapses overloads into one behavior that the overload with the most parameters stands for, the first declared of those', () => {
     const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#Add(int)', {
@@ -1641,15 +1641,15 @@ describe('9. behaviours', () => {
           ],
         }),
     ]);
-    expect<unknown>(model.behaviours).toHaveLength(1);
-    expect<unknown>(model.behaviours[0]?.input.map((i) => i.name)).toEqual([
+    expect<unknown>(model.behaviors).toHaveLength(1);
+    expect<unknown>(model.behaviors[0]?.input.map((i) => i.name)).toEqual([
       'quantity',
       'note',
     ]);
-    expect<unknown>(model.behaviours[0]?.source.line).toBe(5);
+    expect<unknown>(model.behaviors[0]?.source.line).toBe(5);
   });
 
-  it("R9.4 types a behaviour by TriggeredBy on its own or an implemented member's annotation; a Command without one", () => {
+  it("R9.4 types a behavior by TriggeredBy on its own or an implemented member's annotation; a Command without one", () => {
     const { model } = buildFrom([
       sales()
         .type('T:Sales.Orders.IHandler', {
@@ -1677,7 +1677,7 @@ describe('9. behaviours', () => {
           returns: prim('decimal'),
         }),
     ]);
-    expect<unknown>(model.behaviours.map((b) => [b.name, b.type])).toEqual([
+    expect<unknown>(model.behaviors.map((b) => [b.name, b.type])).toEqual([
       ['Handle', 'Event'],
       ['GetTotal', 'Command'],
       ['Handle', 'Event'],
@@ -1711,7 +1711,7 @@ describe('9. behaviours', () => {
       JAVA_VOCABULARY,
     );
     expect<unknown>(
-      model.behaviours.map((b) => [b.name, b.type, b.visibility.kind]),
+      model.behaviors.map((b) => [b.name, b.type, b.visibility.kind]),
     ).toEqual([
       ['list', 'Command', 'public'],
       ['onPlaced', 'Event', 'private'],
@@ -1737,7 +1737,7 @@ describe('9. behaviours', () => {
         })
         .method('M:Sales.Order#Cancel()'),
     ]);
-    expect<unknown>(model.behaviours.map((b) => b.visibility)).toEqual([
+    expect<unknown>(model.behaviors.map((b) => b.visibility)).toEqual([
       { kind: 'public', actors: ['Sales rep'] },
       { kind: 'public', actors: ['Customer'] },
       { kind: 'public', actors: ['Admin', 'Customer', 'Sales rep'] },
@@ -1760,7 +1760,7 @@ describe('9. behaviours', () => {
           },
         ),
     ]);
-    expect<unknown>(built.model.behaviours[0]?.input).toEqual([
+    expect<unknown>(built.model.behaviors[0]?.input).toEqual([
       { name: 'other', type: ORDER, description: null, optional: false },
       {
         name: 'note',
@@ -1795,7 +1795,7 @@ describe('9. behaviours', () => {
           returns: named(SYS.func, prim('int'), prim('int')),
         }),
     ]);
-    expect<unknown>(model.behaviours.map((b) => [b.name, b.output])).toEqual([
+    expect<unknown>(model.behaviors.map((b) => [b.name, b.output])).toEqual([
       ['A', []],
       ['B', []],
       ['C', [{ type: ORDER, description: null, optional: false }]],
@@ -1804,7 +1804,7 @@ describe('9. behaviours', () => {
     ]);
   });
 
-  it("R9.8 describes a behaviour by its ShortDescription, its doc comment, or an overload's", () => {
+  it("R9.8 describes a behavior by its ShortDescription, its doc comment, or an overload's", () => {
     const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#A()', {
@@ -1820,7 +1820,7 @@ describe('9. behaviours', () => {
         })
         .method('M:Sales.Orders.Order#D()'),
     ]);
-    expect<unknown>(model.behaviours.map((b) => b.description)).toEqual([
+    expect<unknown>(model.behaviors.map((b) => b.description)).toEqual([
       'Short',
       'Doc',
       'From the shorter overload',
@@ -1828,7 +1828,7 @@ describe('9. behaviours', () => {
     ]);
   });
 
-  it("R9.9 takes the Scenario annotations on every overload as the behaviour's scenarios, by title only", () => {
+  it("R9.9 takes the Scenario annotations on every overload as the behavior's scenarios, by title only", () => {
     const built = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#Place()', {
@@ -1839,7 +1839,7 @@ describe('9. behaviours', () => {
           annotations: [scenario('Placed with lines'), scenario(null)],
         }),
     ]);
-    expect<unknown>(built.model.behaviours[0]?.scenarios).toEqual([
+    expect<unknown>(built.model.behaviors[0]?.scenarios).toEqual([
       { name: 'Placed empty', description: null, steps: [] },
       { name: 'Placed with lines', description: null, steps: [] },
     ]);
@@ -1848,7 +1848,7 @@ describe('9. behaviours', () => {
     ]);
   });
 
-  it('R9.10 points a behaviour at the chosen overload', () => {
+  it('R9.10 points a behavior at the chosen overload', () => {
     const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#Place()', { file: 'a.cs' })
@@ -1857,24 +1857,24 @@ describe('9. behaviours', () => {
           file: 'b.cs',
         }),
     ]);
-    expect<unknown>(model.behaviours[0]?.source).toEqual({
+    expect<unknown>(model.behaviors[0]?.source).toEqual({
       path: 'b.cs',
       line: 5,
     });
   });
 
-  it('R9.11 drops a behaviour annotation on a method of a type that is no block, with a diagnostic', () => {
+  it('R9.11 drops a behavior annotation on a method of a type that is no block, with a diagnostic', () => {
     const built = buildFrom([
       artifact('Sales')
         .type('T:Sales.Helpers', { modifiers: ['static'] })
         .method('M:Sales.Helpers#Count()', {
-          annotations: [behaviour('Count things')],
+          annotations: [behavior('Count things')],
         }),
     ]);
-    expect<unknown>(built.model.behaviours).toEqual([]);
+    expect<unknown>(built.model.behaviors).toEqual([]);
     expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining(
-        'M:Sales.Helpers#Count() is marked a behaviour but its type is no building block',
+        'M:Sales.Helpers#Count() is marked a behavior but its type is no building block',
       ),
     ]);
   });
@@ -1883,7 +1883,7 @@ describe('9. behaviours', () => {
 /* ====================================================== 10 determinism */
 
 describe('10. order and determinism', () => {
-  it('R10.1 sorts modules, blocks, behaviours, implements, actors and invokes by id, and gives one output for one input', () => {
+  it('R10.1 sorts modules, blocks, behaviors, implements, actors and invokes by id, and gives one output for one input', () => {
     const build = () => [
       artifact('Sales')
         .type('T:Sales.Zed', { annotations: [valueObject()] })
@@ -1903,12 +1903,12 @@ describe('10. order and determinism', () => {
       'building_block|Sales.Alpha',
       'building_block|Sales.Zed',
     ]);
-    expect<unknown>(ids(first.model.behaviours)).toEqual([
+    expect<unknown>(ids(first.model.behaviors)).toEqual([
       'behavior|Sales.Alpha.Act',
       'behavior|Sales.Alpha.Zip',
       'behavior|Sales.Zed.Make',
     ]);
-    expect<unknown>(first.model.behaviours[1]).toMatchObject({
+    expect<unknown>(first.model.behaviors[1]).toMatchObject({
       visibility: { kind: 'public', actors: ['Adam', 'Zoe'] },
       invokes: ['behavior|Sales.Alpha.Act', 'behavior|Sales.Zed.Make'],
     });
@@ -1918,7 +1918,7 @@ describe('10. order and determinism', () => {
 /* ===================================================== 11 invocations */
 
 describe('11. relations derived from invocations', () => {
-  it("R11.1 attributes a call to the behaviours of the calling method and of the members it implements or overrides; an initialiser's call to nothing", () => {
+  it("R11.1 attributes a call to the behaviors of the calling method and of the members it implements or overrides; an initialiser's call to nothing", () => {
     const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.IOrderRepository', {
@@ -1946,7 +1946,7 @@ describe('11. relations derived from invocations', () => {
           invokes: ['M:Sales.Order#Total()'],
         }),
     ]);
-    expect<unknown>(model.behaviours.map((b) => [b.id, b.invokes])).toEqual([
+    expect<unknown>(model.behaviors.map((b) => [b.id, b.invokes])).toEqual([
       ['behavior|Sales.IOrderRepository.Save', ['behavior|Sales.Order.Total']],
       [
         'behavior|Sales.Order.Place',
@@ -1956,7 +1956,7 @@ describe('11. relations derived from invocations', () => {
     ]);
   });
 
-  it('R11.2 walks through methods that are no behaviour, across artifacts and excluded types, to the behaviours they reach, and stops at stubs, constructors and cycles', () => {
+  it('R11.2 walks through methods that are no behavior, across artifacts and excluded types, to the behaviors they reach, and stops at stubs, constructors and cycles', () => {
     const technical = artifact('Technical', { annotations: [exclude()] })
       .type('T:Technical.Guard', { modifiers: ['static'] })
       .method('M:Technical.Guard#NotNull(object)', { modifiers: ['static'] });
@@ -1991,11 +1991,11 @@ describe('11. relations derived from invocations', () => {
       });
     const { model } = buildFrom([technical, sales]);
     expect<unknown>(
-      model.behaviours.find((b) => b.name === 'Place')?.invokes,
+      model.behaviors.find((b) => b.name === 'Place')?.invokes,
     ).toEqual(['behavior|Sales.Order.Total']);
   });
 
-  it('R11.2 resolves the target through the members it implements: a call to the implementation reaches the interface behaviour', () => {
+  it('R11.2 resolves the target through the members it implements: a call to the implementation reaches the interface behavior', () => {
     const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.IOrderRepository', {
@@ -2015,11 +2015,11 @@ describe('11. relations derived from invocations', () => {
         }),
     ]);
     expect<unknown>(
-      model.behaviours.find((b) => b.name === 'Persist')?.invokes,
+      model.behaviors.find((b) => b.name === 'Persist')?.invokes,
     ).toEqual(['behavior|Sales.IOrderRepository.Save']);
   });
 
-  it('R11.3 lists the invoked behaviours sorted, unique and never the behaviour itself', () => {
+  it('R11.3 lists the invoked behaviors sorted, unique and never the behavior itself', () => {
     const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.Order', { annotations: [aggregate()] })
@@ -2035,7 +2035,7 @@ describe('11. relations derived from invocations', () => {
         .method('M:Sales.Order#Audit()'),
     ]);
     expect<unknown>(
-      model.behaviours.find((b) => b.name === 'Place')?.invokes,
+      model.behaviors.find((b) => b.name === 'Place')?.invokes,
     ).toEqual(['behavior|Sales.Order.Audit', 'behavior|Sales.Order.Total']);
   });
 });

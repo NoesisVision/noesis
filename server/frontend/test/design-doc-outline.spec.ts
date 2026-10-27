@@ -48,9 +48,9 @@ describe('outlineOf', () => {
     });
   });
 
-  it('hangs a behaviour under its building block, and that under its module', () => {
+  it('hangs a behavior under its building block, and that under its module', () => {
     expect(at('behavior|sales.refunds.Refund.issue')).toMatchObject({
-      kind: 'behaviour',
+      kind: 'behavior',
       name: 'issue',
       pattern: 'Command',
       patternLabel: 'Command',

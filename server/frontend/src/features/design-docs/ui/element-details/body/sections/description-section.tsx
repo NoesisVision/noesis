@@ -13,7 +13,7 @@ import { DetailSection } from './detail-section.tsx';
 interface DescriptionSectionProps {
   element: ElementRef;
   field: DesignDocFieldInput<string>;
-  /** A module, building block or behaviour is defined; anything else described, and a rule reasoned for. */
+  /** A module, building block or behavior is defined; anything else described, and a rule reasoned for. */
   title?: 'Description' | 'Definition' | 'Rationale';
   /** A property's description is plain text, not markdown. */
   plain?: boolean;

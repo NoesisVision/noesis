@@ -100,7 +100,7 @@ export function SystemModelView() {
         <StatusPanel
           headingLevel={2}
           title="No system model is scanned yet"
-          description="Scan the repository's code to read its modules, building blocks and behaviours."
+          description="Scan the repository's code to read its modules, building blocks and behaviors."
           action={scanButton}
         />
       )}

@@ -1,6 +1,6 @@
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type {
-  BehaviourType,
+  BehaviorType,
   BuildingBlockRef,
   BuildingBlockType,
   SystemModel,
@@ -8,23 +8,23 @@ import type {
 
 /*
  * The scanned model read as a graph: its modules, building blocks and
- * behaviours, and only the relations the scan holds. A module contains the
+ * behaviors, and only the relations the scan holds. A module contains the
  * modules and building blocks its id path names; a building block contains
- * its behaviours. A building block uses the blocks its properties are typed
- * with, a behaviour the blocks it takes and gives back. "Is part of" is
- * containment read from the inside. A behaviour invokes the behaviours the
+ * its behaviors. A building block uses the blocks its properties are typed
+ * with, a behavior the blocks it takes and gives back. "Is part of" is
+ * containment read from the inside. A behavior invokes the behaviors the
  * scan found it calls — where the scanner records calls; one that does not
  * leaves the model without any.
  */
 
-type ExploredKind = 'module' | 'building_block' | 'behaviour';
+type ExploredKind = 'module' | 'building_block' | 'behavior';
 
 export interface ExploredElement {
   id: string;
   kind: ExploredKind;
   name: string;
-  /** The building block's or behaviour's type; null for a module. */
-  pattern: BuildingBlockType | BehaviourType | null;
+  /** The building block's or behavior's type; null for a module. */
+  pattern: BuildingBlockType | BehaviorType | null;
   /** The element that contains this one, if the model holds it. */
   container: string | null;
 }
@@ -33,7 +33,7 @@ export interface Exploration {
   elements: ExploredElement[];
   /** Which block uses which, as `[source, target]`, each pair once. */
   uses: [string, string][];
-  /** Which behaviour calls which, as `[caller, called]`, each pair once. */
+  /** Which behavior calls which, as `[caller, called]`, each pair once. */
   invokes: [string, string][];
 }
 
@@ -91,13 +91,13 @@ export function explorationOf(model: SystemModel): Exploration {
       pattern: block.type,
       container: moduleOf(block.id),
     })),
-    ...model.behaviours.map((behaviour) => ({
-      id: behaviour.id,
-      kind: 'behaviour' as const,
-      name: behaviour.name,
-      pattern: behaviour.type,
-      container: blockIds.has(behaviour.buildingBlockId)
-        ? behaviour.buildingBlockId
+    ...model.behaviors.map((behavior) => ({
+      id: behavior.id,
+      kind: 'behavior' as const,
+      name: behavior.name,
+      pattern: behavior.type,
+      container: blockIds.has(behavior.buildingBlockId)
+        ? behavior.buildingBlockId
         : null,
     })),
   ];
@@ -113,17 +113,17 @@ export function explorationOf(model: SystemModel): Exploration {
       block.id,
       block.properties.map(({ type }) => type),
     );
-  for (const behaviour of model.behaviours)
-    use(behaviour.id, [
-      ...behaviour.input.map(({ type }) => type),
-      ...behaviour.output.map(({ type }) => type),
+  for (const behavior of model.behaviors)
+    use(behavior.id, [
+      ...behavior.input.map(({ type }) => type),
+      ...behavior.output.map(({ type }) => type),
     ]);
-  const behaviourIds = new Set(model.behaviours.map(({ id }) => id));
+  const behaviorIds = new Set(model.behaviors.map(({ id }) => id));
   const invokes = new Map<string, [string, string]>();
-  for (const behaviour of model.behaviours)
-    for (const called of behaviour.invokes)
-      if (called !== behaviour.id && behaviourIds.has(called))
-        invokes.set(`${behaviour.id}->${called}`, [behaviour.id, called]);
+  for (const behavior of model.behaviors)
+    for (const called of behavior.invokes)
+      if (called !== behavior.id && behaviorIds.has(called))
+        invokes.set(`${behavior.id}->${called}`, [behavior.id, called]);
   return { elements, uses: [...uses.values()], invokes: [...invokes.values()] };
 }
 
@@ -135,14 +135,14 @@ export const groupLabelOf = (group: string): string =>
   titleCase(group.replaceAll('_', ' '));
 
 export interface ElementSection {
-  title: 'Modules' | 'Building blocks' | 'Behaviours';
+  title: 'Modules' | 'Building blocks' | 'Behaviors';
   groups: { group: string; count: number }[];
 }
 
 const SECTIONS = [
   ['Modules', 'module'],
   ['Building blocks', 'building_block'],
-  ['Behaviours', 'behaviour'],
+  ['Behaviors', 'behavior'],
 ] as const satisfies readonly [ElementSection['title'], ExploredKind][];
 
 /** The groups a reader may hide, by kind of element, as many as the model holds. */
@@ -397,7 +397,7 @@ export const addressOf = (id: string): string => id.slice(id.indexOf('|') + 1);
 const KIND_WORD = {
   module: 'Module',
   building_block: 'Building block',
-  behaviour: 'Behaviour',
+  behavior: 'Behavior',
 } as const satisfies Record<ExploredKind, string>;
 
 /** What an element is, in words: "Building block · Value Object". */
@@ -477,11 +477,11 @@ export const relationOfChain = (reach: ChainReach): DrawnRelationKind =>
 /**
  * Everything an element reaches one way, step after step, up to the next
  * element of its own type: that one is reached, but not followed further.
- * Only behaviours invoke, so a building block's or module's calls are its
- * behaviours', and a behaviour stops the chain when the block it is on is
- * of the type it started from. Those behaviours, and the blocks such a
+ * Only behaviors invoke, so a building block's or module's calls are its
+ * behaviors', and a behavior stops the chain when the block it is on is
+ * of the type it started from. Those behaviors, and the blocks such a
  * chain ends on, are reached too, so the chain reads whole. It goes no
- * more than `depth` steps from the element, or from its behaviours.
+ * more than `depth` steps from the element, or from its behaviors.
  */
 export function chainOf(
   neighbours: ReadonlyMap<string, Neighbours>,
@@ -494,10 +494,9 @@ export function chainOf(
   if (start === undefined) return [];
   const type = groupOf(start);
   const throughBehaviours =
-    (reach === 'invokes' || reach === 'invokedBy') &&
-    start.kind !== 'behaviour';
+    (reach === 'invokes' || reach === 'invokedBy') && start.kind !== 'behavior';
   const blockOf = (element: ExploredElement) =>
-    element.kind === 'behaviour' && element.container !== null
+    element.kind === 'behavior' && element.container !== null
       ? elements.get(element.container)
       : undefined;
   const ends = (element: ExploredElement) => {
@@ -522,7 +521,7 @@ export function chainOf(
       ]);
     frontier = inside(id).filter(
       (each) =>
-        elements.get(each)?.kind === 'behaviour' &&
+        elements.get(each)?.kind === 'behavior' &&
         (neighbours.get(each)?.[reach].length ?? 0) > 0,
     );
     for (const each of frontier) reachOf(each);

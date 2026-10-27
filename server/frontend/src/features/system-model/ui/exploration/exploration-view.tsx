@@ -729,7 +729,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
             </Alert>
           ) : exploration.elements.length === 0 ? (
             <Text c="dimmed" p="lg">
-              The scan found no modules, building blocks or behaviours.
+              The scan found no modules, building blocks or behaviors.
             </Text>
           ) : graph.elements.length === 0 ? (
             <Box h="100%" className={classes.blank} data-part="blank" />

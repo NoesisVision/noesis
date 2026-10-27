@@ -212,7 +212,7 @@ export function ArchitectureDiagram({
 
 const FIT = { padding: 0.08 };
 
-/** How many warnings and notes name each card's element, or a behaviour found on it. */
+/** How many warnings and notes name each card's element, or a behavior found on it. */
 function findingsOf(
   outline: ArchitectureOutline,
   nodes: readonly LaidOutNode[],
@@ -221,7 +221,7 @@ function findingsOf(
   const found = new Map<string, { warnings: number; notes: number }>();
   for (const check of outline.checks) {
     if (check.level === 'pass') continue;
-    // A block two of its behaviours put under one check is named by it once.
+    // A block two of its behaviors put under one check is named by it once.
     const cards = new Set(check.elementIds.map((id) => cardIdOf(id, drawn)));
     for (const id of cards) {
       const counts = found.get(id) ?? { warnings: 0, notes: 0 };

@@ -87,16 +87,16 @@ export function designOf(model: SystemModel): DesignDocument {
         scenarios: scenarios(block.scenarios),
       })),
     ),
-    behaviours: added(
-      model.behaviours.map((behaviour) => ({
-        id: behaviour.id,
-        name: field(behaviour.name),
-        type: field(behaviour.type),
-        definition: optional(behaviour.description),
+    behaviors: added(
+      model.behaviors.map((behavior) => ({
+        id: behavior.id,
+        name: field(behavior.name),
+        type: field(behavior.type),
+        definition: optional(behavior.description),
         diagram: UNSET,
-        visibility: field(behaviour.visibility),
+        visibility: field(behavior.visibility),
         input: added(
-          behaviour.input.map((parameter) => ({
+          behavior.input.map((parameter) => ({
             name: parameter.name,
             type: field(parameter.type),
             description: optional(parameter.description),
@@ -104,14 +104,14 @@ export function designOf(model: SystemModel): DesignDocument {
           })),
         ),
         output: added(
-          behaviour.output.map((result) => ({
+          behavior.output.map((result) => ({
             type: result.type,
             description: optional(result.description),
             optional: field(result.optional),
           })),
         ),
-        rules: rules(behaviour.rules),
-        scenarios: scenarios(behaviour.scenarios),
+        rules: rules(behavior.rules),
+        scenarios: scenarios(behavior.scenarios),
       })),
     ),
     implemented: true,

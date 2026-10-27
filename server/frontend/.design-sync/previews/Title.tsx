@@ -5,7 +5,7 @@ export const Orders = () => (
     <Title order={1}>Architecture overview</Title>
     <Title order={2}>Payment flow</Title>
     <Title order={3}>Order service</Title>
-    <Title order={4}>Behaviours</Title>
+    <Title order={4}>Behaviors</Title>
     <Title order={5}>Scenarios</Title>
     <Title order={6}>Input and output</Title>
   </Stack>

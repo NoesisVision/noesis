@@ -8,7 +8,7 @@ import type { OutlineTree } from './outline-tree.ts';
  * deep model findable.
  *
  * Names and patterns are searched, descriptions are not. Properties, rules
- * and behaviours are rows of their own, so their names are reached without a
+ * and behaviors are rows of their own, so their names are reached without a
  * case of their own here.
  */
 

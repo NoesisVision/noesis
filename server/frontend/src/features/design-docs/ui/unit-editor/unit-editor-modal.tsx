@@ -215,7 +215,7 @@ const ICON_KIND: Record<UnitKind, OutlineKind> = {
   need: 'need',
   module: 'module',
   building_block: 'building_block',
-  behaviour: 'behaviour',
+  behavior: 'behavior',
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',
@@ -233,7 +233,7 @@ const ownerOf = (target: UnitTarget): PartOwner | null => {
 const ITSELF = '';
 
 /**
- * Which rule a scenario belongs to — or, in a building block or a behaviour,
+ * Which rule a scenario belongs to — or, in a building block or a behavior,
  * the element itself, which holds scenarios of its own; a module does not.
  */
 function ScenarioRuleField({

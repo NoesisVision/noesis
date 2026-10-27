@@ -68,7 +68,7 @@ export class Scanner {
       artifacts: files.length,
       parseMs: parsed.ms,
       blocks: model.buildingBlocks.length,
-      behaviours: model.behaviours.length,
+      behaviors: model.behaviors.length,
       buildMs: built.ms,
     });
   }

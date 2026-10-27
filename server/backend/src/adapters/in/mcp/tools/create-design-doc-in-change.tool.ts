@@ -28,7 +28,7 @@ export function createDesignDocInChangeTool(
     CREATE_DESIGN_DOC_IN_CHANGE,
     {
       title: 'Create design document in change',
-      description: `Creates a design document in a change: a diff against the scanned model — the modules, building blocks and behaviours the change adds, modifies or removes, each named by the id the scanner gives it. The server mints its id from today's date and the name, and every call creates a new design document, so revise one you created with ${UPDATE_DESIGN_DOC_IN_CHANGE}. Write the design document to a JSON working file under the session scratch directory and pass its path.`,
+      description: `Creates a design document in a change: a diff against the scanned model — the modules, building blocks and behaviors the change adds, modifies or removes, each named by the id the scanner gives it. The server mints its id from today's date and the name, and every call creates a new design document, so revise one you created with ${UPDATE_DESIGN_DOC_IN_CHANGE}. Write the design document to a JSON working file under the session scratch directory and pass its path.`,
       inputSchema: inChangeInput(
         files,
         SUBJECT,

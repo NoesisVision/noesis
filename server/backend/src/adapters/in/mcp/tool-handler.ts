@@ -86,7 +86,7 @@ const FIXES: Record<DesignDocViolation['reason'], string> = {
   ruleTypeOutsideCategory:
     'the rule\'s "ruleType" belongs to another "category"; pick a type of its category, or the category of its type',
   businessRuleOnModule:
-    'a module holds only quality and constraint rules; move the business rule to the building block or behaviour it governs',
+    'a module holds only quality and constraint rules; move the business rule to the building block or behavior it governs',
 };
 
 function message(error: unknown): string {

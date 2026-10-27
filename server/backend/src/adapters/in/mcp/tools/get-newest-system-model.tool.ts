@@ -25,7 +25,7 @@ export function getNewestSystemModelTool(
     GET_NEWEST_SYSTEM_MODEL,
     {
       title: 'Get newest system model',
-      description: `Answers with the system model scanned last — its modules, building blocks and behaviours, each with the id a design document names it by — or null when nothing is scanned yet. Design documents are diffs against this model, so read it before designing a change; refresh it first with ${SCAN_SYSTEM_MODEL} when the code has moved on.`,
+      description: `Answers with the system model scanned last — its modules, building blocks and behaviors, each with the id a design document names it by — or null when nothing is scanned yet. Design documents are diffs against this model, so read it before designing a change; refresh it first with ${SCAN_SYSTEM_MODEL} when the code has moved on.`,
       inputSchema,
       outputSchema,
       annotations: READ_ONLY,
@@ -42,5 +42,5 @@ function summary(model: SystemModel | null): string {
   if (model === null) {
     return `No system model is scanned yet. Scan one with ${SCAN_SYSTEM_MODEL}.`;
   }
-  return `System model ${model.name} (${model.id}), scanned at ${model.scanned_at}: ${model.modules.length} modules, ${model.buildingBlocks.length} building blocks, ${model.behaviours.length} behaviours.`;
+  return `System model ${model.name} (${model.id}), scanned at ${model.scanned_at}: ${model.modules.length} modules, ${model.buildingBlocks.length} building blocks, ${model.behaviors.length} behaviors.`;
 }

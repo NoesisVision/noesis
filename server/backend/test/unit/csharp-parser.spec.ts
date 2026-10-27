@@ -10,7 +10,7 @@ import {
   INVOKES,
   MODULES,
   UNREACHED,
-  behaviour as invocation,
+  behavior as invocation,
 } from '../support/csharp-fixture-expectations';
 import { fixedClock } from '../support/fixed-clock';
 import { scannerOver } from '../support/test-scanner';
@@ -77,7 +77,7 @@ afterEach(() => t.cleanup());
 const ids = (items: readonly { id: string }[]) => items.map((item) => item.id);
 const block = (name: string) => `building_block|Projection.Blocks.${name}`;
 const form = (name: string) =>
-  `behavior|Projection.Behaviours.BehaviourForms.${name}`;
+  `behavior|Projection.Behaviors.BehaviorForms.${name}`;
 
 describe('Scanning through the C# parser', () => {
   it('runs the first stage into a fresh .noesis/tmp/<uuid>/, over the repository root, named after it', async () => {
@@ -224,12 +224,12 @@ describe('Scanning through the C# parser', () => {
       )?.implements,
     ).toEqual([block('AbstractBlock'), block('ExternalIntegrationBlock')]);
 
-    // Public methods become behaviours: static ones too; not the excluded,
+    // Public methods become behaviors: static ones too; not the excluded,
     // technical, non-public ones nor the operator. Overloads collapse into
     // one that the widest stands for; Task<T> is unwrapped, Task is void.
     expect<unknown>(
-      model.behaviours
-        .filter((b) => b.id.startsWith('behavior|Projection.Behaviours.'))
+      model.behaviors
+        .filter((b) => b.id.startsWith('behavior|Projection.Behaviors.'))
         .map((b) => [
           b.id,
           b.type,
@@ -274,7 +274,7 @@ describe('Scanning through the C# parser', () => {
         [],
       ],
       [
-        form('Named behaviour'),
+        form('Named behavior'),
         'Command',
         { kind: 'public', actors: [] },
         [],
@@ -312,7 +312,7 @@ describe('Scanning through the C# parser', () => {
         'Command',
         { kind: 'public', actors: [] },
         [],
-        [['building_block|Projection.Behaviours.BehaviourForms', false]],
+        [['building_block|Projection.Behaviors.BehaviorForms', false]],
       ],
       [
         form('TaskOutputIsVoid'),
@@ -337,24 +337,24 @@ describe('Scanning through the C# parser', () => {
       ],
     ]);
     expect<unknown>(
-      model.behaviours.find((b) => b.id === form('Named behaviour')),
+      model.behaviors.find((b) => b.id === form('Named behavior')),
     ).toMatchObject({
       description: 'Named by its annotation.',
-      scenarios: [{ name: 'Behaviour scenario' }],
-      source: { path: `${SOURCES}/Behaviours/BehaviourForms.cs`, line: 23 },
+      scenarios: [{ name: 'Behavior scenario' }],
+      source: { path: `${SOURCES}/Behaviors/BehaviorForms.cs`, line: 23 },
     });
-    // An annotated private method is a private behaviour; an explicit
+    // An annotated private method is a private behavior; an explicit
     // interface implementation and a member inherited from a non-block base
-    // give the block no behaviour of their own.
+    // give the block no behavior of their own.
     expect<unknown>(
-      model.behaviours.find(
-        (b) => b.id === invocation('CallChains.Private behaviour'),
+      model.behaviors.find(
+        (b) => b.id === invocation('CallChains.Private behavior'),
       )?.visibility,
     ).toEqual({ kind: 'private' });
-    expect<unknown>(ids(model.behaviours)).not.toContain(
+    expect<unknown>(ids(model.behaviors)).not.toContain(
       invocation('ExplicitBlockImplementor.Contract'),
     );
-    expect<unknown>(ids(model.behaviours)).not.toContain(
+    expect<unknown>(ids(model.behaviors)).not.toContain(
       invocation('SatisfiedByBaseMember.Provided'),
     );
   });
@@ -362,7 +362,7 @@ describe('Scanning through the C# parser', () => {
   it('derives invokes from the invocation chains of the fixture, by the rules of section 11', async () => {
     const model = SystemModel.parse(await scanner.scan());
 
-    const invocations = model.behaviours.filter(
+    const invocations = model.behaviors.filter(
       (b) =>
         b.id.startsWith('behavior|Projection.Invocations.') &&
         !b.id.startsWith('behavior|Projection.Invocations.Reached.'),
@@ -372,13 +372,13 @@ describe('Scanning through the C# parser', () => {
     ).toEqual(INVOKES);
 
     // The leaves invoke nothing, and some of them nothing reaches.
-    const leaves = model.behaviours.filter((b) =>
+    const leaves = model.behaviors.filter((b) =>
       b.id.startsWith('behavior|Projection.Invocations.Reached.'),
     );
     expect<unknown>(leaves.length).toBeGreaterThan(40);
     expect<unknown>(leaves.every((b) => b.invokes.length === 0)).toBe(true);
     const reachedByAnyone = new Set<string>(
-      model.behaviours.flatMap((b) => b.invokes),
+      model.behaviors.flatMap((b) => b.invokes),
     );
     for (const leaf of UNREACHED) {
       expect<unknown>(ids(leaves)).toContain(leaf);
@@ -397,7 +397,7 @@ describe('Scanning through the C# parser', () => {
       'module|CSharpSyntax.OtherProject',
       'module|CSharpSyntax.OtherProject.Projection',
       'module|CSharpSyntax.Projection',
-      'module|CSharpSyntax.Projection.Behaviours',
+      'module|CSharpSyntax.Projection.Behaviors',
       'module|CSharpSyntax.Projection.Blocks',
       'module|CSharpSyntax.Projection.ExcludedNamespace',
       'module|CSharpSyntax.Projection.Invocations',

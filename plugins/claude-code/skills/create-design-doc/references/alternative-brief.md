@@ -53,7 +53,7 @@ Where this brief says otherwise, the brief wins:
 - `id`: the id the tool answered with, or `failed:` with the reason and the
   path of your working file.
 - `counts`: what the design adds, modifies and removes, per modules,
-  building blocks and behaviours.
+  building blocks and behaviors.
 - `design`: three to five lines on what the design does.
 - `trade-offs`: what it gains and what it costs against the other
   directions.

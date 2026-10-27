@@ -15,7 +15,7 @@ Run everything from `server/frontend`.
 
 ## Previews
 - Overlays (Menu, Modal, Tooltip, ...) render with `defaultOpened`/`opened` + `withinPortal={false}` and a `cardMode: single` + viewport override in config.
-- `Button busy` hides the label behind the loader - expected Mantine behaviour.
+- `Button busy` hides the label behind the loader - expected Mantine behavior.
 - Tooltip card (360x200): a `position="right"` tooltip with a long label clips at the right edge; keep targets narrow or position top/bottom.
 - The app's custom icons (`src/shared/ui/icons/icons.ts`: `IconChevronsUpDown`, `IconChevronsDownUp`) ship via `extraEntries` and sit on `window.NoesisDS` beside Tabler's.
 - AppShell preview uses `mode="static"` with `h={460}` (560 overflows the 960x560 card).

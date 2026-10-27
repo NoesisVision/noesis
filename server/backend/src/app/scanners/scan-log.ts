@@ -7,7 +7,7 @@ export interface ScanSummary {
   readonly artifacts: number;
   readonly parseMs: number;
   readonly blocks: number;
-  readonly behaviours: number;
+  readonly behaviors: number;
   readonly buildMs: number;
 }
 

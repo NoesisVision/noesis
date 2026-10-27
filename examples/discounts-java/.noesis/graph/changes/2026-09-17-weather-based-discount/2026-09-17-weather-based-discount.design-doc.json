@@ -349,7 +349,7 @@
       }
     ]
   },
-  "behaviours": {
+  "behaviors": {
     "added": [
       {
         "id": "behavior|discounts.weather.WeatherProvider.getCurrent",

@@ -3,7 +3,7 @@ import { Group } from '#/shared/design-system/group.tsx';
 import type { Visibility } from '#backend/app/system-model/system-model.ts';
 
 /**
- * Who may call a behaviour, in a word: `public` with the actors it names, or
+ * Who may call a behavior, in a word: `public` with the actors it names, or
  * `private` to its own module. Nothing when the design does not say.
  */
 export function VisibilityBadge({

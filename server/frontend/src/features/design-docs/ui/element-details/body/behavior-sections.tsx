@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import type {
   DesignDocumentInput,
-  DesignedBehaviourInput,
+  DesignedBehaviorInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import {
   parameterItems,
@@ -14,26 +14,26 @@ import { ChangeListSection } from './sections/change-list-section.tsx';
 import { DiagramSection } from './sections/diagram-section.tsx';
 import { InputOutputSection } from './sections/input-output-section.tsx';
 
-export const behaviourSections = (
-  behaviour: DesignedBehaviourInput,
+export const behaviorSections = (
+  behavior: DesignedBehaviorInput,
   doc: DesignDocumentInput,
 ): ReactElement[] => {
-  const element: ElementRef = { collection: 'behaviours', id: behaviour.id };
+  const element: ElementRef = { collection: 'behaviors', id: behavior.id };
   return [
     ...section(InputOutputSection, 'input-output', {
       element,
-      input: parameterItems(behaviour.input),
-      output: resultItems(behaviour.output),
+      input: parameterItems(behavior.input),
+      output: resultItems(behavior.output),
     }),
     ...section(ChangeListSection, 'rules', {
       element,
       title: 'Rules',
       kind: 'rule',
-      items: ruleItems(behaviour.id, behaviour.rules, doc.needs),
+      items: ruleItems(behavior.id, behavior.rules, doc.needs),
     }),
     ...section(DiagramSection, 'diagram', {
       element,
-      field: behaviour.diagram,
+      field: behavior.diagram,
     }),
   ];
 };

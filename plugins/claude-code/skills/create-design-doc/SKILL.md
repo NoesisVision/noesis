@@ -1,13 +1,13 @@
 ---
 name: create-design-doc
-description: Design what a Noesis change does to the code's domain model — the modules, building blocks and behaviours it adds, modifies or removes, with their rules and scenarios — from the change's documents and the scanned system model, and store it in the change as a design document, or as several alternative ones, each designed by its own subagent, for the user to compare. Use when the user asks to design a change, model it, plan its implementation or write its design doc from the specs, notes or transcripts it collects.
+description: Design what a Noesis change does to the code's domain model — the modules, building blocks and behaviors it adds, modifies or removes, with their rules and scenarios — from the change's documents and the scanned system model, and store it in the change as a design document, or as several alternative ones, each designed by its own subagent, for the user to compare. Use when the user asks to design a change, model it, plan its implementation or write its design doc from the specs, notes or transcripts it collects.
 argument-hint: [change-id] [number of designs] [instructions]
 ---
 
 # Create a design document
 
 A design document says what a change does to the implemented model: the
-modules, building blocks and behaviours it adds, modifies or removes, with
+modules, building blocks and behaviors it adds, modifies or removes, with
 their properties, rules and scenarios. It is a diff against the newest
 system model — what the scanner found in the code — and never against an
 earlier design document. You read the change's documents and the system
@@ -71,17 +71,17 @@ rules, scenarios. Read it at step 5.
      only for a cohesive group of building blocks, under the module closest
      to it in meaning. A new root module needs the user's approval, always.
    - **Use cases and actors.** Every action triggered from outside the
-     module by a command, event or query is a public behaviour. Its actors
+     module by a command, event or query is a public behavior. Its actors
      are the human personas that trigger it; reuse the actor names the
      system model already uses, verbatim.
-   - **Building blocks and behaviours**, with their types, properties,
-     `implements` and behaviour inputs and outputs. Take ready solutions
+   - **Building blocks and behaviors**, with their types, properties,
+     `implements` and behavior inputs and outputs. Take ready solutions
      from the sources, diagrams especially.
    - **Rules**, one per requirement statement, each with its category and
      type, the needs it answers (none for a design decision) and, when a
      source gives one, its rationale, attached at exactly one level.
    - **Scenarios** as steps of given, when and then, attached to the rule they verify,
-     else to the behaviour, else to the building block.
+     else to the behavior, else to the building block.
 
    Then look for contradictions between sources, missing information and
    places where several designs fit. Resolve one yourself only when a
@@ -110,13 +110,13 @@ rules, scenarios. Read it at step 5.
      whole new statement. Say why a modified element or rule is in the diff
      in the design document's `description`.
    - **In the model and retired:** `removed`, by id (a part by name, an
-     output by type). Remove a building block's behaviours with it.
+     output by type). Remove a building block's behaviors with it.
    - **In the model and unchanged:** leave it out, even when the design
      refers to it. A reference resolves against the model.
 
    Nesting follows the same questions: inside an `added` element everything
    is added; a `modified` building block lists only the properties, rules
-   and scenarios that change. A behaviour's input is a part known by its
+   and scenarios that change. A behavior's input is a part known by its
    name, like a property; an output has no name and is known by its `type`,
    so an output of another type is one removed and one added. `implements`
    has no `modified`: a changed entry is removed and added. Needs are only
@@ -135,7 +135,7 @@ rules, scenarios. Read it at step 5.
    read
    `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/description.md`
    before writing it), `needs`, `modules`, `buildingBlocks` and
-   `behaviours`. No `id`, no `implemented`. Write every field as
+   `behaviors`. No `id`, no `implemented`. Write every field as
    `{ "value": … }` and never with `author`: you are the agent. Leave out a
    change set with nothing in it.
    Before saving, check that every reference — the `type` of a property, an
@@ -148,7 +148,7 @@ rules, scenarios. Read it at step 5.
 9. **Save it.** Call `create_design_doc_in_change` with the change's id and
    the working file's `path`.
 10. **Report** the id the tool answered with, what the design adds, modifies
-    and removes (counted per modules, building blocks and behaviours), the
+    and removes (counted per modules, building blocks and behaviors), the
     needs no rule answers, the rules no need asks for, and every assumption
     you made that no source stated.
 
@@ -187,13 +187,13 @@ results.
 - Ids spell the path: `module|sales.refunds`,
   `building_block|sales.refunds.Refund`,
   `behavior|sales.refunds.Refund.issue`. A building block always sits in a
-  module and a behaviour in a building block; its `name` is the last
+  module and a behavior in a building block; its `name` is the last
   segment of its id.
 - Names match the code the scanner reads, because the next scan is compared
   to them: follow the casing and conventions of the ids in the system model
   (`ApplyOn` in C#, `getCurrent` in Java); in a green field, those of the
-  language the code is written in. One behaviour per method name:
-  overloads are one behaviour.
+  language the code is written in. One behavior per method name:
+  overloads are one behavior.
 - A name never holds `.` or `|`, rule and scenario names included.
 - Names are English, or the code's identifiers. Every definition, every
   description and every scenario step is in the dominant language of
@@ -219,7 +219,7 @@ results.
   - _the rule's type belongs to another category_: pick a `ruleType` of the
     rule's `category`, or the `category` of its type.
   - _a module holds only quality and constraint rules_: move the business
-    rule to the building block or behaviour it governs.
+    rule to the building block or behavior it governs.
 
   Fix every line, then call again; repeat until the tool accepts the file.
 
@@ -230,7 +230,7 @@ results.
 
 - Design only what the sources support. A rule, scenario or property no
   source states is an assumption: ask about it, or name it in the report.
-  Choosing building blocks and behaviours that realise the sources is the
+  Choosing building blocks and behaviors that realise the sources is the
   design's job.
 - Never write under `.noesis/` yourself, except the working file in the
   scratch directory; the tool stores the design document.

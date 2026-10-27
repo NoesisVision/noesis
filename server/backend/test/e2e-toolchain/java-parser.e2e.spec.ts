@@ -92,17 +92,16 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       });
 
       console.log(
-        `[e2e] java shop: both stages ${Math.round(bothStages)} ms, ${files.length} artifacts, ${model.buildingBlocks.length} blocks, ${model.behaviours.length} behaviours`,
+        `[e2e] java shop: both stages ${Math.round(bothStages)} ms, ${files.length} artifacts, ${model.buildingBlocks.length} blocks, ${model.behaviors.length} behaviors`,
       );
       expect<unknown>(bothStages).toBeLessThan(SCAN_BUDGET_MS);
       expect<unknown>(model.name).toBe('shop');
       expect<unknown>(model.modules).toEqual(committed.modules);
       expect<unknown>(model.buildingBlocks).toEqual(committed.buildingBlocks);
-      expect<unknown>(model.behaviours).toEqual(committed.behaviours);
+      expect<unknown>(model.behaviors).toEqual(committed.behaviors);
       expect<unknown>(
-        model.behaviours.find(
-          (b) => b.id === 'behavior|shop.orders.Order.total',
-        )?.type,
+        model.behaviors.find((b) => b.id === 'behavior|shop.orders.Order.total')
+          ?.type,
       ).toBe('Query');
     },
     SCAN_BUDGET_MS,

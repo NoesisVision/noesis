@@ -1,12 +1,12 @@
 # Modelling guidance
 
-How to turn source material into modules, building blocks, behaviours,
+How to turn source material into modules, building blocks, behaviors,
 rules and scenarios. The design document contract says how to write them
 down; this says how to choose them.
 
 ## Definitions
 
-A module, a building block and a behaviour each have a `definition`: what
+A module, a building block and a behavior each have a `definition`: what
 the concept is, in the language of the domain, as an entry in the system's
 glossary. A sentence or two a reader who knows no code understands. It
 defines the concept, never the change to it and never how it is built, so
@@ -58,7 +58,7 @@ For a new one:
   Its root enforces the invariants; others refer to the root only; keep it
   small.
 - `entity`: identity-centric, with a lifecycle spanning many state changes.
-  Equal by identity; its behaviours change state and guard invariants.
+  Equal by identity; its behaviors change state and guard invariants.
 - `value_object`: a concept without identity. Immutable, validated on
   creation, rich in meaning (calculations, formatting) rather than a bag of
   primitives. Messages are value objects too: an event records something
@@ -79,7 +79,7 @@ For a new one:
 
 ### Interchangeable building blocks
 
-When a property, a collection's elements or a behaviour's input or output
+When a property, a collection's elements or a behavior's input or output
 can be any of two or more building blocks, model the abstraction they share
 as a base building block. Each of them lists the base in `implements`, and
 the reference names the base. The base is a real domain concept (a
@@ -90,38 +90,38 @@ umbrella invented to satisfy a reference.
 
 Decide what a table stands for before modelling its rows:
 
-- Each row has behaviour or invariants of its own: each row is a building
+- Each row has behavior or invariants of its own: each row is a building
   block.
 - The rows describe one element: each row is a property of it.
 - The rows are data the system reads or writes at run time: not building
   blocks. At most, the configuration of one building block.
 
-## Behaviours
+## Behaviors
 
 - `Command` changes state, `Query` reads it, `Event` reacts to something
   that happened.
-- A use case is a public behaviour: an action triggered from outside its
+- A use case is a public behavior: an action triggered from outside its
   module by a command, event or query. Group cohesive use cases as the
-  behaviours of one `application_service`; do not give every use case a
+  behaviors of one `application_service`; do not give every use case a
   service of its own.
 - Everything else is private.
 - Inputs and outputs are building blocks or primitives. Prefer the value
   object that gives a primitive its meaning (`Money`, not `decimal`) when
   the model has one.
-- An input has the name the behaviour takes it under (`reason`, not
+- An input has the name the behavior takes it under (`reason`, not
   `string`), a description and whether it may be left out. An output has
   no name: it is its type, a description and whether it may be absent.
-- A behaviour's `definition` says what it does for the domain, as any
+- A behavior's `definition` says what it does for the domain, as any
   [definition](#definitions) does. What an implementer needs beyond that has
   a field of its own: what goes in and out in the descriptions of the input
   and output, preconditions in rules, edge cases in scenarios, and the steps,
   when they matter, in the diagram.
-- A module, a building block and a behaviour each have a `diagram` field:
+- A module, a building block and a behavior each have a `diagram` field:
   the source of one Mermaid diagram, without the ` ```mermaid ` fence.
   Never put a diagram in a `definition`; the service refuses a fence there.
   Leave `diagram` out when there is nothing to draw: it is the one field an
   added element may leave out.
-- When a behaviour coordinates three or more building blocks, or is the
+- When a behavior coordinates three or more building blocks, or is the
   entry point of a use case, give it a sequence diagram, adapted from the
   sources when they have one. Name it with `accTitle:`, the only text a
   screen reader reads in place of the picture:
@@ -151,7 +151,7 @@ Decide what a table stands for before modelling its rows:
 - An actor is always a human persona or role: _Customer_, _Warehouse
   operator_, _Approving manager_.
 - Never another system, another module, a scheduler or a technical layer.
-  A behaviour such a trigger starts is public with no actors, reached by a
+  A behavior such a trigger starts is public with no actors, reached by a
   command or an event.
 - Reuse the actor names the system model already uses, verbatim. Introduce
   a new name only when no existing persona fits.
@@ -175,7 +175,7 @@ statement: what holds, not why the name is true. Its scenarios verify it.
 ### Business rules
 
 A truth of the domain: an invariant, a computation, a guard on a
-transition. On a building block or a behaviour, never on a module.
+transition. On a building block or a behavior, never on a module.
 
 | Pattern                                                                                                                   | Quick check                                                                  | `ruleType`     |
 | ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------- |
@@ -187,7 +187,7 @@ transition. On a building block or a behaviour, never on a module.
 | Process flow: routing or ending a multi-step process (refunds over €1,000 go to a manager)                                | Does it pick the next step, or stop, across several steps or services?       | `State change` |
 
 A guard on who may do an operation ("Only quality managers create QDocs")
-is a business rule, `State change`, on the behaviour it guards.
+is a business rule, `State change`, on the behavior it guards.
 
 ### Quality rules
 
@@ -225,16 +225,16 @@ does not choose:
 
 - Attach a rule at exactly one level, never two.
 - A business rule goes on the building block when it constrains the
-  block's shape or holds for all its behaviours; on the behaviour when it
-  gates that one behaviour.
+  block's shape or holds for all its behaviors; on the behavior when it
+  gates that one behavior.
 - A quality or constraint rule goes on the narrowest element it
-  constrains: a module, a building block or a behaviour. One on a part (a
+  constrains: a module, a building block or a behavior. One on a part (a
   timeout on an output, a format of a property) goes on the element that
   owns the part.
 
 ## Scenarios
 
-- One scenario checks one behaviour of the domain, in given, when and then,
+- One scenario checks one behavior of the domain, in given, when and then,
   in business language, with assertions a test can check. Cover the edge
   cases and error conditions, not only the happy path.
 - Its `steps` are a list in reading order, each a `kind` (`given`, `when` or
@@ -242,9 +242,9 @@ does not choose:
   `given` steps, not one joined with "and". Any kind may repeat or be left
   out, but a scenario has at least one step; keep to one `when` unless the
   scenario truly checks a sequence.
-- Attach it to the rule it verifies; else to the behaviour, when it spans
+- Attach it to the rule it verifies; else to the behavior, when it spans
   the use case; else to the building block, when it spans several of its
-  behaviours.
+  behaviors.
 - A scenario that verifies no known rule usually exposes a missing rule.
 
 Example, attached to the rule "Cancellation after the minimum period only":

@@ -61,14 +61,14 @@ describe('requirementsOf', () => {
     });
   });
 
-  it('places a behaviour rule in the module its building block sits in', () => {
+  it('places a behavior rule in the module its building block sits in', () => {
     const rule = outline.designDecisions.find(
       ({ name }) => name === 'Only paid orders are refundable',
     );
     expect(rule?.element).toEqual({
       id: 'behavior|sales.refunds.Refund.issue',
       name: 'issue',
-      kind: 'behaviour',
+      kind: 'behavior',
     });
     expect(rule?.module.name).toBe('refunds');
   });

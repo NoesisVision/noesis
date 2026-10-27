@@ -22,7 +22,7 @@ export const designDocFixture = {
     removed: [],
     modified: [],
   },
-  behaviours: { added: [], removed: [], modified: [] },
+  behaviors: { added: [], removed: [], modified: [] },
   implemented: false,
 } satisfies DesignDocumentInput;
 

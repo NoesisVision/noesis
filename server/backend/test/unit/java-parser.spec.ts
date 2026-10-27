@@ -134,8 +134,8 @@ describe('A Java repository scanned through its Maven plugin', () => {
       },
     ]);
     // A public field is a property too, and so is a private one behind the
-    // fluent getter product() (R5.8), which is then no behaviour; a record's
-    // accessors are not behaviours.
+    // fluent getter product() (R5.8), which is then no behavior; a record's
+    // accessors are not behaviors.
     expect<unknown>(
       model.buildingBlocks.find((b) => b.name === 'OrderLine')?.properties,
     ).toEqual([
@@ -152,15 +152,15 @@ describe('A Java repository scanned through its Maven plugin', () => {
         optional: false,
       },
     ]);
-    expect<unknown>(ids(model.behaviours)).not.toContain(
+    expect<unknown>(ids(model.behaviors)).not.toContain(
       'behavior|shop.orders.Money.amount',
     );
-    expect<unknown>(ids(model.behaviours)).not.toContain(
+    expect<unknown>(ids(model.behaviors)).not.toContain(
       'behavior|shop.orders.OrderLine.product',
     );
 
     expect<unknown>(
-      model.behaviours.map((b) => [
+      model.behaviors.map((b) => [
         b.id,
         b.type,
         b.input.map((i) => i.name),
@@ -254,20 +254,20 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ],
     ]);
     expect<unknown>(
-      model.behaviours.find((b) => b.name === 'tryPrice')?.output[0]?.optional,
+      model.behaviors.find((b) => b.name === 'tryPrice')?.output[0]?.optional,
     ).toBe(true);
     expect<unknown>(
-      model.behaviours.find((b) => b.name === 'placeOrder'),
+      model.behaviors.find((b) => b.name === 'placeOrder'),
     ).toMatchObject({
       description: 'Places the order.',
       source: { path: `${domain}/orders/Order.java`, line: 42 },
     });
 
-    // Calls, directly and through methods that are no behaviour: handle →
+    // Calls, directly and through methods that are no behavior: handle →
     // logTotal → total; the SqlOrderRepository implementation's calls count
-    // for the interface's behaviours.
+    // for the interface's behaviors.
     expect<unknown>(
-      Object.fromEntries(model.behaviours.map((b) => [b.name, b.invokes])),
+      Object.fromEntries(model.behaviors.map((b) => [b.name, b.invokes])),
     ).toMatchObject({
       handle: [
         'behavior|shop.orders.Order Repository.getBy',
@@ -286,10 +286,10 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ],
       persist: ['behavior|shop.orders.Order Repository.save'],
     });
-    expect<unknown>(ids(model.behaviours)).not.toContain(
+    expect<unknown>(ids(model.behaviors)).not.toContain(
       'behavior|shop.orders.Order.debug',
     );
-    expect<unknown>(ids(model.behaviours)).not.toContain(
+    expect<unknown>(ids(model.behaviors)).not.toContain(
       'behavior|shop.orders.Order.toString',
     );
   });

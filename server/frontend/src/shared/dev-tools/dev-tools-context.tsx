@@ -101,7 +101,7 @@ export function useDevToolsContext(): Readonly<{
 }
 
 // Oxlint allows this import only in the Dev Tools view: a flag is the user's
-// experiment, and the app flipping it would hide which behaviour they see.
+// experiment, and the app flipping it would hide which behavior they see.
 export function useSetDevToolsFeatures() {
   return useContext(DevToolsContext).setFeatures;
 }

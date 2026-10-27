@@ -62,7 +62,7 @@ const ruleEntriesOf = (
   );
 
 /**
- * The scenarios the design gives an element — a block's or a behaviour's own,
+ * The scenarios the design gives an element — a block's or a behavior's own,
  * then its rules', a module's rules' alone — or a rule's own; none for anything else, and none for an
  * element the design removes.
  */
@@ -77,7 +77,7 @@ export const scenariosOf = (
     const own = scenarioEntriesOf(
       (
         findById(doc.buildingBlocks, node.elementId) ??
-        findById(doc.behaviours, node.elementId)
+        findById(doc.behaviors, node.elementId)
       )?.scenarios,
     ).sort((a, b) => a.name.localeCompare(b.name));
     return [...own, ...ruleEntriesOf(owner.rules)];

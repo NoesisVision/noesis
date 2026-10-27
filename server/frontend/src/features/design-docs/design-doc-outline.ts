@@ -8,7 +8,7 @@ import {
 } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
-  DesignedBehaviourInput,
+  DesignedBehaviorInput,
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
   DesignedPropertyInput,
@@ -39,7 +39,7 @@ export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   const nodes = new Map<string, OutlineNode>();
   addModules(nodes, document.modules);
   addBuildingBlocks(nodes, document.buildingBlocks);
-  addBehaviours(nodes, document.behaviours);
+  addBehaviors(nodes, document.behaviors);
   addImpliedAncestors(nodes);
   return inReadingOrder(nodes.values());
 }
@@ -68,25 +68,19 @@ function addBuildingBlocks(
   for (const id of blocks?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
-function addBehaviours(
+function addBehaviors(
   nodes: Map<string, OutlineNode>,
-  behaviours: ChangeSetInput<DesignedBehaviourInput, string> | undefined,
+  behaviors: ChangeSetInput<DesignedBehaviorInput, string> | undefined,
 ): void {
-  for (const [behaviour, change] of named(behaviours)) {
+  for (const [behavior, change] of named(behaviors)) {
     put(
       nodes,
-      element(
-        behaviour.id,
-        change,
-        valueOf(behaviour.type),
-        isDrawn(behaviour),
-      ),
+      element(behavior.id, change, valueOf(behavior.type), isDrawn(behavior)),
     );
-    addRules(nodes, behaviour.id, behaviour.rules);
-    addScenarios(nodes, behaviour.id, behaviour.scenarios);
+    addRules(nodes, behavior.id, behavior.rules);
+    addScenarios(nodes, behavior.id, behavior.scenarios);
   }
-  for (const id of behaviours?.removed ?? [])
-    put(nodes, element(id, 'removed'));
+  for (const id of behaviors?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
 function addProperties(

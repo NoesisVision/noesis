@@ -5,7 +5,7 @@ import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-out
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
-import type { DesignedBehaviourInput } from '#backend/app/design-docs/design-doc.ts';
+import type { DesignedBehaviorInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
 import { parameterItems, resultItems } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
@@ -13,46 +13,46 @@ import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
 import { MarkdownReading } from '../../markdown-reading.tsx';
 import { DetailSection } from './detail-section.tsx';
-import classes from './behaviours-section.module.css';
+import classes from './behaviors-section.module.css';
 
-interface BehavioursSectionProps {
+interface BehaviorsSectionProps {
   element: ElementRef;
   /**
-   * Each behaviour as the tree has it, with what the document says about it —
+   * Each behavior as the tree has it, with what the document says about it —
    * none for one the document only removes, or never names.
    */
-  behaviours: { node: OutlineNode; behaviour: DesignedBehaviourInput | null }[];
+  behaviors: { node: OutlineNode; behavior: DesignedBehaviorInput | null }[];
 }
 
 /**
- * A building block's behaviours, each read as a signature: what it is called,
+ * A building block's behaviors, each read as a signature: what it is called,
  * what it takes and what it gives back, its kind, and what it is for. Its name
  * opens its row; what it takes in full is on that row's own page.
  */
-export function BehavioursSection({ behaviours }: BehavioursSectionProps) {
+export function BehaviorsSection({ behaviors }: BehaviorsSectionProps) {
   return (
     <DetailSection
-      title="Behaviours"
+      title="Behaviors"
       icon={<IconBolt />}
-      count={behaviours.length}
+      count={behaviors.length}
     >
       <ul className={classes.list}>
-        {behaviours.map(({ node, behaviour }) => (
-          <li key={node.path} className={classes.behaviour}>
+        {behaviors.map(({ node, behavior }) => (
+          <li key={node.path} className={classes.behavior}>
             <div className={classes.signature}>
               <Mark node={node} />
               {/* The name never breaks; what it takes and gives moves under
                   it, as one piece, when the line runs out. */}
               <code className={classes.code}>
-                <BehaviourName node={node} />
-                {behaviour !== null && (
+                <BehaviorName node={node} />
+                {behavior !== null && (
                   <span className={classes.shape}>
-                    <Shape behaviour={behaviour} />
+                    <Shape behavior={behavior} />
                   </span>
                 )}
               </code>
             </div>
-            {behaviour !== null && <Definition behaviour={behaviour} />}
+            {behavior !== null && <Definition behavior={behavior} />}
           </li>
         ))}
       </ul>
@@ -69,7 +69,7 @@ function Mark({ node }: { node: OutlineNode }) {
   return (
     <>
       <span className={classes.mark} aria-hidden="true">
-        <KindIcon kind="behaviour" pattern={node.pattern} />
+        <KindIcon kind="behavior" pattern={node.pattern} />
       </span>
       {node.patternLabel !== null && (
         <VisuallyHidden>{node.patternLabel}</VisuallyHidden>
@@ -78,7 +78,7 @@ function Mark({ node }: { node: OutlineNode }) {
   );
 }
 
-function BehaviourName({ node }: { node: OutlineNode }) {
+function BehaviorName({ node }: { node: OutlineNode }) {
   const { has, select } = useElementNavigation();
   const removed = node.change === 'removed' || undefined;
   return has(node.path) ? (
@@ -98,11 +98,11 @@ function BehaviourName({ node }: { node: OutlineNode }) {
 }
 
 /** `(a, b) → C`: the inputs by name, the output by its type's last segment; each says what its type is on hover. */
-function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
-  const inputs = parameterItems(behaviour.input).filter(
+function Shape({ behavior }: { behavior: DesignedBehaviorInput }) {
+  const inputs = parameterItems(behavior.input).filter(
     ({ change }) => change !== 'removed',
   );
-  const outputs = resultItems(behaviour.output).filter(
+  const outputs = resultItems(behavior.output).filter(
     ({ change }) => change !== 'removed',
   );
   return (
@@ -135,7 +135,7 @@ function Shape({ behaviour }: { behaviour: DesignedBehaviourInput }) {
 }
 
 /**
- * What a behaviour gives back, by its type's last segment: a link to that
+ * What a behavior gives back, by its type's last segment: a link to that
  * type's row when the tree has one — a building block, not a primitive.
  */
 function OutputType({ label, path }: { label: string; path: string | null }) {
@@ -159,8 +159,8 @@ function OutputType({ label, path }: { label: string; path: string | null }) {
   );
 }
 
-function Definition({ behaviour }: { behaviour: DesignedBehaviourInput }) {
-  const definition = valueOf(behaviour.definition)?.trim();
+function Definition({ behavior }: { behavior: DesignedBehaviorInput }) {
+  const definition = valueOf(behavior.definition)?.trim();
   return definition ? (
     <div className={classes.definition}>
       <MarkdownReading markdown={definition} />
@@ -168,6 +168,6 @@ function Definition({ behaviour }: { behaviour: DesignedBehaviourInput }) {
   ) : null;
 }
 
-/** Shown only when the block has behaviours at all. */
-BehavioursSection.shows = ({ behaviours }: BehavioursSectionProps) =>
-  behaviours.length > 0;
+/** Shown only when the block has behaviors at all. */
+BehaviorsSection.shows = ({ behaviors }: BehaviorsSectionProps) =>
+  behaviors.length > 0;

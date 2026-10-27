@@ -45,7 +45,7 @@ export const AutosizeWithMaxHeight = () => (
         {[
           'Scanner "spring-beans" found 42 elements.',
           'Scanner "kafka-topics" found 7 elements.',
-          'Behaviour "Place order" now emits OrderPlacedEvent.',
+          'Behavior "Place order" now emits OrderPlacedEvent.',
           'Scenario "Refund after partial shipment" added.',
           'Design doc "Order events v2" approved.',
           'Element "LegacyInvoicer" marked for removal.',

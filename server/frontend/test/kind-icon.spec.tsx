@@ -7,7 +7,7 @@ const iconName = (html: string) => /tabler-icon-([a-z0-9-]+)/.exec(html)?.[1];
 describe('KindIcon', () => {
   it.each([
     ['building_block', 'repository', 'database'],
-    ['behaviour', 'Query', 'circle-letter-q'],
+    ['behavior', 'Query', 'circle-letter-q'],
     ['rule', 'State change', 'status-change'],
   ] as const)('draws a %s by its pattern %s', (kind, pattern, icon) => {
     expect(
@@ -30,9 +30,9 @@ describe('KindIcon', () => {
   });
 
   it.each([
-    ['behaviour', 'Event', 'event'],
-    ['behaviour', 'Query', 'query'],
-    ['behaviour', 'Command', 'command'],
+    ['behavior', 'Event', 'event'],
+    ['behavior', 'Query', 'query'],
+    ['behavior', 'Command', 'command'],
   ] as const)('tones a %s patterned %s as a %s', (kind, pattern, tone) => {
     expect(
       renderToStaticMarkup(<KindIcon kind={kind} pattern={pattern} />),

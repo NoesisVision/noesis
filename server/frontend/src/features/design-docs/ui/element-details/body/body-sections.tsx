@@ -4,7 +4,7 @@ import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-t
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../../change-set.ts';
 import type { ElementRef } from '../element-ref.ts';
-import { behaviourSections } from './behaviour-sections.tsx';
+import { behaviorSections } from './behavior-sections.tsx';
 import { buildingBlockSections } from './building-block-sections.tsx';
 import { childSections } from './child-sections.tsx';
 import { moduleSections } from './module-sections.tsx';
@@ -38,8 +38,8 @@ export const bodySections = (
   if (module) return moduleSections(module, tree, doc);
   const block = findById(doc.buildingBlocks, node.elementId);
   if (block) return buildingBlockSections(block, tree, doc);
-  const behaviour = findById(doc.behaviours, node.elementId);
-  if (behaviour) return behaviourSections(behaviour, doc);
+  const behavior = findById(doc.behaviors, node.elementId);
+  if (behavior) return behaviorSections(behavior, doc);
   // Named by no change set, the element is only here for what is under it,
   // which is then all there is to list.
   return [
@@ -66,8 +66,8 @@ const sectionsUnder = (
     collection:
       node.kind === 'module'
         ? 'modules'
-        : node.kind === 'behaviour'
-          ? 'behaviours'
+        : node.kind === 'behavior'
+          ? 'behaviors'
           : 'buildingBlocks',
     id: node.elementId,
   };

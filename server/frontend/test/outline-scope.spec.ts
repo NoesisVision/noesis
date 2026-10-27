@@ -10,7 +10,7 @@ const designWith = (
     id: 'shop',
     name: 'Shop',
     description: '',
-    behaviours: {
+    behaviors: {
       added: [
         {
           id: 'behavior|shop.orders.Order.place',
@@ -21,7 +21,7 @@ const designWith = (
   }) as unknown as DesignDocumentInput;
 
 describe('publicOutline', () => {
-  it('keeps a public behaviour, its block and the modules down to it', () => {
+  it('keeps a public behavior, its block and the modules down to it', () => {
     const paths = publicOutline(
       outlineFixture,
       designWith({ kind: 'public', actors: [] }),

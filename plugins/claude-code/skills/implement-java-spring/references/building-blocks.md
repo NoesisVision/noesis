@@ -17,7 +17,7 @@ with a reason you report.
 - Domain types MUST NOT import `org.springframework..`,
   `jakarta.persistence..`, `jakarta.validation..`, Jackson
   (`com.fasterxml..`, `tools.jackson..`) or Lombok. The
-  `vision.noesis.annotations` stereotypes carry no behaviour and are
+  `vision.noesis.annotations` stereotypes carry no behavior and are
   allowed everywhere.
 - Application services MAY use Spring's `@Transactional` and nothing else
   from Spring: no `@Service`, `@Component` or `@Autowired`. They are wired
@@ -47,9 +47,9 @@ by an identity.
    exception. An instance that exists is valid.
 3. Equality by value, which a record gives for free. A value object never
    has an id.
-4. SHOULD expose behaviour, not only data: `Money.add(Money)`,
+4. SHOULD expose behavior, not only data: `Money.add(Money)`,
    `DateRange.overlaps(DateRange)`. An operation returns a new instance.
-   Only behaviours the design document names are public.
+   Only behaviors the design document names are public.
 5. SHOULD offer named static factories for other constructions
    (`Money.zero(currency)`), package-private unless the design names them.
 6. A collection component is copied with `List.copyOf` in the compact
@@ -142,7 +142,7 @@ every command.
 3. One transaction changes one aggregate. Other aggregates follow through
    events.
 4. Only the root is public, and only the root has a repository.
-5. A command behaviour checks its preconditions, changes state and returns
+5. A command behavior checks its preconditions, changes state and returns
    what the design document says it outputs: `void`, an event, or a value.
    Never `this` for chaining.
 6. MUST NOT call repositories, external integrations, clocks or random
@@ -205,16 +205,16 @@ inside one aggregate.
 1. MUST be a `record` annotated `@Event`, carrying the aggregate's
    identifier, when it happened (`Instant occurredAt`, or the time property
    the design names) and the minimum its consumers need.
-2. MUST be created by the aggregate in the behaviour that caused it, never
+2. MUST be created by the aggregate in the behavior that caused it, never
    by an application service.
-3. When the aggregate's behaviour outputs the event in the design
+3. When the aggregate's behavior outputs the event in the design
    document, it returns it. Otherwise the aggregate records it in a list
    and the application service takes it through a package-private
    `pullEvents()` after saving.
 4. The application service publishes it through the external integration
    the design document names for that (`PreparationEventPublisher`), in the
    same transaction as the save.
-5. A handler of an event is an `Event` behaviour: an application service
+5. A handler of an event is an `Event` behavior: an application service
    method annotated `@EventHandler` that takes the event record as its parameter.
    When it changes another aggregate it MUST be idempotent: handling the
    same event twice changes nothing the second time.
@@ -239,7 +239,7 @@ decision that needs several aggregates.
 1. MUST be stateless, framework-free and named after a domain activity.
 2. MUST NOT load or save aggregates. The application service passes them
    in; the domain service returns a decision or a value, or calls
-   behaviours of the aggregates it was given.
+   behaviors of the aggregates it was given.
 3. MAY depend on an external integration interface when its input is
    outside knowledge (`ExchangeRates`).
 4. A plain class taking its policies or collaborators in its constructor,
@@ -263,7 +263,7 @@ as a `domain_service` or a `value_object`; implement it as that.
 ## Factories
 
 1. Default: a static method on the aggregate root named after the domain
-   action, which the design document names as a behaviour of that block.
+   action, which the design document names as a behavior of that block.
 2. A separate factory class only when the design document has a `factory`
    building block, typically for creation that needs collaborators.
 3. MUST return a fully valid aggregate and MUST NOT persist it.
@@ -273,7 +273,7 @@ as a `domain_service` or a `value_object`; implement it as that.
 ## Repositories
 
 1. One per aggregate root, as an interface in the aggregate's module.
-2. Its methods are the behaviours the design document names, and only
+2. Its methods are the behaviors the design document names, and only
    those. Domain types only in its signatures: no `Page`, `Pageable`,
    `Specification`, Spring Data or JPA type, and never
    `extends JpaRepository`.
@@ -287,7 +287,7 @@ as a `domain_service` or a `value_object`; implement it as that.
 A port to another system or another bounded context: an interface in this
 module's language, implemented by an adapter later.
 
-1. Its methods are the behaviours the design document names, in domain
+1. Its methods are the behaviors the design document names, in domain
    types only. No vendor types, HTTP status codes or foreign DTOs.
 2. Expected failures are outcomes the design document names; technical
    failures are the adapter's to translate.
@@ -306,27 +306,27 @@ public interface IdentityProvider {
 
 ## Application services
 
-The entry point of the use cases: a public behaviour with actors, or one an
+The entry point of the use cases: a public behavior with actors, or one an
 event triggers. Orchestration only, no business rules.
 
 1. One class per `application_service` building block, one public method
-   per behaviour, named as the design document names them. Each carries
+   per behavior, named as the design document names them. Each carries
    `@CommandHandler`, `@QueryHandler` or `@EventHandler` after the
-   behaviour's type: application services are the only building blocks
+   behavior's type: application services are the only building blocks
    whose methods do.
 2. Collaborators come through the constructor: repositories, external
    integrations, domain services, factories and a `Clock`. Fields are
    `private final`.
-3. Each state-changing behaviour is the transaction boundary:
+3. Each state-changing behavior is the transaction boundary:
    `@Transactional` (`org.springframework.transaction.annotation`) on the
    method, `@Transactional(readOnly = true)` on a query, when
    `spring-tx` is on the classpath.
-4. Follows the same flow every time, in the order the behaviour's diagram
+4. Follows the same flow every time, in the order the behavior's diagram
    draws when it has one:
    1. check what is the application's to check: authorization through an
       external integration, idempotency;
    2. load the aggregates it needs;
-   3. call one behaviour of one aggregate, through a domain service or a
+   3. call one behavior of one aggregate, through a domain service or a
       factory when the design says so;
    4. save that one aggregate;
    5. publish its events;
@@ -380,7 +380,7 @@ public class QDocCreationService {
 2. Each root module has one abstract `DomainException extends
    RuntimeException` in its package; every domain exception extends it.
 3. When the design document models outcomes as building blocks (a base
-   with `Accepted` and `Rejected` implementers), the behaviour returns them
+   with `Accepted` and `Rejected` implementers), the behavior returns them
    instead, as a sealed interface handled with an exhaustive `switch`.
 4. Exceptions carry no annotation: they are not building blocks.
 5. Never catch and swallow a domain exception in an application service.

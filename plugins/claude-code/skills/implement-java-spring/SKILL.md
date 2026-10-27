@@ -1,18 +1,18 @@
 ---
 name: implement-java-spring
-description: Implement a Noesis design document as Java domain code in a Spring Boot project — modules as packages, building blocks as annotated classes, records and interfaces, behaviours as public methods — with one JUnit test per scenario, asserted with AssertJ. Domain and application services only; no controllers, persistence or wiring. Use when the user asks to implement, code or build a design document, or a change's design, in Java or Spring.
+description: Implement a Noesis design document as Java domain code in a Spring Boot project — modules as packages, building blocks as annotated classes, records and interfaces, behaviors as public methods — with one JUnit test per scenario, asserted with AssertJ. Domain and application services only; no controllers, persistence or wiring. Use when the user asks to implement, code or build a design document, or a change's design, in Java or Spring.
 argument-hint: [change-id] [design-doc-id] [instructions]
 ---
 
 # Implement a design document in Java and Spring
 
 A design document says what a change does to the domain model: the modules,
-building blocks and behaviours it adds, modifies or removes, with their
+building blocks and behaviors it adds, modifies or removes, with their
 properties, rules and scenarios. You turn it into Java domain code that the
 Noesis Java parser reads back as the same model, and into tests that prove
 every scenario. Each module becomes a package, each building block a type
-carrying its `vision.noesis.annotations` stereotype, each behaviour a public
-method. An application service's behaviours also carry `@CommandHandler`,
+carrying its `vision.noesis.annotations` stereotype, each behavior a public
+method. An application service's behaviors also carry `@CommandHandler`,
 `@QueryHandler` or `@EventHandler` after their type, and the commands,
 queries and events they handle carry `@Command`, `@Query` or `@Event`.
 Each scenario becomes exactly one test.
@@ -84,25 +84,25 @@ Read all three at step 5, before planning:
 5. **Plan.** Read the three references now. Then, for every element the
    design document adds, modifies or removes, decide:
    - its file: package, type name, Java shape and annotation;
-   - its public methods, one per behaviour, with their exact signatures;
+   - its public methods, one per behavior, with their exact signatures;
    - where each rule is enforced and which exception a broken one throws;
    - for every scenario, its test: the test class, the nesting by
-     behaviour and rule, and whether it is a full-graph test of an
+     behavior and rule, and whether it is a full-graph test of an
      application service or a unit test
      ([testing](references/testing.md#which-test-a-scenario-gets));
    - the test doubles the full-graph tests need.
 
    Then look for what the design document leaves open or what Java cannot
    express as written: a signature that cannot compile as given (a static
-   creation behaviour whose output is not the block it creates), several
-   outputs with no base building block, a collaborator a behaviour's
+   creation behavior whose output is not the block it creates), several
+   outputs with no base building block, a collaborator a behavior's
    diagram calls that the design does not name, a property typed with
    another aggregate, a scenario on an interface that has no implementation
    in scope, a rule with no scenario. Resolve one yourself only when the
    design document or the references say how. Ask the user about every
    other one in one `AskUserQuestion` round, each question with two or
    three candidate answers, your recommendation first. Do not add a
-   building block or a behaviour the design document does not name: that
+   building block or a behavior the design document does not name: that
    is a change to the design, for the user to make in Noesis.
 
 6. **Prepare the build.** When the test classpath lacks JUnit Jupiter or
@@ -135,9 +135,9 @@ Read all three at step 5, before planning:
    is a question for the user, not a reason to weaken the test.
 10. **Check the result** against the design document, element by element:
     - every added or modified module has a package with `@Module`, every
-      building block a type with its annotation, and every behaviour a
+      building block a type with its annotation, and every behavior a
       public method of exactly its name;
-    - every application service behaviour carries `@CommandHandler`,
+    - every application service behavior carries `@CommandHandler`,
       `@QueryHandler` or `@EventHandler` after its type, and no other
       method does;
     - every command, query and event carries `@Command`, `@Query` or
@@ -153,7 +153,7 @@ Read all three at step 5, before planning:
     - nothing the design document removes is left, and nothing refers to
       it.
 11. **Report**: the design document's id; the files created, changed and
-    deleted; how many modules, building blocks, behaviours and scenarios
+    deleted; how many modules, building blocks, behaviors and scenarios
     were implemented, and the test result. Then every deviation from the
     design document and why, every rule left without a test, every scenario
     left untested and why, and what comes next: mark the design document

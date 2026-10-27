@@ -102,7 +102,7 @@ export const ShellLayout = () => (
           OrderShippedEvent on the orders topic.
         </Text>
         <Card withBorder>
-          <Text fw={600}>Behaviour: Place order</Text>
+          <Text fw={600}>Behavior: Place order</Text>
           <Text size="sm" c="dimmed">
             Input: PlaceOrderCommand · Output: OrderPlacedEvent
           </Text>

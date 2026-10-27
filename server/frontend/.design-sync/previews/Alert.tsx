@@ -27,7 +27,7 @@ export const Colors = () => (
       current architecture.
     </Alert>
     <Alert icon={<IconAlertTriangle />} color="yellow" title="Design drift">
-      Three behaviours in the code no longer match the design document.
+      Three behaviors in the code no longer match the design document.
     </Alert>
   </Stack>
 );

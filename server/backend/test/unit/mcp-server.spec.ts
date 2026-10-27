@@ -391,7 +391,7 @@ describe('scan_system_model', () => {
       scanned_at: found.scanned_at,
       modules: 1,
       buildingBlocks: 0,
-      behaviours: 0,
+      behaviors: 0,
     });
     expect(textOf(result)).toContain(`Scanned shop (${id}): 1 modules`);
     expect(await new SystemModelsFileRepository(noesis.noesis).list()).toEqual([
@@ -1111,13 +1111,13 @@ describe('update_design_doc_in_change', () => {
       id: DESIGN_DOC_ID,
       path: await workingFile('design-doc.json', {
         ...designDoc,
-        behaviours: { removed: ['behavior|sales.orders.Order.cancel'] },
+        behaviors: { removed: ['behavior|sales.orders.Order.cancel'] },
       }),
     });
 
     expect(result.isError).toBe(true);
     expect(textOf(result)).toContain(
-      '- behaviours.removed[behavior|sales.orders.Order.cancel]: nothing is scanned yet',
+      '- behaviors.removed[behavior|sales.orders.Order.cancel]: nothing is scanned yet',
     );
     expect(
       await noesis.findDesignDoc.handle({ change, id: DESIGN_DOC_ID }),

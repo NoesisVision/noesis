@@ -13,7 +13,7 @@ import classes from './exploration.module.css';
 
 /*
  * The kinds of element the exploration draws, each a checkbox, grouped by
- * modules, building blocks and behaviours, as the architecture's building
+ * modules, building blocks and behaviors, as the architecture's building
  * block filter groups its types.
  */
 export function KindList({

@@ -117,7 +117,7 @@ export const classificationOf = (rule: DesignedRuleInput): string | null => {
 export const RULE_PLACE_KIND: Partial<Record<OutlineKind, string>> = {
   module: 'module',
   building_block: 'building block',
-  behaviour: 'behaviour',
+  behavior: 'behavior',
 };
 
 /**

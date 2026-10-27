@@ -6,12 +6,12 @@ import { CardTooltip } from '#/shared/design-system/card-tooltip.tsx';
 import { shortLabel, shortName } from '#/shared/ui/qualified-name.tsx';
 import type {
   DesignDocumentInput,
-  DesignedBehaviourInput,
+  DesignedBehaviorInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import { findById, writtenIn } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import {
-  behaviourIdAt,
+  behaviorIdAt,
   blockIdAt,
   moduleIdAt,
   nameOf,
@@ -46,7 +46,7 @@ interface Shape {
   input?: Line[];
   output?: Line[];
   buildingBlocks?: Line[];
-  behaviours?: Line[];
+  behaviors?: Line[];
 }
 
 /** The address a name points at: `name: a.b.C[]` points at `a.b.C`. */
@@ -70,22 +70,22 @@ const lines = (items: ChangeListItem[]): Line[] =>
           },
     );
 
-/** A behaviour as a signature: `place(order: Order): Receipt`, its types read short. */
-const signatureOf = (behaviour: DesignedBehaviourInput): Line => {
-  const input = lines(parameterItems(behaviour.input))
+/** A behavior as a signature: `place(order: Order): Receipt`, its types read short. */
+const signatureOf = (behavior: DesignedBehaviorInput): Line => {
+  const input = lines(parameterItems(behavior.input))
     .map(({ name, type }) => (type === undefined ? name : `${name}: ${type}`))
     .join(', ');
-  const output = lines(resultItems(behaviour.output))
+  const output = lines(resultItems(behavior.output))
     .map(({ type }) => type)
     .join(', ');
   return {
-    key: behaviour.id,
-    name: `${nameOf(behaviour.id)}(${input})`,
+    key: behavior.id,
+    name: `${nameOf(behavior.id)}(${input})`,
     // A command, a query, an event — as the tree marks it.
     icon: (
       <KindIcon
-        kind="behaviour"
-        pattern={valueOf(behaviour.type)}
+        kind="behavior"
+        pattern={valueOf(behavior.type)}
         size={ICON_SIZE}
       />
     ),
@@ -93,9 +93,9 @@ const signatureOf = (behaviour: DesignedBehaviourInput): Line => {
   };
 };
 
-/** A block's behaviours the document writes, each as its signature. */
-const behavioursOf = (doc: DesignDocumentInput, blockId: string): Line[] =>
-  writtenIn(doc.behaviours)
+/** A block's behaviors the document writes, each as its signature. */
+const behaviorsOf = (doc: DesignDocumentInput, blockId: string): Line[] =>
+  writtenIn(doc.behaviors)
     .filter(({ id }) => ownerOf(id) === blockId)
     .map(signatureOf);
 
@@ -115,20 +115,20 @@ const isEmpty = (shape: Shape) =>
 
 /**
  * The shape the document gives the element at an address, if it gives one:
- * a behaviour's input and output, a building block's properties and
- * behaviours, a module's building blocks.
+ * a behavior's input and output, a building block's properties and
+ * behaviors, a module's building blocks.
  */
 const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
-  const behaviour = findById(doc.behaviours, behaviourIdAt(address));
-  if (behaviour) {
-    const input = lines(parameterItems(behaviour.input));
-    const output = lines(resultItems(behaviour.output));
+  const behavior = findById(doc.behaviors, behaviorIdAt(address));
+  if (behavior) {
+    const input = lines(parameterItems(behavior.input));
+    const output = lines(resultItems(behavior.output));
     return input.length + output.length > 0 ? { input, output } : null;
   }
   const blockId = blockIdAt(address);
   const block = findById(doc.buildingBlocks, blockId);
   const shape: Shape = {
-    behaviours: behavioursOf(doc, blockId),
+    behaviors: behaviorsOf(doc, blockId),
     properties: block
       ? lines(propertyItems(block.id, block.properties)).map((line) => ({
           ...line,
@@ -145,8 +145,8 @@ const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
 /**
  * What an element is, on hover over whatever names it — a word, a box, a
  * whole card: its name over where it sits, and what the design gives it — a
- * behaviour's input and output, a building block's properties and
- * behaviours, a module's building blocks. Descriptions stay in the panel;
+ * behavior's input and output, a building block's properties and
+ * behaviors, a module's building blocks. Descriptions stay in the panel;
  * this is the outline at a glance. An element the document does not shape
  * gets its address alone, and a name with nothing to cut and nothing to say
  * gets no tooltip at all.
@@ -216,7 +216,7 @@ function Details({ address, shape }: { address: string; shape: Shape | null }) {
   return (
     <span className={classes.details}>
       <Address address={address} />
-      <Lines label="Behaviours" lines={shape?.behaviours} />
+      <Lines label="Behaviors" lines={shape?.behaviors} />
       <Lines label="Properties" lines={shape?.properties} />
       <Lines label="Input" lines={shape?.input} />
       <Lines label="Output" lines={shape?.output} />

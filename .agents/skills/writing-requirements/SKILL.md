@@ -168,7 +168,7 @@ fail to load the whole document.
    `references/rules.md`: every need traced by at least one requirement,
    every requirement traced to a need, no two requirements saying the same
    thing (R30), none contradicting another, units and terms consistent
-   (R36), complex behaviour pointing at a diagram, model or interface
+   (R36), complex behavior pointing at a diagram, model or interface
    definition instead of paragraphs of text (R23).
 
 7. **Run the checker** and resolve its findings:
@@ -207,7 +207,7 @@ and the performance measure.
 - **Event-driven**: `When <trigger>, the <entity> shall <action> <object>
   <performance>.`
 - **State-driven**: `While <state>, the <entity> shall …`
-- **Unwanted behaviour**: `If <undesired event or condition>, the <entity>
+- **Unwanted behavior**: `If <undesired event or condition>, the <entity>
   shall <response>.` State the response, not the absence of failure (R16).
 - **Optional feature**: `Where <feature is included>, the <entity> shall …`
 - **Combined**: `While <state>, when <trigger>, the <entity> shall …`

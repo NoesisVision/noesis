@@ -71,7 +71,7 @@ const doc = (): DesignDocumentInput => ({
     modified: [{ id: LEDGER, definition: agent('Books.') }],
     removed: ['building_block|pay.Old'],
   },
-  behaviours: {
+  behaviors: {
     added: [
       {
         id: SETTLE,
@@ -126,7 +126,7 @@ describe('an edit', () => {
     expect(next.buildingBlocks?.added).toEqual([]);
     expect(next.buildingBlocks?.modified).toEqual([]);
     expect(next.buildingBlocks?.removed).toEqual([]);
-    expect(next.behaviours?.added).toEqual([]);
+    expect(next.behaviors?.added).toEqual([]);
   });
 
   it('discards a modification and leaves what is under it', () => {
@@ -145,7 +145,7 @@ describe('an edit', () => {
     });
     expect(next.buildingBlocks?.added).toEqual([]);
     expect(next.buildingBlocks?.removed).toContain(HOLD);
-    expect(next.behaviours?.added).toEqual([]);
+    expect(next.behaviors?.added).toEqual([]);
   });
 
   it('restores a removed element', () => {
@@ -198,10 +198,8 @@ describe('an edit', () => {
       unit: unitFromDraft('building_block', draft, original, id),
     });
     expect(next.buildingBlocks?.added?.[0]?.id).toBe(id);
-    expect(next.behaviours?.added?.[0]?.id).toBe(
-      'behavior|pay.CardHold.settle',
-    );
-    expect(next.behaviours?.added?.[0]?.output?.added?.[0]?.type).toBe(id);
+    expect(next.behaviors?.added?.[0]?.id).toBe('behavior|pay.CardHold.settle');
+    expect(next.behaviors?.added?.[0]?.output?.added?.[0]?.type).toBe(id);
   });
 });
 
@@ -491,16 +489,16 @@ describe('a part', () => {
     const ref = {
       kind: 'result',
       id: refKeyOf(collection),
-      owner: { kind: 'behaviour', id: 'behavior|pay.Ledger.book' },
+      owner: { kind: 'behavior', id: 'behavior|pay.Ledger.book' },
     } as const;
     const removed = applyEdit(doc(), { op: 'removeFromSystem', ref });
-    expect(removed.behaviours?.modified).toContainEqual({
+    expect(removed.behaviors?.modified).toContainEqual({
       id: 'behavior|pay.Ledger.book',
       output: { removed: [collection] },
     });
     expect(unitStateOf(removed, ref)).toBe('removed');
     expect(
-      applyEdit(removed, { op: 'restore', ref }).behaviours?.modified,
+      applyEdit(removed, { op: 'restore', ref }).behaviors?.modified,
     ).toEqual([]);
   });
 
@@ -590,10 +588,8 @@ describe('moving an element', () => {
     const moved = movedIdOf(hold, 'module|refunds');
     expect(moved).toBe('building_block|refunds.Hold');
     expect(next.buildingBlocks?.added?.[0]?.id).toBe(moved);
-    expect(next.behaviours?.added?.[0]?.id).toBe(
-      'behavior|refunds.Hold.settle',
-    );
-    expect(next.behaviours?.added?.[0]?.output?.added?.[0]?.type).toBe(moved);
+    expect(next.behaviors?.added?.[0]?.id).toBe('behavior|refunds.Hold.settle');
+    expect(next.behaviors?.added?.[0]?.output?.added?.[0]?.type).toBe(moved);
   });
 
   it('brings a submodule to the top', () => {

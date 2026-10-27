@@ -49,7 +49,7 @@ const systemModel = {
     block('building_block|shop.Basket', 'Basket', 'aggregate'),
     block('building_block|shop.Price', 'Price', 'value_object'),
   ],
-  behaviours: [
+  behaviors: [
     {
       id: 'behavior|shop.Basket.checkOut',
       buildingBlockId: 'building_block|shop.Basket',

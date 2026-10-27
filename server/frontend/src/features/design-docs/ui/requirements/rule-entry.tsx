@@ -255,4 +255,4 @@ function AddScenario({ traced }: { traced: TracedRule }) {
 }
 
 const isElementKind = (kind: string): kind is ElementKind =>
-  kind === 'module' || kind === 'building_block' || kind === 'behaviour';
+  kind === 'module' || kind === 'building_block' || kind === 'behavior';

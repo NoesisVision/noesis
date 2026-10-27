@@ -7,7 +7,7 @@ import {
   ModuleId,
 } from '#backend/app/element-id';
 import {
-  BehaviourType,
+  BehaviorType,
   BuildingBlockType,
   RULE_TYPES_OF,
   RuleCategory,
@@ -55,10 +55,10 @@ export const DesignedParameter = z.strictObject({
 });
 export type DesignedParameter = z.infer<typeof DesignedParameter>;
 
-/** What a behaviour gives back: it has no name, so its type is its key. */
+/** What a behavior gives back: it has no name, so its type is its key. */
 export const DesignedResult = z.strictObject({
   type: BuildingBlockRef.describe(
-    'What the behaviour gives back, which is also how the design names it: a changed type is one result removed and another added.',
+    'What the behavior gives back, which is also how the design names it: a changed type is one result removed and another added.',
   ),
   description: DesignDocField(z.string()),
   optional: DesignDocField(z.boolean()),
@@ -104,10 +104,10 @@ export const DesignedBuildingBlock = z.strictObject({
 });
 export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlock>;
 
-export const DesignedBehaviour = z.strictObject({
+export const DesignedBehavior = z.strictObject({
   id: BehaviorId,
   name: DesignDocField(ElementName),
-  type: DesignDocField(BehaviourType),
+  type: DesignDocField(BehaviorType),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
   visibility: DesignDocField(Visibility),
@@ -116,7 +116,7 @@ export const DesignedBehaviour = z.strictObject({
   rules: changeSet(DesignedRule, ElementName),
   scenarios: changeSet(DesignedScenario, ElementName),
 });
-export type DesignedBehaviour = z.infer<typeof DesignedBehaviour>;
+export type DesignedBehavior = z.infer<typeof DesignedBehavior>;
 
 const designDocumentSchema = z.strictObject({
   id: DesignDocId.describe(
@@ -131,7 +131,7 @@ const designDocumentSchema = z.strictObject({
   needs: changeSet(DesignedNeed, NeedId),
   modules: changeSet(DesignedDomainModule, ModuleId),
   buildingBlocks: changeSet(DesignedBuildingBlock, BuildingBlockId),
-  behaviours: changeSet(DesignedBehaviour, BehaviorId),
+  behaviors: changeSet(DesignedBehavior, BehaviorId),
   implemented: z
     .boolean()
     .default(false)
@@ -203,7 +203,7 @@ export function implementedAtOf(
 
 export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
 export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;
-export type DesignedBehaviourInput = z.input<typeof DesignedBehaviour>;
+export type DesignedBehaviorInput = z.input<typeof DesignedBehavior>;
 export type DesignedPropertyInput = z.input<typeof DesignedProperty>;
 export type DesignedParameterInput = z.input<typeof DesignedParameter>;
 export type DesignedResultInput = z.input<typeof DesignedResult>;
@@ -355,11 +355,7 @@ function rulesOfEveryDesign(
   ];
 }
 
-const ELEMENT_COLLECTIONS = [
-  'modules',
-  'buildingBlocks',
-  'behaviours',
-] as const;
+const ELEMENT_COLLECTIONS = ['modules', 'buildingBlocks', 'behaviors'] as const;
 type ElementCollection = (typeof ELEMENT_COLLECTIONS)[number];
 
 interface DesignedElementWithRules {
@@ -452,7 +448,7 @@ function ruleTypesOutsideCategory(rules: RuleInDesign[]): DesignDocViolation[] {
     }));
 }
 
-/** A module holds quality and constraint rules; a domain truth belongs to a building block or a behaviour. */
+/** A module holds quality and constraint rules; a domain truth belongs to a building block or a behavior. */
 function businessRulesOnModules(rules: RuleInDesign[]): DesignDocViolation[] {
   return rules
     .filter(
@@ -507,7 +503,7 @@ function diagramsInDefinitions(
   const collections = {
     modules: document.modules,
     buildingBlocks: document.buildingBlocks,
-    behaviours: document.behaviours,
+    behaviors: document.behaviors,
   };
   return Object.entries(collections).flatMap(([name, changes]) =>
     (['added', 'modified'] as const).flatMap((kind) =>
@@ -590,7 +586,7 @@ function keyOf(item: unknown): string {
   if (typeof item !== 'object' || item === null) return String(item);
   if ('id' in item && typeof item.id === 'string') return item.id;
   if ('name' in item && typeof item.name === 'string') return item.name;
-  // A behaviour's result, designed or scanned, is known by its type.
+  // A behavior's result, designed or scanned, is known by its type.
   if ('type' in item) return keyOf(item.type);
   return JSON.stringify(item);
 }

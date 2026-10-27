@@ -50400,7 +50400,7 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#.ctor()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#.ctor()",
       "name": ".ctor",
       "origin": "generated",
       "locations": [],
@@ -50433,12 +50433,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#ArrayOutput()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#ArrayOutput()",
       "name": "ArrayOutput",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 37,
           "startColumn": 5,
           "endLine": 37,
@@ -50477,12 +50477,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#CollectionOutput()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#CollectionOutput()",
       "name": "CollectionOutput",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 35,
           "startColumn": 5,
           "endLine": 35,
@@ -50509,12 +50509,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#EntryPointCommand()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#EntryPointCommand()",
       "name": "EntryPointCommand",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 19,
           "startColumn": 5,
           "endLine": 20,
@@ -50580,12 +50580,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#EntryPointQuery()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#EntryPointQuery()",
       "name": "EntryPointQuery",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 16,
           "startColumn": 5,
           "endLine": 17,
@@ -50666,12 +50666,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#Equals(object)",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#Equals(object)",
       "name": "Equals",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 52,
           "startColumn": 5,
           "endLine": 52,
@@ -50698,16 +50698,16 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#ExcludedIsNoBehaviour()",
-      "name": "ExcludedIsNoBehaviour",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#ExcludedIsNoBehavior()",
+      "name": "ExcludedIsNoBehavior",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 47,
           "startColumn": 5,
           "endLine": 48,
-          "endColumn": 44
+          "endColumn": 43
         }
       ],
       "annotations": [
@@ -50745,12 +50745,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#GetHashCode()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#GetHashCode()",
       "name": "GetHashCode",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 54,
           "startColumn": 5,
           "endLine": 54,
@@ -50821,12 +50821,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#InputWithoutWord(CSharpSyntax.Projection.Blocks.UnannotatedInterface,System.Collections.Generic.Dictionary`2[string,int])",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#InputWithoutWord(CSharpSyntax.Projection.Blocks.UnannotatedInterface,System.Collections.Generic.Dictionary`2[string,int])",
       "name": "InputWithoutWord",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 43,
           "startColumn": 5,
           "endLine": 43,
@@ -50853,16 +50853,16 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#InternalIsNoBehaviour()",
-      "name": "InternalIsNoBehaviour",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#InternalIsNoBehavior()",
+      "name": "InternalIsNoBehavior",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 56,
           "startColumn": 5,
           "endLine": 56,
-          "endColumn": 46
+          "endColumn": 45
         }
       ],
       "annotations": [],
@@ -50885,12 +50885,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#NamedByAnnotation()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#NamedByAnnotation()",
       "name": "NamedByAnnotation",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 23,
           "startColumn": 5,
           "endLine": 25,
@@ -50912,7 +50912,7 @@
               "positional": true,
               "value": {
                 "kind": "literal",
-                "text": "\"Named behaviour\""
+                "text": "\"Named behavior\""
               }
             }
           ]
@@ -50931,7 +50931,7 @@
               "positional": true,
               "value": {
                 "kind": "literal",
-                "text": "\"Behaviour scenario\""
+                "text": "\"Behavior scenario\""
               }
             }
           ]
@@ -50987,12 +50987,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#OptionalInputs(CSharpSyntax.Projection.Blocks.ValueObjectBlock,int)",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#OptionalInputs(CSharpSyntax.Projection.Blocks.ValueObjectBlock,int)",
       "name": "OptionalInputs",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 41,
           "startColumn": 5,
           "endLine": 41,
@@ -51023,12 +51023,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#OptionalOutput()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#OptionalOutput()",
       "name": "OptionalOutput",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 39,
           "startColumn": 5,
           "endLine": 39,
@@ -51070,12 +51070,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#Overloaded(int)",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#Overloaded(int)",
       "name": "Overloaded",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 27,
           "startColumn": 5,
           "endLine": 27,
@@ -51131,12 +51131,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#Overloaded(int,int)",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#Overloaded(int,int)",
       "name": "Overloaded",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 29,
           "startColumn": 5,
           "endLine": 29,
@@ -51163,16 +51163,16 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#PrivateIsNoBehaviour()",
-      "name": "PrivateIsNoBehaviour",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#PrivateIsNoBehavior()",
+      "name": "PrivateIsNoBehavior",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 60,
           "startColumn": 5,
           "endLine": 60,
-          "endColumn": 44
+          "endColumn": 43
         }
       ],
       "annotations": [],
@@ -51195,16 +51195,16 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#ProtectedIsNoBehaviour()",
-      "name": "ProtectedIsNoBehaviour",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#ProtectedIsNoBehavior()",
+      "name": "ProtectedIsNoBehavior",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 58,
           "startColumn": 5,
           "endLine": 58,
-          "endColumn": 48
+          "endColumn": 47
         }
       ],
       "annotations": [],
@@ -51223,7 +51223,7 @@
         "parameters": [],
         "returnType": {
           "kind": "named",
-          "type": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms",
+          "type": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -51233,16 +51233,16 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#StaticFactory()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#StaticFactory()",
       "name": "StaticFactory",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 45,
           "startColumn": 5,
           "endLine": 45,
-          "endColumn": 59
+          "endColumn": 58
         }
       ],
       "annotations": [],
@@ -51269,12 +51269,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#TaskOutputIsVoid()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#TaskOutputIsVoid()",
       "name": "TaskOutputIsVoid",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 33,
           "startColumn": 5,
           "endLine": 33,
@@ -51313,12 +51313,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#TaskOutputUnwrapped()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#TaskOutputUnwrapped()",
       "name": "TaskOutputUnwrapped",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 31,
           "startColumn": 5,
           "endLine": 31,
@@ -51349,16 +51349,16 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#ToString()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#ToString()",
       "name": "ToString",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 50,
           "startColumn": 5,
           "endLine": 50,
-          "endColumn": 65
+          "endColumn": 64
         }
       ],
       "annotations": [],
@@ -51381,12 +51381,12 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#WithActor()",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#WithActor()",
       "name": "WithActor",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 13,
           "startColumn": 5,
           "endLine": 14,
@@ -51431,7 +51431,7 @@
             "name": "left",
             "type": {
               "kind": "named",
-              "type": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms",
+              "type": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms",
               "typeArguments": [],
               "unbound": false,
               "nullable": false
@@ -51447,7 +51447,7 @@
             "name": "right",
             "type": {
               "kind": "named",
-              "type": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms",
+              "type": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms",
               "typeArguments": [],
               "unbound": false,
               "nullable": false
@@ -51462,7 +51462,7 @@
         ],
         "returnType": {
           "kind": "named",
-          "type": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms",
+          "type": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms",
           "typeArguments": [],
           "unbound": false,
           "nullable": false
@@ -51472,16 +51472,16 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#op_Addition(CSharpSyntax.Projection.Behaviours.BehaviourForms,CSharpSyntax.Projection.Behaviours.BehaviourForms)",
+      "id": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#op_Addition(CSharpSyntax.Projection.Behaviors.BehaviorForms,CSharpSyntax.Projection.Behaviors.BehaviorForms)",
       "name": "op_Addition",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 62,
           "startColumn": 5,
           "endLine": 62,
-          "endColumn": 96
+          "endColumn": 93
         }
       ],
       "annotations": [],
@@ -51506,16 +51506,16 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Behaviours.TypeThatIsNoBlock#BehaviourWithoutHome()",
-      "name": "BehaviourWithoutHome",
+      "id": "M:CSharpSyntax.Projection.Behaviors.TypeThatIsNoBlock#BehaviorWithoutHome()",
+      "name": "BehaviorWithoutHome",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 68,
           "startColumn": 5,
           "endLine": 69,
-          "endColumn": 50
+          "endColumn": 49
         }
       ],
       "annotations": [
@@ -57331,8 +57331,8 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Invocations.CallChains#CallsPrivateBehaviour()",
-      "name": "CallsPrivateBehaviour",
+      "id": "M:CSharpSyntax.Projection.Invocations.CallChains#CallsPrivateBehavior()",
+      "name": "CallsPrivateBehavior",
       "origin": "declared",
       "locations": [
         {
@@ -57340,7 +57340,7 @@
           "startLine": 102,
           "startColumn": 5,
           "endLine": 102,
-          "endColumn": 63
+          "endColumn": 61
         }
       ],
       "annotations": [],
@@ -57553,8 +57553,8 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Invocations.CallChains#PrivateBehaviour()",
-      "name": "PrivateBehaviour",
+      "id": "M:CSharpSyntax.Projection.Invocations.CallChains#PrivateBehavior()",
+      "name": "PrivateBehavior",
       "origin": "declared",
       "locations": [
         {
@@ -57562,7 +57562,7 @@
           "startLine": 104,
           "startColumn": 5,
           "endLine": 105,
-          "endColumn": 69
+          "endColumn": 67
         }
       ],
       "annotations": [
@@ -57580,7 +57580,7 @@
               "positional": true,
               "value": {
                 "kind": "literal",
-                "text": "\"Private behaviour\""
+                "text": "\"Private behavior\""
               }
             }
           ]
@@ -59542,7 +59542,7 @@
         }
       ],
       "annotations": [],
-      "documentation": "A step: internal, so no behaviour; the call on its type parameter is what dispatches.",
+      "documentation": "A step: internal, so no behavior; the call on its type parameter is what dispatches.",
       "languageSpecific": {}
     },
     {
@@ -63727,8 +63727,8 @@
       },
       "extensionReceiver": null,
       "bodiless": false,
-      "id": "M:CSharpSyntax.Projection.Invocations.Reached#ByPrivateBehaviour()",
-      "name": "ByPrivateBehaviour",
+      "id": "M:CSharpSyntax.Projection.Invocations.Reached#ByPrivateBehavior()",
+      "name": "ByPrivateBehavior",
       "origin": "declared",
       "locations": [
         {
@@ -63736,7 +63736,7 @@
           "startLine": 59,
           "startColumn": 5,
           "endLine": 59,
-          "endColumn": 48
+          "endColumn": 47
         }
       ],
       "annotations": [],
@@ -92552,7 +92552,7 @@
           "endColumn": 1
         },
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 1,
           "startColumn": 1,
           "endLine": 71,
@@ -92864,7 +92864,7 @@
           "endColumn": 23
         },
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 8,
           "startColumn": 11,
           "endLine": 8,
@@ -93232,7 +93232,7 @@
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 8,
           "startColumn": 24,
           "endLine": 8,
@@ -93294,16 +93294,16 @@
     },
     {
       "kind": "namespace",
-      "id": "N:CSharpSyntax.Projection.Behaviours",
-      "name": "Behaviours",
+      "id": "N:CSharpSyntax.Projection.Behaviors",
+      "name": "Behaviors",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 8,
           "startColumn": 35,
           "endLine": 8,
-          "endColumn": 45
+          "endColumn": 44
         }
       ],
       "annotations": [],
@@ -103028,8 +103028,8 @@
       "accessors": [
         "get"
       ],
-      "id": "P:CSharpSyntax.Projection.Invocations.CallChains.PropertyCallingBehaviour",
-      "name": "PropertyCallingBehaviour",
+      "id": "P:CSharpSyntax.Projection.Invocations.CallChains.PropertyCallingBehavior",
+      "name": "PropertyCallingBehavior",
       "origin": "declared",
       "locations": [
         {
@@ -114984,12 +114984,12 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms",
-      "name": "BehaviourForms",
+      "id": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms",
+      "name": "BehaviorForms",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 10,
           "startColumn": 1,
           "endLine": 63,
@@ -115031,12 +115031,12 @@
       "underlyingType": null,
       "delegateSignature": null,
       "aliasOf": null,
-      "id": "T:CSharpSyntax.Projection.Behaviours.TypeThatIsNoBlock",
+      "id": "T:CSharpSyntax.Projection.Behaviors.TypeThatIsNoBlock",
       "name": "TypeThatIsNoBlock",
       "origin": "declared",
       "locations": [
         {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 66,
           "startColumn": 1,
           "endLine": 70,
@@ -115044,7 +115044,7 @@
         }
       ],
       "annotations": [],
-      "documentation": "A behaviour annotation on a type that is no block has no home.",
+      "documentation": "A behavior annotation on a type that is no block has no home.",
       "languageSpecific": {}
     },
     {
@@ -128484,7 +128484,7 @@
       "access": "read",
       "site": {
         "location": {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 17,
           "startColumn": 54,
           "endLine": 17,
@@ -128494,7 +128494,7 @@
         "languageSpecific": {}
       },
       "receiver": "type",
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#EntryPointQuery()"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#EntryPointQuery()"
     },
     {
       "kind": "ACCESSES",
@@ -128502,7 +128502,7 @@
       "access": "read",
       "site": {
         "location": {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 33,
           "startColumn": 39,
           "endLine": 33,
@@ -128512,7 +128512,7 @@
         "languageSpecific": {}
       },
       "receiver": "type",
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#TaskOutputIsVoid()"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#TaskOutputIsVoid()"
     },
     {
       "kind": "ACCESSES",
@@ -128520,7 +128520,7 @@
       "access": "read",
       "site": {
         "location": {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 31,
           "startColumn": 97,
           "endLine": 31,
@@ -128530,7 +128530,7 @@
         "languageSpecific": {}
       },
       "receiver": "type",
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#TaskOutputUnwrapped()"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#TaskOutputUnwrapped()"
     },
     {
       "kind": "ACCESSES",
@@ -131630,7 +131630,7 @@
         "languageSpecific": {}
       },
       "receiver": "this",
-      "from": "P:CSharpSyntax.Projection.Invocations.CallChains.PropertyCallingBehaviour"
+      "from": "P:CSharpSyntax.Projection.Invocations.CallChains.PropertyCallingBehavior"
     },
     {
       "kind": "ACCESSES",
@@ -133112,7 +133112,7 @@
     },
     {
       "kind": "CONTAINS",
-      "to": "N:CSharpSyntax.Projection.Behaviours",
+      "to": "N:CSharpSyntax.Projection.Behaviors",
       "from": "N:CSharpSyntax.Projection"
     },
     {
@@ -133132,13 +133132,13 @@
     },
     {
       "kind": "CONTAINS",
-      "to": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms",
-      "from": "N:CSharpSyntax.Projection.Behaviours"
+      "to": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms",
+      "from": "N:CSharpSyntax.Projection.Behaviors"
     },
     {
       "kind": "CONTAINS",
-      "to": "T:CSharpSyntax.Projection.Behaviours.TypeThatIsNoBlock",
-      "from": "N:CSharpSyntax.Projection.Behaviours"
+      "to": "T:CSharpSyntax.Projection.Behaviors.TypeThatIsNoBlock",
+      "from": "N:CSharpSyntax.Projection.Behaviors"
     },
     {
       "kind": "CONTAINS",
@@ -140507,123 +140507,123 @@
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#.ctor()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#.ctor()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#ArrayOutput()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#ArrayOutput()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#CollectionOutput()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#CollectionOutput()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#EntryPointCommand()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#EntryPointCommand()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#EntryPointQuery()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#EntryPointQuery()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#Equals(object)",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#Equals(object)",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#ExcludedIsNoBehaviour()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#ExcludedIsNoBehavior()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#GetHashCode()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#GetHashCode()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#InputWithoutWord(CSharpSyntax.Projection.Blocks.UnannotatedInterface,System.Collections.Generic.Dictionary`2[string,int])",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#InputWithoutWord(CSharpSyntax.Projection.Blocks.UnannotatedInterface,System.Collections.Generic.Dictionary`2[string,int])",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#InternalIsNoBehaviour()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#InternalIsNoBehavior()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#NamedByAnnotation()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#NamedByAnnotation()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#OptionalInputs(CSharpSyntax.Projection.Blocks.ValueObjectBlock,int)",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#OptionalInputs(CSharpSyntax.Projection.Blocks.ValueObjectBlock,int)",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#OptionalOutput()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#OptionalOutput()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#Overloaded(int)",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#Overloaded(int)",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#Overloaded(int,int)",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#Overloaded(int,int)",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#PrivateIsNoBehaviour()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#PrivateIsNoBehavior()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#ProtectedIsNoBehaviour()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#ProtectedIsNoBehavior()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#StaticFactory()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#StaticFactory()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#TaskOutputIsVoid()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#TaskOutputIsVoid()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#TaskOutputUnwrapped()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#TaskOutputUnwrapped()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#ToString()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#ToString()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#WithActor()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#WithActor()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#op_Addition(CSharpSyntax.Projection.Behaviours.BehaviourForms,CSharpSyntax.Projection.Behaviours.BehaviourForms)",
-      "from": "T:CSharpSyntax.Projection.Behaviours.BehaviourForms"
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#op_Addition(CSharpSyntax.Projection.Behaviors.BehaviorForms,CSharpSyntax.Projection.Behaviors.BehaviorForms)",
+      "from": "T:CSharpSyntax.Projection.Behaviors.BehaviorForms"
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Behaviours.TypeThatIsNoBlock#BehaviourWithoutHome()",
-      "from": "T:CSharpSyntax.Projection.Behaviours.TypeThatIsNoBlock"
+      "to": "M:CSharpSyntax.Projection.Behaviors.TypeThatIsNoBlock#BehaviorWithoutHome()",
+      "from": "T:CSharpSyntax.Projection.Behaviors.TypeThatIsNoBlock"
     },
     {
       "kind": "CONTAINS",
@@ -141547,7 +141547,7 @@
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Invocations.CallChains#CallsPrivateBehaviour()",
+      "to": "M:CSharpSyntax.Projection.Invocations.CallChains#CallsPrivateBehavior()",
       "from": "T:CSharpSyntax.Projection.Invocations.CallChains"
     },
     {
@@ -141577,7 +141577,7 @@
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Invocations.CallChains#PrivateBehaviour()",
+      "to": "M:CSharpSyntax.Projection.Invocations.CallChains#PrivateBehavior()",
       "from": "T:CSharpSyntax.Projection.Invocations.CallChains"
     },
     {
@@ -141657,7 +141657,7 @@
     },
     {
       "kind": "CONTAINS",
-      "to": "P:CSharpSyntax.Projection.Invocations.CallChains.PropertyCallingBehaviour",
+      "to": "P:CSharpSyntax.Projection.Invocations.CallChains.PropertyCallingBehavior",
       "from": "T:CSharpSyntax.Projection.Invocations.CallChains"
     },
     {
@@ -142417,7 +142417,7 @@
     },
     {
       "kind": "CONTAINS",
-      "to": "M:CSharpSyntax.Projection.Invocations.Reached#ByPrivateBehaviour()",
+      "to": "M:CSharpSyntax.Projection.Invocations.Reached#ByPrivateBehavior()",
       "from": "T:CSharpSyntax.Projection.Invocations.Reached"
     },
     {
@@ -185757,7 +185757,7 @@
       "typeArguments": [],
       "site": {
         "location": {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 17,
           "startColumn": 50,
           "endLine": 17,
@@ -185768,7 +185768,7 @@
       },
       "invocationKind": "call",
       "receiver": null,
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#EntryPointQuery()"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#EntryPointQuery()"
     },
     {
       "kind": "INVOKES",
@@ -185776,7 +185776,7 @@
       "typeArguments": [],
       "site": {
         "location": {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 52,
           "startColumn": 49,
           "endLine": 52,
@@ -185787,15 +185787,15 @@
       },
       "invocationKind": "call",
       "receiver": "type",
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#Equals(object)"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#Equals(object)"
     },
     {
       "kind": "INVOKES",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#Overloaded(int,int)",
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#Overloaded(int,int)",
       "typeArguments": [],
       "site": {
         "location": {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 27,
           "startColumn": 42,
           "endLine": 27,
@@ -185806,26 +185806,26 @@
       },
       "invocationKind": "call",
       "receiver": "this",
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#Overloaded(int)"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#Overloaded(int)"
     },
     {
       "kind": "INVOKES",
-      "to": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#.ctor()",
+      "to": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#.ctor()",
       "typeArguments": [],
       "site": {
         "location": {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 45,
-          "startColumn": 53,
+          "startColumn": 52,
           "endLine": 45,
-          "endColumn": 58
+          "endColumn": 57
         },
         "viaClosure": false,
         "languageSpecific": {}
       },
       "invocationKind": "call",
       "receiver": null,
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#StaticFactory()"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#StaticFactory()"
     },
     {
       "kind": "INVOKES",
@@ -185833,7 +185833,7 @@
       "typeArguments": [],
       "site": {
         "location": {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 31,
           "startColumn": 76,
           "endLine": 31,
@@ -185844,7 +185844,7 @@
       },
       "invocationKind": "call",
       "receiver": null,
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#TaskOutputUnwrapped()"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#TaskOutputUnwrapped()"
     },
     {
       "kind": "INVOKES",
@@ -185860,7 +185860,7 @@
       ],
       "site": {
         "location": {
-          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviours/BehaviourForms.cs",
+          "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Behaviors/BehaviorForms.cs",
           "startLine": 31,
           "startColumn": 60,
           "endLine": 31,
@@ -185871,7 +185871,7 @@
       },
       "invocationKind": "call",
       "receiver": "type",
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#TaskOutputUnwrapped()"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#TaskOutputUnwrapped()"
     },
     {
       "kind": "INVOKES",
@@ -186198,22 +186198,22 @@
     },
     {
       "kind": "INVOKES",
-      "to": "M:CSharpSyntax.Projection.Invocations.CallChains#PrivateBehaviour()",
+      "to": "M:CSharpSyntax.Projection.Invocations.CallChains#PrivateBehavior()",
       "typeArguments": [],
       "site": {
         "location": {
           "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Invocations/CallChains.cs",
           "startLine": 102,
-          "startColumn": 44,
+          "startColumn": 43,
           "endLine": 102,
-          "endColumn": 62
+          "endColumn": 60
         },
         "viaClosure": false,
         "languageSpecific": {}
       },
       "invocationKind": "call",
       "receiver": "this",
-      "from": "M:CSharpSyntax.Projection.Invocations.CallChains#CallsPrivateBehaviour()"
+      "from": "M:CSharpSyntax.Projection.Invocations.CallChains#CallsPrivateBehavior()"
     },
     {
       "kind": "INVOKES",
@@ -186331,22 +186331,22 @@
     },
     {
       "kind": "INVOKES",
-      "to": "M:CSharpSyntax.Projection.Invocations.Reached#ByPrivateBehaviour()",
+      "to": "M:CSharpSyntax.Projection.Invocations.Reached#ByPrivateBehavior()",
       "typeArguments": [],
       "site": {
         "location": {
           "file": "code-parsers/dotnet/test/fixtures/CSharpSyntax/Projection/Invocations/CallChains.cs",
           "startLine": 105,
-          "startColumn": 40,
+          "startColumn": 39,
           "endLine": 105,
-          "endColumn": 68
+          "endColumn": 66
         },
         "viaClosure": false,
         "languageSpecific": {}
       },
       "invocationKind": "call",
       "receiver": "type",
-      "from": "M:CSharpSyntax.Projection.Invocations.CallChains#PrivateBehaviour()"
+      "from": "M:CSharpSyntax.Projection.Invocations.CallChains#PrivateBehavior()"
     },
     {
       "kind": "INVOKES",
@@ -190417,7 +190417,7 @@
       },
       "invocationKind": "call",
       "receiver": "type",
-      "from": "P:CSharpSyntax.Projection.Invocations.CallChains.PropertyCallingBehaviour"
+      "from": "P:CSharpSyntax.Projection.Invocations.CallChains.PropertyCallingBehavior"
     },
     {
       "kind": "INVOKES",
@@ -191222,17 +191222,17 @@
     {
       "kind": "OVERRIDES",
       "to": "M:System.Object#Equals(object)",
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#Equals(object)"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#Equals(object)"
     },
     {
       "kind": "OVERRIDES",
       "to": "M:System.Object#GetHashCode()",
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#GetHashCode()"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#GetHashCode()"
     },
     {
       "kind": "OVERRIDES",
       "to": "M:System.Object#ToString()",
-      "from": "M:CSharpSyntax.Projection.Behaviours.BehaviourForms#ToString()"
+      "from": "M:CSharpSyntax.Projection.Behaviors.BehaviorForms#ToString()"
     },
     {
       "kind": "OVERRIDES",

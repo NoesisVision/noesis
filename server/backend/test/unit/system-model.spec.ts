@@ -10,7 +10,7 @@ import {
 
 /*
  * The system model is what a scanner found in the code of one unit: its
- * modules, building blocks and behaviours. A design document is a diff
+ * modules, building blocks and behaviors. A design document is a diff
  * against it.
  */
 
@@ -28,7 +28,7 @@ const block = {
   type: 'aggregate',
   source: { path: 'src/sales/orders/order.ts', line: 12 },
 };
-const behaviour = {
+const behavior = {
   id: PLACE,
   buildingBlockId: ORDER,
   name: 'place',
@@ -43,14 +43,14 @@ const model = (patch: Record<string, unknown> = {}) => ({
   scanned_at: '2026-09-25T08:00:00.000Z',
   modules: [module],
   buildingBlocks: [block],
-  behaviours: [behaviour],
+  behaviors: [behavior],
   ...patch,
 });
 
 const withBlock = (patch: Record<string, unknown>) =>
   model({ buildingBlocks: [{ ...block, ...patch }] });
-const withBehaviour = (patch: Record<string, unknown>) =>
-  model({ behaviours: [{ ...behaviour, ...patch }] });
+const withBehavior = (patch: Record<string, unknown>) =>
+  model({ behaviors: [{ ...behavior, ...patch }] });
 
 const isValid = (value: unknown) => SystemModel.safeParse(value).success;
 
@@ -68,13 +68,13 @@ describe('A system model', () => {
       model({
         modules: undefined,
         buildingBlocks: undefined,
-        behaviours: undefined,
+        behaviors: undefined,
       }),
     );
 
     expect(parsed.modules).toEqual([]);
     expect(parsed.buildingBlocks).toEqual([]);
-    expect(parsed.behaviours).toEqual([]);
+    expect(parsed.behaviors).toEqual([]);
   });
 
   it('refuses a key it does not know, so nothing a scanner wrote is lost', () => {
@@ -95,7 +95,7 @@ describe('A system model', () => {
         }),
       ),
     ).toBe(false);
-    expect(isValid(withBehaviour({ usedBuildingBlocks: [] }))).toBe(false);
+    expect(isValid(withBehavior({ usedBuildingBlocks: [] }))).toBe(false);
   });
 
   it('reads back exactly as the scanner wrote it, with every default spelled out', () => {
@@ -118,7 +118,7 @@ describe('A scanned element', () => {
       isValid(model({ modules: [{ ...module, source: undefined }] })),
     ).toBe(false);
     expect(isValid(withBlock({ source: undefined }))).toBe(false);
-    expect(isValid(withBehaviour({ source: undefined }))).toBe(false);
+    expect(isValid(withBehavior({ source: undefined }))).toBe(false);
   });
 
   it('names the line it starts on, counting from 1, when the scanner knows it', () => {
@@ -136,13 +136,13 @@ describe('A scanned element', () => {
 
     expect(parsed.modules[0]?.description).toBe(null);
     expect(parsed.buildingBlocks[0]?.description).toBe(null);
-    expect(parsed.behaviours[0]?.description).toBe(null);
+    expect(parsed.behaviors[0]?.description).toBe(null);
   });
 
   it('is named by an id of its own kind', () => {
     expect(isValid(model({ modules: [{ ...module, id: ORDER }] }))).toBe(false);
     expect(isValid(withBlock({ id: 'module|sales.orders' }))).toBe(false);
-    expect(isValid(withBehaviour({ id: ORDER }))).toBe(false);
+    expect(isValid(withBehavior({ id: ORDER }))).toBe(false);
   });
 });
 
@@ -189,22 +189,22 @@ describe('A scanned property', () => {
   });
 });
 
-describe('A scanned behaviour', () => {
+describe('A scanned behavior', () => {
   it('belongs to a building block', () => {
-    expect(isValid(withBehaviour({ buildingBlockId: undefined }))).toBe(false);
-    expect(isValid(withBehaviour({ buildingBlockId: PLACE }))).toBe(false);
+    expect(isValid(withBehavior({ buildingBlockId: undefined }))).toBe(false);
+    expect(isValid(withBehavior({ buildingBlockId: PLACE }))).toBe(false);
   });
 
   it('is always classified as a command, an event or a query', () => {
-    expect(isValid(withBehaviour({ type: 'Query' }))).toBe(true);
-    expect(isValid(withBehaviour({ type: undefined }))).toBe(false);
-    expect(isValid(withBehaviour({ type: 'Request' }))).toBe(false);
+    expect(isValid(withBehavior({ type: 'Query' }))).toBe(true);
+    expect(isValid(withBehavior({ type: undefined }))).toBe(false);
+    expect(isValid(withBehavior({ type: 'Request' }))).toBe(false);
   });
 
-  it('says nothing about a public behaviour beyond the actors it names', () => {
+  it('says nothing about a public behavior beyond the actors it names', () => {
     expect(
       isValid(
-        withBehaviour({
+        withBehavior({
           visibility: { kind: 'public', actors: ['Clerk'], roles: ['admin'] },
         }),
       ),
@@ -212,20 +212,20 @@ describe('A scanned behaviour', () => {
   });
 
   it('is either private, or public to the actors it names', () => {
-    expect(isValid(withBehaviour({ visibility: { kind: 'private' } }))).toBe(
+    expect(isValid(withBehavior({ visibility: { kind: 'private' } }))).toBe(
       true,
     );
-    expect(isValid(withBehaviour({ visibility: undefined }))).toBe(false);
+    expect(isValid(withBehavior({ visibility: undefined }))).toBe(false);
     expect(
       isValid(
-        withBehaviour({ visibility: { kind: 'private', actors: ['Clerk'] } }),
+        withBehavior({ visibility: { kind: 'private', actors: ['Clerk'] } }),
       ),
     ).toBe(false);
   });
 
   it('takes and returns building blocks, primitives or collections of them', () => {
     const parsed = SystemModel.parse(
-      withBehaviour({
+      withBehavior({
         input: [
           { name: 'order', type: ORDER },
           { name: 'ids', type: { collectionOf: 'primitive|uuid' } },
@@ -234,19 +234,19 @@ describe('A scanned behaviour', () => {
       }),
     );
 
-    expect(parsed.behaviours[0]?.input).toHaveLength(2);
-    expect(parsed.behaviours[0]?.output).toHaveLength(1);
+    expect(parsed.behaviors[0]?.input).toHaveLength(2);
+    expect(parsed.behaviors[0]?.output).toHaveLength(1);
     expect(
       isValid(
-        withBehaviour({ input: [{ name: 'total', type: 'primitive|money' }] }),
+        withBehavior({ input: [{ name: 'total', type: 'primitive|money' }] }),
       ),
     ).toBe(false);
   });
 
   it('names what it takes, never what it returns', () => {
-    expect(isValid(withBehaviour({ input: [{ type: ORDER }] }))).toBe(false);
+    expect(isValid(withBehavior({ input: [{ type: ORDER }] }))).toBe(false);
     expect(
-      isValid(withBehaviour({ output: [{ name: 'order', type: ORDER }] })),
+      isValid(withBehavior({ output: [{ name: 'order', type: ORDER }] })),
     ).toBe(false);
   });
 });
@@ -275,7 +275,7 @@ describe('A reference to the type of a value', () => {
     expect(isRef({ collectionOf: ORDER, ordered: true })).toBe(false);
   });
 
-  it('never names a module or a behaviour', () => {
+  it('never names a module or a behavior', () => {
     expect(isRef('module|sales.orders')).toBe(false);
     expect(isRef(PLACE)).toBe(false);
   });
@@ -322,12 +322,12 @@ const scenario = {
 const rule = { name: 'Paid orders only', ruleType: 'State change' };
 
 describe('A scanned rule', () => {
-  it('belongs to a module, a building block or a behaviour', () => {
+  it('belongs to a module, a building block or a behavior', () => {
     const parsed = SystemModel.parse(
       model({
         modules: [{ ...module, rules: [rule] }],
         buildingBlocks: [{ ...block, rules: [rule] }],
-        behaviours: [{ ...behaviour, rules: [rule] }],
+        behaviors: [{ ...behavior, rules: [rule] }],
       }),
     );
 
@@ -337,7 +337,7 @@ describe('A scanned rule', () => {
     expect(parsed.buildingBlocks[0]?.rules.map((r) => r.name)).toEqual([
       'Paid orders only',
     ]);
-    expect(parsed.behaviours[0]?.rules.map((r) => r.name)).toEqual([
+    expect(parsed.behaviors[0]?.rules.map((r) => r.name)).toEqual([
       'Paid orders only',
     ]);
   });
@@ -347,7 +347,7 @@ describe('A scanned rule', () => {
 
     expect(parsed.modules[0]?.rules).toEqual([]);
     expect(parsed.buildingBlocks[0]?.rules).toEqual([]);
-    expect(parsed.behaviours[0]?.rules).toEqual([]);
+    expect(parsed.behaviors[0]?.rules).toEqual([]);
   });
 
   it('is a business rule unless the scanner says otherwise', () => {
@@ -393,7 +393,7 @@ describe('A scanned rule', () => {
 });
 
 describe('A scanned scenario', () => {
-  it('tests the one building block, behaviour or rule that holds it', () => {
+  it('tests the one building block, behavior or rule that holds it', () => {
     const parsed = SystemModel.parse(
       model({
         buildingBlocks: [
@@ -403,13 +403,13 @@ describe('A scanned scenario', () => {
             rules: [{ ...rule, scenarios: [scenario] }],
           },
         ],
-        behaviours: [{ ...behaviour, scenarios: [scenario] }],
+        behaviors: [{ ...behavior, scenarios: [scenario] }],
       }),
     );
 
     expect(parsed.buildingBlocks[0]?.scenarios).toHaveLength(1);
     expect(parsed.buildingBlocks[0]?.rules[0]?.scenarios).toHaveLength(1);
-    expect(parsed.behaviours[0]?.scenarios).toHaveLength(1);
+    expect(parsed.behaviors[0]?.scenarios).toHaveLength(1);
   });
 
   it('refuses a key it does not know', () => {
@@ -431,14 +431,14 @@ describe('A scanned scenario', () => {
   });
 });
 
-describe('A scanned behaviour', () => {
-  it('names the behaviours it invokes, none unless the scan found calls', () => {
+describe('A scanned behavior', () => {
+  it('names the behaviors it invokes, none unless the scan found calls', () => {
     const parsed = SystemModel.parse(
       model({
-        behaviours: [
-          behaviour,
+        behaviors: [
+          behavior,
           {
-            ...behaviour,
+            ...behavior,
             id: `${ORDER}.cancel`.replace('building_block|', 'behavior|'),
             name: 'cancel',
             invokes: [PLACE],
@@ -447,11 +447,11 @@ describe('A scanned behaviour', () => {
       }),
     );
 
-    expect(parsed.behaviours[0]?.invokes).toEqual([]);
-    expect<unknown>(parsed.behaviours[1]?.invokes).toEqual([PLACE]);
+    expect(parsed.behaviors[0]?.invokes).toEqual([]);
+    expect<unknown>(parsed.behaviors[1]?.invokes).toEqual([PLACE]);
     expect(
       SystemModel.safeParse(
-        model({ behaviours: [{ ...behaviour, invokes: [ORDER] }] }),
+        model({ behaviors: [{ ...behavior, invokes: [ORDER] }] }),
       ).success,
     ).toBe(false);
   });

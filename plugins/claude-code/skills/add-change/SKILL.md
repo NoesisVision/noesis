@@ -28,8 +28,8 @@ Both are JSON Schema. Read the one you need now, not from memory.
 2. **Name it.** `name` is the human title as people say it ("Hold a slot for
    ten minutes"), at most 120 characters: no ticket prefix, no type prefix,
    no trailing full stop. Ask when the user gave nothing to name it by.
-3. **Pick the type**, one of `feature` (new behaviour), `fix` (a bug),
-   `improvement` (better once, no new behaviour) or `chore` (recurring
+3. **Pick the type**, one of `feature` (new behavior), `fix` (a bug),
+   `improvement` (better once, no new behavior) or `chore` (recurring
    upkeep). Take it from what the user said; ask when it could be read two
    ways.
 4. **Set the key** to the tracker key the user gave, shaped like `NOE-142`

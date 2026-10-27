@@ -8,14 +8,14 @@ classes:
 - a **building block** is a type annotated with one of the
   `vision.noesis.annotations` stereotypes;
 - a **message** is a type annotated `@Command`, `@Query` or `@Event`;
-- a **behaviour** is a public, non-synthetic method of a building block.
-  An application service's behaviour also carries `@CommandHandler`,
-  `@QueryHandler` or `@EventHandler` after the behaviour's type; no other
+- a **behavior** is a public, non-synthetic method of a building block.
+  An application service's behavior also carries `@CommandHandler`,
+  `@QueryHandler` or `@EventHandler` after the behavior's type; no other
   building block's does.
 
-An application service's behaviour handles each message of its own kind it
+An application service's behavior handles each message of its own kind it
 takes as a parameter (an `@EventHandler` handles an event, not a command).
-Any behaviour sends each message it constructs.
+Any behavior sends each message it constructs.
 
 Handler annotations stay on application services so that every command and
 query has one handler, the use case's entry point. An aggregate method that
@@ -92,12 +92,12 @@ them apart by their definition and their use:
 - **Identifier**: the type of an `id` property, or named `<Something>Id`
   with a single `value` property (`QDocId`, `UserId`).
 - **Command**: the definition calls it a command or a request to change
-  something, it is named in the imperative, and a `Command` behaviour takes
+  something, it is named in the imperative, and a `Command` behavior takes
   it as input (`CreateQDoc`).
-- **Query**: a request to read, taken as input by a `Query` behaviour.
+- **Query**: a request to read, taken as input by a `Query` behavior.
 - **Event**: the definition calls it an event or says what happened, it is
-  named in the past tense, and a behaviour outputs it or an `Event`
-  behaviour takes it as input (`QDocCreated`).
+  named in the past tense, and a behavior outputs it or an `Event`
+  behavior takes it as input (`QDocCreated`).
 - **Enum**: a value object with one `value` property whose `Structure`
   rule names a closed set of values ("takes exactly one of two values:
   active, archived") is an `enum` with one constant per value, in upper
@@ -109,9 +109,9 @@ then it is `PRIMARY`.
 
 Annotate exactly one stereotype per type. Types the design document does
 not name carry none: exceptions, test doubles, test data builders. Only
-an application service's behaviours carry a handler annotation: never a
+an application service's behaviors carry a handler annotation: never a
 method of another building block, and never a method that is not a
-behaviour (package-private helpers, accessors, `equals`).
+behavior (package-private helpers, accessors, `equals`).
 
 ### `implements`
 
@@ -128,7 +128,7 @@ them in the dominant language of the design document; do not translate.
 ## Properties
 
 Each property is a record component or a `private final` field (a plain
-`private` field when a behaviour changes it), named exactly as the property.
+`private` field when a behavior changes it), named exactly as the property.
 
 | Design document type    | Java type                                                            |
 | ----------------------- | -------------------------------------------------------------------- |
@@ -151,13 +151,13 @@ A property typed with another aggregate breaks the aggregate rules
 ([building blocks](building-blocks.md#aggregates)): hold that aggregate's
 identifier instead, and report it as a deviation.
 
-## Behaviours
+## Behaviors
 
-A behaviour `behavior|qdocmanagement.preparation.QDoc.create` is the public
+A behavior `behavior|qdocmanagement.preparation.QDoc.create` is the public
 method `create` of the type `QDoc`.
 
-- **Name**: the behaviour's name, verbatim. One name, one behaviour: Java
-  overloads of it are the same behaviour.
+- **Name**: the behavior's name, verbatim. One name, one behavior: Java
+  overloads of it are the same behavior.
 - **Parameters**: the inputs, in their order, named as the inputs, typed
   as in [Properties](#properties). An optional input that comes last is
   left out of an overload without it; one that does not come last is a
@@ -168,30 +168,30 @@ method `create` of the type `QDoc`.
   `Optional<T>` for an optional output, `List<T>` for a collection. Several
   outputs need a base building block they all implement, which is then the
   return type; without one, ask the user.
-- **Static or instance**: a behaviour of a block whose output is that same
+- **Static or instance**: a behavior of a block whose output is that same
   block creates it, so it is a `public static` factory method
-  (`Version.createFirst(...)` returns a `Version`). Every other behaviour
+  (`Version.createFirst(...)` returns a `Version`). Every other behavior
   is an instance method.
 - **Type**: a `Command` changes state, a `Query` only reads, and an
   `Event` reacts to an event, which it takes as its parameter. On an
   application service, the method carries the matching handler annotation,
   `@CommandHandler`, `@QueryHandler` or `@EventHandler`, and every overload
-  of the behaviour carries the same one. On any other building block the
+  of the behavior carries the same one. On any other building block the
   type shapes the method but has no annotation.
 - **Interfaces**: on a repository or an external integration, the
-  behaviour is an abstract method, unannotated; no implementation is in
+  behavior is an abstract method, unannotated; no implementation is in
   scope.
-- **Visibility and actors**: a behaviour's `visibility` (`public` with
+- **Visibility and actors**: a behavior's `visibility` (`public` with
   actors for a use case, `private` for the rest) is a design notion, not a
-  Java one. Every behaviour is a `public` method, because the scanner sees
+  Java one. Every behavior is a `public` method, because the scanner sees
   only public methods. A use case's actors go in its Javadoc.
-- **Javadoc**: the behaviour's definition; `@param` with each input's
+- **Javadoc**: the behavior's definition; `@param` with each input's
   description; `@return` with the output's; `Actors:` for a use case.
 
 ### When the signature cannot be written as given
 
 Keep the name and the inputs, choose the closest signature that compiles,
-and report the deviation. The common case is a static creation behaviour
+and report the deviation. The common case is a static creation behavior
 whose design document output is an event rather than the block it creates
 (`QDoc.create(command, documentNumber)` outputting `QDocCreated`): it
 returns the new aggregate, which records the event for the application
@@ -201,17 +201,17 @@ the user first when the closest signature changes what a caller can do.
 ## The public surface
 
 The scanner turns every public method of an annotated type into a
-behaviour. So an annotated type's public methods are its behaviours and
+behavior. So an annotated type's public methods are its behaviors and
 nothing else. What Java writes itself the scanner skips: record accessors,
 `equals`, `hashCode`, `toString`, and an enum's `values` and `valueOf`.
 
 - Accessors of an aggregate or an entity are package-private. Its tests sit
-  in the same package and read them; other code asks through a behaviour.
+  in the same package and read them; other code asks through a behavior.
 - A helper another type calls (`pullEvents`, `newId`) is package-private,
   and its caller lives in the same package.
 - A helper that must be public to be reached from another package is a
-  behaviour the design document is missing. Ask the user.
-- Constructors are not behaviours. A record's canonical constructor is
+  behavior the design document is missing. Ask the user.
+- Constructors are not behaviors. A record's canonical constructor is
   public; a class's constructor is package-private or private when a static
   factory creates it.
 
@@ -222,11 +222,11 @@ A rule is enforced in the element it is attached to:
 | `ruleType`     | Where it lives                                                                                  |
 | -------------- | ----------------------------------------------------------------------------------------------- |
 | `Structure`    | the value object's compact constructor, or the closed set of an enum                            |
-| `Consistency`  | the aggregate or entity: checked by every behaviour that could break it, and on creation        |
+| `Consistency`  | the aggregate or entity: checked by every behavior that could break it, and on creation         |
 | `Computation`  | a pure method of a value object or a domain service, exact in its units, precision and rounding |
-| `State change` | a guard at the start of the behaviour it gates                                                  |
+| `State change` | a guard at the start of the behavior it gates                                                   |
 
-A rule attached to an application service's behaviour is either orchestration
+A rule attached to an application service's behavior is either orchestration
 (an authorization check through an external integration, saving and
 publishing in one transaction), which the application service does, or a
 domain invariant, which the domain enforces and the application service only
@@ -243,7 +243,7 @@ not domain code. Leave it to the adapters and report it.
   scenario is added, changed or removed in the code and its tests. A
   changed `implements` entry is one removed and one added.
 - **Removed**: delete the type or the method, every use of it, and the
-  tests of its scenarios. A removed building block takes its behaviours
+  tests of its scenarios. A removed building block takes its behaviors
   with it.
 - **Renamed**: a removal and an addition. Rename the type or the method,
   its file and its tests, and every reference to it.

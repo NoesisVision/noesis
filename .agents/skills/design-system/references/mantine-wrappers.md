@@ -37,7 +37,7 @@ export const Paper = wrapComponent<typeof MantineComponent, PaperProps>(
   the props interface whenever you pass defaults (see `card.tsx`).
 - **Compound component**: wrap each sub-component you use and attach it with
   `Object.assign` (see `menu.tsx`). Wrap only what is used.
-- **Behaviour on top of Mantine** (a new prop): `createPolymorphicWrapper`, as
+- **Behavior on top of Mantine** (a new prop): `createPolymorphicWrapper`, as
   `button.tsx` does for `busy`. A changed Button or Menu API also needs
   `FALLBACK_DTS` in `.design-sync/build-pkg.mjs` updated.
 - Defaults shared by every component belong in `theme.ts`, not a wrapper.

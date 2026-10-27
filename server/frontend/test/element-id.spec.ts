@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  asBehaviour,
+  asBehavior,
   asBuildingBlock,
-  behaviourIdAt,
+  behaviorIdAt,
   blockIdAt,
   blockOfRef,
   kindOf,
@@ -13,13 +13,13 @@ import {
 
 const module = 'module|sales.orders';
 const block = 'building_block|sales.orders.Refund';
-const behaviour = 'behavior|sales.orders.Refund.issue';
+const behavior = 'behavior|sales.orders.Refund.issue';
 
 describe('kindOf', () => {
   it('reads the kind off the prefix', () => {
     expect(kindOf(module)).toBe('module');
     expect(kindOf(block)).toBe('building_block');
-    expect(kindOf(behaviour)).toBe('behaviour');
+    expect(kindOf(behavior)).toBe('behavior');
   });
 
   it.each(['need|refunds', 'sales.orders', ''])(
@@ -31,8 +31,8 @@ describe('kindOf', () => {
 });
 
 describe('moduleOf', () => {
-  it('finds the module a building block or a behaviour is in', () => {
-    expect(moduleOf(block)).toBe(moduleOf(behaviour));
+  it('finds the module a building block or a behavior is in', () => {
+    expect(moduleOf(block)).toBe(moduleOf(behavior));
     expect(moduleOf(block) as string).toBe(module);
   });
 
@@ -47,9 +47,9 @@ describe('moduleOf', () => {
 });
 
 describe('ownerOf and parentOf', () => {
-  it('hangs a behaviour under its building block', () => {
-    expect(ownerOf(behaviour) as string).toBe(block);
-    expect(parentOf(behaviour) as string | null).toBe(block);
+  it('hangs a behavior under its building block', () => {
+    expect(ownerOf(behavior) as string).toBe(block);
+    expect(parentOf(behavior) as string | null).toBe(block);
   });
 
   it('hangs a building block and a submodule under their module, a root module under nothing', () => {
@@ -60,8 +60,8 @@ describe('ownerOf and parentOf', () => {
 
   it('takes no id branded as another kind', () => {
     const moduleId = moduleOf(block);
-    // @ts-expect-error A ModuleId is not a behaviour's id.
-    expect(() => ownerOf(moduleId)).toThrow('Not a behaviour id');
+    // @ts-expect-error A ModuleId is not a behavior's id.
+    expect(() => ownerOf(moduleId)).toThrow('Not a behavior id');
   });
 });
 
@@ -72,23 +72,21 @@ describe('blockOfRef', () => {
   });
 });
 
-describe('blockIdAt and behaviourIdAt', () => {
+describe('blockIdAt and behaviorIdAt', () => {
   it('build the id an address names, as the server writes it', () => {
     expect(blockIdAt('sales.orders.Refund') as string).toBe(block);
-    expect(behaviourIdAt('sales.orders.Refund.issue') as string).toBe(
-      behaviour,
-    );
+    expect(behaviorIdAt('sales.orders.Refund.issue') as string).toBe(behavior);
   });
 });
 
-describe('asBuildingBlock and asBehaviour', () => {
+describe('asBuildingBlock and asBehavior', () => {
   it('take a wire id of their kind as it is', () => {
     expect(asBuildingBlock(block) as string).toBe(block);
-    expect(asBehaviour(behaviour) as string).toBe(behaviour);
+    expect(asBehavior(behavior) as string).toBe(behavior);
   });
 
   it('refuse a wire id of another kind', () => {
-    expect(() => asBuildingBlock(behaviour)).toThrow('Not a building block id');
-    expect(() => asBehaviour(module)).toThrow('Not a behaviour id');
+    expect(() => asBuildingBlock(behavior)).toThrow('Not a building block id');
+    expect(() => asBehavior(module)).toThrow('Not a behavior id');
   });
 });

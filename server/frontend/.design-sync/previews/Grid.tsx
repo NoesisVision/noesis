@@ -46,7 +46,7 @@ export const OverviewStats = () => (
 
 export const UnevenSpans = () => (
   <Grid w={640} gutter="md">
-    <Grid.Col span={8}><Doc title="Checkout behaviour" meta="Input PlaceOrder · Output OrderPlaced" /></Grid.Col>
+    <Grid.Col span={8}><Doc title="Checkout behavior" meta="Input PlaceOrder · Output OrderPlaced" /></Grid.Col>
     <Grid.Col span={4}><Doc title="Scenarios" meta="3 cases" /></Grid.Col>
     <Grid.Col span={6}><Doc title="Refund policy" meta="Changed in this draft" /></Grid.Col>
     <Grid.Col span={6}><Doc title="Retry rules" meta="Unchanged" /></Grid.Col>

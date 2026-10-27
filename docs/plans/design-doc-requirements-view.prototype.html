@@ -1318,7 +1318,7 @@
           },
           {
             id: 'behavior|qdocmanagement.preparation.QDocCreationService.createQDoc',
-            kind: 'behaviour',
+            kind: 'behavior',
             name: 'createQDoc',
             type: 'Command',
             rules: [
@@ -1386,7 +1386,7 @@
           },
           {
             id: 'behavior|qdocmanagement.preparation.QDoc.create',
-            kind: 'behaviour',
+            kind: 'behavior',
             name: 'create',
             type: 'Command',
             rules: [
@@ -1412,7 +1412,7 @@
           },
           {
             id: 'behavior|qdocmanagement.preparation.Version.createFirst',
-            kind: 'behaviour',
+            kind: 'behavior',
             name: 'createFirst',
             type: 'Command',
             rules: [
@@ -1520,35 +1520,35 @@
           },
           {
             id: 'behavior|qdocmanagement.preparation.QDocRepository.save',
-            kind: 'behaviour',
+            kind: 'behavior',
             name: 'save',
             type: 'Command',
             rules: [],
           },
           {
             id: 'behavior|qdocmanagement.preparation.DocumentNumberGenerator.next',
-            kind: 'behaviour',
+            kind: 'behavior',
             name: 'next',
             type: 'Command',
             rules: [],
           },
           {
             id: 'behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager',
-            kind: 'behaviour',
+            kind: 'behavior',
             name: 'isQualityManager',
             type: 'Query',
             rules: [],
           },
           {
             id: 'behavior|qdocmanagement.preparation.PreparationEventPublisher.publish',
-            kind: 'behaviour',
+            kind: 'behavior',
             name: 'publish',
             type: 'Command',
             rules: [],
           },
           {
             id: 'behavior|qdocmanagement.notifications.NewQDocNotifier.onQDocCreated',
-            kind: 'behaviour',
+            kind: 'behavior',
             name: 'onQDocCreated',
             type: 'Event',
             rules: [
@@ -1602,14 +1602,14 @@
           },
           {
             id: 'behavior|qdocmanagement.notifications.QualityManagerDirectory.findQualityManagers',
-            kind: 'behaviour',
+            kind: 'behavior',
             name: 'findQualityManagers',
             type: 'Query',
             rules: [],
           },
           {
             id: 'behavior|qdocmanagement.notifications.NotificationSender.send',
-            kind: 'behaviour',
+            kind: 'behavior',
             name: 'send',
             type: 'Command',
             rules: [],
@@ -1671,7 +1671,7 @@
       function requirementsOutline(doc) {
         const modules = doc.elements.filter((e) => e.kind === 'module');
         const blocks = doc.elements.filter((e) => e.kind === 'buildingBlock');
-        const behaviours = doc.elements.filter((e) => e.kind === 'behaviour');
+        const behaviors = doc.elements.filter((e) => e.kind === 'behavior');
         const moduleOf = (el) => {
           const p = pathOf(el.id);
           return modules
@@ -1683,21 +1683,21 @@
         const ownerOf = (bh) =>
           blocks.find((b) => pathOf(bh.id).startsWith(pathOf(b.id) + '.'));
 
-        // The order the model outline walks: module, its building blocks, each followed by its behaviours.
+        // The order the model outline walks: module, its building blocks, each followed by its behaviors.
         const walk = [];
         for (const m of modules) {
           walk.push(m);
           for (const b of blocks.filter((b) => moduleOf(b) === m)) {
             walk.push(b);
-            walk.push(...behaviours.filter((bh) => ownerOf(bh) === b));
+            walk.push(...behaviors.filter((bh) => ownerOf(bh) === b));
           }
         }
-        walk.push(...behaviours.filter((bh) => !walk.includes(bh)));
+        walk.push(...behaviors.filter((bh) => !walk.includes(bh)));
 
         const traced = [];
         for (const el of walk) {
           const mod = moduleOf(el);
-          const owner = el.kind === 'behaviour' ? ownerOf(el) : null;
+          const owner = el.kind === 'behavior' ? ownerOf(el) : null;
           for (const rule of el.rules) {
             traced.push({
               rule,

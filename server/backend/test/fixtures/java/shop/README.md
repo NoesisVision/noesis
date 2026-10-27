@@ -9,7 +9,7 @@ behind its fluent getter (R5.8), the `Map` field no word in the
 model has, the overloaded `addLine`, `@QueryHandler` fixing a type (R9.4),
 the chain `handle → logTotal → total`, the `internal` package
 `.noesis/settings.json` drops, the unannotated `SqlOrderRepository` whose calls
-count for the interface's behaviours.
+count for the interface's behaviors.
 
 `code-model/` is the Java parser's output over these sources and is
 committed, so the server's tests need no JDK. Regenerate it after changing
