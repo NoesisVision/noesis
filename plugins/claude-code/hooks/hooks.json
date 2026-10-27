@@ -1,0 +1,16 @@
+{
+  "description": "Checks at session start that the repository tells the Noesis service how to scan it, and points the agent at the setup skills when it does not.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"${CLAUDE_PLUGIN_ROOT}/hooks/check-scanner-settings.ts\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -110,12 +110,24 @@ nothing.
   file, lists the fields a person accepted with its `scripts/human-fields.ts`,
   asks before changing any of them, edits it as the user asks and stores it
   in place through `update_design_doc_in_change`, which keeps an accepted
-  field the agent left alone in the person's name. A skill
+  field the agent left alone in the person's name; `setup-java-scanner`
+  adds the Noesis parser plugin and the `noesis-annotations` dependency to a
+  Maven or Gradle build and writes the `parser` of `.noesis/settings.json`
+  that runs it; `setup-dotnet-scanner` installs the `noesis-parse-csharp`
+  tool, adds the `NoesisVision.Annotations` package to the domain projects
+  and writes `{ "language": "csharp" }` there. Both prove the setup with
+  `scan_system_model`. A skill
   names the contract it needs by a path under `contracts/`. Where the tool
   takes a file, the
   skill writes its working file to the session's scratch directory and hands
   the path to the tool that consumes it, correcting the file from the issue
   list the tool returns.
+- `hooks/` — a `SessionStart` hook, `check-scanner-settings.ts`, run by
+  bun. When the project's `.noesis/settings.json` is missing, is not JSON
+  or names no `parser`, it tells the agent that scans will fail and to
+  offer the setup skill for the build it finds at the root (Maven or Gradle,
+  a solution or project), and shows the user a one-line notice. A
+  configured project gets no output.
 - `server/` — the built Noesis service: `main.js` and the page in `ui/`,
   copied from `server/backend/dist/` by `bun run build` and gitignored.
 - `.mcp.json` — launches the bundled service as a stdio MCP server via
@@ -133,9 +145,10 @@ nothing.
   that the service in it boots, lists its tools and serves the page,
   and that the skill scripts do what their skills say: the working-file
   script copies its source verbatim, the human-fields script names every
-  field a person wrote or accepted.
+  field a person wrote or accepted, and the session start hook speaks only
+  when scanning is not configured, naming the setup skill for the build.
 
-Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/`, `skills/` and `server/` are published
+Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/`, `hooks/`, `skills/` and `server/` are published
 (the `files` field in `package.json`).
 
 ## Scripts
