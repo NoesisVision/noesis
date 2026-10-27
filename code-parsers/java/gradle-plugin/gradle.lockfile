@@ -20,6 +20,4 @@ org.junit:junit-bom:6.1.3=testCompileClasspath,testRuntimeClasspath
 org.opentest4j:opentest4j:1.3.0=testCompileClasspath,testRuntimeClasspath
 org.ow2.asm:asm:9.9.1=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 org.slf4j:slf4j-api:2.0.19=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-vision.noesis:noesis-parser-core:0.1.0-SNAPSHOT=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-vision.noesis:noesis-parser-model:0.1.0-SNAPSHOT=compileClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 empty=annotationProcessor,testAnnotationProcessor

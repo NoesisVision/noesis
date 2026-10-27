@@ -4,11 +4,12 @@
 plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
+    // Publishes the plugin and its marker to Maven Central, signed, with sources and javadoc.
+    id 'com.vanniktech.maven.publish' version '0.36.0'
 }
 
-// Kept equal to the version in ../pom.xml: the example and the service pin the plugin by it.
+// The version is in gradle.properties.
 group = 'vision.noesis'
-version = '0.1.0-SNAPSHOT'
 
 repositories {
     mavenLocal {
@@ -20,8 +21,10 @@ repositories {
 }
 
 // Every configuration resolves to the versions in gradle.lockfile; `./gradlew dependencies --write-locks` updates it.
+// The core is not locked: it is this build's own version, which a release overrides.
 dependencyLocking {
     lockAllConfigurations()
+    ignoredDependencies.add('vision.noesis:*')
 }
 
 // Compiled for Gradle's minimum (17), like the core, on whatever JDK runs the build.
@@ -64,5 +67,38 @@ tasks.named('test') {
     testLogging {
         events 'failed'
         exceptionFormat 'full'
+    }
+}
+
+// ./gradlew publishAndReleaseToMavenCentral, run by .github/workflows/release-java.yml after the Maven release, takes the
+// Central Portal token from mavenCentralUsername and mavenCentralPassword, and the signing key from signingInMemoryKey
+// and signingInMemoryKeyPassword (as ORG_GRADLE_PROJECT_* environment variables).
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+    coordinates('vision.noesis', 'noesis-parser-gradle-plugin', version.toString())
+    pom {
+        name = 'Noesis Parser Gradle Plugin'
+        description = 'Parses the Java projects of a Gradle build into the Noesis code model (task: noesisParse)'
+        url = 'https://github.com/NoesisVision/noesis/tree/main/code-parsers/java'
+        licenses {
+            license {
+                name = 'MIT License'
+                url = 'https://opensource.org/license/mit'
+                distribution = 'repo'
+            }
+        }
+        developers {
+            developer {
+                name = 'NoesisVision'
+                organization = 'NoesisVision'
+                organizationUrl = 'https://github.com/NoesisVision'
+            }
+        }
+        scm {
+            connection = 'scm:git:https://github.com/NoesisVision/noesis.git'
+            developerConnection = 'scm:git:ssh://git@github.com/NoesisVision/noesis.git'
+            url = 'https://github.com/NoesisVision/noesis/tree/main/code-parsers/java'
+        }
     }
 }

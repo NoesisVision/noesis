@@ -238,3 +238,34 @@ up to date while the sources, the compiled classes, the classpath and the
 settings are unchanged.
 The Gradle daemon must run on a JDK, as Maven must; the engines run inside
 it.
+
+## Releasing to Maven Central
+
+A `java-v<version>` tag (`java-v0.1.0`) runs
+[`.github/workflows/release-java.yml`](../../.github/workflows/release-java.yml),
+which publishes that version under the verified `vision.noesis` namespace.
+The repository stays on `0.1.0-SNAPSHOT`: the workflow sets the version from
+the tag (`mvn versions:set`, `-Pversion=` for Gradle) and publishes in two
+steps:
+
+1. `mvn -P release deploy` here: the parent POM, `noesis-annotations`,
+   `noesis-parser-model`, `noesis-parser-core` and
+   `noesis-parser-maven-plugin`, each with sources, javadoc and a signature,
+   through Sonatype's `central-publishing-maven-plugin`. It waits until
+   Central serves them. The test fixtures are not published.
+2. `./gradlew publishAndReleaseToMavenCentral` in `gradle-plugin/`: the
+   Gradle plugin and its marker (`vision.noesis.parser:vision.noesis.parser.gradle.plugin`),
+   through `com.vanniktech.maven.publish`. A build applies it from
+   `mavenCentral()` among its plugin repositories.
+
+Tests do not run in the release: the core's tests pin the `-SNAPSHOT`
+version, so tag a commit the CI's Java parser job has passed. A version on
+Central can never be replaced or removed.
+
+The workflow reads four repository secrets: `CENTRAL_USERNAME` and
+`CENTRAL_PASSWORD`, a user token from central.sonatype.com, and
+`GPG_PRIVATE_KEY` (armored) with `GPG_PASSPHRASE`, a key whose public half is
+on `keyserver.ubuntu.com`. To build the signed bundle locally without
+uploading it, put a key in `MAVEN_GPG_KEY` and `MAVEN_GPG_PASSPHRASE` and run
+`mvn -P release -DskipTests -Dinvoker.skip=true -DskipUpload=true deploy` on a
+release version; the bundle lands in `target/central-publishing/`.
