@@ -1,12 +1,11 @@
 name: Release
 
-# Publishes the Noesis service and the Claude Code plugin to npm when a v* tag
-# is pushed — one version train: both packages carry the
-# tag's version, service first so the plugin's .mcp.json pin resolves the
-# moment the plugin lands. Auth is npm trusted publishing (OIDC) — no token
-# secret. Provenance is attached automatically. Requires a trusted publisher
-# configured on npmjs.com for BOTH @noesis-vision/claude-code-plugin and
-# @noesis-vision/noesis pointing at this repo + workflow file.
+# Publishes the Claude Code plugin to npm when a v* tag is pushed. The plugin
+# carries the built Noesis service in server/, so this one package is the
+# whole release. Auth is npm trusted publishing (OIDC) — no token secret.
+# Provenance is attached automatically. Requires a trusted publisher
+# configured on npmjs.com for @noesis-vision/claude-code-plugin pointing at
+# this repo + workflow file.
 on:
   push:
     tags: ['v*']
@@ -18,7 +17,7 @@ permissions:
 
 jobs:
   publish:
-    name: Publish service + plugin to npm
+    name: Publish the plugin to npm
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -65,7 +64,7 @@ jobs:
             exit 1
           fi
           if [ "$SERVICE_VERSION" != "$VERSION" ]; then
-            echo "::error::Service version $SERVICE_VERSION does not match plugin version $VERSION (one version train)."
+            echo "::error::Service version $SERVICE_VERSION does not match plugin version $VERSION (the service reports it over MCP)."
             exit 1
           fi
           # Prereleases go to the beta dist-tag, stable releases to latest.
@@ -74,19 +73,9 @@ jobs:
             *) echo "dist-tag=latest" >> "$GITHUB_OUTPUT" ;;
           esac
 
-      - name: Pack service
-        working-directory: server/backend
-        run: bun pm pack
-
       - name: Pack plugin
         working-directory: plugins/claude-code
         run: bun pm pack
-
-      # Service first: the plugin's .mcp.json pins this exact service version,
-      # so a plugin without its service must never be the published state.
-      - name: Publish service
-        working-directory: server/backend
-        run: npm publish ./*.tgz --tag "${{ steps.version.outputs.dist-tag }}" --access public
 
       - name: Publish plugin
         working-directory: plugins/claude-code

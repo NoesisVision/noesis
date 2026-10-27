@@ -64,6 +64,8 @@ test('ships exactly the expected plugin files', async () => {
     'skills/implement-java-spring/references/building-blocks.md',
     'skills/implement-java-spring/references/testing.md',
     'contracts/system-model.schema.json',
+    'server/main.js',
+    'server/ui/index.html',
   ];
   const missing = required.filter((f) => !existsSync(join(packageDir, f)));
   expect(missing).toEqual([]);
@@ -77,6 +79,37 @@ test('ships exactly the expected plugin files', async () => {
   ];
   const leaked = excluded.filter((f) => existsSync(join(packageDir, f)));
   expect(leaked).toEqual([]);
+});
+
+test('ships the built service: one bundle and the page beside it', async () => {
+  const serverDir = join(packageDir, 'server');
+  const shipped = (
+    await readdir(serverDir, { recursive: true, withFileTypes: true })
+  )
+    .filter((e) => e.isFile())
+    .map((e) => join(e.parentPath.slice(serverDir.length + 1), e.name))
+    .sort();
+  // Only main.js and ui/ are copied, so a stale chunk in the service's
+  // dist/ can't ship.
+  expect(shipped.filter((f) => !f.startsWith('ui/'))).toEqual(['main.js']);
+  // The page's assets are vite's own files. Their hashes are base64url, so
+  // `-` is in them.
+  expect(shipped.some((f) => /^ui\/assets\/index-[\w-]+\.js$/.test(f))).toBe(
+    true,
+  );
+  expect(shipped.some((f) => /^ui\/assets\/index-[\w-]+\.css$/.test(f))).toBe(
+    true,
+  );
+
+  const bin = await readFile(join(serverDir, 'main.js'), 'utf8');
+  expect(bin.startsWith('#!/usr/bin/env bun\n')).toBe(true);
+
+  // The service has no runtime dependencies: Claude Code installs none for
+  // an npm-source plugin without a lockfile, so the bundle must stand alone.
+  const service = JSON.parse(
+    await readFile(join(serviceRoot, 'package.json'), 'utf8'),
+  ) as Record<string, unknown>;
+  expect(service.dependencies).toBeUndefined();
 });
 
 test('publishes a self-contained, version-consistent manifest', async () => {
@@ -100,10 +133,7 @@ test('publishes a self-contained, version-consistent manifest', async () => {
   expect(raw).not.toContain('catalog:');
 });
 
-test('.mcp.json launches the service bin pinned to the plugin version', async () => {
-  const { version } = JSON.parse(
-    await readFile(join(pluginRoot, 'package.json'), 'utf8'),
-  ) as { version: string };
+test('.mcp.json launches the bundled service', async () => {
   const mcp = JSON.parse(
     await readFile(join(packageDir, '.mcp.json'), 'utf8'),
   ) as {
@@ -115,43 +145,46 @@ test('.mcp.json launches the service bin pinned to the plugin version', async ()
 
   const service = mcp.mcpServers.noesis;
   if (!service) throw new Error('.mcp.json has no noesis server entry');
-  // Both are `${VAR:-default}` expansions: installed plugins run
-  // the published bin through bunx; a checkout points them at the source.
-  expect(service.command).toBe('${NOESIS_SERVICE_COMMAND:-bunx}');
+  // Installed plugins run the bundle from their own directory; a checkout
+  // points NOESIS_SERVICE_ENTRY at the source.
+  expect(service.command).toBe('bun');
   expect(service.args).toEqual([
-    `\${NOESIS_SERVICE_ENTRY:-@noesis-vision/noesis@${version}}`,
+    '${NOESIS_SERVICE_ENTRY:-${CLAUDE_PLUGIN_ROOT}/server/main.js}',
   ]);
   // The service serves the project the plugin runs in, not its own cwd.
   expect(service.env.NOESIS_ROOT).toBe('${CLAUDE_PROJECT_DIR}');
-
-  const serviceManifest = JSON.parse(
-    await readFile(join(serviceRoot, 'package.json'), 'utf8'),
-  ) as { version: string; bin: Record<string, string> };
-  expect(serviceManifest.version).toBe(version);
-  expect(serviceManifest.bin).toEqual({ noesis: 'dist/main.js' });
 });
 
-test('the service the pin resolves to boots and lists tools', async () => {
-  // The workspace sources are what the pinned version is published from.
-  const build = spawnSync('bun', ['run', 'build'], {
-    cwd: serviceRoot,
-    encoding: 'utf8',
-  });
-  expect(build.status).toBe(0);
+test('the service reports the plugin version', async () => {
+  const plugin = JSON.parse(
+    await readFile(join(pluginRoot, 'package.json'), 'utf8'),
+  ) as { version: string };
+  const service = JSON.parse(
+    await readFile(join(serviceRoot, 'package.json'), 'utf8'),
+  ) as { version: string };
+  expect(service.version).toBe(plugin.version);
+});
 
+test('the shipped service boots from the tarball, lists tools and serves the page', async () => {
   const projectDir = join(workDir, 'project');
   await mkdir(projectDir, { recursive: true });
 
+  // Launched from another directory, as Claude Code does: the extracted
+  // tarball holds everything the service needs.
   const transport = new StdioClientTransport({
     command: 'bun',
-    args: [join(serviceRoot, 'dist', 'main.js')],
+    args: [join(packageDir, 'server', 'main.js')],
     cwd: projectDir,
     env: {
       ...process.env,
       NOESIS_ROOT: projectDir,
       NOESIS_OPEN_BROWSER: '0',
     },
-    stderr: 'ignore',
+    stderr: 'pipe',
+  });
+  let log = '';
+  transport.stderr?.on('data', (chunk: Buffer) => {
+    log += chunk.toString();
   });
   const client = new Client({ name: 'tarball-smoke-test', version: '0.0.0' });
   try {
@@ -173,7 +206,32 @@ test('the service the pin resolves to boots and lists tools', async () => {
       'update_design_doc_in_change',
       'update_document_in_change',
     ]);
+
+    const base = await listeningUrl(() => log, 15_000);
+    const page = await fetch(`${base}/`);
+    expect(page.status).toBe(200);
+    const html = await page.text();
+    expect(html).toContain('<title>Noesis</title>');
+    const script = /<script[^>]+src="([^"]+)"/.exec(html)?.[1];
+    const asset = await fetch(`${base}${script}`);
+    expect(asset.status).toBe(200);
+    expect(asset.headers.get('content-type')).toContain('javascript');
   } finally {
     await client.close();
   }
 }, 120_000);
+
+// The port is ephemeral, so the URL is read from the service's stderr
+// announcement: a JSON line from the built bin, the URL in escaped quotes.
+async function listeningUrl(
+  stderr: () => string,
+  timeoutMs: number,
+): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const match = /listening on \\?"?(http:\/\/[^\s"\\]+)/.exec(stderr());
+    if (match?.[1]) return match[1].replace(/\/$/, '');
+    await Bun.sleep(50);
+  }
+  throw new Error(`No listening line within ${timeoutMs}ms:\n${stderr()}`);
+}

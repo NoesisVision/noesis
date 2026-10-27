@@ -83,8 +83,8 @@ the user's project.
 ## Process model
 
 The service is one process per agent session, started by the agent host as a stdio MCP server
-(the plugin's `.mcp.json` launches `bunx @noesis-vision/noesis` with `NOESIS_ROOT` set to the
-project). At boot it locates the repository (`NOESIS_ROOT`, else the nearest `.git` above the
+(the plugin ships the built service and its `.mcp.json` runs it with `bun`, `NOESIS_ROOT` set to
+the project). At boot it locates the repository (`NOESIS_ROOT`, else the nearest `.git` above the
 working directory), ensures `.noesis/` and its `.gitignore`, opens its scratch directory under
 `.noesis/sessions/`, builds the graph from the files, binds the HTTP API on an ephemeral loopback port,
 opens the default browser on it once (`NOESIS_OPEN_BROWSER=0` suppresses this), and connects MCP
