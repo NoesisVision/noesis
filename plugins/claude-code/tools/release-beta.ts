@@ -68,7 +68,7 @@ bun(['run', 'generate']);
 bun(['test']);
 
 git(['add', '--all']);
-git(['commit', '-m', `Release ${next}`]);
+git(['commit', '-m', `chore(plugin): release ${next}`]);
 git(['tag', '-a', `v${next}`, '-m', `Release ${next}`]);
 git(['push', 'origin', 'main', `v${next}`]);
 
