@@ -8,6 +8,13 @@ import { z } from 'zod';
  * Objects are strict so a field added on one side fails the other.
  */
 
+/**
+ * The one code model schema this service reads. A parser states the schema
+ * it writes in every manifest and model file; a scan compares the two before
+ * anything else. Any change to the shape below bumps it.
+ */
+export const CODE_MODEL_SCHEMA_VERSION = 1;
+
 export const Language = z.enum(['csharp', 'java', 'typescript', 'php']);
 export type Language = z.infer<typeof Language>;
 
@@ -490,8 +497,20 @@ export type Edge = z.infer<typeof Edge>;
 
 const generator = z.strictObject({ name: z.string(), version: z.string() });
 
+/**
+ * What a manifest of any schema version still says about itself: the schema
+ * it was written in and the tool that wrote it. Read before the manifest
+ * itself, so a schema mismatch is named instead of failing field by field.
+ */
+export const ParseManifestHeader = z.object({
+  schemaVersion: z.number().int(),
+  generator: z.object({ name: z.string(), version: z.string() }),
+  language: z.string(),
+});
+export type ParseManifestHeader = z.infer<typeof ParseManifestHeader>;
+
 export const ParseManifest = z.strictObject({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(CODE_MODEL_SCHEMA_VERSION),
   generator,
   language: Language,
   repository: z.strictObject({ name: z.string(), revision: z.string() }),
@@ -502,7 +521,7 @@ export const ParseManifest = z.strictObject({
 export type ParseManifest = z.infer<typeof ParseManifest>;
 
 export const CodeModelFile = z.strictObject({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(CODE_MODEL_SCHEMA_VERSION),
   generator,
   artifact: ArtifactNode,
   nodes: z.array(DeclarationNode),

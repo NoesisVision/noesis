@@ -227,6 +227,48 @@ describe('The java parser configured in .noesis/settings.json', () => {
     );
   });
 
+  /** A copy of the Java shop's code model whose manifest is edited by `edit`. */
+  const shopWithManifest = async (
+    edit: (manifest: Record<string, unknown>) => void,
+  ): Promise<string> => {
+    const source = join(t.root, 'edited');
+    await cp(join(JAVA_SHOP, 'code-model'), join(source, 'code-model'), {
+      recursive: true,
+    });
+    const manifest = join(source, 'code-model', 'java', 'manifest.json');
+    const json = JSON.parse(await readFile(manifest, 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    edit(json);
+    await writeFile(manifest, JSON.stringify(json));
+    return source;
+  };
+
+  it('refuses a code model schema it does not read, before reading the rest, naming the parser that wrote it', async () => {
+    const source = await shopWithManifest((manifest) => {
+      manifest.schemaVersion = 2;
+      manifest.generator = { name: 'noesis-parse-java', version: '2.0.0' };
+      manifest.addedInSchema2 = true;
+    });
+    await configure({ command: gradleLike(source) });
+
+    await expect<unknown>(scanner.scan()).rejects.toThrow(
+      'noesis-parse-java 2.0.0 wrote code model schema 2; this Noesis plugin reads schema 1. Update the plugin',
+    );
+  });
+
+  it('reports a manifest without a schema version as unreadable', async () => {
+    const source = await shopWithManifest((manifest) => {
+      delete manifest.schemaVersion;
+    });
+    await configure({ command: gradleLike(source) });
+
+    await expect<unknown>(scanner.scan()).rejects.toThrow(
+      /no readable manifest[\s\S]*schemaVersion/,
+    );
+  });
+
   it('fails when the tool wrote no manifest', async () => {
     await configure({ command: ['bun', FAKE_TOOL, '--out', '{out}'] });
 

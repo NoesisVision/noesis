@@ -1,12 +1,15 @@
 import { randomUUID } from 'node:crypto';
 import { readdir, rm } from 'node:fs/promises';
 import { basename, dirname, join } from 'node:path';
+import { checkCodeModelSchema } from '#backend/app/scanners/code-parsers/check-code-model-schema';
 import {
+  CODE_MODEL_SCHEMA_VERSION,
   type CodeModelFile,
   CodeModelFile as CodeModelFileSchema,
   type Diagnostic,
   type Language,
   ParseManifest,
+  ParseManifestHeader,
 } from '#backend/app/scanners/code-parsers/code-model';
 import type {
   CodeParser,
@@ -212,14 +215,26 @@ async function manifestIn(
   return join(codeModelDir, language, MANIFEST_FILE);
 }
 
+/**
+ * Reads the manifest in two steps: first only the schema version and the
+ * tool that wrote it, refusing a schema this service does not read, then the
+ * whole manifest, so a mismatch is not buried under the fields that differ.
+ */
 async function readCodeModel(manifestPath: string): Promise<ParsedCode> {
+  const unreadable = (message: string): never => {
+    throw new Error(
+      `The parser wrote no readable manifest at ${manifestPath}: ${message}`,
+    );
+  };
+  const header = (await readJsonFile(manifestPath, ParseManifestHeader)).match(
+    (value) => value,
+    unreadable,
+  );
+  const refusal = checkCodeModelSchema(header, CODE_MODEL_SCHEMA_VERSION);
+  if (refusal !== null) throw new Error(refusal);
   const manifest = (await readJsonFile(manifestPath, ParseManifest)).match(
     (value) => value,
-    (message) => {
-      throw new Error(
-        `The parser wrote no readable manifest at ${manifestPath}: ${message}`,
-      );
-    },
+    unreadable,
   );
   const outDir = join(dirname(manifestPath), '..', '..');
   const files = await Promise.all(
