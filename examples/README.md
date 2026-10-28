@@ -92,19 +92,17 @@ its build files, its parser config (`.noesis/settings.json`) and the
 `.claude/settings.json` that points the plugin at this checkout's service,
 nothing else: no CI, build scripts, IDE settings or notes from the runs.
 
-- `discounts-java` depends on `vision.noesis:noesis-annotations:0.1.0-SNAPSHOT`
-  and applies the `vision.noesis.parser` Gradle plugin, both from
-  `mavenLocal()`: run `mvn install` in `code-parsers/java` and
-  `./gradlew publishToMavenLocal` in `code-parsers/java/gradle-plugin` first, then
-  `./gradlew build` in the example. `./gradlew noesisParse` there scans the
+- `discounts-java` depends on `vision.noesis:noesis-annotations:0.1.0` and
+  applies the `vision.noesis.parser` Gradle plugin `0.1.0`, both from Maven
+  Central (the plugin through `mavenCentral()` in the settings file's
+  `pluginManagement`); `./gradlew build` builds it. `./gradlew noesisParse` there scans the
   example into the code model under `.noesis/tmp/parser/code-model/java/`
   with the hybrid engine (its sources use Lombok); a scan from the service
   runs the same command through its `.noesis/settings.json`.
 - `qdoc-java` is a Spring Boot Maven project that depends on
-  `vision.noesis:noesis-annotations:0.1.0-SNAPSHOT` and declares the
-  `noesis-parser-maven-plugin`, both from the local repository: run
-  `mvn install` in `code-parsers/java` first, then `./mvnw process-classes noesis:parse`
-  in the example writes the code model under
+  `vision.noesis:noesis-annotations:0.1.0` and declares the
+  `noesis-parser-maven-plugin` `0.1.0`, both from Maven Central;
+  `./mvnw process-classes noesis:parse` in the example writes the code model under
   `.noesis/tmp/parser/code-model/java/`; a scan from the service runs the
   plugin the same way through its `.noesis/settings.json`.
 - `discounts-dotnet` takes `NoesisVision.Annotations` from the private NuGet

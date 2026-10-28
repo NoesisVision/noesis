@@ -12,7 +12,7 @@
       "process-classes",
       "noesis:parse"
     ],
-    "installHint": "Run the service on a JDK; the build takes noesis-parser-maven-plugin from the local repository (mvn install in noesis/code-parsers/java)."
+    "installHint": "Run the service on a JDK 17 or newer; the build takes noesis-parser-maven-plugin from Maven Central."
   },
   "namespacePartsToSkip": ["com.example"],
   "namespacesToExclude": []

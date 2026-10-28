@@ -56,7 +56,7 @@ From this directory:
 ```sh
 mvn -B verify                                   # build everything, parse the fixtures, run the tests and the plugin's integration test
 NOESIS_UPDATE_GOLDEN=1 mvn -B -pl core -am test  # rewrite core/src/test/resources/golden/ after an intended model change
-mvn -q install -DskipTests                       # put the plugin in the local repository, which is how the service runs it
+mvn -q install -DskipTests                       # put this checkout's -SNAPSHOT build in the local repository, to try it on a project
 ```
 
 The fixture modules are built by the reactor before `core`'s tests parse them;
@@ -68,7 +68,7 @@ comes first. From `gradle-plugin/`:
 
 ```sh
 ./gradlew build                 # compile, validate the plugin, run the functional test on the fixture build
-./gradlew publishToMavenLocal   # put the plugin in the local repository, where a Gradle build finds it
+./gradlew publishToMavenLocal   # put this checkout's -SNAPSHOT plugin in the local repository, to try it on a build
 ```
 
 ## Running the plugin
@@ -79,7 +79,7 @@ its POM:
 
 ```sh
 mvn -B -q -ntp -Dnoesis.out=/tmp/parse -Dnoesis.repositoryRoot=$PWD -Dnoesis.repository=my-repo \
-  process-classes vision.noesis:noesis-parser-maven-plugin:0.1.0-SNAPSHOT:parse
+  process-classes vision.noesis:noesis-parser-maven-plugin:0.1.0:parse
 ```
 
 | Property                | Default                                                                             | Meaning                                                                                                                   |
@@ -113,7 +113,7 @@ the plugin's `<configuration>`, so the build pins the version and the engine:
 <plugin>
   <groupId>vision.noesis</groupId>
   <artifactId>noesis-parser-maven-plugin</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <configuration>
     <engine>hybrid</engine>
   </configuration>
@@ -149,9 +149,9 @@ goes on the command line, not into the Noesis plugin's configuration. With
 it a compile error does not stop the parse: the module is parsed from its
 sources, with the compiler's errors in its model. A module whose compile
 failed has no classes, so the modules that depend on it bind its types as
-unresolved. Any other failure of the build fails the parse. Until the plugin
-is published, `mvn -q install -DskipTests` here puts it in the local
-repository, where the build finds it.
+unresolved. Any other failure of the build fails the parse. The released
+plugin comes from Maven Central; to try this checkout instead,
+`mvn -q install -DskipTests` here and declare `0.1.0-SNAPSHOT`.
 
 The source engine needs Maven to run on a JDK (17 or newer); on a JRE every
 module reports `NS1003`. Annotation processors are not run: members Lombok
@@ -161,30 +161,33 @@ from the compiled classes and keeps everything else from the sources.
 
 ## Running the Gradle plugin
 
-The plugin id is `vision.noesis.parser`, published to the local repository
-by `./gradlew publishToMavenLocal` in `gradle-plugin/`. A build applies it
-once, in the root build file or in any project's (the task is registered on
-the root project either way), with `mavenLocal()` among the plugin
-repositories of its settings file:
+The plugin id is `vision.noesis.parser`, published to Maven Central (not the
+Gradle Plugin Portal). A build applies it once, in the root build file or in
+any project's (the task is registered on the root project either way), with
+`mavenCentral()` among the plugin repositories of its settings file:
 
 ```groovy
 // settings.gradle
 pluginManagement {
     repositories {
-        mavenLocal()
+        mavenCentral()
         gradlePluginPortal()
     }
 }
 
 // build.gradle
 plugins {
-    id 'vision.noesis.parser' version '0.1.0-SNAPSHOT'
+    id 'vision.noesis.parser' version '0.1.0'
 }
 
 noesis {
     engine = 'hybrid'   // for a build whose sources need annotation processors (Lombok); 'bytecode' reads the classes alone
 }
 ```
+
+To try this checkout instead, `./gradlew publishToMavenLocal` in
+`gradle-plugin/` (after `mvn install` here), add `mavenLocal()` to those
+repositories and apply `0.1.0-SNAPSHOT`.
 
 `./gradlew noesisParse` then compiles every project with the `java` plugin and
 parses them all in one go, in dependency order, into one manifest. The

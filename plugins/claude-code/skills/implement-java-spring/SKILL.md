@@ -108,9 +108,8 @@ Read all three at step 5, before planning:
 6. **Prepare the build.** When the test classpath lacks JUnit Jupiter or
    AssertJ, add `org.springframework.boot:spring-boot-starter-test` with
    `test` scope and no version: the Spring Boot parent manages it. When
-   `noesis-annotations` is missing, add it; it is not on Maven Central
-   yet, so when it does not resolve, tell the user where to install it from
-   and stop.
+   `noesis-annotations` is missing, add `vision.noesis:noesis-annotations`
+   `0.1.0` from Maven Central.
 7. **Write the production code** in dependency order, so each type compiles
    against what is already there:
    1. modules: `package-info.java` with `@Module`;
