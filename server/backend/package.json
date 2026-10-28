@@ -10,7 +10,7 @@
     "start": "bun dist/main.js",
     "dev": "PORT=3001 NOESIS_OPEN_BROWSER=0 bun --watch src/main.ts",
     "start:debug": "bun run --cwd ../frontend build:spa && PORT=3000 NOESIS_OPEN_BROWSER=0 bun --inspect --watch src/main.ts",
-    "check-types": "tsc --noEmit",
+    "check-types": "bun check",
     "contracts": "bun run tools/generate-contracts.ts",
     "test": "bun test test/unit test/integration",
     "test:e2e": "bun run --cwd ../frontend build:spa && bun test ./test/e2e/",

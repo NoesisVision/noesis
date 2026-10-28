@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   // Bun's recommended compilerOptions (https://bun.com/docs/typescript).
-  // Bun runs and bundles all code; tsc only type-checks.
+  // Bun runs and bundles all code; `bun check` only type-checks.
   "compilerOptions": {
     // Environment setup & latest features
     "lib": ["ESNext"],

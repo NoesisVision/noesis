@@ -13,7 +13,7 @@
     "start:debug": "bun run --cwd ../backend start:debug",
     "start": "bun run --cwd ../backend start",
     "generate-routes": "tsr generate",
-    "check-types": "tsc -b",
+    "check-types": "bun check -b",
     "test": "bun test test"
   },
   "dependencies": {

@@ -4,13 +4,16 @@
   // stand-in package only the converter resolves, and overrides/ is a
   // vendored copy of the converter's own code.
   "ignore": ["server/frontend/.design-sync/**"],
+  // `bun check` (Bun's type checker) is a subcommand knip does not know, so it
+  // reads `check` in the check-types scripts as a binary nothing installs.
+  "ignoreBinaries": ["check"],
   "workspaces": {
     ".": {
       // Skill scripts are run by the agent, never imported.
       "entry": [".agents/skills/*/scripts/*.ts"]
     },
     "server/backend": {
-      // Type-only tests are checked by tsc and never imported; the fake
+      // Type-only tests are checked by bun check and never imported; the fake
       // code model tools are spawned by specs, never imported. The design
       // document, its element ids and design doc fields, the system model
       // and the code model are exported whole: a type nothing imports yet is

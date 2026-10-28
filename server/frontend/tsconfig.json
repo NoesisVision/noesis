@@ -1,5 +1,5 @@
 {
-  // One config per runtime, checked with `tsc -b` (create-vite layout).
+  // One config per runtime, checked with `bun check -b` (create-vite layout).
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
