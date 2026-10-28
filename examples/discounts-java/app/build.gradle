@@ -10,14 +10,12 @@ plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
     // Parses the build into the Noesis code model: ./gradlew noesisParse writes .noesis/tmp/parser/code-model/java/.
-    id 'vision.noesis.parser' version '0.1.0-SNAPSHOT'
+    id 'vision.noesis.parser' version '0.1.0'
 }
 
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
-    // Noesis DDD annotations, built locally from noesis/code-parsers/java (mvn install).
-    mavenLocal()
 }
 
 java {
@@ -29,7 +27,7 @@ java {
 dependencies {
 
     // DDD stereotypes the Noesis scanner reads: @AggregateRoot, @DomainEntity, @ValueObject, ...
-    implementation 'vision.noesis:noesis-annotations:0.1.0-SNAPSHOT'
+    implementation 'vision.noesis:noesis-annotations:0.1.0'
 
     implementation 'io.vavr:vavr:0.11.0'
     compileOnly 'org.projectlombok:lombok:1.18.48'

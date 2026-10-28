@@ -46,11 +46,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-h2console</artifactId>
 		</dependency>
-		<!-- Install it first: mvn install in code-parsers/java (see examples/README.md). -->
+		<!-- DDD stereotypes the Noesis scanner reads: @AggregateRoot, @DomainEntity, @ValueObject, ... -->
 		<dependency>
 			<groupId>vision.noesis</groupId>
 			<artifactId>noesis-annotations</artifactId>
-			<version>0.1.0-SNAPSHOT</version>
+			<version>0.1.0</version>
 		</dependency>
 
 		<dependency>
@@ -81,12 +81,11 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<!-- The Noesis code model parser: ./mvnw process-classes noesis:parse writes .noesis/tmp/parser/code-model/java/.
-			     Install it first: mvn install in code-parsers/java (see examples/README.md). -->
+			<!-- The Noesis code model parser: ./mvnw process-classes noesis:parse writes .noesis/tmp/parser/code-model/java/. -->
 			<plugin>
 				<groupId>vision.noesis</groupId>
 				<artifactId>noesis-parser-maven-plugin</artifactId>
-				<version>0.1.0-SNAPSHOT</version>
+				<version>0.1.0</version>
 			</plugin>
 		</plugins>
 	</build>
