@@ -14,7 +14,7 @@
     "contracts": "bun run tools/generate-contracts.ts",
     "test": "bun test test/unit test/integration",
     "test:e2e": "bun run --cwd ../frontend build:spa && bun test ./test/e2e/",
-    "test:e2e:toolchain": "bun test ./test/e2e-toolchain/"
+    "test:e2e:toolchain": "bun test --parallel ./test/e2e-toolchain/"
   },
   "devDependencies": {
     "@hono/standard-validator": "^0.4.0",
