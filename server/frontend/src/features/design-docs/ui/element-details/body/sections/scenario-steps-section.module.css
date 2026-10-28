@@ -10,7 +10,10 @@
 
 /* Named with the list, to win over DataList's own label and value styles. */
 .steps .step {
-  --step-colour: var(--mantine-color-brand-7);
+  --step-colour: light-dark(
+    var(--mantine-color-brand-7),
+    var(--mantine-color-brand-4)
+  );
 
   position: relative;
   flex-direction: column;
@@ -19,11 +22,17 @@
   padding: 0 0 12px 24px;
 
   &[data-kind='when'] {
-    --step-colour: var(--mantine-color-violet-7);
+    --step-colour: light-dark(
+      var(--mantine-color-violet-7),
+      var(--mantine-color-violet-4)
+    );
   }
 
   &[data-kind='then'] {
-    --step-colour: var(--mantine-color-green-7);
+    --step-colour: light-dark(
+      var(--mantine-color-green-7),
+      var(--mantine-color-green-4)
+    );
   }
 
   /* The step's ring. */

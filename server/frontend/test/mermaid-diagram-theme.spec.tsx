@@ -193,10 +193,9 @@ it('leaves the chip unoutlined, the fill being the whole of it', () => {
   }
 });
 
-it('writes an edge label in white, on either scheme', () => {
-  // The chip is the line's colour in both, which neither text colour the
-  // palette reads well against — white is the one that carries across.
-  for (const scheme of ['light', 'dark'] as const) {
-    expect(ruleOf(scheme, '.edgeLabel.edgeLabel')).toContain('color: #fff;');
-  }
+it('writes an edge label at 4.5:1 on its chip, in either scheme', () => {
+  // The chip is the line's colour: a dark grey in the light, which takes
+  // white, and a mid grey in the dark, which white falls short on.
+  expect(ruleOf('light', '.edgeLabel.edgeLabel')).toContain('color: #fff;');
+  expect(ruleOf('dark', '.edgeLabel.edgeLabel')).toContain('color: #141414;');
 });

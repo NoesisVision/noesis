@@ -41,7 +41,10 @@
   --chip-bg: var(--mantine-color-violet-light);
   --chip-bg-hover: var(--mantine-color-violet-light-hover);
   --chip-fg: var(--mantine-color-violet-light-color);
-  --side-row-icon: var(--mantine-color-violet-6);
+  --side-row-icon: light-dark(
+    var(--mantine-color-violet-6),
+    var(--mantine-color-violet-4)
+  );
 }
 
 [data-view='requirements'],
@@ -49,7 +52,10 @@
   --chip-bg: var(--mantine-color-brand-light);
   --chip-bg-hover: var(--mantine-color-brand-light-hover);
   --chip-fg: var(--mantine-color-brand-light-color);
-  --side-row-icon: var(--mantine-color-brand-6);
+  --side-row-icon: light-dark(
+    var(--mantine-color-brand-6),
+    var(--mantine-color-brand-4)
+  );
 }
 
 .chip {

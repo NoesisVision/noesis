@@ -9,6 +9,8 @@
  *   --noesis-tone-filled      a solid mark: the rule over the page
  *   --noesis-tone-light       a tinted ground: the open tab, an icon's tile
  *   --noesis-tone-light-color what reads on that ground
+ *   --noesis-tone-ink         the colour as an icon or a word on the page,
+ *                             a step lighter in the dark to keep its contrast
  *
  * The page's colours are named by `PageTone` in `icon-heading.tsx`. Outside
  * any page — a test, a portal — the brand's blue stands in.
@@ -84,4 +86,10 @@
     var(--mantine-color-gray-9),
     var(--mantine-color-white)
   );
+}
+
+/* Declared where the shades are, so it resolves to that page's colour. */
+:root,
+[data-page-tone] {
+  --noesis-tone-ink: light-dark(var(--noesis-tone-6), var(--noesis-tone-4));
 }

@@ -95,6 +95,10 @@
           "description": "What is raised on the rail: the change's card and the item you are on. White in light, dark 7 in dark, from `cssVariablesResolver` in `theme.ts`."
         },
         {
+          "name": "--noesis-brand-mark",
+          "description": "The Noesis mark's colour, from the brand book: navy #2B2D3C in light, cyan #7EE3E8 in dark, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
           "name": "--noesis-focus-ring",
           "description": "The outline a control takes under the keyboard (`:focus-visible`), in the brand filled colour; each rule sets its own offset. from `cssVariablesResolver` in `theme.ts`."
         },
@@ -103,28 +107,32 @@
           "description": "Lines and borders of the architecture diagram: its edges and adapter cards. Gray 6 / dark 2, from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-card",
-          "description": "Background of a building-block card in the architecture diagram. White / dark 6, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-card",
+          "description": "A card on any diagram, the exploration's and the architecture's. White / dark 6, from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-module",
-          "description": "Fill of a module's hexagon in the architecture diagram. Brand 0 / dark 8, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-card-border",
+          "description": "A diagram card's hairline. Gray 3 / dark 4, from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-module-border",
-          "description": "Stroke of a module's hexagon and its cards in the architecture diagram. Brand 3 / brand 8, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-module",
+          "description": "A module's frame on a diagram: the exploration's container, the architecture's hexagon. Brand 0 at 40% / brand 7 at 6%, from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-core",
-          "description": "Fill of the domain core inside a module's hexagon. Brand 1 / dark 7, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-module-border",
+          "description": "A module frame's edge. Brand 2 / brand 5, from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-core-border",
-          "description": "Stroke of the domain core and its cards. Brand 4 / brand 7, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-block",
+          "description": "A building block's frame, or the architecture's domain core: a shade more than a module's. Brand 0 at 60% / dark 7 at 95%, from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-selection",
-          "description": "What marks the selected element in the architecture diagram, and what relates to it: Mantine's orange filled colour, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-block-border",
+          "description": "A building block frame's edge. Brand 2 / brand 6, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-selection",
+          "description": "What marks the selected element on a diagram, and what relates to it: brand 5, from `cssVariablesResolver` in `theme.ts`."
         },
         {
           "name": "--noesis-requirement-quote",

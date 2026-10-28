@@ -81,13 +81,16 @@ function palette(theme: MantineTheme, scheme: 'light' | 'dark') {
   if (scheme === 'dark') {
     return {
       surface: dark[7],
-      nodeFill: brand[1],
-      nodeStroke: theme.white,
-      nodeText: dark[9],
-      clusterFill: dark[6],
+      // A raised card in the scheme's own greys, edged in one; a pale block
+      // glares, and a blue edge is the one blue thing on the canvas.
+      nodeFill: dark[5],
+      nodeStroke: dark[3],
+      nodeText: dark[0],
+      clusterFill: dark[8],
       clusterStroke: dark[4],
       line: dark[2],
-      labelText: theme.white,
+      // Dark ink: white on the grey chip falls short of 4.5:1.
+      labelText: dark[9],
     };
   }
 
@@ -98,7 +101,7 @@ function palette(theme: MantineTheme, scheme: 'light' | 'dark') {
     nodeText: brand[9],
     clusterFill: gray[1],
     clusterStroke: gray[4],
-    line: gray[6],
+    line: gray[7],
     labelText: theme.white,
   };
 }

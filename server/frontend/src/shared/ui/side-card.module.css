@@ -88,6 +88,6 @@
   );
 
   & svg {
-    color: var(--noesis-tone-filled);
+    color: var(--noesis-tone-ink);
   }
 }

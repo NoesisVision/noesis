@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-linejoin="round" stroke-linecap="round">
+  <!-- The brand book's small-size mark (under 24px): outline 2, N 1.5, nodes r 1.6. Navy on a light tab strip, cyan on a dark one. -->
+  <style>
+    .mark { stroke: #2b2d3c; fill: none; }
+    .node { fill: #2b2d3c; }
+    @media (prefers-color-scheme: dark) {
+      .mark { stroke: #7ee3e8; }
+      .node { fill: #7ee3e8; }
+    }
+  </style>
+  <path class="mark" d="M12 1.75L20.75 6.75V17.25L12 22.25L3.25 17.25V6.75Z" stroke-width="2"/>
+  <path class="mark" d="M8.5 15.5V8.5L15.5 15.5V8.5" stroke-width="1.5"/>
+  <circle class="node" cx="8.5" cy="8.5" r="1.6"/>
+  <circle class="node" cx="8.5" cy="15.5" r="1.6"/>
+  <circle class="node" cx="15.5" cy="8.5" r="1.6"/>
+  <circle class="node" cx="15.5" cy="15.5" r="1.6"/>
+</svg>

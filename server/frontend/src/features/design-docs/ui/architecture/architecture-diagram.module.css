@@ -56,8 +56,8 @@
  */
 .card,
 .swatch {
-  --kind-border: 1px solid var(--noesis-architecture-edge);
-  --kind-fill: var(--noesis-architecture-card);
+  --kind-border: 1px solid var(--noesis-diagram-card-border);
+  --kind-fill: var(--noesis-diagram-card);
 
   /* Not designed: the design holds no adapters, and names no caller. */
   &[data-kind='caller'],
@@ -71,14 +71,6 @@
     --kind-border: 1px solid transparent;
     --kind-fill: var(--mantine-color-brand-filled);
     --kind-ink: var(--mantine-color-white);
-  }
-
-  &[data-kind='service'] {
-    --kind-border: 1px solid var(--noesis-architecture-module-border);
-  }
-
-  &[data-kind='element'] {
-    --kind-border: 1px solid var(--noesis-architecture-core-border);
   }
 
   &[data-kind='drivenPort'] {
@@ -119,24 +111,24 @@
 }
 
 .hexagon polygon {
-  fill: var(--noesis-architecture-module);
-  stroke: var(--noesis-architecture-module-border);
-  stroke-width: 2px;
+  fill: var(--noesis-diagram-module);
+  stroke: var(--noesis-diagram-module-border);
+  stroke-width: 1px;
 }
 
 .core polygon {
-  fill: var(--noesis-architecture-core);
-  stroke: var(--noesis-architecture-core-border);
-  stroke-width: 1.5px;
+  fill: var(--noesis-diagram-block);
+  stroke: var(--noesis-diagram-block-border);
+  stroke-width: 1px;
 }
 
 .frame[data-state='selected'] .hexagon polygon {
-  stroke: var(--noesis-architecture-selection);
+  stroke: var(--noesis-diagram-selection);
   stroke-width: 3px;
 }
 
 .frame[data-state='related'] .hexagon polygon {
-  stroke: var(--noesis-architecture-selection);
+  stroke: var(--noesis-diagram-selection);
   stroke-dasharray: 8 6;
 }
 
@@ -176,7 +168,7 @@
 
 .edge :global(.react-flow__edge-path) {
   stroke: var(--noesis-architecture-edge);
-  stroke-width: 2px;
+  stroke-width: 1.5px;
 }
 
 /* One look for every card; its kind sets the border, the fill and the ink. */
@@ -189,15 +181,20 @@
   height: 100%;
   padding: 4px var(--mantine-spacing-xs);
   border: var(--kind-border);
-  border-radius: var(--mantine-radius-md);
+  /* The exploration's card: as round, as lightly lifted, lifted more under the pointer. */
+  border-radius: 12px;
   background: var(--kind-fill);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
   color: var(--kind-ink, var(--mantine-color-text));
+  transition: box-shadow 0.15s ease;
   /* A change mark is ringed in the card's fill, as in the tree in the page's. */
   --change-ring: var(--kind-fill);
   pointer-events: all;
 
   &:hover {
-    filter: brightness(0.97);
+    box-shadow:
+      0 4px 12px rgba(16, 24, 40, 0.08),
+      0 1px 3px rgba(16, 24, 40, 0.06);
   }
 
   &:focus-visible {
@@ -231,12 +228,12 @@
 
   /* Outlined as well as coloured: in hand, solid; concerned, dashed. */
   &[data-state='selected'] {
-    outline: 3px solid var(--noesis-architecture-selection);
+    outline: 3px solid var(--noesis-diagram-selection);
     outline-offset: 2px;
   }
 
   &[data-state='related'] {
-    outline: 2px dashed var(--noesis-architecture-selection);
+    outline: 2px dashed var(--noesis-diagram-selection);
     outline-offset: 2px;
   }
 }

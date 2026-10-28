@@ -1,7 +1,10 @@
 import {
   ActionIcon,
+  alpha,
   Button,
   Card,
+  Checkbox,
+  CheckboxIndicator,
   CloseButton,
   Combobox,
   createTheme,
@@ -10,8 +13,10 @@ import {
   Menu,
   Modal,
   Popover,
+  Radio,
   SegmentedControl,
   Splitter,
+  Switch,
 } from '@mantine/core';
 import classes from './theme.module.css';
 
@@ -71,6 +76,14 @@ export const theme = createTheme({
       classNames: { dropdown: classes.dropdown, option: classes.dropdownRow },
     }),
     Popover: Popover.extend({ defaultProps: { radius: 18 } }),
+    Checkbox: Checkbox.extend({ classNames: { input: classes.choiceInput } }),
+    CheckboxIndicator: CheckboxIndicator.extend({
+      classNames: { indicator: classes.choiceInput },
+    }),
+    Radio: Radio.extend({ classNames: { radio: classes.choiceInput } }),
+    Switch: Switch.extend({
+      classNames: { input: classes.switchInput, track: classes.switchTrack },
+    }),
     // Every split the same: a gap of the page with a slim grip in it.
     Splitter: Splitter.extend({
       defaultProps: { lineSize: 18 },
@@ -92,40 +105,70 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
     variables: {
       // The outline a control takes under the keyboard; each says its own offset.
       '--noesis-focus-ring': '2px solid var(--mantine-color-brand-filled)',
-      '--noesis-architecture-selection': 'var(--mantine-color-orange-filled)',
+      // The diagrams' accent: what is in hand, and what it reaches.
+      '--noesis-diagram-selection': 'var(--mantine-color-brand-5)',
     },
     light: {
       // Quieter than the text, with a step more contrast than Mantine's dimmed.
       '--noesis-secondary-text': gray[7],
       '--noesis-architecture-edge': gray[6],
-      '--noesis-architecture-card': current.white,
-      '--noesis-architecture-module': brand[0],
-      '--noesis-architecture-module-border': brand[3],
-      '--noesis-architecture-core': brand[1],
-      '--noesis-architecture-core-border': brand[4],
+      // Every diagram's surfaces, the exploration's and the architecture's:
+      // white cards on a hairline; a module a frame of the faintest blue, a
+      // building block (or a domain core) a shade more, so the two read apart.
+      '--noesis-diagram-card': current.white,
+      '--noesis-diagram-card-border': gray[3],
+      '--noesis-diagram-module': alpha(brand[0], 0.4),
+      '--noesis-diagram-module-border': brand[2],
+      '--noesis-diagram-block': alpha(brand[0], 0.6),
+      '--noesis-diagram-block-border': brand[2],
       '--noesis-requirement-quote': gray[0],
       '--noesis-requirement-gap': red[8],
       // The app's navigation: a tinted rail with white surfaces raised on it.
       '--noesis-rail-background': gray[1],
       '--noesis-rail-border': gray[2],
       '--noesis-rail-surface': current.white,
+      // The brand book's navy and cyan, the mark's two colours.
+      '--noesis-brand-mark': '#2b2d3c',
     },
     dark: {
+      ...softLightVariant(current),
       '--noesis-secondary-text': dark[1],
       '--noesis-architecture-edge': dark[2],
-      '--noesis-architecture-card': dark[6],
-      '--noesis-architecture-module': dark[8],
-      '--noesis-architecture-module-border': brand[8],
-      '--noesis-architecture-core': dark[7],
-      '--noesis-architecture-core-border': brand[7],
+      '--noesis-diagram-card': dark[6],
+      '--noesis-diagram-card-border': dark[4],
+      '--noesis-diagram-module': alpha(brand[7], 0.06),
+      // A frame's edge holds 3:1 against its own fill, or it is lost in the
+      // dark: brand 5 on a module's tint, brand 6 on a building block's grey.
+      '--noesis-diagram-module-border': brand[5],
+      // In the dark, a step under the cards it holds, so they stand off it.
+      '--noesis-diagram-block': alpha(dark[7], 0.95),
+      '--noesis-diagram-block-border': brand[6],
       '--noesis-rail-background': dark[8],
       '--noesis-rail-border': dark[5],
       '--noesis-rail-surface': dark[7],
+      '--noesis-brand-mark': '#7ee3e8',
       '--noesis-requirement-quote': dark[6],
       '--noesis-requirement-gap': red[4],
     },
   };
 };
+
+/**
+ * The `light` variant in the dark — a badge, a light button, an active nav
+ * row, an icon tile — as a wash of the colour over the page with a pale ink.
+ * Mantine 9 paints it as shade 9 darkened by half instead, a deep saturated
+ * block that sinks into the dark surfaces around it rather than standing on
+ * them. Every colour of the theme alike, so no view has to correct it.
+ */
+function softLightVariant(theme: Parameters<CSSVariablesResolver>[0]) {
+  return Object.fromEntries(
+    Object.entries(theme.colors).flatMap(([name, shades]) => [
+      [`--mantine-color-${name}-light`, alpha(shades[4], 0.15)],
+      [`--mantine-color-${name}-light-hover`, alpha(shades[4], 0.22)],
+      [`--mantine-color-${name}-light-color`, shades[2]],
+    ]),
+  );
+}
 
 // `index.html` reads the same key.
 const COLOR_SCHEME_KEY = 'noesis.shell.colorScheme';

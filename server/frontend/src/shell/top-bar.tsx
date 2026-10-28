@@ -11,7 +11,6 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { use } from 'react';
 import { currentProject } from '#/features/project/project.api.ts';
-import noesisLogo from '#/noesis.png';
 import { ActionIcon } from '#/shared/design-system/action-icon';
 import { Box } from '#/shared/design-system/box';
 import { Burger } from '#/shared/design-system/burger';
@@ -33,6 +32,7 @@ import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { ShellFullscreenContext } from '#/shared/ui/shell-fullscreen.tsx';
 import { APP_PUBLIC_NAV } from '#/shell/navigation/nav-items.ts';
 import { DevToolsDialog } from './dev-tools-dialog.tsx';
+import { NoesisMark } from './noesis-mark.tsx';
 import { SearchDialog } from './search/search-dialog.tsx';
 import classes from './top-bar.module.css';
 
@@ -51,7 +51,9 @@ export function TopBar({ navbarOpened, onToggleNavbar }: TopBarProps) {
   return (
     <Group
       h="100%"
-      pl="md"
+      // From `md` the rail is beside the bar, and folded it is a 64px column
+      // of icons (`shell-layout.tsx`): (64 - 24) / 2 puts the mark over them.
+      pl={{ base: 'md', md: 20 }}
       pr="sm"
       gap="sm"
       wrap="nowrap"
@@ -80,10 +82,15 @@ function Brand() {
   const { data: project } = useQuery(currentProject);
   return (
     <Group gap={8} wrap="nowrap" className={classes.brand}>
-      <img src={noesisLogo} alt="" width={22} height={22} />
-      <Text fw={700} className={classes.app}>
-        Noesis
-      </Text>
+      {/* The book's lockup: a 24px mark, 0.3 of it apart from the wordmark. */}
+      <Group gap={7} wrap="nowrap" className={classes.app}>
+        <Box className={classes.mark}>
+          <NoesisMark size={24} />
+        </Box>
+        <Text fw={600} fz={18} lh={1}>
+          Noesis
+        </Text>
+      </Group>
       {project?.name && (
         <>
           <Text component="span" className={classes.slash} aria-hidden>

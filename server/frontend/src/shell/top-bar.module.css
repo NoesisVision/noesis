@@ -20,6 +20,11 @@
   flex: none;
 }
 
+/* The mark in its book's colours: navy on the light bar, cyan on the dark. */
+.mark {
+  color: var(--noesis-brand-mark);
+}
+
 .slash.slash {
   flex: none;
   color: light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-3));

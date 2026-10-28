@@ -224,8 +224,9 @@ function Canvas({ svg, name }: { svg: string; name: string }) {
   return (
     <>
       <Group justify="flex-end">
+        {/* As a canvas's toolbar draws them, the exploration's and the architecture's. */}
         <ZoomControls
-          size="lg"
+          quiet
           zoom={view.scale}
           onZoomOut={() => zoomBy(1 / BUTTON_STEP)}
           onZoomIn={() => zoomBy(BUTTON_STEP)}

@@ -35,7 +35,7 @@ createRoot(rootElement).render(
     <MantineProvider
       theme={theme}
       cssVariablesResolver={cssVariablesResolver}
-      defaultColorScheme="auto"
+      defaultColorScheme="light"
       colorSchemeManager={colorSchemeManager}
     >
       <FullscreenPortals>

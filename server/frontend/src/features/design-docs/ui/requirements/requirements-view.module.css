@@ -82,7 +82,7 @@
 /* Named with the line, to win over the text's own weight. */
 .needEyebrow .needKind {
   font-weight: 600;
-  color: var(--mantine-color-brand-7);
+  color: light-dark(var(--mantine-color-brand-7), var(--mantine-color-brand-4));
 }
 
 /* Named with what holds it, to win over the title's own type scale. */
@@ -118,10 +118,13 @@
 }
 
 .coverageVerified {
-  color: var(--mantine-color-red-7);
+  color: light-dark(var(--mantine-color-red-7), var(--mantine-color-red-4));
 
   .coverage[data-complete] & {
-    color: var(--mantine-color-green-7);
+    color: light-dark(
+      var(--mantine-color-green-7),
+      var(--mantine-color-green-4)
+    );
   }
 }
 
