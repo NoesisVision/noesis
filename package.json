@@ -20,7 +20,7 @@
     "format": "oxfmt",
     "format:check": "oxfmt --check",
     "fix": "bun run lint:fix && bun run format && knip --fix",
-    "check-types": "tsc --noEmit && bun run --filter '*' check-types",
+    "check-types": "bun check && bun run --filter '*' check-types",
     "generate": "bun run --filter '*' generate",
     "prepare": "git config core.hooksPath .githooks || true",
     "ci": "bun run --parallel --no-exit-on-error lint knip format:check check-types && bun run test && bun run test:e2e && bun run build"

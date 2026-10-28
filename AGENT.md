@@ -21,7 +21,7 @@ bun run start:debug         # backend only on :3000 with bun's inspector
 bun run ci                  # the one definition of "verified" (the pre-push hook): lint, knip, format:check, check-types, test, test:e2e, build
 bun run lint                # oxlint (type-aware + backend layer rules); lint:fix to autofix
 bun run format              # oxfmt on code and Markdown; format:check to verify
-bun run check-types         # tsc --noEmit in every workspace
+bun run check-types         # bun check in every workspace (tsc-compatible errors)
 bun run knip                # unused files/exports/deps across workspaces
 bun run test                # unit + integration in every workspace, one workspace at a time
 bun run test:e2e            # service boot, MCP session, SPA from source

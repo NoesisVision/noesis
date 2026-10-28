@@ -160,7 +160,7 @@ Only `.claude-plugin/plugin.json`, `.mcp.json`, `contracts/`, `hooks/`, `skills/
 | `bun run build`        | Generate `contracts/`, build the service into `server/` (`prepack`) |
 | `bun run generate`     | Stamp the version into `plugin.json`                                |
 | `bun test`             | Contracts build, tarball contents, the shipped service boots        |
-| `bun run check-types`  | `tsc --noEmit`                                                      |
+| `bun run check-types`  | `bun check`                                                         |
 | `bun run bump <v>`     | Bump plugin + service versions and the matching marketplace pin     |
 | `bun run release:beta` | Bump, generate, smoke-test the tarball, commit, tag, push           |
 | `bun run publish:beta` | Local fallback: `bun publish --tag beta` (never raw `npm publish`)  |

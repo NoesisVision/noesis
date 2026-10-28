@@ -25,7 +25,7 @@
     "build": "bun run tools/build-contracts.ts contracts && bun run tools/build-service.ts",
     "prepack": "bun run build",
     "test": "bun test",
-    "check-types": "tsc --noEmit",
+    "check-types": "bun check",
     "bump": "bun run tools/bump-version.ts",
     "release:beta": "bun run tools/release-beta.ts",
     "publish:beta": "bun publish --tag beta",
