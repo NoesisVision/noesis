@@ -1,6 +1,6 @@
 ---
 name: setup-java-scanner
-description: Set up Noesis scanning for a Java repository — add the Noesis parser plugin to its Maven or Gradle build, add the noesis-annotations dependency its domain code is annotated with, and write the "parser" of .noesis/settings.json that runs the build — then prove it with a scan. Use when the user asks to set up, configure, enable or fix Noesis scanning for a Java, Maven, Gradle or Spring project, when `scan_system_model` fails because .noesis/settings.json is missing or names no parser, or when the session start notice offers it.
+description: Set up Noesis scanning for a Java repository — add the Noesis parser plugin to its Maven or Gradle build, add the noesis-annotations dependency its domain code is annotated with, and write the "parser" of .noesis/settings.json that runs the build — then prove it with a scan. Use when the user asks to set up, configure, enable or fix Noesis scanning for a Java, Maven, Gradle or Spring project, when `scan_system_model` fails because .noesis/settings.json is missing or names no parser, when the session start notice offers it, or when `scan_system_model` refuses the code model schema the Java parser wrote (the parser or the plugin is out of date).
 argument-hint: [maven|gradle] [engine]
 ---
 
@@ -17,19 +17,33 @@ write is all it knows.
 
 Ask before editing any build file, and show the user what you changed.
 
-## Versions and where the artifacts come from
+## Where the artifacts come from
 
-| Artifact                            | Coordinates                                      |
-| ----------------------------------- | ------------------------------------------------ |
-| Annotations                         | `vision.noesis:noesis-annotations:0.1.0`         |
-| Maven plugin (goal prefix `noesis`) | `vision.noesis:noesis-parser-maven-plugin:0.1.0` |
-| Gradle plugin                       | id `vision.noesis.parser`, version `0.1.0`       |
+| Artifact                            | Coordinates                                |
+| ----------------------------------- | ------------------------------------------ |
+| Annotations                         | `vision.noesis:noesis-annotations`         |
+| Maven plugin (goal prefix `noesis`) | `vision.noesis:noesis-parser-maven-plugin` |
+| Gradle plugin                       | id `vision.noesis.parser`                  |
 
-All three are on Maven Central. The Gradle plugin is on Maven Central only,
-not on the Gradle Plugin Portal, so a Gradle build needs `mavenCentral()`
-among its plugin repositories. `0.1.0` is the version this skill was written
-for; a newer one is listed in
-`https://repo1.maven.org/maven2/vision/noesis/noesis-annotations/maven-metadata.xml`.
+All three are on Maven Central and release together, under one version.
+The Gradle plugin is on Maven Central only, not on the Gradle Plugin
+Portal, so a Gradle build needs `mavenCentral()` among its plugin
+repositories.
+
+This skill names no version: it installs the newest release, which step 6
+looks up. Below, `<version>` stands for that release; write the version
+itself in its place.
+
+What ties a parser release to this plugin is the code model schema: the
+parser writes one schema version, the Noesis service in this plugin reads
+one, and a scan refuses a model of another. Which release writes which
+schema is in the "Compatibility" table of the parser's README,
+`https://raw.githubusercontent.com/NoesisVision/noesis/main/code-parsers/java/README.md`.
+[Update](#update) is what to do when a scan refuses it.
+
+The annotations need not move with the parser: the parser reads them by
+name, so a build may keep an older `noesis-annotations` when the parser
+plugin moves on.
 
 ## Steps
 
@@ -66,8 +80,14 @@ for; a newer one is listed in
    repositories named under [Gradle](#gradle). When a mirror or a company
    repository stands in for Central, tell the user the three coordinates
    above must be available there.
-6. **Edit the build.** Follow [Maven](#maven) or [Gradle](#gradle) below.
-7. **Write `.noesis/settings.json`.** Create `.noesis/` if needed. Use the
+6. **Resolve the version.** Read the `<release>` element of
+   `https://repo1.maven.org/maven2/vision/noesis/noesis-parser-maven-plugin/maven-metadata.xml`:
+   that is `<version>` for the plugin and for the annotations (the Gradle
+   plugin and the annotations release with it). Without network access,
+   ask the user for the version. When the build already pins
+   `noesis-annotations`, keep its version for the annotations.
+7. **Edit the build.** Follow [Maven](#maven) or [Gradle](#gradle) below.
+8. **Write `.noesis/settings.json`.** Create `.noesis/` if needed. Use the
    command for the build from [the settings](#the-settings), and fill in:
    - `namespacePartsToSkip`: the package prefix every module shares and
      that says nothing about the domain, usually the organisation part of
@@ -76,16 +96,17 @@ for; a newer one is listed in
    - `namespacesToExclude`: patterns of packages to leave out of the model,
      where `*` stands for any number of parts (`*.config.*`). Empty unless
      the user asks.
-8. **Prove it.** Call `scan_system_model`. On success, report what the
+9. **Prove it.** Call `scan_system_model`. On success, report what the
    model holds: its modules and how many building blocks it found. Before
    anything is annotated, the model has modules but no building blocks;
    say so, so an empty model does not look like a failure. On failure, the
    error carries the end of the build's output: fix what it names (a
-   missing artifact or plugin is step 5, a JRE is step 3) and scan again.
-9. **Tell the user what is next.** The parser turns annotated types into
-   building blocks: list the [annotations](#annotations) and offer to
-   annotate the existing domain code. Do not annotate it as part of this
-   setup.
+   missing artifact or plugin is step 5, a JRE is step 3, a code model
+   schema the plugin does not read is [Update](#update)) and scan again.
+10. **Tell the user what is next.** The parser turns annotated types into
+    building blocks: list the [annotations](#annotations) and offer to
+    annotate the existing domain code. Do not annotate it as part of this
+    setup.
 
 ## Maven
 
@@ -97,7 +118,7 @@ every module of a reactor; `pom` modules are skipped:
 <plugin>
   <groupId>vision.noesis</groupId>
   <artifactId>noesis-parser-maven-plugin</artifactId>
-  <version>0.1.0</version>
+  <version><version></version>
   <!-- Only with annotation processors (Lombok): -->
   <configuration>
     <engine>hybrid</engine>
@@ -112,7 +133,7 @@ code; in a single-module build that is the root `pom.xml`:
 <dependency>
   <groupId>vision.noesis</groupId>
   <artifactId>noesis-annotations</artifactId>
-  <version>0.1.0</version>
+  <version><version></version>
 </dependency>
 ```
 
@@ -142,7 +163,7 @@ plugin in dependency order:
 
 ```groovy
 plugins {
-    id 'vision.noesis.parser' version '0.1.0'
+    id 'vision.noesis.parser' version '<version>'
 }
 
 // Only with annotation processors (Lombok):
@@ -163,7 +184,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'vision.noesis:noesis-annotations:0.1.0'
+    implementation 'vision.noesis:noesis-annotations:<version>'
 }
 ```
 
@@ -180,7 +201,7 @@ pluginManagement {
 
 // build.gradle.kts
 plugins {
-    id("vision.noesis.parser") version "0.1.0"
+    id("vision.noesis.parser") version "<version>"
 }
 
 noesis {
@@ -192,13 +213,47 @@ repositories {
 }
 
 dependencies {
-    implementation("vision.noesis:noesis-annotations:0.1.0")
+    implementation("vision.noesis:noesis-annotations:<version>")
 }
 ```
 
 A version catalog (`gradle/libs.versions.toml`) in the build: add the
 annotations and the plugin there and refer to them through it, as the build
 does for its other dependencies.
+
+## Update
+
+When `scan_system_model` fails with
+`noesis-parse-java <release> wrote code model schema <P>; this Noesis plugin reads schema <S>.`,
+the parser and the plugin disagree on the code model schema. Settings and
+annotations stay as they are; only the parser's version moves, or the
+plugin.
+
+- **The parser is behind** (`<P>` is less than `<S>`). Look up the newest
+  release as in step 6, and check in the compatibility table that it writes
+  schema `<S>`; when none does yet, tell the user that no parser release
+  writes the schema this plugin reads yet, and stop. Otherwise set the pins to it:
+  - Maven: the `<version>` of `noesis-parser-maven-plugin`, and of
+    `noesis-annotations` (or the property or `<dependencyManagement>`
+    entry they take it from).
+  - Gradle: the `id 'vision.noesis.parser' version` line in `plugins {}`,
+    and the `noesis-annotations` line in `dependencies {}`; with a version
+    catalog, its entries in `gradle/libs.versions.toml`.
+
+  Moving the annotations is optional (see above); ask when the build pins
+  them apart from the parser. Then scan again.
+
+- **The parser is ahead** (`<P>` is greater than `<S>`). Offer the user two
+  ways, the first recommended:
+  1. Update the plugin, so it reads schema `<P>`:
+     `/plugin marketplace update noesis`, then
+     `/plugin update noesis-beta@noesis`, then restart Claude Code or run
+     `/reload-plugins`. The user runs these; you cannot.
+  2. Keep the plugin and pin the parser back: read the compatibility table,
+     take the newest release whose schema is `<S>`, and set the pins to it
+     as for a parser that is behind.
+
+  After either, scan again.
 
 ## The settings
 

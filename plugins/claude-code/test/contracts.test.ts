@@ -47,4 +47,28 @@ describe('plugins/claude-code/contracts', () => {
     expect(named.length).toBeGreaterThan(0);
     expect(named.filter((f) => !existsSync(join(contractsDir, f)))).toEqual([]);
   });
+
+  // A skill installs the newest parser release, which it looks up; a
+  // literal version would go stale with the next release.
+  test('no skill pins a Noesis artifact to a literal version', async () => {
+    const skills = (await readdir(skillsDir, { recursive: true })).filter((f) =>
+      f.endsWith('SKILL.md'),
+    );
+    const literal = [
+      /vision\.noesis[\w.-]*:[\w.-]+:\d+\.\d+\.\d+/g,
+      /<artifactId>noesis-[\w-]+<\/artifactId>\s*<version>\d+\.\d+\.\d+/g,
+      /version\s+'\d+\.\d+\.\d+[^']*'/g,
+      /version\s+"\d+\.\d+\.\d+[^"]*"/g,
+    ];
+    const pinned: string[] = [];
+    for (const skill of skills) {
+      const text = await readFile(join(skillsDir, skill), 'utf8');
+      for (const pattern of literal) {
+        pinned.push(
+          ...(text.match(pattern) ?? []).map((match) => `${skill}: ${match}`),
+        );
+      }
+    }
+    expect(pinned).toEqual([]);
+  });
 });
