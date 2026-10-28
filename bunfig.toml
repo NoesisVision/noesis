@@ -1,9 +1,16 @@
 # Bun configuration — https://bun.com/docs/runtime/bunfig
 #
-# Registry/auth goes under [install], e.g.:
+# Registry/auth goes under [install] too, e.g.:
 #
 # [install]
 # registry = "https://registry.npmjs.org"
 #
 # [install.scopes]
 # "mycompany" = { url = "https://npm.pkg.github.com", token = "$NPM_TOKEN" }
+
+[install]
+# Resolve only package versions published at least 3 days ago, the same delay
+# renovate.json waits, so a local `bun add` or `bun update` cannot pull in a
+# release that was compromised and pulled within days. Seconds, not "3d": the
+# unit syntax needs Bun 1.4.4 and older local installs would reject it.
+minimumReleaseAge = 259200
