@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["tools", "skills", "test"],
+  "include": ["tools", "skills", "hooks", "test"],
   "exclude": ["node_modules"]
 }
