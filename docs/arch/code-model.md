@@ -70,6 +70,35 @@ Each model file has five parts, and the rest of this page takes them in turn:
 Every list is sorted, so two parses of the same code produce byte-identical
 files.
 
+### Versions
+
+`schemaVersion` is the contract between a parser and the service, and the
+only one: the service knows no parser version.
+
+- A **parser** writes one schema version, in the manifest and in every model
+  file: `CURRENT_SCHEMA_VERSION` in the Java parser's `ParseManifest`,
+  `CurrentSchemaVersion` in the .NET one's. A parser release that moves to a
+  new schema is a major release, and its README's compatibility table says
+  which schema each release writes.
+- The **service** reads one schema version, `CODE_MODEL_SCHEMA_VERSION` in
+  `code-model.ts`. Any change to the shape of the model bumps it: the
+  schemas are strict, so even an added field is one an older service
+  refuses. A unit test keeps the three declarations equal while the parsers
+  live in this repository.
+- A **scan** reads the manifest's `schemaVersion` and `generator` first,
+  before the rest of it, and refuses a schema the service does not read,
+  naming both sides and the side to update:
+  `noesis-parse-java 2.0.0 wrote code model schema 2; this Noesis plugin reads schema 1. Update the plugin …`
+  for a parser ahead, `… Update the parser with the setup-java-scanner skill.`
+  for one behind.
+
+A parser release that keeps the schema needs nothing from the service or
+the plugin. One that changes it goes first: the plugin release that reads
+the new schema follows once that parser is on Maven Central, or every scan
+of a freshly set up build would be refused. The skills install the newest
+parser release and pin it back by the compatibility table when the plugin
+is behind.
+
 ## 2. The graph in one picture
 
 The model is a graph. Six node kinds carry the structure; eight edge kinds

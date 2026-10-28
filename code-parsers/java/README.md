@@ -30,6 +30,18 @@ committed report counts every difference from the source engine by category
 for every engine, and the `*FactsTest` classes pin the facts the .NET
 parser's tests pin, against every engine that holds them.
 
+## Compatibility
+
+The Noesis service reads one version of the code model schema, and a scan
+refuses a model written in another (see "Versions" in
+[`docs/arch/code-model.md`](../../docs/arch/code-model.md)). The table says
+which schema each release writes; the `setup-java-scanner` skill of the
+Claude Code plugin reads it to pick a release the plugin can read.
+
+| Parser release | Code model schema |
+| -------------- | ----------------- |
+| 0.1.0          | 1                 |
+
 ## Layout
 
 | Path                                               | What it is                                                                                                                               |
@@ -264,6 +276,11 @@ steps:
 Tests do not run in the release: the core's tests pin the `-SNAPSHOT`
 version, so tag a commit the CI's Java parser job has passed. A version on
 Central can never be replaced or removed.
+
+Every release adds its row to the [compatibility table](#compatibility), in
+the commit the tag points at. A release that writes a new schema
+(`ParseManifest.CURRENT_SCHEMA_VERSION`) is a major bump, and goes out
+before the plugin release that reads it.
 
 The workflow reads four repository secrets: `CENTRAL_USERNAME` and
 `CENTRAL_PASSWORD`, a user token from central.sonatype.com, and

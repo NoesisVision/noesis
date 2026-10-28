@@ -113,7 +113,8 @@ nothing.
   field the agent left alone in the person's name; `setup-java-scanner`
   adds the Noesis parser plugin and the `noesis-annotations` dependency, both
   from Maven Central, to a Maven or Gradle build and writes the `parser` of `.noesis/settings.json`
-  that runs it; `setup-dotnet-scanner` installs the `noesis-parse-csharp`
+  that runs it, and moves the parser to a release the plugin reads when a
+  scan refuses its code model schema; `setup-dotnet-scanner` installs the `noesis-parse-csharp`
   tool, adds the `NoesisVision.Annotations` package to the domain projects
   and writes `{ "language": "csharp" }` there. Both prove the setup with
   `scan_system_model`. A skill
@@ -141,7 +142,8 @@ nothing.
   `bump-version.ts` and `release-beta.ts`; behind the scripts below and not
   shipped.
 - `test/` — asserts a build leaves only fresh contracts, that every
-  contract a skill names is among them, that a packed tarball carries exactly the shipped files, skills and service included,
+  contract a skill names is among them, that no skill pins a Noesis
+  artifact to a literal version, that a packed tarball carries exactly the shipped files, skills and service included,
   that the service in it boots, lists its tools and serves the page,
   and that the skill scripts do what their skills say: the working-file
   script copies its source verbatim, the human-fields script names every
@@ -219,3 +221,10 @@ bun run generate     # stamps .claude-plugin/plugin.json
 git commit -am "Release 0.2.0"
 git tag -a v0.2.0 -m "Release 0.2.0" && git push origin main v0.2.0
 ```
+
+The plugin and the parsers meet only at the code model schema
+(`CODE_MODEL_SCHEMA_VERSION` in `server/backend`; "Versions" in
+`docs/arch/code-model.md`). A plugin release that changes it needs a parser
+release writing that schema on Maven Central first, or every scan refuses
+until one exists; its release note names the schema it reads. A release
+that keeps the schema needs nothing from the parsers.

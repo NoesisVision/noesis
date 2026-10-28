@@ -12,6 +12,11 @@ The parser never fails because code does not compile: unbound names become
 `unresolved` type references, unbound call sites become diagnostics, and a
 project that cannot load becomes an empty model with the error.
 
+The tool writes code model schema 1 (`ParseManifest.CurrentSchemaVersion`),
+the one the Noesis service in this checkout reads; see "Versions" in
+[`docs/arch/code-model.md`](../../docs/arch/code-model.md). It has no
+releases yet, so no compatibility table.
+
 ## Layout
 
 | Path                        | What it is                                                                                                   |
