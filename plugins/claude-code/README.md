@@ -111,8 +111,8 @@ nothing.
   asks before changing any of them, edits it as the user asks and stores it
   in place through `update_design_doc_in_change`, which keeps an accepted
   field the agent left alone in the person's name; `setup-java-scanner`
-  adds the Noesis parser plugin and the `noesis-annotations` dependency to a
-  Maven or Gradle build and writes the `parser` of `.noesis/settings.json`
+  adds the Noesis parser plugin and the `noesis-annotations` dependency, both
+  from Maven Central, to a Maven or Gradle build and writes the `parser` of `.noesis/settings.json`
   that runs it; `setup-dotnet-scanner` installs the `noesis-parse-csharp`
   tool, adds the `NoesisVision.Annotations` package to the domain projects
   and writes `{ "language": "csharp" }` there. Both prove the setup with

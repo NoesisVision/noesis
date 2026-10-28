@@ -19,15 +19,17 @@ Ask before editing any build file, and show the user what you changed.
 
 ## Versions and where the artifacts come from
 
-| Artifact                            | Coordinates                                               |
-| ----------------------------------- | --------------------------------------------------------- |
-| Annotations                         | `vision.noesis:noesis-annotations:0.1.0-SNAPSHOT`         |
-| Maven plugin (goal prefix `noesis`) | `vision.noesis:noesis-parser-maven-plugin:0.1.0-SNAPSHOT` |
-| Gradle plugin                       | id `vision.noesis.parser`, version `0.1.0-SNAPSHOT`       |
+| Artifact                            | Coordinates                                      |
+| ----------------------------------- | ------------------------------------------------ |
+| Annotations                         | `vision.noesis:noesis-annotations:0.1.0`         |
+| Maven plugin (goal prefix `noesis`) | `vision.noesis:noesis-parser-maven-plugin:0.1.0` |
+| Gradle plugin                       | id `vision.noesis.parser`, version `0.1.0`       |
 
-None of them is on Maven Central yet. They are built from the Noesis
-repository (`https://github.com/NoesisVision/noesis`) into the local Maven
-repository (`~/.m2/repository`), where the build finds them.
+All three are on Maven Central. The Gradle plugin is on Maven Central only,
+not on the Gradle Plugin Portal, so a Gradle build needs `mavenCentral()`
+among its plugin repositories. `0.1.0` is the version this skill was written
+for; a newer one is listed in
+`https://repo1.maven.org/maven2/vision/noesis/noesis-annotations/maven-metadata.xml`.
 
 ## Steps
 
@@ -57,23 +59,13 @@ repository (`~/.m2/repository`), where the build finds them.
    runs no processors, so the members Lombok generates and the calls to them
    would be missing. Otherwise leave the engine out, which means `source`.
    An engine the user names in the arguments wins.
-5. **Make sure the artifacts are installed.** Look in the local repository:
-   - always `~/.m2/repository/vision/noesis/noesis-annotations/0.1.0-SNAPSHOT/`;
-   - Maven: `~/.m2/repository/vision/noesis/noesis-parser-maven-plugin/0.1.0-SNAPSHOT/`;
-   - Gradle: `~/.m2/repository/vision/noesis/parser/vision.noesis.parser.gradle.plugin/0.1.0-SNAPSHOT/`
-     and `~/.m2/repository/vision/noesis/noesis-parser-gradle-plugin/0.1.0-SNAPSHOT/`.
-
-   When any is missing, ask the user for the path of a Noesis checkout, or
-   whether to clone `https://github.com/NoesisVision/noesis` into a directory
-   they choose outside this repository. Building takes a few minutes and
-   needs Maven on a JDK 17+. Then, with their agreement:
-
-   ```sh
-   cd <noesis>/code-parsers/java && mvn -q install -DskipTests
-   # Gradle builds only, after the line above:
-   cd <noesis>/code-parsers/java/gradle-plugin && ./gradlew publishToMavenLocal
-   ```
-
+5. **Check where the build resolves from.** The artifacts come from Maven
+   Central. A Maven build reaches it unless a `<mirror>` in
+   `~/.m2/settings.xml` or the project's `.mvn/` sends everything to a
+   company repository; a Gradle build needs `mavenCentral()` in the
+   repositories named under [Gradle](#gradle). When a mirror or a company
+   repository stands in for Central, tell the user the three coordinates
+   above must be available there.
 6. **Edit the build.** Follow [Maven](#maven) or [Gradle](#gradle) below.
 7. **Write `.noesis/settings.json`.** Create `.noesis/` if needed. Use the
    command for the build from [the settings](#the-settings), and fill in:
@@ -89,7 +81,7 @@ repository (`~/.m2/repository`), where the build finds them.
    anything is annotated, the model has modules but no building blocks;
    say so, so an empty model does not look like a failure. On failure, the
    error carries the end of the build's output: fix what it names (a
-   missing artifact is step 5, a JRE is step 3) and scan again.
+   missing artifact or plugin is step 5, a JRE is step 3) and scan again.
 9. **Tell the user what is next.** The parser turns annotated types into
    building blocks: list the [annotations](#annotations) and offer to
    annotate the existing domain code. Do not annotate it as part of this
@@ -105,7 +97,7 @@ every module of a reactor; `pom` modules are skipped:
 <plugin>
   <groupId>vision.noesis</groupId>
   <artifactId>noesis-parser-maven-plugin</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
   <!-- Only with annotation processors (Lombok): -->
   <configuration>
     <engine>hybrid</engine>
@@ -120,7 +112,7 @@ code; in a single-module build that is the root `pom.xml`:
 <dependency>
   <groupId>vision.noesis</groupId>
   <artifactId>noesis-annotations</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
@@ -130,20 +122,15 @@ the indentation and the place of comments the POM already has.
 
 ## Gradle
 
-In the settings file, let the plugin resolve from the local repository.
-Add `mavenLocal` to an existing `pluginManagement { repositories { } }`.
+In the settings file, let the plugin resolve from Maven Central. Add
+`mavenCentral()` to an existing `pluginManagement { repositories { } }`.
 When there is none, create it with `gradlePluginPortal()` as well, or every
 other plugin of the build stops resolving:
 
 ```groovy
 pluginManagement {
     repositories {
-        mavenLocal {
-            content {
-                includeGroup 'vision.noesis'
-                includeGroup 'vision.noesis.parser'
-            }
-        }
+        mavenCentral()
         gradlePluginPortal()
     }
 }
@@ -155,7 +142,7 @@ plugin in dependency order:
 
 ```groovy
 plugins {
-    id 'vision.noesis.parser' version '0.1.0-SNAPSHOT'
+    id 'vision.noesis.parser' version '0.1.0'
 }
 
 // Only with annotation processors (Lombok):
@@ -165,19 +152,18 @@ noesis {
 ```
 
 Add the annotations to every project that holds domain code, and
-`mavenLocal()` where that project's repositories are declared. When the
-settings file has `dependencyResolutionManagement { repositories { } }`,
-add it there instead; under `FAIL_ON_PROJECT_REPOS` it must go there:
+`mavenCentral()` where that project's repositories are declared, unless it
+is there already. When the settings file has
+`dependencyResolutionManagement { repositories { } }`, add it there instead;
+under `FAIL_ON_PROJECT_REPOS` it must go there:
 
 ```groovy
 repositories {
-    mavenLocal {
-        content { includeGroup 'vision.noesis' }
-    }
+    mavenCentral()
 }
 
 dependencies {
-    implementation 'vision.noesis:noesis-annotations:0.1.0-SNAPSHOT'
+    implementation 'vision.noesis:noesis-annotations:0.1.0'
 }
 ```
 
@@ -187,19 +173,14 @@ In the Kotlin DSL the same lines read:
 // settings.gradle.kts
 pluginManagement {
     repositories {
-        mavenLocal {
-            content {
-                includeGroup("vision.noesis")
-                includeGroup("vision.noesis.parser")
-            }
-        }
+        mavenCentral()
         gradlePluginPortal()
     }
 }
 
 // build.gradle.kts
 plugins {
-    id("vision.noesis.parser") version "0.1.0-SNAPSHOT"
+    id("vision.noesis.parser") version "0.1.0"
 }
 
 noesis {
@@ -207,13 +188,11 @@ noesis {
 }
 
 repositories {
-    mavenLocal {
-        content { includeGroup("vision.noesis") }
-    }
+    mavenCentral()
 }
 
 dependencies {
-    implementation("vision.noesis:noesis-annotations:0.1.0-SNAPSHOT")
+    implementation("vision.noesis:noesis-annotations:0.1.0")
 }
 ```
 
@@ -244,7 +223,7 @@ Maven, with the wrapper (`mvn` without one):
       "process-classes",
       "noesis:parse"
     ],
-    "installHint": "Run the service on a JDK 17+; the build takes noesis-parser-maven-plugin from the local Maven repository (mvn install in noesis/code-parsers/java)."
+    "installHint": "Run the service on a JDK 17+; the build takes noesis-parser-maven-plugin from Maven Central."
   },
   "namespacePartsToSkip": ["com.acme"],
   "namespacesToExclude": []
@@ -269,7 +248,7 @@ Gradle, with the wrapper (`gradle` without one):
       "-Pnoesis.repositoryRoot={root}",
       "-Pnoesis.repository={name}"
     ],
-    "installHint": "Run the service on a JDK 17+; the build takes the vision.noesis.parser plugin from mavenLocal (./gradlew publishToMavenLocal in noesis/code-parsers/java/gradle-plugin, after mvn install in noesis/code-parsers/java)."
+    "installHint": "Run the service on a JDK 17+; the build takes the vision.noesis.parser plugin from Maven Central (mavenCentral() in pluginManagement)."
   },
   "namespacePartsToSkip": ["com.acme"],
   "namespacesToExclude": []
