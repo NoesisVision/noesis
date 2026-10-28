@@ -7,7 +7,8 @@ import {
   type ReactFlowInstance,
 } from '@xyflow/react';
 import '@xyflow/react/dist/base.css';
-import { type ReactNode, useMemo, useState } from 'react';
+import { clsx } from 'clsx';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { useChangeColour } from '#/features/design-docs/ui/model-tree/use-change-colour.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
@@ -23,7 +24,11 @@ import {
   KINDS,
   LEGEND,
 } from './architecture-kinds.ts';
-import { cardIdOf, type DiagramFocus } from './architecture-selection.ts';
+import {
+  cardIdOf,
+  clearOf,
+  type DiagramFocus,
+} from './architecture-selection.ts';
 import { Legend } from './diagram-legend.tsx';
 import {
   CardNode,
@@ -54,6 +59,8 @@ export interface ArchitectureDiagramProps {
   layout: ArchitectureLayout;
   focus: DiagramFocus;
   onSelectElement: (id: string) => void;
+  /** Lets go of what is in hand: a click on the empty canvas, as on the exploration. */
+  onClear?: () => void;
   /** The `DetailsDock` the selection is read in, on the canvas beside the cards it outlines; none with nothing in hand. */
   selection?: ReactNode;
   /** The building block types the hexagons hold, the ones to be left out, and the way to change them. */
@@ -73,11 +80,24 @@ export function ArchitectureDiagram({
   layout,
   focus,
   onSelectElement,
+  onClear,
   selection = null,
   types,
   hiddenTypes,
   onHideTypes,
 }: ArchitectureDiagramProps) {
+  // Escape lets go of what is in hand, as on the exploration; in a field, the
+  // outline, a dialog or a menu it is theirs. Heard on its way down, as a
+  // card's tooltip stops it on its way back up.
+  useEffect(() => {
+    if (onClear === undefined) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || isElsewhere(event.target)) return;
+      onClear();
+    };
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
+  }, [onClear]);
   const [overlays, setOverlays] = useState<Overlays>({
     checks: true,
     rules: false,
@@ -115,16 +135,26 @@ export function ArchitectureDiagram({
       })),
     [layout],
   );
+  const clear = useMemo(() => clearOf(focus, layout.nodes), [focus, layout]);
   const reading = useMemo<DiagramReading>(
     () => ({
       focus,
+      clear,
       findings,
       overlays,
       changeColour,
       pickedKinds,
       onSelect: onSelectElement,
     }),
-    [focus, findings, overlays, changeColour, pickedKinds, onSelectElement],
+    [
+      focus,
+      clear,
+      findings,
+      overlays,
+      changeColour,
+      pickedKinds,
+      onSelectElement,
+    ],
   );
   const edges = useMemo(() => {
     const kindOf = new Map(layout.nodes.map(({ id, kind }) => [id, kind]));
@@ -132,11 +162,22 @@ export function ArchitectureDiagram({
       const kind = kindOf.get(id);
       return kind !== undefined && fades(kind, pickedKinds);
     };
+    // With something in hand, a line stays clear between two cards that do,
+    // or from the selection itself.
+    const dimmedAt = (edge: LaidOutEdge) =>
+      clear !== null &&
+      !(clear.has(edge.source) && clear.has(edge.target)) &&
+      !focus.selected.has(edge.source) &&
+      !focus.selected.has(edge.target);
     // A line fades only when both its ends do.
     return layout.edges.map((edge) =>
-      edgeOf(edge, fadesAt(edge.source) && fadesAt(edge.target)),
+      edgeOf(
+        edge,
+        fadesAt(edge.source) && fadesAt(edge.target),
+        dimmedAt(edge),
+      ),
     );
-  }, [layout, pickedKinds]);
+  }, [layout, pickedKinds, clear, focus]);
 
   return (
     <Stack gap={0} flex={1} className={classes.diagram}>
@@ -186,6 +227,7 @@ export function ArchitectureDiagram({
               nodesFocusable={false}
               edgesFocusable={false}
               elementsSelectable={false}
+              onPaneClick={onClear}
               onInit={(instance) => {
                 setFlow(instance);
                 setZoom(instance.getZoom());
@@ -240,13 +282,17 @@ const ARROW = {
   height: 16,
 };
 
-function edgeOf(edge: LaidOutEdge, faded: boolean): Edge {
+function edgeOf(edge: LaidOutEdge, faded: boolean, dimmed: boolean): Edge {
   return {
     id: edge.id,
     source: edge.source,
     target: edge.target,
     type: 'straight',
-    className: faded ? `${classes.edge} ${classes.faded}` : classes.edge,
+    className: clsx(
+      classes.edge,
+      faded && classes.faded,
+      dimmed && classes.dimmedEdge,
+    ),
     // The adapters are not designed, so the lines to them are not either.
     style: { strokeDasharray: DASHED.has(edge.kind) ? '6 6' : undefined },
     ...(edge.kind === 'owns'
@@ -258,3 +304,12 @@ function edgeOf(edge: LaidOutEdge, faded: boolean): Edge {
 }
 
 const DASHED = new Set<LaidOutEdge['kind']>(['adapts', 'implements']);
+
+/** Whether a key pressed there is meant for something else than the canvas. */
+const isElsewhere = (target: EventTarget | null): boolean =>
+  target instanceof HTMLElement &&
+  (target.isContentEditable ||
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    target.closest('[role="tree"], [role="dialog"], [role="menu"]') !== null);

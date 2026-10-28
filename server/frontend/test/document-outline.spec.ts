@@ -2,6 +2,8 @@ import { describe, expect, it } from 'bun:test';
 import {
   documentHeadings,
   documentLinks,
+  headingOfFragment,
+  headingSlug,
 } from '../src/features/documents/document-outline';
 
 const DOC = `# Weather-based discount
@@ -45,5 +47,28 @@ describe('documentLinks', () => {
       },
       { label: 'alone-in-code.dev', href: 'https://alone-in-code.dev' },
     ]);
+  });
+});
+
+describe('a link to a heading of the document', () => {
+  it('names it as GitHub writes its fragment', () => {
+    expect(headingSlug('Glossary')).toBe('glossary');
+    expect(headingSlug('Open issues used here')).toBe('open-issues-used-here');
+    expect(headingSlug('FR-PRE-001: Mandatory data!')).toBe(
+      'fr-pre-001-mandatory-data',
+    );
+  });
+
+  it('finds the heading a fragment names, and the later ones of the same words', () => {
+    const headings = [
+      { text: 'Glossary', depth: 2 },
+      { text: 'Notes', depth: 2 },
+      { text: 'Notes', depth: 3 },
+    ];
+    expect(headingOfFragment(headings, '#glossary')).toBe(0);
+    expect(headingOfFragment(headings, 'notes')).toBe(1);
+    expect(headingOfFragment(headings, '#notes-1')).toBe(2);
+    expect(headingOfFragment(headings, '#Glossary')).toBe(0);
+    expect(headingOfFragment(headings, '#nowhere')).toBeNull();
   });
 });

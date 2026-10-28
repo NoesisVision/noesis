@@ -1,4 +1,4 @@
-import { IconArrowsDiagonalMinimize2, IconX } from '@tabler/icons-react';
+import { IconArrowsDiagonalMinimize2 } from '@tabler/icons-react';
 import { type ReactNode, useMemo } from 'react';
 import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
@@ -17,8 +17,6 @@ export interface DetailsPanelProps {
   /** The model's own tree, which an element's body sections read through. */
   modelTree: OutlineTree;
   onSelectElement: (id: string) => void;
-  /** Clears the selection; without it — over a card, say — there is no close button. */
-  onClear?: () => void;
   /** Read at a glance, over its card: smaller type, descriptions folded. */
   glance?: boolean;
   /** Shrinks the panel out of the way; without it there is no such button. */
@@ -31,7 +29,8 @@ export interface DetailsPanelProps {
 
 /*
  * The frame a selection is read in on a canvas: what it is and its name,
- * stuck to the top with the way out of it, where it sits, then what it says.
+ * stuck to the top with the way to put it aside, where it sits, then what it
+ * says. It has no close button: the selection is let go of on the canvas.
  * A type named in it is opened as a card is.
  *
  * The page heading is the document's; the subject here is an `h2`, its parts
@@ -41,7 +40,6 @@ export function DetailsPanel({
   document,
   modelTree,
   onSelectElement,
-  onClear,
   glance = false,
   onMinimize,
   eyebrow,
@@ -61,7 +59,7 @@ export function DetailsPanel({
       <ElementNavigationContext.Provider value={navigation}>
         <GlanceReadingContext.Provider value={glance}>
           <Stack gap="md" p="md" data-glance={glance || undefined}>
-            {/* What is in hand and the way out of it, kept in view over
+            {/* What is in hand and the way to put it aside, kept in view over
                 whatever the panel is scrolled to. */}
             <Group
               component="header"
@@ -98,16 +96,6 @@ export function DetailsPanel({
                     stroke={1.6}
                     aria-hidden
                   />
-                </ActionIcon>
-              )}
-              {onClear !== undefined && (
-                <ActionIcon
-                  variant="subtle"
-                  aria-label="Clear the selection"
-                  title="Clear the selection"
-                  onClick={onClear}
-                >
-                  <IconX size={18} stroke={1.6} aria-hidden />
                 </ActionIcon>
               )}
             </Group>

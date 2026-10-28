@@ -143,7 +143,8 @@ export function ArchitectureView({
           modelTree,
           cards,
           onSelectElement: selectElement,
-          onClear: () => onSelect('', 'detail'),
+          // No close button: the selection is let go of on the canvas, by a
+          // click on it or Escape, as on the exploration.
           onMinimize: () => setFolded(true),
           glance: true,
         };
@@ -161,6 +162,9 @@ export function ArchitectureView({
             layout={drawn}
             focus={focus}
             onSelectElement={selectElement}
+            onClear={
+              subject === null ? undefined : () => onSelect('', 'detail')
+            }
             selection={
               details === null ? null : (
                 <DetailsDock

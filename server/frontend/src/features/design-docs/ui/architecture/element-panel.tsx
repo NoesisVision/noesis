@@ -16,7 +16,6 @@ export function ElementPanel({
   eyebrow,
   title,
   onSelectElement,
-  onClear,
   onMinimize,
 }: {
   id: string;
@@ -24,8 +23,6 @@ export function ElementPanel({
   eyebrow: string;
   title: string;
   onSelectElement: (id: string) => void;
-  /** Clears the selection; without it the panel has no close button. */
-  onClear?: () => void;
   /** Shrinks the panel out of the way; without it there is no such button. */
   onMinimize?: () => void;
 }) {
@@ -44,7 +41,6 @@ export function ElementPanel({
       document={document}
       modelTree={modelTree}
       onSelectElement={onSelectElement}
-      onClear={onClear}
       onMinimize={onMinimize}
       glance
       eyebrow={eyebrow}

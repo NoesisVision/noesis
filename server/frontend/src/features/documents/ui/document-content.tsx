@@ -13,6 +13,7 @@ import type { Document } from '#backend/app/information-sources/document.ts';
 import { documentHeadings, documentLinks } from '../document-outline.ts';
 import { DOCUMENTS_TONE } from '../documents.model.ts';
 import { headingIn, useCurrentSection } from './use-current-section.ts';
+import { useHeadingLinks } from './use-heading-links.ts';
 import prose from '#/shared/ui/prose.module.css';
 import classes from './document-content.module.css';
 
@@ -28,6 +29,12 @@ export function DocumentContent({ document: doc }: { document: Document }) {
   const links = useMemo(() => documentLinks(doc.content), [doc.content]);
   const empty = doc.content.trim() === '';
   const current = useCurrentSection(body, headings);
+  // Every heading, however deep, for a link in the document to name.
+  const anchors = useMemo(
+    () => documentHeadings(doc.content, 6),
+    [doc.content],
+  );
+  useHeadingLinks(body, anchors);
 
   return (
     <ReadingPane

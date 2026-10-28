@@ -171,19 +171,23 @@ it('writes colours a browser can read, never a doubled hash', () => {
   }
 });
 
-it('paints an edge label the colour of the edge it labels', () => {
+it('paints an edge label on the line in the light, on a chip of its own in the dark', () => {
   // Mermaid strokes `.flowchart-link` with `lineColor`, so naming that same
-  // colour is what sets the chip on the line rather than beside it.
-  for (const scheme of ['light', 'dark'] as const) {
-    const line = paletteOf(scheme).lineColor;
-    expect(line).toBeDefined();
-    expect(ruleOf(scheme, '.labelBkg.labelBkg')).toContain(
-      `background: ${line};`,
-    );
-    // Mermaid fades `edgeLabelBackground` by a hardcoded half to paint the
-    // chip itself, so the theme variable has to name the colour the CSS does.
-    expect(paletteOf(scheme).secondaryColor).toBe(line);
-  }
+  // colour is what sets the light chip on the line rather than beside it.
+  const line = paletteOf('light').lineColor;
+  expect(line).toBeDefined();
+  expect(ruleOf('light', '.labelBkg.labelBkg')).toContain(
+    `background: ${line};`,
+  );
+  // The dark chip is a grey off the line, as IcePanel draws its labels.
+  expect(ruleOf('dark', '.labelBkg.labelBkg')).toContain(
+    'background: #424242;',
+  );
+  expect(paletteOf('dark').lineColor).not.toBe('#424242');
+  // Mermaid fades `edgeLabelBackground` by a hardcoded half to paint the
+  // chip itself, so the theme variable has to name the colour the CSS does.
+  expect(paletteOf('light').secondaryColor).toBe(line);
+  expect(paletteOf('dark').secondaryColor).toBe('#424242');
   expect(cssOf('light')).not.toEqual(cssOf('dark'));
 });
 
@@ -194,8 +198,7 @@ it('leaves the chip unoutlined, the fill being the whole of it', () => {
 });
 
 it('writes an edge label at 4.5:1 on its chip, in either scheme', () => {
-  // The chip is the line's colour: a dark grey in the light, which takes
-  // white, and a mid grey in the dark, which white falls short on.
+  // White on the light's dark grey line; the dark's pale text on its grey chip.
   expect(ruleOf('light', '.edgeLabel.edgeLabel')).toContain('color: #fff;');
-  expect(ruleOf('dark', '.edgeLabel.edgeLabel')).toContain('color: #141414;');
+  expect(ruleOf('dark', '.edgeLabel.edgeLabel')).toContain('color: #C9C9C9;');
 });

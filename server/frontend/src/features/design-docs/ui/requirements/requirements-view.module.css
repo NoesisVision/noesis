@@ -4,39 +4,19 @@
  * is padded (by the `Stack`'s props).
  *
  * What a row of the tree brings into view: clear of the pane's top edge when
- * it arrives, and marked by a rule down its side — a mark of place, which
- * `aria-current` names for a reader who cannot see the rule.
+ * it arrives. Where it is, is the tree's to show; `aria-current` names the
+ * entry in hand for a screen reader.
  */
 .page [data-entry] {
   scroll-margin-top: var(--mantine-spacing-md);
 }
 
 /*
- * The heading in hand sits on a card — the page's ground, the brand's edge a
- * focused input has, a deep shadow — that slides to it from the last one
- * (Mantine's floating indicator). Every heading keeps the card's inset, so
- * the text never moves when it is picked, and stands over the card. A rule
- * is a card already, and is outlined in place (below).
+ * Nothing in the page marks the entry in hand or the section being read: the
+ * tree beside it does, as a document's Contents does (the scroll spy).
  */
-.page {
-  position: relative;
-}
-
-.sectionHead,
-.rule {
-  position: relative;
-  z-index: 1;
-}
-
 .sectionHead {
   padding: 24px var(--mantine-spacing-sm);
-}
-
-.indicator {
-  background-color: var(--mantine-color-body);
-  border: 1px solid var(--mantine-primary-color-filled);
-  border-radius: var(--mantine-radius-md);
-  box-shadow: var(--mantine-shadow-lg);
 }
 
 /* The counts in a row, wrapping; its margin, size and colour are the list's props. */
@@ -187,31 +167,35 @@
 
 /*
  * A rule on a card of its own: its head ruled off from what it says, and what
- * verifies it on a band at its foot. The rule in hand is outlined in the
- * brand's colour and lifted, as the card that lifts a heading is.
+ * verifies it on a band at its foot. The rule in hand looks as the rest do:
+ * the tree beside it marks it.
  */
 .rule {
-  overflow: hidden;
+  position: relative;
+  /* Clipped to its corners, but not a scroller of its own, so its head can
+     stick to the pane's. */
+  overflow: clip;
   border: 1px solid
     light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
   border-radius: var(--mantine-radius-md);
   background-color: var(--mantine-color-body);
   box-shadow: var(--mantine-shadow-xs);
-  transition:
-    border-color 150ms ease,
-    box-shadow 150ms ease;
-
-  &[aria-current] {
-    border-color: var(--mantine-primary-color-filled);
-    box-shadow: var(--mantine-shadow-lg);
-  }
 }
 
+/*
+ * A rule's head stays at the top of the pane while what it says is read
+ * under it, and goes with its card: the reader always knows which rule the
+ * lines in view belong to.
+ */
 .ruleHead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 6px;
   padding: 20px 24px 16px;
+  background-color: var(--mantine-color-body);
   border-bottom: 1px solid
     light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-5));
 }

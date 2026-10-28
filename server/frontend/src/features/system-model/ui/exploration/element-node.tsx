@@ -14,6 +14,12 @@ import { Box } from '#/shared/design-system/box.tsx';
 import { Menu } from '#/shared/design-system/menu.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import {
+  BevelFace,
+  BevelRing,
+  cardShapeClass,
+  shapeOf,
+} from '#/shared/ui/diagram-shapes.tsx';
 import { IconFrameX } from '#/shared/ui/icons/icons.ts';
 import {
   addressOf,
@@ -514,52 +520,13 @@ const withState = (
       ? `${label}, holds the selection`
       : label;
 
-/** How far a value object's corners are cut: its `--bevel` in exploration.module.css. */
-const BEVEL = 12;
-/** How far out the related ring runs, to the middle of its line: the cards' outline offset (3px) and half its width. */
-const RING_OUT = 4;
-
-/*
- * The dashed ring round a value object related to the selection, along its
- * cut corners: the other cards' ring is an outline, which cannot follow a
- * cut corner, so this one is drawn — a polygon the card's size, a little out.
- */
-function BevelRing({ width, height }: { width: number; height: number }) {
-  const cut = BEVEL + RING_OUT * Math.tan(Math.PI / 8);
-  const w = width + 2 * RING_OUT;
-  const h = height + 2 * RING_OUT;
-  const points = [
-    [cut, 0],
-    [w - cut, 0],
-    [w, cut],
-    [w, h - cut],
-    [w - cut, h],
-    [cut, h],
-    [0, h - cut],
-    [0, cut],
-  ]
-    .map((point) => point.join(','))
-    .join(' ');
-  return (
-    <svg
-      className={classes.bevelRing}
-      data-part="bevel-ring"
-      width={w}
-      height={h}
-      aria-hidden
-    >
-      <polygon points={points} />
-    </svg>
-  );
-}
-
 export function ElementNode({
   data,
   width,
   height,
 }: NodeProps<ExplorationNode>) {
   const { element, holds } = data.placed;
-  const { state, onSelect, onLetGo } = useSelectionState(element.id);
+  const { state, dimmed, onSelect, onLetGo } = useSelectionState(element.id);
   const [menu, setMenu] = useState(false);
   // Where a frame was right-clicked, on the canvas.
   const [at, setAt] = useState<CanvasPoint | null>(null);
@@ -585,7 +552,11 @@ export function ElementNode({
   );
   const button = (
     <UnstyledButton
-      className={holds ? classes.containerLabel : classes.card}
+      className={
+        holds ? classes.containerLabel : `${classes.card} ${cardShapeClass}`
+      }
+      // Its shape, as every diagram draws an element (diagram-shapes.tsx).
+      data-shape={holds ? undefined : shapeOf(element.kind, element.pattern)}
       // How a diagram theme (themes/) reaches it, as it cannot name the class.
       data-part={holds ? 'frame-label' : 'card'}
       data-kind={element.kind}
@@ -600,9 +571,7 @@ export function ElementNode({
     >
       {/* A value object's bevelled face, drawn under its name: its edge is
           the card's own layer, as a cut corner cannot carry a border. */}
-      {!holds && element.pattern === 'value_object' && (
-        <span className={classes.face} data-part="face" aria-hidden />
-      )}
+      {!holds && element.pattern === 'value_object' && <BevelFace />}
       {label}
     </UnstyledButton>
   );
@@ -624,6 +593,7 @@ export function ElementNode({
           data-kind={element.kind}
           data-pattern={element.pattern}
           data-state={holds ? state : undefined}
+          data-dimmed={dimmed || undefined}
           data-leaving={data.leaving || undefined}
         >
           {/* Where React Flow has an edge start and end; the edge itself

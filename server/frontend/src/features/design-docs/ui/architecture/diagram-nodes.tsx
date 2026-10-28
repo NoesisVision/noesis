@@ -12,6 +12,13 @@ import { Box } from '#/shared/design-system/box.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import {
+  BevelFace,
+  BevelRing,
+  type CardShape,
+  cardShapeClass,
+  shapeOf,
+} from '#/shared/ui/diagram-shapes.tsx';
 import { addressOf, kindOf } from '../../element-id.ts';
 import { ElementTooltip } from '../element-details/element-tooltip.tsx';
 import { fades, KINDS } from './architecture-kinds.ts';
@@ -41,6 +48,8 @@ export type DiagramNode = Node<{ node: LaidOutNode }>;
 
 export interface DiagramReading {
   focus: DiagramFocus;
+  /** What stays clear while something is in hand; none with nothing in hand. */
+  clear: ReadonlySet<string> | null;
   /** How many warnings and notes name each card, by its id. */
   findings: ReadonlyMap<string, { warnings: number; notes: number }>;
   overlays: { checks: boolean; rules: boolean; changes: boolean };
@@ -52,6 +61,7 @@ export interface DiagramReading {
 
 const NOTHING_READ: DiagramReading = {
   focus: { selected: new Set(), related: new Set() },
+  clear: null,
   findings: new Map(),
   overlays: { checks: false, rules: false, changes: false },
   changeColour: () => null,
@@ -63,8 +73,15 @@ export const DiagramReadingContext = createContext(NOTHING_READ);
 
 /** What one card shows of the reading. */
 function useCard(node: LaidOutNode) {
-  const { focus, findings, overlays, changeColour, pickedKinds, onSelect } =
-    useContext(DiagramReadingContext);
+  const {
+    focus,
+    clear,
+    findings,
+    overlays,
+    changeColour,
+    pickedKinds,
+    onSelect,
+  } = useContext(DiagramReadingContext);
   const found = overlays.checks ? findings.get(node.id) : undefined;
   /* What the design does to the card's element, marked as the tree marks it;
      `unchanged` when the reader hides it. */
@@ -87,6 +104,8 @@ function useCard(node: LaidOutNode) {
     change,
     changeColour: changeColour(change)?.color,
     faded: fades(node.kind, pickedKinds),
+    // With something in hand, what has nothing to do with it steps back.
+    dimmed: clear !== null && !clear.has(node.id),
     onSelect,
   };
 }
@@ -97,9 +116,13 @@ export function HexagonNode({
   height = 0,
 }: NodeProps<DiagramNode>) {
   const { node } = data;
-  const { state, onSelect } = useCard(node);
+  const { state, dimmed, onSelect } = useCard(node);
   return (
-    <Box className={classes.frame} data-state={state}>
+    <Box
+      className={classes.frame}
+      data-state={state}
+      data-dimmed={dimmed || undefined}
+    >
       <svg
         width={width}
         height={height}
@@ -141,8 +164,9 @@ export function DomainCoreNode({
   width = 0,
   height = 0,
 }: NodeProps<DiagramNode>) {
+  const { dimmed } = useCard(data.node);
   return (
-    <Box className={classes.frame}>
+    <Box className={classes.frame} data-dimmed={dimmed || undefined}>
       <svg width={width} height={height} aria-hidden className={classes.core}>
         <polygon points={hexagonPoints(width, height, CORE_HEX_INSET)} />
       </svg>
@@ -183,7 +207,11 @@ function Details({
 const withState = (label: string, state: 'selected' | 'related' | undefined) =>
   state === 'related' ? `${label}, concerned by the selection` : label;
 
-export function CardNode({ data }: NodeProps<DiagramNode>) {
+export function CardNode({
+  data,
+  width = 0,
+  height = 0,
+}: NodeProps<DiagramNode>) {
   const { node } = data;
   const {
     state,
@@ -193,12 +221,21 @@ export function CardNode({ data }: NodeProps<DiagramNode>) {
     change,
     changeColour,
     faded,
+    dimmed,
     onSelect,
   } = useCard(node);
   const { element } = node;
   const pattern = element?.pattern ?? null;
   const kind = KINDS[node.kind];
   const subtitle = kind.subtitle ?? patternLabelOf(pattern);
+  // Its shape, as every diagram draws an element (diagram-shapes.tsx); one
+  // that names a caller, not an element, a pill as a behavior is.
+  const shape: CardShape =
+    element !== null
+      ? shapeOf(kindOf(element.id), pattern)
+      : node.kind === 'actor' || node.kind === 'caller'
+        ? 'pill'
+        : 'box';
   const label = [
     node.label,
     kind.word,
@@ -219,14 +256,20 @@ export function CardNode({ data }: NodeProps<DiagramNode>) {
       />
       <Details id={element === null ? null : element.id}>
         <UnstyledButton
-          className={clsx(classes.card, faded && classes.faded)}
+          className={clsx(classes.card, cardShapeClass, faded && classes.faded)}
           data-kind={node.kind}
+          data-shape={shape}
           data-state={state}
+          data-dimmed={dimmed || undefined}
           data-change={change}
           aria-pressed={state === 'selected'}
           aria-label={withState(label, state)}
           onClick={() => onSelect(node.selects)}
         >
+          {shape === 'bevel' && <BevelFace />}
+          {shape === 'bevel' && state === 'related' && (
+            <BevelRing width={width} height={height} />
+          )}
           {element !== null && (
             <Box component="span" display="inline-flex" flex="none">
               <ChangeMark change={change} color={changeColour}>

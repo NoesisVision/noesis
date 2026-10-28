@@ -1,8 +1,8 @@
 import { DiagramThemeChoice } from '#/features/system-model/diagram-themes.ts';
-import { Box } from '#/shared/design-system/box.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Switch } from '#/shared/design-system/switch';
 import {
+  featureDescription,
   useDevToolsContext,
   useSetDevToolsFeatures,
 } from '#/shared/dev-tools/dev-tools-context.tsx';
@@ -23,12 +23,13 @@ export function DevToolsView() {
   const featureList = Object.entries(features);
   return (
     <Stack gap="lg" align="flex-start">
-      <Box>
+      <Stack gap="md" maw={520}>
         {featureList.map(([name, enabled]) => {
           return (
             <Switch
               key={name}
               label={featureLabel(name)}
+              description={featureDescription(name)}
               size="md"
               onLabel="ON"
               offLabel="OFF"
@@ -44,7 +45,7 @@ export function DevToolsView() {
             />
           );
         })}
-      </Box>
+      </Stack>
       <DiagramThemeChoice />
     </Stack>
   );

@@ -64,6 +64,7 @@
   &[data-kind='adapterIn'],
   &[data-kind='adapterOut'] {
     --kind-border: 1.5px dashed var(--noesis-architecture-edge);
+    --kind-fill: var(--noesis-diagram-external);
     --kind-ink: var(--noesis-secondary-text);
   }
 
@@ -91,7 +92,28 @@
 
 /* What the legend has not picked out steps back. */
 .faded {
-  opacity: 0.25;
+  opacity: var(--noesis-diagram-dimmed);
+}
+
+/*
+ * With something in hand, what has nothing to do with it steps back, as on
+ * the exploration: the diagrams' one rule (`--noesis-diagram-dimmed` and
+ * `--noesis-diagram-edge-dimmed` in theme.ts).
+ */
+[data-dimmed] {
+  opacity: var(--noesis-diagram-dimmed);
+}
+
+.dimmedEdge {
+  opacity: var(--noesis-diagram-edge-dimmed);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .frame,
+  .card,
+  .edge {
+    transition: opacity 150ms ease;
+  }
 }
 
 /* React Flow lays the frames out; the polygon fills them. */
@@ -159,7 +181,8 @@
   left: 50%;
   transform: translateX(-50%);
   white-space: nowrap;
-  color: light-dark(var(--mantine-color-brand-8), var(--mantine-color-brand-3));
+  /* In the dark, in the grey of the frame it names. */
+  color: light-dark(var(--mantine-color-brand-8), var(--mantine-color-dark-1));
 }
 
 .handle {
@@ -181,21 +204,14 @@
   height: 100%;
   padding: 4px var(--mantine-spacing-xs);
   border: var(--kind-border);
-  /* The exploration's card: as round, as lightly lifted, lifted more under the pointer. */
-  border-radius: 12px;
+  /* Its shape, its lift and its rings are every diagram's (diagram-shapes):
+     the exploration's. Its fill reaches a bevelled card's face. */
   background: var(--kind-fill);
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shape-fill: var(--kind-fill);
   color: var(--kind-ink, var(--mantine-color-text));
-  transition: box-shadow 0.15s ease;
   /* A change mark is ringed in the card's fill, as in the tree in the page's. */
   --change-ring: var(--kind-fill);
   pointer-events: all;
-
-  &:hover {
-    box-shadow:
-      0 4px 12px rgba(16, 24, 40, 0.08),
-      0 1px 3px rgba(16, 24, 40, 0.06);
-  }
 
   &:focus-visible {
     outline: var(--noesis-focus-ring);
@@ -205,7 +221,6 @@
   &[data-kind='actor'],
   &[data-kind='caller'] {
     justify-content: center;
-    border-radius: 999px;
     font-weight: 600;
   }
 
@@ -224,17 +239,6 @@
 
   &[data-change='removed'] .name {
     text-decoration: line-through;
-  }
-
-  /* Outlined as well as coloured: in hand, solid; concerned, dashed. */
-  &[data-state='selected'] {
-    outline: 3px solid var(--noesis-diagram-selection);
-    outline-offset: 2px;
-  }
-
-  &[data-state='related'] {
-    outline: 2px dashed var(--noesis-diagram-selection);
-    outline-offset: 2px;
   }
 }
 

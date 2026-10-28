@@ -16,6 +16,7 @@ import { Box } from '#/shared/design-system/box';
 import { Burger } from '#/shared/design-system/burger';
 import {
   type MantineColorScheme,
+  useComputedColorScheme,
   useMantineColorScheme,
 } from '#/shared/design-system/color-scheme';
 import { Group } from '#/shared/design-system/group';
@@ -24,6 +25,7 @@ import {
   useHotkeys,
   useOs,
 } from '#/shared/design-system/hooks.ts';
+import { Kbd } from '#/shared/design-system/kbd.tsx';
 import { Menu } from '#/shared/design-system/menu';
 import { Text } from '#/shared/design-system/text';
 import { Tooltip } from '#/shared/design-system/tooltip';
@@ -194,9 +196,18 @@ const SCHEMES: {
   { value: 'auto', label: 'System', icon: IconDeviceDesktop },
 ];
 
-/** The app's settings; for now, its colour scheme. */
+/**
+ * The app's settings; for now, its colour scheme. ⌘J (Ctrl J off a Mac)
+ * switches light and dark from anywhere, from System to the other of what
+ * the system shows.
+ */
 function SettingsTool() {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const shown = useComputedColorScheme('light');
+  const mac = ['macos', 'ios'].includes(useOs());
+  useHotkeys([
+    ['mod+J', () => setColorScheme(shown === 'dark' ? 'light' : 'dark')],
+  ]);
   return (
     <Menu position="bottom-end" shadow="md" width={180}>
       <Menu.Target>
@@ -206,6 +217,7 @@ function SettingsTool() {
           size={34}
           aria-label="App settings"
           title="App settings"
+          aria-keyshortcuts="Meta+J Control+J"
         >
           <IconSettings size={18} stroke={1.7} aria-hidden />
         </ActionIcon>
@@ -224,6 +236,13 @@ function SettingsTool() {
             {scheme.label}
           </Menu.Item>
         ))}
+        <Menu.Divider />
+        <Group justify="space-between" px="sm" py={6}>
+          <Text size="xs" c="var(--noesis-secondary-text)">
+            Light or dark
+          </Text>
+          <Kbd size="xs">{mac ? '⌘ J' : 'Ctrl J'}</Kbd>
+        </Group>
       </Menu.Dropdown>
     </Menu>
   );

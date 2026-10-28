@@ -9,5 +9,4 @@ export {
   useLocalStorage,
   useMediaQuery,
   useOs,
-  useMergedRef,
 } from '@mantine/hooks';

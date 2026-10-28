@@ -55,6 +55,38 @@ export function documentHeadings(
   });
 }
 
+/**
+ * The fragment a link in the document names a heading by, as GitHub writes
+ * it: the heading's words in lower case, their marks and punctuation left
+ * out, a hyphen for each space.
+ */
+export function headingSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+    .replace(/\s/g, '-');
+}
+
+/**
+ * Which of the headings a fragment (`#glossary`) names: the first with that
+ * slug, or, for `-1`, `-2`… on the end, the second, the third… with it, as
+ * GitHub tells headings with the same words apart. None for no heading.
+ */
+export function headingOfFragment(
+  headings: DocumentHeading[],
+  fragment: string,
+): number | null {
+  const wanted = fragment.replace(/^#/, '').toLowerCase();
+  const seen = new Map<string, number>();
+  for (const [index, heading] of headings.entries()) {
+    const slug = headingSlug(heading.text);
+    const count = seen.get(slug) ?? 0;
+    seen.set(slug, count + 1);
+    if ((count === 0 ? slug : `${slug}-${count}`) === wanted) return index;
+  }
+  return null;
+}
+
 /** Every web page the document links to, once each, in the order first linked. */
 export function documentLinks(markdown: string): DocumentLink[] {
   const seen = new Map<string, DocumentLink>();

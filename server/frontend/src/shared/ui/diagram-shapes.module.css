@@ -1,0 +1,144 @@
+/*
+ * The diagrams' cards, one shape for each kind of element, the same on the
+ * exploration and on the architecture: a softly rounded box, only just
+ * lifted off the canvas and lifted more under the pointer; a behavior — a
+ * step the system takes — a pill; a value object, a value and nothing more,
+ * with its corners cut, as its diamond is. In hand, a card is edged in the
+ * accent with a ring of it round it; related to what is in hand, a dashed
+ * ring a little out. The sizes are DIAGRAM_SHAPE's tokens (theme.ts).
+ *
+ * A diagram gives the card its fill and its edge colour (`--shape-fill`,
+ * `--shape-edge`), its border style, padding and content; the shape is
+ * here. Doubled, to win over the diagrams' own card rules and the unstyled
+ * button's reset, and to lose to a diagram theme's.
+ */
+.card.card {
+  border-radius: var(--noesis-diagram-card-radius);
+  box-shadow: var(--noesis-diagram-card-shadow);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
+
+  &:hover {
+    box-shadow: var(--noesis-diagram-card-shadow-raised);
+  }
+
+  &[data-shape='pill'] {
+    border-radius: 999px;
+  }
+
+  &[data-state='selected'] {
+    border-style: solid;
+    border-color: var(--noesis-diagram-selection);
+    box-shadow:
+      0 0 0 3px var(--noesis-diagram-selection-ring),
+      0 4px 12px rgba(16, 24, 40, 0.1);
+  }
+
+  &[data-state='related'] {
+    outline: 2px dashed var(--noesis-diagram-related);
+    outline-offset: 3px;
+  }
+}
+
+/*
+ * A cut corner cannot carry a border or a ring, so a value object draws them
+ * as layers of the one bevelled shape, each a little larger than the one
+ * above: the selection's ring, the edge, and the face (`BevelFace`) — and
+ * its shadow, as its shape, is a drop shadow. Its related ring is drawn
+ * along the cut corners (`BevelRing`) in place of the outline, which would
+ * run square round them.
+ */
+.card.card[data-shape='bevel'] {
+  position: relative;
+  isolation: isolate;
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  filter: drop-shadow(0 1px 2px rgba(16, 24, 40, 0.1));
+
+  &::before,
+  &::after,
+  & .face {
+    position: absolute;
+    clip-path: polygon(
+      var(--cut) 0,
+      calc(100% - var(--cut)) 0,
+      100% var(--cut),
+      100% calc(100% - var(--cut)),
+      calc(100% - var(--cut)) 100%,
+      var(--cut) 100%,
+      0 calc(100% - var(--cut)),
+      0 var(--cut)
+    );
+    content: '';
+  }
+
+  /* The selection's ring, three pixels out, there only when selected. */
+  &::before {
+    --cut: calc(var(--noesis-diagram-bevel) + 1.25px);
+
+    inset: -4px;
+    z-index: -3;
+    display: none;
+    background: var(--noesis-diagram-selection-ring);
+  }
+
+  /* The edge: the card's own box, a pixel round the face. */
+  &::after {
+    --cut: var(--noesis-diagram-bevel);
+
+    inset: -1px;
+    z-index: -2;
+    background: var(--shape-edge, var(--noesis-diagram-card-border));
+    transition: background-color 0.15s ease;
+  }
+
+  & .face {
+    --cut: calc(var(--noesis-diagram-bevel) - 0.4px);
+
+    inset: 0;
+    z-index: -1;
+    background: var(--shape-fill, var(--noesis-diagram-card));
+  }
+
+  &:hover {
+    filter: drop-shadow(0 4px 8px rgba(16, 24, 40, 0.12));
+
+    &::after {
+      background: var(--noesis-diagram-card-border-hover);
+    }
+  }
+
+  &[data-state='selected'] {
+    filter: drop-shadow(0 4px 8px rgba(16, 24, 40, 0.12));
+
+    &::before {
+      display: block;
+    }
+
+    &::after {
+      background: var(--noesis-diagram-selection);
+    }
+  }
+
+  &[data-state='related']:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+.bevelRing {
+  position: absolute;
+  top: calc(-1px * var(--ring-out));
+  left: calc(-1px * var(--ring-out));
+  overflow: visible;
+  pointer-events: none;
+
+  & polygon {
+    fill: none;
+    stroke: var(--noesis-diagram-related);
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+}
