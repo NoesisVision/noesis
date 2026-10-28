@@ -34,7 +34,7 @@ jobs:
               - 'bunfig.toml'
               - '.github/workflows/ci.yml'
 
-  # Ungated: format:check (oxfmt) covers **/*.md as well as code, so doc-only
+  # Ungated: format:check (bun fmt) covers **/*.md as well as code, so doc-only
   # commits are still checked.
   format:
     name: Format check

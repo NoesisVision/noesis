@@ -20,7 +20,7 @@ bun run start:debug         # backend only on :3000 with bun's inspector
 
 bun run ci                  # the one definition of "verified" (the pre-push hook): lint, knip, format:check, check-types, test, test:e2e, build
 bun run lint                # oxlint (type-aware + backend layer rules); lint:fix to autofix
-bun run format              # oxfmt on code and Markdown; format:check to verify
+bun run format              # bun fmt (config in .oxfmtrc.json) on code and Markdown; format:check to verify
 bun run check-types         # bun check in every workspace (tsc-compatible errors)
 bun run knip                # unused files/exports/deps across workspaces
 bun run test                # unit + integration in every workspace, one workspace at a time
@@ -108,7 +108,7 @@ Structure classes so the public surface reads as a sequence of steps (`NoesisDir
 
 - **Commits:** Conventional Commits with exactly four types — `feat`, `fix`, `improvement` (one-time betterment, behavior unchanged; covers refactor/perf/docs/tooling), `chore` (recurring maintenance). Subject ≤ 72 chars; `commit-msg` hook rejects anything else. Use the `commit-message` skill. Commits are not code-checked; the `pre-push` hook runs `lint`, `knip`, `format:check`, `check-types` and `test` before every push.
 - **Do not edit `bun.lock` by hand** (denied). Shared versions (`typescript`, `zod`, `hono`, `@types/*`) live in the root `package.json` catalog; single-consumer deps stay inline.
-- A `PostToolUse` hook runs `oxfmt` and `oxlint` on every file you edit; a lint failure comes back as an error — fix it rather than suppress it. `bun run lint` does not check formatting; `format:check` does.
+- A `PostToolUse` hook runs `bun fmt` and `oxlint` on every file you edit; a lint failure comes back as an error — fix it rather than suppress it. `bun run lint` does not check formatting; `format:check` does.
 - Knip: a deliberate duplicate export carries an `@alias` JSDoc tag; entry points Knip cannot discover are listed in `knip.json`.
 - Skills live in `.agents/skills/`; `.claude/skills/<name>` is always a relative symlink, never a real directory. Third-party skills are hash-locked in `skills-lock.json` — do not hand-edit them; manage with `npx skills`.
 - Configuration is exactly `NOESIS_ROOT`, `NOESIS_OPEN_BROWSER=0`, `NOESIS_LOG_LEVEL`, `PORT` (dev only), `NODE_ENV=production` (build). Do not add env vars without a decision. The repository's `.noesis/settings.json` names its `parser` by language (`{ "language": "csharp" }` or `{ "language": "java", "command": [...] }`).

@@ -4,9 +4,10 @@
   // stand-in package only the converter resolves, and overrides/ is a
   // vendored copy of the converter's own code.
   "ignore": ["server/frontend/.design-sync/**"],
-  // `bun check` (Bun's type checker) is a subcommand knip does not know, so it
-  // reads `check` in the check-types scripts as a binary nothing installs.
-  "ignoreBinaries": ["check"],
+  // `bun check` (the type checker) and `bun fmt` (the formatter) are Bun
+  // subcommands knip does not know, so it reads `check` and `fmt` in the
+  // scripts as binaries nothing installs.
+  "ignoreBinaries": ["check", "fmt"],
   "workspaces": {
     ".": {
       // Skill scripts are run by the agent, never imported.
