@@ -223,6 +223,147 @@
     light-dark(var(--mantine-color-brand-4), var(--mantine-color-brand-6));
 }
 
+/*
+ * A behavior is a step the system takes, so it is drawn as one: a pill, its
+ * edge still dashed, its name in its middle, and its menu and cross held in
+ * from its rounded end.
+ */
+.exploration .card[data-kind='behavior'] {
+  justify-content: center;
+  padding-inline: 18px 72px;
+  border-radius: 999px;
+}
+
+.holder[data-kind='behavior'] .corner {
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+}
+
+/*
+ * A value object, a value and nothing more, has its corners cut, as its
+ * diamond is. A cut corner cannot carry a border or a ring, so the card
+ * draws them as layers of the one bevelled shape, each a little larger than
+ * the one above: the selection's ring, the edge, and the face (`.face`) —
+ * and its shadow, as its shape, is a drop shadow.
+ */
+.exploration .card[data-pattern='value_object'] {
+  --bevel: 12px;
+
+  position: relative;
+  isolation: isolate;
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+  filter: drop-shadow(0 1px 2px rgba(16, 24, 40, 0.1));
+  transition: filter 0.15s ease;
+
+  &::before,
+  &::after,
+  & .face {
+    position: absolute;
+    clip-path: polygon(
+      var(--cut) 0,
+      calc(100% - var(--cut)) 0,
+      100% var(--cut),
+      100% calc(100% - var(--cut)),
+      calc(100% - var(--cut)) 100%,
+      var(--cut) 100%,
+      0 calc(100% - var(--cut)),
+      0 var(--cut)
+    );
+    content: '';
+  }
+
+  /* The selection's ring, three pixels out, there only when selected. */
+  &::before {
+    --cut: calc(var(--bevel) + 1.25px);
+
+    inset: -4px;
+    z-index: -3;
+    display: none;
+    background: light-dark(
+      var(--mantine-color-brand-1),
+      var(--mantine-color-brand-9)
+    );
+  }
+
+  /* The edge: the card's own box, a pixel round the face. */
+  &::after {
+    --cut: var(--bevel);
+
+    inset: -1px;
+    z-index: -2;
+    background: light-dark(
+      var(--mantine-color-gray-3),
+      var(--mantine-color-dark-4)
+    );
+    transition: background-color 0.15s ease;
+  }
+
+  & .face {
+    --cut: calc(var(--bevel) - 0.4px);
+
+    inset: 0;
+    z-index: -1;
+    background: light-dark(
+      var(--mantine-color-white),
+      var(--mantine-color-dark-6)
+    );
+  }
+
+  &:hover {
+    filter: drop-shadow(0 4px 8px rgba(16, 24, 40, 0.12));
+
+    &::after {
+      background: light-dark(
+        var(--mantine-color-gray-4),
+        var(--mantine-color-dark-3)
+      );
+    }
+  }
+
+  &[data-state='selected'] {
+    filter: drop-shadow(0 4px 8px rgba(16, 24, 40, 0.12));
+
+    &::before {
+      display: block;
+    }
+
+    &::after {
+      background: var(--mantine-color-brand-5);
+    }
+  }
+}
+
+/*
+ * A value object related to the selection: its ring, dashed as the other
+ * cards' is, drawn along its cut corners (`BevelRing`) in place of the
+ * outline, which would run square round them.
+ */
+.exploration
+  .card[data-pattern='value_object'][data-state='related']:not(:focus-visible) {
+  outline: none;
+}
+
+.bevelRing {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  overflow: visible;
+  pointer-events: none;
+
+  & polygon {
+    fill: none;
+    stroke: light-dark(
+      var(--mantine-color-brand-3),
+      var(--mantine-color-brand-7)
+    );
+    stroke-width: 2;
+    stroke-dasharray: 6 4;
+  }
+}
+
 .handle {
   visibility: hidden;
 }
@@ -265,7 +406,7 @@
 
 /* The selection's own relations stand out; the rest step back. */
 .edge.highlighted :global(.react-flow__edge-path) {
-  stroke: var(--mantine-color-brand-6);
+  stroke: var(--edge-highlight, var(--mantine-color-brand-6));
   stroke-width: 2.5px;
 }
 

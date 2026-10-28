@@ -1,8 +1,8 @@
 import '@xyflow/react/dist/base.css';
 import {
   Background,
+  type BackgroundProps,
   BackgroundVariant,
-  MarkerType,
   type FitViewOptions,
   type NodeChange,
   type OnNodeDrag,
@@ -85,9 +85,11 @@ import {
   placeLocally,
 } from './place-locally.ts';
 import { QuickAdd, type QuickAddSpot } from './quick-add.tsx';
-import { EDGE_COLOR } from './relation-colors.ts';
+import { EDGE_ARROW, EDGE_COLOR } from './relation-colors.ts';
 import { type RelationEdge, RelationEdgeView } from './relation-edge.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
+import { DiagramThemeContext } from './themes/diagram-theme-context.ts';
+import { useDiagramTheme } from './themes/use-diagram-theme.ts';
 import { VisibilityPanel } from './visibility-panel.tsx';
 import classes from './exploration.module.css';
 
@@ -177,6 +179,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     animated: opened?.edges?.animated ?? true,
   });
   const { direction, orthogonal, animated } = drawing;
+  // Chosen on the Dev Tools page; the exploration only draws in it.
+  const theme = useDiagramTheme();
   const graph = useMemo(
     () => graphOf(exploration, { hidden, relations, picks }),
     [exploration, hidden, relations, picks],
@@ -703,122 +707,123 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
 
   return (
-    <Stack gap={0} flex={1} className={classes.exploration}>
-      {toolbar}
-      <Box
-        ref={canvas}
-        component="section"
-        pos="relative"
-        flex={1}
-        mih={0}
-        aria-label="Exploration of the system model"
-      >
-        {failure !== null ? (
-          <Alert color="red" title="The elements could not be placed" m="md">
-            {failure}
-          </Alert>
-        ) : exploration.elements.length === 0 ? (
-          <Text c="dimmed" p="lg">
-            The scan found no modules, building blocks or behaviors.
-          </Text>
-        ) : graph.elements.length === 0 ? (
-          <Box h="100%" className={classes.blank} />
-        ) : (
-          <DesignDocumentContext.Provider value={document}>
-            <ExplorationReadingContext.Provider value={reading}>
-              <ReactFlow
-                nodes={visibleNodes}
-                edges={edges}
-                nodeTypes={NODE_TYPES}
-                edgeTypes={EDGE_TYPES}
-                onNodesChange={onNodesChange}
-                onNodeDragStart={onNodeDragStart}
-                onNodeDrag={onNodeDrag}
-                onNodeDragStop={onNodeDragStop}
-                colorMode={scheme}
-                fitView
-                fitViewOptions={FIT}
-                attributionPosition="bottom-right"
-                minZoom={0.1}
-                maxZoom={2}
-                nodesConnectable={false}
-                nodesFocusable={false}
-                edgesFocusable={false}
-                elementsSelectable={false}
-                onInit={(instance) => {
-                  setFlow(instance);
-                  setZoom(instance.getZoom());
-                }}
-                onMove={(_, viewport) => setZoom(viewport.zoom)}
-                onPaneClick={() => {
-                  letGo();
-                  setQuick(null);
-                }}
-                // A right click on the empty canvas asks what to put there;
-                // a double click zooms in, as on any canvas.
-                onPaneContextMenu={(event) => {
-                  event.preventDefault();
-                  const box = canvas.current?.getBoundingClientRect();
-                  if (flow === null || box === undefined) return;
-                  setQuick({
-                    spot: {
-                      left: event.clientX - box.left,
-                      top: event.clientY - box.top,
-                    },
-                    at: flow.screenToFlowPosition({
-                      x: event.clientX,
-                      y: event.clientY,
-                    }),
-                  });
-                }}
-                // Changed on each placement, so the edges fade in anew once
-                // the cards have moved to where it puts them.
-                // While a card is dragged, the edges' dashes hold still.
-                className={`${
-                  placements % 2 === 0 ? classes.settled : classes.resettled
-                } ${gliding ? classes.gliding : ''} ${
-                  dragging ? classes.dragging : ''
-                }`}
-              >
-                {selectionPanel}
-                {dragged !== null && (
-                  <ViewportPortal>
-                    <div
-                      ref={outline}
-                      aria-hidden
-                      className={classes.outline}
-                      style={{
-                        width: dragged.width,
-                        height: dragged.height,
-                        transform: `translate(${dragged.at.x}px, ${dragged.at.y}px)`,
-                      }}
-                    />
-                  </ViewportPortal>
-                )}
-                <Background
-                  variant={BackgroundVariant.Dots}
-                  gap={20}
-                  size={1}
-                  color="light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))"
-                  bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
-                />
-              </ReactFlow>
-              <CanvasTooltips within={canvas} dragging={dragging} />
-            </ExplorationReadingContext.Provider>
-          </DesignDocumentContext.Provider>
-        )}
-        {failure === null && exploration.elements.length > 0 && picker}
-        {/* Down the canvas's left side: the visibility panel at the top,
+    // What floats over the canvas, in a portal, is drawn in its theme too.
+    <DiagramThemeContext.Provider value={theme}>
+      <Stack gap={0} flex={1} className={classes.exploration}>
+        {toolbar}
+        <Box
+          ref={canvas}
+          component="section"
+          // A theme draws the canvas and what lies on it, never the toolbar
+          // above: its stylesheet hangs its root here (themes/themes.ts).
+          className={theme.className}
+          data-diagram-theme={theme.id}
+          pos="relative"
+          flex={1}
+          mih={0}
+          aria-label="Exploration of the system model"
+        >
+          {failure !== null ? (
+            <Alert color="red" title="The elements could not be placed" m="md">
+              {failure}
+            </Alert>
+          ) : exploration.elements.length === 0 ? (
+            <Text c="dimmed" p="lg">
+              The scan found no modules, building blocks or behaviors.
+            </Text>
+          ) : graph.elements.length === 0 ? (
+            <Box h="100%" className={classes.blank} data-part="blank" />
+          ) : (
+            <DesignDocumentContext.Provider value={document}>
+              <ExplorationReadingContext.Provider value={reading}>
+                <ReactFlow
+                  nodes={visibleNodes}
+                  edges={edges}
+                  nodeTypes={NODE_TYPES}
+                  edgeTypes={EDGE_TYPES}
+                  onNodesChange={onNodesChange}
+                  onNodeDragStart={onNodeDragStart}
+                  onNodeDrag={onNodeDrag}
+                  onNodeDragStop={onNodeDragStop}
+                  colorMode={scheme}
+                  fitView
+                  fitViewOptions={FIT}
+                  attributionPosition="bottom-right"
+                  minZoom={0.1}
+                  maxZoom={2}
+                  nodesConnectable={false}
+                  nodesFocusable={false}
+                  edgesFocusable={false}
+                  elementsSelectable={false}
+                  onInit={(instance) => {
+                    setFlow(instance);
+                    setZoom(instance.getZoom());
+                  }}
+                  onMove={(_, viewport) => setZoom(viewport.zoom)}
+                  onPaneClick={() => {
+                    letGo();
+                    setQuick(null);
+                  }}
+                  // A right click on the empty canvas asks what to put there;
+                  // a double click zooms in, as on any canvas.
+                  onPaneContextMenu={(event) => {
+                    event.preventDefault();
+                    const box = canvas.current?.getBoundingClientRect();
+                    if (flow === null || box === undefined) return;
+                    setQuick({
+                      spot: {
+                        left: event.clientX - box.left,
+                        top: event.clientY - box.top,
+                      },
+                      at: flow.screenToFlowPosition({
+                        x: event.clientX,
+                        y: event.clientY,
+                      }),
+                    });
+                  }}
+                  // Changed on each placement, so the edges fade in anew once
+                  // the cards have moved to where it puts them.
+                  // While a card is dragged, the edges' dashes hold still.
+                  className={`${
+                    placements % 2 === 0 ? classes.settled : classes.resettled
+                  } ${gliding ? classes.gliding : ''} ${
+                    dragging ? classes.dragging : ''
+                  }`}
+                >
+                  {selectionPanel}
+                  {dragged !== null && (
+                    <ViewportPortal>
+                      <div
+                        ref={outline}
+                        aria-hidden
+                        className={classes.outline}
+                        style={{
+                          width: dragged.width,
+                          height: dragged.height,
+                          transform: `translate(${dragged.at.x}px, ${dragged.at.y}px)`,
+                        }}
+                      />
+                    </ViewportPortal>
+                  )}
+                  <Background {...(theme.background ?? DOTS)} />
+                </ReactFlow>
+                <CanvasTooltips within={canvas} dragging={dragging} />
+              </ExplorationReadingContext.Provider>
+            </DesignDocumentContext.Provider>
+          )}
+          {failure === null && exploration.elements.length > 0 && picker}
+          {/* Down the canvas's left side: the visibility panel at the top,
             taking what room the shortcuts below it leave. */}
-        <Box className={classes.side}>{side}</Box>
-        {quickAdd}
-        {placing && nodes.length === 0 && failure === null && (
-          <Text component="output" c="dimmed" p="lg" pos="absolute" top={0}>
-            Placing the elements…
-          </Text>
-        )}
-      </Box>
-    </Stack>
+          <Box className={classes.side}>{side}</Box>
+          {quickAdd}
+          {placing && nodes.length === 0 && failure === null && (
+            <Text component="output" c="dimmed" p="lg" pos="absolute" top={0}>
+              Placing the elements…
+            </Text>
+          )}
+        </Box>
+      </Stack>
+    </DiagramThemeContext.Provider>
   );
 }
 
@@ -1296,6 +1301,16 @@ const standingOf = (nodes: ExplorationNode[]): PlacedElement[] =>
     }));
 
 /** Where a frame is taken to be dragged: its top, by its name. */
+/** The canvas behind the diagram, unless its theme draws its own. */
+const DOTS: BackgroundProps = {
+  variant: BackgroundVariant.Dots,
+  gap: 20,
+  size: 1,
+  color: 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
+  bgColor:
+    'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))',
+};
+
 const FRAME_HANDLE = `.${classes.frameTop}`;
 
 /** A node dragged as its kind is: a frame by its top, a card anywhere. */
@@ -1327,7 +1342,6 @@ function nodeOf(
 }
 
 const ARROW = {
-  type: MarkerType.ArrowClosed,
   width: 16,
   height: 16,
 };
@@ -1365,9 +1379,10 @@ function edgeOf(
     labelBgBorderRadius: 8,
     markerEnd: {
       ...ARROW,
+      type: EDGE_ARROW[relation.kind],
       color:
         highlight === 'highlighted'
-          ? 'var(--mantine-color-brand-6)'
+          ? 'var(--edge-highlight, var(--mantine-color-brand-6))'
           : EDGE_COLOR[relation.kind],
     },
   };

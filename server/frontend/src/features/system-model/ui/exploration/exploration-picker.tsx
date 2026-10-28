@@ -12,6 +12,7 @@ import { ThemeIcon } from '#/shared/design-system/theme-icon.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import classes from './exploration.module.css';
 
 export interface ExplorationPickerProps {
@@ -49,10 +50,17 @@ export function ExplorationPicker({
 }: ExplorationPickerProps) {
   const empty = drawn === 0;
   const title = useId();
+  const surface = useThemedSurface('picker', `nowheel nopan ${classes.picker}`);
   return (
     <>
       {empty && (
-        <Stack align="center" gap="sm" maw={420} className={classes.start}>
+        <Stack
+          align="center"
+          gap="sm"
+          maw={420}
+          className={classes.start}
+          data-part="start"
+        >
           <ThemeIcon size={56} radius="md" variant="light" aria-hidden>
             <IconAffiliate size={28} stroke={1.6} />
           </ThemeIcon>
@@ -102,6 +110,7 @@ export function ExplorationPicker({
                 aria-haspopup="dialog"
                 aria-expanded={opened}
                 className={classes.plus}
+                data-part="add"
                 onClick={() => onOpened(!opened)}
               >
                 {opened ? (
@@ -118,7 +127,7 @@ export function ExplorationPicker({
           // Named for what it does, not after the button that opens it,
           // which reads Close while it is open.
           aria-labelledby={title}
-          className={`nowheel nopan ${classes.picker}`}
+          {...surface}
         >
           <VisuallyHidden id={title}>Add to the exploration</VisuallyHidden>
           <ElementSearch

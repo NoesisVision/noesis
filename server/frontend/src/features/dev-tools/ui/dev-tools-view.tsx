@@ -1,4 +1,6 @@
+import { DiagramThemeChoice } from '#/features/system-model/diagram-themes.ts';
 import { Box } from '#/shared/design-system/box.tsx';
+import { Stack } from '#/shared/design-system/stack.tsx';
 import { Switch } from '#/shared/design-system/switch';
 import {
   useDevToolsContext,
@@ -20,27 +22,30 @@ export function DevToolsView() {
   const setFeatures = useSetDevToolsFeatures();
   const featureList = Object.entries(features);
   return (
-    <Box>
-      {featureList.map(([name, enabled]) => {
-        return (
-          <Switch
-            key={name}
-            label={featureLabel(name)}
-            size="md"
-            onLabel="ON"
-            offLabel="OFF"
-            checked={enabled}
-            onChange={() => {
-              setFeatures((prevFeatures) => {
-                return {
-                  ...prevFeatures,
-                  [name]: !enabled,
-                };
-              });
-            }}
-          />
-        );
-      })}
-    </Box>
+    <Stack gap="lg" align="flex-start">
+      <Box>
+        {featureList.map(([name, enabled]) => {
+          return (
+            <Switch
+              key={name}
+              label={featureLabel(name)}
+              size="md"
+              onLabel="ON"
+              offLabel="OFF"
+              checked={enabled}
+              onChange={() => {
+                setFeatures((prevFeatures) => {
+                  return {
+                    ...prevFeatures,
+                    [name]: !enabled,
+                  };
+                });
+              }}
+            />
+          );
+        })}
+      </Box>
+      <DiagramThemeChoice />
+    </Stack>
   );
 }

@@ -31,6 +31,7 @@ import {
 import { useCardActions, useSelectionState } from './exploration-reading.ts';
 import type { LayoutDirection, PlacedElement } from './layout-exploration.ts';
 import type { CanvasPoint } from './place-locally.ts';
+import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import classes from './exploration.module.css';
 
 /*
@@ -91,6 +92,7 @@ function Contains({
   const contains = useMissing(id)?.find(({ each }) => each === 'contains');
   // Held here, so the button can say so: the menu's own word on it.
   const [open, setOpen] = useState(false);
+  const surface = useThemedSurface('menu', `nowheel ${classes.reachMenu}`);
   if (contains === undefined) return null;
   const { missing } = contains;
   const label = containsLabel(name, missing.length);
@@ -107,6 +109,7 @@ function Contains({
       <Menu.Target>
         <UnstyledButton
           className={`nodrag nopan ${classes.contains}`}
+          data-part="contains"
           data-frame={holds || undefined}
           data-kind={element.kind}
           aria-label={label}
@@ -116,10 +119,7 @@ function Contains({
           <IconPlus size={12} stroke={2.4} aria-hidden />
         </UnstyledButton>
       </Menu.Target>
-      <Menu.Dropdown
-        className={`nowheel ${classes.reachMenu}`}
-        onContextMenu={keepInMenu}
-      >
+      <Menu.Dropdown {...surface} onContextMenu={keepInMenu}>
         <Menu.Label>Contains:</Menu.Label>
         <ReachItems id={id} reach="contains" missing={missing} />
       </Menu.Dropdown>
@@ -278,11 +278,9 @@ function NodeMenuDropdown({
   const missing = useMissing(id) ?? [];
   const chains = useChains(id);
   const element = elements.get(id);
+  const surface = useThemedSurface('menu', `nowheel ${classes.nodeMenu}`);
   return (
-    <Menu.Dropdown
-      className={`nowheel ${classes.nodeMenu}`}
-      onContextMenu={keepInMenu}
-    >
+    <Menu.Dropdown {...surface} onContextMenu={keepInMenu}>
       {/* Whose menu it is, set apart from what it offers. */}
       <Menu.Label className={classes.nodeMenuTitle}>{name}</Menu.Label>
       <Menu.Divider />
@@ -328,6 +326,7 @@ function NodeMenuEntry({
   at: CanvasPoint | null;
 }) {
   const add = useAdd(id, reach, at);
+  const surface = useThemedSurface('menu', `nowheel ${classes.reachMenu}`);
   if (reach === 'isPartOf' && missing.length === 1)
     return (
       <Menu.Item onClick={() => add(missing)}>
@@ -341,7 +340,7 @@ function NodeMenuEntry({
           {`${REACH_ACTION[reach]}: ${missing.length}`}
         </Menu.Sub.Item>
       </Menu.Sub.Target>
-      <Menu.Sub.Dropdown className={`nowheel ${classes.reachMenu}`}>
+      <Menu.Sub.Dropdown {...surface}>
         <ReachItems id={id} reach={reach} missing={missing} at={at} />
       </Menu.Sub.Dropdown>
     </Menu.Sub>
@@ -515,7 +514,50 @@ const withState = (
       ? `${label}, holds the selection`
       : label;
 
-export function ElementNode({ data }: NodeProps<ExplorationNode>) {
+/** How far a value object's corners are cut: its `--bevel` in exploration.module.css. */
+const BEVEL = 12;
+/** How far out the related ring runs, to the middle of its line: the cards' outline offset (3px) and half its width. */
+const RING_OUT = 4;
+
+/*
+ * The dashed ring round a value object related to the selection, along its
+ * cut corners: the other cards' ring is an outline, which cannot follow a
+ * cut corner, so this one is drawn — a polygon the card's size, a little out.
+ */
+function BevelRing({ width, height }: { width: number; height: number }) {
+  const cut = BEVEL + RING_OUT * Math.tan(Math.PI / 8);
+  const w = width + 2 * RING_OUT;
+  const h = height + 2 * RING_OUT;
+  const points = [
+    [cut, 0],
+    [w - cut, 0],
+    [w, cut],
+    [w, h - cut],
+    [w - cut, h],
+    [cut, h],
+    [0, h - cut],
+    [0, cut],
+  ]
+    .map((point) => point.join(','))
+    .join(' ');
+  return (
+    <svg
+      className={classes.bevelRing}
+      data-part="bevel-ring"
+      width={w}
+      height={h}
+      aria-hidden
+    >
+      <polygon points={points} />
+    </svg>
+  );
+}
+
+export function ElementNode({
+  data,
+  width,
+  height,
+}: NodeProps<ExplorationNode>) {
   const { element, holds } = data.placed;
   const { state, onSelect, onLetGo } = useSelectionState(element.id);
   const [menu, setMenu] = useState(false);
@@ -544,7 +586,10 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
   const button = (
     <UnstyledButton
       className={holds ? classes.containerLabel : classes.card}
+      // How a diagram theme (themes/) reaches it, as it cannot name the class.
+      data-part={holds ? 'frame-label' : 'card'}
       data-kind={element.kind}
+      data-pattern={element.pattern}
       data-state={holds ? undefined : state}
       aria-pressed={state === 'selected'}
       aria-label={withState(`${element.name}, ${kindWordOf(element)}`, state)}
@@ -553,6 +598,11 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
       // Ctrl, or Cmd on a Mac, adds it to the hand or takes it out.
       onClick={(event) => onSelect(element.id, event.ctrlKey || event.metaKey)}
     >
+      {/* A value object's bevelled face, drawn under its name: its edge is
+          the card's own layer, as a cut corner cannot carry a border. */}
+      {!holds && element.pattern === 'value_object' && (
+        <span className={classes.face} data-part="face" aria-hidden />
+      )}
       {label}
     </UnstyledButton>
   );
@@ -570,7 +620,9 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
           }
           {...(holds ? viewing : {})}
           className={holds ? classes.container : classes.holder}
+          data-part={holds ? 'container' : 'holder'}
           data-kind={element.kind}
+          data-pattern={element.pattern}
           data-state={holds ? state : undefined}
           data-leaving={data.leaving || undefined}
         >
@@ -585,7 +637,21 @@ export function ElementNode({ data }: NodeProps<ExplorationNode>) {
           />
           {/* A frame is taken by its top, where its name is: the rest is
               room for what it holds. */}
-          {holds ? <div className={classes.frameTop}>{button}</div> : button}
+          {holds ? (
+            <div className={classes.frameTop} data-part="frame-top">
+              {button}
+            </div>
+          ) : (
+            button
+          )}
+          {!holds &&
+            element.pattern === 'value_object' &&
+            state === 'related' && (
+              <BevelRing
+                width={width ?? data.placed.width}
+                height={height ?? data.placed.height}
+              />
+            )}
           <Contains element={element} holds={holds} />
           <Remove id={element.id} name={element.name} holds={holds} />
           <Handle
