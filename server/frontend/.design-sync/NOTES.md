@@ -25,7 +25,7 @@ Run everything from `server/frontend`.
 - Accordion with inline badges in the control needs `maw={600}`, or the xs badge truncates.
 
 ## Known render warns (triaged, benign)
-- `[TOKENS_MISSING]` (~67 vars: `--affix-*`, `--app-shell-*`, `--mantine-text-wrap`...) - set at runtime by MantineProvider / component inline styles. Verified `--mantine-color-brand-6`, `--mantine-spacing-md`, `--mantine-radius-sm`, `--mantine-color-dimmed`, `--mantine-color-body` resolve in a rendered card.
+- `[TOKENS_MISSING]` (~69 vars: `--affix-*`, `--app-shell-*`, `--mantine-text-wrap`, `--mantine-color-brand-4/-6`...) - set at runtime by MantineProvider / component inline styles. Verified `--mantine-color-brand-6`, `--mantine-spacing-md`, `--mantine-radius-sm`, `--mantine-color-dimmed`, `--mantine-color-body` resolve in a rendered card. A `--noesis-tone-*` var in this list is NOT benign: those come from the app's `page-tone.css`, which the DS does not ship - give the DS rule a fallback (theme.module.css's segmented icon falls back to brand 6 / 4, 2026-10-29).
 - `[RENDER_THIN]` Modal - fixed-position overlay measures 0px; screenshot shows the full dialog.
 - `[GRID_OVERFLOW]` fixed with `cardMode: column` for Grid, Group, MantineProvider, TextInput, Chip.
 
@@ -40,3 +40,4 @@ Run everything from `server/frontend`.
 - `portal-target.tsx` is in `SKIP`: a provider that moves portals, with nothing to draw.
 - Design pages crash with "React 19 can't be loaded here" when `support.js` runs before React 19 is on the page: it loads React 18.3.1 from unpkg, on which Mantine 9 cannot render. The conventions header tells pages to load `_ds/<ds>/_vendor/react.js` first. Claude Design does not copy `_vendor/` into a project's `_ds/` folder, so a page in another project needs the file uploaded there too (done by hand for "Segmented Control" and "Navigation Proposals" on 2026-10-16). A React version bump re-ships `_vendor/react.js` here, but not those copies.
 - conventions.md drift (2026-10-23): it says `Card` ships `radius="md"`; since the app-redesign branch the wrapper's default is `radius: 18` (every card, pane and dropdown rounded alike). Proposed to the user, not yet edited.
+- 2026-10-29 re-sync (PR #99): `FloatingIndicator` wrapper removed from the DS and deleted remotely (5 files); 16 components regraded (theme tokens moved). The AppShell preview now draws the brand-book v4 mark inline (a copy of `src/shell/noesis-mark.tsx`'s paths, as that is not a DS module) with the 18px wordmark, the settings button and the rail tint; if the mark changes, update both.
