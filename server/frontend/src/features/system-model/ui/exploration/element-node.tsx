@@ -7,7 +7,7 @@ import {
   useReactFlow,
   useStoreApi,
 } from '@xyflow/react';
-import { type MouseEvent, type PointerEvent, useState } from 'react';
+import { type MouseEvent, type PointerEvent, useRef, useState } from 'react';
 import { KindIcon } from '#/features/design-docs/element-reader.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
@@ -457,9 +457,10 @@ const CLICK_SLOP = 4;
  * and dragged, it moves the view, and double-clicked it zooms in round the
  * pointer, as the empty canvas does. React Flow keeps both from a node it
  * drags, frames included, though a frame is dragged by its top alone; so
- * they are done here, on the room itself and nothing in it.
+ * they are done here, on the room itself and nothing in it. Clicked, not
+ * dragged, the room is the frame's, and takes it in hand.
  */
-function useViewingFromFrame(onLetGo: () => void) {
+function useViewingFromFrame(onClick: (adding: boolean) => void) {
   const { getViewport, setViewport } = useReactFlow();
   const store = useStoreApi();
   const onPointerDown = (event: PointerEvent<HTMLElement>) => {
@@ -476,12 +477,12 @@ function useViewingFromFrame(onLetGo: () => void) {
       });
     const end = (to: globalThis.PointerEvent) => {
       // Let go where it was pressed, it was a click on the room, not a pan:
-      // that lets go of the selection, as a click on the empty canvas does.
+      // that takes the frame in hand, as a click on its name does.
       if (
         to.type === 'pointerup' &&
         Math.hypot(to.clientX - from.x, to.clientY - from.y) < CLICK_SLOP
       )
-        onLetGo();
+        onClick(to.ctrlKey || to.metaKey);
       delete room.dataset.panning;
       room.removeEventListener('pointermove', move);
       room.removeEventListener('pointerup', end);
@@ -526,12 +527,16 @@ export function ElementNode({
   height,
 }: NodeProps<ExplorationNode>) {
   const { element, holds } = data.placed;
-  const { state, dimmed, onSelect, onLetGo } = useSelectionState(element.id);
+  const { state, dimmed, onSelect } = useSelectionState(element.id);
   const [menu, setMenu] = useState(false);
   // Where a frame was right-clicked, on the canvas.
   const [at, setAt] = useState<CanvasPoint | null>(null);
   const { screenToFlowPosition } = useReactFlow();
-  const viewing = useViewingFromFrame(onLetGo);
+  // A frame clicked anywhere, not dragged, is taken in hand: its room here,
+  // its top below.
+  const select = (adding: boolean) => onSelect(element.id, adding);
+  const viewing = useViewingFromFrame(select);
+  const pressedTop = useRef<{ x: number; y: number } | null>(null);
   const [into, outOf] =
     data.direction === 'vertical'
       ? [Position.Top, Position.Bottom]
@@ -608,9 +613,33 @@ export function ElementNode({
           {/* A frame is taken by its top, where its name is: the rest is
               room for what it holds. */}
           {holds ? (
-            <div className={classes.frameTop} data-part="frame-top">
+            <Box
+              className={classes.frameTop}
+              data-part="frame-top"
+              // Its top is what drags the frame: let go where it was pressed,
+              // it was a click. What is on it — its name, menu, crosses —
+              // answers for itself; its name is the keyboard's way to the
+              // same, so the strip round it is the pointer's alone.
+              onPointerDown={(event) => {
+                pressedTop.current =
+                  event.target === event.currentTarget
+                    ? { x: event.clientX, y: event.clientY }
+                    : null;
+              }}
+              onClick={(event) => {
+                const from = pressedTop.current;
+                pressedTop.current = null;
+                if (
+                  from !== null &&
+                  event.target === event.currentTarget &&
+                  Math.hypot(event.clientX - from.x, event.clientY - from.y) <
+                    CLICK_SLOP
+                )
+                  select(event.ctrlKey || event.metaKey);
+              }}
+            >
               {button}
-            </div>
+            </Box>
           ) : (
             button
           )}

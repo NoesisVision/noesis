@@ -57,6 +57,8 @@ export interface DiagramReading {
   /** The kinds the legend picks out; the rest fade. */
   pickedKinds: readonly LaidOutNode['kind'][] | undefined;
   onSelect: (id: string) => void;
+  /** Lets go of what is in hand; none with nothing to let go of. */
+  onLetGo: (() => void) | undefined;
 }
 
 const NOTHING_READ: DiagramReading = {
@@ -67,6 +69,7 @@ const NOTHING_READ: DiagramReading = {
   changeColour: () => null,
   pickedKinds: undefined,
   onSelect: () => {},
+  onLetGo: undefined,
 };
 
 export const DiagramReadingContext = createContext(NOTHING_READ);
@@ -81,6 +84,7 @@ function useCard(node: LaidOutNode) {
     changeColour,
     pickedKinds,
     onSelect,
+    onLetGo,
   } = useContext(DiagramReadingContext);
   const found = overlays.checks ? findings.get(node.id) : undefined;
   /* What the design does to the card's element, marked as the tree marks it;
@@ -106,7 +110,12 @@ function useCard(node: LaidOutNode) {
     faded: fades(node.kind, pickedKinds),
     // With something in hand, what has nothing to do with it steps back.
     dimmed: clear !== null && !clear.has(node.id),
-    onSelect,
+    // Clicked, it is taken in hand; clicked again, in hand, it is let go
+    // of, as on the exploration.
+    onClick: () =>
+      focus.selected.has(node.id) && onLetGo !== undefined
+        ? onLetGo()
+        : onSelect(node.selects),
   };
 }
 
@@ -116,7 +125,7 @@ export function HexagonNode({
   height = 0,
 }: NodeProps<DiagramNode>) {
   const { node } = data;
-  const { state, dimmed, onSelect } = useCard(node);
+  const { state, dimmed, onClick } = useCard(node);
   return (
     <Box
       className={classes.frame}
@@ -140,7 +149,7 @@ export function HexagonNode({
             `${node.label}, ${KINDS[node.kind].word} drawn as a hexagon`,
             state,
           )}
-          onClick={() => onSelect(node.selects)}
+          onClick={onClick}
         >
           <Text component="span" inherit fw={700}>
             {node.label}
@@ -222,7 +231,7 @@ export function CardNode({
     changeColour,
     faded,
     dimmed,
-    onSelect,
+    onClick,
   } = useCard(node);
   const { element } = node;
   const pattern = element?.pattern ?? null;
@@ -264,7 +273,7 @@ export function CardNode({
           data-change={change}
           aria-pressed={state === 'selected'}
           aria-label={withState(label, state)}
-          onClick={() => onSelect(node.selects)}
+          onClick={onClick}
         >
           {shape === 'bevel' && <BevelFace />}
           {shape === 'bevel' && state === 'related' && (

@@ -21,7 +21,8 @@ export const ShellFullscreenContext = createContext<ShellFullscreen>({
 
 /**
  * The way back out of full screen, where the top bar that holds the toggle is
- * not painted: a pill in the content's corner, only while it is full screen.
+ * not painted: a pill in the content's bottom right corner, only while it is
+ * full screen.
  */
 export function ExitFullscreenButton() {
   const { fullscreen, toggle } = use(ShellFullscreenContext);
