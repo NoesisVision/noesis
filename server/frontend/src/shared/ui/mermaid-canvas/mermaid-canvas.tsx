@@ -3,6 +3,7 @@ import {
   IconMaximize,
   IconPlayerPause,
   IconPlayerPlay,
+  IconPlayerSkipBack,
   IconPlayerTrackNext,
   IconPlayerTrackPrev,
   IconUser,
@@ -922,6 +923,22 @@ export function MermaidCanvas({
                   </ActionIcon>
                   {step !== null && (
                     <>
+                      <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        size="lg"
+                        aria-label="Back to step 1"
+                        title="Back to step 1"
+                        disabled={step === 0}
+                        // Playing, it plays on from the start; paused, it waits there.
+                        onClick={() => setStep(0)}
+                      >
+                        <IconPlayerSkipBack
+                          size={18}
+                          stroke={1.6}
+                          aria-hidden
+                        />
+                      </ActionIcon>
                       <ActionIcon
                         variant="subtle"
                         color="gray"
