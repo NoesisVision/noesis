@@ -163,8 +163,10 @@ are an `ElementRelations` box (`ElementLinks` builds one), a statement is plain
 ## The diagrams behave and look alike
 
 The system model's exploration and the design document's architecture — and
-any diagram added later — are one kind of canvas to the reader, so they stay
-in sync in general behaviour, look and feel. The exploration is the
+any diagram added later, such as the mermaid flowcharts, state, class and ER
+diagrams drawn on React Flow (`src/shared/ui/mermaid-canvas/`) — are one kind
+of canvas to the reader, so they stay in sync in general behaviour, look and
+feel. The exploration is the
 reference: a change to how one diagram behaves or looks is made to the other
 in the same change, or the PR says why it is not.
 
