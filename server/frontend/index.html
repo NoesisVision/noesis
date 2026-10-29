@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Noesis</title>
-    <link rel="icon" href="./favicon.ico" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <!--
       What Mantine's ColorSchemeScript renders, inlined: the page is static
       HTML, so the scheme is applied before the bundle loads and a dark-mode
@@ -16,7 +16,7 @@
         const scheme =
           stored === 'light' || stored === 'dark' || stored === 'auto'
             ? stored
-            : 'auto';
+            : 'light';
         const computed =
           scheme !== 'auto'
             ? scheme

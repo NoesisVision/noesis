@@ -17,10 +17,30 @@ if (typeof window !== 'undefined') {
   };
 }
 
-// No flags right now; a stored flag that is no longer here is dropped.
-const featuresSchema = z.object({});
+// Each flag says what it turns on (`.describe`), shown under its switch.
+const featuresSchema = z.object({
+  outlineDragForBigGroups: z
+    .boolean()
+    .default(false)
+    .describe(
+      'On the system model exploration, a group of more than 10 cards stays where it is while a dashed outline of it follows the pointer, and goes where the outline is let go of. Lighter to drag on a big diagram; off, every card moves as it is dragged.',
+    ),
+  animateEdgesWhileDragging: z
+    .boolean()
+    .default(true)
+    .describe(
+      "On the system model exploration, with the edges' animation on (the Edges menu), their dashes keep running while a card is dragged. Off, they hold still until the card is let go of, so the dragged card alone moves.",
+    ),
+});
 
-type Features = Record<string, boolean>;
+type Features = z.infer<typeof featuresSchema>;
+
+/** What a flag turns on, as its switch says it; nothing for one not here. */
+export function featureDescription(name: string): string | undefined {
+  return Object.hasOwn(featuresSchema.shape, name)
+    ? featuresSchema.shape[name as keyof Features].description
+    : undefined;
+}
 
 interface DevToolsContextProps {
   enabled: boolean;
@@ -32,7 +52,10 @@ interface DevToolsContextProps {
 
 const INIT_VALUE: DevToolsContextProps = {
   enabled: false,
-  features: {},
+  features: {
+    outlineDragForBigGroups: false,
+    animateEdgesWhileDragging: true,
+  },
   setFeatures: noop,
 };
 

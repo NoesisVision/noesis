@@ -1,23 +1,15 @@
-/** Hands the entry in hand to the card drawn under it. */
-export type EntryPin = (entry: HTMLElement | null) => void;
-
 /**
  * What marks an entry of the document with the row of the tree that brings it
- * into view, and the entry in hand as the reader's place: by `aria-current`
- * for a screen reader, and pinned, where it is drawn, for the card that
- * lifts it.
+ * into view, and the entry in hand as the reader's place, by `aria-current`.
+ * A rule in hand is outlined by it; where the reader is reading is the
+ * tree's to show, as a document's Contents does.
  */
 export interface EntryMark {
   'data-entry': string;
   'aria-current'?: 'location';
-  ref?: EntryPin;
 }
 
-export const entryMark = (
-  path: string,
-  selected: boolean,
-  pin?: EntryPin,
-): EntryMark => ({
+export const entryMark = (path: string, selected: boolean): EntryMark => ({
   'data-entry': path,
-  ...(selected ? { 'aria-current': 'location' as const, ref: pin } : {}),
+  ...(selected ? { 'aria-current': 'location' as const } : {}),
 });

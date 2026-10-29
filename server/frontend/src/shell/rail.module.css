@@ -134,7 +134,10 @@
     }
 
     & svg {
-      color: var(--mantine-color-brand-6);
+      color: light-dark(
+        var(--mantine-color-brand-6),
+        var(--mantine-color-brand-4)
+      );
     }
   }
 }
@@ -143,7 +146,7 @@
    in that section's colour, open or not; what it is open says by its ground.
    Folded to icons, they are gray until pointed at or open. */
 .row.row[data-page-tone] svg {
-  color: var(--noesis-tone-6);
+  color: var(--noesis-tone-ink);
 }
 
 .iconRow.iconRow[data-page-tone] {
@@ -153,7 +156,7 @@
 
   &:hover svg,
   &[aria-current='page'] svg {
-    color: var(--noesis-tone-6);
+    color: var(--noesis-tone-ink);
   }
 }
 
@@ -177,7 +180,10 @@
     }
 
     & svg {
-      color: var(--mantine-color-brand-6);
+      color: light-dark(
+        var(--mantine-color-brand-6),
+        var(--mantine-color-brand-4)
+      );
     }
   }
 }
@@ -341,7 +347,7 @@
     }
 
     & svg {
-      color: var(--noesis-tone-6);
+      color: var(--noesis-tone-ink);
     }
   }
 }

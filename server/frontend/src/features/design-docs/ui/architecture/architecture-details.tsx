@@ -41,8 +41,6 @@ export interface ArchitectureDetailsProps {
   /** Every card the diagram draws, by id. */
   cards: ReadonlyMap<string, LaidOutNode>;
   onSelectElement: (id: string) => void;
-  /** Clears the selection; without it — over a card, say — there is no close button. */
-  onClear?: () => void;
   /** Read at a glance, over its card: smaller type, descriptions folded. */
   glance?: boolean;
   /** Shrinks the panel out of the way; without it there is no such button. */
@@ -50,15 +48,13 @@ export interface ArchitectureDetailsProps {
 }
 
 export function ArchitectureDetails(props: ArchitectureDetailsProps) {
-  const { subject, onClear, glance, onMinimize, modelTree, onSelectElement } =
-    props;
+  const { subject, glance, onMinimize, modelTree, onSelectElement } = props;
   const body = bodyOf(props);
   return (
     <DetailsPanel
       document={props.document}
       modelTree={modelTree}
       onSelectElement={onSelectElement}
-      onClear={onClear}
       glance={glance}
       onMinimize={onMinimize}
       eyebrow={body.eyebrow}

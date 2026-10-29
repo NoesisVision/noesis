@@ -30,6 +30,7 @@ import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
@@ -85,7 +86,12 @@ import {
   placeLocally,
 } from './place-locally.ts';
 import { QuickAdd, type QuickAddSpot } from './quick-add.tsx';
-import { EDGE_ARROW, EDGE_COLOR } from './relation-colors.ts';
+import {
+  EDGE_ARROW,
+  EDGE_COLOR,
+  EDGE_WORD,
+  edgeDashOf,
+} from './relation-colors.ts';
 import { type RelationEdge, RelationEdgeView } from './relation-edge.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
 import { DiagramThemeContext } from './themes/diagram-theme-context.ts';
@@ -133,12 +139,20 @@ const sameChoice = (a: ElementChoice, b: ElementChoice) =>
 const LEAVING_MS = 200;
 /** How long the cards take to glide to where a new placing puts them. */
 const GLIDE_MS = 320;
-/** The most cards, a group's with all inside it, dragged as they are rather than as an outline. */
+/**
+ * With `outlineDragForBigGroups` on in dev tools, the most cards, a group's
+ * with all inside it, dragged as they are rather than as an outline.
+ */
 const LIVE_DRAG = 10;
+/** Where a card dragged as it is stands among the rest: over every one. */
+const RAISED_Z = 2000;
 /** The one layout the reader is offered. */
 const ALGORITHM = 'layered';
 
 export function ExplorationView({ model }: { model: SystemModel }) {
+  const {
+    features: { animateEdgesWhileDragging },
+  } = useDevToolsContext();
   const exploration = useMemo(() => explorationOf(model), [model]);
   const modelId = model.id;
   const neighbours = useMemo(() => neighboursOf(exploration), [exploration]);
@@ -203,6 +217,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     onNodeDragStop,
     held: dragged,
     dragging,
+    raised,
     outline,
     flow,
     setFlow,
@@ -300,20 +315,21 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [undo, redo]);
   // A card of a kind out of sight is still laid out, only not drawn; its
-  // edges go with it.
+  // edges go with it. A card dragged as it is goes over every other,
+  // whichever frame it is in, and what it holds over it in turn: raised as a
+  // node, not on the page, so the canvas raises what is inside with it.
   const visibleNodes = useMemo<ExplorationNode[]>(
     () =>
-      veiled.size === 0 && dragged === null
+      veiled.size === 0 && raised === null
         ? nodes
         : nodes.map((node) =>
             veiled.has(groupOf(node.data.placed.element))
               ? { ...node, hidden: true }
-              : dragged?.ids.has(node.id) === true
-                ? // Greyed where it stands while its outline is dragged.
-                  { ...node, className: classes.held }
+              : node.id === raised
+                ? { ...node, zIndex: RAISED_Z }
                 : node,
           ),
-    [nodes, veiled, dragged],
+    [nodes, veiled, raised],
   );
   const scheme = useComputedColorScheme('light');
   const [zoom, setZoom] = useState(1);
@@ -783,11 +799,14 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                   }}
                   // Changed on each placement, so the edges fade in anew once
                   // the cards have moved to where it puts them.
-                  // While a card is dragged, the edges' dashes hold still.
+                  // While a card is dragged, the edges' dashes hold still,
+                  // unless dev tools ask for them to run on.
                   className={`${
                     placements % 2 === 0 ? classes.settled : classes.resettled
                   } ${gliding ? classes.gliding : ''} ${
-                    dragging ? classes.dragging : ''
+                    dragging && !animateEdgesWhileDragging
+                      ? classes.dragging
+                      : ''
                   }`}
                 >
                   {selectionPanel}
@@ -847,6 +866,10 @@ function usePlacement(
   /** Where the cards stood when the reader last left, to open at. */
   opening: { nodes: ExplorationNode[] } | null,
 ) {
+  // A big group is dragged as it is, unless dev tools ask for its outline.
+  const {
+    features: { outlineDragForBigGroups },
+  } = useDevToolsContext();
   const [nodes, setNodes, onNodesMoved] = useNodesState<ExplorationNode>([]);
   const [asked, setAsked] = useState(0);
   const [placed, setPlaced] = useState<{
@@ -883,21 +906,39 @@ function usePlacement(
   // Cards glide to a new placing only just after it lands, never while one
   // is dragged — what a frame holds would trail behind it.
   const [gliding, setGliding] = useState(false);
-  const timers = useRef<{
-    gone?: ReturnType<typeof setTimeout>;
-    glide?: ReturnType<typeof setTimeout>;
-  }>({});
+  // Each placing's glide, and its leaving cards, end a moment after it lands.
+  // The timers belong to the placing, so an effect that is cleaned up and
+  // run again — React's strict mode does that to every effect on mount —
+  // starts them afresh. Held anywhere else, a cleanup could cancel one with
+  // nothing to start it again, and the cards would glide, trailing the
+  // pointer, until the next placing.
   useEffect(() => {
-    const held = timers.current;
+    if (placements === 0) return;
+    const glide = setTimeout(() => setGliding(false), GLIDE_MS);
+    const gone = setTimeout(
+      () => setNodes((shown) => shown.filter(({ data }) => !data.leaving)),
+      LEAVING_MS,
+    );
     return () => {
-      clearTimeout(held.gone);
-      clearTimeout(held.glide);
+      clearTimeout(glide);
+      clearTimeout(gone);
     };
+  }, [placements, setNodes]);
+
+  // How many times the reader moved a card by hand, so each is a step.
+  const [edits, setEdits] = useState(0);
+  // A drop's glide under way, stopped where it is by whatever lands next.
+  const dropGlide = useRef<number | null>(null);
+  const stopDropGlide = useCallback(() => {
+    if (dropGlide.current !== null) cancelAnimationFrame(dropGlide.current);
+    dropGlide.current = null;
   }, []);
+  useEffect(() => stopDropGlide, [stopDropGlide]);
 
   /** Cards where a placing, or a step gone back to, puts them. */
   const landNodes = useCallback(
     (next: ExplorationNode[]) => {
+      stopDropGlide();
       // A card taken off stays a moment, fading, before it is gone.
       setNodes((shown) => {
         const kept = new Set(next.map(({ id }) => id));
@@ -915,18 +956,83 @@ function usePlacement(
         });
         return [...landed, ...leaving];
       });
-      clearTimeout(timers.current.gone);
-      timers.current.gone = setTimeout(
-        () => setNodes((shown) => shown.filter(({ data }) => !data.leaving)),
-        LEAVING_MS,
-      );
       setGliding(true);
-      clearTimeout(timers.current.glide);
-      timers.current.glide = setTimeout(() => setGliding(false), GLIDE_MS);
       setPlacements((count) => count + 1);
       setFailure(null);
     },
-    [setNodes],
+    [setNodes, stopDropGlide],
+  );
+
+  /*
+   * The cards where a card let go of puts them, moved there frame by frame
+   * rather than by the page's transition: the edges are drawn from where the
+   * canvas has each card, so they follow the cards the whole way and are
+   * never hidden. The card let go of goes on from where it was let go of.
+   * One that changes frames, or with the reader asking for less motion,
+   * goes there at once.
+   */
+  const dropNodes = useCallback(
+    (next: ExplorationNode[], letGo: { id: string; at: CanvasPoint }) => {
+      stopDropGlide();
+      const from = new Map(latest.current.nodes.map((node) => [node.id, node]));
+      const was = from.get(letGo.id);
+      if (was !== undefined) from.set(letGo.id, { ...was, position: letGo.at });
+      // Each with its size measured already, as the canvas draws no edge to
+      // a card it has yet to measure: one handed over unmeasured would lose
+      // its edges until the page measured it again.
+      const sized = (node: ExplorationNode): ExplorationNode =>
+        node.width === undefined || node.height === undefined
+          ? node
+          : { ...node, measured: { width: node.width, height: node.height } };
+      const landed = next.map((given) => {
+        const node = withHandle(given);
+        const before = from.get(node.id);
+        return before !== undefined && standsAsBefore(before, node)
+          ? before
+          : sized(node);
+      });
+      const still = window.matchMedia(
+        '(prefers-reduced-motion: reduce)',
+      ).matches;
+      const started = performance.now();
+      const frame = (now: number) => {
+        const t = Math.min(1, (now - started) / GLIDE_MS);
+        if (t === 1 || still) {
+          dropGlide.current = null;
+          setNodes(landed);
+          // A step of its own, to go back to.
+          setEdits((count) => count + 1);
+          return;
+        }
+        const k = 1 - (1 - t) ** 3;
+        const between = (a: number | undefined, b: number | undefined) =>
+          a === undefined || b === undefined ? b : a + (b - a) * k;
+        setNodes(
+          landed.map((node) => {
+            const before = from.get(node.id);
+            if (
+              before === undefined ||
+              before === node ||
+              before.parentId !== node.parentId
+            )
+              return node;
+            return sized({
+              ...node,
+              position: {
+                x: between(before.position.x, node.position.x)!,
+                y: between(before.position.y, node.position.y)!,
+              },
+              width: between(before.width, node.width),
+              height: between(before.height, node.height),
+            });
+          }),
+        );
+        dropGlide.current = requestAnimationFrame(frame);
+      };
+      dropGlide.current = requestAnimationFrame(frame);
+      setFailure(null);
+    },
+    [setNodes, stopDropGlide],
   );
   const land = useCallback(
     (elements: PlacedElement[], way: LayoutDirection) =>
@@ -951,20 +1057,19 @@ function usePlacement(
     },
     [landNodes],
   );
-  // How many times the reader moved a card where nothing else needed to
-  // follow it.
-  const [edits, setEdits] = useState(0);
 
   /*
-   * A big group dragged stays where it stands, greyed, while an outline of
-   * its size follows the pointer — moved on the page directly, so nothing
-   * is drawn again on the way — and goes where the outline is let go of. A
-   * card, or a group of a few, is light enough to move as it is dragged.
-   * Either way its container is fitted round it once it is let go of.
+   * A card, or a group, moves as it is dragged. With the outline drag on in
+   * dev tools, a big group instead stays where it stands while an outline
+   * of its size follows the pointer — moved on the page directly, so
+   * nothing is drawn again on the way — and goes where the outline is let
+   * go of. Either way its container is fitted round it once it is let go of.
    */
   const [held, setHeld] = useState<HeldCard | null>(null);
   // Any card in hand, big or small, so the cards' tooltips stay shut.
   const [dragging, setDragging] = useState(false);
+  // The card moved as it is dragged, to be drawn over the rest.
+  const [raised, setRaised] = useState<string | null>(null);
   const outline = useRef<HTMLDivElement>(null);
   const holding = useRef<{
     id: string;
@@ -979,6 +1084,8 @@ function usePlacement(
   } | null>(null);
   const onNodeDragStart = useCallback<OnNodeDrag<ExplorationNode>>(
     (_, node) => {
+      // Taken again mid-glide, the cards stay where they are.
+      stopDropGlide();
       const shown = latest.current.nodes;
       const origin =
         node.parentId === undefined
@@ -986,7 +1093,7 @@ function usePlacement(
           : absoluteOf(shown, node.parentId);
       setDragging(true);
       const ids = new Set([node.id, ...descendantsOf(shown, node.id)]);
-      const live = ids.size <= LIVE_DRAG;
+      const live = !outlineDragForBigGroups || ids.size <= LIVE_DRAG;
       const drawn = latest.current.placed?.graph;
       // Gathered once: the frames do not move while a card is dragged.
       const refusing =
@@ -1004,16 +1111,18 @@ function usePlacement(
           height: node.measured?.height ?? node.height ?? 0,
         },
       };
-      if (live) return;
+      if (live) {
+        setRaised(node.id);
+        return;
+      }
       setHeld({
         id: node.id,
-        ids,
         width: node.measured?.width ?? node.width ?? 0,
         height: node.measured?.height ?? node.height ?? 0,
         at: { x: origin.x + node.position.x, y: origin.y + node.position.y },
       });
     },
-    [],
+    [stopDropGlide, outlineDragForBigGroups],
   );
   const onNodeDrag = useCallback<OnNodeDrag<ExplorationNode>>((_, node) => {
     const now = holding.current;
@@ -1034,6 +1143,7 @@ function usePlacement(
       holding.current = null;
       setHeld(null);
       setDragging(false);
+      setRaised(null);
       if (now === null) return;
       const shown = latest.current.nodes;
       if (now.start.x === node.position.x && now.start.y === node.position.y)
@@ -1046,7 +1156,11 @@ function usePlacement(
               x: now.origin.x + node.position.x,
               y: now.origin.y + node.position.y,
             });
-      if (elements !== null) return land(elements, direction);
+      if (elements !== null)
+        return dropNodes(
+          elements.map((each) => nodeOf(each, direction)),
+          { id: node.id, at: node.position },
+        );
       // No settling what it pushes: the card alone where it was let go.
       setNodes((all) =>
         all.map((each) =>
@@ -1055,7 +1169,7 @@ function usePlacement(
       );
       setEdits((count) => count + 1);
     },
-    [land, direction, setNodes],
+    [dropNodes, direction, setNodes],
   );
 
   // What was last placed, known at once rather than on the next render: run
@@ -1227,6 +1341,7 @@ function usePlacement(
     onNodeDragStop,
     held,
     dragging,
+    raised,
     outline,
     flow,
     setFlow,
@@ -1249,8 +1364,6 @@ const isElsewhere = (target: EventTarget | null): boolean =>
 /** A card being dragged: what is greyed, and the outline's size and start. */
 interface HeldCard {
   id: string;
-  /** It and all drawn inside it, greyed where they stand. */
-  ids: ReadonlySet<string>;
   width: number;
   height: number;
   at: CanvasPoint;
@@ -1370,7 +1483,17 @@ function edgeOf(
       highlight === undefined
         ? classes.edge
         : `${classes.edge} ${classes[highlight]}`,
-    style: { '--relation-color': EDGE_COLOR[relation.kind] } as CSSProperties,
+    style: {
+      '--relation-color': EDGE_COLOR[relation.kind],
+      // Its dashes, when the edges run (exploration.module.css).
+      '--relation-dash': edgeDashOf(relation.kind).dash,
+      '--relation-gap': edgeDashOf(relation.kind).gap,
+      '--relation-dash-time': edgeDashOf(relation.kind).time,
+    } as CSSProperties,
+    // The word's own: the canvas puts `style` on the line alone.
+    labelStyle: {
+      '--relation-color': EDGE_WORD[relation.kind],
+    } as CSSProperties,
     // The selection's relations are drawn over the rest.
     zIndex: highlight === 'highlighted' ? 1 : 0,
     // A small pill on the line, its word in the relation's colour
@@ -1382,7 +1505,7 @@ function edgeOf(
       type: EDGE_ARROW[relation.kind],
       color:
         highlight === 'highlighted'
-          ? 'var(--edge-highlight, var(--mantine-color-brand-6))'
+          ? 'var(--edge-highlight, var(--noesis-diagram-highlight))'
           : EDGE_COLOR[relation.kind],
     },
   };

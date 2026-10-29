@@ -21,7 +21,7 @@
 
 .place {
   font-size: var(--mantine-font-size-xs);
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
 }
 
 /* In the tooltip's own text colour, a size up: the tooltip's title. */
@@ -72,7 +72,7 @@
   margin-right: 4px;
   vertical-align: middle;
   /* A property's braces in the tree's default gray; a behavior's icon keeps the tree's colour. */
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
 
   & > svg {
     display: block;

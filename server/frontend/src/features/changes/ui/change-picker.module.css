@@ -97,7 +97,7 @@
 }
 
 .check {
-  color: var(--mantine-color-brand-6);
+  color: light-dark(var(--mantine-color-brand-6), var(--mantine-color-brand-4));
 }
 
 .age {

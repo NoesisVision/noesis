@@ -102,7 +102,9 @@ export function useSelectionState(id: string) {
       : related.has(id)
         ? ('related' as const)
         : undefined;
-  return { state, onSelect, onLetGo };
+  // With something in hand, what has nothing to do with it steps back.
+  const dimmed = selected.size > 0 && state === undefined;
+  return { state, dimmed, onSelect, onLetGo };
 }
 
 /** The frames each element in `ids` is drawn inside, out to the outermost. */

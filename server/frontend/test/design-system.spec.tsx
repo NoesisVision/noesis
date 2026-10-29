@@ -123,7 +123,9 @@ it('draws a card tooltip as a card, and a plain one in Mantine colours', () => {
     </CardTooltip>,
   );
   expect(card).toContain('dashed');
-  expect(card).toContain('--mantine-color-brand-9');
+  // A card in the dark too, the light one's reflection rather than a blue.
+  expect(card).toContain('--mantine-color-dark-6');
+  expect(card).not.toContain('--mantine-color-brand-9');
   // Still the plain tooltip underneath, arrow and all.
   expect(card).toContain('mantine-Tooltip-arrow');
   const plain = html(

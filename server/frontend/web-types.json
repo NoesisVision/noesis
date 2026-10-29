@@ -95,6 +95,10 @@
           "description": "What is raised on the rail: the change's card and the item you are on. White in light, dark 7 in dark, from `cssVariablesResolver` in `theme.ts`."
         },
         {
+          "name": "--noesis-brand-mark",
+          "description": "The Noesis mark's colour, from the brand book: navy #2B2D3C in light, cyan #7EE3E8 in dark, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
           "name": "--noesis-focus-ring",
           "description": "The outline a control takes under the keyboard (`:focus-visible`), in the brand filled colour; each rule sets its own offset. from `cssVariablesResolver` in `theme.ts`."
         },
@@ -103,28 +107,140 @@
           "description": "Lines and borders of the architecture diagram: its edges and adapter cards. Gray 6 / dark 2, from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-card",
-          "description": "Background of a building-block card in the architecture diagram. White / dark 6, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-card",
+          "description": "A card on any diagram, the exploration's and the architecture's. White / dark 6 (a grey over its darkened frame), from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-module",
-          "description": "Fill of a module's hexagon in the architecture diagram. Brand 0 / dark 8, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-card-border",
+          "description": "A diagram card's hairline. Gray 3 / dark 4, from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-module-border",
-          "description": "Stroke of a module's hexagon and its cards in the architecture diagram. Brand 3 / brand 8, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-card-border-hover",
+          "description": "A diagram card's hairline under the pointer. Gray 4 / dark 3, from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-core",
-          "description": "Fill of the domain core inside a module's hexagon. Brand 1 / dark 7, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-card-radius",
+          "description": "A diagram card's corners: 12px (DIAGRAM_SHAPE), from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-core-border",
-          "description": "Stroke of the domain core and its cards. Brand 4 / brand 7, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-frame-radius",
+          "description": "A diagram frame's corners, rounder than a card's: 16px (DIAGRAM_SHAPE), from `cssVariablesResolver` in `theme.ts`."
         },
         {
-          "name": "--noesis-architecture-selection",
-          "description": "What marks the selected element in the architecture diagram, and what relates to it: Mantine's orange filled colour, from `cssVariablesResolver` in `theme.ts`."
+          "name": "--noesis-diagram-bevel",
+          "description": "How far a value object's corners are cut: 12px (DIAGRAM_SHAPE), from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-card-shadow",
+          "description": "A diagram card's lift off the canvas, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-card-shadow-raised",
+          "description": "A diagram card's lift under the pointer, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-dimmed",
+          "description": "The opacity a card or frame steps back to while something else is in hand: 0.3, on every diagram, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-dimmed",
+          "description": "The opacity a line steps back to while something else is in hand: 0.2, on every diagram, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-module",
+          "description": "A module's frame on a diagram: the exploration's container, the architecture's hexagon. Brand 0 at 40% / dark 9 at 30% (see-through, so a frame inside another is darker), from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-module-border",
+          "description": "A module frame's edge. Brand 2 / `--mantine-color-brand-light-color` (brand 2), from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-block",
+          "description": "A building block's frame, or the architecture's domain core. Brand 0 at 60% / dark 9 at 30%, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-block-border",
+          "description": "A building block frame's edge. Brand 2 / dark 2, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-external",
+          "description": "What a diagram has not designed: a caller, an adapter. White / dark 4, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-selection-ring",
+          "description": "The ring round the selected element on a diagram. Brand 1 / `--mantine-color-brand-light-color` at 25%, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-related",
+          "description": "The dashed outline of what relates to the selection on a diagram. Brand 3 / `--mantine-color-brand-light-color` at 70%, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-highlight",
+          "description": "The selection's own relations on a diagram. Brand 6 / `--mantine-color-brand-light-color`, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-selection",
+          "description": "What marks the selected element on a diagram. Brand 5 / `--mantine-color-brand-light-color` (brand 2), from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-uses",
+          "description": "The line and arrow of a relation one element uses on the exploration. Brand 4 / #5a7aa3, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-uses-word",
+          "description": "The word on a uses line. Brand 9 / brand 2, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-invokes",
+          "description": "The line and arrow of a relation one element invokes on the exploration. Violet 6 / violet 2, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-invokes-word",
+          "description": "The word on an invokes line. Violet 6 / violet 2, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-uses-dash",
+          "description": "The length of a uses line's dash when the edges run: 3px, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-uses-gap",
+          "description": "The gap between a uses line's dashes: 4px, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-uses-time",
+          "description": "The time a uses line's dash and gap take to move one length along: 0.7s, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-invokes-dash",
+          "description": "The length of a invokes line's dash when the edges run: 10px, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-invokes-gap",
+          "description": "The gap between a invokes line's dashes: 5px, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-invokes-time",
+          "description": "The time a invokes line's dash and gap take to move one length along: 0.35s, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-label",
+          "description": "The pill a relation's word sits on. White / dark 7, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-label-border",
+          "description": "The pill's hairline. Gray 3 / dark 4, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-highlight-label",
+          "description": "The pill of one of the selection's own relations. Brand 0 / dark 6, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-highlight-label-border",
+          "description": "That pill's hairline. Brand 3 / brand 2 at 70%, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-highlight-word",
+          "description": "The word on one of the selection's own relations. Brand 7 / brand 2, from `cssVariablesResolver` in `theme.ts`."
         },
         {
           "name": "--noesis-requirement-quote",

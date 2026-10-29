@@ -37,10 +37,12 @@ switch back. One writer keeps the state explainable.
 
 All of it is in `shared/dev-tools/dev-tools-context.tsx`:
 
-1. Add the key to `featuresSchema` with its default:
-   `compactOutline: z.boolean().default(false)`. `.default` matters: without
-   it, a user's stored flags fail the schema the day a second flag is added,
-   and every switch they set is reset.
+1. Add the key to `featuresSchema` with its default and what it does:
+   `compactOutline: z.boolean().default(false).describe('…')`. `.default`
+   matters: without it, a user's stored flags fail the schema the day a
+   second flag is added, and every switch they set is reset. `.describe` is
+   shown under the flag's switch: say, in a sentence or two, where the
+   behavior is and what changes when it is on (and what it is when off).
 2. While the schema has keys, `Features` is `z.infer<typeof featuresSchema>`
    (replace the `Record<string, boolean>` placeholder and its comment), so a
    misspelled flag is a type error at the read site.
@@ -50,9 +52,9 @@ All of it is in `shared/dev-tools/dev-tools-context.tsx`:
 
 Name the flag for the behavior it turns on, in camelCase, in the domain's
 words (`compactOutline`, `showV2Tree`): the Dev Tools page shows it as
-`featureLabel(name)` — `Compact Outline` — so the name is the only
-explanation the user gets. Nothing per flag goes into `dev-tools-view.tsx`;
-it lists the schema's keys itself.
+`featureLabel(name)` — `Compact Outline` — with its `.describe` text
+(`featureDescription(name)`) under it. Nothing per flag goes into
+`dev-tools-view.tsx`; it lists the schema's keys itself.
 
 ## Reading a flag
 
@@ -80,5 +82,6 @@ both places to `true`, nothing more.
 
 - `bun run ci` — types catch a read of a flag that does not exist.
 - `bun run lint` passes — it is what keeps the setter inside the Dev Tools view.
-- The flag appears on `/dev-tools` under its label (dev tools are enabled with
-  `devtool()` in the browser console).
+- The flag appears in the Dev tools dialog (the top bar's tool icon) under its
+  label, its description beneath (dev tools are enabled with `devtool()` in
+  the browser console).

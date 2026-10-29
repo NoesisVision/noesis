@@ -160,6 +160,41 @@ are an `ElementRelations` box (`ElementLinks` builds one), a statement is plain
 `DetailText` under the header, and a word on why something is empty is a
 `NoteSection`. No section titles, link chips or spacing of the canvas's own.
 
+## The diagrams behave and look alike
+
+The system model's exploration and the design document's architecture — and
+any diagram added later — are one kind of canvas to the reader, so they stay
+in sync in general behaviour, look and feel. The exploration is the
+reference: a change to how one diagram behaves or looks is made to the other
+in the same change, or the PR says why it is not.
+
+- **Selection.** A click on a card selects it; a click on the empty canvas
+  (`onPaneClick`) or Escape lets go of it. The details panel has a minimize
+  button and no close button: it closes as the selection is let go of.
+  Escape is heard on its way down (`addEventListener('keydown', …, true)`),
+  since a card's tooltip stops it on its way back, and is left alone in a
+  field, a tree, a dialog or a menu.
+- **Focus.** While something is selected, what has nothing to do with it —
+  not the selection, not what it relates to, not a frame round either —
+  steps back to `--noesis-diagram-dimmed`, its lines to
+  `--noesis-diagram-edge-dimmed`.
+- **Shapes.** A card's shape is `shapeOf` in
+  [`src/shared/ui/diagram-shapes.tsx`](../../../server/frontend/src/shared/ui/diagram-shapes.tsx):
+  a behavior a pill, a value object bevelled, the rest a rounded box, with
+  the one selected ring and dashed related ring. Give the card
+  `cardShapeClass` and `data-shape`, never a radius, ring or bevel of its
+  own; a diagram sets only its fill and edge (`--shape-fill`,
+  `--shape-edge`), border style and padding.
+- **Colours, sizes, motion.** Every value is a `--noesis-diagram-*` token in
+  `cssVariablesResolver` (`src/shared/design-system/theme.ts`), for both
+  schemes: surfaces, accent, edges (each relation's line, word, dash and
+  speed in `relationEdges`), shapes (`DIAGRAM_SHAPE`) and the dimmed
+  opacities. A diagram's stylesheet names tokens, never a literal colour or
+  a `light-dark()` of its own; a new one is declared in `web-types.json`.
+- **Chrome.** The toolbar is a `CanvasToolbar` with `ZoomControls quiet`,
+  the legend a `CanvasLegend` (both `src/shared/ui/`), and the selection is
+  read in a `DetailsDock` (above).
+
 ## Every modal uses `ModalFrame`
 
 A dialog is built from `ModalFrame`, `ModalBody` and `ModalFooter` in

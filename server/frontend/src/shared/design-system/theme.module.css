@@ -41,7 +41,7 @@
 
   /* The chosen segment's icon in the colour of the page it is on. */
   &[data-active] svg {
-    color: var(--noesis-tone-filled);
+    color: var(--noesis-tone-ink);
   }
 }
 
@@ -107,4 +107,30 @@
 /* A row in it, rounded to sit concentric in the dropdown's corners. */
 .dropdownRow.dropdownRow {
   border-radius: 12px;
+}
+
+/*
+ * A switch that is off: Mantine's dark track is a step off the menus and cards
+ * it sits on, so it is all but gone; two steps lighter, it reads as a control.
+ */
+.switchInput:not(:checked, :disabled) + .switchTrack {
+  --switch-bg: light-dark(
+    var(--mantine-color-gray-3),
+    var(--mantine-color-dark-3)
+  );
+}
+
+/* An empty checkbox or radio, edged firmly enough to find on a dark card. */
+.choiceInput.choiceInput:not(
+    :checked,
+    :disabled,
+    [data-checked],
+    [data-disabled],
+    [data-indeterminate],
+    [data-error]
+  ) {
+  border-color: light-dark(
+    var(--mantine-color-gray-4),
+    var(--mantine-color-dark-2)
+  );
 }

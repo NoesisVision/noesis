@@ -129,7 +129,9 @@ describe('ArchitectureView', () => {
     const panel = html.slice(html.indexOf('aria-label="Selection"'));
     expect(panel).toMatch(/^aria-label="Selection"/);
     expect(headingsOf(panel)).toContainEqual([2, 'notifyUsers']);
-    expect(panel).toContain('Clear the selection');
+    // Minimized, never closed: the selection is let go of on the canvas.
+    expect(panel).toContain('Minimize the details');
+    expect(panel).not.toContain('Clear the selection');
     expect(html).toMatch(/data-state="selected"[^>]*aria-label="notifyUsers/);
   });
 

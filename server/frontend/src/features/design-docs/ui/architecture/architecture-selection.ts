@@ -6,6 +6,7 @@ import type {
 } from '../../architecture-outline.ts';
 import { checkPath, needAtPortsPath } from '../../architecture-tree.ts';
 import { kindOf, ownerOf } from '../../element-id.ts';
+import { isFrame } from './architecture-kinds.ts';
 import type { LaidOutNode } from './layout-architecture.ts';
 
 /*
@@ -72,6 +73,29 @@ export const cardIdOf = (id: string, drawn: ReadonlySet<string>) =>
   drawn.has(id) || kindOf(id) !== 'behavior' ? id : ownerOf(id);
 
 const NOTHING: DiagramFocus = { selected: new Set(), related: new Set() };
+
+/**
+ * What stays clear while something is in hand, the rest stepping back: the
+ * selection, what it concerns, and the frames they are drawn in, as the
+ * exploration keeps the way to its selection. None with nothing in hand.
+ */
+export function clearOf(
+  focus: DiagramFocus,
+  nodes: readonly LaidOutNode[],
+): ReadonlySet<string> | null {
+  const inFocus = new Set([...focus.selected, ...focus.related]);
+  if (inFocus.size === 0) return null;
+  const focused = nodes.filter(({ id }) => inFocus.has(id));
+  const holds = (frame: LaidOutNode, node: LaidOutNode) =>
+    node.x >= frame.x &&
+    node.y >= frame.y &&
+    node.x + node.width <= frame.x + frame.width &&
+    node.y + node.height <= frame.y + frame.height;
+  for (const node of nodes)
+    if (isFrame(node.kind) && focused.some((each) => holds(node, each)))
+      inFocus.add(node.id);
+  return inFocus;
+}
 
 export function focusOf(
   subject: ArchitectureSubject | null,

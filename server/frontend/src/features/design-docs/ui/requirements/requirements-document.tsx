@@ -1,9 +1,7 @@
 import { IconAlertCircle } from '@tabler/icons-react';
-import { type ReactNode, type Ref, useState } from 'react';
+import type { ReactNode, Ref } from 'react';
 import { plural } from '#/features/design-docs/ui/plural.ts';
 import { Box } from '#/shared/design-system/box.tsx';
-import { FloatingIndicator } from '#/shared/design-system/floating-indicator.tsx';
-import { useMergedRef } from '#/shared/design-system/hooks.ts';
 import { List } from '#/shared/design-system/list.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
@@ -25,7 +23,7 @@ import {
 } from '../../design-doc-requirements.ts';
 import type { DesignDocDetail } from '../../design-docs.api.ts';
 import { scenarioEntriesOf } from '../element-details/body/scenarios-of.ts';
-import { type EntryMark, type EntryPin, entryMark } from './entry-mark.ts';
+import { type EntryMark, entryMark } from './entry-mark.ts';
 import { RuleEntry } from './rule-entry.tsx';
 import { Remark } from './statement.tsx';
 import classes from './requirements-view.module.css';
@@ -44,9 +42,6 @@ export function RequirementsDocument({
   requirements: RequirementsOutline;
   selected: string | null;
 }) {
-  const [page, setPage] = useState<HTMLDivElement | null>(null);
-  const [target, setTarget] = useState<HTMLElement | null>(null);
-  const pageRef = useMergedRef(ref, setPage);
   const entry = (traced: TracedRule, under: string) => {
     const path = rulePath(traced, under);
     return (
@@ -61,24 +56,14 @@ export function RequirementsDocument({
     );
   };
   const mark = (path: string) => entryMark(path, selected === path);
-  // A section is drawn by its heading: its rules are entries of their own.
-  const pin = (path: string) => (selected === path ? setTarget : undefined);
 
   return (
-    <Stack ref={pageRef} gap={0} px="lg" pt="lg" className={classes.page}>
-      {/* The heading in hand, lifted on a card that slides to it from the
-          last one: a need's or a group's. A rule is a card of its own, and
-          is outlined instead. */}
-      <FloatingIndicator
-        target={target}
-        parent={page}
-        className={classes.indicator}
-      />
+    <Stack ref={ref} gap={0} px="lg" pt="lg" className={classes.page}>
       <Summary summary={requirements.summary} />
 
       {requirements.needs.map(({ need, rules }) => (
         <Section key={need.id} {...mark(needPath(need.id))}>
-          <SectionHead pin={pin(needPath(need.id))}>
+          <SectionHead>
             <NeedEyebrow need={need} />
             <Title order={2} className={classes.needName}>
               {needNameOf(need)}
@@ -102,7 +87,7 @@ export function RequirementsDocument({
       ))}
 
       <Section {...mark(DESIGN_DECISIONS_PATH)}>
-        <SectionHead pin={pin(DESIGN_DECISIONS_PATH)}>
+        <SectionHead>
           <Title order={2} size="h3">
             {DESIGN_DECISIONS_TITLE}
           </Title>
@@ -124,10 +109,7 @@ export function RequirementsDocument({
       </Section>
 
       <Section {...mark(UNADDRESSED_NEEDS_PATH)}>
-        <SectionHead
-          pin={pin(UNADDRESSED_NEEDS_PATH)}
-          gap={requirements.unaddressedNeeds.length > 0}
-        >
+        <SectionHead gap={requirements.unaddressedNeeds.length > 0}>
           <Title order={2} size="h3">
             {UNADDRESSED_NEEDS_TITLE}
           </Title>
@@ -185,15 +167,12 @@ function Section({ children, ...mark }: { children: ReactNode } & EntryMark) {
 function SectionHead({
   children,
   gap = false,
-  pin,
 }: {
   children: ReactNode;
   gap?: boolean;
-  /** Hands the heading, while its section is in hand, to the card under it. */
-  pin?: EntryPin;
 }) {
   return (
-    <Box ref={pin} className={classes.sectionHead} data-gap={gap || undefined}>
+    <Box className={classes.sectionHead} data-gap={gap || undefined}>
       {children}
     </Box>
   );
