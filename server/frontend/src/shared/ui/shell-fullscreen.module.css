@@ -1,8 +1,14 @@
-/* Pinned to the corner of the screen the content now fills, over it. */
+/*
+ * Pinned to the bottom right of the screen the content now fills, over it:
+ * clear of the canvases' legends in their bottom left corners, and raised
+ * over the canvas's React Flow credit in its own corner, which stays in
+ * view. Not the top: on macOS the system's menu bar slides over the top of
+ * a full-screen page and takes the clicks there (shell-layout.module.css).
+ */
 .exit.exit {
   position: fixed;
-  left: 16px;
-  bottom: 16px;
+  right: 16px;
+  bottom: 44px;
   z-index: 5;
   display: flex;
   align-items: center;
