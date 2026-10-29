@@ -58,12 +58,9 @@ export function SystemModelView() {
   return (
     <div className={classes.surface}>
       <Group justify="space-between" gap="md" className={classes.header}>
-        <PageHeading
-          title="System model"
-          eyebrow="System model"
-          meta="What the code is made of"
-          tone="brand"
-        />
+        {/* The title says what the page is: no line over it, and it stands
+            level with the controls beside it. */}
+        <PageHeading title="System model" tone="brand" />
         <Group gap="sm" wrap="nowrap" className={classes.controls}>
           {model !== null && (
             <>

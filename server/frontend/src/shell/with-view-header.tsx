@@ -18,6 +18,8 @@ interface ViewHeaderOptions {
    * it, since a view like this has no full-width reading to offer.
    */
   centred?: boolean;
+  /** The title alone, with no line over it naming the view again. */
+  titleOnly?: boolean;
 }
 
 /**
@@ -28,12 +30,12 @@ interface ViewHeaderOptions {
  */
 export function withViewHeader(
   View: ViewComponent,
-  { centred = false }: ViewHeaderOptions = {},
+  { centred = false, titleOnly = false }: ViewHeaderOptions = {},
 ): ViewComponent {
   return function HeadedView() {
     const content = (
       <>
-        <ViewHeader />
+        <ViewHeader titleOnly={titleOnly} />
         <View />
       </>
     );
