@@ -9,15 +9,46 @@ import {
   IconFiles,
   IconLayoutDashboard,
   IconPencilBolt,
-  IconSun,
+  IconSettings,
   IconTopologyStar3,
   NavLink,
   ScrollArea,
   Stack,
   Text,
-  ThemeIcon,
   Title,
 } from '@noesis/design-system';
+
+/*
+ * The brand book v4 mark, as the app's top bar draws it
+ * (src/shell/noesis-mark.tsx, which is not a design-system module, so it is
+ * drawn here): a hexagon with the N as a small graph, on a 24-unit grid, in
+ * the mark's colour — navy in light, cyan in dark.
+ */
+const NoesisMark = () => (
+  <svg
+    width={24}
+    height={24}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="var(--noesis-brand-mark)"
+    strokeLinejoin="round"
+    strokeLinecap="round"
+    aria-hidden
+    style={{ display: 'block', flex: 'none' }}
+  >
+    <path
+      d="M12 1.75L20.75 6.75V17.25L12 22.25L3.25 17.25V6.75Z"
+      strokeWidth={1.5}
+    />
+    <path d="M8.5 15.5V8.5L15.5 15.5V8.5" strokeWidth={1.5} />
+    <g fill="var(--noesis-brand-mark)" stroke="none">
+      <circle cx={8.5} cy={8.5} r={1.5} />
+      <circle cx={8.5} cy={15.5} r={1.5} />
+      <circle cx={15.5} cy={8.5} r={1.5} />
+      <circle cx={15.5} cy={15.5} r={1.5} />
+    </g>
+  </svg>
+);
 
 export const ShellLayout = () => (
   <AppShell
@@ -27,21 +58,28 @@ export const ShellLayout = () => (
     padding="lg"
     h={460}
   >
-    <AppShell.Header>
+    <AppShell.Header bg="var(--noesis-rail-background)">
       <Group h="100%" px="md" justify="space-between">
         <Group gap="sm">
           <Burger opened={false} hiddenFrom="xs" size="sm" aria-label="Toggle navigation" />
-          <ThemeIcon size={28} radius="sm">
-            <IconTopologyStar3 size={18} />
-          </ThemeIcon>
-          <Text fw={600}>Noesis</Text>
+          <Group gap={7}>
+            <NoesisMark />
+            <Text fw={600} fz={18} lh={1}>
+              Noesis
+            </Text>
+          </Group>
         </Group>
-        <ActionIcon variant="default" size="lg" aria-label="Colour scheme">
-          <IconSun size={18} />
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          size={34}
+          aria-label="App settings"
+        >
+          <IconSettings size={18} stroke={1.7} />
         </ActionIcon>
       </Group>
     </AppShell.Header>
-    <AppShell.Navbar>
+    <AppShell.Navbar bg="var(--noesis-rail-background)">
       <AppShell.Section px="xs" pt="md" pb="md">
         <Card withBorder padding="xs">
           <Text size="xs" c="dimmed">

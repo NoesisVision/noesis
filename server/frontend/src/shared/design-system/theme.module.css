@@ -39,9 +39,14 @@
     color: var(--mantine-color-gray-5);
   }
 
-  /* The chosen segment's icon in the colour of the page it is on. */
+  /* The chosen segment's icon in the colour of the page it is on; off any
+     page (the design system's own previews), the brand's, as page-tone.css
+     gives the root. */
   &[data-active] svg {
-    color: var(--noesis-tone-ink);
+    color: var(
+      --noesis-tone-ink,
+      light-dark(var(--mantine-color-brand-6), var(--mantine-color-brand-4))
+    );
   }
 }
 
