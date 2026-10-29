@@ -106,6 +106,11 @@ export interface DiagramGraph {
   boxes: DiagramBox[];
   frames: DiagramFrame[];
   lines: DiagramLine[];
+  /**
+   * The lines a diagram plays through, in order, for a diagram that has an
+   * order to play: a sequence diagram's messages.
+   */
+  steps?: string[];
 }
 
 /* --- What is read of mermaid's parser data -------------------------------- */

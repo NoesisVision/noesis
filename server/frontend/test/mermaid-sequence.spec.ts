@@ -109,6 +109,14 @@ describe('a mermaid sequence diagram on the canvas', () => {
     expect(self.points[0]!.x).toBe(self.points.at(-1)!.x);
   });
 
+  it('plays its messages, not its notes or lifelines, in their order', () => {
+    const messages = drawn.graph.lines
+      .filter(({ id }) => id.startsWith('message'))
+      .map(({ id }) => id);
+    expect(drawn.graph.steps).toEqual(messages);
+    expect(drawn.graph.steps).toHaveLength(5);
+  });
+
   it('spaces the lifelines so the widest message between them fits', () => {
     const [qm, s] = ['p:QM', 'p:S'].map((id) => drawn.layout.rects.get(id)!);
     const centres = [qm!, s!].map((rect) => rect.x + rect.width / 2);

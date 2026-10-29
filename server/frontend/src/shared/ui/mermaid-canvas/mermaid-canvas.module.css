@@ -54,6 +54,47 @@
   visibility: hidden;
 }
 
+/* The corner: the toolbar, and under it the words of the step being played. */
+.corner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* A step's words: the label pill of the lines, a size up, in the accent. */
+.caption:not(:empty) {
+  max-width: min(420px, 60vw);
+  padding: 4px 12px;
+  border: 1px solid var(--noesis-diagram-edge-highlight-label-border);
+  border-radius: 999px;
+  background: var(--noesis-diagram-edge-highlight-label);
+  color: var(--noesis-diagram-edge-highlight-word);
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: var(--noesis-diagram-card-shadow);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  padding: 0 6px 0 2px;
+  color: var(--noesis-secondary-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 6px 2px;
+  background: light-dark(
+    var(--mantine-color-gray-3),
+    var(--mantine-color-dark-4)
+  );
+}
+
 /* Its zoom and its way to full screen, in the corner, as a canvas toolbar's. */
 .toolbar {
   display: flex;
@@ -375,6 +416,25 @@
 
 .edge.faded {
   opacity: var(--noesis-diagram-edge-dimmed);
+}
+
+/* The step being played: its dashes run towards where it goes, as the
+   exploration's animated edges do. */
+@keyframes playing {
+  from {
+    stroke-dashoffset: 20;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .edge.playing :global(.react-flow__edge-path) {
+    stroke-dasharray: 6 4;
+    animation: playing 0.6s linear infinite;
+  }
 }
 
 /* Its lines' words over the lines, which are lifted over the boxes. */

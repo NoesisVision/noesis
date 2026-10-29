@@ -1,4 +1,12 @@
-import { IconDatabase, IconMaximize, IconUser } from '@tabler/icons-react';
+import {
+  IconDatabase,
+  IconMaximize,
+  IconPlayerPause,
+  IconPlayerPlay,
+  IconPlayerTrackNext,
+  IconPlayerTrackPrev,
+  IconUser,
+} from '@tabler/icons-react';
 import '@xyflow/react/dist/base.css';
 import {
   Background,
@@ -32,6 +40,7 @@ import {
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
+import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { cardShapeClass } from '#/shared/ui/diagram-shapes.tsx';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
@@ -69,6 +78,8 @@ type LineEdge = Edge<
     markers: string;
     /** Where it stands to what is in hand; nothing with nothing in hand. */
     tone: 'highlighted' | 'faded' | undefined;
+    /** The step being played, its dashes running along it. */
+    playing: boolean;
   },
   'line'
 >;
@@ -79,6 +90,8 @@ interface Reading {
   clear: ReadonlySet<string> | null;
   related: ReadonlySet<string>;
   path: ReadonlySet<string>;
+  /** The lines drawn over the rest while a step plays; none otherwise. */
+  lines?: ReadonlySet<string>;
   onClick: (id: string, adding: boolean) => void;
 }
 
@@ -393,6 +406,8 @@ function LineEdgeView({ data }: EdgeProps<LineEdge>) {
 }
 
 const NODE_TYPES = { box: BoxNodeView, frame: FrameNodeView };
+/** How long a step of a playing diagram stays before the next. */
+const STEP_MS = 1500;
 const EDGE_TYPES = { line: LineEdgeView };
 
 /** Every kind of line end, as a marker, in the line's colour and the highlight's. */
@@ -496,15 +511,20 @@ function useWidth() {
 const INLINE = { min: 160, max: 560 };
 /** Room round the fitted diagram: a strip over it for the toolbar in its corner. */
 const ROOM = { top: 60, side: 20, bottom: 24 };
-const FIT = {
-  padding: {
-    top: `${ROOM.top}px`,
-    bottom: `${ROOM.bottom}px`,
-    left: `${ROOM.side}px`,
-    right: `${ROOM.side}px`,
-  },
-  maxZoom: 1,
-} as const;
+/** The strip a diagram that plays keeps over it besides: its step's words. */
+const CAPTION_ROOM = 40;
+
+/** Fitted inside the room, with the caption's strip too where there is one. */
+const fitOf = (top: number) =>
+  ({
+    padding: {
+      top: `${top}px`,
+      bottom: `${ROOM.bottom}px`,
+      left: `${ROOM.side}px`,
+      right: `${ROOM.side}px`,
+    },
+    maxZoom: 1,
+  }) as const;
 
 export function MermaidCanvas({
   graph,
@@ -526,10 +546,21 @@ export function MermaidCanvas({
   const [flow, setFlow] = useState<ReactFlowInstance | null>(null);
   const [zoom, setZoom] = useState(1);
   const [selection, setSelection] = useState<readonly string[]>([]);
+  // The step of a diagram that plays, and whether it moves on by itself.
+  const steps = useMemo(() => graph.steps ?? [], [graph]);
+  const [step, setStep] = useState<number | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const stop = useCallback(() => {
+    setPlaying(false);
+    setStep(null);
+  }, []);
 
   // A box clicked is taken in hand alone; clicked again, alone in hand, it is
-  // let go of. With Ctrl or Cmd it joins the hand, or leaves it.
+  // let go of. With Ctrl or Cmd it joins the hand, or leaves it. A step
+  // playing gives way to it.
   const onClick = useCallback((id: string, adding: boolean) => {
+    setPlaying(false);
+    setStep(null);
     setSelection((held) =>
       !adding
         ? held.length === 1 && held[0] === id
@@ -540,12 +571,15 @@ export function MermaidCanvas({
           : [...held, id],
     );
   }, []);
-  const letGo = useCallback(() => setSelection([]), []);
+  const letGo = useCallback(() => {
+    setSelection([]);
+    stop();
+  }, [stop]);
 
   // Escape lets go, as on the other diagrams; in a field or a dialog's own
   // controls it is theirs. Heard on its way down.
   useEffect(() => {
-    if (selection.length === 0) return;
+    if (selection.length === 0 && step === null) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       const target = event.target;
@@ -561,7 +595,39 @@ export function MermaidCanvas({
     };
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
-  }, [selection, letGo]);
+  }, [selection, step, letGo]);
+
+  /*
+   * Playing, the diagram moves on a step each STEP_MS, and stops on the last;
+   * played again from there, it starts over. A reader who asks for less
+   * motion moves it on a step at a time.
+   */
+  const last = steps.length - 1;
+  useEffect(() => {
+    if (!playing || step === null) return;
+    const timer = setTimeout(() => {
+      if (step < last) setStep(step + 1);
+      else setPlaying(false);
+    }, STEP_MS);
+    return () => clearTimeout(timer);
+  }, [playing, step, last]);
+  const goTo = useCallback(
+    (to: number) => {
+      setSelection([]);
+      setPlaying(false);
+      setStep(Math.max(0, Math.min(last, to)));
+    },
+    [last],
+  );
+  const play = useCallback(() => {
+    setSelection([]);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setStep((at) => (at === null || at >= last ? 0 : at + 1));
+      return;
+    }
+    setStep((at) => (at === null || at >= last ? 0 : at));
+    setPlaying(true);
+  }, [last]);
 
   const parents = useMemo(() => {
     const of = new Map<string, string | null>();
@@ -571,6 +637,46 @@ export function MermaidCanvas({
   }, [graph]);
 
   const reading = useMemo<Reading>(() => {
+    // A step playing: its message between its two participants, their
+    // lifelines, and the frames it is drawn in, clear of the rest.
+    const played =
+      step === null
+        ? undefined
+        : graph.lines.find((line) => line.id === steps[step]);
+    if (played !== undefined) {
+      const selected = new Set([played.source, played.target]);
+      const lines = new Set(
+        graph.lines
+          .filter(
+            (line) =>
+              line.id === played.id ||
+              (line.id.startsWith('lifeline') && selected.has(line.source)),
+          )
+          .map(({ id }) => id),
+      );
+      const at = layout.lines.find((line) => line.id === played.id)?.points[0];
+      const path = new Set(
+        graph.frames
+          .filter(({ id }) => {
+            const rect = layout.rects.get(id);
+            return (
+              rect !== undefined &&
+              at !== undefined &&
+              at.y >= rect.y &&
+              at.y <= rect.y + rect.height
+            );
+          })
+          .map(({ id }) => id),
+      );
+      return {
+        selected,
+        clear: new Set([...selected, ...path]),
+        related: new Set(),
+        path,
+        lines,
+        onClick,
+      };
+    }
     const selected = new Set(selection);
     if (selected.size === 0)
       return {
@@ -602,7 +708,7 @@ export function MermaidCanvas({
       path,
       onClick,
     };
-  }, [selection, graph, parents, onClick]);
+  }, [selection, step, steps, graph, layout, parents, onClick]);
 
   const nodes = useMemo<(BoxNode | FrameNode)[]>(
     () => [
@@ -648,7 +754,10 @@ export function MermaidCanvas({
       const placed = placedOf.get(line.id);
       if (placed === undefined || placed.points.length < 2) return [];
       const touches =
-        reading.selected.has(line.source) || reading.selected.has(line.target);
+        reading.lines?.has(line.id) ??
+        (reading.selected.has(line.source) ||
+          reading.selected.has(line.target));
+      const isStep = step !== null && steps[step] === line.id;
       return [
         {
           id: line.id,
@@ -661,6 +770,7 @@ export function MermaidCanvas({
             line.pattern === 'dotted' && classes.dotted,
             line.pattern === 'dashed' && classes.dashed,
             line.thick && classes.thick,
+            isStep && classes.playing,
             reading.clear !== null &&
               (touches ? classes.highlighted : classes.faded),
           ),
@@ -674,12 +784,44 @@ export function MermaidCanvas({
                 : touches
                   ? 'highlighted'
                   : 'faded',
+            playing: isStep,
           },
         },
       ];
     });
-  }, [graph, layout, reading, markers]);
+  }, [graph, layout, reading, markers, step, steps]);
 
+  // Full screen, a step drawn off the screen is brought onto it.
+  useEffect(() => {
+    if (!fullScreen || flow === null || step === null) return;
+    const points = layout.lines.find((line) => line.id === steps[step])?.points;
+    if (points === undefined || points.length === 0) return;
+    const xs = points.map(({ x }) => x);
+    const ys = points.map(({ y }) => y);
+    const middle = {
+      x: (Math.min(...xs) + Math.max(...xs)) / 2,
+      y: (Math.min(...ys) + Math.max(...ys)) / 2,
+    };
+    const shown = flow.flowToScreenPosition(middle);
+    const box = document
+      .querySelector(`[aria-label="${CSS.escape(name)}"][data-full-screen]`)
+      ?.getBoundingClientRect();
+    if (
+      box === undefined ||
+      (shown.x > box.left + 40 &&
+        shown.x < box.right - 40 &&
+        shown.y > box.top + 80 &&
+        shown.y < box.bottom - 40)
+    )
+      return;
+    void flow.setCenter(middle.x, middle.y, {
+      zoom: flow.getZoom(),
+      duration: 300,
+    });
+  }, [fullScreen, flow, step, steps, layout, name]);
+
+  const top = ROOM.top + (steps.length > 0 ? CAPTION_ROOM : 0);
+  const fit = useMemo(() => fitOf(top), [top]);
   const { ref: frame, width: across } = useWidth();
   const scale =
     across > 0
@@ -687,14 +829,14 @@ export function MermaidCanvas({
       : 1;
   const inlineHeight = Math.min(
     INLINE.max,
-    Math.max(INLINE.min, layout.height * scale + ROOM.top + ROOM.bottom),
+    Math.max(INLINE.min, layout.height * scale + top + ROOM.bottom),
   );
   // Fitted again as the column it sits in changes width.
   useEffect(() => {
     if (flow === null) return;
-    const frame = requestAnimationFrame(() => void flow.fitView(FIT));
+    const frame = requestAnimationFrame(() => void flow.fitView(fit));
     return () => cancelAnimationFrame(frame);
-  }, [flow, inlineHeight, across]);
+  }, [flow, inlineHeight, across, fit]);
 
   return (
     <ReadingContext.Provider value={reading}>
@@ -705,6 +847,23 @@ export function MermaidCanvas({
         className={classes.canvas}
         data-full-screen={fullScreen || undefined}
         style={fullScreen ? undefined : { height: inlineHeight }}
+        // Space plays or pauses, the arrows step through, while the canvas
+        // has the keyboard; a focused button's Space is the button's own.
+        onKeyDown={(event) => {
+          if (steps.length === 0) return;
+          const onButton = event.target instanceof HTMLButtonElement;
+          if (event.key === ' ' && !onButton) {
+            event.preventDefault();
+            if (playing) setPlaying(false);
+            else play();
+          } else if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            goTo(step === null ? 0 : step + 1);
+          } else if (event.key === 'ArrowLeft' && step !== null) {
+            event.preventDefault();
+            goTo(step - 1);
+          }
+        }}
       >
         <Markers id={markers} />
         <ReactFlow
@@ -714,7 +873,7 @@ export function MermaidCanvas({
           edgeTypes={EDGE_TYPES}
           colorMode={scheme}
           fitView
-          fitViewOptions={FIT}
+          fitViewOptions={fit}
           minZoom={0.2}
           maxZoom={3}
           nodesDraggable={false}
@@ -743,27 +902,95 @@ export function MermaidCanvas({
             color="light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))"
             bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
           />
-          <Panel position="top-right" className={classes.toolbar}>
-            <ZoomControls
-              quiet
-              zoom={zoom}
-              disabled={flow === null}
-              onZoomOut={() => void flow?.zoomOut()}
-              onZoomIn={() => void flow?.zoomIn()}
-              onFit={() => void flow?.fitView(FIT)}
-            />
-            {onFullScreen !== undefined && (
-              <ActionIcon
-                variant="subtle"
-                color="gray"
-                size="lg"
-                aria-label="Open diagram full screen"
-                title="Open diagram full screen"
-                onClick={onFullScreen}
-              >
-                <IconMaximize size={18} stroke={1.6} aria-hidden />
-              </ActionIcon>
-            )}
+          <Panel position="top-right" className={classes.corner}>
+            <Box className={classes.toolbar}>
+              {steps.length > 0 && (
+                <>
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="lg"
+                    aria-label={playing ? 'Pause' : 'Play the steps'}
+                    title={playing ? 'Pause' : 'Play the steps'}
+                    onClick={() => (playing ? setPlaying(false) : play())}
+                  >
+                    {playing ? (
+                      <IconPlayerPause size={18} stroke={1.6} aria-hidden />
+                    ) : (
+                      <IconPlayerPlay size={18} stroke={1.6} aria-hidden />
+                    )}
+                  </ActionIcon>
+                  {step !== null && (
+                    <>
+                      <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        size="lg"
+                        aria-label="Previous step"
+                        title="Previous step"
+                        disabled={step === 0}
+                        onClick={() => goTo(step - 1)}
+                      >
+                        <IconPlayerTrackPrev
+                          size={18}
+                          stroke={1.6}
+                          aria-hidden
+                        />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        size="lg"
+                        aria-label="Next step"
+                        title="Next step"
+                        disabled={step === last}
+                        onClick={() => goTo(step + 1)}
+                      >
+                        <IconPlayerTrackNext
+                          size={18}
+                          stroke={1.6}
+                          aria-hidden
+                        />
+                      </ActionIcon>
+                      <Text
+                        component="span"
+                        size="xs"
+                        className={classes.count}
+                      >
+                        {step + 1} / {steps.length}
+                      </Text>
+                    </>
+                  )}
+                  <span className={classes.divider} aria-hidden />
+                </>
+              )}
+              <ZoomControls
+                quiet
+                zoom={zoom}
+                disabled={flow === null}
+                onZoomOut={() => void flow?.zoomOut()}
+                onZoomIn={() => void flow?.zoomIn()}
+                onFit={() => void flow?.fitView(fit)}
+              />
+              {onFullScreen !== undefined && (
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  size="lg"
+                  aria-label="Open diagram full screen"
+                  title="Open diagram full screen"
+                  onClick={onFullScreen}
+                >
+                  <IconMaximize size={18} stroke={1.6} aria-hidden />
+                </ActionIcon>
+              )}
+            </Box>
+            {/* The step's words under the controls, said as it changes. */}
+            <Box className={classes.caption} aria-live="polite">
+              {step !== null &&
+                (graph.lines.find((line) => line.id === steps[step])?.label ??
+                  `Step ${step + 1}`)}
+            </Box>
           </Panel>
         </ReactFlow>
       </Box>

@@ -439,7 +439,16 @@ export function sequenceOf(
     if (line.label !== null) line.label.x -= left;
   }
   return {
-    graph: { kind: 'sequence', direction: 'DOWN', boxes, frames, lines },
+    graph: {
+      kind: 'sequence',
+      direction: 'DOWN',
+      boxes,
+      frames,
+      lines,
+      steps: lines
+        .filter(({ id }) => id.startsWith('message-'))
+        .map(({ id }) => id),
+    },
     layout: { width: right - left, height: foot + 8, rects, lines: placed },
   };
 }
