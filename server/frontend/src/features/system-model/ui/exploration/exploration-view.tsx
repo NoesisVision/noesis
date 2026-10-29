@@ -338,10 +338,14 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const [selection, setSelection] = useState<readonly string[]>([]);
   const selected = selection.at(-1) ?? null;
   const inHandSet = useMemo(() => new Set(selection), [selection]);
+  // A card clicked is taken in hand alone; clicked again, alone in hand, it
+  // is let go of. With Ctrl or Cmd it joins the hand, or leaves it.
   const select = useCallback((id: string, adding: boolean) => {
     setSelection((held) =>
       !adding
-        ? [id]
+        ? held.length === 1 && held[0] === id
+          ? []
+          : [id]
         : held.includes(id)
           ? held.filter((each) => each !== id)
           : [...held, id],

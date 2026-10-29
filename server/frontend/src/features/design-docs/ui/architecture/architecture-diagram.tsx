@@ -145,6 +145,7 @@ export function ArchitectureDiagram({
       changeColour,
       pickedKinds,
       onSelect: onSelectElement,
+      onLetGo: onClear,
     }),
     [
       focus,
@@ -154,6 +155,7 @@ export function ArchitectureDiagram({
       changeColour,
       pickedKinds,
       onSelectElement,
+      onClear,
     ],
   );
   const edges = useMemo(() => {
