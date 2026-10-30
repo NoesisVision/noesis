@@ -23,12 +23,14 @@ import {
   Position,
   ReactFlow,
   type ReactFlowInstance,
+  useKeyPress,
 } from '@xyflow/react';
 import { clsx } from 'clsx';
 import {
   type CSSProperties,
   type MouseEvent,
   type ReactNode,
+  type RefObject,
   createContext,
   useCallback,
   useContext,
@@ -257,8 +259,8 @@ function BoxNodeView({
               {box.attributes.map((attribute, index) => (
                 // oxlint-disable-next-line react/no-array-index-key
                 <span key={index} className={classes.attribute}>
-                  <span className={classes.type}>{attribute.type}</span>
                   <span>{attribute.name}</span>
+                  <span className={classes.type}>{attribute.type}</span>
                   <span className={classes.keys}>
                     {attribute.keys.join(', ')}
                   </span>
@@ -506,6 +508,49 @@ function useWidth() {
 }
 
 /**
+ * Ctrl and the wheel zooming as slowly as Cmd and the wheel. React Flow takes
+ * every wheel with Ctrl for a trackpad's pinch, which it speeds up tenfold on
+ * a Mac; a pinch presses no key, so while the Ctrl key itself is down the
+ * wheel is handed on without it.
+ */
+function useEvenCtrlZoom(
+  ref: RefObject<HTMLElement | null>,
+  ctrlHeld: boolean,
+) {
+  useEffect(() => {
+    const element = ref.current;
+    if (element === null || !ctrlHeld) return;
+    const onWheel = (event: WheelEvent) => {
+      if (!event.ctrlKey || !event.isTrusted) return;
+      event.preventDefault();
+      event.stopPropagation();
+      event.target?.dispatchEvent(
+        new WheelEvent('wheel', {
+          bubbles: true,
+          cancelable: true,
+          deltaX: event.deltaX,
+          deltaY: event.deltaY,
+          deltaMode: event.deltaMode,
+          clientX: event.clientX,
+          clientY: event.clientY,
+          screenX: event.screenX,
+          screenY: event.screenY,
+          shiftKey: event.shiftKey,
+          altKey: event.altKey,
+          metaKey: true,
+        }),
+      );
+    };
+    element.addEventListener('wheel', onWheel, {
+      capture: true,
+      passive: false,
+    });
+    return () =>
+      element.removeEventListener('wheel', onWheel, { capture: true });
+  }, [ref, ctrlHeld]);
+}
+
+/**
  * How tall the canvas stands inline: the diagram at the scale that fits it
  * across the column (never larger than its size), within reason.
  */
@@ -546,6 +591,10 @@ export function MermaidCanvas({
   const markers = `mermaid-${useId().replaceAll(':', '')}`;
   const [flow, setFlow] = useState<ReactFlowInstance | null>(null);
   const [zoom, setZoom] = useState(1);
+  // Ctrl or Cmd held: the wheel zooms an inline diagram as it does full screen.
+  const ctrlHeld = useKeyPress('Control');
+  const cmdHeld = useKeyPress('Meta');
+  const wheelZooms = fullScreen || ctrlHeld || cmdHeld;
   const [selection, setSelection] = useState<readonly string[]>([]);
   // The step of a diagram that plays, and whether it moves on by itself.
   const steps = useMemo(() => graph.steps ?? [], [graph]);
@@ -824,6 +873,7 @@ export function MermaidCanvas({
   const top = ROOM.top + (steps.length > 0 ? CAPTION_ROOM : 0);
   const fit = useMemo(() => fitOf(top), [top]);
   const { ref: frame, width: across } = useWidth();
+  useEvenCtrlZoom(frame, ctrlHeld);
   const scale =
     across > 0
       ? Math.min(1, (across - 2 * ROOM.side) / Math.max(1, layout.width))
@@ -884,8 +934,8 @@ export function MermaidCanvas({
           elementsSelectable={false}
           // Inline, the wheel scrolls the page; a pinch, or Ctrl/Cmd and the
           // wheel, zooms. Full screen, the wheel zooms.
-          zoomOnScroll={fullScreen}
-          preventScrolling={fullScreen}
+          zoomOnScroll={wheelZooms}
+          preventScrolling={wheelZooms}
           zoomOnPinch
           panOnDrag
           onPaneClick={letGo}

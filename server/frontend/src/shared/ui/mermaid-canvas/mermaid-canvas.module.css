@@ -318,19 +318,27 @@
   white-space: nowrap;
 }
 
-.attribute {
+/* An entity's attributes in columns, every row lined up: name, type, keys. */
+.attributes {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  gap: 12px;
+  column-gap: 12px;
+}
+
+.attribute {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   white-space: nowrap;
 }
 
-.type,
-.keys {
-  color: var(--noesis-secondary-text);
+/* The type in the brand's tint, as a declaration box colours it. */
+.type {
+  color: var(--mantine-color-brand-light-color);
 }
 
 .keys {
+  color: var(--noesis-secondary-text);
   font-size: 11px;
   font-weight: 600;
 }

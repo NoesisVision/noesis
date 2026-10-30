@@ -119,12 +119,12 @@ function sizeOf(
       };
     }
     case 'entity': {
-      const types = widest(
-        box.attributes.map(({ type }) => type),
-        FONTS.row,
-      );
       const names = widest(
         box.attributes.map(({ name }) => name),
+        FONTS.row,
+      );
+      const types = widest(
+        box.attributes.map(({ type }) => type),
         FONTS.row,
       );
       const keys = widest(
@@ -135,7 +135,7 @@ function sizeOf(
         width: Math.max(
           120,
           words + 2 * PAD_X,
-          types + names + keys + 2 * PAD_X + 24,
+          names + types + keys + 2 * PAD_X + 24,
         ),
         height:
           HEADER_HEIGHT +
