@@ -1,4 +1,5 @@
 import {
+  type ReactNode,
   useCallback,
   useEffect,
   useId,
@@ -90,7 +91,10 @@ export function zoomAt(view: View, factor: number, point: Point): View {
 }
 
 interface MermaidViewerProps {
-  svg: string;
+  /** Mermaid's own drawing, zoomed and dragged here; or, in its place, */
+  svg?: string;
+  /** a canvas that zooms and pans itself (mermaid-canvas). */
+  children?: ReactNode;
   name: string;
   opened: boolean;
   onClose: () => void;
@@ -102,6 +106,7 @@ interface MermaidViewerProps {
  */
 export function MermaidViewer({
   svg,
+  children,
   name,
   opened,
   onClose,
@@ -139,7 +144,7 @@ export function MermaidViewer({
         body: classes.body,
       }}
     >
-      <Canvas svg={svg} name={name} />
+      {children ?? (svg !== undefined && <Canvas svg={svg} name={name} />)}
     </Modal>
   );
 }

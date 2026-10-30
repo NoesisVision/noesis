@@ -1,0 +1,486 @@
+/*
+ * A mermaid diagram on the app's canvas: every colour, shape and opacity is
+ * a diagram token (theme.ts) or the diagrams' shared shape (diagram-shapes),
+ * as on the exploration and the architecture — the frontend skill's rule.
+ */
+.canvas {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-radius: var(--noesis-diagram-frame-radius);
+  background: var(--mantine-color-body);
+
+  &[data-full-screen] {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+/* The ends of its lines, defined once for the canvas. */
+.markers {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.marker {
+  color: var(--noesis-architecture-edge);
+}
+
+.markerHighlight {
+  color: var(--noesis-diagram-highlight);
+}
+
+.fill {
+  fill: currentColor;
+}
+
+.stroke {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.hollow {
+  fill: var(--mantine-color-body);
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.handle {
+  visibility: hidden;
+}
+
+/* The corner: the toolbar, and under it the words of the step being played. */
+.corner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+/* A step's words: the label pill of the lines, a size up, in the accent. */
+.caption:not(:empty) {
+  max-width: min(420px, 60vw);
+  padding: 4px 12px;
+  border: 1px solid var(--noesis-diagram-edge-highlight-label-border);
+  border-radius: 999px;
+  background: var(--noesis-diagram-edge-highlight-label);
+  color: var(--noesis-diagram-edge-highlight-word);
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: var(--noesis-diagram-card-shadow);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.count {
+  padding: 0 6px 0 2px;
+  color: var(--noesis-secondary-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.divider {
+  align-self: stretch;
+  width: 1px;
+  margin: 6px 2px;
+  background: light-dark(
+    var(--mantine-color-gray-3),
+    var(--mantine-color-dark-4)
+  );
+}
+
+/* Its zoom and its way to full screen, in the corner, as a canvas toolbar's. */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+  border-radius: var(--mantine-radius-md);
+  background: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+}
+
+/* --- Boxes ---------------------------------------------------------------- */
+
+/*
+ * React Flow lets the pointer through a node it may neither select nor drag;
+ * here a box and a frame take their clicks themselves, as the architecture's
+ * cards do.
+ */
+.card,
+.diamond,
+.dot,
+.bar,
+.frame {
+  pointer-events: all;
+}
+
+/* A box: its words on a card, as every diagram's card. */
+.card.card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: 0 14px;
+  border: 1px solid var(--noesis-diagram-card-border);
+  background: var(--noesis-diagram-card);
+  color: var(--mantine-color-text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+
+  &:not([data-shape='pill']):hover {
+    border-color: var(--noesis-diagram-card-border-hover);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* A circle, a round box. */
+  &[data-box='circle'] {
+    border-radius: 50%;
+    box-shadow: var(--noesis-diagram-card-shadow);
+
+    &[data-state='selected'] {
+      border-color: var(--noesis-diagram-selection);
+      box-shadow: 0 0 0 3px var(--noesis-diagram-selection-ring);
+    }
+
+    &[data-state='related'] {
+      outline: 2px dashed var(--noesis-diagram-related);
+      outline-offset: 3px;
+    }
+  }
+
+  /* A note: a box of its own words, edged dashed, a step off the cards. */
+  &[data-box='note'] {
+    border-style: dashed;
+    border-radius: var(--noesis-diagram-card-radius);
+    background: light-dark(
+      var(--mantine-color-yellow-0),
+      var(--mantine-color-dark-6)
+    );
+    font-weight: 500;
+
+    &[data-state='selected'] {
+      border-color: var(--noesis-diagram-selection);
+    }
+  }
+}
+
+.words {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.line {
+  white-space: nowrap;
+}
+
+.icon {
+  flex: none;
+  color: var(--noesis-secondary-text);
+}
+
+/* A decision: a diamond drawn as a shape, its words over it. */
+.diamond.diamond {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--mantine-color-text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+
+  & .words {
+    position: relative;
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+
+  &[data-state='selected'] polygon {
+    stroke: var(--noesis-diagram-selection);
+    stroke-width: 2;
+  }
+
+  &[data-state='related'] polygon {
+    stroke: var(--noesis-diagram-related);
+    stroke-dasharray: 6 4;
+    stroke-width: 2;
+  }
+}
+
+.diamondShape {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  filter: drop-shadow(0 1px 2px rgba(16, 24, 40, 0.08));
+
+  & polygon {
+    fill: var(--noesis-diagram-card);
+    stroke: var(--noesis-diagram-card-border);
+    stroke-width: 1;
+  }
+}
+
+/* A state diagram's start, a dot; its end, a dot in a ring. Doubled, as the
+   other buttons here are, to win over the unstyled button's own reset. */
+.dot.dot {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--mantine-color-text);
+
+  &[data-box='end'] {
+    background: var(--mantine-color-text);
+    box-shadow:
+      inset 0 0 0 3px var(--mantine-color-body),
+      0 0 0 1.5px var(--mantine-color-text);
+  }
+
+  &[data-state='selected'] {
+    box-shadow: 0 0 0 3px var(--noesis-diagram-selection-ring);
+  }
+}
+
+/* A fork or a join: a bar. */
+.bar.bar {
+  width: 100%;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--mantine-color-text);
+
+  &[data-state='selected'] {
+    box-shadow: 0 0 0 3px var(--noesis-diagram-selection-ring);
+  }
+}
+
+/* A class or an entity: a card of its name over its members. */
+.table.table {
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0;
+  padding: 0;
+  text-align: start;
+  overflow: hidden;
+}
+
+.tableHead {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 14px;
+}
+
+.annotation {
+  color: var(--noesis-secondary-text);
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 14px;
+  border-top: 1px solid var(--noesis-diagram-card-border);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.row {
+  white-space: nowrap;
+}
+
+/* An entity's attributes in columns, every row lined up: name, type, keys. */
+.attributes {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  column-gap: 12px;
+}
+
+.attribute {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  white-space: nowrap;
+}
+
+/* The type in the brand's tint, as a declaration box colours it. */
+.type {
+  color: var(--mantine-color-brand-light-color);
+}
+
+.keys {
+  color: var(--noesis-secondary-text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* A frame, a subgraph or a composite state, as the exploration's module. */
+.frame {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--noesis-diagram-module-border);
+  border-radius: var(--noesis-diagram-frame-radius);
+  background: var(--noesis-diagram-module);
+
+  &[data-state='selected'] {
+    border-color: var(--noesis-diagram-selection);
+    box-shadow: 0 0 0 3px var(--noesis-diagram-selection-ring);
+  }
+
+  &[data-state='path'] {
+    border-color: var(--noesis-diagram-selection);
+  }
+}
+
+.frameTitle.frameTitle {
+  margin: 8px 10px;
+  padding: 2px 6px;
+  border-radius: 8px;
+  color: var(--mantine-color-text);
+  font-size: 13px;
+  font-weight: 600;
+
+  &:hover {
+    background: light-dark(
+      rgb(from var(--mantine-color-white) r g b / 0.9),
+      var(--mantine-color-dark-5)
+    );
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* With something in hand, what has nothing to do with it steps back. */
+[data-dimmed] {
+  opacity: var(--noesis-diagram-dimmed);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .card,
+  .diamond,
+  .frame,
+  .edge {
+    transition: opacity 150ms ease;
+  }
+}
+
+/* --- Lines ---------------------------------------------------------------- */
+
+.edge :global(.react-flow__edge-path) {
+  fill: none;
+  stroke: var(--noesis-architecture-edge);
+  stroke-width: 1.5px;
+}
+
+.dotted :global(.react-flow__edge-path) {
+  stroke-dasharray: 2 4;
+}
+
+.dashed :global(.react-flow__edge-path) {
+  stroke-dasharray: 6 4;
+}
+
+.thick :global(.react-flow__edge-path) {
+  stroke-width: 3px;
+}
+
+.edge.highlighted :global(.react-flow__edge-path) {
+  stroke: var(--noesis-diagram-highlight);
+  stroke-width: 2.5px;
+}
+
+.edge.faded {
+  opacity: var(--noesis-diagram-edge-dimmed);
+}
+
+/* The step being played: its dashes run towards where it goes, as the
+   exploration's animated edges do. */
+@keyframes playing {
+  from {
+    stroke-dashoffset: 20;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .edge.playing :global(.react-flow__edge-path) {
+    stroke-dasharray: 6 4;
+    animation: playing 0.6s linear infinite;
+  }
+}
+
+/* Its lines' words over the lines, which are lifted over the boxes. */
+.canvas :global(.react-flow__edgelabel-renderer) {
+  z-index: 1000;
+}
+
+/* A line's words, on the exploration's pill; by its ends, bare. */
+.labelBox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--noesis-secondary-text);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.label {
+  border: 1px solid var(--noesis-diagram-edge-label-border);
+  border-radius: 8px;
+  background: var(--noesis-diagram-edge-label);
+
+  &.highlighted {
+    border-color: var(--noesis-diagram-edge-highlight-label-border);
+    background: var(--noesis-diagram-edge-highlight-label);
+    color: var(--noesis-diagram-edge-highlight-word);
+  }
+}
+
+.endLabel.highlighted {
+  color: var(--noesis-diagram-edge-highlight-word);
+}
+
+.labelBox.faded {
+  opacity: var(--noesis-diagram-edge-dimmed);
+}

@@ -9,6 +9,22 @@ import {
   useMantineTheme,
 } from '#/shared/design-system/hooks.ts';
 import { Text } from '#/shared/design-system/text.tsx';
+import { MermaidCanvas } from './mermaid-canvas/mermaid-canvas.tsx';
+import {
+  type DiagramGraph,
+  graphKindOf,
+  graphOf,
+  type MermaidDiagramData,
+} from './mermaid-canvas/mermaid-graph.ts';
+import {
+  type DiagramLayout,
+  layoutDiagram,
+  type Measure,
+} from './mermaid-canvas/mermaid-layout.ts';
+import {
+  type MermaidSequenceDb,
+  sequenceOf,
+} from './mermaid-canvas/mermaid-sequence.ts';
 import { diagramCss, diagramTheme } from './mermaid-diagram-theme.ts';
 import { MermaidViewer } from './mermaid-viewer.tsx';
 import classes from './mermaid-diagram.module.css';
@@ -16,7 +32,53 @@ import classes from './mermaid-diagram.module.css';
 type Drawing =
   | { state: 'drawing' }
   | { state: 'drawn'; svg: string }
+  | { state: 'graph'; graph: DiagramGraph; layout: DiagramLayout }
   | { state: 'failed'; reason: string };
+
+/** What mermaid's parser keeps of a diagram, as far as it is read here. */
+interface ParsedDb {
+  getData?: () => Omit<MermaidDiagramData, 'type'>;
+  getDirection?: () => string | undefined;
+}
+
+let measuring: CanvasRenderingContext2D | null = null;
+/** A line of words' width in a font, as the page will draw it. */
+const measure: Measure = (text, font) => {
+  measuring ??= document.createElement('canvas').getContext('2d');
+  if (measuring === null) return text.length * 7;
+  measuring.font = font;
+  return measuring.measureText(text).width;
+};
+
+/**
+ * The diagram as the app draws it on its own canvas: a graph read by mermaid's
+ * parser and placed by ELK (mermaid-canvas/mermaid-graph.ts), or a sequence
+ * laid out down its lifelines (mermaid-sequence.ts). None for any other kind,
+ * which mermaid draws itself.
+ */
+async function graphFor(
+  mermaid: typeof import('mermaid').default,
+  chart: string,
+): Promise<{ graph: DiagramGraph; layout: DiagramLayout } | null> {
+  const parsed = await mermaid.mermaidAPI.getDiagramFromText(chart);
+  if (parsed.type === 'sequence') {
+    await document.fonts?.ready;
+    return sequenceOf(parsed.db as MermaidSequenceDb, measure);
+  }
+  if (graphKindOf(parsed.type) === null) return null;
+  const db = parsed.db as ParsedDb;
+  const data = db.getData?.();
+  if (data === undefined) return null;
+  const graph = graphOf({
+    ...data,
+    type: parsed.type,
+    direction: db.getDirection?.() ?? data.direction,
+  });
+  if (graph === null || graph.boxes.length === 0) return null;
+  // Sized by the words as the page draws them, so in its own font.
+  await document.fonts?.ready;
+  return { graph, layout: await layoutDiagram(graph, measure) };
+}
 
 /**
  * One mermaid fence from a markdown document. Mermaid is a megabyte and needs
@@ -50,6 +112,11 @@ export function MermaidDiagram({ chart }: { chart: string }) {
           themeVariables: diagramTheme(theme, scheme),
           themeCSS: diagramCss(theme, scheme),
         });
+        const drawn = await graphFor(mermaid, chart);
+        if (drawn !== null) {
+          if (live) setDrawing({ state: 'graph', ...drawn });
+          return;
+        }
         const { svg } = await mermaid.render(id, chart);
         if (live) setDrawing({ state: 'drawn', svg });
       } catch (error) {
@@ -81,11 +148,32 @@ export function MermaidDiagram({ chart }: { chart: string }) {
     );
   }
 
+  const name = diagramName(chart);
+  if (drawing.state === 'graph') {
+    return (
+      <>
+        <MermaidCanvas
+          graph={drawing.graph}
+          layout={drawing.layout}
+          name={name}
+          onFullScreen={viewer.open}
+        />
+        <MermaidViewer name={name} opened={viewing} onClose={viewer.close}>
+          <MermaidCanvas
+            graph={drawing.graph}
+            layout={drawing.layout}
+            name={name}
+            fullScreen
+          />
+        </MermaidViewer>
+      </>
+    );
+  }
+
   // Mermaid hands back a finished SVG document, which is the only shape it
   // renders to; `securityLevel: 'strict'` is what keeps the input from
   // reaching the output unescaped. The wrapper carries the name, because the
   // SVG inside it is a picture and arrives without one.
-  const name = diagramName(chart);
   return (
     <Box className={classes.frame}>
       <Box
