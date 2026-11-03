@@ -199,6 +199,15 @@ describe('the library manifests', () => {
     ]);
   });
 
+  it('passes over a directory named like a manifest', async () => {
+    await manifest('z-kernel.json', kernel);
+    await mkdir(t.noesis.resolve('libraries', 'old.json'), { recursive: true });
+
+    expect<unknown>(
+      (await settings()).libraries.map(({ path }) => path),
+    ).toEqual(['.noesis/libraries/z-kernel.json']);
+  });
+
   it('refuses a manifest that is no JSON, misses its blocks, or has a key it does not know', async () => {
     for (const content of [
       '{ not json',

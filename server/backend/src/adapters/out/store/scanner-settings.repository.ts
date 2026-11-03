@@ -61,16 +61,20 @@ export class ScannerSettingsFileRepository implements ScannerSettingsRepository 
     };
   }
 
-  /** Every `*.json` in `.noesis/libraries/`, by file name; none without the directory. */
+  /** Every `*.json` file in `.noesis/libraries/`, by file name; none without the directory. */
   private async libraries(): Promise<LibraryManifest[]> {
-    const names = await readdir(this.noesis.resolve(LIBRARIES_DIR)).catch(
-      (error: unknown) => {
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
-        throw error;
-      },
-    );
+    const entries = await readdir(this.noesis.resolve(LIBRARIES_DIR), {
+      withFileTypes: true,
+    }).catch((error: unknown) => {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+      throw error;
+    });
+    const names = entries
+      .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+      .map(({ name }) => name)
+      .sort();
     const manifests: LibraryManifest[] = [];
-    for (const name of names.filter((n) => n.endsWith('.json')).sort()) {
+    for (const name of names) {
       const path = `.noesis/${LIBRARIES_DIR}/${name}`;
       const parsed = LibraryManifestSchema.safeParse(
         await Bun.file(this.noesis.resolve(LIBRARIES_DIR, name))
