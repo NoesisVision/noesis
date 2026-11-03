@@ -9,7 +9,7 @@ import {
   type RelationKey,
   ScannedScenario,
   SystemModel,
-  TypeRef,
+  TypeId,
 } from '#backend/app/system-model/system-model';
 
 /*
@@ -318,14 +318,14 @@ describe('A relation', () => {
   });
 
   it('types a slot by a building block or a primitive, never by a wrapper', () => {
-    const isRef = (value: unknown) => TypeRef.safeParse(value).success;
+    const isTypeId = (value: unknown) => TypeId.safeParse(value).success;
 
-    expect(isRef(ORDER)).toBe(true);
-    expect(isRef('primitive|string')).toBe(true);
-    expect(isRef({ collectionOf: ORDER })).toBe(false);
-    expect(isRef('primitive|money')).toBe(false);
-    expect(isRef(ORDERS)).toBe(false);
-    expect(isRef(PLACE)).toBe(false);
+    expect(isTypeId(ORDER)).toBe(true);
+    expect(isTypeId('primitive|string')).toBe(true);
+    expect(isTypeId({ collectionOf: ORDER })).toBe(false);
+    expect(isTypeId('primitive|money')).toBe(false);
+    expect(isTypeId(ORDERS)).toBe(false);
+    expect(isTypeId(PLACE)).toBe(false);
     expect(isValid(withRelations([{ ...state, to: PLACE }]))).toBe(false);
     expect(isValid(withRelations([{ ...input, to: ORDERS }]))).toBe(false);
   });

@@ -26,7 +26,7 @@ import {
   isCollaboratorType,
   type ScannedRule,
   type SystemModel,
-  TypeRef,
+  TypeId,
   Visibility,
 } from '#backend/app/system-model/system-model';
 import { type ChangedDesignDocField, DesignDocField } from './design-doc-field';
@@ -59,7 +59,7 @@ export type DesignedScenario = z.infer<typeof DesignedScenario>;
  * relation is known by its ends.
  */
 const designedSlot = {
-  to: DesignDocField(TypeRef),
+  to: DesignDocField(TypeId),
   cardinality: DesignDocField(Cardinality),
 };
 export const DesignedRelation = z.discriminatedUnion('kind', [

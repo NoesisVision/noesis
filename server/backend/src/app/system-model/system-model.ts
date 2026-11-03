@@ -119,12 +119,12 @@ export const PrimitiveId = z
 export type PrimitiveId = z.infer<typeof PrimitiveId>;
 
 /** What a slot (a piece of state, an input, an output) is typed by: a building block or a primitive, never a wrapper. */
-export const TypeRef = z
+export const TypeId = z
   .union([BuildingBlockId, PrimitiveId])
   .describe(
     "The type of a slot: a building block's id or a primitive's. A collection is said by the relation's cardinality, never by the type.",
   );
-export type TypeRef = z.infer<typeof TypeRef>;
+export type TypeId = z.infer<typeof TypeId>;
 
 /** How many values a slot holds: a collection and an optional value are told apart by it. */
 export const Cardinality = z
@@ -261,7 +261,7 @@ export const ExtendsRelation = relation('extends', {
 }).describe('A building block extends or implements another.');
 export const HasStateRelation = relation('has_state', {
   from: BuildingBlockId,
-  to: TypeRef,
+  to: TypeId,
   name: ElementName,
   cardinality: Cardinality,
 }).describe(
@@ -282,7 +282,7 @@ export const ExposesRelation = relation('exposes', {
 );
 export const HasInputRelation = relation('has_input', {
   from: BehaviorId,
-  to: TypeRef,
+  to: TypeId,
   name: ElementName,
   cardinality: Cardinality,
   position: z
@@ -296,7 +296,7 @@ export const HasInputRelation = relation('has_input', {
 );
 export const HasOutputRelation = relation('has_output', {
   from: BehaviorId,
-  to: TypeRef,
+  to: TypeId,
   cardinality: Cardinality,
 }).describe(
   'What a behavior gives back: typed by `to`, holding `cardinality` values; a behavior has at most one.',

@@ -186,18 +186,18 @@ Every element is in a list named for its kind: `modules`, `layers`,
 
 ```ts
 Cardinality = '0..1' | '1' | '0..*' | '1..*'
-TypeRef = BuildingBlockId | PrimitiveId
+TypeId = BuildingBlockId | PrimitiveId
 
 Relation = discriminated on `kind`:
   { kind: 'hosts',            from: DeploymentContainerId, to: DeployableUnitId }
   { kind: 'contains',         from: DeployableUnitId | ModuleId, to: ModuleId }
   { kind: 'contains',         from: ModuleId | LayerId | LibraryId, to: BuildingBlockId }
   { kind: 'extends',          from: BuildingBlockId, to: BuildingBlockId }
-  { kind: 'has_state',        from: BuildingBlockId, to: TypeRef, name, cardinality }
+  { kind: 'has_state',        from: BuildingBlockId, to: TypeId, name, cardinality }
   { kind: 'has_collaborator', from: BuildingBlockId, to: BuildingBlockId, name }
   { kind: 'exposes',          from: BuildingBlockId, to: BehaviorId }
-  { kind: 'has_input',        from: BehaviorId, to: TypeRef, name, cardinality, position }
-  { kind: 'has_output',       from: BehaviorId, to: TypeRef, cardinality }
+  { kind: 'has_input',        from: BehaviorId, to: TypeId, name, cardinality, position }
+  { kind: 'has_output',       from: BehaviorId, to: TypeId, cardinality }
   { kind: 'invokes',          from: BehaviorId | ManualProcessId, to: BehaviorId, order }
   { kind: 'governs',          from: BehaviorId, to: RuleId }
   { kind: 'illustrates',      from: ScenarioId, to: RuleId }

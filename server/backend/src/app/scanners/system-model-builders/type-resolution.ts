@@ -2,7 +2,7 @@ import type { BuildingBlockId } from '#backend/app/element-id';
 import {
   type Cardinality,
   PrimitiveId,
-  type TypeRef as SystemTypeRef,
+  type TypeId,
 } from '#backend/app/system-model/system-model';
 import type { NodeId, TypeRef } from '../code-parsers/code-model';
 import type { CodeModelIndex, IndexedArtifact } from './code-model-index';
@@ -18,7 +18,7 @@ import type { AnnotationVocabulary } from './vocabulary';
  */
 
 export interface ResolvedType {
-  readonly ref: SystemTypeRef;
+  readonly ref: TypeId;
   readonly cardinality: Cardinality;
 }
 
@@ -37,7 +37,7 @@ export interface ResolutionScope {
 
 /** What a reference says before it is read as a cardinality. */
 interface Resolved {
-  readonly ref: SystemTypeRef;
+  readonly ref: TypeId;
   /** Whether the reference was nullable or wrapped in `Nullable<T>` or `Optional<T>`. */
   readonly optional: boolean;
   /** How many collections wrap the element: `List<Order>` is 1, `List<List<Order>>` 2. */
@@ -173,7 +173,7 @@ function resolveTypeParameter(
     : null;
 }
 
-function single(ref: SystemTypeRef, optional: boolean): Resolved {
+function single(ref: TypeId, optional: boolean): Resolved {
   return { ref, optional, collections: 0 };
 }
 
