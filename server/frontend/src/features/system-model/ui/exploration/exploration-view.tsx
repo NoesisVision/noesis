@@ -336,22 +336,38 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const [zoom, setZoom] = useState(1);
   const document = useMemo(() => designOf(model), [model]);
   // In hand, in the order taken; the last is the one the panel reads.
-  const [selection, setSelection] = useState<readonly string[]>([]);
+  const drawn = useMemo(
+    () => new Set(graph.elements.map(({ id }) => id)),
+    [graph],
+  );
+  const [hand, setSelection] = useState<readonly string[]>([]);
+  // What leaves the diagram leaves the hand too, however it went — an undo
+  // or a clear as much as a card's cross.
+  const selection = useMemo(
+    () =>
+      hand.every((id) => drawn.has(id))
+        ? hand
+        : hand.filter((id) => drawn.has(id)),
+    [hand, drawn],
+  );
   const selected = selection.at(-1) ?? null;
   const inHandSet = useMemo(() => new Set(selection), [selection]);
   // A card clicked is taken in hand alone; clicked again, alone in hand, it
   // is let go of. With Ctrl or Cmd it joins the hand, or leaves it.
-  const select = useCallback((id: string, adding: boolean) => {
-    setSelection((held) =>
-      !adding
-        ? held.length === 1 && held[0] === id
-          ? []
-          : [id]
-        : held.includes(id)
-          ? held.filter((each) => each !== id)
-          : [...held, id],
-    );
-  }, []);
+  const select = useCallback(
+    (id: string, adding: boolean) =>
+      setSelection((was) => {
+        const held = was.filter((each) => drawn.has(each));
+        return !adding
+          ? held.length === 1 && held[0] === id
+            ? []
+            : [id]
+          : held.includes(id)
+            ? held.filter((each) => each !== id)
+            : [...held, id];
+      }),
+    [drawn],
+  );
   const letGo = useCallback(() => setSelection([]), []);
   // The panel a lone card is read in, minimized: it shrinks into its corner,
   // where a button opens it again. Kept so as the hand changes.
@@ -396,10 +412,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         ? (exploration.elements.find(({ id }) => id === selected) ?? null)
         : null,
     [exploration, selection, selected],
-  );
-  const drawn = useMemo(
-    () => new Set(graph.elements.map(({ id }) => id)),
-    [graph],
   );
   const isShown = useCallback((id: string) => drawn.has(id), [drawn]);
   const onShowAll = useCallback(
