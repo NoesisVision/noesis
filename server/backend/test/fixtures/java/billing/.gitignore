@@ -1,0 +1,4 @@
+target/
+.noesis/*
+!.noesis/settings.json
+!.noesis/libraries/

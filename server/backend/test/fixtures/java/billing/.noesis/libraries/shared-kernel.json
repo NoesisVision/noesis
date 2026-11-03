@@ -1,0 +1,17 @@
+{
+  "name": "shared-kernel",
+  "description": "The kernel the company's systems share: a library the scan never parses.",
+  "buildingBlocks": [
+    {
+      "type": "com.acme.kernel.Money",
+      "kind": "value_object",
+      "description": "An amount in a currency."
+    },
+    {
+      "type": "com.acme.kernel.ExchangeRates",
+      "kind": "domain_service",
+      "name": "Exchange rates",
+      "description": "Converts money between currencies; each system brings its own rates."
+    }
+  ]
+}
