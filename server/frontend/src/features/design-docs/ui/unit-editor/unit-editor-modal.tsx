@@ -34,6 +34,7 @@ import {
   violationsOf,
 } from '../../design-doc-edit.ts';
 import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
+import { nameOf } from '../../element-id.ts';
 import { ChangeBadge } from '../element-details/change-badge.tsx';
 import { ScenarioFields } from './scenario-fields.tsx';
 import { UnitFields } from './unit-fields.tsx';
@@ -87,7 +88,7 @@ export function UnitEditorModal({
       return;
     }
     const id = idOfDraft(doc, placed, draft);
-    const unit = unitFromDraft(kind, draft, original, id);
+    const unit = unitFromDraft(kind, draft, original, id, ownerOf(placed));
     const edit: DesignDocEdit =
       target.mode === 'edit' && relocates
         ? {
@@ -110,7 +111,6 @@ export function UnitEditorModal({
         }
         const savedAs = state === 'unchanged' ? 'modified' : state;
         const { fields, rest } = violationsOf(
-          doc,
           refOfTarget(placed, id),
           savedAs,
           violations,
@@ -160,7 +160,6 @@ export function UnitEditorModal({
               original={original}
               state={state}
               document={doc}
-              owner={ownerOf(target)}
               newNeed={kind === 'need' && target.mode === 'add'}
             />
           )}
@@ -216,12 +215,19 @@ const ICON_KIND: Record<UnitKind, OutlineKind> = {
   module: 'module',
   building_block: 'building_block',
   behavior: 'behavior',
+  actor: 'actor',
+  manual_process: 'manual_process',
+  deployable_unit: 'deployable_unit',
+  library: 'library',
+  layer: 'layer',
+  deployment_container: 'deployment_container',
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',
+  collaborator: 'collaborator',
   parameter: 'property',
   result: 'property',
-  implements: 'building_block',
+  extends: 'building_block',
 };
 
 const ownerOf = (target: UnitTarget): PartOwner | null => {
@@ -229,13 +235,7 @@ const ownerOf = (target: UnitTarget): PartOwner | null => {
   return 'owner' in target.ref ? target.ref.owner : null;
 };
 
-/** The element itself, as the scenario's place: no rule of it. */
-const ITSELF = '';
-
-/**
- * Which rule a scenario belongs to — or, in a building block or a behavior,
- * the element itself, which holds scenarios of its own; a module does not.
- */
+/** Which rule a scenario illustrates, among those shown under the element. */
 function ScenarioRuleField({
   document: doc,
   owner,
@@ -250,14 +250,11 @@ function ScenarioRuleField({
   const element = { kind: owner.kind, id: owner.id };
   const rules = rulesOf(doc, element);
   const data = [
-    ...(owner.kind === 'module'
-      ? []
-      : [{ value: ITSELF, label: `The ${UNIT_LABEL[owner.kind]} itself` }]),
-    ...rules.map((rule) => ({ value: rule, label: rule })),
-  ];
+    ...new Set([...(owner.rule === undefined ? [] : [owner.rule]), ...rules]),
+  ].map((rule) => ({ value: rule, label: nameOf(rule) }));
   return (
     <Select
-      label="Belongs to"
+      label="Illustrates"
       leftSection={<IconHierarchy2 size={16} aria-hidden />}
       description={
         locked
@@ -267,14 +264,10 @@ function ScenarioRuleField({
       allowDeselect={false}
       disabled={locked}
       data={data}
-      value={owner.rule ?? ITSELF}
-      onChange={(value) =>
-        onChange(
-          value === null || value === ITSELF
-            ? element
-            : { ...element, rule: value },
-        )
-      }
+      value={owner.rule ?? null}
+      onChange={(value) => {
+        if (value !== null) onChange({ ...element, rule: value });
+      }}
     />
   );
 }

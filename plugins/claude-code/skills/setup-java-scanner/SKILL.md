@@ -105,8 +105,10 @@ plugin moves on.
    schema the plugin does not read is [Update](#update)) and scan again.
 10. **Tell the user what is next.** The parser turns annotated types into
     building blocks: list the [annotations](#annotations) and offer to
-    annotate the existing domain code. Do not annotate it as part of this
-    setup.
+    annotate the existing domain code. Rules and scenarios come from
+    feature files instead: say how, as
+    [Rules and scenarios](#rules-and-scenarios) does. Do not annotate the
+    code or write feature files as part of this setup.
 
 ## Maven
 
@@ -316,22 +318,132 @@ On Windows the wrappers are `mvnw.cmd` and `gradlew.bat`.
 
 All in `vision.noesis.annotations`. On a type:
 
-| Annotation                     | Building block                         |
-| ------------------------------ | -------------------------------------- |
-| `@AggregateRoot`               | aggregate                              |
-| `@DomainEntity`                | entity                                 |
-| `@ValueObject`                 | value object                           |
-| `@Identifier`                  | value object (an id)                   |
-| `@DomainService`               | domain service                         |
-| `@ApplicationService`          | application service                    |
-| `@Repository`                  | repository                             |
-| `@Factory`                     | factory                                |
-| `@ExternalIntegration`         | external integration                   |
-| `@Adapter`                     | external integration (the code's side) |
-| `@Command`, `@Query`, `@Event` | value object (a message)               |
+| Annotation                      | Building block       |
+| ------------------------------- | -------------------- |
+| `@AggregateRoot`                | aggregate            |
+| `@DomainEntity`                 | entity               |
+| `@ValueObject`                  | value object         |
+| `@Identifier`                   | value object (an id) |
+| `@DomainService`                | domain service       |
+| `@ApplicationService`           | application service  |
+| `@Repository`                   | repository           |
+| `@Factory`                      | factory              |
+| `@ExternalIntegration`          | external integration |
+| `@Adapter(Direction.PRIMARY)`   | in adapter           |
+| `@Adapter(Direction.SECONDARY)` | out adapter          |
+| `@TechnicalService`             | technical service    |
+| `@Command`                      | command              |
+| `@Query`                        | query                |
+| `@Event`                        | event                |
 
 On a method of an application service: `@CommandHandler`, `@QueryHandler`,
-`@EventHandler`. Modules come from the package structure; the scanner does
-not read `@Module` on `package-info.java` yet.
+`@EventHandler`. They mark a behavior; what kind of message it handles is
+the kind of the block it takes.
+
+`@Actor("<name>")` on a method, or on a type for all its behaviors, names
+who calls it, e.g. `@Actor("Quality manager")`; repeat it for several. Each
+name becomes an actor of the model; which manual process the actor performs
+and which behaviors that process invokes, a design document says.
+
+`@Layer("<name>")` on a package's `package-info.java` puts the building
+blocks of that package, and of every package below it that no nearer
+`@Layer` claims, in the named layer. Without it the model has no layers.
+
+```java
+@Layer("domain")
+package com.acme.shop;
+
+import vision.noesis.annotations.Layer;
+```
+
+`@TechnicalService`, `@Actor` and `@Layer` are in the annotations after
+0.1.0. Modules come from the package structure; the scanner does not read
+`@Module` on `package-info.java` yet.
 `${CLAUDE_PLUGIN_ROOT}/skills/implement-java-spring/references/mapping.md`
 has the full rules for how code becomes the model.
+
+## Rules and scenarios
+
+No annotation makes a rule or a scenario. The scan reads them from the
+Gherkin feature files (`*.feature`) Git tracks in the repository, run as
+tests with Cucumber:
+
+```gherkin
+Feature: Placing orders
+
+  @validation
+  Rule: Non-empty order
+    An order must have at least one line.
+
+    Scenario: An order without lines is refused
+      Given a customer with no lines picked
+      When the customer places the order
+      Then the order is refused
+```
+
+```java
+@When("the customer places the order")
+public void theCustomerPlacesTheOrder() {
+    result = orders.place(customer, List.of());
+}
+```
+
+- A `Rule:` is a rule, the text under it its description. It carries
+  exactly one kind tag: `@validation`, `@state_change`, `@post`,
+  `@computation`, `@coordination` or `@configuration`.
+- A `Scenario:` or `Scenario Outline:` under it is a scenario, its steps as
+  written, a `Background:` before them. A scenario outside a `Rule:` is
+  not read.
+- The scenario's `When` step, with the `And` and `But` steps after it,
+  binds to Cucumber step definitions, `@When("…")` from
+  `io.cucumber.java.en.When`, by their Cucumber expression or regular
+  expression. Between them, those methods call exactly one behavior: that
+  behavior governs the rule, and the rule is in its module.
+
+The step definitions live in the test sources (`src/test/java`). The
+parser reads test sources from its next release on; with a release that
+reads main sources only, the scan binds no `When` step and the model has
+no rules or scenarios. What the scan cannot read it drops and notes in the
+service log (`.noesis/logs/noesis.log`, under `scanner`): a rule with no
+kind tag or two, a `When` step matching no step definition or several,
+`When` steps calling no behavior or several. A rule none of whose scenarios
+binds is dropped too.
+
+## Libraries the scan does not read
+
+A package the code depends on (a Maven or Gradle dependency) is never parsed: the code model only
+names the types the code reaches in it, with no annotations, so none of them
+is a building block. When such a library holds building blocks the model
+should know — a shared kernel's value objects, a platform's services —
+describe it by hand in a manifest, one file per library under
+`.noesis/libraries/`, committed with the code:
+
+```json
+{
+  "name": "MyCompany.Shared.Kernel",
+  "description": "Value types every service shares.",
+  "buildingBlocks": [
+    { "type": "com.mycompany.shared.Money", "kind": "value_object" },
+    {
+      "type": "MyCompany.Shared.Clock",
+      "kind": "technical_service",
+      "description": "The time now."
+    }
+  ]
+}
+```
+
+- `name`: the library as its build names it (the package id); it becomes
+  `library|<name>`.
+- `type`: the type's full name as the code model spells it — namespace or
+  package, then name; a nested type after a `+` (`Money+Currency`), a generic
+  with its arity (`Result`1`).
+- `kind`: one of the building block kinds; `name` (optional) renames the
+  block, else it takes the type's own name; `description` is optional.
+
+Each listed type becomes a building block in the module its namespace maps
+to, by the same settings as the code's, and a field, parameter, result or
+base typed by it now points at that block. The library contains the blocks.
+A type the code itself declares is never listed: annotate it instead. The
+scan reads the manifests every time and refuses an invalid one, naming the
+file.

@@ -1,0 +1,12 @@
+{
+  "name": "money-api",
+  "description": "JSR 354, the Java money API: a dependency the scan never parses.",
+  "buildingBlocks": [
+    {
+      "type": "javax.money.CurrencyUnit",
+      "kind": "value_object",
+      "name": "Currency",
+      "description": "A currency, by its ISO 4217 code."
+    }
+  ]
+}

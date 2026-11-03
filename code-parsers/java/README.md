@@ -1,11 +1,11 @@
 # Noesis Java parser
 
 A Maven build, plus a Gradle plugin beside it, that reads Java modules into
-the common **code model**: one
-JSON file per module with every package, type and member, the edges between
-them (containment, inheritance, overrides, interface member mapping,
-invocations, field accesses, body-level type uses) and stubs for the external
-symbols it reached. The model, its ids and the mapping rules are designed in
+the common **code model**: one JSON file per module, its main and its test
+sources together, with every package, type and member, the edges between them
+(containment, inheritance, overrides, interface member mapping, invocations,
+field accesses, body-level type uses) and stubs for the external symbols it
+reached. The model, its ids and the mapping rules are designed in
 [`docs/plans/code-model-java-parser.md`](../../docs/plans/code-model-java-parser.md)
 on top of the model document the .NET parser shares. This README is about
 building and running the parser.
@@ -44,22 +44,22 @@ Claude Code plugin reads it to pick a release the plugin can read.
 
 ## Layout
 
-| Path                                               | What it is                                                                                                                               |
-| -------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `annotations/`                                     | `vision.noesis.annotations`: the DDD stereotype annotations a user codebase depends on                                                   |
-| `model/`                                           | The schema as Java records, the canonical string grammar, the JSON codec and the file layout; language-neutral                           |
-| `core/`                                            | The engines (`source/`, `bytecode/`, `hybrid/`) and what they share: ids, modifiers, constants, the stub closure, the classpath index    |
-| `maven-plugin/`                                    | The `noesis:parse` goal: reads the module off the Maven project and writes its file and the manifest                                     |
-| `gradle-plugin/`                                   | The `vision.noesis.parser` Gradle plugin: a `noesisParse` task that parses every Java project of a Gradle build; its own build           |
-| `test-fixtures/java-syntax`                        | Every Java construct the parser maps, one file per topic, mirroring the .NET parser's `CSharpSyntax` fixture; parsed by the golden tests |
-| `test-fixtures/java-syntax-other`                  | The types the syntax fixture reaches across a module boundary                                                                            |
-| `test-fixtures/java-lombok`                        | Classes whose members Lombok generates and the code that calls them: what the hybrid engine adds to the source model                     |
-| `core/src/test/resources/golden/`                  | The committed model files per engine, and `engine-comparison.md`, the counted difference of every engine from the source engine          |
-| `core/src/test/resources/fixtures-broken/`         | A syntax error and a missing import; must still yield a model                                                                            |
-| `maven-plugin/src/it/multi-module/`                | A two-module reactor project the plugin's integration test parses with the exact invocation the service makes                            |
-| `maven-plugin/src/it/broken-reactor/`              | A reactor whose first module does not compile, parsed with `-Dmaven.compiler.failOnError=false`: both modules get a model                |
-| `gradle-plugin/src/test/resources/multi-project/`  | The same two modules as a Gradle build, parsed by the Gradle plugin's functional test                                                    |
-| `gradle-plugin/src/test/resources/broken-project/` | A project that does not compile, parsed past its compile error by `noesisParse`                                                          |
+| Path                                               | What it is                                                                                                                            |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `annotations/`                                     | `vision.noesis.annotations`: the DDD stereotype annotations a user codebase depends on                                                |
+| `model/`                                           | The schema as Java records, the canonical string grammar, the JSON codec and the file layout; language-neutral                        |
+| `core/`                                            | The engines (`source/`, `bytecode/`, `hybrid/`) and what they share: ids, modifiers, constants, the stub closure, the classpath index |
+| `maven-plugin/`                                    | The `noesis:parse` goal: reads the module off the Maven project and writes its file and the manifest                                  |
+| `gradle-plugin/`                                   | The `vision.noesis.parser` Gradle plugin: a `noesisParse` task that parses every Java project of a Gradle build; its own build        |
+| `test-fixtures/java-syntax`                        | Every Java construct the parser maps, one file per topic, as in the .NET `CSharpSyntax` fixture; step definitions in its tests        |
+| `test-fixtures/java-syntax-other`                  | The types the syntax fixture reaches across a module boundary                                                                         |
+| `test-fixtures/java-lombok`                        | Classes whose members Lombok generates and the code that calls them: what the hybrid engine adds to the source model                  |
+| `core/src/test/resources/golden/`                  | The committed model files per engine, and `engine-comparison.md`, the counted difference of every engine from the source engine       |
+| `core/src/test/resources/fixtures-broken/`         | A syntax error and a missing import; must still yield a model                                                                         |
+| `maven-plugin/src/it/multi-module/`                | A two-module reactor, a step definition in one module's tests, that the integration test parses as the service does                   |
+| `maven-plugin/src/it/broken-reactor/`              | A reactor whose first module does not compile, parsed with `-Dmaven.compiler.failOnError=false`: both modules get a model             |
+| `gradle-plugin/src/test/resources/multi-project/`  | The same two modules as a Gradle build, parsed by the Gradle plugin's functional test                                                 |
+| `gradle-plugin/src/test/resources/broken-project/` | A project that does not compile, parsed past its compile error by `noesisParse`                                                       |
 
 ## Commands
 
@@ -85,14 +85,22 @@ comes first. From `gradle-plugin/`:
 
 ## Running the plugin
 
-The plugin is bound to `process-classes`, so the module and the reactor
-siblings it depends on are compiled. On any Maven project, without touching
-its POM:
+The plugin is bound to `process-test-classes`, so the module, its tests and
+the reactor siblings it depends on are compiled. On any Maven project, without
+touching its POM:
 
 ```sh
 mvn -B -q -ntp -Dnoesis.out=/tmp/parse -Dnoesis.repositoryRoot=$PWD -Dnoesis.repository=my-repo \
-  process-classes vision.noesis:noesis-parser-maven-plugin:0.1.0:parse
+  process-test-classes vision.noesis:noesis-parser-maven-plugin:0.1.0:parse
 ```
+
+A module's test sources are parsed into its own model, beside its main
+sources, against the test classpath: the Cucumber step definitions that bind
+a feature file's steps are there, and the behavior they call is reached
+through their `INVOKES` edges. A library only the tests use is among the
+module's dependencies when the model references it (`cucumber-java`), not
+otherwise (its own dependencies). The released `0.1.0` parses main sources
+only, after `process-classes`.
 
 | Property                | Default                                                                             | Meaning                                                                                                                   |
 | ----------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -102,6 +110,7 @@ mvn -B -q -ntp -Dnoesis.out=/tmp/parse -Dnoesis.repositoryRoot=$PWD -Dnoesis.rep
 | `noesis.revision`       | `""`                                                                                | written into the manifest                                                                                                 |
 | `noesis.engine`         | `source`                                                                            | `source`, `bytecode` or `hybrid`                                                                                          |
 | `noesis.release`        | the compiler plugin's `release`, else its `target`, else its `source`, else the JVM | the Java release the sources are bound against                                                                            |
+| `noesis.includeTests`   | `true`                                                                              | parse the test source roots and test classes too, into the module's model; `false` reads the main sources alone           |
 | `noesis.skip`           | `false`                                                                             | skip this module                                                                                                          |
 
 Each of the compiler plugin's `release`, `target` and `source` is read as
@@ -149,7 +158,7 @@ directory and `{name}` with the repository's name:
       "-Dnoesis.out={out}",
       "-Dnoesis.repository={name}",
       "-Dmaven.compiler.failOnError=false",
-      "process-classes",
+      "process-test-classes",
       "noesis:parse"
     ]
   }
@@ -201,8 +210,10 @@ To try this checkout instead, `./gradlew publishToMavenLocal` in
 `gradle-plugin/` (after `mvn install` here), add `mavenLocal()` to those
 repositories and apply `0.1.0-SNAPSHOT`.
 
-`./gradlew noesisParse` then compiles every project with the `java` plugin and
-parses them all in one go, in dependency order, into one manifest. The
+`./gradlew noesisParse` then compiles every project with the `java` plugin,
+its `test` source set too, and parses them all in one go, in dependency order,
+into one manifest; a project's test sources are in its own model, bound
+against its `testCompileClasspath`, as the Maven plugin parses a module's. The
 settings of the `noesis { }` block are the Maven plugin's properties, and a
 Gradle property of the same name overrides each of them, so a command line
 sets a parse up without touching the build:
@@ -219,6 +230,7 @@ sets a parse up without touching the build:
 | `noesis.revision`       | `""`                                                                   | written into the manifest                                                             |
 | `noesis.engine`         | `source`                                                               | `source`, `bytecode` or `hybrid`                                                      |
 | `noesis.release`        | the compile task's `release`, else `targetCompatibility`, else the JVM | the Java release the sources are bound against                                        |
+| `noesis.includeTests`   | `true`                                                                 | parse the `test` source set too; `false` neither compiles nor reads it                |
 
 A build that asks for `noesisParse` compiles past compile errors: no
 `JavaCompile` task fails, and each project is parsed from its sources with
@@ -250,7 +262,7 @@ the compile classpath is a `source` dependency, a module a `library` by its
 coordinates; the main class comes from the `application` plugin, Spring
 Boot's `springBoot.mainClass` or the jar manifest's `Main-Class`. The task is
 up to date while the sources, the compiled classes, the classpath and the
-settings are unchanged.
+settings are unchanged, the test source set's included.
 The Gradle daemon must run on a JDK, as Maven must; the engines run inside
 it.
 

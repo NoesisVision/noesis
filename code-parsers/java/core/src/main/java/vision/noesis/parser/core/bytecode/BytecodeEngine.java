@@ -34,7 +34,8 @@ public final class BytecodeEngine implements Engine {
         ModelBuilder builder = new ModelBuilder();
         NodeId artifactId = input.id();
         ArtifactNode artifact = ArtifactNodes.of(input, session, artifactId, EngineKind.BYTECODE);
-        if (!Files.isDirectory(input.outputDirectory())) {
+        List<Path> classDirectories = compiled(input);
+        if (classDirectories.isEmpty()) {
             builder.diagnostic(Diagnostics.error(Diagnostics.CLASSES_MISSING, "No compiled classes at " + input.outputDirectory() + "; build the module first."));
             return builder.build(session.generator(), artifact, session);
         }
@@ -43,8 +44,8 @@ public final class BytecodeEngine implements Engine {
             if (release == null && input.release() != Runtime.version().feature()) {
                 builder.diagnostic(Diagnostics.info(Diagnostics.PLATFORM_FROM_RUNTIME, "The running JDK has no API signatures for release " + input.release() + "; JDK classes are those of JDK " + Runtime.version().feature() + ".", null));
             }
-            ClassFileDetails details = ClassFileDetails.read(input.outputDirectory());
-            JavaClasses classes = importWithClasspath(input, loader);
+            ClassFileDetails details = ClassFileDetails.read(classDirectories);
+            JavaClasses classes = importWithClasspath(classDirectories, loader);
             BytecodeContext context = new BytecodeContext(input, session, builder, details, artifactId, loader, release);
             new BytecodeDeclarations(context).walk(classes);
             new BytecodeAccesses(context).walk(classes);
@@ -65,16 +66,28 @@ public final class BytecodeEngine implements Engine {
         return new ParseClassLoader(urls.toArray(new URL[0]), release);
     }
 
+    /**
+     * The module's class directories that exist. Test classes are missing when the build did not compile them (a parse
+     * bound before {@code process-test-classes}, {@code -Dmaven.test.skip}); the classes there are still the module's.
+     */
+    private static List<Path> compiled(ArtifactInput input) {
+        List<Path> directories = new ArrayList<>();
+        for (Path directory : input.classDirectories()) {
+            if (Files.isDirectory(directory)) directories.add(directory);
+        }
+        return directories;
+    }
+
     /** ArchUnit resolves referenced classes through the context class loader; the compile classpath is put there for the import. */
-    private static JavaClasses importWithClasspath(ArtifactInput input, ParseClassLoader loader) {
+    private static JavaClasses importWithClasspath(List<Path> classDirectories, ParseClassLoader loader) {
         Thread thread = Thread.currentThread();
         ClassLoader previous = thread.getContextClassLoader();
         try {
             thread.setContextClassLoader(loader);
-            Path versions = ClassFileDetails.versionsDirectory(input.outputDirectory().toAbsolutePath().normalize());
+            List<Path> versions = classDirectories.stream().map(directory -> ClassFileDetails.versionsDirectory(directory.toAbsolutePath().normalize())).toList();
             return new ClassFileImporter()
-                    .withImportOption(location -> !"file".equals(location.asURI().getScheme()) || !Path.of(location.asURI()).normalize().startsWith(versions))
-                    .importPath(input.outputDirectory());
+                    .withImportOption(location -> !"file".equals(location.asURI().getScheme()) || versions.stream().noneMatch(Path.of(location.asURI()).normalize()::startsWith))
+                    .importPaths(classDirectories);
         } finally {
             thread.setContextClassLoader(previous);
         }

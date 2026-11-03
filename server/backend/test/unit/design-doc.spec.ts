@@ -9,12 +9,16 @@ import {
 
 /*
  * A design document is a diff against the scanned model: the modules,
- * building blocks and behaviors a change adds, modifies or removes. An agent
- * writes it; a human reviews it.
+ * building blocks and behaviors a change adds, modifies or removes, and the
+ * relations between them. An agent writes it; a human reviews it.
  */
 
 const REFUND = 'building_block|sales.refunds.Refund';
 const ISSUE = 'behavior|sales.refunds.Refund.issue';
+
+/** A design that changes relations, with the given parts. */
+const relating = (relations: object, rest: Record<string, unknown> = {}) =>
+  design({ ...rest, relations });
 
 const design = (patch: Record<string, unknown> = {}) => ({
   id: '2026-01-01-partial-refunds',
@@ -64,15 +68,9 @@ describe('A design document', () => {
     const parsed = DesignDocument.parse(addingRefund({}));
 
     expect(parsed.modules).toEqual({ added: [], removed: [], modified: [] });
-    expect(parsed.buildingBlocks.added[0]?.properties).toEqual({
-      added: [],
-      removed: [],
-      modified: [],
-    });
-    expect(parsed.buildingBlocks.added[0]?.implements).toEqual({
-      added: [],
-      removed: [],
-    });
+    expect(parsed.relations).toEqual({ added: [], removed: [], modified: [] });
+    expect(parsed.rules).toEqual({ added: [], removed: [], modified: [] });
+    expect(parsed.scenarios).toEqual({ added: [], removed: [], modified: [] });
   });
 
   it('refuses a key it does not know, so nothing written is lost', () => {
@@ -84,8 +82,17 @@ describe('A design document', () => {
     ).toBe(false);
     expect(
       isValid(
-        addingRefund({
-          properties: { added: [{ name: 'total', optionl: { value: true } }] },
+        relating({
+          added: [
+            {
+              kind: 'has_state',
+              from: REFUND,
+              name: 'total',
+              to: { value: 'primitive|decimal' },
+              cardinality: { value: '1' },
+              optional: { value: true },
+            },
+          ],
         }),
       ),
     ).toBe(false);
@@ -136,118 +143,308 @@ describe('The elements a design changes', () => {
     expect(isValid(design({ behaviors: { removed: [REFUND] } }))).toBe(false);
   });
 
-  it('removes a property, a rule or a scenario by its name', () => {
-    const parsed = DesignDocument.parse(
-      addingRefund({
-        properties: { removed: ['legacyFlag'] },
-        rules: { removed: ['Refund only paid orders'] },
-        scenarios: { removed: ['Refunding a whole order'] },
-      }),
-    );
-    const block = parsed.buildingBlocks.added[0]!;
-
-    expect(block.properties.removed).toEqual(['legacyFlag']);
-    expect(block.rules.removed).toEqual(['Refund only paid orders']);
-    expect(block.scenarios.removed).toEqual(['Refunding a whole order']);
-  });
-
-  it('holds the scenarios of a building block, a behavior and a rule', () => {
-    const parsed = DesignDocument.parse(
-      addingRefund({
-        rules: {
-          modified: [
-            {
-              name: 'Refund only paid orders',
-              scenarios: { removed: ['Refunding an unpaid order'] },
-            },
-          ],
-        },
-      }),
-    );
-
-    expect(
-      parsed.buildingBlocks.added[0]?.rules.modified[0]?.scenarios.removed,
-    ).toEqual(['Refunding an unpaid order']);
-    expect(
-      isValid(addingIssue({ scenarios: { removed: ['Refunding'] } })),
-    ).toBe(true);
-  });
-
-  it('adds and removes an implemented interface by its id', () => {
+  it('removes a rule or a scenario by its id', () => {
+    const RULE = 'rule|sales.refunds.Refund only paid orders';
     const parsed = DesignDocument.parse(
       design({
-        buildingBlocks: {
-          modified: [
-            {
-              id: REFUND,
-              implements: {
-                added: ['building_block|sales.shared.Auditable'],
-                removed: ['building_block|sales.shared.Legacy'],
-              },
-            },
+        rules: { removed: [RULE] },
+        scenarios: {
+          removed: [
+            `scenario|sales.refunds.Refund only paid orders.Whole order`,
           ],
         },
       }),
     );
 
-    expect<object | undefined>(
-      parsed.buildingBlocks.modified[0]?.implements,
-    ).toEqual({
-      added: ['building_block|sales.shared.Auditable'],
-      removed: ['building_block|sales.shared.Legacy'],
-    });
+    expect<string[]>(parsed.rules.removed).toEqual([RULE]);
+    expect<string[]>(parsed.scenarios.removed).toEqual([
+      'scenario|sales.refunds.Refund only paid orders.Whole order',
+    ]);
+    expect(
+      isValid(design({ rules: { removed: ['Refund only paid orders'] } })),
+    ).toBe(false);
+    expect(isValid(design({ scenarios: { removed: [RULE] } }))).toBe(false);
   });
 
-  it('never modifies an implemented interface: it removes one and adds another', () => {
+  it('holds rules and scenarios as elements of their own, on no module, block or behavior', () => {
+    expect(isValid(addingRefund({ rules: { removed: [] } }))).toBe(false);
+    expect(isValid(addingIssue({ scenarios: { removed: [] } }))).toBe(false);
     expect(
       isValid(
         design({
-          buildingBlocks: {
-            modified: [{ id: REFUND, implements: { modified: [REFUND] } }],
-          },
+          modules: { added: [{ id: 'module|sales.refunds', rules: {} }] },
         }),
       ),
     ).toBe(false);
   });
 
-  it('knows an input by its name and an output by its type', () => {
-    const parsed = DesignDocument.parse(
+  it('classifies a rule by its kind alone', () => {
+    const adding = (rule: object) =>
       design({
-        behaviors: {
-          modified: [
-            {
-              id: ISSUE,
-              input: {
-                removed: ['note'],
-                modified: [{ name: 'reason', optional: { value: true } }],
-              },
-              output: {
-                removed: ['primitive|boolean'],
-                modified: [{ type: REFUND, description: { value: 'Issued.' } }],
-              },
-            },
-          ],
+        rules: {
+          added: [{ id: 'rule|sales.refunds.Paid only', ...rule }],
         },
-      }),
+      });
+    expect(isValid(adding({ kind: { value: 'validation' } }))).toBe(true);
+    expect(isValid(adding({ kind: { value: 'Validation' } }))).toBe(false);
+    expect(isValid(adding({ category: { value: 'Business' } }))).toBe(false);
+    expect(isValid(adding({ ruleType: { value: 'State change' } }))).toBe(
+      false,
     );
-    const issue = parsed.behaviors.modified[0]!;
-
-    expect(issue.input.removed).toEqual(['note']);
-    expect(issue.input.modified[0]?.name).toBe('reason');
-    expect<unknown[]>(issue.output.removed).toEqual(['primitive|boolean']);
-    expect<unknown>(issue.output.modified[0]?.type).toBe(REFUND);
   });
 
-  it('names every input and no output', () => {
+  it('adds and removes a relation of every kind the model has, each by its kind and ends', () => {
+    const AUDITABLE = 'building_block|sales.shared.Auditable';
+    const parsed = DesignDocument.parse(
+      relating({
+        added: [
+          { kind: 'extends', from: REFUND, to: AUDITABLE },
+          { kind: 'contains', from: 'module|sales.refunds', to: REFUND },
+          { kind: 'exposes', from: REFUND, to: ISSUE },
+          {
+            kind: 'invokes',
+            from: ISSUE,
+            to: 'behavior|sales.ledger.Ledger.post',
+            order: { value: 1 },
+          },
+          { kind: 'governs', from: ISSUE, to: 'rule|sales.refunds.Paid only' },
+          {
+            kind: 'illustrates',
+            from: 'scenario|sales.refunds.Paid only.Unpaid',
+            to: 'rule|sales.refunds.Paid only',
+          },
+        ],
+        removed: [
+          { kind: 'extends', from: REFUND, to: 'building_block|sales.Legacy' },
+          { kind: 'invokes', from: ISSUE, to: 'behavior|sales.Old.notify' },
+        ],
+      }),
+    );
+
+    expect(parsed.relations.added.map((r) => r.kind)).toEqual([
+      'extends',
+      'contains',
+      'exposes',
+      'invokes',
+      'governs',
+      'illustrates',
+    ]);
+    expect<unknown>(parsed.relations.removed).toEqual([
+      { kind: 'extends', from: REFUND, to: 'building_block|sales.Legacy' },
+      { kind: 'invokes', from: ISSUE, to: 'behavior|sales.Old.notify' },
+    ]);
     expect(
-      isValid(addingIssue({ input: { added: [{ type: { value: REFUND } }] } })),
+      isValid(relating({ added: [{ kind: 'extends', from: REFUND }] })),
     ).toBe(false);
     expect(
       isValid(
-        addingIssue({ output: { added: [{ name: 'refund', type: REFUND }] } }),
+        relating({ added: [{ kind: 'extends', from: REFUND, to: ISSUE }] }),
       ),
     ).toBe(false);
-    expect(isValid(addingIssue({ input: { removed: [REFUND] } }))).toBe(false);
+    expect(
+      isValid(relating({ added: [{ kind: 'owns', from: REFUND, to: ISSUE }] })),
+    ).toBe(false);
+  });
+
+  it('knows a piece of state and an input by their holder and name, so their type and cardinality are fields', () => {
+    const parsed = DesignDocument.parse(
+      relating({
+        added: [
+          {
+            kind: 'has_input',
+            from: ISSUE,
+            name: 'lines',
+            to: { value: 'building_block|sales.refunds.RefundLine' },
+            cardinality: { value: '1..*' },
+            position: { value: 1 },
+          },
+        ],
+        removed: [
+          { kind: 'has_state', from: REFUND, name: 'legacyFlag' },
+          { kind: 'has_input', from: ISSUE, name: 'note' },
+        ],
+        modified: [
+          {
+            kind: 'has_state',
+            from: REFUND,
+            name: 'total',
+            cardinality: { value: '0..1' },
+          },
+          {
+            kind: 'has_input',
+            from: ISSUE,
+            name: 'reason',
+            to: { value: 'primitive|string' },
+          },
+        ],
+      }),
+    );
+
+    expect<unknown>(parsed.relations.removed).toEqual([
+      { kind: 'has_state', from: REFUND, name: 'legacyFlag' },
+      { kind: 'has_input', from: ISSUE, name: 'note' },
+    ]);
+    expect(parsed.relations.modified[0]).toMatchObject({
+      name: 'total',
+      to: { changed: false },
+      cardinality: { changed: true, value: '0..1', author: 'agent' },
+    });
+    expect(parsed.relations.modified[1]).toMatchObject({
+      name: 'reason',
+      to: { changed: true, value: 'primitive|string' },
+      cardinality: { changed: false },
+    });
+    expect(
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_state',
+              from: REFUND,
+              to: { value: 'primitive|decimal' },
+              cardinality: { value: '1' },
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        relating({
+          removed: [{ kind: 'has_state', from: REFUND, to: REFUND }],
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('knows a collaborator by its holder and name, so the block it is is a field, and it has no cardinality', () => {
+    const LEDGER = 'building_block|sales.ledger.Ledger';
+    const parsed = DesignDocument.parse(
+      relating({
+        added: [
+          {
+            kind: 'has_collaborator',
+            from: REFUND,
+            name: 'ledger',
+            to: { value: LEDGER },
+          },
+        ],
+        removed: [{ kind: 'has_collaborator', from: REFUND, name: 'mailer' }],
+        modified: [
+          {
+            kind: 'has_collaborator',
+            from: REFUND,
+            name: 'orders',
+            to: { value: 'building_block|sales.orders.OrderArchive' },
+          },
+        ],
+      }),
+    );
+
+    expect<unknown>(parsed.relations.removed).toEqual([
+      { kind: 'has_collaborator', from: REFUND, name: 'mailer' },
+    ]);
+    expect(parsed.relations.modified[0]).toMatchObject({
+      name: 'orders',
+      to: { changed: true, value: 'building_block|sales.orders.OrderArchive' },
+    });
+    expect(
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_collaborator',
+              from: REFUND,
+              name: 'ledger',
+              to: { value: LEDGER },
+              cardinality: { value: '1' },
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_collaborator',
+              from: REFUND,
+              name: 'clock',
+              to: { value: 'primitive|datetime' },
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('knows an output by its type and a call by its target, so only the cardinality or the order is a field', () => {
+    const parsed = DesignDocument.parse(
+      relating({
+        removed: [{ kind: 'has_output', from: ISSUE, to: 'primitive|boolean' }],
+        modified: [
+          {
+            kind: 'has_output',
+            from: ISSUE,
+            to: REFUND,
+            cardinality: { value: '0..1' },
+          },
+          {
+            kind: 'invokes',
+            from: ISSUE,
+            to: 'behavior|sales.ledger.Ledger.post',
+            order: { value: 2 },
+          },
+        ],
+      }),
+    );
+
+    expect<unknown>(parsed.relations.removed).toEqual([
+      { kind: 'has_output', from: ISSUE, to: 'primitive|boolean' },
+    ]);
+    expect<unknown>(parsed.relations.modified.map((r) => r.to)).toEqual([
+      REFUND,
+      'behavior|sales.ledger.Ledger.post',
+    ]);
+    expect(
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_output',
+              from: ISSUE,
+              to: REFUND,
+              name: 'refund',
+              cardinality: { value: '1' },
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_output',
+              from: ISSUE,
+              to: { value: REFUND },
+              cardinality: { value: '1' },
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        relating({
+          added: [
+            { kind: 'invokes', from: ISSUE, to: REFUND, order: { value: 1 } },
+          ],
+        }),
+      ),
+    ).toBe(false);
   });
 
   it('classifies a building block, a behavior and a rule only by the known types', () => {
@@ -255,17 +452,11 @@ describe('The elements a design changes', () => {
     expect(isValid(addingRefund({ type: { value: 'controller' } }))).toBe(
       false,
     );
-    expect(isValid(addingIssue({ type: { value: 'Command' } }))).toBe(true);
-    expect(isValid(addingIssue({ type: { value: 'Request' } }))).toBe(false);
-    expect(
-      isValid(
-        addingRefund({
-          rules: {
-            added: [{ name: 'Paid only', ruleType: { value: 'Validation' } }],
-          },
-        }),
-      ),
-    ).toBe(false);
+    expect(isValid(addingRefund({ type: { value: 'out_adapter' } }))).toBe(
+      true,
+    );
+    // A behavior has no type: what kind of message it handles is not its own.
+    expect(isValid(addingIssue({ type: { value: 'Command' } }))).toBe(false);
   });
 });
 
@@ -315,19 +506,24 @@ describe('A field of a design', () => {
   });
 });
 
-describe('The type of a property, an input or an output', () => {
+describe('The type of a piece of state, an input or an output', () => {
   const withType = (type: unknown) =>
-    addingRefund({
-      properties: { added: [{ name: 'amount', type: { value: type } }] },
+    relating({
+      added: [
+        {
+          kind: 'has_state',
+          from: REFUND,
+          name: 'amount',
+          to: { value: type },
+          cardinality: { value: '1' },
+        },
+      ],
     });
 
-  it('is a building block of the model, a primitive, or a collection of either', () => {
+  it('is a building block of the model or a primitive; a collection is said by the cardinality', () => {
     expect(isValid(withType('building_block|sales.shared.Money'))).toBe(true);
     expect(isValid(withType('primitive|decimal'))).toBe(true);
-    expect(isValid(withType({ collectionOf: 'primitive|string' }))).toBe(true);
-    expect(
-      isValid(withType({ collectionOf: { collectionOf: 'primitive|string' } })),
-    ).toBe(true);
+    expect(isValid(withType({ collectionOf: 'primitive|string' }))).toBe(false);
   });
 
   it('knows only its own primitives, each named as a primitive', () => {
@@ -343,58 +539,387 @@ describe('The type of a property, an input or an output', () => {
   it('types the inputs and outputs of a behavior the same way', () => {
     expect(
       isValid(
-        addingIssue({
-          input: {
-            added: [
-              {
-                name: 'lines',
-                type: { value: { collectionOf: 'building_block|sales.Line' } },
-              },
-            ],
-          },
-          output: { added: [{ type: 'primitive|uuid' }] },
+        relating({
+          added: [
+            {
+              kind: 'has_input',
+              from: ISSUE,
+              name: 'lines',
+              to: { value: 'building_block|sales.Line' },
+              cardinality: { value: '0..*' },
+              position: { value: 1 },
+            },
+            {
+              kind: 'has_output',
+              from: ISSUE,
+              to: 'primitive|uuid',
+              cardinality: { value: '1' },
+            },
+          ],
         }),
       ),
     ).toBe(true);
     expect(
       isValid(
-        addingIssue({
-          input: {
-            added: [{ name: 'total', type: { value: 'primitive|money' } }],
-          },
+        relating({
+          added: [
+            {
+              kind: 'has_input',
+              from: ISSUE,
+              name: 'total',
+              to: { value: 'primitive|money' },
+              cardinality: { value: '1' },
+              position: { value: 1 },
+            },
+          ],
         }),
       ),
     ).toBe(false);
     expect(
       isValid(
-        addingIssue({ output: { added: [{ type: 'primitive|money' }] } }),
+        relating({
+          added: [
+            {
+              kind: 'has_output',
+              from: ISSUE,
+              to: 'primitive|money',
+              cardinality: { value: '1' },
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('holds one of four cardinalities', () => {
+    for (const cardinality of ['0..1', '1', '0..*', '1..*']) {
+      expect(
+        isValid(
+          relating({
+            added: [
+              {
+                kind: 'has_output',
+                from: ISSUE,
+                to: REFUND,
+                cardinality: { value: cardinality },
+              },
+            ],
+          }),
+        ),
+      ).toBe(true);
+    }
+    expect(
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_output',
+              from: ISSUE,
+              to: REFUND,
+              cardinality: { value: 'many' },
+            },
+          ],
+        }),
       ),
     ).toBe(false);
   });
 });
 
-describe('The visibility of a behavior', () => {
-  it('names the actors that may call a public behavior', () => {
+describe('Actors and manual processes', () => {
+  const CLERK = 'actor|Clerk';
+  const REFUND_A_RETURN = 'manual_process|Refund a return';
+  const people = (relations: object[]) =>
+    design({
+      actors: {
+        added: [
+          {
+            id: CLERK,
+            name: { value: 'Clerk' },
+            definition: { value: 'Serves customers at the counter.' },
+          },
+        ],
+      },
+      manualProcesses: {
+        added: [
+          {
+            id: REFUND_A_RETURN,
+            name: { value: 'Refund a return' },
+            definition: { value: 'The clerk refunds what came back.' },
+          },
+        ],
+      },
+      relations: { added: relations },
+    });
+
+  it('lets an actor perform a manual process that invokes behaviors in order', () => {
     expect(
       isValid(
-        addingIssue({
-          visibility: { value: { kind: 'public', actors: ['Clerk'] } },
-        }),
+        people([
+          { kind: 'performs', from: CLERK, to: REFUND_A_RETURN },
+          {
+            kind: 'invokes',
+            from: REFUND_A_RETURN,
+            to: ISSUE,
+            order: { value: 1 },
+          },
+        ]),
       ),
     ).toBe(true);
   });
 
-  it('names no actor for a private behavior', () => {
-    expect(
-      isValid(addingIssue({ visibility: { value: { kind: 'private' } } })),
-    ).toBe(true);
+  it('names an actor and a manual process by their name alone', () => {
     expect(
       isValid(
-        addingIssue({
-          visibility: { value: { kind: 'private', actors: ['Clerk'] } },
+        design({
+          actors: {
+            added: [
+              {
+                id: 'actor|sales.Clerk',
+                name: { value: 'Clerk' },
+                definition: { value: '' },
+              },
+            ],
+          },
         }),
       ),
     ).toBe(false);
+  });
+
+  it('lets only an actor perform, and only a manual process', () => {
+    expect(
+      isValid(people([{ kind: 'performs', from: ISSUE, to: REFUND_A_RETURN }])),
+    ).toBe(false);
+    expect(
+      isValid(people([{ kind: 'performs', from: CLERK, to: ISSUE }])),
+    ).toBe(false);
+    expect(
+      isValid(
+        people([
+          { kind: 'invokes', from: CLERK, to: ISSUE, order: { value: 1 } },
+        ]),
+      ),
+    ).toBe(false);
+  });
+
+  it('says nothing of who may call a behavior on the behavior', () => {
+    expect(
+      isValid(
+        addingIssue({
+          definition: { value: 'Issues a refund.' },
+          diagram: { value: '' },
+          visibility: { value: { kind: 'public', actors: ['Clerk'] } },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('refuses a performs whose actor neither the design nor the model has', () => {
+    const violations = DesignDocument.validateAgentGenerated(
+      DesignDocument.parse(
+        design({
+          relations: {
+            added: [{ kind: 'performs', from: CLERK, to: REFUND_A_RETURN }],
+          },
+        }),
+      ),
+    );
+    expect(violations).toContainEqual({
+      path: `relations.added[performs|${CLERK}|${REFUND_A_RETURN}].from`,
+      reason: 'unknownRelationEnd',
+    });
+  });
+});
+
+describe('Deployable units and libraries', () => {
+  const API = 'deployable_unit|refunds-api';
+  const SALES = 'library|MyCompany.Sales';
+  const REFUNDS = 'module|sales.refunds';
+  const packaging = (relations: object[]) =>
+    DesignDocument.validateAgentGenerated(
+      DesignDocument.parse(
+        design({
+          modules: {
+            added: [
+              {
+                id: REFUNDS,
+                name: { value: 'refunds' },
+                definition: { value: 'Refunds.' },
+              },
+            ],
+          },
+          buildingBlocks: {
+            added: [
+              {
+                id: REFUND,
+                name: { value: 'Refund' },
+                type: { value: 'aggregate' },
+                definition: { value: 'Money back.' },
+              },
+            ],
+          },
+          deployableUnits: {
+            added: [
+              {
+                id: API,
+                name: { value: 'refunds-api' },
+                definition: { value: 'Issues refunds.' },
+              },
+            ],
+          },
+          libraries: {
+            added: [
+              {
+                id: SALES,
+                name: { value: 'MyCompany.Sales' },
+                definition: { value: 'The sales domain.' },
+              },
+            ],
+          },
+          relations: { added: relations },
+        }),
+      ),
+    );
+
+  it('lets a deployable unit contain a module and a library a building block, whatever their paths', () => {
+    expect(
+      packaging([
+        { kind: 'contains', from: API, to: REFUNDS },
+        { kind: 'contains', from: SALES, to: REFUND },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('refuses a deployable unit containing a block, or a library a module', () => {
+    expect(
+      packaging([
+        { kind: 'contains', from: API, to: REFUND },
+        { kind: 'contains', from: SALES, to: REFUNDS },
+      ]),
+    ).toEqual([
+      {
+        path: `relations.added[contains|${API}|${REFUND}].to`,
+        reason: 'containmentOutsideKinds',
+      },
+      {
+        path: `relations.added[contains|${SALES}|${REFUNDS}].to`,
+        reason: 'containmentOutsideKinds',
+      },
+    ]);
+  });
+
+  it("names a unit or a library by the build's name, dots and all, never with a module path", () => {
+    const adding = (id: string, name: string) =>
+      isValid(
+        design({
+          libraries: {
+            added: [{ id, name: { value: name }, definition: { value: '' } }],
+          },
+        }),
+      );
+    expect(adding(SALES, 'MyCompany.Sales')).toBe(true);
+    expect(adding('library|a|b', 'a|b')).toBe(false);
+    expect(adding('module|sales', 'sales')).toBe(false);
+  });
+});
+
+describe('Layers and deployment containers', () => {
+  const DOMAIN = 'layer|domain';
+  const CLUSTER = 'deployment_container|Refunds cluster';
+  const API = 'deployable_unit|refunds-api';
+  const REFUNDS = 'module|sales.refunds';
+  const placing = (relations: object[]) =>
+    DesignDocument.validateAgentGenerated(
+      DesignDocument.parse(
+        design({
+          modules: {
+            added: [
+              {
+                id: REFUNDS,
+                name: { value: 'refunds' },
+                definition: { value: 'Refunds.' },
+              },
+            ],
+          },
+          buildingBlocks: {
+            added: [
+              {
+                id: REFUND,
+                name: { value: 'Refund' },
+                type: { value: 'aggregate' },
+                definition: { value: 'Money back.' },
+              },
+            ],
+          },
+          deployableUnits: {
+            added: [
+              {
+                id: API,
+                name: { value: 'refunds-api' },
+                definition: { value: 'Issues refunds.' },
+              },
+            ],
+          },
+          layers: {
+            added: [
+              {
+                id: DOMAIN,
+                name: { value: 'domain' },
+                definition: { value: 'The business rules.' },
+              },
+            ],
+          },
+          deploymentContainers: {
+            added: [
+              {
+                id: CLUSTER,
+                name: { value: 'Refunds cluster' },
+                definition: { value: 'Where refunds run.' },
+              },
+            ],
+          },
+          relations: { added: relations },
+        }),
+      ),
+    );
+
+  it('lets a layer contain a building block and a container host a deployable unit', () => {
+    expect(
+      placing([
+        { kind: 'contains', from: DOMAIN, to: REFUND },
+        { kind: 'hosts', from: CLUSTER, to: API },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('refuses a layer containing a module', () => {
+    expect(placing([{ kind: 'contains', from: DOMAIN, to: REFUNDS }])).toEqual([
+      {
+        path: `relations.added[contains|${DOMAIN}|${REFUNDS}].to`,
+        reason: 'containmentOutsideKinds',
+      },
+    ]);
+  });
+
+  it('refuses a container hosting anything but a deployable unit', () => {
+    expect(
+      isValid(
+        design({
+          relations: { added: [{ kind: 'hosts', from: CLUSTER, to: REFUNDS }] },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('refuses a hosts whose ends neither the design nor the model has', () => {
+    expect(
+      DesignDocument.validateAgentGenerated(
+        DesignDocument.parse(
+          design({
+            relations: { added: [{ kind: 'hosts', from: CLUSTER, to: API }] },
+          }),
+        ),
+      ).map((violation) => violation.reason),
+    ).toEqual(['unknownRelationEnd', 'unknownRelationEnd']);
   });
 });
 
@@ -405,40 +930,65 @@ describe('A design document an agent wrote', () => {
   const source = { path: 'src/sales/orders/order.ts' };
 
   const AUDITABLE = 'building_block|sales.shared.Auditable';
+  const PAID_ONLY = 'rule|sales.orders.Paid orders only';
+  const CANCELLING_PAID = `scenario|sales.orders.Paid orders only.Cancelling a paid order`;
 
   /**
-   * What the scanner found: the orders module; its Order, which implements
-   * Auditable, has a total and a rule with one scenario; and Order.cancel,
-   * which takes an order and returns a boolean.
+   * What the scanner found: the orders module; its Order, which extends
+   * Auditable and has a total; and Order.cancel, which takes an order,
+   * returns a boolean and follows a rule with one scenario.
    */
   const scanned = SystemModel.parse({
     id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
     name: 'shop',
     scanned_at: '2026-09-25T08:00:00.000Z',
     modules: [{ id: ORDERS, name: 'orders', source }],
-    buildingBlocks: [
+    relations: [
+      { kind: 'contains', from: ORDERS, to: ORDER },
+      { kind: 'extends', from: ORDER, to: AUDITABLE },
       {
-        id: ORDER,
-        name: 'Order',
-        type: 'aggregate',
-        implements: [AUDITABLE],
-        properties: [{ name: 'total', type: 'primitive|decimal' }],
-        rules: [
-          {
-            name: 'Paid orders only',
-            ruleType: 'State change',
-            scenarios: [
-              {
-                name: 'Cancelling a paid order',
-                description: 'The happy path.',
-                steps: [
-                  { kind: 'given', text: 'a paid order' },
-                  { kind: 'when', text: 'the customer cancels it' },
-                  { kind: 'then', text: 'the order is cancelled' },
-                ],
-              },
-            ],
-          },
+        kind: 'has_state',
+        from: ORDER,
+        to: 'primitive|decimal',
+        name: 'total',
+        cardinality: '1',
+      },
+      { kind: 'exposes', from: ORDER, to: CANCEL },
+      {
+        kind: 'has_input',
+        from: CANCEL,
+        to: ORDER,
+        name: 'order',
+        cardinality: '1',
+        position: 1,
+      },
+      {
+        kind: 'has_output',
+        from: CANCEL,
+        to: 'primitive|boolean',
+        cardinality: '1',
+      },
+      { kind: 'governs', from: CANCEL, to: PAID_ONLY },
+      { kind: 'illustrates', from: CANCELLING_PAID, to: PAID_ONLY },
+    ],
+    buildingBlocks: [{ id: ORDER, name: 'Order', type: 'aggregate', source }],
+    rules: [
+      {
+        id: PAID_ONLY,
+        name: 'Paid orders only',
+        kind: 'state_change',
+        source,
+      },
+    ],
+    scenarios: [
+      {
+        id: CANCELLING_PAID,
+        name: 'Cancelling a paid order',
+        description: 'The happy path.',
+        steps: [
+          { kind: 'given', text: 'a paid order' },
+          { kind: 'when', text: 'the customer cancels it' },
+          { kind: 'then', text: 'the order is cancelled' },
         ],
         source,
       },
@@ -446,12 +996,7 @@ describe('A design document an agent wrote', () => {
     behaviors: [
       {
         id: CANCEL,
-        buildingBlockId: ORDER,
         name: 'cancel',
-        type: 'Command',
-        visibility: { kind: 'private' },
-        input: [{ name: 'order', type: ORDER }],
-        output: [{ type: 'primitive|boolean' }],
         source,
       },
     ],
@@ -491,25 +1036,100 @@ describe('A design document an agent wrote', () => {
     });
   });
 
-  describe('for a green field, inside an element it adds', () => {
+  describe('for a green field, among the relations', () => {
     it('modifies and removes nothing either', () => {
       expect(
         validate(
-          addingRefund({
-            definition: { value: 'Money back.' },
-            type: { value: 'aggregate' },
-            implements: { removed: [AUDITABLE] },
-            properties: { removed: ['legacyFlag'] },
+          relating({
+            removed: [
+              { kind: 'extends', from: ORDER, to: AUDITABLE },
+              { kind: 'has_state', from: ORDER, name: 'legacyFlag' },
+            ],
+            modified: [
+              {
+                kind: 'has_input',
+                from: CANCEL,
+                name: 'order',
+                cardinality: { value: '0..1' },
+              },
+            ],
           }),
         ),
       ).toEqual([
         {
-          path: `buildingBlocks.added[${REFUND}].implements.removed[${AUDITABLE}]`,
+          path: `relations.removed[extends|${ORDER}|${AUDITABLE}]`,
           reason: 'changedInGreenField',
         },
         {
-          path: `buildingBlocks.added[${REFUND}].properties.removed[legacyFlag]`,
+          path: `relations.removed[has_state|${ORDER}|#legacyFlag]`,
           reason: 'changedInGreenField',
+        },
+        {
+          path: `relations.modified[has_input|${CANCEL}|#order]`,
+          reason: 'changedInGreenField',
+        },
+      ]);
+    });
+
+    it('joins only elements it adds: nothing else exists yet', () => {
+      expect(
+        validate(
+          relating(
+            {
+              added: [
+                { kind: 'extends', from: REFUND, to: AUDITABLE },
+                {
+                  kind: 'has_state',
+                  from: REFUND,
+                  name: 'orderId',
+                  to: { value: 'building_block|sales.orders.OrderId' },
+                  cardinality: { value: '1' },
+                },
+                {
+                  kind: 'has_state',
+                  from: REFUND,
+                  name: 'total',
+                  to: { value: 'primitive|decimal' },
+                  cardinality: { value: '1' },
+                },
+                {
+                  kind: 'invokes',
+                  from: ISSUE,
+                  to: CANCEL,
+                  order: { value: 1 },
+                },
+              ],
+            },
+            {
+              buildingBlocks: {
+                added: [
+                  {
+                    id: REFUND,
+                    name: { value: 'Refund' },
+                    type: { value: 'aggregate' },
+                    definition: { value: 'Money back.' },
+                  },
+                ],
+              },
+            },
+          ),
+        ),
+      ).toEqual([
+        {
+          path: `relations.added[extends|${REFUND}|${AUDITABLE}].to`,
+          reason: 'unknownRelationEnd',
+        },
+        {
+          path: `relations.added[has_state|${REFUND}|#orderId].to`,
+          reason: 'unknownRelationEnd',
+        },
+        {
+          path: `relations.added[invokes|${ISSUE}|${CANCEL}].from`,
+          reason: 'unknownRelationEnd',
+        },
+        {
+          path: `relations.added[invokes|${ISSUE}|${CANCEL}].to`,
+          reason: 'unknownRelationEnd',
         },
       ]);
     });
@@ -552,84 +1172,58 @@ describe('A design document an agent wrote', () => {
       ]);
     });
 
-    it('modifies and removes the parts of an element that the model has', () => {
+    it('modifies and removes the parts of an element, and the relations, that the model has', () => {
       expect(
         validate(
           design({
-            buildingBlocks: {
+            relations: {
+              removed: [
+                { kind: 'extends', from: ORDER, to: AUDITABLE },
+                { kind: 'has_input', from: CANCEL, name: 'order' },
+              ],
               modified: [
                 {
-                  id: ORDER,
-                  implements: { removed: [AUDITABLE] },
-                  properties: {
-                    modified: [
-                      { name: 'total', description: { value: 'The sum.' } },
-                    ],
-                  },
-                  rules: {
-                    modified: [
-                      {
-                        name: 'Paid orders only',
-                        scenarios: { removed: ['Cancelling a paid order'] },
-                      },
-                    ],
-                  },
+                  kind: 'has_state',
+                  from: ORDER,
+                  name: 'total',
+                  cardinality: { value: '0..1' },
+                },
+                {
+                  kind: 'has_output',
+                  from: CANCEL,
+                  to: 'primitive|boolean',
+                  cardinality: { value: '0..1' },
                 },
               ],
             },
-            behaviors: {
-              modified: [
-                {
-                  id: CANCEL,
-                  input: { removed: ['order'] },
-                  output: {
-                    modified: [
-                      {
-                        type: 'primitive|boolean',
-                        description: { value: 'Whether it was cancelled.' },
-                      },
-                    ],
-                  },
-                },
-              ],
+            buildingBlocks: { modified: [{ id: ORDER }] },
+            behaviors: { modified: [{ id: CANCEL }] },
+            rules: {
+              modified: [{ id: PAID_ONLY, kind: { value: 'validation' } }],
             },
+            scenarios: { removed: [CANCELLING_PAID] },
           }),
           scanned,
         ),
       ).toEqual([]);
     });
 
-    it('never modifies or removes a part the element in the model does not have', () => {
+    it('never modifies or removes a part, or a relation, the model does not have', () => {
       expect(
         validate(
           design({
-            buildingBlocks: {
-              modified: [
-                {
-                  id: ORDER,
-                  properties: {
-                    removed: ['legacyFlag'],
-                    modified: [{ name: 'discount' }],
-                  },
-                  rules: {
-                    removed: ['Open orders only'],
-                    modified: [
-                      {
-                        name: 'Paid orders only',
-                        scenarios: { removed: ['Cancelling a shipped order'] },
-                      },
-                    ],
-                  },
-                },
+            relations: {
+              removed: [
+                { kind: 'has_state', from: ORDER, name: 'legacyFlag' },
+                { kind: 'has_input', from: CANCEL, name: 'orders' },
+                { kind: 'has_output', from: CANCEL, to: ORDER },
               ],
+              modified: [{ kind: 'has_state', from: ORDER, name: 'discount' }],
             },
-            behaviors: {
+            rules: { removed: ['rule|sales.orders.Open orders only'] },
+            scenarios: {
               modified: [
-                {
-                  id: CANCEL,
-                  output: { removed: [{ collectionOf: ORDER }] },
-                  input: { removed: ['orders'] },
-                },
+                { id: `scenario|sales.orders.Paid orders only.Shipped` },
               ],
             },
           }),
@@ -637,28 +1231,168 @@ describe('A design document an agent wrote', () => {
         ),
       ).toEqual([
         {
-          path: `buildingBlocks.modified[${ORDER}].properties.removed[legacyFlag]`,
+          path: 'rules.removed[rule|sales.orders.Open orders only]',
           reason: 'unknownElement',
         },
         {
-          path: `buildingBlocks.modified[${ORDER}].properties.modified[discount]`,
+          path: 'scenarios.modified[scenario|sales.orders.Paid orders only.Shipped]',
           reason: 'unknownElement',
         },
         {
-          path: `buildingBlocks.modified[${ORDER}].rules.removed[Open orders only]`,
+          path: `relations.removed[has_state|${ORDER}|#legacyFlag]`,
           reason: 'unknownElement',
         },
         {
-          path: `buildingBlocks.modified[${ORDER}].rules.modified[Paid orders only].scenarios.removed[Cancelling a shipped order]`,
+          path: `relations.removed[has_input|${CANCEL}|#orders]`,
           reason: 'unknownElement',
         },
         {
-          path: `behaviors.modified[${CANCEL}].input.removed[orders]`,
+          path: `relations.removed[has_output|${CANCEL}|${ORDER}]`,
           reason: 'unknownElement',
         },
         {
-          path: `behaviors.modified[${CANCEL}].output.removed[{"collectionOf":"${ORDER}"}]`,
+          path: `relations.modified[has_state|${ORDER}|#discount]`,
           reason: 'unknownElement',
+        },
+      ]);
+    });
+
+    it('joins elements it adds to elements the model has', () => {
+      expect(
+        validate(
+          relating(
+            {
+              added: [
+                { kind: 'extends', from: REFUND, to: ORDER },
+                {
+                  kind: 'has_state',
+                  from: ORDER,
+                  name: 'refund',
+                  to: { value: REFUND },
+                  cardinality: { value: '0..1' },
+                },
+                {
+                  kind: 'invokes',
+                  from: CANCEL,
+                  to: ISSUE,
+                  order: { value: 1 },
+                },
+                { kind: 'exposes', from: REFUND, to: ISSUE },
+                { kind: 'contains', from: ORDERS, to: REFUND },
+                { kind: 'exposes', from: ORDER, to: ISSUE },
+              ],
+            },
+            {
+              buildingBlocks: {
+                added: [
+                  {
+                    id: REFUND,
+                    name: { value: 'Refund' },
+                    type: { value: 'aggregate' },
+                    definition: { value: 'Money back.' },
+                  },
+                ],
+              },
+              behaviors: {
+                added: [
+                  {
+                    id: ISSUE,
+                    name: { value: 'issue' },
+                    definition: { value: 'Issues it.' },
+                  },
+                ],
+              },
+            },
+          ),
+          scanned,
+        ),
+      ).toEqual([
+        {
+          path: `relations.added[contains|${ORDERS}|${REFUND}]`,
+          reason: 'containmentOutsideIdPath',
+        },
+        {
+          path: `relations.added[exposes|${ORDER}|${ISSUE}]`,
+          reason: 'containmentOutsideIdPath',
+        },
+      ]);
+    });
+
+    it('holds a value of the domain or a primitive as state, any other block as a collaborator', () => {
+      const LEDGER = 'building_block|sales.orders.Ledger';
+      expect(
+        validate(
+          relating(
+            {
+              added: [
+                {
+                  kind: 'has_state',
+                  from: ORDER,
+                  name: 'ledger',
+                  to: { value: LEDGER },
+                  cardinality: { value: '1' },
+                },
+                {
+                  kind: 'has_collaborator',
+                  from: ORDER,
+                  name: 'auditable',
+                  to: { value: AUDITABLE },
+                },
+                {
+                  kind: 'has_state',
+                  from: ORDER,
+                  name: 'note',
+                  to: { value: 'primitive|string' },
+                  cardinality: { value: '0..1' },
+                },
+                {
+                  kind: 'has_collaborator',
+                  from: ORDER,
+                  name: 'archive',
+                  to: { value: 'building_block|sales.orders.Archive' },
+                },
+              ],
+            },
+            {
+              buildingBlocks: {
+                added: [
+                  {
+                    id: LEDGER,
+                    name: { value: 'Ledger' },
+                    type: { value: 'out_adapter' },
+                    definition: { value: 'Where money is booked.' },
+                  },
+                  {
+                    id: 'building_block|sales.orders.Archive',
+                    name: { value: 'Archive' },
+                    type: { value: 'repository' },
+                    definition: { value: 'Where old orders go.' },
+                  },
+                ],
+              },
+            },
+          ),
+          SystemModel.parse({
+            ...scanned,
+            buildingBlocks: [
+              ...scanned.buildingBlocks,
+              {
+                id: AUDITABLE,
+                name: 'Auditable',
+                type: 'value_object',
+                source,
+              },
+            ],
+          }),
+        ),
+      ).toEqual([
+        {
+          path: `relations.added[has_state|${ORDER}|#ledger].kind`,
+          reason: 'slotOutsideTypeKind',
+        },
+        {
+          path: `relations.added[has_collaborator|${ORDER}|#auditable].kind`,
+          reason: 'slotOutsideTypeKind',
         },
       ]);
     });
@@ -670,7 +1404,7 @@ describe('A design document an agent wrote', () => {
         validate(
           design({
             buildingBlocks: {
-              modified: [{ id: missing, properties: { removed: ['total'] } }],
+              modified: [{ id: missing, name: { value: 'Line' } }],
             },
           }),
           scanned,
@@ -678,24 +1412,6 @@ describe('A design document an agent wrote', () => {
       ).toEqual([
         {
           path: `buildingBlocks.modified[${missing}]`,
-          reason: 'unknownElement',
-        },
-      ]);
-    });
-
-    it('modifies and removes nothing inside an element it adds', () => {
-      expect(
-        validate(
-          addingRefund({
-            definition: { value: 'Money back.' },
-            type: { value: 'aggregate' },
-            properties: { removed: ['total'] },
-          }),
-          scanned,
-        ),
-      ).toEqual([
-        {
-          path: `buildingBlocks.added[${REFUND}].properties.removed[total]`,
           reason: 'unknownElement',
         },
       ]);
@@ -742,18 +1458,15 @@ describe('A design document an agent wrote', () => {
                   definition: { value: 'Money back.' },
                 },
               ],
-              modified: [
+              modified: [{ id: ORDER }],
+            },
+            relations: {
+              added: [
                 {
-                  id: ORDER,
-                  properties: {
-                    added: [
-                      {
-                        name: 'refundedAmount',
-                        type: { value: 'primitive|decimal' },
-                        optional: { value: false },
-                      },
-                    ],
-                  },
+                  kind: 'has_state',
+                  from: ORDER,
+                  name: 'refundedAmount',
+                  to: { value: 'primitive|decimal' },
                 },
               ],
             },
@@ -766,7 +1479,7 @@ describe('A design document an agent wrote', () => {
           reason: 'unchangedFieldInAddedItem',
         },
         {
-          path: `buildingBlocks.modified[${ORDER}].properties.added[refundedAmount].description`,
+          path: `relations.added[has_state|${ORDER}|#refundedAmount].cardinality`,
           reason: 'unchangedFieldInAddedItem',
         },
       ]);
@@ -776,9 +1489,7 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingIssue({
-            type: { value: 'Command' },
             definition: { value: 'Issues a refund.' },
-            visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([]);
@@ -790,9 +1501,7 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingIssue({
-            type: { value: 'Command' },
             definition: { value: fenced },
-            visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([
@@ -806,9 +1515,7 @@ describe('A design document an agent wrote', () => {
         DesignDocument.validateHumanEdited(
           DesignDocument.parse(
             addingIssue({
-              type: { value: 'Command' },
               definition: { value: fenced },
-              visibility: { value: { kind: 'private' } },
             }),
           ),
         ),
@@ -816,10 +1523,8 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingIssue({
-            type: { value: 'Command' },
             definition: { value: 'Issues a refund.' },
             diagram: { value: 'sequenceDiagram\n  A->>B: issue' },
-            visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([]);
@@ -926,240 +1631,228 @@ describe('The needs of a design', () => {
   });
 });
 
+describe('The steps of a scenario', () => {
+  it('may repeat a kind or leave one out, but are never none', () => {
+    const scenario = (steps: unknown[]) =>
+      isValid(
+        design({
+          scenarios: {
+            added: [
+              {
+                id: 'scenario|sales.Refunds are bounded.Refunding a line',
+                steps: { value: steps },
+              },
+            ],
+          },
+        }),
+      );
+    expect(
+      scenario([
+        { kind: 'given', text: 'a paid order' },
+        { kind: 'given', text: 'a voucher' },
+        { kind: 'then', text: 'the voucher is void' },
+      ]),
+    ).toBe(true);
+    expect(scenario([{ kind: 'then', text: 'nothing happens' }])).toBe(true);
+    expect(scenario([])).toBe(false);
+    expect(scenario([{ kind: 'and', text: 'a voucher' }])).toBe(false);
+  });
+});
+
 describe('A rule of a design', () => {
-  const SALES = 'module|sales';
-  const ORDER = 'building_block|sales.Order';
-  const source = { path: 'src/sales' };
+  const ORDERS = 'module|sales.orders';
+  const CANCEL = 'behavior|sales.orders.Order.cancel';
+  const PAID_ONLY = 'rule|sales.orders.Paid orders only';
+  const source = { path: 'features/orders.feature', line: 3 };
   const need = {
     id: 'refund-single-lines',
     name: { value: 'Refund single lines' },
     stakeholder: { value: 'Support agents' },
     statement: { value: 'Support agents need to refund one line of an order.' },
   };
-  const businessRule = {
-    name: 'Paid orders only',
-    category: { value: 'Business' },
-    ruleType: { value: 'State change' },
-    description: { value: 'Only a paid order is refunded.' },
+  const rule = {
+    id: PAID_ONLY,
+    name: { value: 'Paid orders only' },
+    kind: { value: 'state_change' },
+    description: { value: 'Only a paid order is cancelled.' },
     needs: { value: ['refund-single-lines'] },
-  };
-  const qualityRule = {
-    name: 'Fast refunds',
-    category: { value: 'Quality' },
-    ruleType: { value: 'Performance' },
-    description: { value: 'A refund is issued within a second.' },
-    needs: { value: [] },
   };
 
   const scanned = SystemModel.parse({
     id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
     name: 'shop',
     scanned_at: '2026-09-25T08:00:00.000Z',
-    modules: [
-      {
-        id: SALES,
-        name: 'sales',
-        rules: [
-          {
-            name: 'Fast refunds',
-            category: 'Quality',
-            ruleType: 'Performance',
-          },
-        ],
-        source,
-      },
-    ],
+    modules: [{ id: ORDERS, name: 'orders', source }],
     buildingBlocks: [
       {
-        id: ORDER,
+        id: 'building_block|sales.orders.Order',
         name: 'Order',
         type: 'aggregate',
-        rules: [{ name: 'Paid orders only', ruleType: 'State change' }],
         source,
       },
     ],
+    behaviors: [{ id: CANCEL, name: 'cancel', source }],
+    rules: [
+      { id: PAID_ONLY, name: 'Paid orders only', kind: 'state_change', source },
+    ],
+    relations: [{ kind: 'governs', from: CANCEL, to: PAID_ONLY }],
   });
 
+  /** A design adding `rules`, each governed by Order.cancel unless `governed` says otherwise. */
   const addingRules = (
-    rules: { block?: object[]; module?: object[] },
-    needs: object[] = [need],
+    rules: ({ id: string } & Record<string, unknown>)[],
+    {
+      needs = [need],
+      governed = true,
+    }: { needs?: object[]; governed?: boolean } = {},
   ) =>
     design({
       needs: { added: needs },
-      modules: {
-        added: [
-          {
-            id: 'module|billing',
-            name: { value: 'billing' },
-            definition: { value: 'Charging customers.' },
-            rules: { added: rules.module ?? [] },
-          },
-        ],
-      },
-      buildingBlocks: {
-        added: [
-          {
-            id: 'building_block|billing.Invoice',
-            name: { value: 'Invoice' },
-            type: { value: 'aggregate' },
-            definition: { value: 'What a customer is asked to pay.' },
-            rules: { added: rules.block ?? [] },
-          },
-        ],
+      rules: { added: rules },
+      relations: {
+        added: governed
+          ? rules.map(({ id }) => ({ kind: 'governs', from: CANCEL, to: id }))
+          : [],
       },
     });
 
-  const validate = (document: unknown, systemModel?: SystemModel) =>
+  const validate = (document: unknown, systemModel = scanned) =>
     DesignDocument.validateAgentGenerated(
       DesignDocument.parse(document),
       systemModel,
     );
 
-  it('reads back a rule written before rules had a category, needs or a rationale', () => {
-    const rule = DesignDocument.parse(
-      addingRules({ block: [{ name: 'Paid orders only' }] }),
-    ).buildingBlocks.added[0]!.rules.added[0]!;
+  it('is in the module of the behavior that governs it', () => {
+    expect(isValid(design({ rules: { added: [rule] } }))).toBe(true);
+    expect(
+      isValid(design({ rules: { added: [{ ...rule, id: 'rule|Paid' }] } })),
+    ).toBe(false);
+  });
 
-    expect(rule.category).toEqual({ changed: false });
-    expect(rule.needs).toEqual({ changed: false });
-    expect(rule.rationale).toEqual({ changed: false });
+  it('reads back with no rationale until one is written', () => {
+    const [parsed] = DesignDocument.parse(addingRules([rule])).rules.added;
+
+    expect(parsed?.rationale).toEqual({ changed: false });
   });
 
   it('traces to needs the design states, or to none as a design decision', () => {
+    const DECIDED = 'rule|sales.orders.Decided';
     expect(
       validate(
-        addingRules({
-          block: [
-            businessRule,
-            { ...businessRule, name: 'Decided', needs: { value: [] } },
-          ],
-          module: [qualityRule],
-        }),
+        addingRules([
+          { ...rule, id: 'rule|sales.orders.Paid first' },
+          { ...rule, id: DECIDED, needs: { value: [] } },
+        ]),
       ),
     ).toEqual([]);
     expect(
       validate(
-        addingRules({
-          block: [{ ...businessRule, needs: { value: ['issue-refunds'] } }],
-        }),
+        addingRules([
+          {
+            ...rule,
+            id: 'rule|sales.orders.Paid first',
+            needs: { value: ['issue-refunds'] },
+          },
+        ]),
       ),
     ).toEqual([
       {
-        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].needs[issue-refunds]',
+        path: 'rules.added[rule|sales.orders.Paid first].needs[issue-refunds]',
         reason: 'unknownNeed',
-      },
-    ]);
-  });
-
-  it('always says its category and its needs when added, and may leave its rationale out', () => {
-    expect(
-      validate(
-        addingRules({
-          block: [
-            { ...businessRule, category: undefined, needs: undefined },
-            { ...businessRule, name: 'Reasoned', rationale: { value: 'Why.' } },
-          ],
-        }),
-      ),
-    ).toEqual([
-      {
-        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].category',
-        reason: 'unchangedFieldInAddedItem',
-      },
-      {
-        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].needs',
-        reason: 'unchangedFieldInAddedItem',
-      },
-    ]);
-  });
-
-  it('has a type of its own category', () => {
-    expect(
-      validate(
-        addingRules({
-          block: [{ ...businessRule, ruleType: { value: 'Performance' } }],
-        }),
-      ),
-    ).toEqual([
-      {
-        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].ruleType',
-        reason: 'ruleTypeOutsideCategory',
-      },
-    ]);
-  });
-
-  it('keeps a modified rule to the category or type the scan has for the half it leaves alone', () => {
-    const modifying = (rule: object) =>
-      design({
-        buildingBlocks: {
-          modified: [{ id: ORDER, rules: { modified: [rule] } }],
-        },
-      });
-
-    expect(
-      validate(
-        modifying({
-          name: 'Paid orders only',
-          ruleType: { value: 'Structure' },
-        }),
-        scanned,
-      ),
-    ).toEqual([]);
-    expect(
-      validate(
-        modifying({
-          name: 'Paid orders only',
-          ruleType: { value: 'Reliability' },
-        }),
-        scanned,
-      ),
-    ).toEqual([
-      {
-        path: `buildingBlocks.modified[${ORDER}].rules.modified[Paid orders only].ruleType`,
-        reason: 'ruleTypeOutsideCategory',
-      },
-    ]);
-    expect(
-      validate(
-        modifying({ name: 'Paid orders only', category: { value: 'Quality' } }),
-        scanned,
-      ),
-    ).toEqual([
-      {
-        path: `buildingBlocks.modified[${ORDER}].rules.modified[Paid orders only].ruleType`,
-        reason: 'ruleTypeOutsideCategory',
-      },
-    ]);
-  });
-
-  it('on a module is a quality or constraint rule, never a business one', () => {
-    expect(validate(addingRules({ module: [businessRule] }))).toEqual([
-      {
-        path: 'modules.added[module|billing].rules.added[Paid orders only].category',
-        reason: 'businessRuleOnModule',
       },
     ]);
     expect(
       validate(
         design({
-          modules: {
-            modified: [
+          rules: {
+            modified: [{ id: PAID_ONLY, needs: { value: ['issue-refunds'] } }],
+          },
+        }),
+      ),
+    ).toEqual([
+      {
+        path: `rules.modified[${PAID_ONLY}].needs[issue-refunds]`,
+        reason: 'unknownNeed',
+      },
+    ]);
+  });
+
+  it('always says its name, kind, description and needs when added, and may leave its rationale out', () => {
+    const NEW = 'rule|sales.orders.Paid first';
+    expect(
+      validate(addingRules([{ id: NEW, name: { value: 'Paid first' } }])),
+    ).toEqual([
+      { path: `rules.added[${NEW}].kind`, reason: 'unchangedFieldInAddedItem' },
+      {
+        path: `rules.added[${NEW}].description`,
+        reason: 'unchangedFieldInAddedItem',
+      },
+      {
+        path: `rules.added[${NEW}].needs`,
+        reason: 'unchangedFieldInAddedItem',
+      },
+    ]);
+  });
+
+  it('enters the design only through a behavior that governs it', () => {
+    const NEW = 'rule|sales.orders.Paid first';
+    expect(
+      validate(addingRules([{ ...rule, id: NEW }], { governed: false })),
+    ).toEqual([{ path: `rules.added[${NEW}]`, reason: 'ungovernedRule' }]);
+  });
+
+  it('is illustrated by a scenario named under it', () => {
+    const SCENARIO = `scenario|sales.orders.Paid first.Unpaid`;
+    const adding = (from: string) =>
+      design({
+        scenarios: {
+          added: [
+            {
+              id: from,
+              name: { value: 'Unpaid' },
+              description: { value: 'An unpaid order.' },
+              steps: {
+                value: [{ kind: 'when', text: 'the customer cancels it' }],
+              },
+            },
+          ],
+        },
+        relations: {
+          added: [{ kind: 'illustrates', from, to: PAID_ONLY }],
+        },
+      });
+
+    expect(
+      validate(adding(`scenario|sales.orders.Paid orders only.Unpaid`)),
+    ).toEqual([]);
+    expect(validate(adding(SCENARIO))).toEqual([
+      {
+        path: `relations.added[illustrates|${SCENARIO}|${PAID_ONLY}]`,
+        reason: 'containmentOutsideIdPath',
+      },
+    ]);
+  });
+
+  it('is governed only by a behavior the design or the model has', () => {
+    expect(
+      validate(
+        design({
+          relations: {
+            added: [
               {
-                id: SALES,
-                rules: {
-                  modified: [
-                    {
-                      name: 'Fast refunds',
-                      description: { value: 'Within half a second.' },
-                    },
-                  ],
-                },
+                kind: 'governs',
+                from: 'behavior|sales.orders.Order.ship',
+                to: PAID_ONLY,
               },
             ],
           },
         }),
-        scanned,
       ),
-    ).toEqual([]);
+    ).toEqual([
+      {
+        path: `relations.added[governs|behavior|sales.orders.Order.ship|${PAID_ONLY}].from`,
+        reason: 'unknownRelationEnd',
+      },
+    ]);
   });
 });

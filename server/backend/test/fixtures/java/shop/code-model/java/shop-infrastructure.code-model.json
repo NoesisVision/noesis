@@ -19,6 +19,14 @@
         "package": null
       },
       {
+        "id": "A:javax.money:money-api@1.1",
+        "kind": "library",
+        "package": {
+          "id": "javax.money:money-api",
+          "version": "1.1"
+        }
+      },
+      {
         "id": "A:shop-domain",
         "kind": "source",
         "package": null
@@ -211,6 +219,13 @@
           "startColumn": 9,
           "endLine": 1,
           "endColumn": 12
+        },
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/package-info.java",
+          "startLine": 3,
+          "startColumn": 9,
+          "endLine": 3,
+          "endColumn": 12
         }
       ],
       "annotations": [],
@@ -228,6 +243,13 @@
           "startLine": 1,
           "startColumn": 9,
           "endLine": 1,
+          "endColumn": 17
+        },
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/package-info.java",
+          "startLine": 3,
+          "startColumn": 9,
+          "endLine": 3,
           "endColumn": 17
         }
       ],
@@ -247,9 +269,36 @@
           "startColumn": 9,
           "endLine": 1,
           "endColumn": 22
+        },
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/package-info.java",
+          "startLine": 3,
+          "startColumn": 9,
+          "endLine": 3,
+          "endColumn": 22
         }
       ],
-      "annotations": [],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:vision.noesis.annotations.Layer",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"domain\""
+              }
+            }
+          ]
+        }
+      ],
       "documentation": null,
       "languageSpecific": {}
     },
@@ -265,10 +314,37 @@
           "startColumn": 9,
           "endLine": 1,
           "endColumn": 37
+        },
+        {
+          "file": "shop-infrastructure/src/main/java/com/acme/shop/infrastructure/package-info.java",
+          "startLine": 3,
+          "startColumn": 9,
+          "endLine": 3,
+          "endColumn": 37
         }
       ],
-      "annotations": [],
-      "documentation": null,
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:vision.noesis.annotations.Layer",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"infrastructure\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": "The nearer layer for what talks to the database; it holds no building block, so the model drops it.",
       "languageSpecific": {}
     },
     {
@@ -598,6 +674,27 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "N:vision",
+      "kind": "namespace",
+      "name": "vision",
+      "typeKind": null,
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
+      "id": "N:vision.noesis",
+      "kind": "namespace",
+      "name": "noesis",
+      "typeKind": null,
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
+      "id": "N:vision.noesis.annotations",
+      "kind": "namespace",
+      "name": "annotations",
+      "typeKind": null,
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
       "id": "T:java.io.Closeable",
       "kind": "type",
       "name": "Closeable",
@@ -666,6 +763,13 @@
       "name": "System",
       "typeKind": "class",
       "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:vision.noesis.annotations.Layer",
+      "kind": "type",
+      "name": "Layer",
+      "typeKind": "interface",
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
     }
   ],
   "diagnostics": []

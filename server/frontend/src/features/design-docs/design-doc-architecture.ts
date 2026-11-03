@@ -3,17 +3,13 @@ import type {
   DesignDocumentInput,
   DesignedBehaviorInput,
   DesignedBuildingBlockInput,
-  DesignedRuleInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BehaviorId,
   BuildingBlockId,
   ModuleId,
 } from '#backend/app/element-id.ts';
-import type {
-  BuildingBlockRefInput,
-  BuildingBlockType,
-} from '#backend/app/system-model/system-model.ts';
+import type { BuildingBlockType } from '#backend/app/system-model/system-model.ts';
 import { architectureChecks } from './architecture-checks.ts';
 import {
   type ArchitectureOutline,
@@ -24,12 +20,7 @@ import {
   type PlacedElement,
   type PlacedRule,
 } from './architecture-outline.ts';
-import {
-  type ChangeSetInput,
-  findById,
-  named,
-  writtenIn,
-} from './change-set.ts';
+import { findById, named, writtenIn } from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
 import {
   asBehavior,
@@ -39,12 +30,17 @@ import {
   nameOf,
   ownerOf,
 } from './element-id.ts';
+import { relationsFrom } from './relations.ts';
+import { ruleNameOf, rulesUnder } from './rules.ts';
 
 /*
  * The design read on the assumption that the system it designs is built as
- * hexagons: each module that holds building blocks is one, its application
- * services' public behaviors are the ports that drive it, and its
- * repositories and external integrations are the ports it drives. Nothing
+ * hexagons: each module that holds building blocks is one, the behaviors of
+ * its application services and in adapters are the ports that drive it —
+ * their actors those who perform the manual processes that invoke them,
+ * directly or through an in adapter — and its repositories, external integrations, out adapters and
+ * technical services are the ports it drives. Its messages — commands,
+ * queries, events — sit in the domain core, as what crosses those ports. Nothing
  * here is stored — it is the same document, placed in rings by the building
  * block types it already names.
  *
@@ -58,8 +54,17 @@ const DOMAIN_CORE = [
   'domain_service',
   'factory',
   'value_object',
+  'command',
+  'query',
+  'event',
 ] as const satisfies readonly BuildingBlockType[];
-const APPLICATION_SERVICE = 'application_service' satisfies BuildingBlockType;
+/** The blocks that drive a hexagon: their behaviors are its ports. */
+const DRIVING = [
+  'application_service',
+  'in_adapter',
+] as const satisfies readonly BuildingBlockType[];
+const isDriving = (type: BuildingBlockType | null) =>
+  (DRIVING as readonly (BuildingBlockType | null)[]).includes(type);
 
 export function architectureOf(
   document: DesignDocumentInput,
@@ -81,33 +86,29 @@ export function architectureOf(
     return hexagon;
   };
 
+  const callers = callersOf(document, typeOf);
   const ports = new Set<BehaviorId>();
   for (const [item, change] of behaviors) {
     const owner = ownerOf(item.id);
-    const visibility = valueOf(item.visibility);
     const type = typeOf.get(owner);
     // A design may change a behavior and leave its block out: nothing says
     // what the block is, and the behavior has no block here to be read with.
     if (type === undefined) {
-      unplaced.push(behaviorElement(item, change));
+      unplaced.push(behaviorElement(document, item, change));
       continue;
     }
-    if (type !== APPLICATION_SERVICE) {
+    if (!isDriving(type)) {
       // A block whose type the design leaves alone may well be a service.
-      if (visibility?.kind === 'public' && type !== null)
-        hexagonOf(owner).exposed.push(behaviorElement(item, change));
+      if (type !== null && callers.reachesPast(item.id))
+        hexagonOf(owner).exposed.push(behaviorElement(document, item, change));
       continue;
     }
-    if (visibility === null) {
-      unplaced.push(behaviorElement(item, change));
-      continue;
-    }
-    if (visibility.kind !== 'public') continue;
     ports.add(asBehavior(item.id));
     hexagonOf(owner).drivingPorts.push({
-      behavior: behaviorElement(item, change),
+      behavior: behaviorElement(document, item, change),
       service: owner,
-      actors: visibility.actors,
+      actors: callers.actorsOf(item.id),
+      callerKnown: callers.isKnown(item.id),
     });
   }
 
@@ -119,7 +120,7 @@ export function architectureOf(
           ownerOf(behavior.id) === item.id &&
           !ports.has(asBehavior(behavior.id)),
       );
-    const element = blockElement(item, change, own);
+    const element = blockElement(document, item, change, own);
     const ring = ringOf(element.pattern);
     if (ring === null) unplaced.push(element);
     else hexagonOf(item.id)[ring].push(element);
@@ -135,6 +136,49 @@ export function architectureOf(
     unplaced,
     checks: architectureChecks({ hexagons: drawn, unplaced }),
     needsAtPorts: needsAtPorts(document, drawn),
+  };
+}
+
+/**
+ * Who calls a behavior, as the design's `invokes` relations say: a manual
+ * process, whose actors drive it, or a behavior — an in adapter's passing
+ * its own actors on, or one of another module reaching past that module's
+ * ports.
+ */
+function callersOf(
+  document: DesignDocumentInput,
+  typeOf: ReadonlyMap<string, BuildingBlockType | null>,
+) {
+  const invokers = new Map<string, string[]>();
+  const performers = new Map<string, string[]>();
+  const add = (map: Map<string, string[]>, key: string, value: string) =>
+    map.set(key, [...(map.get(key) ?? []), value]);
+  for (const relation of writtenIn(document.relations))
+    if (relation.kind === 'invokes') add(invokers, relation.to, relation.from);
+    else if (relation.kind === 'performs')
+      add(performers, relation.to, nameOf(relation.from));
+  const isProcess = (id: string) => id.startsWith('manual_process|');
+  const isInAdapter = (id: string) =>
+    !isProcess(id) && typeOf.get(ownerOf(id)) === 'in_adapter';
+  const actorsOf = (id: string, seen: Set<string>): string[] =>
+    (invokers.get(id) ?? []).flatMap((caller) => {
+      if (isProcess(caller)) return performers.get(caller) ?? [];
+      if (!isInAdapter(caller) || seen.has(caller)) return [];
+      return actorsOf(caller, new Set([...seen, caller]));
+    });
+  return {
+    actorsOf: (id: string) =>
+      [...new Set(actorsOf(id, new Set([id])))].sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    isKnown: (id: string) =>
+      (invokers.get(id) ?? []).some(
+        (caller) => isProcess(caller) || isInAdapter(caller),
+      ),
+    reachesPast: (id: string) =>
+      (invokers.get(id) ?? []).some(
+        (caller) => isProcess(caller) || moduleOf(caller) !== moduleOf(id),
+      ),
   };
 }
 
@@ -183,8 +227,8 @@ export function inferredFlowOf(
 ): InferredFlow[] {
   const behaviors = writtenIn(document.behaviors).map((behavior) => ({
     id: asBehavior(behavior.id),
-    inputs: blocksOf(inputTypesOf(behavior)),
-    outputs: blocksOf(outputTypesOf(behavior)),
+    inputs: blocksOf(inputTypesOf(document, behavior)),
+    outputs: blocksOf(outputTypesOf(document, behavior)),
   }));
   const isOwn = (id: string) => id === elementId || ownerOf(id) === elementId;
   const ports = new Set(
@@ -231,7 +275,7 @@ export function inferredFlowOf(
 type Ring = 'applicationServices' | 'domainCore' | 'drivenPorts';
 
 function ringOf(pattern: BuildingBlockType | null): Ring | null {
-  if (pattern === APPLICATION_SERVICE) return 'applicationServices';
+  if (isDriving(pattern)) return 'applicationServices';
   if (isDrivenPort(pattern)) return 'drivenPorts';
   if ((DOMAIN_CORE as readonly (BuildingBlockType | null)[]).includes(pattern))
     return 'domainCore';
@@ -242,6 +286,7 @@ const coreRank = (pattern: BuildingBlockType | null) =>
   (DOMAIN_CORE as readonly (BuildingBlockType | null)[]).indexOf(pattern);
 
 function blockElement(
+  document: DesignDocumentInput,
   block: DesignedBuildingBlockInput,
   change: OutlineChange,
   behaviors: DesignedBehaviorInput[],
@@ -252,59 +297,72 @@ function blockElement(
     pattern: valueOf(block.type),
     change,
     uses: usesOf(block.id, [
-      ...writtenIn(block.properties).map(({ type }) => valueOf(type)),
-      ...behaviors.flatMap(typesOfBehavior),
+      ...writtenIn(relationsFrom(document, 'property', block.id)).map(
+        ({ to }) => valueOf(to),
+      ),
+      ...writtenIn(relationsFrom(document, 'collaborator', block.id)).map(
+        ({ to }) => valueOf(to),
+      ),
+      ...behaviors.flatMap((behavior) => typesOfBehavior(document, behavior)),
     ]),
-    rules: [block, ...behaviors].flatMap(rulesOf),
+    rules: behaviors.flatMap((behavior) => rulesOf(document, behavior.id)),
   };
 }
 
 function behaviorElement(
+  document: DesignDocumentInput,
   behavior: DesignedBehaviorInput,
   change: OutlineChange,
 ): PlacedBehavior {
   return {
     id: asBehavior(behavior.id),
     name: nameOf(behavior.id),
-    pattern: valueOf(behavior.type),
+    pattern: null,
     change,
-    uses: usesOf(behavior.id, typesOfBehavior(behavior)),
-    rules: rulesOf(behavior),
+    uses: usesOf(behavior.id, typesOfBehavior(document, behavior)),
+    rules: rulesOf(document, behavior.id),
   };
 }
 
-const inputTypesOf = (behavior: DesignedBehaviorInput) =>
-  writtenIn(behavior.input).map(({ type }) => valueOf(type));
+const inputTypesOf = (
+  document: DesignDocumentInput,
+  behavior: DesignedBehaviorInput,
+) =>
+  writtenIn(relationsFrom(document, 'parameter', behavior.id)).map(({ to }) =>
+    valueOf(to),
+  );
 
-const outputTypesOf = (behavior: DesignedBehaviorInput) =>
-  writtenIn(behavior.output).map(({ type }) => type);
+const outputTypesOf = (
+  document: DesignDocumentInput,
+  behavior: DesignedBehaviorInput,
+) =>
+  writtenIn(relationsFrom(document, 'result', behavior.id)).map(({ to }) => to);
 
 const typesOfBehavior = (
+  document: DesignDocumentInput,
   behavior: DesignedBehaviorInput,
-): (BuildingBlockRefInput | null)[] => [
-  ...inputTypesOf(behavior),
-  ...outputTypesOf(behavior),
+): (string | null)[] => [
+  ...inputTypesOf(document, behavior),
+  ...outputTypesOf(document, behavior),
 ];
 
-const blocksOf = (types: (BuildingBlockRefInput | null)[]) =>
-  new Set(usesOf('', types));
+const blocksOf = (types: (string | null)[]) => new Set(usesOf('', types));
 
-function rulesOf(owner: {
-  rules?: ChangeSetInput<DesignedRuleInput, string> | undefined;
-}): PlacedRule[] {
-  return writtenIn(owner.rules).map((rule) => ({
-    name: rule.name,
-    category: valueOf(rule.category),
-    ruleType: valueOf(rule.ruleType),
+/** The rules the design shows under an element, each once. */
+function rulesOf(
+  document: DesignDocumentInput,
+  elementId: string,
+): PlacedRule[] {
+  return writtenIn(rulesUnder(document, elementId)).map((rule) => ({
+    id: rule.id,
+    name: ruleNameOf(rule),
+    kind: valueOf(rule.kind),
     needs: valueOf(rule.needs) ?? [],
   }));
 }
 
 /** The building blocks a list of types names, each once; primitives and the element itself left out. */
-function usesOf(
-  self: string,
-  types: (BuildingBlockRefInput | null)[],
-): BuildingBlockId[] {
+function usesOf(self: string, types: (string | null)[]): BuildingBlockId[] {
   const uses = new Set<BuildingBlockId>();
   for (const type of types) {
     const block = type === null ? null : blockOfRef(type);

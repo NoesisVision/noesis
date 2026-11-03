@@ -9,7 +9,7 @@ import { Title } from '#/shared/design-system/title.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../change-set.ts';
 import type { PartOwner, UnitRef } from '../../design-doc-edit.ts';
-import { type DesignDocFieldInput, valueOf } from '../../design-doc-field.ts';
+import type { DesignDocFieldInput } from '../../design-doc-field.ts';
 import { InlineText } from '../unit-editor/inline-text.tsx';
 import { useNewScenarioOwner } from '../unit-editor/new-buttons.tsx';
 import { useWritableUnit } from '../unit-editor/writable-unit.ts';
@@ -18,7 +18,17 @@ import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
 import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
-import { implementerItems, refItems } from './change-list-items.ts';
+import {
+  containedItems,
+  extenderItems,
+  extendsItems,
+  hostedByItems,
+  hostsItems,
+  invokerItems,
+  packagedInItems,
+  performedItems,
+  performerItems,
+} from './change-list-items.ts';
 import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementColumns } from './element-columns.tsx';
@@ -26,7 +36,6 @@ import { ElementDefinition } from './element-definition.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
 import { ElementRelations } from './element-relations.tsx';
 import { humanText, WrittenBy, writtenByHuman } from './human-mark.tsx';
-import { VisibilityBadge } from './visibility-badge.tsx';
 import classes from './element-detail.module.css';
 
 /*
@@ -55,22 +64,23 @@ export function ElementDetail({
     () => ({ has: (path: string) => tree.byPath.has(path), select: onSelect }),
     [tree, onSelect],
   );
-  // Only a behavior says who may call it.
-  const visibility =
-    node.kind === 'behavior' && node.elementId
-      ? valueOf(findById(doc.behaviors, node.elementId)?.visibility)
-      : null;
-  // Only a building block implements anything, or is implemented.
+  // Only a building block extends anything, or is extended.
   const implemented =
     node.kind === 'building_block' && node.elementId
-      ? refItems(findById(doc.buildingBlocks, node.elementId)?.implements)
+      ? extendsItems(doc, node.elementId)
       : [];
-  // And what implements it — found in the document even when it leaves the
+  // And what extends it — found in the document even when it leaves the
   // block itself alone.
   const implementers =
     node.kind === 'building_block' && node.elementId
-      ? implementerItems(doc, node.elementId)
+      ? extenderItems(doc, node.elementId)
       : [];
+  // Who drives the system: what an actor performs, who performs a manual
+  // process, and the processes that invoke a behavior.
+  const people = peopleRelationsOf(doc, node);
+  // What the code ships as: what a unit or a library holds, and where a
+  // module or a block ships.
+  const packaging = packagingRelationsOf(doc, node);
   // What the element is, under its name: a module's, a block's, a behavior's.
   const designed = designedOf(doc, node);
   // An element the design leaves alone is still shown: its definition is too.
@@ -88,7 +98,6 @@ export function ElementDetail({
   const { ref: bodyRef, width: bodyWidth } = useElementSize();
   const badges = (
     <Group gap="xs" className={classes.badges}>
-      <VisibilityBadge visibility={visibility} />
       <ChangeBadge change={node.change} />
     </Group>
   );
@@ -121,8 +130,10 @@ export function ElementDetail({
       <ElementRelations
         key={`relations:${node.path}`}
         relations={[
-          { label: 'Implements', items: implemented },
-          { label: 'Implemented by', items: implementers },
+          { label: 'Extends', items: implemented },
+          { label: 'Extended by', items: implementers },
+          ...people,
+          ...packaging,
         ]}
         tree={tree}
       />
@@ -168,9 +179,63 @@ function elementRefOf(node: OutlineNode): UnitRef | null {
   if (node.elementId === null) return null;
   return node.kind === 'module' ||
     node.kind === 'building_block' ||
-    node.kind === 'behavior'
+    node.kind === 'behavior' ||
+    node.kind === 'actor' ||
+    node.kind === 'manual_process' ||
+    node.kind === 'deployable_unit' ||
+    node.kind === 'library' ||
+    node.kind === 'layer' ||
+    node.kind === 'deployment_container'
     ? { kind: node.kind, id: node.elementId }
     : null;
+}
+
+/** The rows of who drives the system the element is one end of. */
+function peopleRelationsOf(doc: DesignDocumentInput, node: OutlineNode) {
+  const id = node.elementId;
+  if (id === null) return [];
+  switch (node.kind) {
+    case 'actor':
+      return [{ label: 'Performs', items: performedItems(doc, id) }];
+    case 'manual_process':
+      return [{ label: 'Performed by', items: performerItems(doc, id) }];
+    case 'behavior':
+      return [{ label: 'Invoked by', items: invokerItems(doc, id) }];
+    default:
+      return [];
+  }
+}
+
+/** The rows of what the code ships as, how it is sliced and where it runs, the element is one end of. */
+function packagingRelationsOf(doc: DesignDocumentInput, node: OutlineNode) {
+  const id = node.elementId;
+  if (id === null) return [];
+  switch (node.kind) {
+    case 'deployable_unit':
+      return [
+        { label: 'Contains', items: containedItems(doc, id) },
+        { label: 'Hosted by', items: hostedByItems(doc, id) },
+      ];
+    case 'library':
+    case 'layer':
+      return [{ label: 'Contains', items: containedItems(doc, id) }];
+    case 'deployment_container':
+      return [{ label: 'Hosts', items: hostsItems(doc, id) }];
+    case 'module':
+      return [
+        {
+          label: 'Deployed in',
+          items: packagedInItems(doc, id, 'deployable_unit|'),
+        },
+      ];
+    case 'building_block':
+      return [
+        { label: 'In library', items: packagedInItems(doc, id, 'library|') },
+        { label: 'In layer', items: packagedInItems(doc, id, 'layer|') },
+      ];
+    default:
+      return [];
+  }
 }
 
 /** The element's name, written in place where the document may be written. */
@@ -207,7 +272,19 @@ function designedOf(doc: DesignDocumentInput, node: OutlineNode) {
         ? doc.buildingBlocks
         : node.kind === 'behavior'
           ? doc.behaviors
-          : undefined;
+          : node.kind === 'actor'
+            ? doc.actors
+            : node.kind === 'manual_process'
+              ? doc.manualProcesses
+              : node.kind === 'deployable_unit'
+                ? doc.deployableUnits
+                : node.kind === 'library'
+                  ? doc.libraries
+                  : node.kind === 'layer'
+                    ? doc.layers
+                    : node.kind === 'deployment_container'
+                      ? doc.deploymentContainers
+                      : undefined;
   return collection === undefined
     ? undefined
     : (findById(collection, node.elementId) ?? null);
@@ -215,7 +292,13 @@ function designedOf(doc: DesignDocumentInput, node: OutlineNode) {
 
 function ownerOfScenarios(node: OutlineNode): PartOwner | undefined {
   const ref = elementRefOf(node);
-  return ref === null
+  return ref === null ||
+    ref.kind === 'actor' ||
+    ref.kind === 'manual_process' ||
+    ref.kind === 'deployable_unit' ||
+    ref.kind === 'library' ||
+    ref.kind === 'layer' ||
+    ref.kind === 'deployment_container'
     ? undefined
     : { kind: ref.kind as PartOwner['kind'], id: ref.id };
 }

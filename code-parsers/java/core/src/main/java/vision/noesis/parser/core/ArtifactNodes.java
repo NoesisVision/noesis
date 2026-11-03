@@ -38,7 +38,9 @@ public final class ArtifactNodes {
 
     public static List<ArtifactDependency> dependenciesOf(ArtifactInput input) {
         TreeMap<NodeId, ArtifactDependency> dependencies = new TreeMap<>();
-        for (ClasspathEntry entry : input.classpath()) dependencies.putIfAbsent(entry.dependency().id(), entry.dependency());
+        for (ClasspathEntry entry : input.classpath()) {
+            if (!entry.testOnly() || entry.dependency().kind() == ArtifactKind.SOURCE) dependencies.putIfAbsent(entry.dependency().id(), entry.dependency());
+        }
         return new ArrayList<>(dependencies.values());
     }
 }

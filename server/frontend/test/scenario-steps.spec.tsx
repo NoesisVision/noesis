@@ -38,7 +38,10 @@ describe('the steps of a scenario', () => {
     const html = renderToStaticMarkup(
       <MantineProvider>
         <ScenarioSteps
-          scenario={{ name: 'Refunding', steps: { value: steps } }}
+          scenario={{
+            id: 'scenario|a.R.Refunding',
+            steps: { value: steps },
+          }}
         />
       </MantineProvider>,
     );
@@ -55,7 +58,10 @@ describe('the steps of a scenario', () => {
     const html = renderToStaticMarkup(
       <MantineProvider>
         <ScenarioSteps
-          scenario={{ name: 'Refunding', steps: { changed: false } }}
+          scenario={{
+            id: 'scenario|a.R.Refunding',
+            steps: { changed: false },
+          }}
         />
       </MantineProvider>,
     );

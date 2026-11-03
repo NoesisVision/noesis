@@ -4,7 +4,9 @@ import { basename, join } from 'node:path';
 import { JavaParser } from '#backend/adapters/out/scanners/code-parsers/java-parser';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
+import { trackFeatureFiles } from '../support/feature-files';
 import { fixedClock } from '../support/fixed-clock';
+import { invokesOf, outputOf, stateOf, inputOf } from '../support/relations';
 import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
@@ -52,11 +54,19 @@ beforeEach(async () => {
     join(FIXTURE, '.noesis', 'settings.json'),
     t.noesis.resolve('settings.json'),
   );
+  // The money API is a dependency no scan parses, described by hand (R14).
+  await cp(
+    join(FIXTURE, '.noesis', 'libraries'),
+    t.noesis.resolve('libraries'),
+    { recursive: true },
+  );
 });
 
 afterEach(() => t.cleanup());
 
 const ids = (items: readonly { id: string }[]) => items.map((item) => item.id);
+/** The money API's currency, as .noesis/libraries/money-api.json lists it. */
+const CURRENCY = 'building_block|javax.money.Currency';
 
 describe('A Java repository scanned through its Maven plugin', () => {
   it('builds the system model of the code model the plugin wrote by the Java vocabulary', async () => {
@@ -67,11 +77,15 @@ describe('A Java repository scanned through its Maven plugin', () => {
     expect<unknown>(model.scanned_at).toBe(NOW);
 
     // com.acme is skipped by .noesis/settings.json, *.internal excluded; the
-    // infrastructure module has no blocks.
+    // infrastructure module has no blocks. The money API's package holds
+    // only a listed block, so its modules sit at the manifest (R14.2).
     const domain = 'shop-domain/src/main/java/com/acme/shop';
+    const moneyApi = { path: '.noesis/libraries/money-api.json', line: null };
     expect<unknown>(model.modules.map((m) => [m.id, m.source])).toEqual([
+      ['module|javax', moneyApi],
+      ['module|javax.money', moneyApi],
       ['module|shop', { path: `${domain}/internal/Hidden.java`, line: 1 }],
-      ['module|shop.orders', { path: `${domain}/orders/Money.java`, line: 1 }],
+      ['module|shop.orders', { path: `${domain}/orders/Clock.java`, line: 1 }],
       [
         'module|shop.pricing',
         { path: `${domain}/pricing/PriceRepository.java`, line: 1 },
@@ -82,75 +96,158 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ],
     ]);
 
+    // R13: a Maven module that declares a block is a library, as none has a
+    // main class; shop-infrastructure declares none, so it is nothing. R14:
+    // the money API's manifest is a library too, of the block it lists.
+    expect<unknown>(model.deployableUnits).toEqual([]);
+    expect<unknown>(model.libraries).toEqual([
+      {
+        id: 'library|money-api',
+        name: 'money-api',
+        description:
+          'JSR 354, the Java money API: a dependency the scan never parses.',
+        source: moneyApi,
+      },
+      {
+        id: 'library|shop-domain',
+        name: 'shop-domain',
+        description: null,
+        source: { path: 'shop-domain', line: null },
+      },
+    ]);
+    expect<unknown>(
+      model.relations.filter((r) => r.from === 'library|money-api'),
+    ).toEqual([{ kind: 'contains', from: 'library|money-api', to: CURRENCY }]);
+
+    // R15: `@Layer("domain")` on com.acme.shop's package-info.java puts every
+    // block of the packages below it in the domain layer; the infrastructure
+    // package's nearer `@Layer` holds no block, so it is no layer.
+    expect<unknown>(model.layers).toEqual([
+      {
+        id: 'layer|domain',
+        name: 'domain',
+        description: null,
+        source: { path: `${domain}/package-info.java`, line: 3 },
+      },
+    ]);
+    const inLayer = (from: string) =>
+      model.relations
+        .filter((r) => r.kind === 'contains' && r.from === from)
+        .map((r) => r.to);
+    expect<unknown>(inLayer('layer|domain')).toEqual(
+      inLayer('library|shop-domain'),
+    );
+    expect<unknown>(inLayer('layer|domain')).toContain(
+      'building_block|shop.orders.Order',
+    );
+    expect<unknown>(
+      model.buildingBlocks.find((b) => b.id === CURRENCY),
+    ).toEqual({
+      id: CURRENCY,
+      name: 'Currency',
+      type: 'value_object',
+      description: 'A currency, by its ISO 4217 code.',
+      source: moneyApi,
+    });
+
     expect<unknown>(model.buildingBlocks.map((b) => [b.id, b.type])).toEqual([
+      [CURRENCY, 'value_object'],
+      ['building_block|shop.orders.Clock', 'technical_service'],
       ['building_block|shop.orders.Money', 'value_object'],
       ['building_block|shop.orders.Order', 'aggregate'],
       ['building_block|shop.orders.Order Repository', 'repository'],
       ['building_block|shop.orders.OrderId', 'value_object'],
       ['building_block|shop.orders.OrderLine', 'entity'],
-      ['building_block|shop.orders.OrderLineAdded', 'value_object'],
+      ['building_block|shop.orders.OrderLineAdded', 'event'],
       ['building_block|shop.orders.OrderStatus', 'value_object'],
-      ['building_block|shop.orders.PlaceOrder', 'value_object'],
+      ['building_block|shop.orders.PlaceOrder', 'command'],
       ['building_block|shop.orders.PlaceOrderHandler', 'application_service'],
       ['building_block|shop.pricing.PriceRepository', 'repository'],
       ['building_block|shop.pricing.PricingService', 'domain_service'],
       ['building_block|shop.products.ProductId', 'value_object'],
     ]);
 
+    // R9.5: `@Actor`, repeated on `handle` and so inside its `Actor.Actors`
+    // container, makes an actor per name, found at the method.
+    const handle = {
+      path: `${domain}/orders/PlaceOrderHandler.java`,
+      line: 22,
+    };
+    expect<unknown>(model.actors).toEqual([
+      {
+        id: 'actor|Customer',
+        name: 'Customer',
+        description: null,
+        source: handle,
+      },
+      {
+        id: 'actor|Sales rep',
+        name: 'Sales rep',
+        description: null,
+        source: handle,
+      },
+    ]);
+
     const order = model.buildingBlocks.find((b) => b.name === 'Order');
     expect<unknown>(order).toMatchObject({
       description: 'An order *placed* by a customer.',
-      implements: [],
-      source: { path: `${domain}/orders/Order.java`, line: 14 },
+      source: { path: `${domain}/orders/Order.java`, line: 15 },
     });
-    // A class's private fields are no properties unless a getter exposes
-    // them (R5.8), and Order has none; a record's components are (R5.7),
-    // the UUID a primitive, OrderId a block.
-    expect<unknown>(order?.properties).toEqual([]);
+    const state = (name: string) =>
+      stateOf(model, `building_block|shop.orders.${name}`);
     expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'PlaceOrder')?.properties,
-    ).toEqual([
-      {
-        name: 'note',
-        type: 'primitive|string',
-        description: null,
-        optional: false,
-      },
-      {
-        name: 'orderId',
-        type: 'building_block|shop.orders.OrderId',
-        description: null,
-        optional: false,
-      },
+      model.relations.filter(
+        (r) => r.kind === 'extends' && r.from === order?.id,
+      ),
+    ).toEqual([]);
+    // A class's private fields are no state unless a getter exposes them
+    // (R5.8), and Order has one: its currency, a type of the money API the
+    // code reaches only as a stub, which the library manifest makes a block
+    // (R14). A record's components are state (R5.7), the UUID a primitive,
+    // OrderId a block.
+    expect<unknown>(state('Order')).toEqual([['currency', CURRENCY, '1']]);
+    expect<unknown>(state('PlaceOrder')).toEqual([
+      ['orderId', 'building_block|shop.orders.OrderId', '1'],
+      ['note', 'primitive|string', '1'],
     ]);
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'OrderId')?.properties,
-    ).toEqual([
-      {
-        name: 'value',
-        type: 'primitive|uuid',
-        description: null,
-        optional: false,
-      },
+    expect<unknown>(state('OrderId')).toEqual([
+      ['value', 'primitive|uuid', '1'],
     ]);
-    // A public field is a property too, and so is a private one behind the
+    // A public field is state too, and so is a private one behind the
     // fluent getter product() (R5.8), which is then no behavior; a record's
     // accessors are not behaviors.
+    expect<unknown>(state('OrderLine')).toEqual([
+      ['unitPrice', 'building_block|shop.orders.Money', '1'],
+      ['product', 'building_block|shop.products.ProductId', '1'],
+    ]);
+    // What a service is handed in its constructor, by a collaborator kind,
+    // is a collaborator (R5.9), though the field that keeps it is private;
+    // a `@TechnicalService` is a collaborator kind.
     expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'OrderLine')?.properties,
+      model.relations
+        .filter((r) => r.kind === 'has_collaborator')
+        .map((r) => [r.from, r.name, r.to]),
     ).toEqual([
-      {
-        name: 'product',
-        type: 'building_block|shop.products.ProductId',
-        description: null,
-        optional: false,
-      },
-      {
-        name: 'unitPrice',
-        type: 'building_block|shop.orders.Money',
-        description: null,
-        optional: false,
-      },
+      [
+        'building_block|shop.orders.PlaceOrderHandler',
+        'clock',
+        'building_block|shop.orders.Clock',
+      ],
+      [
+        'building_block|shop.orders.PlaceOrderHandler',
+        'repository',
+        'building_block|shop.orders.Order Repository',
+      ],
+      [
+        'building_block|shop.orders.PlaceOrderHandler',
+        'pricing',
+        'building_block|shop.pricing.PricingService',
+      ],
+      [
+        'building_block|shop.pricing.PricingService',
+        'prices',
+        'building_block|shop.pricing.PriceRepository',
+      ],
     ]);
     expect<unknown>(ids(model.behaviors)).not.toContain(
       'behavior|shop.orders.Money.amount',
@@ -162,126 +259,110 @@ describe('A Java repository scanned through its Maven plugin', () => {
     expect<unknown>(
       model.behaviors.map((b) => [
         b.id,
-        b.type,
-        b.input.map((i) => i.name),
-        b.output.map((o) => o.type),
+        inputOf(model, b.id).map((slot) => (slot as string[])[0]),
+        outputOf(model, b.id).map((slot) => (slot as string[])[0]),
       ]),
     ).toEqual([
+      ['behavior|shop.orders.Clock.now', [], ['primitive|datetime']],
       [
         'behavior|shop.orders.Money.add',
-        'Command',
         ['other'],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.orders.Money.zero',
-        'Command',
         ['currency'],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.orders.Order Repository.getBy',
-        'Command',
         ['id'],
         ['building_block|shop.orders.Order'],
       ],
-      ['behavior|shop.orders.Order Repository.save', 'Command', ['order'], []],
+      ['behavior|shop.orders.Order Repository.save', ['order'], []],
       // The overload with the most parameters stands for both addLine methods.
-      [
-        'behavior|shop.orders.Order.addLine',
-        'Command',
-        ['product', 'quantity'],
-        [],
-      ],
+      ['behavior|shop.orders.Order.addLine', ['product', 'quantity'], []],
       [
         'behavior|shop.orders.Order.create',
-        'Command',
         ['id'],
         ['building_block|shop.orders.Order'],
       ],
-      ['behavior|shop.orders.Order.persist', 'Command', ['repository'], []],
-      ['behavior|shop.orders.Order.placeOrder', 'Command', [], []],
-      // @QueryHandler fixes the type (R9.4).
+      ['behavior|shop.orders.Order.persist', ['repository'], []],
+      ['behavior|shop.orders.Order.placeOrder', [], []],
       [
         'behavior|shop.orders.Order.total',
-        'Query',
         [],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.orders.OrderLine.price',
-        'Command',
         [],
         ['building_block|shop.orders.Money'],
       ],
-      [
-        'behavior|shop.orders.PlaceOrderHandler.handle',
-        'Command',
-        ['command'],
-        [],
-      ],
+      ['behavior|shop.orders.PlaceOrderHandler.handle', ['command'], []],
       [
         'behavior|shop.pricing.PriceRepository.get',
-        'Command',
         ['id'],
         ['building_block|shop.orders.Order'],
       ],
-      ['behavior|shop.pricing.PricingService.discount', 'Command', [], []],
+      ['behavior|shop.pricing.PricingService.discount', [], []],
       // List<Money> is a collection, Optional<Money> and CompletableFuture<Money> are looked through.
       [
         'behavior|shop.pricing.PricingService.history',
-        'Command',
         ['id'],
-        [{ collectionOf: 'building_block|shop.orders.Money' }],
+        ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.pricing.PricingService.priceFor',
-        'Command',
         ['order'],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.pricing.PricingService.priceLater',
-        'Command',
         ['order'],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.pricing.PricingService.tryPrice',
-        'Command',
         ['order'],
         ['building_block|shop.orders.Money'],
       ],
     ]);
     expect<unknown>(
-      model.behaviors.find((b) => b.name === 'tryPrice')?.output[0]?.optional,
-    ).toBe(true);
+      outputOf(model, 'behavior|shop.pricing.PricingService.history'),
+    ).toEqual([['building_block|shop.orders.Money', '0..*']]);
+    expect<unknown>(
+      outputOf(model, 'behavior|shop.pricing.PricingService.tryPrice'),
+    ).toEqual([['building_block|shop.orders.Money', '0..1']]);
     expect<unknown>(
       model.behaviors.find((b) => b.name === 'placeOrder'),
     ).toMatchObject({
       description: 'Places the order.',
-      source: { path: `${domain}/orders/Order.java`, line: 42 },
+      source: { path: `${domain}/orders/Order.java`, line: 44 },
     });
 
     // Calls, directly and through methods that are no behavior: handle →
     // logTotal → total; the SqlOrderRepository implementation's calls count
     // for the interface's behaviors.
+    // Each list in the order of the calls in the source.
     expect<unknown>(
-      Object.fromEntries(model.behaviors.map((b) => [b.name, b.invokes])),
+      Object.fromEntries(
+        model.behaviors.map((b) => [b.name, invokesOf(model, b.id)]),
+      ),
     ).toMatchObject({
       handle: [
         'behavior|shop.orders.Order Repository.getBy',
-        'behavior|shop.orders.Order Repository.save',
         'behavior|shop.orders.Order.placeOrder',
         'behavior|shop.orders.Order.total',
         'behavior|shop.pricing.PricingService.priceFor',
+        'behavior|shop.orders.Order Repository.save',
       ],
       save: ['behavior|shop.orders.Order.total'],
       getBy: ['behavior|shop.orders.Order.create'],
       placeOrder: ['behavior|shop.orders.Order.total'],
       total: [
-        'behavior|shop.orders.Money.add',
         'behavior|shop.orders.Money.zero',
+        'behavior|shop.orders.Money.add',
         'behavior|shop.orders.OrderLine.price',
       ],
       persist: ['behavior|shop.orders.Order Repository.save'],
@@ -310,6 +391,57 @@ describe('A Java repository scanned through its Maven plugin', () => {
       'module|com.acme.shop.orders',
       'module|com.acme.shop.pricing',
       'module|com.acme.shop.products',
+      'module|javax',
+      'module|javax.money',
     ]);
+  });
+
+  it("makes the rules of the fixture's feature file, governed by the behaviors its Cucumber steps in the test sources invoke", async () => {
+    const FEATURE =
+      'shop-domain/src/test/resources/features/placing-orders.feature';
+    await trackFeatureFiles(t.root, FIXTURE, [FEATURE]);
+    const PLACING = 'rule|shop.orders.Placing an order';
+    const TOTAL = 'rule|shop.orders.Order total';
+
+    const model = SystemModel.parse(await scanner.scan());
+
+    expect<unknown>(model.rules).toEqual([
+      {
+        id: TOTAL,
+        name: 'Order total',
+        kind: 'computation',
+        description: 'The total is the sum of the lines, less the discount.',
+        source: { path: FEATURE, line: 15 },
+      },
+      {
+        id: PLACING,
+        name: 'Placing an order',
+        kind: 'state_change',
+        description: 'A new order becomes placed when the customer places it.',
+        source: { path: FEATURE, line: 7 },
+      },
+    ]);
+    expect<unknown>(model.scenarios.map((s) => [s.id, s.steps.length])).toEqual(
+      [
+        ['scenario|shop.orders.Order total.The total after more lines', 3],
+        ['scenario|shop.orders.Order total.The total of one line', 3],
+        ['scenario|shop.orders.Placing an order.A new order is placed', 3],
+      ],
+    );
+    // The outline binds by its first example; adding lines and reading the
+    // total are two behaviors, so the rule has two governors.
+    expect<unknown>(
+      model.relations
+        .filter((r) => r.kind === 'governs')
+        .map((r) => [r.from, r.to]),
+    ).toEqual([
+      ['behavior|shop.orders.Order.addLine', TOTAL],
+      ['behavior|shop.orders.Order.placeOrder', PLACING],
+      ['behavior|shop.orders.Order.total', TOTAL],
+    ]);
+    // The step definitions' class is in the test sources and is no block.
+    expect<unknown>(
+      model.buildingBlocks.some((b) => b.name === 'OrderSteps'),
+    ).toBe(false);
   });
 });

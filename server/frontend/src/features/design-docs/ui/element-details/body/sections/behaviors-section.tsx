@@ -8,6 +8,7 @@ import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignedBehaviorInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
 import { parameterItems, resultItems } from '../../change-list-items.ts';
+import { useDesignDocument } from '../../design-document-context.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
@@ -99,22 +100,33 @@ function BehaviorName({ node }: { node: OutlineNode }) {
 
 /** `(a, b) → C`: the inputs by name, the output by its type's last segment; each says what its type is on hover. */
 function Shape({ behavior }: { behavior: DesignedBehaviorInput }) {
-  const inputs = parameterItems(behavior.input).filter(
-    ({ change }) => change !== 'removed',
-  );
-  const outputs = resultItems(behavior.output).filter(
-    ({ change }) => change !== 'removed',
-  );
+  const doc = useDesignDocument();
+  const inputs =
+    doc === null
+      ? []
+      : parameterItems(doc, behavior.id).filter(
+          ({ change }) => change !== 'removed',
+        );
+  const outputs =
+    doc === null
+      ? []
+      : resultItems(doc, behavior.id).filter(
+          ({ change }) => change !== 'removed',
+        );
   return (
     <>
       <span className={classes.punctuation}>(</span>
-      {inputs.map(({ name, label, type, path }, index) => (
+      {inputs.map(({ name, label, type, cardinality, path }, index) => (
         <Fragment key={label}>
           {index > 0 && <span className={classes.punctuation}>, </span>}
           {/* By name, and on hover what its type is: `name: a.b.C`. */}
           <span className={classes.punctuation}>
             {name ?? label}:{' '}
-            <OutputType label={type ?? name ?? 'unknown'} path={path} />
+            <OutputType
+              label={type ?? name ?? 'unknown'}
+              suffix={cardinality}
+              path={path}
+            />
           </span>
         </Fragment>
       ))}
@@ -122,10 +134,14 @@ function Shape({ behavior }: { behavior: DesignedBehaviorInput }) {
       {outputs.length > 0 && (
         <>
           <span className={classes.punctuation}> → </span>
-          {outputs.map(({ label, path }, index) => (
+          {outputs.map(({ label, type, cardinality, path }, index) => (
             <Fragment key={label}>
               {index > 0 && <span className={classes.punctuation}>, </span>}
-              <OutputType label={label} path={path} />
+              <OutputType
+                label={type ?? label}
+                suffix={cardinality}
+                path={path}
+              />
             </Fragment>
           ))}
         </>
@@ -138,7 +154,16 @@ function Shape({ behavior }: { behavior: DesignedBehaviorInput }) {
  * What a behavior gives back, by its type's last segment: a link to that
  * type's row when the tree has one — a building block, not a primitive.
  */
-function OutputType({ label, path }: { label: string; path: string | null }) {
+function OutputType({
+  label,
+  suffix = '',
+  path,
+}: {
+  label: string;
+  /** How many of the type it holds, after the type, when not exactly one. */
+  suffix?: string | undefined;
+  path: string | null;
+}) {
   const { has, select } = useElementNavigation();
   return (
     <ElementTooltip name={label} hint>
@@ -149,10 +174,12 @@ function OutputType({ label, path }: { label: string; path: string | null }) {
           onClick={() => select(path)}
         >
           <QualifiedName name={label} />
+          {suffix}
         </UnstyledButton>
       ) : (
         <span className={classes.output}>
           <QualifiedName name={label} />
+          {suffix}
         </span>
       )}
     </ElementTooltip>

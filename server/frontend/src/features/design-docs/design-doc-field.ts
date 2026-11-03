@@ -1,6 +1,6 @@
 import type { DesignDocFieldAuthor } from '#backend/app/design-docs/design-doc-field.ts';
-import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { nameOf } from './element-id.ts';
+import { cardinalitySuffixOf } from './relations.ts';
 
 /*
  * A field of a designed element as the wire carries it: left out or marked
@@ -79,10 +79,9 @@ export function authorOf(
 }
 
 /**
- * A type reference in words: a building block by its own name, a primitive by
- * the primitive, a collection by its item with `[]` after it.
+ * A slot's type in words — a building block by its own name, a primitive by
+ * the primitive — with how many it holds after it when not exactly one:
+ * `RefundLine [0..*]`.
  */
-export function refLabelOf(ref: BuildingBlockRefInput): string {
-  if (typeof ref !== 'string') return `${refLabelOf(ref.collectionOf)}[]`;
-  return nameOf(ref);
-}
+export const slotLabelOf = (ref: string, cardinality: string | null): string =>
+  `${nameOf(ref)}${cardinalitySuffixOf(cardinality)}`;

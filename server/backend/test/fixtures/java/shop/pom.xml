@@ -18,6 +18,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
     <noesis-annotations.version>0.1.0-SNAPSHOT</noesis-annotations.version>
+    <cucumber.version>7.34.9</cucumber.version>
+    <money-api.version>1.1</money-api.version>
   </properties>
 
   <dependencyManagement>
@@ -26,6 +28,16 @@
         <groupId>vision.noesis</groupId>
         <artifactId>noesis-annotations</artifactId>
         <version>${noesis-annotations.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.cucumber</groupId>
+        <artifactId>cucumber-java</artifactId>
+        <version>${cucumber.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>javax.money</groupId>
+        <artifactId>money-api</artifactId>
+        <version>${money-api.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

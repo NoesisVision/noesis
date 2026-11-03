@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import com.example.qdocmanagement.notifications.NotificationService;
 import org.springframework.transaction.annotation.Transactional;
+import vision.noesis.annotations.Actor;
 import vision.noesis.annotations.ApplicationService;
 import vision.noesis.annotations.CommandHandler;
 
@@ -43,11 +44,11 @@ public class QDocCreationService {
 	 * starts its first version with the people the request names, announces the
 	 * new QDoc to the other subsystems and has every quality manager told of it.
 	 *
-	 * <p>Actors: Quality manager.
 	 * @param command the QDoc creation request
 	 * @return the identity of the created QDoc
 	 */
 	@CommandHandler
+	@Actor("Quality manager")
 	@Transactional
 	public QDocId createQDoc(CreateQDoc command) {
 		if (!identities.isQualityManager(command.requestedBy())) {

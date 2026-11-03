@@ -21,6 +21,7 @@ const NONE: readonly OutlineNode[] = [];
 /** A model's parts are read in the panel beside its tree, not in the tree. */
 export const EXCLUDED_KINDS: readonly OutlineKind[] = [
   'property',
+  'collaborator',
   'scenario',
   'rule',
 ];

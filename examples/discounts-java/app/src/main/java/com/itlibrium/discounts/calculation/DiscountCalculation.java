@@ -1,5 +1,6 @@
 package com.itlibrium.discounts.calculation;
 
+import vision.noesis.annotations.Actor;
 import vision.noesis.annotations.ApplicationService;
 
 import com.itlibrium.discounts.offers.Offer;
@@ -13,6 +14,7 @@ public class DiscountCalculation {
 
     private final DiscountPolicyFactory discountsFactory;
 
+    @Actor("Customer")
     public DiscountedOffer calculate(Offer offer, UserId user) {
 
         List<Discount> discounts = discountsFactory.get(user);

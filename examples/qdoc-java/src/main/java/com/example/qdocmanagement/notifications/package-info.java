@@ -10,6 +10,8 @@
  * in the types this subsystem defines ({@code NotifyUsers}, {@code Recipient}).
  */
 @Module("notifications")
+@Layer("platform")
 package com.example.qdocmanagement.notifications;
 
+import vision.noesis.annotations.Layer;
 import vision.noesis.annotations.Module;

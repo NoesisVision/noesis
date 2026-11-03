@@ -22,14 +22,14 @@ export const behaviorSections = (
   return [
     ...section(InputOutputSection, 'input-output', {
       element,
-      input: parameterItems(behavior.input),
-      output: resultItems(behavior.output),
+      input: parameterItems(doc, behavior.id),
+      output: resultItems(doc, behavior.id),
     }),
     ...section(ChangeListSection, 'rules', {
       element,
       title: 'Rules',
       kind: 'rule',
-      items: ruleItems(behavior.id, behavior.rules, doc.needs),
+      items: ruleItems(doc, behavior.id),
     }),
     ...section(DiagramSection, 'diagram', {
       element,

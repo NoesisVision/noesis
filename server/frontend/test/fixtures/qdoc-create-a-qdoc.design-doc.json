@@ -80,11 +80,6 @@
           "changed": true,
           "value": "flowchart LR\n  accTitle: Subsystems taking part in creating a QDoc\n  QM([Quality manager]) -->|createQDoc| PRE[preparation]\n  PRE -->|notifyUsers| NOT[notifications]\n  NOT -->|notification| QMs([Each quality manager])",
           "author": "agent"
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -101,11 +96,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -122,43 +112,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Notifications depends on no other subsystem",
-              "category": {
-                "changed": true,
-                "value": "Quality",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Maintainability",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The Notifications subsystem subscribes to no event and refers to no building block of another subsystem. The other subsystems reach it only by calling NotificationService, in the types the Notifications subsystem itself defines (NotifyUsers, Recipient).",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         }
       }
     ],
@@ -186,44 +139,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|uuid",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The identifier.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -245,44 +160,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The user's identifier in the identity provider.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -304,103 +181,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The title text.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "A title is never blank",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Structure",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "A QDoc title holds at least one character other than whitespace; a blank title cannot be created.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Blank title",
-                    "description": {
-                      "changed": true,
-                      "value": "A creation request with a blank title is rejected.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager submits a QDoc creation request whose title is only spaces"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the request is rejected and no QDoc is created"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -422,131 +202,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The type: procedure, guideline, instruction or policy.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "A document type comes from the list of document types",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Structure",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "A document type is one of procedure, guideline, instruction and policy (FR-PRE-002). Adding a type to the list is a change to this list, not to any QDoc.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["start-a-qdoc"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "The organisation named procedure, guideline, instruction and policy as its document types, and the list may grow.",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Each listed type is accepted",
-                    "description": {
-                      "changed": true,
-                      "value": "Every listed document type can be used for a new QDoc.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager and a valid creation request"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager submits it once with each of procedure, guideline, instruction and policy"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "each request is accepted and the QDoc carries the requested document type"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  },
-                  {
-                    "name": "A type outside the list is rejected",
-                    "description": {
-                      "changed": true,
-                      "value": "An unknown document type is refused.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager submits a creation request with the document type 'memo'"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the request is rejected and no QDoc is created"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -568,44 +223,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The composed document number.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -627,76 +244,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "active or archived.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "A QDoc is either active or archived",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Structure",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "A QDoc status takes exactly one of two values: active, archived.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -718,76 +265,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "new, approved, published, no longer in force or archived.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "A version status comes from the workflow statuses",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Structure",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "A version status takes exactly one of the values new, approved, published, no longer in force and archived.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -809,76 +286,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "author, reviewer or approver.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "An assignment role is author, reviewer or approver",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Structure",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "An assignment role takes exactly one of the values author, reviewer and approver.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -900,62 +307,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "user",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The assigned user.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "role",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.AssignmentRole",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The role the user holds on the version.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -977,44 +328,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|uuid",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The identifier.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1036,279 +349,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "requestedBy",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The user who submits the request.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "title",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocTitle",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The title of the new QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentType",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentType",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The document type of the new QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "authors",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The authors of version 1; at least one.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "reviewers",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The reviewers of version 1; may be empty, reviewers can be added later (UC-3).",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": true,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "approvers",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The approvers of version 1; may be empty, at least one is needed only when the version is shared (UC-6).",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": true,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "A creation request names a title, a document type and at least one author",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Structure",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "A QDoc creation request that lacks the title, the document type or at least one author is rejected (FR-PRE-001). Reviewers and approvers are optional.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["start-a-qdoc"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "These three are the checks made before a QDoc is created; reviewers and approvers may be added later (UC-3).",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "No title",
-                    "description": {
-                      "changed": true,
-                      "value": "Missing title.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager submits a creation request without a title"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the request is rejected and no QDoc is created"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  },
-                  {
-                    "name": "No document type",
-                    "description": {
-                      "changed": true,
-                      "value": "Missing document type.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager submits a creation request without a document type"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the request is rejected and no QDoc is created"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  },
-                  {
-                    "name": "No author",
-                    "description": {
-                      "changed": true,
-                      "value": "Missing authors.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager submits a creation request naming no author"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the request is rejected and no QDoc is created"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  },
-                  {
-                    "name": "All mandatory data",
-                    "description": {
-                      "changed": true,
-                      "value": "The three mandatory items suffice.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager submits a creation request with a title, the document type procedure and one author, and no reviewer or approver"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the request is accepted and the QDoc is created"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1330,116 +370,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "qdocId",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The new QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "title",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocTitle",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Its title.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentNumber",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentNumber",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Its document number.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "createdBy",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The quality manager who created it.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "createdAt",
-              "type": {
-                "changed": true,
-                "value": "primitive|datetime",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "When it was created.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1461,62 +391,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "id",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.ContentFileId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The file's identity.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "text",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The rich-text content; empty when the file is created.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1538,102 +412,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "number",
-              "type": {
-                "changed": true,
-                "value": "primitive|integer",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The version number, from 1.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "status",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.VersionStatus",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The workflow status.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "contentFiles",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.ContentFile"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The content files; at least one.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "assignments",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.Assignment"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The people assigned to the version, each with one role.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1657,233 +435,6 @@
           "changed": true,
           "value": "erDiagram\n  accTitle: Entities of the QDoc aggregate\n  QDoc {\n    QDocId id PK\n    QDocTitle title\n    DocumentType documentType\n    DocumentNumber documentNumber\n    QDocStatus status\n    UserId createdBy\n    datetime createdAt\n  }\n  Version {\n    integer number\n    VersionStatus status\n  }\n  ContentFile {\n    ContentFileId id PK\n    string text\n  }\n  Assignment {\n    UserId user\n    AssignmentRole role\n  }\n  QDoc ||--|{ Version : \"has versions\"\n  Version ||--|{ ContentFile : \"holds content files\"\n  Version ||--|{ Assignment : \"assigns people\"",
           "author": "agent"
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "id",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The QDoc's identity.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "title",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocTitle",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The title.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentType",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentType",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The document type.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentNumber",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentNumber",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The document number, given at creation.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "status",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocStatus",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "active or archived.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "versions",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.Version"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The versions, at least one.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "createdBy",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The quality manager who created the QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "createdAt",
-              "type": {
-                "changed": true,
-                "value": "primitive|datetime",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "When the QDoc was created.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "A QDoc keeps at least one version",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Consistency",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Every QDoc holds at least one version at all times (FR-PRE-010); no operation leaves a QDoc with zero versions.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["ready-to-write"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "A QDoc without a version has nothing to review, approve or publish.",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Creation yields a version",
-                    "description": {
-                      "changed": true,
-                      "value": "A QDoc never exists without a version.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager creates a QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the QDoc holds one version"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1905,25 +456,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1945,25 +477,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1985,25 +498,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2025,25 +519,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2065,25 +540,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2105,44 +561,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "userId",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The user's identifier in the identity provider.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2164,80 +582,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "qdocTitle",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocTitle",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The title of the new QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentNumber",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentNumber",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The document number of the new QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "createdBy",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The quality manager who created the QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2259,82 +603,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "recipients",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.notifications.Recipient"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The users to notify.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "subject",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "What the notification is about, in one line.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "body",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The text of the notification.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2356,80 +624,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "recipient",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.notifications.Recipient",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The user notified.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "subject",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "What the notification is about, in one line.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "body",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The text of the notification.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2451,25 +645,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2491,25 +666,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ],
@@ -2525,11 +681,6 @@
           "value": "createQDoc",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Creates a QDoc on a quality manager's request: gives it a document number, starts its first version with the people the request names, announces the new QDoc to the other subsystems and has every quality manager told of it.",
@@ -2539,385 +690,6 @@
           "changed": true,
           "value": "sequenceDiagram\n  accTitle: Creating a QDoc\n  actor QM as Quality manager\n  QM->>QDocCreationService: createQDoc(command)\n  QDocCreationService->>IdentityProvider: isQualityManager(requestedBy)\n  QDocCreationService->>DocumentNumberGenerator: next()\n  QDocCreationService->>QDoc: create(command, number)\n  QDoc->>Version: createFirst(authors, reviewers, approvers)\n  QDocCreationService->>QDocRepository: save(qdoc)\n  QDocCreationService->>PreparationEventPublisher: publish(QDocCreated)\n  QDocCreationService->>IdentityProvider: findQualityManagers()\n  QDocCreationService->>NotificationService: notifyUsers(NewQDocNotification for the quality managers)\n  QDocCreationService-->>QM: QDocId",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": ["Quality manager"]
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "command",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.CreateQDoc",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The QDoc creation request.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|qdocmanagement.preparation.QDocId",
-              "description": {
-                "changed": true,
-                "value": "The identity of the created QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Only quality managers create QDocs",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "State change",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "A QDoc creation request from a user who lacks the quality manager role is rejected (SR-PRE-001). Authors, reviewers, approvers and auditors create nothing. The requester's roles are those held at the moment of the request.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["start-a-qdoc"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "Creating a QDoc is a quality manager's decision. An auditor has read-only access (SR-ACT-002) and creates nothing.",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Non-quality-managers are rejected",
-                    "description": {
-                      "changed": true,
-                      "value": "Each other role is refused.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a user holding only the author role, one holding only the reviewer role, one holding only the approver role and an auditor"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "each submits a valid QDoc creation request"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "each request is rejected and no QDoc is created"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  },
-                  {
-                    "name": "A quality manager is accepted",
-                    "description": {
-                      "changed": true,
-                      "value": "The quality manager role suffices.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a user holding the quality manager role"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the user submits a valid QDoc creation request"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the QDoc is created"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "A new QDoc carries a document number",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Consistency",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Every QDoc gets its document number when it is created (FR-PRE-009), from the DocumentNumberGenerator; the format is defined by UC-2.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["start-a-qdoc"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "Each QDoc needs a number from the moment it exists, for searching and for referring to it.",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Number at creation",
-                    "description": {
-                      "changed": true,
-                      "value": "The number exists from the start.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager creates a QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the new QDoc carries a document number"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "A QDoc is saved and announced together",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Consistency",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The new QDoc is saved and QDocCreated is published in the same unit of work: either both happen or neither does. A rejected request creates nothing and publishes nothing.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["know-about-new-qdocs"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "An invalid request leaves no trace",
-                    "description": {
-                      "changed": true,
-                      "value": "A rejected request neither saves nor announces anything.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager submits a QDoc creation request that names no author"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the request is rejected, no QDoc is saved and no QDocCreated is published"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "Each quality manager learns of a new QDoc",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "State change",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "When a QDoc is created, the Preparation subsystem asks the Notifications subsystem to notify each quality manager of the organisation, naming the QDoc, its number and its creator (FR-NOT-001). The quality managers are those holding the role at the moment the QDoc is created.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["know-about-new-qdocs"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "The creation of a procedure matters to each quality manager, not only to the one who created it.",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Three quality managers notified",
-                    "description": {
-                      "changed": true,
-                      "value": "Everyone with the role is told.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "an organisation with 3 quality managers"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "one of them creates a QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "each of the 3 receives a notification naming the QDoc, its document number and its creator"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  },
-                  {
-                    "name": "A rejected request notifies nobody",
-                    "description": {
-                      "changed": true,
-                      "value": "No QDoc, no notification.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "an organisation with 3 quality managers"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "one of them submits a QDoc creation request that names no author"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the request is rejected and no quality manager is notified"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [
-            {
-              "name": "Creating a procedure",
-              "description": {
-                "changed": true,
-                "value": "Happy path of UC-1, end to end.",
-                "author": "agent"
-              },
-              "steps": {
-                "changed": true,
-                "value": [
-                  {
-                    "kind": "given",
-                    "text": "a quality manager and an organisation with 3 quality managers"
-                  },
-                  {
-                    "kind": "when",
-                    "text": "the quality manager creates the procedure 'Supplier audit' with one author and two reviewers"
-                  },
-                  {
-                    "kind": "then",
-                    "text": "an active QDoc with a document number exists, its version 1 has the status new, one empty content file, the author and the two reviewers, QDocCreated is published and each of the 3 quality managers is notified of the new QDoc"
-                  }
-                ],
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2927,11 +699,6 @@
           "value": "create",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Creates an active QDoc from a validated creation request and its document number, together with its first version.",
@@ -2939,145 +706,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "command",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.CreateQDoc",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The validated creation request: the title, the document type, the creator and the authors, reviewers and approvers to assign to version 1. The creation time is when the QDoc is created.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentNumber",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentNumber",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The number the generator gave.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|qdocmanagement.preparation.QDocCreated",
-              "description": {
-                "changed": true,
-                "value": "The QDocCreated event to publish, telling the other subsystems the QDoc exists; returned together with the new QDoc aggregate.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "A new QDoc is active",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "State change",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "A QDoc starts with the status active (FR-PRE-003).",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["start-a-qdoc"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "A QDoc itself has only two statuses, active and archived; workflow statuses belong to versions.",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "New QDoc listed as active",
-                    "description": {
-                      "changed": true,
-                      "value": "Initial status.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager creates a QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the QDoc is listed with the status active"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3087,11 +715,6 @@
           "value": "createFirst",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Creates the first version of a new QDoc, with the people named at creation assigned to it.",
@@ -3099,459 +722,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "authors",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The authors to assign; at least one.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "reviewers",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The reviewers to assign; may be empty.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": true,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "approvers",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The approvers to assign; may be empty.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": true,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|qdocmanagement.preparation.Version",
-              "description": {
-                "changed": true,
-                "value": "Version 1: number 1, status new, one empty content file and one assignment per named author, reviewer and approver.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Version 1 starts with the status new",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "State change",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Creating a QDoc creates its version 1, with the status new (FR-PRE-004).",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["ready-to-write"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "Creating a QDoc is creating its first version.",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "One version, numbered 1, new",
-                    "description": {
-                      "changed": true,
-                      "value": "Shape of a fresh QDoc.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager creates a QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the QDoc has exactly one version, numbered 1, with the status new"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "Version 1 holds one empty content file",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Consistency",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Version 1 is created with exactly one content file holding no text, and no attachment (FR-PRE-005).",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["ready-to-write"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "Each version has at least one content file (UC-4); the authors fill the first one.",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Empty content file",
-                    "description": {
-                      "changed": true,
-                      "value": "Ready to write.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a quality manager"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager creates a QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "version 1 holds one content file with no text and no attachment"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "The named authors are assigned to version 1",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Consistency",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Each author named in the creation request is assigned to version 1 as author (FR-PRE-006).",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["start-a-qdoc"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Authors assigned",
-                    "description": {
-                      "changed": true,
-                      "value": "Authors can write from the start.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a creation request naming two authors"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager creates the QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "both appear as authors of version 1 and can edit the content file"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "The named reviewers are assigned to version 1",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Consistency",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Each reviewer named in the creation request is assigned to version 1 as reviewer (FR-PRE-007).",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["start-a-qdoc"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "Reviewers are optional and may be added now or later (UC-3).",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Two reviewers",
-                    "description": {
-                      "changed": true,
-                      "value": "Optional reviewers given.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a creation request naming two reviewers"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager creates the QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "version 1 has the two reviewers"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  },
-                  {
-                    "name": "No reviewer",
-                    "description": {
-                      "changed": true,
-                      "value": "Reviewers left out.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a creation request naming no reviewer"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager creates the QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the request is accepted and version 1 has no reviewer"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "The named approvers are assigned to version 1",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Consistency",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Each approver named in the creation request is assigned to version 1 as approver (FR-PRE-008).",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["start-a-qdoc"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "At least one approver is needed only when the version is shared (UC-6), so naming none at creation is allowed.",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Two approvers",
-                    "description": {
-                      "changed": true,
-                      "value": "Optional approvers given.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a creation request naming two approvers"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager creates the QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "version 1 has the two approvers"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  },
-                  {
-                    "name": "No approver",
-                    "description": {
-                      "changed": true,
-                      "value": "Approvers left out.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a creation request naming no approver"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "the quality manager creates the QDoc"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the request is accepted and version 1 has no approver"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3561,11 +731,6 @@
           "value": "save",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Stores a QDoc aggregate, whole.",
@@ -3573,52 +738,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "qdoc",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDoc",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The QDoc to store.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3628,11 +747,6 @@
           "value": "next",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the QDoc being created its document number.",
@@ -3640,66 +754,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "documentType",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentType",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The type of the QDoc being created, available to a type-aware format.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|qdocmanagement.preparation.DocumentNumber",
-              "description": {
-                "changed": true,
-                "value": "The new document number.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3709,11 +763,6 @@
           "value": "isQualityManager",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Answers whether the user holds the quality manager role at the moment of the call.",
@@ -3721,66 +770,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "user",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The user to check.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "primitive|boolean",
-              "description": {
-                "changed": true,
-                "value": "True when the user holds the quality manager role.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3790,11 +779,6 @@
           "value": "publish",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Publishes a QDocCreated event to the subscribing subsystems.",
@@ -3802,52 +786,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "event",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocCreated",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The event to publish.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3855,11 +793,6 @@
         "name": {
           "changed": true,
           "value": "notifyUsers",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -3871,201 +804,6 @@
           "changed": true,
           "value": "sequenceDiagram\n  accTitle: Notifying users on another subsystem's request\n  participant Caller as Calling subsystem\n  Caller->>NotificationService: notifyUsers(command)\n  loop each recipient\n    NotificationService->>NotificationSender: send(Notification)\n  end",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "command",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.notifications.NotifyUsers",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The request: the recipients, the subject and the body.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Each named recipient receives the notification",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "State change",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "When a subsystem asks the Notifications subsystem to notify users, each recipient the request names receives one notification carrying the subject and the body of the request (FR-NOT-001).",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["know-about-new-qdocs"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "Three recipients notified",
-                    "description": {
-                      "changed": true,
-                      "value": "Everyone named is told.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a request naming 3 recipients, a subject and a body"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "a subsystem asks the Notifications subsystem to notify them"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "each of the 3 receives one notification with that subject and that body"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "A notification arrives within the maximum delay",
-              "category": {
-                "changed": true,
-                "value": "Quality",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Performance",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Each recipient receives the notification within the maximum delay of TBD-01 after the request (FR-NOT-001). The delay and the channel are not settled yet (TBD-01).",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["know-about-new-qdocs"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "A failed delivery stops no other",
-              "category": {
-                "changed": true,
-                "value": "Quality",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Reliability",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "When delivering the notification to one recipient fails, the notifications to the other recipients are still sent.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["know-about-new-qdocs"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [
-                  {
-                    "name": "One delivery fails",
-                    "description": {
-                      "changed": true,
-                      "value": "The others are still told.",
-                      "author": "agent"
-                    },
-                    "steps": {
-                      "changed": true,
-                      "value": [
-                        {
-                          "kind": "given",
-                          "text": "a request naming 3 recipients, and delivery to one of them fails"
-                        },
-                        {
-                          "kind": "when",
-                          "text": "a subsystem asks the Notifications subsystem to notify them"
-                        },
-                        {
-                          "kind": "then",
-                          "text": "the other 2 recipients each receive the notification with the subject and the body of the request"
-                        }
-                      ],
-                      "author": "agent"
-                    }
-                  }
-                ],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4075,11 +813,6 @@
           "value": "findQualityManagers",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Lists every user who holds the quality manager role in the organisation at the moment of the call.",
@@ -4087,49 +820,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": {
-                "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-              },
-              "description": {
-                "changed": true,
-                "value": "The quality managers.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4139,11 +829,6 @@
           "value": "send",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Delivers one notification to its recipient.",
@@ -4151,53 +836,2641 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "rules": {
+    "added": [
+      {
+        "id": "rule|qdocmanagement.notifications.Notifications depends on no other subsystem",
+        "name": {
           "changed": true,
-          "value": {
-            "kind": "private"
-          },
+          "value": "Notifications depends on no other subsystem",
           "author": "agent"
         },
-        "input": {
-          "added": [
+        "kind": {
+          "changed": true,
+          "value": "post",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "The Notifications subsystem subscribes to no event and refers to no building block of another subsystem. The other subsystems reach it only by calling NotificationService, in the types the Notifications subsystem itself defines (NotifyUsers, Recipient).",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.A title is never blank",
+        "name": {
+          "changed": true,
+          "value": "A title is never blank",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A QDoc title holds at least one character other than whitespace; a blank title cannot be created.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.A document type comes from the list of document types",
+        "name": {
+          "changed": true,
+          "value": "A document type comes from the list of document types",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A document type is one of procedure, guideline, instruction and policy (FR-PRE-002). Adding a type to the list is a change to this list, not to any QDoc.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["start-a-qdoc"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "The organisation named procedure, guideline, instruction and policy as its document types, and the list may grow.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.A QDoc is either active or archived",
+        "name": {
+          "changed": true,
+          "value": "A QDoc is either active or archived",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A QDoc status takes exactly one of two values: active, archived.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.A version status comes from the workflow statuses",
+        "name": {
+          "changed": true,
+          "value": "A version status comes from the workflow statuses",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A version status takes exactly one of the values new, approved, published, no longer in force and archived.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.An assignment role is author, reviewer or approver",
+        "name": {
+          "changed": true,
+          "value": "An assignment role is author, reviewer or approver",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "An assignment role takes exactly one of the values author, reviewer and approver.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author",
+        "name": {
+          "changed": true,
+          "value": "A creation request names a title, a document type and at least one author",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A QDoc creation request that lacks the title, the document type or at least one author is rejected (FR-PRE-001). Reviewers and approvers are optional.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["start-a-qdoc"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "These three are the checks made before a QDoc is created; reviewers and approvers may be added later (UC-3).",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.A QDoc keeps at least one version",
+        "name": {
+          "changed": true,
+          "value": "A QDoc keeps at least one version",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Every QDoc holds at least one version at all times (FR-PRE-010); no operation leaves a QDoc with zero versions.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["ready-to-write"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "A QDoc without a version has nothing to review, approve or publish.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.Only quality managers create QDocs",
+        "name": {
+          "changed": true,
+          "value": "Only quality managers create QDocs",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "state_change",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A QDoc creation request from a user who lacks the quality manager role is rejected (SR-PRE-001). Authors, reviewers, approvers and auditors create nothing. The requester's roles are those held at the moment of the request.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["start-a-qdoc"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "Creating a QDoc is a quality manager's decision. An auditor has read-only access (SR-ACT-002) and creates nothing.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.A new QDoc carries a document number",
+        "name": {
+          "changed": true,
+          "value": "A new QDoc carries a document number",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Every QDoc gets its document number when it is created (FR-PRE-009), from the DocumentNumberGenerator; the format is defined by UC-2.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["start-a-qdoc"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "Each QDoc needs a number from the moment it exists, for searching and for referring to it.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.A QDoc is saved and announced together",
+        "name": {
+          "changed": true,
+          "value": "A QDoc is saved and announced together",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "The new QDoc is saved and QDocCreated is published in the same unit of work: either both happen or neither does. A rejected request creates nothing and publishes nothing.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["know-about-new-qdocs"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.Each quality manager learns of a new QDoc",
+        "name": {
+          "changed": true,
+          "value": "Each quality manager learns of a new QDoc",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "state_change",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "When a QDoc is created, the Preparation subsystem asks the Notifications subsystem to notify each quality manager of the organisation, naming the QDoc, its number and its creator (FR-NOT-001). The quality managers are those holding the role at the moment the QDoc is created.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["know-about-new-qdocs"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "The creation of a procedure matters to each quality manager, not only to the one who created it.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.A new QDoc is active",
+        "name": {
+          "changed": true,
+          "value": "A new QDoc is active",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "state_change",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A QDoc starts with the status active (FR-PRE-003).",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["start-a-qdoc"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "A QDoc itself has only two statuses, active and archived; workflow statuses belong to versions.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.Version 1 starts with the status new",
+        "name": {
+          "changed": true,
+          "value": "Version 1 starts with the status new",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "state_change",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Creating a QDoc creates its version 1, with the status new (FR-PRE-004).",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["ready-to-write"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "Creating a QDoc is creating its first version.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.Version 1 holds one empty content file",
+        "name": {
+          "changed": true,
+          "value": "Version 1 holds one empty content file",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Version 1 is created with exactly one content file holding no text, and no attachment (FR-PRE-005).",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["ready-to-write"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "Each version has at least one content file (UC-4); the authors fill the first one.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.The named authors are assigned to version 1",
+        "name": {
+          "changed": true,
+          "value": "The named authors are assigned to version 1",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Each author named in the creation request is assigned to version 1 as author (FR-PRE-006).",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["start-a-qdoc"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.The named reviewers are assigned to version 1",
+        "name": {
+          "changed": true,
+          "value": "The named reviewers are assigned to version 1",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Each reviewer named in the creation request is assigned to version 1 as reviewer (FR-PRE-007).",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["start-a-qdoc"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "Reviewers are optional and may be added now or later (UC-3).",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.preparation.The named approvers are assigned to version 1",
+        "name": {
+          "changed": true,
+          "value": "The named approvers are assigned to version 1",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Each approver named in the creation request is assigned to version 1 as approver (FR-PRE-008).",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["start-a-qdoc"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "At least one approver is needed only when the version is shared (UC-6), so naming none at creation is allowed.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.notifications.Each named recipient receives the notification",
+        "name": {
+          "changed": true,
+          "value": "Each named recipient receives the notification",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "state_change",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "When a subsystem asks the Notifications subsystem to notify users, each recipient the request names receives one notification carrying the subject and the body of the request (FR-NOT-001).",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["know-about-new-qdocs"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.notifications.A notification arrives within the maximum delay",
+        "name": {
+          "changed": true,
+          "value": "A notification arrives within the maximum delay",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "post",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Each recipient receives the notification within the maximum delay of TBD-01 after the request (FR-NOT-001). The delay and the channel are not settled yet (TBD-01).",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["know-about-new-qdocs"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|qdocmanagement.notifications.A failed delivery stops no other",
+        "name": {
+          "changed": true,
+          "value": "A failed delivery stops no other",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "post",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "When delivering the notification to one recipient fails, the notifications to the other recipients are still sent.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["know-about-new-qdocs"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "scenarios": {
+    "added": [
+      {
+        "id": "scenario|qdocmanagement.preparation.A title is never blank.Blank title",
+        "name": {
+          "changed": true,
+          "value": "Blank title",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A creation request with a blank title is rejected.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
             {
-              "name": "notification",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.notifications.Notification",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The notification to deliver.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager submits a QDoc creation request whose title is only spaces"
+            },
+            {
+              "kind": "then",
+              "text": "the request is rejected and no QDoc is created"
             }
           ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
+          "author": "agent"
         }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.A document type comes from the list of document types.Each listed type is accepted",
+        "name": {
+          "changed": true,
+          "value": "Each listed type is accepted",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Every listed document type can be used for a new QDoc.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager and a valid creation request"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager submits it once with each of procedure, guideline, instruction and policy"
+            },
+            {
+              "kind": "then",
+              "text": "each request is accepted and the QDoc carries the requested document type"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.A document type comes from the list of document types.A type outside the list is rejected",
+        "name": {
+          "changed": true,
+          "value": "A type outside the list is rejected",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "An unknown document type is refused.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager submits a creation request with the document type 'memo'"
+            },
+            {
+              "kind": "then",
+              "text": "the request is rejected and no QDoc is created"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No title",
+        "name": {
+          "changed": true,
+          "value": "No title",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Missing title.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager submits a creation request without a title"
+            },
+            {
+              "kind": "then",
+              "text": "the request is rejected and no QDoc is created"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No document type",
+        "name": {
+          "changed": true,
+          "value": "No document type",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Missing document type.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager submits a creation request without a document type"
+            },
+            {
+              "kind": "then",
+              "text": "the request is rejected and no QDoc is created"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No author",
+        "name": {
+          "changed": true,
+          "value": "No author",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Missing authors.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager submits a creation request naming no author"
+            },
+            {
+              "kind": "then",
+              "text": "the request is rejected and no QDoc is created"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.All mandatory data",
+        "name": {
+          "changed": true,
+          "value": "All mandatory data",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "The three mandatory items suffice.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager submits a creation request with a title, the document type procedure and one author, and no reviewer or approver"
+            },
+            {
+              "kind": "then",
+              "text": "the request is accepted and the QDoc is created"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.A QDoc keeps at least one version.Creation yields a version",
+        "name": {
+          "changed": true,
+          "value": "Creation yields a version",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A QDoc never exists without a version.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates a QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "the QDoc holds one version"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.Non-quality-managers are rejected",
+        "name": {
+          "changed": true,
+          "value": "Non-quality-managers are rejected",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Each other role is refused.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a user holding only the author role, one holding only the reviewer role, one holding only the approver role and an auditor"
+            },
+            {
+              "kind": "when",
+              "text": "each submits a valid QDoc creation request"
+            },
+            {
+              "kind": "then",
+              "text": "each request is rejected and no QDoc is created"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.A quality manager is accepted",
+        "name": {
+          "changed": true,
+          "value": "A quality manager is accepted",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "The quality manager role suffices.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a user holding the quality manager role"
+            },
+            {
+              "kind": "when",
+              "text": "the user submits a valid QDoc creation request"
+            },
+            {
+              "kind": "then",
+              "text": "the QDoc is created"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.A new QDoc carries a document number.Number at creation",
+        "name": {
+          "changed": true,
+          "value": "Number at creation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "The number exists from the start.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates a QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "the new QDoc carries a document number"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.A QDoc is saved and announced together.An invalid request leaves no trace",
+        "name": {
+          "changed": true,
+          "value": "An invalid request leaves no trace",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A rejected request neither saves nor announces anything.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager submits a QDoc creation request that names no author"
+            },
+            {
+              "kind": "then",
+              "text": "the request is rejected, no QDoc is saved and no QDocCreated is published"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.Each quality manager learns of a new QDoc.Three quality managers notified",
+        "name": {
+          "changed": true,
+          "value": "Three quality managers notified",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Everyone with the role is told.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "an organisation with 3 quality managers"
+            },
+            {
+              "kind": "when",
+              "text": "one of them creates a QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "each of the 3 receives a notification naming the QDoc, its document number and its creator"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.Each quality manager learns of a new QDoc.A rejected request notifies nobody",
+        "name": {
+          "changed": true,
+          "value": "A rejected request notifies nobody",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "No QDoc, no notification.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "an organisation with 3 quality managers"
+            },
+            {
+              "kind": "when",
+              "text": "one of them submits a QDoc creation request that names no author"
+            },
+            {
+              "kind": "then",
+              "text": "the request is rejected and no quality manager is notified"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.Creating a procedure",
+        "name": {
+          "changed": true,
+          "value": "Creating a procedure",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Happy path of UC-1, end to end.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager and an organisation with 3 quality managers"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates the procedure 'Supplier audit' with one author and two reviewers"
+            },
+            {
+              "kind": "then",
+              "text": "an active QDoc with a document number exists, its version 1 has the status new, one empty content file, the author and the two reviewers, QDocCreated is published and each of the 3 quality managers is notified of the new QDoc"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.A new QDoc is active.New QDoc listed as active",
+        "name": {
+          "changed": true,
+          "value": "New QDoc listed as active",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Initial status.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates a QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "the QDoc is listed with the status active"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.Version 1 starts with the status new.One version, numbered 1, new",
+        "name": {
+          "changed": true,
+          "value": "One version, numbered 1, new",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Shape of a fresh QDoc.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates a QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "the QDoc has exactly one version, numbered 1, with the status new"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.Version 1 holds one empty content file.Empty content file",
+        "name": {
+          "changed": true,
+          "value": "Empty content file",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Ready to write.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a quality manager"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates a QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "version 1 holds one content file with no text and no attachment"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.The named authors are assigned to version 1.Authors assigned",
+        "name": {
+          "changed": true,
+          "value": "Authors assigned",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Authors can write from the start.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a creation request naming two authors"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates the QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "both appear as authors of version 1 and can edit the content file"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.The named reviewers are assigned to version 1.Two reviewers",
+        "name": {
+          "changed": true,
+          "value": "Two reviewers",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Optional reviewers given.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a creation request naming two reviewers"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates the QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "version 1 has the two reviewers"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.The named reviewers are assigned to version 1.No reviewer",
+        "name": {
+          "changed": true,
+          "value": "No reviewer",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Reviewers left out.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a creation request naming no reviewer"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates the QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "the request is accepted and version 1 has no reviewer"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.The named approvers are assigned to version 1.Two approvers",
+        "name": {
+          "changed": true,
+          "value": "Two approvers",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Optional approvers given.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a creation request naming two approvers"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates the QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "version 1 has the two approvers"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.preparation.The named approvers are assigned to version 1.No approver",
+        "name": {
+          "changed": true,
+          "value": "No approver",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Approvers left out.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a creation request naming no approver"
+            },
+            {
+              "kind": "when",
+              "text": "the quality manager creates the QDoc"
+            },
+            {
+              "kind": "then",
+              "text": "the request is accepted and version 1 has no approver"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.notifications.Each named recipient receives the notification.Three recipients notified",
+        "name": {
+          "changed": true,
+          "value": "Three recipients notified",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Everyone named is told.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a request naming 3 recipients, a subject and a body"
+            },
+            {
+              "kind": "when",
+              "text": "a subsystem asks the Notifications subsystem to notify them"
+            },
+            {
+              "kind": "then",
+              "text": "each of the 3 receives one notification with that subject and that body"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|qdocmanagement.notifications.A failed delivery stops no other.One delivery fails",
+        "name": {
+          "changed": true,
+          "value": "One delivery fails",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "The others are still told.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a request naming 3 recipients, and delivery to one of them fails"
+            },
+            {
+              "kind": "when",
+              "text": "a subsystem asks the Notifications subsystem to notify them"
+            },
+            {
+              "kind": "then",
+              "text": "the other 2 recipients each receive the notification with the subject and the body of the request"
+            }
+          ],
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "actors": {
+    "added": [
+      {
+        "id": "actor|Quality manager",
+        "name": {
+          "changed": true,
+          "value": "Quality manager",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Prepares and approves quality documents.",
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "manualProcesses": {
+    "added": [
+      {
+        "id": "manual_process|Create a QDoc",
+        "name": {
+          "changed": true,
+          "value": "Create a QDoc",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The quality manager starts a new quality document.",
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "relations": {
+    "added": [
+      {
+        "kind": "performs",
+        "from": "actor|Quality manager",
+        "to": "manual_process|Create a QDoc"
+      },
+      {
+        "kind": "invokes",
+        "from": "manual_process|Create a QDoc",
+        "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "order": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocId",
+        "to": {
+          "changed": true,
+          "value": "primitive|uuid",
+          "author": "agent"
+        },
+        "name": "value",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.UserId",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "value",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocTitle",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "value",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.DocumentType",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "value",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.DocumentNumber",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "value",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocStatus",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "value",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.VersionStatus",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "value",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.AssignmentRole",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "value",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Assignment",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "user",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Assignment",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.AssignmentRole",
+          "author": "agent"
+        },
+        "name": "role",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.ContentFileId",
+        "to": {
+          "changed": true,
+          "value": "primitive|uuid",
+          "author": "agent"
+        },
+        "name": "value",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "requestedBy",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDocTitle",
+          "author": "agent"
+        },
+        "name": "title",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.DocumentType",
+          "author": "agent"
+        },
+        "name": "documentType",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "authors",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "reviewers",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "approvers",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocCreated",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDocId",
+          "author": "agent"
+        },
+        "name": "qdocId",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocCreated",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDocTitle",
+          "author": "agent"
+        },
+        "name": "title",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocCreated",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.DocumentNumber",
+          "author": "agent"
+        },
+        "name": "documentNumber",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocCreated",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "createdBy",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocCreated",
+        "to": {
+          "changed": true,
+          "value": "primitive|datetime",
+          "author": "agent"
+        },
+        "name": "createdAt",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.ContentFile",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.ContentFileId",
+          "author": "agent"
+        },
+        "name": "id",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.ContentFile",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "text",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Version",
+        "to": {
+          "changed": true,
+          "value": "primitive|integer",
+          "author": "agent"
+        },
+        "name": "number",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Version",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.VersionStatus",
+          "author": "agent"
+        },
+        "name": "status",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Version",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.ContentFile",
+          "author": "agent"
+        },
+        "name": "contentFiles",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Version",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.Assignment",
+          "author": "agent"
+        },
+        "name": "assignments",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDocId",
+          "author": "agent"
+        },
+        "name": "id",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDocTitle",
+          "author": "agent"
+        },
+        "name": "title",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.DocumentType",
+          "author": "agent"
+        },
+        "name": "documentType",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.DocumentNumber",
+          "author": "agent"
+        },
+        "name": "documentNumber",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDocStatus",
+          "author": "agent"
+        },
+        "name": "status",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.Version",
+          "author": "agent"
+        },
+        "name": "versions",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "createdBy",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "to": {
+          "changed": true,
+          "value": "primitive|datetime",
+          "author": "agent"
+        },
+        "name": "createdAt",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.Recipient",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "userId",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDocTitle",
+          "author": "agent"
+        },
+        "name": "qdocTitle",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.DocumentNumber",
+          "author": "agent"
+        },
+        "name": "documentNumber",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "createdBy",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.notifications.Recipient",
+          "author": "agent"
+        },
+        "name": "recipients",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "subject",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "body",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.Notification",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.notifications.Recipient",
+          "author": "agent"
+        },
+        "name": "recipient",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.Notification",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "subject",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.Notification",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "body",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.CreateQDoc",
+          "author": "agent"
+        },
+        "name": "command",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "to": "building_block|qdocmanagement.preparation.QDocId",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.QDoc.create",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.CreateQDoc",
+          "author": "agent"
+        },
+        "name": "command",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.QDoc.create",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.DocumentNumber",
+          "author": "agent"
+        },
+        "name": "documentNumber",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 2,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.QDoc.create",
+        "to": "building_block|qdocmanagement.preparation.QDocCreated",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "authors",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "reviewers",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 2,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "approvers",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 3,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": "building_block|qdocmanagement.preparation.Version",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.QDocRepository.save",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDoc",
+          "author": "agent"
+        },
+        "name": "qdoc",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.DocumentType",
+          "author": "agent"
+        },
+        "name": "documentType",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+        "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
+        "name": "user",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+        "to": "primitive|boolean",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDocCreated",
+          "author": "agent"
+        },
+        "name": "event",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.notifications.NotifyUsers",
+          "author": "agent"
+        },
+        "name": "command",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers",
+        "to": "building_block|qdocmanagement.preparation.UserId",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.notifications.NotificationSender.send",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.notifications.Notification",
+          "author": "agent"
+        },
+        "name": "notification",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        },
+        "position": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+        "to": "rule|qdocmanagement.notifications.Notifications depends on no other subsystem"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "to": "rule|qdocmanagement.preparation.A title is never blank"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A title is never blank.Blank title",
+        "to": "rule|qdocmanagement.preparation.A title is never blank"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+        "to": "rule|qdocmanagement.preparation.A document type comes from the list of document types"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A document type comes from the list of document types.Each listed type is accepted",
+        "to": "rule|qdocmanagement.preparation.A document type comes from the list of document types"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A document type comes from the list of document types.A type outside the list is rejected",
+        "to": "rule|qdocmanagement.preparation.A document type comes from the list of document types"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.QDoc.create",
+        "to": "rule|qdocmanagement.preparation.A QDoc is either active or archived"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": "rule|qdocmanagement.preparation.A version status comes from the workflow statuses"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": "rule|qdocmanagement.preparation.An assignment role is author, reviewer or approver"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No title",
+        "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No document type",
+        "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No author",
+        "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.All mandatory data",
+        "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.QDoc.create",
+        "to": "rule|qdocmanagement.preparation.A QDoc keeps at least one version"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A QDoc keeps at least one version.Creation yields a version",
+        "to": "rule|qdocmanagement.preparation.A QDoc keeps at least one version"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.Non-quality-managers are rejected",
+        "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.A quality manager is accepted",
+        "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "to": "rule|qdocmanagement.preparation.A new QDoc carries a document number"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A new QDoc carries a document number.Number at creation",
+        "to": "rule|qdocmanagement.preparation.A new QDoc carries a document number"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "to": "rule|qdocmanagement.preparation.A QDoc is saved and announced together"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A QDoc is saved and announced together.An invalid request leaves no trace",
+        "to": "rule|qdocmanagement.preparation.A QDoc is saved and announced together"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "to": "rule|qdocmanagement.preparation.Each quality manager learns of a new QDoc"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.Each quality manager learns of a new QDoc.Three quality managers notified",
+        "to": "rule|qdocmanagement.preparation.Each quality manager learns of a new QDoc"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.Each quality manager learns of a new QDoc.A rejected request notifies nobody",
+        "to": "rule|qdocmanagement.preparation.Each quality manager learns of a new QDoc"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.Creating a procedure",
+        "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.QDoc.create",
+        "to": "rule|qdocmanagement.preparation.A new QDoc is active"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.A new QDoc is active.New QDoc listed as active",
+        "to": "rule|qdocmanagement.preparation.A new QDoc is active"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": "rule|qdocmanagement.preparation.Version 1 starts with the status new"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.Version 1 starts with the status new.One version, numbered 1, new",
+        "to": "rule|qdocmanagement.preparation.Version 1 starts with the status new"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": "rule|qdocmanagement.preparation.Version 1 holds one empty content file"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.Version 1 holds one empty content file.Empty content file",
+        "to": "rule|qdocmanagement.preparation.Version 1 holds one empty content file"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": "rule|qdocmanagement.preparation.The named authors are assigned to version 1"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.The named authors are assigned to version 1.Authors assigned",
+        "to": "rule|qdocmanagement.preparation.The named authors are assigned to version 1"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": "rule|qdocmanagement.preparation.The named reviewers are assigned to version 1"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.The named reviewers are assigned to version 1.Two reviewers",
+        "to": "rule|qdocmanagement.preparation.The named reviewers are assigned to version 1"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.The named reviewers are assigned to version 1.No reviewer",
+        "to": "rule|qdocmanagement.preparation.The named reviewers are assigned to version 1"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "to": "rule|qdocmanagement.preparation.The named approvers are assigned to version 1"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.The named approvers are assigned to version 1.Two approvers",
+        "to": "rule|qdocmanagement.preparation.The named approvers are assigned to version 1"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.preparation.The named approvers are assigned to version 1.No approver",
+        "to": "rule|qdocmanagement.preparation.The named approvers are assigned to version 1"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+        "to": "rule|qdocmanagement.notifications.Each named recipient receives the notification"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.notifications.Each named recipient receives the notification.Three recipients notified",
+        "to": "rule|qdocmanagement.notifications.Each named recipient receives the notification"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+        "to": "rule|qdocmanagement.notifications.A notification arrives within the maximum delay"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+        "to": "rule|qdocmanagement.notifications.A failed delivery stops no other"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|qdocmanagement.notifications.A failed delivery stops no other.One delivery fails",
+        "to": "rule|qdocmanagement.notifications.A failed delivery stops no other"
       }
     ],
     "removed": [],

@@ -22,6 +22,14 @@
         }
       },
       {
+        "id": "A:io.cucumber:cucumber-java@7.34.9",
+        "kind": "library",
+        "package": {
+          "id": "io.cucumber:cucumber-java",
+          "version": "7.34.9"
+        }
+      },
+      {
         "id": "A:java-syntax-other",
         "kind": "source",
         "package": null
@@ -5381,6 +5389,36 @@
       "type": {
         "kind": "primitive",
         "name": "int",
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:vision.noesis.fixture.syntax.steps.ProgramSteps.text",
+      "name": "text",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [],
+      "type": {
+        "kind": "named",
+        "type": "T:java.lang.String",
+        "typeArguments": [],
+        "unbound": false,
         "nullable": false
       },
       "passing": "value",
@@ -37004,6 +37042,314 @@
     },
     {
       "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#.ctor()",
+      "name": ".ctor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 9,
+          "startColumn": 0,
+          "endLine": 9,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#aPlainClass()",
+      "name": "aPlainClass",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 15,
+          "startColumn": 0,
+          "endLine": 15,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:io.cucumber.java.en.Given",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"a plain class\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrinted(int)",
+      "name": "thePlainClassIsPrinted",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 19,
+          "startColumn": 0,
+          "endLine": 19,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:io.cucumber.java.en.When",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"the plain class is printed {int} times\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "times",
+            "type": {
+              "kind": "primitive",
+              "name": "int",
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrintedOnce()",
+      "name": "thePlainClassIsPrintedOnce",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 25,
+          "startColumn": 0,
+          "endLine": 25,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:io.cucumber.java.en.When+Whens",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "array",
+                "items": [
+                  {
+                    "kind": "annotation",
+                    "annotation": {
+                      "type": {
+                        "kind": "named",
+                        "type": "T:io.cucumber.java.en.When",
+                        "typeArguments": [],
+                        "unbound": false,
+                        "nullable": false
+                      },
+                      "arguments": [
+                        {
+                          "name": "value",
+                          "positional": true,
+                          "value": {
+                            "kind": "literal",
+                            "text": "\"the plain class is printed\""
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "annotation",
+                    "annotation": {
+                      "type": {
+                        "kind": "named",
+                        "type": "T:io.cucumber.java.en.When",
+                        "typeArguments": [],
+                        "unbound": false,
+                        "nullable": false
+                      },
+                      "arguments": [
+                        {
+                          "name": "value",
+                          "positional": true,
+                          "value": {
+                            "kind": "literal",
+                            "text": "\"the plain class is shown\""
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#theTextIsPrinted()",
+      "name": "theTextIsPrinted",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 30,
+          "startColumn": 0,
+          "endLine": 30,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:io.cucumber.java.en.Then",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"^the text is (?:printed|shown)$\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": [
+        "virtual"
+      ],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:vision.noesis.fixture.syntax.types.BuiltInAndSpecialTypes#.ctor()",
       "name": ".ctor",
       "origin": "declared",
@@ -58038,6 +58384,16 @@
     },
     {
       "kind": "namespace",
+      "id": "N:vision.noesis.fixture.syntax.steps",
+      "name": "steps",
+      "origin": "declared",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {}
+    },
+    {
+      "kind": "namespace",
       "id": "N:vision.noesis.fixture.syntax.types",
       "name": "types",
       "origin": "declared",
@@ -64862,6 +65218,31 @@
         "static",
         "final"
       ],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:vision.noesis.fixture.syntax.steps.ProgramSteps",
+      "name": "ProgramSteps",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 0,
+          "startColumn": 0,
+          "endLine": 0,
+          "endColumn": 0
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [],
       "typeParameters": [],
       "underlyingType": null,
       "delegateSignature": null,
@@ -74518,6 +74899,42 @@
     },
     {
       "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrinted(int)",
+      "to": "F:vision.noesis.fixture.syntax.steps.ProgramSteps.text",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 19,
+          "startColumn": 0,
+          "endLine": 19,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrintedOnce()",
+      "to": "F:vision.noesis.fixture.syntax.steps.ProgramSteps.text",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 25,
+          "startColumn": 0,
+          "endLine": 25,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "other"
+    },
+    {
+      "kind": "ACCESSES",
       "from": "M:vision.noesis.fixture.syntax.types.BuiltInAndSpecialTypes+AnonymousAndImplicitTypes#createAnonymousType()",
       "to": "F:vision.noesis.fixture.syntax.types.BuiltInAndSpecialTypes+AnonymousAndImplicitTypes+1.anonymousNested",
       "access": "read",
@@ -79621,6 +80038,11 @@
     {
       "kind": "CONTAINS",
       "from": "N:vision.noesis.fixture.syntax",
+      "to": "N:vision.noesis.fixture.syntax.steps"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.syntax",
       "to": "N:vision.noesis.fixture.syntax.types"
     },
     {
@@ -79787,6 +80209,11 @@
       "kind": "CONTAINS",
       "from": "N:vision.noesis.fixture.syntax.members",
       "to": "T:vision.noesis.fixture.syntax.members.ReturnAndParameterTypes"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:vision.noesis.fixture.syntax.steps",
+      "to": "T:vision.noesis.fixture.syntax.steps.ProgramSteps"
     },
     {
       "kind": "CONTAINS",
@@ -84627,6 +85054,36 @@
       "kind": "CONTAINS",
       "from": "T:vision.noesis.fixture.syntax.members.ReturnAndParameterTypes+StaticClassMethods",
       "to": "M:vision.noesis.fixture.syntax.members.ReturnAndParameterTypes+StaticClassMethods#staticMethodInStaticClass()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.steps.ProgramSteps",
+      "to": "F:vision.noesis.fixture.syntax.steps.ProgramSteps.text"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.steps.ProgramSteps",
+      "to": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.steps.ProgramSteps",
+      "to": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#aPlainClass()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.steps.ProgramSteps",
+      "to": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrinted(int)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.steps.ProgramSteps",
+      "to": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrintedOnce()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:vision.noesis.fixture.syntax.steps.ProgramSteps",
+      "to": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#theTextIsPrinted()"
     },
     {
       "kind": "CONTAINS",
@@ -123147,6 +123604,120 @@
     },
     {
       "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#.ctor()",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 9,
+          "startColumn": 0,
+          "endLine": 9,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrinted(int)",
+      "to": "M:java.lang.Object#toString()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 19,
+          "startColumn": 0,
+          "endLine": 19,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrinted(int)",
+      "to": "M:java.lang.String#repeat(int)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 19,
+          "startColumn": 0,
+          "endLine": 19,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrinted(int)",
+      "to": "M:vision.noesis.fixture.syntax.types.ClassKinds+PlainClass#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 19,
+          "startColumn": 0,
+          "endLine": 19,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": null
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrintedOnce()",
+      "to": "M:java.lang.Object#toString()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 25,
+          "startColumn": 0,
+          "endLine": 25,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "other"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:vision.noesis.fixture.syntax.steps.ProgramSteps#thePlainClassIsPrintedOnce()",
+      "to": "M:vision.noesis.fixture.syntax.types.ClassKinds+PlainClass#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "code-parsers/java/test-fixtures/java-syntax/src/test/java/vision/noesis/fixture/syntax/steps/ProgramSteps.java",
+          "startLine": 25,
+          "startColumn": 0,
+          "endLine": 25,
+          "endColumn": 0
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": null
+    },
+    {
+      "kind": "INVOKES",
       "from": "M:vision.noesis.fixture.syntax.types.BuiltInAndSpecialTypes#.ctor()",
       "to": "M:java.lang.Object#.ctor()",
       "typeArguments": [],
@@ -135924,6 +136495,34 @@
       "artifact": "A:com.google.guava:guava@33.5.0-jre"
     },
     {
+      "id": "N:io",
+      "kind": "namespace",
+      "name": "io",
+      "typeKind": null,
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "N:io.cucumber",
+      "kind": "namespace",
+      "name": "cucumber",
+      "typeKind": null,
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "N:io.cucumber.java",
+      "kind": "namespace",
+      "name": "java",
+      "typeKind": null,
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "N:io.cucumber.java.en",
+      "kind": "namespace",
+      "name": "en",
+      "typeKind": null,
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
       "id": "N:java",
       "kind": "namespace",
       "name": "java",
@@ -136202,6 +136801,34 @@
       "name": "AtomicDouble",
       "typeKind": "class",
       "artifact": "A:com.google.guava:guava@33.5.0-jre"
+    },
+    {
+      "id": "T:io.cucumber.java.en.Given",
+      "kind": "type",
+      "name": "Given",
+      "typeKind": "interface",
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "T:io.cucumber.java.en.Then",
+      "kind": "type",
+      "name": "Then",
+      "typeKind": "interface",
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "T:io.cucumber.java.en.When",
+      "kind": "type",
+      "name": "When",
+      "typeKind": "interface",
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "T:io.cucumber.java.en.When+Whens",
+      "kind": "type",
+      "name": "Whens",
+      "typeKind": "interface",
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
     },
     {
       "id": "T:java.io.Closeable",

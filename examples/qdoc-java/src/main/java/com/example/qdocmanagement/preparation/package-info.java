@@ -5,6 +5,8 @@
  * archives QDocs.
  */
 @Module("preparation")
+@Layer("business")
 package com.example.qdocmanagement.preparation;
 
+import vision.noesis.annotations.Layer;
 import vision.noesis.annotations.Module;

@@ -135,12 +135,13 @@ final class JavacSession implements AutoCloseable {
         return release;
     }
 
-    /** Sources bind to sources: the module's own classes would shadow them with a stale copy. */
+    /** Sources bind to sources: the module's own classes, main or test, would shadow them with a stale copy. */
     private static List<Path> classpathWithoutOwnClasses(ArtifactInput input) {
-        Path own = input.outputDirectory().toAbsolutePath().normalize();
+        Set<Path> own = new HashSet<>();
+        for (Path directory : input.classDirectories()) own.add(directory.toAbsolutePath().normalize());
         List<Path> paths = new ArrayList<>();
         for (ClasspathEntry entry : input.classpath()) {
-            if (!entry.path().toAbsolutePath().normalize().equals(own)) paths.add(entry.path());
+            if (!own.contains(entry.path().toAbsolutePath().normalize())) paths.add(entry.path());
         }
         return paths;
     }

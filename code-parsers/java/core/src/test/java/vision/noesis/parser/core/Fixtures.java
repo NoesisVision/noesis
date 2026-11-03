@@ -2,6 +2,7 @@ package vision.noesis.parser.core;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -72,9 +73,11 @@ public final class Fixtures {
     public static ParseRequest request(EngineKind engine, Path output) {
         ClasspathEntry annotations = library("noesis.classpath.annotations", "vision.noesis:noesis-annotations", "0.1.0-SNAPSHOT");
         ClasspathEntry guava = library("noesis.classpath.guava", "com.google.guava:guava", System.getProperty("noesis.version.guava"));
+        ClasspathEntry cucumber = testOnly(library("noesis.classpath.cucumber", "io.cucumber:cucumber-java", System.getProperty("noesis.version.cucumber")));
+        ClasspathEntry apiguardian = testOnly(library("noesis.classpath.apiguardian", "org.apiguardian:apiguardian-api", versionInRepository("noesis.classpath.apiguardian")));
         ClasspathEntry other = new ClasspathEntry(classpathEntry("noesis.classpath.other"), new ArtifactDependency(JavaIds.artifact("java-syntax-other"), ArtifactKind.SOURCE, null));
         ArtifactInput otherModule = module("java-syntax-other", List.of(annotations), null);
-        ArtifactInput syntaxModule = module("java-syntax", List.of(other, annotations, guava), MAIN_CLASS);
+        ArtifactInput syntaxModule = withTests(module("java-syntax", List.of(other, annotations, guava, cucumber, apiguardian), MAIN_CLASS));
         return new ParseRequest(REPOSITORY_ROOT, REPOSITORY_NAME, REVISION, "code-parsers/java/test-fixtures", output, engine, List.of(otherModule, syntaxModule));
     }
 
@@ -101,9 +104,28 @@ public final class Fixtures {
                 mainClass);
     }
 
+    /** The module with its test sources and test classes, as the Maven plugin hands a module over by default. */
+    private static ArtifactInput withTests(ArtifactInput module) {
+        Path root = module.rootDirectory();
+        List<Path> sourceRoots = new ArrayList<>(module.sourceRoots());
+        sourceRoots.add(root.resolve("src/test/java"));
+        return new ArtifactInput(module.groupId(), module.artifactId(), module.version(), root, module.buildFile(), sourceRoots, module.outputDirectory(),
+                module.classpath(), module.release(), module.encoding(), module.packaging(), module.mainClass(), module.uniqueName(), module.buildDirectory(),
+                root.resolve("target/test-classes"));
+    }
+
     /** A library Maven resolved for the tests, as the surefire configuration hands it over. */
     private static ClasspathEntry library(String property, String packageId, String version) {
         return new ClasspathEntry(classpathEntry(property), new ArtifactDependency(JavaIds.libraryArtifact(packageId, version), ArtifactKind.LIBRARY, new PackageReference(packageId, version)));
+    }
+
+    private static ClasspathEntry testOnly(ClasspathEntry entry) {
+        return new ClasspathEntry(entry.path(), entry.dependency(), true);
+    }
+
+    /** A transitive dependency's version, which no property names: the directory its jar sits in, in the local repository's layout. */
+    private static String versionInRepository(String property) {
+        return classpathEntry(property).getParent().getFileName().toString();
     }
 
     private static Path classpathEntry(String property) {

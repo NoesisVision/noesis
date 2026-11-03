@@ -8,6 +8,7 @@ import { Textarea } from '#/shared/design-system/textarea.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { newRuleOf, type PartOwner, rulesOf } from '../../design-doc-edit.ts';
+import { nameOf } from '../../element-id.ts';
 import { useUnitEditing } from './unit-editing.ts';
 import { useWritableUnit } from './writable-unit.ts';
 import classes from './add-item.module.css';
@@ -39,7 +40,7 @@ export function NewRuleButton({ owner }: { owner: PartOwner }) {
   };
   const add = async () => {
     if (name === '' || busy) return;
-    if (rulesOf(editing.document, owner).includes(name)) {
+    if (rulesOf(editing.document, owner).some((id) => nameOf(id) === name)) {
       setError(`A rule is already called ${name}.`);
       return;
     }
@@ -105,8 +106,8 @@ export function NewRuleButton({ owner }: { owner: PartOwner }) {
 
 /**
  * Where a new scenario of this element is written — under the rule asked, or
- * a module's first; null where none may be added: the document read only,
- * the element not writable, or a module with no rule to put one under.
+ * the first rule shown under the element; null where none may be added: the
+ * document read only, the element not writable, or no rule to put one under.
  */
 export function useNewScenarioOwner(
   owner: PartOwner | undefined,
@@ -116,9 +117,9 @@ export function useNewScenarioOwner(
     owner === undefined ? null : { kind: owner.kind, id: owner.id },
   );
   if (editing === null || writable === null || owner === undefined) return null;
-  // A module's scenarios belong to its rules: the first, unless one is asked.
+  // A scenario illustrates a rule: the one asked, else the element's first.
+  if (owner.rule !== undefined) return owner;
   const first = rulesOf(editing.document, owner)[0];
-  if (owner.kind !== 'module' || owner.rule !== undefined) return owner;
   return first === undefined ? null : { ...owner, rule: first };
 }
 
@@ -146,7 +147,7 @@ export function NewScenarioButton({
           className={quiet.quiet}
           variant="subtle"
           size="md"
-          aria-label={`New scenario${preset.rule === undefined ? '' : ` for the rule ${preset.rule}`}`}
+          aria-label={`New scenario${preset.rule === undefined ? '' : ` for the rule ${nameOf(preset.rule)}`}`}
           onClick={add}
         >
           <IconPlus size={18} aria-hidden />

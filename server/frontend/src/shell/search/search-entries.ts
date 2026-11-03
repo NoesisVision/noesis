@@ -5,7 +5,10 @@ import {
 } from '@tabler/icons-react';
 import type { NavigateOptions } from '@tanstack/react-router';
 import { changeKindLine } from '#/features/changes/changes.model.ts';
-import { outlineOf } from '#/features/design-docs/design-doc-outline.ts';
+import {
+  outlineOf,
+  partKeyOf,
+} from '#/features/design-docs/design-doc-outline.ts';
 import {
   DESIGN_DOC_VIEWS,
   DesignDocsIcon,
@@ -153,20 +156,27 @@ function changeEntries(change: ChangeWithEntries): SearchEntry[] {
 }
 
 /**
- * The scanned model's modules, building blocks and behaviors, each opening
- * the model tree at its row. Its parts — properties, rules, scenarios — are
- * left to the tree. Too many to list unasked, so each waits for a query.
+ * The scanned model's modules, building blocks, behaviors, rules and actors, each
+ * opening the model tree at its row — a rule at the first behavior that
+ * governs it. Properties and scenarios are left to the tree. Too many to
+ * list unasked, so each waits for a query.
  */
 function modelElements(model: SystemModel): SearchEntry[] {
+  const seen = new Set<string>();
   return outlineOf(designOf(model)).flatMap((node): SearchEntry[] => {
-    if (node.elementId === null) return [];
-    const address = addressOf(node.elementId);
+    const id = node.kind === 'rule' ? partKeyOf(node) : node.elementId;
+    if (id === null || seen.has(id)) return [];
+    seen.add(id);
+    const address = addressOf(id);
     const owner = address.slice(0, Math.max(address.lastIndexOf('.'), 0));
     return [
       {
         id: `element:${node.path}`,
         label: node.name,
-        context: [node.patternLabel ?? titleCase(node.kind), owner]
+        context: [
+          node.patternLabel ?? titleCase(node.kind.replaceAll('_', ' ')),
+          owner,
+        ]
           .filter(Boolean)
           .join(' · '),
         icon: kindIconOf(node.kind, node.pattern),

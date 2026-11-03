@@ -12,10 +12,22 @@ export type OwnerRef = {
 };
 
 export type ElementRef =
-  | { collection: 'modules' | 'buildingBlocks' | 'behaviors'; id: string }
+  | {
+      collection:
+        | 'modules'
+        | 'buildingBlocks'
+        | 'behaviors'
+        | 'actors'
+        | 'manualProcesses'
+        | 'deployableUnits'
+        | 'libraries'
+        | 'layers'
+        | 'deploymentContainers';
+      id: string;
+    }
   | {
       owner: OwnerRef;
-      part: 'properties' | 'rules' | 'scenarios';
+      part: 'properties' | 'collaborators' | 'rules' | 'scenarios';
       name: string;
       /** The rule a scenario belongs to, when it is one of a rule's own. */
       rule?: string;
@@ -27,8 +39,11 @@ const KIND_OF = {
   behaviors: 'behavior',
 } as const;
 
-/** The element a section's parts are written in; none for a part's own section. */
+/** The element a section's parts are written in; none for a part's own section or an element of no module. */
 export const partOwnerOf = (element: ElementRef): PartOwner | null =>
-  'collection' in element
-    ? { kind: KIND_OF[element.collection], id: element.id }
+  'collection' in element && element.collection in KIND_OF
+    ? {
+        kind: KIND_OF[element.collection as keyof typeof KIND_OF],
+        id: element.id,
+      }
     : null;

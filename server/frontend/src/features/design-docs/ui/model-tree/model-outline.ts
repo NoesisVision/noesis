@@ -14,9 +14,19 @@ import { titleCase } from '#/shared/ui/title-case.ts';
 
 const OUTLINE_KINDS = [
   'module',
+  // Who drives the system, and the work they do by hand.
+  'actor',
+  'manual_process',
+  // What the code is built and shipped as.
+  'deployable_unit',
+  'library',
+  // How the code is sliced, and where it runs.
+  'layer',
+  'deployment_container',
   'building_block',
   'behavior',
   'property',
+  'collaborator',
   'rule',
   'scenario',
   // A design's requirements: a group of them, and the need a rule answers.
@@ -73,26 +83,44 @@ export const BARE_ROW = {
  * how the design is taught, so it belongs with the model rather than with the
  * view that draws it.
  *
- * `external_integration` stands where a hexagonal port would; the model has no
- * port of its own.
+ * The adapters stand at the edges they serve: an in adapter before the
+ * services it calls, an out adapter among the ports it stands behind. The
+ * messages close it, as what crosses those edges.
  */
 const BUILDING_BLOCK_READING_ORDER = [
+  'in_adapter',
   'application_service',
   'domain_service',
   'repository',
   'factory',
   'external_integration',
+  'out_adapter',
+  'technical_service',
   'aggregate',
   'entity',
   'value_object',
+  'command',
+  'query',
+  'event',
 ] as const;
 
-/** Submodules above the blocks they hold; rules and scenarios last of all. */
+/**
+ * Submodules above the blocks they hold; rules and scenarios last of all. At
+ * the top, the modules, then who drives them and the work they do, then
+ * what the code ships as, how it is sliced and where it runs.
+ */
 const KIND_ORDER: readonly OutlineKind[] = [
   'module',
+  'actor',
+  'manual_process',
+  'deployable_unit',
+  'library',
+  'layer',
+  'deployment_container',
   'building_block',
   'behavior',
   'property',
+  'collaborator',
   'rule',
   'scenario',
   'group',

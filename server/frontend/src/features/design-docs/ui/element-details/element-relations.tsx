@@ -112,7 +112,12 @@ function TypeLink({ item }: { item: ChangeListItem }) {
   const row = path !== null && has(path) ? path : null;
   return (
     // A bare word gets the help cursor: nothing else says it can be hovered.
-    <ElementTooltip name={label} hint={row === null}>
+    // A whole name has nothing cut to say on hover.
+    <ElementTooltip
+      name={label}
+      shown={item.whole ? label : undefined}
+      hint={row === null}
+    >
       {row !== null ? (
         <Anchor
           component="button"
@@ -122,11 +127,11 @@ function TypeLink({ item }: { item: ChangeListItem }) {
           data-removed={removed}
           onClick={() => select(row)}
         >
-          <QualifiedName name={label} />
+          {item.whole ? label : <QualifiedName name={label} />}
         </Anchor>
       ) : (
         <Text span size="sm" fw={500} td={td} data-removed={removed}>
-          <QualifiedName name={label} />
+          {item.whole ? label : <QualifiedName name={label} />}
         </Text>
       )}
     </ElementTooltip>

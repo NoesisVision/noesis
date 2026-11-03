@@ -153,7 +153,7 @@ every command.
    until that adapter needs one.
 8. Rehydration from storage (a `restore(...)`) comes with the persistence
    adapter, not now.
-9. MUST be testable with plain JUnit: no Spring, no mocks.
+9. MUST be testable without Spring and without mocks.
 
 ```java
 /**
@@ -214,8 +214,8 @@ inside one aggregate.
 4. The application service publishes it through the external integration
    the design document names for that (`PreparationEventPublisher`), in the
    same transaction as the save.
-5. A handler of an event is an `Event` behavior: an application service
-   method annotated `@EventHandler` that takes the event record as its parameter.
+5. A handler of an event is an application service behavior that takes
+   the event record as its parameter, annotated `@EventHandler`.
    When it changes another aggregate it MUST be idempotent: handling the
    same event twice changes nothing the second time.
 
@@ -306,8 +306,8 @@ public interface IdentityProvider {
 
 ## Application services
 
-The entry point of the use cases: a public behavior with actors, or one an
-event triggers. Orchestration only, no business rules.
+The entry point of the use cases: a behavior a manual process invokes, or
+one an event triggers. Orchestration only, no business rules.
 
 1. One class per `application_service` building block, one public method
    per behavior, named as the design document names them. Each carries
@@ -353,12 +353,11 @@ public class QDocCreationService {
     /**
      * Creates a QDoc on a quality manager's request.
      *
-     * <p>Actors: Quality manager.
-     *
      * @param command the creation request
      * @return the identity of the created QDoc
      */
     @CommandHandler
+    @Actor("Quality manager")
     @Transactional
     public QDocId createQDoc(CreateQDoc command) {
         if (!identities.isQualityManager(command.requestedBy())) {

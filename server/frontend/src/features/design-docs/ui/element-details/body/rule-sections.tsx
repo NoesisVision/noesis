@@ -1,10 +1,11 @@
 import type { ReactElement } from 'react';
-import type { DesignedRuleInput } from '#backend/app/design-docs/design-doc.ts';
+import type {
+  DesignDocumentInput,
+  DesignedRuleInput,
+} from '#backend/app/design-docs/design-doc.ts';
 import { isUnchanged, valueOf } from '../../../design-doc-field.ts';
-import {
-  type NeedsInput,
-  needNamesOf,
-} from '../../../design-doc-requirements.ts';
+import { needNamesOf } from '../../../design-doc-requirements.ts';
+import { governorsOf } from '../../../rules.ts';
 import type { ElementRef, OwnerRef } from '../element-ref.ts';
 import { section } from './section.ts';
 import { DescriptionSection } from './sections/description-section.tsx';
@@ -14,16 +15,16 @@ import { RuleTraceSection } from './sections/rule-trace-section.tsx';
 export const ruleSections = (
   owner: OwnerRef,
   rule: DesignedRuleInput,
-  needs: NeedsInput,
+  doc: DesignDocumentInput,
 ): ReactElement[] => {
-  const element: ElementRef = { owner, part: 'rules', name: rule.name };
+  const element: ElementRef = { owner, part: 'rules', name: rule.id };
   const traced = valueOf(rule.needs);
   return [
     ...section(RuleTraceSection, 'trace', {
       element,
-      category: rule.category,
-      ruleType: rule.ruleType,
-      needs: traced === null ? null : needNamesOf(traced, needs),
+      kind: rule.kind,
+      governors: governorsOf(doc, rule.id),
+      needs: traced === null ? null : needNamesOf(traced, doc.needs),
     }),
     ...section(DescriptionSection, 'description', {
       element,

@@ -1,21 +1,26 @@
 ---
 name: implement-java-spring
-description: Implement a Noesis design document as Java domain code in a Spring Boot project — modules as packages, building blocks as annotated classes, records and interfaces, behaviors as public methods — with one JUnit test per scenario, asserted with AssertJ. Domain and application services only; no controllers, persistence or wiring. Use when the user asks to implement, code or build a design document, or a change's design, in Java or Spring.
+description: Implement a Noesis design document as Java domain code in a Spring Boot project — modules as packages, building blocks as annotated classes, records and interfaces, behaviors as public methods — and its rules and scenarios as Cucumber feature files with step definitions, asserted with AssertJ. Domain and application services only; no controllers, persistence or wiring. Use when the user asks to implement, code or build a design document, or a change's design, in Java or Spring.
 argument-hint: [change-id] [design-doc-id] [instructions]
 ---
 
 # Implement a design document in Java and Spring
 
 A design document says what a change does to the domain model: the modules,
-building blocks and behaviors it adds, modifies or removes, with their
-properties, rules and scenarios. You turn it into Java domain code that the
-Noesis Java parser reads back as the same model, and into tests that prove
-every scenario. Each module becomes a package, each building block a type
+building blocks and behaviors it adds, modifies or removes, the rules
+those behaviors follow, the scenarios that illustrate the rules, and the
+relations between them all. You turn it into Java domain code that the
+Noesis Java parser reads back as the same model, and into Gherkin feature
+files, run by Cucumber, that prove every scenario and that the Noesis scan
+reads back as the model's rules and scenarios. Each module becomes a package, each building block a type
 carrying its `vision.noesis.annotations` stereotype, each behavior a public
 method. An application service's behaviors also carry `@CommandHandler`,
-`@QueryHandler` or `@EventHandler` after their type, and the commands,
-queries and events they handle carry `@Command`, `@Query` or `@Event`.
-Each scenario becomes exactly one test.
+`@QueryHandler` or `@EventHandler` after the message they take, and the
+design's `command`, `query` and `event` blocks carry `@Command`, `@Query`
+or `@Event`.
+Each rule with scenarios becomes a `Rule:` of a feature file, tagged with
+its kind, and each scenario a `Scenario:` under it, whose `When` steps
+call the behavior that governs the rule.
 
 The scope is the domain: value objects, entities, aggregates, domain
 services, factories, the repository and external integration interfaces,
@@ -44,8 +49,9 @@ Read all three at step 5, before planning:
   how to implement each building block type well. The DDD and clean
   architecture rules, with code shapes.
 - `${CLAUDE_PLUGIN_ROOT}/skills/implement-java-spring/references/testing.md`:
-  which kind of test each scenario gets, the test doubles, the test layout
-  and AssertJ.
+  how rules and scenarios become feature files the scan reads back, which
+  behavior each scenario's `When` calls, the step definitions, the test
+  doubles and AssertJ.
 
 ## Steps
 
@@ -61,7 +67,10 @@ Read all three at step 5, before planning:
    `.design-doc.json`). When the chosen one has `implemented: true`, ask
    whether to implement it anyway. Read both contracts now: every field of
    the document is `{ "changed": true, "value": … }` or
-   `{ "changed": false }`, and only a changed field has a value.
+   `{ "changed": false }`, and only a changed field has a value. Rules and
+   scenarios are lists of their own, `rules` and `scenarios`: the
+   behaviors that follow a rule are the `from` of the `governs` relations
+   to it, and a scenario's rule is the `to` of its `illustrates`.
 3. **Load the baseline.** Call `get_newest_system_model`. Every `modified`
    and `removed` id names an element in it, and its `source.path` says
    where its code lives. Scan first with `scan_system_model`, then call
@@ -77,7 +86,10 @@ Read all three at step 5, before planning:
      module packages ([mapping](references/mapping.md#modules-and-packages)).
    - the test classpath: JUnit Jupiter and AssertJ, which
      `spring-boot-starter-test` brings, directly or through another
-     `spring-boot-starter-*-test`.
+     `spring-boot-starter-*-test`; Cucumber (`io.cucumber:cucumber-java`,
+     `cucumber-junit-platform-engine`) and `junit-platform-suite`.
+   - the feature files under `src/test/resources/features/` and their
+     steps classes, and the Cucumber runner class.
    - `vision.noesis:noesis-annotations` among the dependencies.
    - the code that already exists in the packages the design touches, and
      its conventions.
@@ -86,19 +98,24 @@ Read all three at step 5, before planning:
    - its file: package, type name, Java shape and annotation;
    - its public methods, one per behavior, with their exact signatures;
    - where each rule is enforced and which exception a broken one throws;
-   - for every scenario, its test: the test class, the nesting by
-     behavior and rule, and whether it is a full-graph test of an
-     application service or a unit test
-     ([testing](references/testing.md#which-test-a-scenario-gets));
-   - the test doubles the full-graph tests need.
+   - for every rule with scenarios, its feature file and its place in
+     it; for every scenario, the behavior its `When` steps call and
+     whether that is the full graph behind an application service or one
+     block alone
+     ([testing](references/testing.md#which-behavior-a-scenarios-when-calls));
+   - every step wording and its step definition, checking that no `When`
+     wording is meant to call two behaviors
+     ([testing](references/testing.md#writing-the-steps));
+   - the test doubles the full-graph scenarios need.
 
    Then look for what the design document leaves open or what Java cannot
    express as written: a signature that cannot compile as given (a static
    creation behavior whose output is not the block it creates), several
    outputs with no base building block, a collaborator a behavior's
    diagram calls that the design does not name, a property typed with
-   another aggregate, a scenario on an interface that has no implementation
-   in scope, a rule with no scenario. Resolve one yourself only when the
+   another aggregate, a rule governed only by a behavior of an interface
+   that has no implementation in scope, a rule with no scenario (no feature
+   file can hold it: the scan drops a rule no scenario binds). Resolve one yourself only when the
    design document or the references say how. Ask the user about every
    other one in one `AskUserQuestion` round, each question with two or
    three candidate answers, your recommendation first. Do not add a
@@ -107,7 +124,14 @@ Read all three at step 5, before planning:
 
 6. **Prepare the build.** When the test classpath lacks JUnit Jupiter or
    AssertJ, add `org.springframework.boot:spring-boot-starter-test` with
-   `test` scope and no version: the Spring Boot parent manages it. When
+   `test` scope and no version: the Spring Boot parent manages it. When it
+   lacks Cucumber, import `io.cucumber:cucumber-bom` in
+   `<dependencyManagement>` at the version in the `<release>` element of
+   `https://repo1.maven.org/maven2/io/cucumber/cucumber-bom/maven-metadata.xml`,
+   and add `io.cucumber:cucumber-java`, `io.cucumber:cucumber-junit-platform-engine`
+   and `org.junit.platform:junit-platform-suite` with `test` scope and no
+   version (Spring Boot manages the last). Add the runner class when there
+   is none ([testing](references/testing.md#layout)). When
    `noesis-annotations` is missing, add `vision.noesis:noesis-annotations`
    from Maven Central, at the version in the `<release>` element of
    `https://repo1.maven.org/maven2/vision/noesis/noesis-annotations/maven-metadata.xml`
@@ -123,41 +147,52 @@ Read all three at step 5, before planning:
 
    For a `modified` element, edit its code where `source.path` points and
    change only what the design document changes. For a `removed` one,
-   delete its type or method, every use of it and its tests.
+   delete its type or method, every use of it and the scenarios whose
+   `When` steps call it.
 
-8. **Write the tests**: the test doubles first, then one test per scenario,
-   as the plan decided. Modified scenarios change their test; removed ones
-   delete it. Find an existing test by its `@DisplayName`, which carries the
-   scenario's name.
+8. **Write the rules and scenarios**: the test doubles and fixtures
+   first, then the feature files, then their steps classes, as the plan
+   decided. A modified rule or scenario changes its `Rule:` or `Scenario:`,
+   found by its name; a removed one is deleted, with the step definitions
+   only it used.
 9. **Build and run the tests**: `./mvnw -q test`, or `mvn -q test` without
-   a wrapper. Fix the production code until every test passes. Change a
-   test only when it misreads its scenario, never to make wrong code pass.
-   A test that cannot pass because the design document contradicts itself
-   is a question for the user, not a reason to weaken the test.
+   a wrapper; Cucumber runs the feature files through the runner class.
+   An undefined or ambiguous step fails the run. Fix the production code
+   until every scenario passes. Change a step definition only when it
+   misreads its scenario, never to make wrong code pass. A scenario that
+   cannot pass because the design document contradicts itself is a
+   question for the user, not a reason to weaken it.
 10. **Check the result** against the design document, element by element:
     - every added or modified module has a package with `@Module`, every
       building block a type with its annotation, and every behavior a
       public method of exactly its name;
     - every application service behavior carries `@CommandHandler`,
-      `@QueryHandler` or `@EventHandler` after its type, and no other
-      method does;
+      `@QueryHandler` or `@EventHandler` after the message it takes, and
+      no other method does;
+    - every `has_collaborator` is a constructor parameter of its `name`;
     - every command, query and event carries `@Command`, `@Query` or
       `@Event`;
     - an annotated type has no public method the design document does not
       name, except the ones Java writes itself
       ([mapping](references/mapping.md#the-public-surface));
-    - every scenario has exactly one test, and every test belongs to a
-      scenario;
+    - every rule with scenarios is a `Rule:` with the rule's name and
+      exactly one kind tag, every scenario a `Scenario:` (or outline)
+      under its rule with the scenario's name, and nothing else is in the
+      feature files;
+    - every scenario's `When` steps bind to step definitions that call
+      exactly one behavior, one that governs its rule, and nothing that is
+      a behavior besides;
     - the domain code imports no Spring, JPA, Jakarta Validation or
       Jackson type, and an application service only Spring's
       `@Transactional`;
     - nothing the design document removes is left, and nothing refers to
       it.
 11. **Report**: the design document's id; the files created, changed and
-    deleted; how many modules, building blocks, behaviors and scenarios
-    were implemented, and the test result. Then every deviation from the
-    design document and why, every rule left without a test, every scenario
-    left untested and why, and what comes next: mark the design document
+    deleted; how many modules, building blocks, behaviors, rules and
+    scenarios were implemented, and the test result. Then every deviation
+    from the design document and why (a reworded step among them), every
+    rule left out of the feature files and why, every scenario left
+    untested and why, and what comes next: mark the design document
     implemented in the Noesis page, scan the code, and add the adapters.
 
 ## Rules
@@ -170,5 +205,6 @@ Read all three at step 5, before planning:
 - Never mock or stub a building block of the domain in a test. Only an
   external integration has a test double, and a repository an in-memory
   one.
-- Do not leave a test failing, skipped or disabled. Report what you could
-  not make pass instead.
+- Do not leave a scenario failing, skipped or tagged to be ignored, and do
+  not add a JUnit test for a scenario beside its Cucumber one. Report what
+  you could not make pass instead.

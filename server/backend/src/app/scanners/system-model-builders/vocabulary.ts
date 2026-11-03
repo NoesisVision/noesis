@@ -1,8 +1,6 @@
-import type {
-  BehaviorType,
-  BuildingBlockType,
-} from '#backend/app/system-model/system-model';
+import type { BuildingBlockType } from '#backend/app/system-model/system-model';
 import type { Language, NodeId } from '../code-parsers/code-model';
+import type { StepExpressionDialect } from '../feature-files/step-expression';
 
 /*
  * What the system model builder knows about one language: which annotation types mean
@@ -24,16 +22,33 @@ export type PrimitiveName =
   | 'uuid';
 
 export type AnnotationRole =
-  /** The type is a building block of `type`; the `name` argument overrides its name. */
-  | { readonly role: 'buildingBlock'; readonly type: BuildingBlockType }
-  /** The method is a behavior; `name` overrides its name, `triggeredBy` fixes its type, or the role's own `type` does (Java's `@QueryHandler`). */
-  | { readonly role: 'behavior'; readonly type?: BehaviorType }
-  /** Who calls the behavior: the `name` argument. */
+  /**
+   * The type is a building block of `type`; the `name` argument overrides its
+   * name. With `byDirection`, the `direction` argument's member picks the
+   * kind instead (Java's `@Adapter(Direction.PRIMARY)`), `type` when it has
+   * none the table knows.
+   */
+  | {
+      readonly role: 'buildingBlock';
+      readonly type: BuildingBlockType;
+      readonly byDirection?: Readonly<Record<string, BuildingBlockType>>;
+    }
+  /** The method is a behavior; `name` overrides its name. */
+  | { readonly role: 'behavior' }
+  /** Who calls the behavior: the `actor` argument. */
   | { readonly role: 'actor' }
   /** The element's description, Markdown, in the `description` argument. */
   | { readonly role: 'description' }
-  /** A scenario of the block or behavior, by its `name` only. */
-  | { readonly role: 'scenario' }
+  /**
+   * The method is a step definition a `When` step of a feature file binds
+   * to, by the `expression` argument (R12).
+   */
+  | { readonly role: 'stepDefinition' }
+  /**
+   * The package or namespace, and every one below it no nearer annotation
+   * claims, is in the layer the `layer` argument names (R15).
+   */
+  | { readonly role: 'layer' }
   /** The element is not in the system model. */
   | { readonly role: 'exclude' };
 
@@ -41,11 +56,20 @@ export type AnnotationRole =
 interface RoleArguments {
   readonly name: string;
   readonly description: string;
-  readonly triggeredBy: string;
+  /** The enum argument a `byDirection` role reads. */
+  readonly direction: string;
+  /** The step definition's Cucumber expression or regular expression. */
+  readonly expression: string;
+  /** The layer's name, on a layer annotation. */
+  readonly layer: string;
+  /** The actor's name, on an actor annotation. */
+  readonly actor: string;
 }
 
 export interface AnnotationVocabulary {
   readonly language: Language;
+  /** How the language's step library reads a step definition's expression. */
+  readonly stepExpressions: StepExpressionDialect;
   /** Roles by the annotation type's node or stub id, e.g. `T:NoesisVision.Annotations.Domain.DDD.DddAggregateAttribute`. */
   readonly roles: ReadonlyMap<NodeId, AnnotationRole>;
   readonly arguments: RoleArguments;

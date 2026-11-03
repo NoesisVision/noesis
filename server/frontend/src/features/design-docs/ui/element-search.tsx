@@ -24,7 +24,21 @@ import { Outline } from './outline.tsx';
 import classes from './element-search.module.css';
 
 /** The rows that stand for an element of a view; a group only opens and shuts. */
-const SHOWABLE = new Set(['module', 'building_block', 'behavior']);
+const SHOWABLE = new Set([
+  'module',
+  'building_block',
+  'behavior',
+  'actor',
+  'manual_process',
+  'deployable_unit',
+  'library',
+  'layer',
+  'deployment_container',
+]);
+
+/** The element a row stands for: a manual process is a row under each actor that performs it. */
+const elementOf = (node: { path: string; elementId: string | null }) =>
+  node.elementId ?? node.path;
 
 /**
  * A model's tree, its modules down to their building blocks and behaviors,
@@ -87,7 +101,8 @@ export function ElementSearch({
     const kept = new Set<string>();
     const keep = (node: (typeof all)[number]): boolean => {
       const under = (children.get(node.path) ?? []).map(keep).some(Boolean);
-      const wanted = under || (SHOWABLE.has(node.kind) && !isDrawn(node.path));
+      const wanted =
+        under || (SHOWABLE.has(node.kind) && !isDrawn(elementOf(node)));
       if (wanted) kept.add(node.path);
       return wanted;
     };
@@ -99,7 +114,7 @@ export function ElementSearch({
       isDrawn === undefined
         ? undefined
         : {
-            is: (node) => SHOWABLE.has(node.kind) && isDrawn(node.path),
+            is: (node) => SHOWABLE.has(node.kind) && isDrawn(elementOf(node)),
             note: 'On the diagram',
           },
     [isDrawn],
@@ -112,21 +127,32 @@ export function ElementSearch({
         ? undefined
         : {
             isOn: (node) =>
-              SHOWABLE.has(node.kind) ? isShown(node.path) : null,
-            onToggle: (node) => onShow(node.path, !isShown(node.path)),
+              SHOWABLE.has(node.kind) ? isShown(elementOf(node)) : null,
+            onToggle: (node) =>
+              onShow(elementOf(node), !isShown(elementOf(node))),
           },
     [isShown, onShow],
   );
   const kinds = useMemo(
-    () => new Map(nodes.map(({ path, kind }) => [path, kind])),
+    () =>
+      new Map(
+        nodes.map((node) => [
+          node.path,
+          { kind: node.kind, id: elementOf(node) },
+        ]),
+      ),
     [nodes],
   );
   const onSelect = useCallback(
     (path: string, source: SelectSource) => {
       if (onPick === undefined || source !== 'tree') return;
-      const kind = kinds.get(path);
-      if (kind !== undefined && SHOWABLE.has(kind) && isDrawn?.(path) !== true)
-        onPick(path);
+      const row = kinds.get(path);
+      if (
+        row !== undefined &&
+        SHOWABLE.has(row.kind) &&
+        isDrawn?.(row.id) !== true
+      )
+        onPick(row.id);
     },
     [onPick, kinds, isDrawn],
   );

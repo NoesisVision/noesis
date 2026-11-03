@@ -100,7 +100,7 @@ export function layoutArchitecture(hexagons: Hexagon[]): ArchitectureLayout {
 /** One hexagon's sizes, worked out before anything is placed. */
 interface Column {
   hexagon: Hexagon;
-  /** Who drives it: each named actor once, then one unknown caller per port that names none. */
+  /** Who drives it: each actor once, then one unknown caller per port no manual process or in adapter invokes. */
   drivers: { id: string; label: string; ports: string[]; known: boolean }[];
   coreColumns: number;
   coreRows: number;
@@ -117,8 +117,8 @@ const rowWidth = (count: number, width: number) =>
 function measure(hexagon: Hexagon): Column {
   const { module, drivingPorts, applicationServices, domainCore } = hexagon;
   const drivers: Column['drivers'] = [];
-  for (const { behavior, actors } of drivingPorts) {
-    if (actors.length === 0)
+  for (const { behavior, actors, callerKnown } of drivingPorts) {
+    if (!callerKnown)
       drivers.push({
         id: callerId(behavior.id),
         label: labelOf('caller'),

@@ -1,14 +1,17 @@
 ---
 name: create-design-doc
-description: Design what a Noesis change does to the code's domain model — the modules, building blocks and behaviors it adds, modifies or removes, with their rules and scenarios — from the change's documents and the scanned system model, and store it in the change as a design document, or as several alternative ones, each designed by its own subagent, for the user to compare. Use when the user asks to design a change, model it, plan its implementation or write its design doc from the specs, notes or transcripts it collects.
+description: Design what a Noesis change does to the code's domain model — the modules, building blocks and behaviors it adds, modifies or removes, the rules those behaviors follow, the scenarios that illustrate them, the actors and manual processes that drive them, and the relations between them all — from the change's documents and the scanned system model, and store it in the change as a design document, or as several alternative ones, each designed by its own subagent, for the user to compare. Use when the user asks to design a change, model it, plan its implementation or write its design doc from the specs, notes or transcripts it collects.
 argument-hint: [change-id] [number of designs] [instructions]
 ---
 
 # Create a design document
 
-A design document says what a change does to the implemented model: the
-modules, building blocks and behaviors it adds, modifies or removes, with
-their properties, rules and scenarios. It is a diff against the newest
+A design document says what a change does to the implemented model, in two
+halves: the elements it adds, modifies or removes — modules, building
+blocks, behaviors, the rules those behaviors follow, the scenarios that
+illustrate the rules, actors, manual processes, deployable units,
+libraries, layers and deployment containers — and the relations between
+them, a change set of their own. It is a diff against the newest
 system model — what the scanner found in the code — and never against an
 earlier design document. You read the change's documents and the system
 model, design the change as an experienced architect and analyst would,
@@ -30,8 +33,9 @@ Both are JSON Schema. Read them at step 6, not from memory.
 ## Modelling guidance
 
 `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/modelling.md`:
-definitions, needs, modules, building block types, use cases and actors,
-rules, scenarios. Read it at step 5.
+definitions, needs, modules, building block types, behaviors, actors and
+manual processes, deployable units and libraries, layers and deployment
+containers, rules, scenarios. Read it at step 5.
 
 ## Steps
 
@@ -70,18 +74,39 @@ rules, scenarios. Read it at step 5.
    - **Modules.** Place the work in existing modules first. A new module
      only for a cohesive group of building blocks, under the module closest
      to it in meaning. A new root module needs the user's approval, always.
-   - **Use cases and actors.** Every action triggered from outside the
-     module by a command, event or query is a public behavior. Its actors
-     are the human personas that trigger it; reuse the actor names the
-     system model already uses, verbatim.
-   - **Building blocks and behaviors**, with their types, properties,
-     `implements` and behavior inputs and outputs. Take ready solutions
+   - **Actors and manual processes.** Every goal a person reaches by
+     driving the system is a manual process (`manualProcesses`): the work
+     they do by hand, whose `invokes` relations call the system's
+     behaviors in order. The actor who does it (`actors`) `performs` it;
+     reuse the actor names the system model already uses, verbatim. The
+     behaviors a process invokes are behaviors of application services or
+     in adapters.
+   - **Deployable units and libraries**, only when the design changes what
+     the code ships as: a new service (`deployableUnits`, `contains` its
+     modules) or a new shared package (`libraries`, `contains` its building
+     blocks). Each is named as the build names it, dots and all; reuse the
+     names the system model already has, verbatim. A new module or block in
+     an existing unit or library gets a `contains` from it.
+   - **Layers and deployment containers**, only when the design changes
+     how the code is sliced or where it runs: a layer (`layers`, `contains`
+     its building blocks) or a deployment container (`deploymentContainers`,
+     `hosts` its deployable units). Reuse the layer names the system model
+     already has, verbatim; no scan finds a deployment container, so the
+     design authors every one.
+   - **Building blocks and behaviors**, with their types, and the
+     **relations** between them: a block's state (`has_state`), what it
+     works with (`has_collaborator`), what it extends (`extends`), a behavior's inputs (`has_input`) and output
+     (`has_output`), and what calls what (`invokes`, from a behavior or a
+     manual process). Take ready solutions
      from the sources, diagrams especially.
-   - **Rules**, one per requirement statement, each with its category and
-     type, the needs it answers (none for a design decision) and, when a
-     source gives one, its rationale, attached at exactly one level.
-   - **Scenarios** as steps of given, when and then, attached to the rule they verify,
-     else to the behavior, else to the building block.
+   - **Rules**, one per requirement statement, each with its kind, the
+     needs it answers (none for a design decision) and, when a source gives
+     one, its rationale, and the behaviors that follow it (`governs`). A
+     quality or a constraint no behavior follows is no rule.
+   - **Scenarios**, at least one per rule, each illustrating one rule
+     (`illustrates`), as the Gherkin steps of given, when and then they
+     become, the `when` calling the behavior that governs the rule. A
+     scenario lives in a feature file in the code, where the scan reads it.
 
    Then look for contradictions between sources, missing information and
    places where several designs fit. Resolve one yourself only when a
@@ -96,34 +121,60 @@ rules, scenarios. Read it at step 5.
    [Several designs](#several-designs) instead of step 6.
 
 6. **Diff against the baseline.** Read both contracts now. For every
-   element and every part of one (property, rule, scenario, input, output,
-   `implements` entry), ask whether the system model has it:
+   element, rules and scenarios included, and every relation, ask whether
+   the system model has it:
    - **Not in the model:** `added`, with every field given a value except
-     `diagram`, which only an element worth drawing has.
-   - **In the model and changed:** `modified`, with its id (a part's name,
-     an output's type) and only the fields that change. The `description`
-     of a property, an input, an output or a scenario is always a change
-     note: `"Change note: "`, then what changes and why, so a reader sees
-     why the part is in the diff. An element's `definition` never is: give
-     it only when what the element is changes, and then write the whole new
-     definition. Nor is a rule's `description`: it is the requirement's
-     whole new statement. Say why a modified element or rule is in the diff
-     in the design document's `description`.
-   - **In the model and retired:** `removed`, by id (a part by name, an
-     output by type). Remove a building block's behaviors with it.
+     `diagram`, which only an element worth drawing has, and a rule's
+     `rationale`, which only a source gives.
+   - **In the model and changed:** `modified`, with its id (a relation's
+     key) and only the fields that change. The `description`
+     of a scenario is always a change note: `"Change note: "`, then what
+     changes and why, so a reader sees why the scenario is in the diff. An
+     element's `definition` never is: give it only when what the element is
+     changes, and then write the whole new definition. Nor is a rule's
+     `description`: it is the requirement's whole new statement. Say why a
+     modified element, rule or relation is in the diff in the design
+     document's `description`.
+   - **In the model and retired:** `removed`, by id (a relation by its
+     key). Remove a building block's behaviors and relations with it, and a
+     rule's scenarios and relations with the rule.
    - **In the model and unchanged:** leave it out, even when the design
      refers to it. A reference resolves against the model.
 
-   Nesting follows the same questions: inside an `added` element everything
-   is added; a `modified` building block lists only the properties, rules
-   and scenarios that change. A behavior's input is a part known by its
-   name, like a property; an output has no name and is known by its `type`,
-   so an output of another type is one removed and one added. `implements`
-   has no `modified`: a changed entry is removed and added. Needs are only
-   ever `added`: no scan holds one, so there is nothing to modify or
-   remove. A rename of an element in the model is a removal of the old id
-   and an addition of the new one, and every reference to the old id moves
-   to the new one.
+   Every element is in a list of its own, rules in `rules` and scenarios in
+   `scenarios` too, never inside a module, a block or a behavior.
+   Relations are one list, `relations`, beside the elements, each
+   `{ "kind", "from", "to", … }`: `has_state` (a block's
+   field: `name`, `to` and `cardinality` are fields), `has_collaborator`
+   (a block it works with: `name`, and `to` a field; no cardinality),
+   `has_input` (a
+   behavior's parameter, the same way, plus `position`, a field: where it
+   stands in the signature, counting from 1), `has_output` (a behavior's result:
+   `to` is its key, `cardinality` a field), `extends`, `exposes`,
+   `contains`, `invokes` (from a behavior or a manual process; `order` a
+   field), `governs` (from a behavior to a rule it follows),
+   `illustrates` (from a scenario to its rule), `performs` (from an
+   actor to a manual process) and `hosts` (from a deployment container to a
+   deployable unit). A `contains` joins a module to a module or a block, a
+   deployable unit to a module, or a library or a layer to a block. The
+   kind of the block a
+   slot points at picks the relation: a primitive or a value of the domain
+   (`aggregate`, `entity`, `value_object`, `command`, `query`, `event`) is
+   `has_state`, any other block `has_collaborator`. A `has_state`,
+   `has_collaborator` or `has_input` is known by its holder and `name`, so its type may change in place; a
+   `has_output` is known by its `to`, so an output of another type is one
+   removed and one added; `contains`, `extends`, `exposes`, `governs`,
+   `illustrates`, `performs` and `hosts` have nothing to modify. `cardinality`
+   is `1`, `0..1`, `0..*` or `1..*`: a collection and an optional value are
+   told apart by it, never by the type. Both ends of an added relation
+   exist, in the design or in the model; a module's `contains`, an
+   `exposes` or an `illustrates` only says what the ids already say, so
+   write one only when it does; a unit's, a library's or a layer's
+   `contains` names what the build or the layering puts in it. Every added rule has an added `governs` to it. Needs
+   are only ever `added`: no scan holds one, so there is nothing to modify
+   or remove; nor are manual processes, which no scan finds. A rename of an element in the model is a removal of the old
+   id and an addition of the new one, and every reference to the old id
+   moves to the new one.
 
 7. **Find the scratch directory.** It is the absolute path named in the
    description of the `path` parameter of `create_design_doc_in_change`, of
@@ -134,23 +185,30 @@ rules, scenarios. Read it at step 5.
    change's), `description` (the overview, as the contract states it;
    read
    `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/description.md`
-   before writing it), `needs`, `modules`, `buildingBlocks` and
-   `behaviors`. No `id`, no `implemented`. Write every field as
+   before writing it), `needs`, `modules`, `buildingBlocks`, `behaviors`,
+   `rules`, `scenarios`, `actors`, `manualProcesses`, `deployableUnits`,
+   `libraries`, `layers`, `deploymentContainers` and `relations`. No `id`, no `implemented`. Write every field as
    `{ "value": … }` and never with `author`: you are the agent. Leave out a
    change set with nothing in it.
-   Before saving, check that every reference — the `type` of a property, an
-   input or an output, `implements` — names a building block this design
-   adds or modifies, one the system model has, or a primitive, that
-   nothing refers to an id the design removes, that every rule's `needs`
+   Before saving, check that every end of a relation — the `to` of a
+   `has_state`, `has_collaborator`, `has_input` or `has_output`, both ends of an `extends`,
+   an `invokes`, a `governs`, an `illustrates` or a `performs` — names an
+   element this
+   design adds, one the system model has, or a primitive, that
+   nothing refers to an id the design removes, that every added rule has a
+   `governs` and every added scenario an `illustrates` to the rule its id
+   is under, that every rule's `needs`
    names only needs the design adds, and that every `noesis:` link in
    `description` names an element this design adds, modifies or removes,
    one the system model has, or a need the design states.
 9. **Save it.** Call `create_design_doc_in_change` with the change's id and
    the working file's `path`.
 10. **Report** the id the tool answered with, what the design adds, modifies
-    and removes (counted per modules, building blocks and behaviors), the
-    needs no rule answers, the rules no need asks for, and every assumption
-    you made that no source stated.
+    and removes (counted per modules, building blocks, behaviors, rules,
+    scenarios and the other element lists it touches, and relations), the
+    needs no rule answers, the rules no need asks for, the
+    requirements left to the documents because no behavior follows them,
+    and every assumption you made that no source stated.
 
 ## Several designs
 
@@ -160,7 +218,7 @@ results.
 
 1. **Choose the directions**, one per option: a paragraph naming the choice
    the option makes where designs diverge — which module the work lands in,
-   where an aggregate's boundary runs, which building block owns a rule, a
+   where an aggregate's boundary runs, which behavior governs a rule, a
    new building block or an extended one, a direct call or an event — and
    what it trades. They differ in substance, not wording; put the one you
    would recommend first. When the sources leave fewer designs worth
@@ -189,6 +247,10 @@ results.
   `behavior|sales.refunds.Refund.issue`. A building block always sits in a
   module and a behavior in a building block; its `name` is the last
   segment of its id.
+- A rule's id is the path of the module of the behavior that governs it,
+  then its name: `rule|sales.refunds.Refund never exceeds paid amount`. A
+  scenario's is its rule's path, then its name:
+  `scenario|sales.refunds.Refund never exceeds paid amount.Refunding one line of a paid order`.
 - Names match the code the scanner reads, because the next scan is compared
   to them: follow the casing and conventions of the ids in the system model
   (`ApplyOn` in C#, `getCurrent` in Java); in a green field, those of the
@@ -213,13 +275,30 @@ results.
     Scan with `scan_system_model` and call again.
   - _the item is new, so this field needs a value_: give that field of the
     added item a `{ "value" }`.
-  - _write every field as the agent_: remove `author` from the field.
+  - _a human wrote or accepted this field with another value, or not at
+    all_: remove `author` from the field; you write every field as the
+    agent.
+  - _move the ` ```mermaid ` fence out of the definition_: write the diagram's
+    source, without the fence, to the element's `diagram`.
   - _the design document states no such need_: add the need to `needs`, or
     take its id out of the rule's `needs`.
-  - _the rule's type belongs to another category_: pick a `ruleType` of the
-    rule's `category`, or the `category` of its type.
-  - _a module holds only quality and constraint rules_: move the business
-    rule to the building block or behavior it governs.
+  - _a rule enters the model only through a behavior that follows it_: add
+    a `governs` relation from that behavior to the rule, or drop a rule no
+    behavior follows.
+  - _neither the design nor the scanned model has this element_: an end of
+    the relation names an id that is misspelt or not added yet. Add the
+    element, or point the relation at one that exists.
+  - _what holds what is in the ids_: a `contains`, `exposes` or
+    `illustrates` disagrees with an id's path. A scenario's id is its
+    rule's path and its own name, a behavior's its block's: fix the id, or
+    drop the relation.
+  - _a deployable unit contains only modules, and a library or a layer
+    only building blocks_: point the `contains` at an element of that kind,
+    or drop it.
+  - _the kind of the block a slot points at says which slot it is_: a
+    `has_state` points at a block of a collaborator kind, or a
+    `has_collaborator` at a primitive or a value of the domain. Change the
+    relation's kind, or the block's.
 
   Fix every line, then call again; repeat until the tool accepts the file.
 
@@ -228,8 +307,9 @@ results.
 
 ## Rules
 
-- Design only what the sources support. A rule, scenario or property no
-  source states is an assumption: ask about it, or name it in the report.
+- Design only what the sources support. A rule, a scenario or a piece of
+  state no source states is an assumption: ask about it, or name it in the
+  report.
   Choosing building blocks and behaviors that realise the sources is the
   design's job.
 - Never write under `.noesis/` yourself, except the working file in the

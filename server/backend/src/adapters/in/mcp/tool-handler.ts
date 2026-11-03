@@ -83,10 +83,16 @@ const FIXES: Record<DesignDocViolation['reason'], string> = {
     'move the ```mermaid fence out of the definition: write its source, without the fence, to the element\'s "diagram"',
   unknownNeed:
     'the design document states no such need; add it to "needs", or leave it out of the rule\'s "needs"',
-  ruleTypeOutsideCategory:
-    'the rule\'s "ruleType" belongs to another "category"; pick a type of its category, or the category of its type',
-  businessRuleOnModule:
-    'a module holds only quality and constraint rules; move the business rule to the building block or behavior it governs',
+  ungovernedRule:
+    "a rule enters the model only through a behavior that follows it; add a 'governs' relation from that behavior to the rule",
+  unknownRelationEnd:
+    'neither the design nor the scanned model has this element; add it to the design, or point the relation at an element that exists',
+  containmentOutsideIdPath:
+    "what holds what is in the ids: a module's 'contains', an 'exposes' or an 'illustrates' joins an element to the one its id path names; fix the id or drop the relation",
+  containmentOutsideKinds:
+    "a deployable unit contains only modules, and a library or a layer only building blocks; point the 'contains' at an element of that kind or drop it",
+  slotOutsideTypeKind:
+    "the kind of the block a slot points at says which slot it is: a primitive or a value of the domain (aggregate, entity, value object, event, command, query) is 'has_state', any other block 'has_collaborator'; change the relation's kind",
 };
 
 function message(error: unknown): string {

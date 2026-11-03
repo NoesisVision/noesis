@@ -33,6 +33,24 @@ export function rolesOf<R extends AnnotationRole['role']>(
   return found;
 }
 
+/**
+ * The annotations with those a container holds unwrapped beside them: Java
+ * writes an annotation repeated on one element as one container annotation
+ * (`@When.Whens`) whose `value` lists the repetitions.
+ */
+export function withRepeated(annotations: readonly Annotation[]): Annotation[] {
+  return annotations.flatMap((annotation) => [
+    annotation,
+    ...annotation.arguments.flatMap(({ value }) =>
+      value.kind === 'array'
+        ? value.items.flatMap((item) =>
+            item.kind === 'annotation' ? [item.annotation] : [],
+          )
+        : [],
+    ),
+  ]);
+}
+
 export function hasRole(
   annotations: readonly Annotation[],
   role: AnnotationRole['role'],
@@ -50,7 +68,7 @@ export function stringArgument(
   return value?.kind === 'literal' ? unquote(value.text) : null;
 }
 
-/** The member of the enum argument `name` (`TriggeredBy.Command` → `Command`); null when absent. */
+/** The member of the enum argument `name` (`Direction.PRIMARY` → `PRIMARY`); null when absent. */
 export function enumArgument(
   annotation: Annotation,
   name: string,

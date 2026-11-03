@@ -1,70 +1,73 @@
 import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
-  DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
+import { findById, writtenIn } from '../../../change-set.ts';
+import { partKeyOf } from '../../../design-doc-outline.ts';
+import { nameOf } from '../../../element-id.ts';
 import {
-  type ChangeSetInput,
-  designedOf,
-  findById,
-  findByName,
-  writtenIn,
-} from '../../../change-set.ts';
-import { ownerOfPart } from '../../../design-doc-outline.ts';
+  ruleNameOf,
+  rulesUnder,
+  type ScenarioSet,
+  scenariosUnder,
+} from '../../../rules.ts';
 
-/** One scenario as the column folds it: what the design does to it, and the rule it belongs to, if any. */
-export type ScenarioEntry =
-  | {
-      change: 'added' | 'modified';
-      name: string;
-      rule?: string;
-      scenario: DesignedScenarioInput;
-    }
-  | { change: 'removed'; name: string; rule?: string; scenario: null };
-
-type ScenarioSet = ChangeSetInput<DesignedScenarioInput, string>;
+/**
+ * One scenario as the column folds it: what the design does to it, and the
+ * rule it illustrates, by id and by the name a reader knows it by.
+ */
+export type ScenarioEntry = {
+  id: string;
+  name: string;
+  rule?: string;
+  ruleName?: string;
+} & (
+  | { change: 'added' | 'modified'; scenario: DesignedScenarioInput }
+  | { change: 'removed'; scenario: null }
+);
 
 /** A set of scenarios as the column folds it: added, then modified, then removed. */
 export const scenarioEntriesOf = (
   set: ScenarioSet | undefined,
-  rule?: string,
+  rule?: { id: string; name?: string },
 ): ScenarioEntry[] => {
-  const of = rule === undefined ? {} : { rule };
+  const of =
+    rule === undefined
+      ? {}
+      : rule.name === undefined
+        ? { rule: rule.id }
+        : { rule: rule.id, ruleName: rule.name };
+  const named = (scenario: DesignedScenarioInput) => ({
+    id: scenario.id,
+    name: ruleNameOf(scenario),
+    scenario,
+    ...of,
+  });
   return [
     ...(set?.added ?? []).map((scenario): ScenarioEntry => ({
       change: 'added',
-      name: scenario.name,
-      scenario,
-      ...of,
+      ...named(scenario),
     })),
     ...(set?.modified ?? []).map((scenario): ScenarioEntry => ({
       change: 'modified',
-      name: scenario.name,
-      scenario,
-      ...of,
+      ...named(scenario),
     })),
-    ...(set?.removed ?? []).map((name): ScenarioEntry => ({
+    ...(set?.removed ?? []).map((id): ScenarioEntry => ({
       change: 'removed',
-      name,
+      id,
+      name: nameOf(id),
       scenario: null,
       ...of,
     })),
   ];
 };
 
-/** A rule's own scenarios — of the rules the design writes out. */
-const ruleEntriesOf = (
-  rules: ChangeSetInput<DesignedRuleInput, string> | undefined,
-) =>
-  writtenIn(rules).flatMap((rule) =>
-    scenarioEntriesOf(rule.scenarios, rule.name),
-  );
-
 /**
- * The scenarios the design gives an element — a block's or a behavior's own,
- * then its rules', a module's rules' alone — or a rule's own; none for anything else, and none for an
- * element the design removes.
+ * The scenarios the design shows for an element: those of the rules shown
+ * under it — a behavior's, or a module's for a rule it names no behavior
+ * of — each with its rule's name, or a rule's own; none for anything else,
+ * and none for an element the design removes.
  */
 export const scenariosOf = (
   node: OutlineNode,
@@ -72,18 +75,19 @@ export const scenariosOf = (
 ): ScenarioEntry[] => {
   if (node.change === 'removed') return [];
   if (node.elementId !== null) {
-    const owner = designedOf(doc, node.elementId);
-    if (owner === null) return [];
-    const own = scenarioEntriesOf(
-      (
-        findById(doc.buildingBlocks, node.elementId) ??
-        findById(doc.behaviors, node.elementId)
-      )?.scenarios,
-    ).sort((a, b) => a.name.localeCompare(b.name));
-    return [...own, ...ruleEntriesOf(owner.rules)];
+    const rules = rulesUnder(doc, node.elementId);
+    return [
+      ...writtenIn(rules).map((rule) => rule.id),
+      ...(rules.removed ?? []),
+    ].flatMap((id) => {
+      const rule = findById(doc.rules, id);
+      return scenarioEntriesOf(scenariosUnder(doc, id), {
+        id,
+        name: rule === null ? nameOf(id) : ruleNameOf(rule),
+      });
+    });
   }
-  if (node.kind !== 'rule' || node.parentPath === null) return [];
-  const { elementId } = ownerOfPart(node.parentPath);
-  const rule = findByName(designedOf(doc, elementId)?.rules, node.name);
-  return rule === null ? [] : scenarioEntriesOf(rule.scenarios);
+  if (node.kind !== 'rule') return [];
+  const id = partKeyOf(node);
+  return scenarioEntriesOf(scenariosUnder(doc, id), { id });
 };

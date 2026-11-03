@@ -1,8 +1,10 @@
 import {
   IconActivity,
   IconAlertTriangle,
+  IconArrowsLeftRight,
   IconAssembly,
   IconBlocks,
+  IconBooks,
   IconCategory,
   IconChecklist,
   IconCircleCheck,
@@ -12,19 +14,27 @@ import {
   IconDatabase,
   IconDiamond,
   IconFolder,
+  IconHandClick,
   IconId,
   IconInfoCircle,
   IconListCheck,
   IconMathFunction,
+  IconPackage,
   IconPackageExport,
+  IconPlug,
+  IconPlugConnected,
   IconPoint,
   IconRoute,
   IconScale,
+  IconServer,
+  IconStack2,
   IconSettings,
   IconShield,
   IconSitemap,
   IconStatusChange,
   IconTarget,
+  IconTool,
+  IconUser,
   IconWorld,
 } from '@tabler/icons-react';
 import type { OutlineKind, OutlineNode } from './model-outline.ts';
@@ -32,9 +42,16 @@ import classes from './model-tree.module.css';
 
 const KIND_ICONS = {
   module: IconFolder,
+  actor: IconUser,
+  manual_process: IconHandClick,
+  deployable_unit: IconPackage,
+  library: IconBooks,
+  layer: IconStack2,
+  deployment_container: IconServer,
   building_block: IconBlocks,
   behavior: IconActivity,
   property: IconPoint,
+  collaborator: IconArrowsLeftRight,
   rule: IconScale,
   scenario: IconListCheck,
   group: IconCategory,
@@ -53,10 +70,13 @@ const PATTERNS = [
   'repository',
   'factory',
   'external_integration',
-  // behaviors
-  'Command',
-  'Event',
-  'Query',
+  'in_adapter',
+  'out_adapter',
+  'technical_service',
+  // messages
+  'command',
+  'event',
+  'query',
   // rules
   'Consistency',
   'Structure',
@@ -74,9 +94,12 @@ const PATTERN_ICONS = {
   repository: IconDatabase,
   factory: IconAssembly,
   external_integration: IconWorld,
-  Command: IconCircleLetterC,
-  Event: IconCircleLetterE, // event handler
-  Query: IconCircleLetterQ,
+  in_adapter: IconPlugConnected,
+  out_adapter: IconPlug,
+  technical_service: IconTool,
+  command: IconCircleLetterC,
+  event: IconCircleLetterE,
+  query: IconCircleLetterQ,
   Consistency: IconShield,
   Structure: IconSitemap,
   Computation: IconMathFunction,
@@ -89,9 +112,9 @@ const PATTERN_ICONS = {
  * the rules for the selected row and the way down to it still win over it.
  */
 const PATTERN_TONES: Partial<Record<Pattern, 'event' | 'query' | 'command'>> = {
-  Event: 'event',
-  Query: 'query',
-  Command: 'command',
+  event: 'event',
+  query: 'query',
+  command: 'command',
 };
 
 /*
@@ -119,15 +142,15 @@ const isPattern = (value: string): value is Pattern =>
 
 /*
  * The pattern first, since it says more than the kind does; the kind when
- * there is none, or none the model knows. A property's pattern is its type,
- * which only happens to share the vocabulary, so a property always reads as
- * a property.
+ * there is none, or none the model knows. A property's or a collaborator's
+ * pattern is its type, which only happens to share the vocabulary, so it
+ * always reads as what it is.
  */
 function drawingOf(kind: OutlineKind, pattern: string | null | undefined) {
   if (pattern != null) {
     if (kind === 'check' && isCheckLevel(pattern))
       return { Icon: CHECK_ICONS[pattern], tone: CHECK_TONES[pattern] };
-    if (kind !== 'property' && isPattern(pattern))
+    if (kind !== 'property' && kind !== 'collaborator' && isPattern(pattern))
       return { Icon: PATTERN_ICONS[pattern], tone: PATTERN_TONES[pattern] };
   }
   return { Icon: KIND_ICONS[kind], tone: undefined };

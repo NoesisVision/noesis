@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import {
+  ActorId,
   BehaviorId,
   BuildingBlockId,
+  DeployableUnitId,
+  DeploymentContainerId,
   ElementId,
   ElementName,
+  LayerId,
+  LibraryId,
+  ManualProcessId,
   ModuleId,
+  RuleId,
+  ScenarioId,
 } from '#backend/app/element-id';
 
 const BAD_NAMES = ['', ' ', ' a', 'a ', 'a.b', '.', 'a\tb ', 'a|b', '|'];
@@ -135,9 +143,47 @@ describe('BehaviorId', () => {
   });
 });
 
+describe('RuleId', () => {
+  it('needs a module before its name', () => {
+    expect(RuleId.safeParse('rule|sales.Non-empty order').success).toBe(true);
+    expect(RuleId.safeParse('rule|Non-empty order').success).toBe(false);
+  });
+
+  it('is built on the module of the behavior that governs it', () => {
+    const rule = RuleId.within(
+      ModuleId.parse('module|sales.orders'),
+      'Non-empty order',
+    );
+    expect(rule).toBe(RuleId.parse('rule|sales.orders.Non-empty order'));
+    expect(ElementId.nameOf(rule)).toBe('Non-empty order');
+  });
+});
+
+describe('ScenarioId', () => {
+  it('needs a rule before its name', () => {
+    expect(
+      ScenarioId.safeParse('scenario|sales.Non-empty order.Refused').success,
+    ).toBe(true);
+    expect(ScenarioId.safeParse('scenario|sales.Refused').success).toBe(false);
+  });
+
+  it('is built on its rule', () => {
+    const rule = RuleId.parse('rule|sales.Non-empty order');
+    expect(ScenarioId.within(rule, 'Refused')).toBe(
+      ScenarioId.parse('scenario|sales.Non-empty order.Refused'),
+    );
+  });
+});
+
 describe('ElementId', () => {
   it('accepts each kind and rejects an unknown kind or a value too shallow for its kind', () => {
-    for (const value of ['module|a', 'building_block|a.b', 'behavior|a.b.c']) {
+    for (const value of [
+      'module|a',
+      'building_block|a.b',
+      'behavior|a.b.c',
+      'rule|a.b',
+      'scenario|a.b.c',
+    ]) {
       expect(ElementId.parse(value)).toBe(value as ElementId);
     }
     for (const value of ['thing|a', 'a', '|a', 'module|', 'behavior|a.b']) {
@@ -146,21 +192,94 @@ describe('ElementId', () => {
   });
 
   it('tells the kinds apart', () => {
-    const ids = ['module|a', 'building_block|a.b', 'behavior|a.b.c'].map((v) =>
-      ElementId.parse(v),
-    );
-    expect(ids.map(ElementId.isModule)).toEqual([true, false, false]);
-    expect(ids.map(ElementId.isBuildingBlock)).toEqual([false, true, false]);
-    expect(ids.map(ElementId.isBehavior)).toEqual([false, false, true]);
+    const ids = [
+      'module|a',
+      'building_block|a.b',
+      'behavior|a.b.c',
+      'rule|a.b',
+      'scenario|a.b.c',
+      'actor|Support agent',
+      'manual_process|Refund a return',
+      'deployable_unit|shop-api',
+      'library|MyCompany.Sales.DeepModel',
+      'layer|domain',
+      'deployment_container|Orders cluster',
+    ].map((v) => ElementId.parse(v));
+    const only = (index: number) => ids.map((_, i) => i === index);
+    expect(ids.map(ElementId.isModule)).toEqual(only(0));
+    expect(ids.map(ElementId.isBuildingBlock)).toEqual(only(1));
+    expect(ids.map(ElementId.isBehavior)).toEqual(only(2));
+    expect(ids.map(ElementId.isRule)).toEqual(only(3));
+    expect(ids.map(ElementId.isScenario)).toEqual(only(4));
+    expect(ids.map(ElementId.isActor)).toEqual(only(5));
+    expect(ids.map(ElementId.isManualProcess)).toEqual(only(6));
+    expect(ids.map(ElementId.isDeployableUnit)).toEqual(only(7));
+    expect(ids.map(ElementId.isLibrary)).toEqual(only(8));
+    expect(ids.map(ElementId.isLayer)).toEqual(only(9));
+    expect(ids.map(ElementId.isDeploymentContainer)).toEqual(only(10));
     expect(
       ids.map((id) =>
         ElementId.match(id, {
           module: () => 'module',
           buildingBlock: () => 'building block',
           behavior: () => 'behavior',
+          rule: () => 'rule',
+          scenario: () => 'scenario',
+          actor: () => 'actor',
+          manualProcess: () => 'manual process',
+          deployableUnit: () => 'deployable unit',
+          library: () => 'library',
+          layer: () => 'layer',
+          deploymentContainer: () => 'deployment container',
         }),
       ),
-    ).toEqual(['module', 'building block', 'behavior']);
+    ).toEqual([
+      'module',
+      'building block',
+      'behavior',
+      'rule',
+      'scenario',
+      'actor',
+      'manual process',
+      'deployable unit',
+      'library',
+      'layer',
+      'deployment container',
+    ]);
+  });
+
+  it('names a layer and a deployment container by their name alone', () => {
+    expect<string>(LayerId.of('domain')).toBe('layer|domain');
+    expect<string>(DeploymentContainerId.of('Orders cluster')).toBe(
+      'deployment_container|Orders cluster',
+    );
+    expect(() => LayerId.of('shop.domain')).toThrow();
+    expect(LayerId.safeParse('layer|a.b').success).toBe(false);
+    expect(
+      DeploymentContainerId.safeParse('deployment_container|a.b').success,
+    ).toBe(false);
+  });
+
+  it('names an actor and a manual process by their name alone', () => {
+    expect<string>(ActorId.of('Support agent')).toBe('actor|Support agent');
+    expect<string>(ManualProcessId.of('Refund a return')).toBe(
+      'manual_process|Refund a return',
+    );
+    expect(() => ActorId.of('Support.agent')).toThrow();
+    expect(ActorId.safeParse('actor|a.b').success).toBe(false);
+    expect(ManualProcessId.safeParse('manual_process|a.b').success).toBe(false);
+  });
+
+  it('names a deployable unit and a library by the whole name the build gives, dots and all', () => {
+    expect<string>(DeployableUnitId.of('shop-api')).toBe(
+      'deployable_unit|shop-api',
+    );
+    const library = LibraryId.of('MyCompany.Sales.DeepModel');
+    expect<string>(library).toBe('library|MyCompany.Sales.DeepModel');
+    expect(ElementId.nameOf(library)).toBe('MyCompany.Sales.DeepModel');
+    expect(() => LibraryId.of('a|b')).toThrow();
+    expect(() => DeployableUnitId.of(' api')).toThrow();
+    expect(LibraryId.safeParse('library|').success).toBe(false);
   });
 
   it('reports a bad element at its path', () => {

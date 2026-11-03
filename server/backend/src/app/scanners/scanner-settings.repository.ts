@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { LibraryManifest } from '#backend/app/scanners/system-model-builders/library-manifest';
 import type { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
 
 /** The `csharp` parser: runs `noesis-parse-csharp`, which needs no settings. */
@@ -28,10 +29,16 @@ export const CodeParserSettings = z.discriminatedUnion('language', [
 ]);
 export type CodeParserSettings = z.infer<typeof CodeParserSettings>;
 
-/** `.noesis/settings.json`: which parser reads the repository, how, and how its namespaces map to modules. */
+/**
+ * `.noesis/settings.json`: which parser reads the repository, how, and how
+ * its namespaces map to modules; and `.noesis/libraries/*.json`: the
+ * libraries no scan reads, described by hand.
+ */
 export interface RepositorySettings {
   readonly parser: CodeParserSettings;
   readonly namespaces: NamespaceConfig;
+  /** By file name. */
+  readonly libraries: readonly LibraryManifest[];
 }
 
 /**
@@ -39,6 +46,6 @@ export interface RepositorySettings {
  * every scan, so a changed setting counts without a restart.
  */
 export interface ScannerSettingsRepository {
-  /** Throws when there is no file, or it names no parser or is invalid. */
+  /** Throws when there is no file, or it names no parser or is invalid, or a library manifest is invalid. */
   repositorySettings(): Promise<RepositorySettings>;
 }

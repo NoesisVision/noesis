@@ -8,6 +8,7 @@ import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CSharpParser } from '#backend/adapters/out/scanners/code-parsers/csharp-parser';
+import { GitSourceRepository } from '#backend/adapters/out/scanners/git-source-repository';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { systemClock } from '#backend/app/clock';
 import {
@@ -23,6 +24,7 @@ import {
   MODULES,
   UNREACHED,
 } from '../support/csharp-fixture-expectations';
+import { extendsOf, invokedTargetsOf } from '../support/relations';
 import { scannerOver } from '../support/test-scanner';
 
 const REPOSITORY = resolve(import.meta.dir, '../../../..');
@@ -145,9 +147,13 @@ describe('the fixture solution through the C# parser (e2e)', () => {
         await rm(outDir, { recursive: true, force: true });
       }
       const buildStart = performance.now();
+      const featureFiles = await new GitSourceRepository(
+        FIXTURE,
+      ).featureFiles();
       const { model: built } = buildSystemModel({
         manifest,
         files,
+        featureFiles,
         vocabulary: CSHARP_VOCABULARY,
         config,
       });
@@ -163,6 +169,11 @@ describe('the fixture solution through the C# parser (e2e)', () => {
       expect<unknown>(firstStage).toBeLessThan(FIRST_STAGE_BUDGET_MS);
       expect<unknown>(building).toBeLessThan(BUILD_BUDGET_MS);
       expect<unknown>(built.buildingBlocks).toEqual(model.buildingBlocks);
+      expect<unknown>(built.rules).toEqual(model.rules);
+      expect<unknown>(model.rules.map((r) => r.name)).toEqual([
+        'Named behaviors keep their name',
+        'Overloads take the widest',
+      ]);
 
       // What the real scan gives the builder, by the rules; the unit test
       // over the golden model checks the same expectations in full.
@@ -183,8 +194,10 @@ describe('the fixture solution through the C# parser (e2e)', () => {
         source: { path: 'CSharpSyntax/Projection/Blocks/BlockKinds.cs' },
       });
       expect<unknown>(
-        block('building_block|Projection.Invocations.ImplementsTwoContracts')
-          ?.implements,
+        extendsOf(
+          model,
+          'building_block|Projection.Invocations.ImplementsTwoContracts',
+        ),
       ).toEqual([
         'building_block|Projection.Invocations.FirstContract',
         'building_block|Projection.Invocations.SecondContract',
@@ -196,10 +209,12 @@ describe('the fixture solution through the C# parser (e2e)', () => {
           !b.id.startsWith('behavior|Projection.Invocations.Reached.'),
       );
       expect<unknown>(
-        Object.fromEntries(invocations.map((b) => [b.id, b.invokes])),
+        Object.fromEntries(
+          invocations.map((b) => [b.id, invokedTargetsOf(model, b.id)]),
+        ),
       ).toEqual(INVOKES);
       const reachedByAnyone = new Set<string>(
-        model.behaviors.flatMap((b) => b.invokes),
+        model.relations.flatMap((r) => (r.kind === 'invokes' ? [r.to] : [])),
       );
       for (const leaf of UNREACHED)
         expect<unknown>(reachedByAnyone.has(leaf)).toBe(false);

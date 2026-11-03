@@ -23,13 +23,12 @@ const BUILDING_BLOCKS: Record<string, BuildingBlockType> = {
   [`${ANNOTATIONS}.ApplicationService`]: 'application_service',
   [`${ANNOTATIONS}.Repository`]: 'repository',
   [`${ANNOTATIONS}.Factory`]: 'factory',
+  // The direction an external integration is reached in does not change what it is.
   [`${ANNOTATIONS}.ExternalIntegration`]: 'external_integration',
-  // An adapter is the code's side of an external integration.
-  [`${ANNOTATIONS}.Adapter`]: 'external_integration',
-  // Messages: the model has no message types, so they are value objects.
-  [`${ANNOTATIONS}.Command`]: 'value_object',
-  [`${ANNOTATIONS}.Query`]: 'value_object',
-  [`${ANNOTATIONS}.Event`]: 'value_object',
+  [`${ANNOTATIONS}.TechnicalService`]: 'technical_service',
+  [`${ANNOTATIONS}.Command`]: 'command',
+  [`${ANNOTATIONS}.Query`]: 'query',
+  [`${ANNOTATIONS}.Event`]: 'event',
 };
 
 const ROLES = new Map<string, AnnotationRole>([
@@ -39,11 +38,26 @@ const ROLES = new Map<string, AnnotationRole>([
       { role: 'buildingBlock', type },
     ],
   ),
-  // The handler annotations carry no argument: the annotation itself fixes the type.
-  [`${ANNOTATIONS}.CommandHandler`, { role: 'behavior', type: 'Command' }],
-  [`${ANNOTATIONS}.QueryHandler`, { role: 'behavior', type: 'Query' }],
-  [`${ANNOTATIONS}.EventHandler`, { role: 'behavior', type: 'Event' }],
-  // `Module` is a package annotation: no namespace-wide annotations yet (section 12).
+  // An adapter drives the system from outside (PRIMARY) or is driven by it (SECONDARY).
+  [
+    `${ANNOTATIONS}.Adapter`,
+    {
+      role: 'buildingBlock',
+      type: 'out_adapter',
+      byDirection: { PRIMARY: 'in_adapter', SECONDARY: 'out_adapter' },
+    },
+  ],
+  // The handler annotations mark a behavior; they no longer say what kind.
+  [`${ANNOTATIONS}.CommandHandler`, { role: 'behavior' }],
+  [`${ANNOTATIONS}.QueryHandler`, { role: 'behavior' }],
+  [`${ANNOTATIONS}.EventHandler`, { role: 'behavior' }],
+  // Cucumber's: the step definitions a feature file's `When` steps bind to.
+  ['T:io.cucumber.java.en.When', { role: 'stepDefinition' }],
+  // A package annotation, on `package-info.java`.
+  [`${ANNOTATIONS}.Layer`, { role: 'layer' }],
+  // Repeatable: two or more on one element come inside its `Actor.Actors` container.
+  [`${ANNOTATIONS}.Actor`, { role: 'actor' }],
+  // `Module` is a package annotation too, not read yet (section 12).
 ]);
 
 const LANG = 'T:java.lang';
@@ -131,12 +145,17 @@ const TECHNICAL_MEMBERS = new Set([
 
 export const JAVA_VOCABULARY: AnnotationVocabulary = {
   language: 'java',
+  stepExpressions: 'cucumber',
   roles: ROLES,
-  // No Java annotation carries these arguments today; the names are what a future one would use.
+  // No Java annotation carries a name or a description today; the names are what a future one would use.
   arguments: {
     name: 'name',
     description: 'description',
-    triggeredBy: 'triggeredBy',
+    // A single-element annotation's argument is `value`, however it is spelled.
+    direction: 'value',
+    expression: 'value',
+    layer: 'value',
+    actor: 'value',
   },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,

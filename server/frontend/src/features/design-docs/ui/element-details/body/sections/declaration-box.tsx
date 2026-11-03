@@ -37,7 +37,7 @@ export function DeclarationBox({
   /** The fields of the whole declaration, for who wrote its name — which has no writer of its own. */
   nameWrittenOf?: readonly (DesignDocFieldInput<unknown> | undefined)[];
 }) {
-  const { change, label, name, type, description } = item;
+  const { change, label, name, type, cardinality, description } = item;
   const removed = change === 'removed' || undefined;
   const box = (
     <Component className={classes.box} data-output={output || undefined}>
@@ -51,6 +51,7 @@ export function DeclarationBox({
       {type !== undefined && (
         <DeclarationType
           type={type}
+          suffix={cardinality}
           path={typePath}
           named={name !== undefined}
         />
@@ -74,13 +75,16 @@ export function DeclarationBox({
   return box;
 }
 
-/** The type by its last segment; a link to its row when the tree has one. */
+/** The type by its last segment, how many it holds after it; a link to its row when the tree has one. */
 export function DeclarationType({
   type,
+  suffix = '',
   path,
   named,
 }: {
   type: string;
+  /** What follows the type: how many of it the slot holds, when not exactly one. */
+  suffix?: string | undefined;
   path: string | null | undefined;
   /** Under a name it is the second line; alone it heads the box. */
   named: boolean;
@@ -97,10 +101,12 @@ export function DeclarationType({
           onClick={() => select(path)}
         >
           <QualifiedName name={type} />
+          {suffix}
         </UnstyledButton>
       ) : (
         <span className={className}>
           <QualifiedName name={type} />
+          {suffix}
         </span>
       )}
     </ElementTooltip>

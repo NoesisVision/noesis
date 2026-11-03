@@ -1,3 +1,4 @@
+import { readdir } from 'node:fs/promises';
 import { z } from 'zod';
 import {
   CodeParserSettings,
@@ -5,12 +6,17 @@ import {
   type ScannerSettingsRepository,
 } from '#backend/app/scanners/scanner-settings.repository';
 import {
+  type LibraryManifest,
+  LibraryManifestSchema,
+} from '#backend/app/scanners/system-model-builders/library-manifest';
+import {
   NamespaceConfig,
   NamespaceConfigSchema,
 } from '#backend/app/scanners/system-model-builders/namespace-config';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 
 const SETTINGS_FILE = 'settings.json';
+const LIBRARIES_DIR = 'libraries';
 
 const SET_PARSER = `"parser": { "language": … } with one of: ${CodeParserSettings.options
   .map((option) => option.shape.language.value)
@@ -21,7 +27,7 @@ const RepositorySettingsSchema = NamespaceConfigSchema.extend({
   parser: CodeParserSettings.optional(),
 }).strict();
 
-/** `.noesis/settings.json` in the repository. */
+/** `.noesis/settings.json` in the repository, and the library manifests in `.noesis/libraries/`. */
 export class ScannerSettingsFileRepository implements ScannerSettingsRepository {
   private readonly noesis: NoesisDir;
 
@@ -51,6 +57,37 @@ export class ScannerSettingsFileRepository implements ScannerSettingsRepository 
     return {
       parser,
       namespaces: NamespaceConfig.of(namespaces),
+      libraries: await this.libraries(),
     };
+  }
+
+  /** Every `*.json` file in `.noesis/libraries/`, by file name; none without the directory. */
+  private async libraries(): Promise<LibraryManifest[]> {
+    const entries = await readdir(this.noesis.resolve(LIBRARIES_DIR), {
+      withFileTypes: true,
+    }).catch((error: unknown) => {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+      throw error;
+    });
+    const names = entries
+      .filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+      .map(({ name }) => name)
+      .sort();
+    const manifests: LibraryManifest[] = [];
+    for (const name of names) {
+      const path = `.noesis/${LIBRARIES_DIR}/${name}`;
+      const parsed = LibraryManifestSchema.safeParse(
+        await Bun.file(this.noesis.resolve(LIBRARIES_DIR, name))
+          .json()
+          .catch((error: unknown) => {
+            throw new Error(`Invalid ${path}: ${String(error)}`);
+          }),
+      );
+      if (!parsed.success) {
+        throw new Error(`Invalid ${path}:\n${z.prettifyError(parsed.error)}`);
+      }
+      manifests.push({ ...parsed.data, path });
+    }
+    return manifests;
   }
 }

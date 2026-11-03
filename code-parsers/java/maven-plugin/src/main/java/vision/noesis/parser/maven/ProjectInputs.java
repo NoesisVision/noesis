@@ -28,17 +28,21 @@ final class ProjectInputs {
 
     private ProjectInputs() {}
 
-    static ArtifactInput of(MavenProject project, MavenSession session, Integer release) {
+    /** @param includeTests whether the test sources are parsed too: their roots, the test classpath and the test classes */
+    static ArtifactInput of(MavenProject project, MavenSession session, Integer release, boolean includeTests) {
         Set<String> reactor = new HashSet<>();
         for (MavenProject other : session.getProjects()) reactor.add(other.getGroupId() + ":" + other.getArtifactId());
         List<String> names = moduleNames(session);
         List<ClasspathEntry> classpath = new ArrayList<>();
         for (Artifact artifact : project.getArtifacts()) {
-            if (artifact.getFile() == null || Artifact.SCOPE_TEST.equals(artifact.getScope())) continue;
-            classpath.add(new ClasspathEntry(artifact.getFile().toPath(), dependencyOf(artifact, reactor, names)));
+            if (artifact.getFile() == null || (!includeTests && Artifact.SCOPE_TEST.equals(artifact.getScope()))) continue;
+            classpath.add(new ClasspathEntry(artifact.getFile().toPath(), dependencyOf(artifact, reactor, names), Artifact.SCOPE_TEST.equals(artifact.getScope())));
         }
         List<Path> sourceRoots = new ArrayList<>();
         for (String root : project.getCompileSourceRoots()) sourceRoots.add(Path.of(root));
+        if (includeTests) {
+            for (String root : project.getTestCompileSourceRoots()) sourceRoots.add(Path.of(root));
+        }
         return new ArtifactInput(
                 project.getGroupId(),
                 project.getArtifactId(),
@@ -53,7 +57,8 @@ final class ProjectInputs {
                 project.getPackaging(),
                 mainClassOf(project, session.getUserProperties()),
                 uniqueName(project.getGroupId(), project.getArtifactId(), names),
-                Path.of(project.getBuild().getDirectory()));
+                Path.of(project.getBuild().getDirectory()),
+                includeTests ? Path.of(project.getBuild().getTestOutputDirectory()) : null);
     }
 
     /** The artifact ids of the reactor's parsed modules (every packaging but {@code pom}), once per module. */

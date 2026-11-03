@@ -25,11 +25,11 @@ const BUILDING_BLOCKS: Record<string, BuildingBlockType> = {
   [`${DDD}.DddRepositoryAttribute`]: 'repository',
   [`${DDD}.DddFactoryAttribute`]: 'factory',
   [`${DOMAIN}.ExternalSystemIntegrationAttribute`]: 'external_integration',
-  // Messages: the model has no message types, so they are value objects.
-  [`${DOMAIN}.CommandAttribute`]: 'value_object',
-  [`${DOMAIN}.QueryAttribute`]: 'value_object',
-  [`${DOMAIN}.EventAttribute`]: 'value_object',
-  [`${DDD}.DddDomainEventAttribute`]: 'value_object',
+  [`${DOMAIN}.CommandAttribute`]: 'command',
+  [`${DOMAIN}.QueryAttribute`]: 'query',
+  [`${DOMAIN}.EventAttribute`]: 'event',
+  [`${DDD}.DddDomainEventAttribute`]: 'event',
+  // A read model is a value the query side holds, no message.
   [`${DOMAIN}.ReadModelAttribute`]: 'value_object',
 };
 
@@ -44,7 +44,8 @@ const ROLES = new Map<string, AnnotationRole>([
   [`${DOMAIN}.EntryPointAttribute`, { role: 'behavior' }],
   [`${ANNOTATIONS}.People.ActorAttribute`, { role: 'actor' }],
   [`${ANNOTATIONS}.ShortDescriptionAttribute`, { role: 'description' }],
-  [`${DOMAIN}.ScenarioAttribute`, { role: 'scenario' }],
+  // Reqnroll's, not SpecFlow's: the step definitions a feature file's `When` steps bind to.
+  ['T:Reqnroll.WhenAttribute', { role: 'stepDefinition' }],
   [`${ANNOTATIONS}.ExcludeFromDocsAttribute`, { role: 'exclude' }],
 ]);
 
@@ -137,11 +138,17 @@ const TECHNICAL_MEMBERS = new Set([
 
 export const CSHARP_VOCABULARY: AnnotationVocabulary = {
   language: 'csharp',
+  stepExpressions: 'reqnroll',
   roles: ROLES,
   arguments: {
     name: 'name',
     description: 'markdownText',
-    triggeredBy: 'TriggeredBy',
+    // No C# annotation reads a direction until the package has adapters.
+    direction: 'Direction',
+    expression: 'expression',
+    // No C# attribute names a layer until the package has one.
+    layer: 'name',
+    actor: 'name',
   },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,

@@ -67,7 +67,8 @@ public final class ModelBuilder {
     }
 
     /**
-     * Sorted file; stub artifacts no dependency lists are appended as libraries, platform ones as platform. A stub of an
+     * Sorted file; stub artifacts no dependency lists are appended: a library only the tests use as the classpath names it,
+     * any other as a library, platform ones as platform. A stub of an
      * id the artifact declares (a package of a stubbed type's chain the module also declares) is dropped: the node stands.
      */
     public CodeModelFile build(Generator generator, ArtifactNode artifact, ParseSession session) {
@@ -77,7 +78,7 @@ public final class ModelBuilder {
         for (StubNode stub : allStubs) {
             if (stub.artifact() != null && !dependencies.containsKey(stub.artifact())) {
                 ArtifactKind kind = session.classpath().isPlatform(stub.artifact()) ? ArtifactKind.PLATFORM : ArtifactKind.LIBRARY;
-                dependencies.put(stub.artifact(), new ArtifactDependency(stub.artifact(), kind, null));
+                dependencies.put(stub.artifact(), session.classpath().dependency(stub.artifact()).orElse(new ArtifactDependency(stub.artifact(), kind, null)));
             }
         }
         ArtifactNode withDependencies = new ArtifactNode(

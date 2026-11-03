@@ -21,6 +21,7 @@ import {
   useState,
 } from 'react';
 import {
+  ChangeMarksContext,
   DesignDocumentContext,
   DetailsDock,
   ElementPanel,
@@ -184,7 +185,17 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const [veiled, setVeiled] = useState<ReadonlySet<string>>(() => new Set());
   const [seeing, setSeeing] = useState(false);
   const [relations, setRelations] = useState<ReadonlySet<RelationKind>>(
-    () => opening?.relations ?? new Set(['contains', 'uses', 'invokes']),
+    () =>
+      opening?.relations ??
+      new Set([
+        'contains',
+        'state',
+        'collaborator',
+        'input',
+        'output',
+        'invokes',
+        'performs',
+      ]),
   );
   const [drawing, setDrawing] = useState<Drawing>({
     direction: opening?.direction ?? 'vertical',
@@ -410,14 +421,15 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [exploration],
   );
   // What the model holds inside each element, all the way down.
+  // All it holds, all the way down — drawn round it or not, as a layer's
+  // blocks whose module lies partly outside it are.
   const insideOf = useMemo(() => {
     const kids = new Map<string, string[]>();
-    for (const { id, container } of exploration.elements)
-      if (container !== null)
-        kids.set(container, [...(kids.get(container) ?? []), id]);
+    for (const { from, to } of exploration.holdings)
+      kids.set(from, [...(kids.get(from) ?? []), to]);
     const all = (id: string): string[] =>
       (kids.get(id) ?? []).flatMap((kid) => [kid, ...all(kid)]);
-    return all;
+    return (id: string) => [...new Set(all(id))];
   }, [exploration]);
   // What was just added — from a card's menu, the picker or the canvas's own
   // menu — with the card it came from, if any: in hand at once, and, once the
@@ -727,126 +739,133 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
 
   return (
-    // What floats over the canvas, in a portal, is drawn in its theme too.
-    <DiagramThemeContext.Provider value={theme}>
-      <Stack gap={0} flex={1} className={classes.exploration}>
-        {toolbar}
-        <Box
-          ref={canvas}
-          component="section"
-          // A theme draws the canvas and what lies on it, never the toolbar
-          // above: its stylesheet hangs its root here (themes/themes.ts).
-          className={theme.className}
-          data-diagram-theme={theme.id}
-          pos="relative"
-          flex={1}
-          mih={0}
-          aria-label="Exploration of the system model"
-        >
-          {failure !== null ? (
-            <Alert color="red" title="The elements could not be placed" m="md">
-              {failure}
-            </Alert>
-          ) : exploration.elements.length === 0 ? (
-            <Text c="dimmed" p="lg">
-              The scan found no modules, building blocks or behaviors.
-            </Text>
-          ) : graph.elements.length === 0 ? (
-            <Box h="100%" className={classes.blank} data-part="blank" />
-          ) : (
-            <DesignDocumentContext.Provider value={document}>
-              <ExplorationReadingContext.Provider value={reading}>
-                <ReactFlow
-                  nodes={visibleNodes}
-                  edges={edges}
-                  nodeTypes={NODE_TYPES}
-                  edgeTypes={EDGE_TYPES}
-                  onNodesChange={onNodesChange}
-                  onNodeDragStart={onNodeDragStart}
-                  onNodeDrag={onNodeDrag}
-                  onNodeDragStop={onNodeDragStop}
-                  colorMode={scheme}
-                  fitView
-                  fitViewOptions={FIT}
-                  attributionPosition="bottom-right"
-                  minZoom={0.1}
-                  maxZoom={2}
-                  nodesConnectable={false}
-                  nodesFocusable={false}
-                  edgesFocusable={false}
-                  elementsSelectable={false}
-                  onInit={(instance) => {
-                    setFlow(instance);
-                    setZoom(instance.getZoom());
-                  }}
-                  onMove={(_, viewport) => setZoom(viewport.zoom)}
-                  onPaneClick={() => {
-                    letGo();
-                    setQuick(null);
-                  }}
-                  // A right click on the empty canvas asks what to put there;
-                  // a double click zooms in, as on any canvas.
-                  onPaneContextMenu={(event) => {
-                    event.preventDefault();
-                    const box = canvas.current?.getBoundingClientRect();
-                    if (flow === null || box === undefined) return;
-                    setQuick({
-                      spot: {
-                        left: event.clientX - box.left,
-                        top: event.clientY - box.top,
-                      },
-                      at: flow.screenToFlowPosition({
-                        x: event.clientX,
-                        y: event.clientY,
-                      }),
-                    });
-                  }}
-                  // Changed on each placement, so the edges fade in anew once
-                  // the cards have moved to where it puts them.
-                  // While a card is dragged, the edges' dashes hold still,
-                  // unless dev tools ask for them to run on.
-                  className={`${
-                    placements % 2 === 0 ? classes.settled : classes.resettled
-                  } ${gliding ? classes.gliding : ''} ${
-                    dragging && !animateEdgesWhileDragging
-                      ? classes.dragging
-                      : ''
-                  }`}
-                >
-                  {selectionPanel}
-                  {dragged !== null && (
-                    <ViewportPortal>
-                      <div
-                        ref={outline}
-                        aria-hidden
-                        className={classes.outline}
-                        style={{
-                          width: dragged.width,
-                          height: dragged.height,
-                          transform: `translate(${dragged.at.x}px, ${dragged.at.y}px)`,
-                        }}
-                      />
-                    </ViewportPortal>
-                  )}
-                  <Background {...(theme.background ?? DOTS)} />
-                </ReactFlow>
-                <CanvasTooltips within={canvas} dragging={dragging} />
-              </ExplorationReadingContext.Provider>
-            </DesignDocumentContext.Provider>
-          )}
-          {failure === null && exploration.elements.length > 0 && picker}
-          {/* Down the canvas's left side: the visibility panel at the top,
+    // The model as it stands: nothing on it is marked as a change.
+    <ChangeMarksContext.Provider value={false}>
+      {/* What floats over the canvas, in a portal, is drawn in its theme too. */}
+      <DiagramThemeContext.Provider value={theme}>
+        <Stack gap={0} flex={1} className={classes.exploration}>
+          {toolbar}
+          <Box
+            ref={canvas}
+            component="section"
+            // A theme draws the canvas and what lies on it, never the toolbar
+            // above: its stylesheet hangs its root here (themes/themes.ts).
+            className={theme.className}
+            data-diagram-theme={theme.id}
+            pos="relative"
+            flex={1}
+            mih={0}
+            aria-label="Exploration of the system model"
+          >
+            {failure !== null ? (
+              <Alert
+                color="red"
+                title="The elements could not be placed"
+                m="md"
+              >
+                {failure}
+              </Alert>
+            ) : exploration.elements.length === 0 ? (
+              <Text c="dimmed" p="lg">
+                The scan found no modules, building blocks or behaviors.
+              </Text>
+            ) : graph.elements.length === 0 ? (
+              <Box h="100%" className={classes.blank} data-part="blank" />
+            ) : (
+              <DesignDocumentContext.Provider value={document}>
+                <ExplorationReadingContext.Provider value={reading}>
+                  <ReactFlow
+                    nodes={visibleNodes}
+                    edges={edges}
+                    nodeTypes={NODE_TYPES}
+                    edgeTypes={EDGE_TYPES}
+                    onNodesChange={onNodesChange}
+                    onNodeDragStart={onNodeDragStart}
+                    onNodeDrag={onNodeDrag}
+                    onNodeDragStop={onNodeDragStop}
+                    colorMode={scheme}
+                    fitView
+                    fitViewOptions={FIT}
+                    attributionPosition="bottom-right"
+                    minZoom={0.1}
+                    maxZoom={2}
+                    nodesConnectable={false}
+                    nodesFocusable={false}
+                    edgesFocusable={false}
+                    elementsSelectable={false}
+                    onInit={(instance) => {
+                      setFlow(instance);
+                      setZoom(instance.getZoom());
+                    }}
+                    onMove={(_, viewport) => setZoom(viewport.zoom)}
+                    onPaneClick={() => {
+                      letGo();
+                      setQuick(null);
+                    }}
+                    // A right click on the empty canvas asks what to put there;
+                    // a double click zooms in, as on any canvas.
+                    onPaneContextMenu={(event) => {
+                      event.preventDefault();
+                      const box = canvas.current?.getBoundingClientRect();
+                      if (flow === null || box === undefined) return;
+                      setQuick({
+                        spot: {
+                          left: event.clientX - box.left,
+                          top: event.clientY - box.top,
+                        },
+                        at: flow.screenToFlowPosition({
+                          x: event.clientX,
+                          y: event.clientY,
+                        }),
+                      });
+                    }}
+                    // Changed on each placement, so the edges fade in anew once
+                    // the cards have moved to where it puts them.
+                    // While a card is dragged, the edges' dashes hold still,
+                    // unless dev tools ask for them to run on.
+                    className={`${
+                      placements % 2 === 0 ? classes.settled : classes.resettled
+                    } ${gliding ? classes.gliding : ''} ${
+                      dragging && !animateEdgesWhileDragging
+                        ? classes.dragging
+                        : ''
+                    }`}
+                  >
+                    {selectionPanel}
+                    {dragged !== null && (
+                      <ViewportPortal>
+                        <div
+                          ref={outline}
+                          aria-hidden
+                          className={classes.outline}
+                          style={{
+                            width: dragged.width,
+                            height: dragged.height,
+                            transform: `translate(${dragged.at.x}px, ${dragged.at.y}px)`,
+                          }}
+                        />
+                      </ViewportPortal>
+                    )}
+                    <Background {...(theme.background ?? DOTS)} />
+                  </ReactFlow>
+                  <CanvasTooltips within={canvas} dragging={dragging} />
+                </ExplorationReadingContext.Provider>
+              </DesignDocumentContext.Provider>
+            )}
+            {failure === null && exploration.elements.length > 0 && picker}
+            {/* Down the canvas's left side: the visibility panel at the top,
             taking what room the shortcuts below it leave. */}
-          <Box className={classes.side}>{side}</Box>
-          {quickAdd}
-          {placing && nodes.length === 0 && failure === null && (
-            <Text component="output" c="dimmed" p="lg" pos="absolute" top={0}>
-              Placing the elements…
-            </Text>
-          )}
-        </Box>
-      </Stack>
-    </DiagramThemeContext.Provider>
+            <Box className={classes.side}>{side}</Box>
+            {quickAdd}
+            {placing && nodes.length === 0 && failure === null && (
+              <Text component="output" c="dimmed" p="lg" pos="absolute" top={0}>
+                Placing the elements…
+              </Text>
+            )}
+          </Box>
+        </Stack>
+      </DiagramThemeContext.Provider>
+    </ChangeMarksContext.Provider>
   );
 }
 

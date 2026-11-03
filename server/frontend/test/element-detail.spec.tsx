@@ -4,10 +4,9 @@ import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts
 import { valueOf } from '../src/features/design-docs/design-doc-field';
 import { ElementBody } from '../src/features/design-docs/ui/architecture/element-body';
 import { scenariosOf } from '../src/features/design-docs/ui/element-details/body/scenarios-of';
-import { ChangeListSection } from '../src/features/design-docs/ui/element-details/body/sections/change-list-section';
 import {
-  ruleItems,
   propertyItems,
+  ruleItems,
 } from '../src/features/design-docs/ui/element-details/change-list-items';
 import { DesignDocumentContext } from '../src/features/design-docs/ui/element-details/design-document-context';
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
@@ -43,6 +42,15 @@ const DIAGRAM = [
 const human = <const T,>(value: T) => ({ value, author: 'human' as const });
 const plain = <const T,>(value: T) => ({ value, author: 'agent' as const });
 
+const PLACE = 'behavior|pay.Hold.place';
+const EXPIRES = 'rule|pay.A hold expires';
+const ONCE = 'rule|pay.Only once';
+const LAPSES = 'scenario|pay.A hold expires.An unpaid hold lapses';
+const SETTLES = 'scenario|pay.A hold expires.A hold settles';
+const EXPIRES_ROW = `${PLACE}#rule:${EXPIRES}`;
+const LAPSES_ROW = `${EXPIRES_ROW}#scenario:${LAPSES}`;
+const SETTLES_ROW = `${EXPIRES_ROW}#scenario:${SETTLES}`;
+
 const document = {
   id: 'doc',
   name: 'Holds',
@@ -55,61 +63,6 @@ const document = {
         type: plain('aggregate'),
         definition: human(DIAGRAM),
         diagram: plain('stateDiagram-v2\n  Held --> Settled'),
-        implements: {
-          added: ['building_block|pay.Settleable'],
-          removed: ['building_block|pay.Lockable'],
-        },
-        properties: {
-          added: [
-            {
-              name: 'amount',
-              type: plain('building_block|pay.Money'),
-              optional: plain(true),
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
-        rules: {
-          added: [
-            {
-              name: 'A hold expires',
-              description: plain(''),
-              scenarios: {
-                added: [
-                  {
-                    name: 'An unpaid hold lapses',
-                    description: plain('The retry window closes.'),
-                    steps: plain([
-                      { kind: 'given', text: 'a hold with no payment' },
-                      { kind: 'when', text: 'an hour passes' },
-                      { kind: 'then', text: 'the hold is released' },
-                    ]),
-                  },
-                ],
-                removed: [],
-                modified: [],
-              },
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
-        scenarios: {
-          added: [
-            {
-              name: 'A hold settles',
-              description: plain('The ordinary path.'),
-              steps: plain([
-                { kind: 'given', text: 'a hold' },
-                { kind: 'when', text: 'the booking is confirmed' },
-                { kind: 'then', text: 'the hold settles' },
-              ]),
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
       },
     ],
     removed: ['building_block|pay.Voucher'],
@@ -120,27 +73,91 @@ const document = {
       {
         id: 'behavior|pay.Hold.place',
         definition: plain('Holds a card for a booking.'),
-        input: {
-          added: [
-            {
-              name: 'amount',
-              type: plain('building_block|pay.Money'),
-              description: plain('What to hold.'),
-            },
-          ],
-        },
-        output: { added: [{ type: 'building_block|pay.Hold' }] },
-        rules: {
-          added: [
-            {
-              name: 'Only once',
-              description: plain('A booking holds one card at a time.'),
-            },
-          ],
-        },
       },
     ],
     removed: ['behavior|pay.Voucher.redeem'],
+    modified: [],
+  },
+  rules: {
+    added: [
+      { id: EXPIRES, name: plain('A hold expires'), description: plain('') },
+      {
+        id: ONCE,
+        name: plain('Only once'),
+        description: plain('A booking holds one card at a time.'),
+      },
+    ],
+  },
+  scenarios: {
+    added: [
+      {
+        id: LAPSES,
+        name: plain('An unpaid hold lapses'),
+        description: plain('The retry window closes.'),
+        steps: plain([
+          { kind: 'given', text: 'a hold with no payment' },
+          { kind: 'when', text: 'an hour passes' },
+          { kind: 'then', text: 'the hold is released' },
+        ]),
+      },
+      {
+        id: SETTLES,
+        name: plain('A hold settles'),
+        description: plain('The ordinary path.'),
+        steps: plain([
+          { kind: 'given', text: 'a hold' },
+          { kind: 'when', text: 'the booking is confirmed' },
+          { kind: 'then', text: 'the hold settles' },
+        ]),
+      },
+    ],
+  },
+  relations: {
+    added: [
+      { kind: 'governs', from: PLACE, to: EXPIRES },
+      { kind: 'governs', from: PLACE, to: ONCE },
+      { kind: 'illustrates', from: LAPSES, to: EXPIRES },
+      { kind: 'illustrates', from: SETTLES, to: EXPIRES },
+      {
+        kind: 'extends',
+        from: 'building_block|pay.Hold',
+        to: 'building_block|pay.Settleable',
+      },
+      {
+        kind: 'has_state',
+        from: 'building_block|pay.Hold',
+        name: 'amount',
+        to: plain('building_block|pay.Money'),
+        cardinality: plain('0..1'),
+      },
+      {
+        kind: 'has_collaborator',
+        from: 'building_block|pay.Hold',
+        name: 'ledger',
+        to: plain('building_block|pay.Ledger'),
+      },
+      {
+        kind: 'has_input',
+        from: 'behavior|pay.Hold.place',
+        name: 'amount',
+        to: plain('building_block|pay.Money'),
+        cardinality: plain('1'),
+        position: plain(1),
+      },
+      {
+        kind: 'has_output',
+        from: 'behavior|pay.Hold.place',
+        to: 'building_block|pay.Hold',
+        cardinality: plain('1'),
+      },
+    ],
+    removed: [
+      {
+        kind: 'extends',
+        from: 'building_block|pay.Hold',
+        to: 'building_block|pay.Lockable',
+      },
+    ],
     modified: [],
   },
   implemented: false,
@@ -181,42 +198,51 @@ const outline: OutlineNode[] = [
     name: 'amount',
     depth: 2,
     change: 'added',
-    pattern: 'Money',
-    patternLabel: 'Money',
+    pattern: 'Money [0..1]',
+    patternLabel: 'Money [0..1]',
   }),
   node({
-    path: 'building_block|pay.Hold#rule:A hold expires',
-    parentPath: 'building_block|pay.Hold',
-    elementId: null,
-    kind: 'rule',
-    name: 'A hold expires',
-    depth: 2,
-    change: 'added',
-  }),
-  node({
-    path: 'building_block|pay.Hold#rule:A hold expires#scenario:An unpaid hold lapses',
-    parentPath: 'building_block|pay.Hold#rule:A hold expires',
-    elementId: null,
-    kind: 'scenario',
-    name: 'An unpaid hold lapses',
-    depth: 3,
-    change: 'added',
-  }),
-  node({
-    path: 'building_block|pay.Hold#scenario:A hold settles',
-    parentPath: 'building_block|pay.Hold',
-    elementId: null,
-    kind: 'scenario',
-    name: 'A hold settles',
-    depth: 2,
-    change: 'added',
-  }),
-  node({
-    path: 'behavior|pay.Hold.place',
+    path: PLACE,
     parentPath: 'building_block|pay.Hold',
     kind: 'behavior',
     name: 'place',
     depth: 2,
+    change: 'added',
+  }),
+  node({
+    path: EXPIRES_ROW,
+    parentPath: PLACE,
+    elementId: null,
+    kind: 'rule',
+    name: 'A hold expires',
+    depth: 3,
+    change: 'added',
+  }),
+  node({
+    path: LAPSES_ROW,
+    parentPath: EXPIRES_ROW,
+    elementId: null,
+    kind: 'scenario',
+    name: 'An unpaid hold lapses',
+    depth: 4,
+    change: 'added',
+  }),
+  node({
+    path: SETTLES_ROW,
+    parentPath: EXPIRES_ROW,
+    elementId: null,
+    kind: 'scenario',
+    name: 'A hold settles',
+    depth: 4,
+    change: 'added',
+  }),
+  node({
+    path: `${PLACE}#rule:${ONCE}`,
+    parentPath: PLACE,
+    elementId: null,
+    kind: 'rule',
+    name: 'Only once',
+    depth: 3,
     change: 'added',
   }),
   node({
@@ -287,9 +313,9 @@ describe('ElementDetail', () => {
     expect(show('building_block|pay.Hold')).toMatch(/<h2[^>]*>Hold<\/h2>/);
   });
 
-  it('says what a block implements over its definition, flat', () => {
+  it('says what a block extends over its definition, flat', () => {
     const html = show('building_block|pay.Hold');
-    expect(html).toMatch(/<dt[^>]*>(<[^>]+>)*Implements<\/span> <span[^>]*>2</);
+    expect(html).toMatch(/<dt[^>]*>(<[^>]+>)*Extends<\/span> <span[^>]*>2</);
     expect(html).toMatch(/>Lockable<[\s\S]*>Settleable</);
     // Not beside the name any more: the name's line holds only its badges.
     const heading = html.slice(html.indexOf('<h2'), html.indexOf('</header>'));
@@ -300,7 +326,7 @@ describe('ElementDetail', () => {
     expect(html).not.toContain('Group by type');
   });
 
-  it('says what implements a type', () => {
+  it('says what extends a type', () => {
     const type = (name: string) =>
       node({
         path: `building_block|pay.${name}`,
@@ -315,7 +341,7 @@ describe('ElementDetail', () => {
     );
     // Found in the document even for a type the design leaves alone.
     expect(show('building_block|pay.Settleable', withTypes)).toMatch(
-      /Implemented by[\s\S]*<button[^>]*>(<[^>]+>)*Hold</,
+      /Extended by[\s\S]*<button[^>]*>(<[^>]+>)*Hold</,
     );
     // Nothing implements Hold itself, so it has no such relation.
     expect(show('building_block|pay.Hold')).not.toContain('Implemented by');
@@ -387,18 +413,19 @@ describe('ElementDetail', () => {
   });
 
   it('says where in the model the element sits, as a trail back up it', () => {
-    const html = show('building_block|pay.Hold#scenario:A hold settles');
+    const html = show(SETTLES_ROW);
     expect(html).toMatch(/<nav[^>]*aria-label="Where this element sits"/);
     expect(html).toContain('>pay<');
     expect(html).toContain('>Hold<');
+    expect(html).toContain('>place<');
     // The element itself closes the trail as where the reader is, not as a
     // step of the way to it.
     expect(html).toMatch(/aria-current="location"[^>]*>A hold settles</);
-    expect(html.match(/<button[^>]*>/g)).toHaveLength(2);
+    expect(html.match(/<button[^>]*>/g)).toHaveLength(4);
   });
 
   it('steps back up the trail with a button, not with an ornament', () => {
-    const html = show('building_block|pay.Hold#scenario:A hold settles');
+    const html = show(SETTLES_ROW);
     // The step's kind icon, then its name.
     expect(html).toMatch(/<button[^>]*>(<svg[\s\S]*?<\/svg>)<span>pay<\/span>/);
     // The separator is drawn, not read out between every pair of steps.
@@ -431,68 +458,89 @@ describe('ElementDetail', () => {
   });
 
   it('shows no diagram section when the design draws none', () => {
-    expect(show('building_block|pay.Hold#rule:A hold expires')).not.toContain(
-      '>Diagram<',
-    );
+    expect(show(EXPIRES_ROW)).not.toContain('>Diagram<');
   });
 
   it('says a description is missing rather than opening an editor on it', () => {
-    expect(show('building_block|pay.Hold#rule:A hold expires')).toContain(
-      'Not specified.',
-    );
+    expect(show(EXPIRES_ROW)).toContain('Not specified.');
   });
 
-  it('says a description the design leaves alone is unchanged', () => {
-    // The fixture's property carries no description at all: the design keeps
-    // whatever the model says, which is not the same as saying nothing.
-    const html = show(
-      'building_block|pay.Hold#property:amount',
-      withProperties,
-    );
-    expect(html).toContain('>unchanged<');
-    expect(html).not.toContain('Not specified.');
-  });
-
-  it('reads a property as the field it declares', () => {
+  it('reads a property as the field it declares, with how many it holds', () => {
     const html = show(
       'building_block|pay.Hold#property:amount',
       withProperties,
     );
     expect(html).toContain('Money');
-    expect(html).toContain('amount?');
+    expect(html).toContain('amount:');
+    expect(html).toContain('[0..1]');
   });
 
   it('reads a scenario as the three things it says', () => {
-    const html = show('building_block|pay.Hold#scenario:A hold settles');
+    const html = show(SETTLES_ROW);
     expect(html).toContain('Given');
     expect(html).toContain('When');
     expect(html).toContain('Then');
     expect(html).toContain('the hold settles');
   });
 
-  it("reads a rule's own scenario through the rule", () => {
-    const html = show(
-      'building_block|pay.Hold#rule:A hold expires#scenario:An unpaid hold lapses',
-    );
+  it('reads a scenario through the rule it illustrates', () => {
+    const html = show(LAPSES_ROW);
     expect(html).toContain('the hold is released');
-    // The trail runs through the rule the scenario belongs to.
+    // The trail runs through the rule the scenario illustrates.
     expect(html).toMatch(
       /<button[^>]*>(<svg[\s\S]*?<\/svg>)<span>A hold expires<\/span>/,
     );
   });
 
-  it("lists a block's properties and rules, a rule opening its row", () => {
+  it("lists a block's properties, and a behavior's rules, a rule opening its row", () => {
     const html = show('building_block|pay.Hold');
-    for (const title of ['Properties', 'Rules'])
-      expect(html).toContain(`>${title}<`);
-    expect(html).toMatch(/<button[^>]*>(<[^>]+>)*A hold expires</);
+    expect(html).toContain('>Properties<');
+    // A block governs no rule: its behaviors do.
+    expect(html).not.toContain('>Rules<');
+    const place = show(PLACE);
+    expect(place).toContain('>Rules<');
+    expect(place).toMatch(/<button[^>]*>(<[^>]+>)*A hold expires</);
     // A property reads as its declaration, name and type apart, and has no
     // row in the tree to open, so it is only text.
-    expect(html).toContain('>amount?<');
-    // Its type by its last segment, as inputs and outputs read one.
-    expect(html).toMatch(/<span[^>]*>Money<\/span>/);
+    expect(html).toContain('>amount<');
+    // Its type by its last segment, as inputs and outputs read one, and how
+    // many of it the property holds after it.
+    expect(html).toMatch(/<span[^>]*>Money \[0\.\.1\]<\/span>/);
     expect(html).not.toContain('>pay.Money<');
-    expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount\?/);
+    expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount</);
+  });
+
+  it('lists what a block works with in a section of its own, after its properties, with no count', () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toContain('>Collaborators<');
+    expect(html.indexOf('>Collaborators<')).toBeGreaterThan(
+      html.indexOf('>Properties<'),
+    );
+    expect(html).toContain('>ledger<');
+    expect(html).toMatch(/<span[^>]*>Ledger<\/span>/);
+  });
+
+  it('reads a collaborator as the field it declares', () => {
+    const html = show(
+      'building_block|pay.Hold#collaborator:ledger',
+      outlineTree(
+        [
+          ...outline,
+          node({
+            path: 'building_block|pay.Hold#collaborator:ledger',
+            parentPath: 'building_block|pay.Hold',
+            elementId: null,
+            kind: 'collaborator',
+            name: 'ledger',
+            depth: 2,
+            change: 'added',
+          }),
+        ],
+        [],
+      ),
+    );
+    expect(html).toContain('ledger:');
+    expect(html).toContain('Ledger');
   });
 
   it("opens a property's type when the tree has a row for it", () => {
@@ -509,53 +557,27 @@ describe('ElementDetail', () => {
     );
   });
 
-  it("reads a property's description under its line, and nothing else's", () => {
-    const properties = {
-      added: [
-        { name: 'amount', description: plain('What the hold keeps.') },
-        { name: 'note', description: plain('  ') },
-      ],
-    };
-    const [amount, note] = propertyItems('building_block|pay.Hold', properties);
-    expect(amount!.description).toBe('What the hold keeps.');
-    expect(note!.description).toBeUndefined();
-    const hold = document.buildingBlocks.added[0]!;
-    for (const item of ruleItems(hold.id, hold.rules))
-      expect(item.description).toBeUndefined();
-
-    const html = renderToStaticMarkup(
-      <MantineProvider>
-        <ChangeListSection
-          element={{ collection: 'buildingBlocks', id: hold.id }}
-          title="Properties"
-          kind="property"
-          items={[amount!, note!]}
-        />
-      </MantineProvider>,
-    );
-    expect(html).toMatch(/<span[^>]*>What the hold keeps\.<\/span>/);
-  });
-
   it('points every listed part at the row the tree has for it', () => {
     const hold = document.buildingBlocks.added[0]!;
-    const items = ruleItems(hold.id, hold.rules);
-    expect(items.length).toBe(1);
+    const items = ruleItems(document, PLACE);
+    expect(items.length).toBe(2);
     for (const item of items) expect(tree.byPath.has(item.path!)).toBe(true);
     // A property's path is kept, but the tree has no row for it.
-    for (const item of propertyItems(hold.id, hold.properties))
+    for (const item of propertyItems(document, hold.id))
       expect(tree.byPath.has(item.path!)).toBe(false);
   });
 
-  it("folds a rule's own scenarios into the column beside it", () => {
-    const html = show('building_block|pay.Hold#rule:A hold expires');
+  it("folds a rule's scenarios into the column beside it, without its name again", () => {
+    const html = show(EXPIRES_ROW);
     expect(html).toContain('>Scenarios<');
     expect(html).toMatch(/<button[^>]*>(<[^>]+>)*An unpaid hold lapses</);
-    const rule = tree.byPath.get(
-      'building_block|pay.Hold#rule:A hold expires',
-    )!;
+    const rule = tree.byPath.get(EXPIRES_ROW)!;
     expect(
-      scenariosOf(rule, document).map(({ name, rule }) => [name, rule]),
-    ).toEqual([['An unpaid hold lapses', undefined]]);
+      scenariosOf(rule, document).map(({ name, ruleName }) => [name, ruleName]),
+    ).toEqual([
+      ['An unpaid hold lapses', undefined],
+      ['A hold settles', undefined],
+    ]);
   });
 
   it('gives the architecture view the column its rules point at', () => {
@@ -569,11 +591,7 @@ describe('ElementDetail', () => {
               select: () => {},
             }}
           >
-            <ElementBody
-              id="building_block|pay.Hold"
-              document={document}
-              modelTree={tree}
-            />
+            <ElementBody id={PLACE} document={document} modelTree={tree} />
           </ElementNavigationContext.Provider>
         </DesignDocumentContext.Provider>
       </MantineProvider>,
@@ -584,30 +602,30 @@ describe('ElementDetail', () => {
   });
 
   it("marks each scenario for a rule's count to bring into view", () => {
-    const html = show('building_block|pay.Hold');
+    const html = show(PLACE);
     expect(html).toContain('data-scenario="0"');
     expect(html).toContain('data-scenario="1"');
   });
 
-  it("folds a block's scenarios, and its rules', into one column", () => {
-    const html = show('building_block|pay.Hold');
+  it("folds the scenarios of a behavior's rules into one column", () => {
+    const html = show(PLACE);
     expect(html).toContain('>Scenarios<');
     // Each scenario is an accordion control, opened to what it says.
     for (const name of ['A hold settles', 'An unpaid hold lapses'])
       expect(html).toMatch(
         new RegExp(`<button[^>]*aria-expanded[^>]*>(<[^>]+>)*${name}<`),
       );
-    // Its own first, then its rules', each with what it says.
-    const hold = tree.byPath.get('building_block|pay.Hold')!;
-    const entries = scenariosOf(hold, document);
-    expect(entries.map(({ name, rule }) => [name, rule])).toEqual([
-      ['A hold settles', undefined],
+    // Rule by rule, each with what it says.
+    const place = tree.byPath.get(PLACE)!;
+    const entries = scenariosOf(place, document);
+    expect(entries.map(({ name, ruleName }) => [name, ruleName])).toEqual([
       ['An unpaid hold lapses', 'A hold expires'],
+      ['A hold settles', 'A hold expires'],
     ]);
-    expect(valueOf(entries[1]!.scenario?.steps)?.at(-1)?.text).toBe(
+    expect(valueOf(entries[0]!.scenario?.steps)?.at(-1)?.text).toBe(
       'the hold is released',
     );
-    // A rule's own scenario says whose it is.
+    // Each says the rule it illustrates.
     expect(html).toMatch(/An unpaid hold lapses<.*>A hold expires</);
   });
 
@@ -644,30 +662,23 @@ describe('ElementDetail', () => {
   it("leaves out a scenario's description when it only repeats its name", () => {
     const echo = {
       ...document,
-      buildingBlocks: {
-        ...document.buildingBlocks,
+      scenarios: {
         added: [
           {
-            ...document.buildingBlocks.added[0]!,
-            scenarios: {
-              added: [
-                {
-                  name: 'A hold settles',
-                  // The name again, as a sentence: a full stop says no more.
-                  description: plain('A hold settles.'),
-                  steps: plain([
-                    { kind: 'given', text: 'a hold' },
-                    { kind: 'when', text: 'the booking is confirmed' },
-                    { kind: 'then', text: 'the hold settles' },
-                  ]),
-                },
-              ],
-            },
+            id: SETTLES,
+            name: plain('A hold settles'),
+            // The name again, as a sentence: a full stop says no more.
+            description: plain('A hold settles.'),
+            steps: plain([
+              { kind: 'given', text: 'a hold' },
+              { kind: 'when', text: 'the booking is confirmed' },
+              { kind: 'then', text: 'the hold settles' },
+            ]),
           },
         ],
       },
     } satisfies DesignDocumentInput;
-    const hold = tree.byPath.get('building_block|pay.Hold')!;
+    const hold = tree.byPath.get(PLACE)!;
     // Folded panels are hidden with React's Activity, which leaves them out
     // of the markup; hidden with CSS instead, they can be read.
     const theme = {
@@ -698,7 +709,7 @@ describe('ElementDetail', () => {
   });
 
   it('gives an element without scenarios no column for them', () => {
-    expect(behavior()).not.toContain('>Scenarios<');
+    expect(show('building_block|pay.Hold')).not.toContain('>Scenarios<');
   });
 
   it('gives an element the design removes no scenarios', () => {
@@ -715,20 +726,19 @@ describe('ElementDetail', () => {
     expect(html).toContain('>Outputs · 1<');
     expect(html).toContain('>amount<');
     expect(html).toContain('>Money<');
-    expect(html).toContain('What to hold.');
     expect(html).toContain('>Hold<');
   });
 
   it('points a rule at the scenarios that cover it', () => {
-    const html = show('building_block|pay.Hold');
+    const html = show(PLACE);
     expect(html).toMatch(
-      /<a [^>]*href="#element-scenarios"[^>]*>.*?1 scenario</,
+      /<a [^>]*href="#element-scenarios"[^>]*>.*?2 scenarios</,
     );
     expect(html).toContain('id="element-scenarios"');
   });
 
   it('folds every scenario until asked, and opens them all at once', () => {
-    const html = show('building_block|pay.Hold');
+    const html = show(PLACE);
     expect(html).toMatch(/<button[^>]*>(<[^>]+>)*Expand all</);
     expect(html).not.toContain('aria-expanded="true"');
     // Folded, not gone: the panel each control names is in the page.
@@ -756,7 +766,7 @@ describe('ElementDetail', () => {
   });
 
   it('lists an item with no row as text, not as a button', () => {
-    const hold = tree.byPath.get('building_block|pay.Hold')!;
+    const hold = tree.byPath.get(PLACE)!;
     const html = renderToStaticMarkup(
       <MantineProvider>
         <ElementDetail

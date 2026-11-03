@@ -9,7 +9,7 @@
       "-Pnoesis.repositoryRoot={root}",
       "-Pnoesis.repository={name}"
     ],
-    "installHint": "Run the service on a JDK 17 or newer; the build takes the vision.noesis.parser plugin from Maven Central."
+    "installHint": "Run the service on a JDK 17 or newer; the build takes the vision.noesis.parser plugin snapshot from the local repository (mvn install in code-parsers/java, then ./gradlew publishToMavenLocal in code-parsers/java/gradle-plugin)."
   },
   "namespacePartsToSkip": ["com.itlibrium"],
   "namespacesToExclude": []

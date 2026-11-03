@@ -32,19 +32,13 @@ const block = (id: string, name: string, type: string) => ({
   name,
   type,
   description: null,
-  implements: [],
-  properties: [],
-  rules: [],
-  scenarios: [],
   source,
 });
 const systemModel = {
   id: '01a15509-0909-725f-8ab8-25ab23fc10d3',
   name: 'shop',
   scanned_at: '2026-10-19T10:00:00Z',
-  modules: [
-    { id: 'module|shop', name: 'shop', description: null, rules: [], source },
-  ],
+  modules: [{ id: 'module|shop', name: 'shop', description: null, source }],
   buildingBlocks: [
     block('building_block|shop.Basket', 'Basket', 'aggregate'),
     block('building_block|shop.Price', 'Price', 'value_object'),
@@ -52,16 +46,37 @@ const systemModel = {
   behaviors: [
     {
       id: 'behavior|shop.Basket.checkOut',
-      buildingBlockId: 'building_block|shop.Basket',
       name: 'checkOut',
-      type: 'Command',
       description: null,
-      visibility: { kind: 'public' },
-      input: [],
-      output: [],
-      rules: [],
-      scenarios: [],
       source,
+    },
+  ],
+  rules: [
+    {
+      id: 'rule|shop.Paid before shipped',
+      name: 'Paid before shipped',
+      kind: 'validation',
+      description: null,
+      source,
+    },
+  ],
+  scenarios: [],
+  actors: [],
+  manualProcesses: [],
+  deployableUnits: [],
+  libraries: [],
+  layers: [],
+  deploymentContainers: [],
+  relations: [
+    {
+      kind: 'governs',
+      from: 'behavior|shop.Basket.checkOut',
+      to: 'rule|shop.Paid before shipped',
+    },
+    {
+      kind: 'exposes',
+      from: 'building_block|shop.Basket',
+      to: 'behavior|shop.Basket.checkOut',
     },
   ],
 } as unknown as SystemModel;
@@ -122,7 +137,7 @@ describe('search', () => {
     expect(found?.entries.map((entry) => [entry.label, entry.context])).toEqual(
       [
         ['Basket', 'Aggregate · shop'],
-        ['checkOut', 'Command · shop.Basket'],
+        ['checkOut', 'Behavior · shop.Basket'],
       ],
     );
     expect(labels('value object')).toEqual([['System model', ['Price']]]);
@@ -133,6 +148,19 @@ describe('search', () => {
     expect(found?.entries[0]?.link).toEqual({
       to: '/system-model',
       search: { node: 'building_block|shop.Price' },
+    });
+  });
+
+  it('finds a rule by its name, at the first behavior that governs it', () => {
+    const [found] = matchingGroups(groups, 'paid');
+    expect(found?.entries.map((entry) => [entry.label, entry.context])).toEqual(
+      [['Paid before shipped', 'Validation · shop']],
+    );
+    expect(found?.entries[0]?.link).toEqual({
+      to: '/system-model',
+      search: {
+        node: 'behavior|shop.Basket.checkOut#rule:rule|shop.Paid before shipped',
+      },
     });
   });
 
@@ -149,6 +177,6 @@ describe('search', () => {
       'shop',
     );
     expect(some?.entries).toHaveLength(1);
-    expect(some?.more).toBe(3);
+    expect(some?.more).toBe(4);
   });
 });

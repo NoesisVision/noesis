@@ -9,6 +9,7 @@ import { buildingBlockSections } from './building-block-sections.tsx';
 import { childSections } from './child-sections.tsx';
 import { moduleSections } from './module-sections.tsx';
 import { partSections } from './part-sections.tsx';
+import { manualProcessSections } from './people-sections.tsx';
 import { section } from './section.ts';
 import { NoteSection } from './sections/note-section.tsx';
 
@@ -40,6 +41,19 @@ export const bodySections = (
   if (block) return buildingBlockSections(block, tree, doc);
   const behavior = findById(doc.behaviors, node.elementId);
   if (behavior) return behaviorSections(behavior, doc);
+  const process = findById(doc.manualProcesses, node.elementId);
+  if (process) return manualProcessSections(process, doc);
+  // An actor is its definition, and the processes named over it; a unit, a
+  // library or a layer its definition, and what it contains; a deployment
+  // container its definition, and what it hosts.
+  if (
+    findById(doc.actors, node.elementId) ||
+    findById(doc.deployableUnits, node.elementId) ||
+    findById(doc.libraries, node.elementId) ||
+    findById(doc.layers, node.elementId) ||
+    findById(doc.deploymentContainers, node.elementId)
+  )
+    return [];
   // Named by no change set, the element is only here for what is under it,
   // which is then all there is to list.
   return [
@@ -61,7 +75,16 @@ const sectionsUnder = (
   tree: OutlineTree,
   doc: DesignDocumentInput,
 ): ReactElement[] => {
-  if (node.elementId === null) return [];
+  if (
+    node.elementId === null ||
+    node.kind === 'actor' ||
+    node.kind === 'manual_process' ||
+    node.kind === 'deployable_unit' ||
+    node.kind === 'library' ||
+    node.kind === 'layer' ||
+    node.kind === 'deployment_container'
+  )
+    return [];
   const element: ElementRef = {
     collection:
       node.kind === 'module'

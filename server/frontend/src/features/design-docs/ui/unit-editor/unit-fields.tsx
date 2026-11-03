@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { Checkbox } from '#/shared/design-system/checkbox.tsx';
 import { Chip } from '#/shared/design-system/chip.tsx';
 import type { UseFormReturnType } from '#/shared/design-system/form.ts';
 import { Group } from '#/shared/design-system/group.tsx';
 import { useDebouncedValue } from '#/shared/design-system/hooks.ts';
 import { Select } from '#/shared/design-system/select.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
-import { TagsInput } from '#/shared/design-system/tags-input.tsx';
 import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Textarea } from '#/shared/design-system/textarea.tsx';
@@ -14,11 +12,6 @@ import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { MermaidDiagram } from '#/shared/ui/mermaid-diagram.tsx';
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import type {
-  BuildingBlockRefInput,
-  RuleCategory,
-  Visibility,
-} from '#backend/app/system-model/system-model.ts';
 import { writtenIn } from '../../change-set.ts';
 import {
   blocksNamedIn,
@@ -26,9 +19,8 @@ import {
   fieldOf,
   isEditableField,
   needIdOf,
-  type PartOwner,
   PRIMITIVES,
-  RULE_TYPES_OF,
+  RULE_KINDS,
   TYPES_OF,
   UNIT_FIELDS,
   type Unit,
@@ -39,6 +31,8 @@ import {
 } from '../../design-doc-edit.ts';
 import { authorOf, fieldFrom, valueOf } from '../../design-doc-field.ts';
 import { addressOf, nameOf } from '../../element-id.ts';
+import { CARDINALITIES } from '../../relations.ts';
+import { ruleKindLabelOf } from '../../rules.ts';
 import { DesignedField } from './designed-field.tsx';
 import { ScenarioStepsInput } from './scenario-fields.tsx';
 
@@ -51,15 +45,13 @@ const LABEL: Record<UnitFieldName, string> = {
   definition: 'Definition',
   diagram: 'Diagram',
   type: 'Type',
-  visibility: 'Visibility',
-  category: 'Category',
-  ruleType: 'Rule type',
+  kind: 'Kind',
   description: 'Description',
   needs: 'Answers the needs',
   rationale: 'Rationale',
   steps: 'Steps',
   ref: 'Type',
-  optional: 'Optional',
+  cardinality: 'How many',
 };
 
 /**
@@ -73,7 +65,6 @@ export function UnitFields({
   original,
   state,
   document: doc,
-  owner,
   newNeed,
 }: {
   kind: UnitKind;
@@ -82,7 +73,6 @@ export function UnitFields({
   original: Unit | null;
   state: UnitState;
   document: DesignDocumentInput;
-  owner: PartOwner | null;
   newNeed: boolean;
 }) {
   const [idChosen, setIdChosen] = useState(false);
@@ -119,7 +109,6 @@ export function UnitFields({
               spec={spec}
               form={form}
               document={doc}
-              owner={owner}
               disabled={!isEditableField(spec, state)}
               onName={
                 newNeed && !idChosen
@@ -146,14 +135,17 @@ export function UnitFields({
 }
 
 const labelOf = (kind: UnitKind, spec: FieldSpec): string =>
-  kind === 'implements' ? 'Implements' : LABEL[spec.name];
+  kind === 'extends'
+    ? 'Extends'
+    : kind === 'collaborator' && spec.name === 'ref'
+      ? 'Has collaborator'
+      : LABEL[spec.name];
 
 function FieldInput({
   kind,
   spec,
   form,
   document: doc,
-  owner,
   disabled,
   onName,
 }: {
@@ -161,7 +153,6 @@ function FieldInput({
   spec: FieldSpec;
   form: UnitForm;
   document: DesignDocumentInput;
-  owner: PartOwner | null;
   disabled: boolean;
   onName?: (name: string) => void;
 }) {
@@ -186,8 +177,7 @@ function FieldInput({
     case 'stakeholder':
       return <TextInput {...common} {...valueProps(form, path)} />;
     case 'description':
-      // A rule's or a scenario's description is markdown; a property's,
-      // an input's or an output's is plain text.
+      // A rule's or a scenario's description is markdown.
       if (kind === 'rule' || kind === 'scenario')
         return (
           <MarkdownEditor
@@ -251,57 +241,20 @@ function FieldInput({
         />
       );
     }
-    case 'visibility':
-      return (
-        <VisibilityInput
-          value={fields.visibility!.value}
-          onChange={(visibility) => form.setFieldValue(path, visibility)}
-        />
-      );
-    case 'category':
-      return (
-        <ChipChoice
-          label={label}
-          options={Object.keys(RULE_TYPES_OF)
-            // A module holds quality and constraint rules only.
-            .filter(
-              (category) => owner?.kind !== 'module' || category !== 'Business',
-            )
-            .map((category) => ({ value: category, label: category }))}
-          value={fields.category!.value}
-          onChange={(category) => {
-            form.setFieldValue(path, category);
-            const ruleType = fields.ruleType!;
-            if (
-              ruleType.written &&
-              !RULE_TYPES_OF[category as RuleCategory].some(
-                (type) => type === ruleType.value,
-              )
-            )
-              form.setFieldValue('fields.ruleType.value', '');
-          }}
-        />
-      );
-    case 'ruleType': {
-      const category = fields.category;
-      const allowed =
-        category?.written && category.value !== ''
-          ? [category.value as RuleCategory]
-          : (Object.keys(RULE_TYPES_OF) as RuleCategory[]);
+    case 'kind':
       return (
         <Select
           {...common}
-          placeholder="Choose a rule type"
+          placeholder="Choose a kind"
           allowDeselect={false}
-          data={allowed.map((group) => ({
-            group,
-            items: [...RULE_TYPES_OF[group]],
+          data={RULE_KINDS.map((kind) => ({
+            value: kind,
+            label: ruleKindLabelOf(kind) ?? kind,
           }))}
-          value={fields.ruleType!.value || null}
-          onChange={(ruleType) => form.setFieldValue(path, ruleType ?? '')}
+          value={fields.kind!.value || null}
+          onChange={(kind) => form.setFieldValue(path, kind ?? '')}
         />
       );
-    }
     case 'needs': {
       const needs = writtenIn(doc.needs);
       if (needs.length === 0)
@@ -339,30 +292,42 @@ function FieldInput({
         <RefInput
           {...common}
           value={fields.ref!.value}
-          blocksOnly={kind === 'implements'}
+          blocksOnly={kind === 'extends' || kind === 'collaborator'}
           document={doc}
           onChange={(ref) => form.setFieldValue(path, ref)}
         />
       );
     case 'steps':
       return <ScenarioStepsInput form={form} headed={false} />;
-    case 'optional':
+    case 'cardinality':
       return (
-        <Checkbox
-          label="It may be left out"
-          disabled={disabled}
-          checked={fields.optional!.value}
-          onChange={(event) =>
-            form.setFieldValue(path, event.currentTarget.checked)
+        <Select
+          {...common}
+          allowDeselect={false}
+          data={CARDINALITIES.map((cardinality) => ({
+            value: cardinality,
+            label: CARDINALITY_LABEL[cardinality],
+          }))}
+          value={fields.cardinality!.value || null}
+          onChange={(cardinality) =>
+            form.setFieldValue(path, cardinality ?? '')
           }
         />
       );
   }
 }
 
+/** How many a slot holds, in words beside the cardinality. */
+const CARDINALITY_LABEL: Record<(typeof CARDINALITIES)[number], string> = {
+  '1': '1 — exactly one',
+  '0..1': '0..1 — one or none',
+  '0..*': '0..* — any number',
+  '1..*': '1..* — at least one',
+};
+
 /**
- * A type: a primitive or a building block the design names, and whether it
- * is a collection of it. Blocks only the scanned model knows are not offered.
+ * A type: a primitive or a building block the design names. Blocks only the
+ * scanned model knows are not offered.
  */
 function RefInput({
   value,
@@ -371,18 +336,17 @@ function RefInput({
   document: doc,
   ...common
 }: {
-  value: BuildingBlockRefInput;
-  onChange: (ref: BuildingBlockRefInput) => void;
+  value: string;
+  onChange: (ref: string) => void;
   blocksOnly: boolean;
   document: DesignDocumentInput;
   'aria-label': string;
   error: boolean;
   disabled: boolean;
 }) {
-  const collection = typeof value === 'object';
-  const item = typeof value === 'object' ? value.collectionOf : value;
+  const item = value;
   const blocks = blocksNamedIn(doc);
-  const current = typeof item === 'string' && item !== '' ? [item] : [];
+  const current = item !== '' ? [item] : [];
   const blockIds = [...new Set([...blocks, ...current])].filter((id) =>
     id.startsWith('building_block|'),
   );
@@ -400,31 +364,17 @@ function RefInput({
       items: blockIds.map((id) => ({ value: id, label: addressOf(id) })),
     },
   ];
-  const wrap = (next: BuildingBlockRefInput, asCollection: boolean) =>
-    asCollection ? { collectionOf: next } : next;
   return (
-    <Stack gap="xs">
-      <Select
-        {...common}
-        searchable
-        placeholder="Choose a type"
-        nothingFoundMessage="No such type in this design"
-        allowDeselect={false}
-        data={data}
-        value={typeof item === 'string' && item !== '' ? item : null}
-        onChange={(next) => onChange(wrap(next ?? '', collection))}
-      />
-      {!blocksOnly && (
-        <Checkbox
-          label="A collection of it"
-          disabled={common.disabled}
-          checked={collection}
-          onChange={(event) =>
-            onChange(wrap(item, event.currentTarget.checked))
-          }
-        />
-      )}
-    </Stack>
+    <Select
+      {...common}
+      searchable
+      placeholder="Choose a type"
+      nothingFoundMessage="No such type in this design"
+      allowDeselect={false}
+      data={data}
+      value={item !== '' ? item : null}
+      onChange={(next) => onChange(next ?? '')}
+    />
   );
 }
 
@@ -447,43 +397,6 @@ function DiagramInput({ form, invalid }: { form: UnitForm; invalid: boolean }) {
         {...valueProps(form, 'fields.diagram.value')}
       />
       {drawn !== '' && <MermaidDiagram chart={drawn} />}
-    </Stack>
-  );
-}
-
-function VisibilityInput({
-  value,
-  onChange,
-}: {
-  value: Visibility;
-  onChange: (visibility: Visibility) => void;
-}) {
-  return (
-    <Stack gap="xs">
-      <ChipChoice
-        label="Visibility"
-        options={[
-          { value: 'private', label: 'Private' },
-          { value: 'public', label: 'Public' },
-        ]}
-        value={value.kind}
-        onChange={(kind) =>
-          onChange(
-            kind === 'public'
-              ? { kind: 'public', actors: [] }
-              : { kind: 'private' },
-          )
-        }
-      />
-      {value.kind === 'public' && (
-        <TagsInput
-          aria-label="Actors"
-          description="Who may call it. Press Enter after each."
-          placeholder="Add an actor"
-          value={value.actors}
-          onChange={(actors) => onChange({ kind: 'public', actors })}
-        />
-      )}
     </Stack>
   );
 }

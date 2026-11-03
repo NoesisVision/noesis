@@ -2,9 +2,19 @@ import { describe, expect, it } from 'bun:test';
 import {
   outlineOf,
   ownerOfPart,
+  partKeyOf,
 } from '../src/features/design-docs/design-doc-outline';
 import type { OutlineNode } from '../src/features/design-docs/ui/model-tree/model-outline';
-import { changedEverywhereFixture } from './fixtures/design-doc-outline.fixture';
+import {
+  changedEverywhereFixture,
+  MORE_THAN_PAID,
+  NOT_EXCEEDING,
+  PAID_ONLY,
+  WITHIN_A_SECOND,
+  WITHOUT_RECEIPT,
+} from './fixtures/design-doc-outline.fixture';
+
+const ISSUE = 'behavior|sales.refunds.Refund.issue';
 
 const outline = outlineOf(changedEverywhereFixture);
 const byPath = new Map(outline.map((node) => [node.path, node]));
@@ -52,8 +62,7 @@ describe('outlineOf', () => {
     expect(at('behavior|sales.refunds.Refund.issue')).toMatchObject({
       kind: 'behavior',
       name: 'issue',
-      pattern: 'Command',
-      patternLabel: 'Command',
+      pattern: null,
       parentPath: 'building_block|sales.refunds.Refund',
       depth: 3,
     });
@@ -89,33 +98,55 @@ describe('outlineOf', () => {
     ]);
   });
 
-  it("hangs a module's rules under the module, after its building blocks", () => {
-    expect(
-      at('module|sales.refunds#rule:A refund is issued within a second'),
-    ).toMatchObject({
+  it('hangs a rule the design names no behavior of under its module, after its building blocks', () => {
+    expect(at(`module|sales.refunds#rule:${WITHIN_A_SECOND}`)).toMatchObject({
       kind: 'rule',
-      change: 'added',
+      name: 'A refund is issued within a second',
+      change: 'modified',
       elementId: null,
-      pattern: 'Performance',
+      pattern: 'configuration',
       parentPath: 'module|sales.refunds',
     });
   });
 
-  it('puts rules and scenarios last inside a building block', () => {
+  it('hangs a rule under the behavior that governs it, never under a building block', () => {
     expect(childrenOf('building_block|sales.refunds.Refund')).toEqual([
       'issue',
       'issuedAt',
       'lines',
       'orderId',
+    ]);
+    expect(childrenOf(ISSUE)).toEqual([
+      'Only paid orders are refundable',
       'Refund never exceeds paid amount',
-      'Refunding one line of a paid order',
     ]);
   });
 
-  it('names a property type by its item, a collection with brackets', () => {
+  it('hangs a rule under each behavior that governs it', () => {
+    const outline = outlineOf({
+      ...changedEverywhereFixture,
+      relations: {
+        added: [
+          { kind: 'governs', from: ISSUE, to: PAID_ONLY },
+          {
+            kind: 'governs',
+            from: 'behavior|sales.orders.Order.cancel',
+            to: PAID_ONLY,
+          },
+        ],
+      },
+    });
+    expect(
+      outline
+        .filter((node) => node.name === 'Only paid orders are refundable')
+        .map((node) => node.parentPath),
+    ).toEqual(['behavior|sales.orders.Order.cancel', ISSUE]);
+  });
+
+  it('names a property type by its item, with how many it holds when not one', () => {
     expect(
       at('building_block|sales.refunds.Refund#property:lines').pattern,
-    ).toBe('RefundLine[]');
+    ).toBe('RefundLine [0..*]');
     expect(
       at('building_block|sales.refunds.Refund#property:issuedAt').pattern,
     ).toBe('date');
@@ -135,37 +166,72 @@ describe('outlineOf', () => {
     expect(
       at('building_block|sales.orders.Order#property:creditNoteId').change,
     ).toBe('removed');
-    expect(
-      at(
-        'behavior|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
-      ).pattern,
-    ).toBe('State change');
+    expect(at(`${ISSUE}#rule:${PAID_ONLY}`).pattern).toBe('state_change');
   });
 
-  it("hangs a rule's own scenarios under the rule, not beside it", () => {
-    const rule =
-      'building_block|sales.refunds.Refund#rule:Refund never exceeds paid amount';
+  it('hangs what a block works with under it as its collaborators, without how many', () => {
+    const outline = outlineOf({
+      ...changedEverywhereFixture,
+      relations: {
+        added: [
+          {
+            kind: 'has_collaborator',
+            from: 'building_block|sales.refunds.Refund',
+            name: 'ledger',
+            to: { value: 'building_block|sales.ledger.Ledger' },
+          },
+        ],
+        removed: [
+          {
+            kind: 'has_collaborator',
+            from: 'building_block|sales.refunds.Refund',
+            name: 'mailer',
+          },
+        ],
+      },
+    });
+    const node = (path: string) => outline.find((n) => n.path === path);
+    expect(
+      node('building_block|sales.refunds.Refund#collaborator:ledger'),
+    ).toMatchObject({
+      kind: 'collaborator',
+      change: 'added',
+      pattern: 'Ledger',
+      parentPath: 'building_block|sales.refunds.Refund',
+    });
+    expect(
+      node('building_block|sales.refunds.Refund#collaborator:mailer')?.change,
+    ).toBe('removed');
+  });
+
+  it("hangs a rule's scenarios under the rule, not beside it", () => {
+    const rule = `${ISSUE}#rule:${NOT_EXCEEDING}`;
     expect(childrenOf(rule)).toEqual([
       'Refunding more than was paid',
+      'Refunding one line of a paid order',
       'Refunding without a receipt',
     ]);
-    expect(at(`${rule}#scenario:Refunding more than was paid`)).toMatchObject({
+    expect(at(`${rule}#scenario:${MORE_THAN_PAID}`)).toMatchObject({
       kind: 'scenario',
       change: 'added',
       parentPath: rule,
       depth: at(rule).depth + 1,
     });
-    expect(at(`${rule}#scenario:Refunding without a receipt`).change).toBe(
-      'removed',
-    );
+    expect(at(`${rule}#scenario:${WITHOUT_RECEIPT}`).change).toBe('removed');
   });
 
-  it('reads the owner and the rule back off a part path', () => {
-    const block = 'building_block|sales.refunds.Refund';
-    expect(ownerOfPart(block)).toEqual({ elementId: block, rule: null });
+  it('reads the owner and the rule back off a part path, and the part by its key', () => {
+    expect(ownerOfPart(ISSUE)).toEqual({ elementId: ISSUE, rule: null });
+    expect(ownerOfPart(`${ISSUE}#rule:${NOT_EXCEEDING}`)).toEqual({
+      elementId: ISSUE,
+      rule: NOT_EXCEEDING,
+    });
+    expect(partKeyOf(at(`${ISSUE}#rule:${NOT_EXCEEDING}`))).toBe(NOT_EXCEEDING);
     expect(
-      ownerOfPart(`${block}#rule:Refund never exceeds paid amount`),
-    ).toEqual({ elementId: block, rule: 'Refund never exceeds paid amount' });
+      partKeyOf(
+        at(`${ISSUE}#rule:${NOT_EXCEEDING}#scenario:${MORE_THAN_PAID}`),
+      ),
+    ).toBe(MORE_THAN_PAID);
   });
 
   it('labels a part with its own type, spelled as the design spells it', () => {
@@ -175,13 +241,10 @@ describe('outlineOf', () => {
     // beside a `RefundLine[]` that kept its own spelling, and `date` — a
     // primitive the model does spell in lower case — would read `Date`.
     expect(labelAt(`${refund}#property:orderId`)).toBe('OrderId');
-    expect(labelAt(`${refund}#property:lines`)).toBe('RefundLine[]');
+    expect(labelAt(`${refund}#property:lines`)).toBe('RefundLine [0..*]');
     expect(labelAt(`${refund}#property:issuedAt`)).toBe('date');
-    expect(
-      labelAt(
-        'behavior|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
-      ),
-    ).toBe('State change');
+    // A rule's is its kind, written out.
+    expect(labelAt(`${ISSUE}#rule:${PAID_ONLY}`)).toBe('State change');
     // An element's pattern is the model's own word, and is written out.
     expect(labelAt(refund)).toBe('Aggregate');
   });

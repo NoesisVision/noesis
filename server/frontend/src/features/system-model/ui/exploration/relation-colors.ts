@@ -1,5 +1,8 @@
 import { MarkerType } from '@xyflow/react';
-import type { DrawnRelationKind } from '../../system-model-exploration.ts';
+import {
+  DRAWN_RELATIONS,
+  type EdgeKind,
+} from '../../system-model-exploration.ts';
 
 /*
  * Each relation drawn as an edge, as the canvas is told to draw it: its
@@ -7,36 +10,59 @@ import type { DrawnRelationKind } from '../../system-model-exploration.ts';
  * looks — colours in both schemes, dash, gap and speed — is set in one
  * place, `relationEdges` in theme.ts, as the `--noesis-diagram-edge-<kind>`
  * tokens; this only names them. A diagram theme may set its own colours
- * (`--edge-uses`, `--edge-invokes`, as exploration.module.css says). A
- * relation drawn as an edge from here on needs its entry there and here.
+ * (`--edge-state`, `--edge-invokes`, as themes.ts says). A relation drawn
+ * as an edge from here on needs its entry there and in DRAWN_RELATIONS.
+ * What holds an element it is not drawn round is an edge too, `contains`
+ * or `hosts`, both in the one `contains` look.
  */
-const tokenOf = (kind: DrawnRelationKind, part = '') =>
-  `var(--noesis-diagram-edge-${kind}${part})`;
+const lookOf = (kind: EdgeKind) => (kind === 'hosts' ? 'contains' : kind);
 
-export const EDGE_COLOR = {
-  uses: `var(--edge-uses, ${tokenOf('uses')})`,
-  invokes: `var(--edge-invokes, ${tokenOf('invokes')})`,
-} as const satisfies Record<DrawnRelationKind, string>;
+const tokenOf = (kind: EdgeKind, part = '') =>
+  `var(--noesis-diagram-edge-${lookOf(kind)}${part})`;
 
-export const EDGE_WORD = {
-  uses: `var(--edge-uses, ${tokenOf('uses', '-word')})`,
-  invokes: `var(--edge-invokes, ${tokenOf('invokes', '-word')})`,
-} as const satisfies Record<DrawnRelationKind, string>;
+/** A theme's own colour for the kind, over the token's. */
+const themedOf = (kind: EdgeKind, part = '') =>
+  `var(--edge-${lookOf(kind)}, ${tokenOf(kind, part)})`;
+
+const EDGE_KINDS: readonly EdgeKind[] = [
+  ...DRAWN_RELATIONS.map(({ kind }) => kind),
+  'contains',
+  'hosts',
+];
+
+const forEachKind = <T>(valueOf: (kind: EdgeKind) => T) =>
+  Object.fromEntries(EDGE_KINDS.map((kind) => [kind, valueOf(kind)])) as Record<
+    EdgeKind,
+    T
+  >;
+
+export const EDGE_COLOR = forEachKind((kind) => themedOf(kind));
+
+export const EDGE_WORD = forEachKind((kind) => themedOf(kind, '-word'));
 
 /** Its dashes when the edges run: a dash, a gap, and the time to move them along. */
-export const edgeDashOf = (kind: DrawnRelationKind) => ({
+export const edgeDashOf = (kind: EdgeKind) => ({
   dash: tokenOf(kind, '-dash'),
   gap: tokenOf(kind, '-gap'),
   time: tokenOf(kind, '-time'),
 });
 
 /*
- * The shape of each relation's arrow, so the two read apart without their
- * colour: what an element uses, an open arrowhead, as a dependency is drawn;
- * what it invokes, a solid one, as a call is. The canvas draws it from a
+ * The shape of each relation's arrow, so they read apart without their
+ * colour: what an element holds, works with, takes or gives back, an open arrowhead, as
+ * a dependency is drawn; what it extends, an open one too, as inheritance
+ * is; what it invokes, a solid one, as a call is, and what an actor
+ * performs, a solid one too; what holds it, an open one. The canvas draws it from a
  * name, not a style, so it cannot be a token.
  */
 export const EDGE_ARROW = {
-  uses: MarkerType.Arrow,
+  state: MarkerType.Arrow,
+  collaborator: MarkerType.Arrow,
+  input: MarkerType.Arrow,
+  output: MarkerType.Arrow,
+  extends: MarkerType.Arrow,
   invokes: MarkerType.ArrowClosed,
-} as const satisfies Record<DrawnRelationKind, MarkerType>;
+  performs: MarkerType.ArrowClosed,
+  contains: MarkerType.Arrow,
+  hosts: MarkerType.Arrow,
+} as const satisfies Record<EdgeKind, MarkerType>;

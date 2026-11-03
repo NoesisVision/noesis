@@ -1,16 +1,21 @@
 import type { DesignDocId } from '#backend/app/design-docs/design-doc-id.ts';
-import type { DesignDocument } from '#backend/app/design-docs/design-doc.ts';
 import type {
+  DesignDocument,
+  DesignedRelation,
+} from '#backend/app/design-docs/design-doc.ts';
+import type {
+  Relation,
   ScannedRule,
   ScannedScenario,
   SystemModel,
 } from '#backend/app/system-model/system-model.ts';
 
 /*
- * The scanned model read as the design documents are read: every element it
- * holds written out in full, so the model tree and the element panel show it
- * as they show a design. Nothing here is a change — the reader marks every
- * row unchanged — so the change sets only carry what the scan found.
+ * The scanned model read as the design documents are read: every element and
+ * relation it holds written out in full, so the model tree and the element
+ * panel show it as they show a design. Nothing here is a change — the reader
+ * marks every row unchanged — so the change sets only carry what the scan
+ * found.
  */
 
 /** A value as a design document holds one. */
@@ -28,11 +33,10 @@ const added = <T>(items: T[]) => ({ added: items, removed: [], modified: [] });
 function scenarios(found: ScannedScenario[]) {
   return added(
     found.map((scenario) => ({
-      name: scenario.name,
-      // Code may name a scenario and say no more: the description and the
-      // steps are then unset, as a designed scenario needs at least one step.
+      id: scenario.id,
+      name: field(scenario.name),
       description: optional(scenario.description),
-      steps: scenario.steps.length === 0 ? UNSET : field(scenario.steps),
+      steps: field(scenario.steps),
     })),
   );
 }
@@ -40,15 +44,41 @@ function scenarios(found: ScannedScenario[]) {
 function rules(found: ScannedRule[]) {
   return added(
     found.map((rule) => ({
-      name: rule.name,
-      category: field(rule.category),
-      ruleType: field(rule.ruleType),
+      id: rule.id,
+      name: field(rule.name),
+      kind: field(rule.kind),
       description: optional(rule.description),
       needs: field([]),
       rationale: UNSET,
-      scenarios: scenarios(rule.scenarios),
     })),
   );
+}
+
+/** A scanned relation as a design writes one: what the diagram puts on the edge becomes a field. */
+function designedRelation(relation: Relation): DesignedRelation {
+  switch (relation.kind) {
+    case 'has_state':
+      return {
+        ...relation,
+        to: field(relation.to),
+        cardinality: field(relation.cardinality),
+      };
+    case 'has_collaborator':
+      return { ...relation, to: field(relation.to) };
+    case 'has_input':
+      return {
+        ...relation,
+        to: field(relation.to),
+        cardinality: field(relation.cardinality),
+        position: field(relation.position),
+      };
+    case 'has_output':
+      return { ...relation, cardinality: field(relation.cardinality) };
+    case 'invokes':
+      return { ...relation, order: field(relation.order) };
+    default:
+      return relation;
+  }
 }
 
 export function designOf(model: SystemModel): DesignDocument {
@@ -64,7 +94,6 @@ export function designOf(model: SystemModel): DesignDocument {
         name: field(module.name),
         definition: optional(module.description),
         diagram: UNSET,
-        rules: rules(module.rules),
       })),
     ),
     buildingBlocks: added(
@@ -74,46 +103,61 @@ export function designOf(model: SystemModel): DesignDocument {
         type: field(block.type),
         definition: optional(block.description),
         diagram: UNSET,
-        implements: { added: block.implements, removed: [] },
-        properties: added(
-          block.properties.map((property) => ({
-            name: property.name,
-            type: field(property.type),
-            description: optional(property.description),
-            optional: field(property.optional),
-          })),
-        ),
-        rules: rules(block.rules),
-        scenarios: scenarios(block.scenarios),
       })),
     ),
     behaviors: added(
       model.behaviors.map((behavior) => ({
         id: behavior.id,
         name: field(behavior.name),
-        type: field(behavior.type),
         definition: optional(behavior.description),
         diagram: UNSET,
-        visibility: field(behavior.visibility),
-        input: added(
-          behavior.input.map((parameter) => ({
-            name: parameter.name,
-            type: field(parameter.type),
-            description: optional(parameter.description),
-            optional: field(parameter.optional),
-          })),
-        ),
-        output: added(
-          behavior.output.map((result) => ({
-            type: result.type,
-            description: optional(result.description),
-            optional: field(result.optional),
-          })),
-        ),
-        rules: rules(behavior.rules),
-        scenarios: scenarios(behavior.scenarios),
       })),
     ),
+    rules: rules(model.rules),
+    scenarios: scenarios(model.scenarios),
+    actors: added(
+      model.actors.map((actor) => ({
+        id: actor.id,
+        name: field(actor.name),
+        definition: optional(actor.description),
+      })),
+    ),
+    manualProcesses: added(
+      model.manualProcesses.map((process) => ({
+        id: process.id,
+        name: field(process.name),
+        definition: optional(process.description),
+      })),
+    ),
+    deployableUnits: added(
+      model.deployableUnits.map((unit) => ({
+        id: unit.id,
+        name: field(unit.name),
+        definition: optional(unit.description),
+      })),
+    ),
+    libraries: added(
+      model.libraries.map((library) => ({
+        id: library.id,
+        name: field(library.name),
+        definition: optional(library.description),
+      })),
+    ),
+    layers: added(
+      model.layers.map((layer) => ({
+        id: layer.id,
+        name: field(layer.name),
+        definition: optional(layer.description),
+      })),
+    ),
+    deploymentContainers: added(
+      model.deploymentContainers.map((container) => ({
+        id: container.id,
+        name: field(container.name),
+        definition: optional(container.description),
+      })),
+    ),
+    relations: added(model.relations.map(designedRelation)),
     implemented: true,
     implementedAt: model.scanned_at,
   };

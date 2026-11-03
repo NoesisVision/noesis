@@ -3,9 +3,10 @@
 A design document is read today as a model and as requirements. This plan
 adds a third view, Architecture, that reads the same document on the
 assumption that the designed system has a clean, hexagonal architecture: each
-module that holds building blocks is a hexagon, its application services'
-public behaviors are its driving ports, and its repositories and external
-integrations are its driven ports. The view draws the hexagons and checks the
+module that holds building blocks is a hexagon, the behaviors of its
+application services and in adapters are its driving ports, and its
+repositories, external integrations, out adapters and technical services are
+its driven ports. The view draws the hexagons and checks the
 design against the dependency rule, so a reviewer sees where the design keeps
 to the architecture, where it leaves it, and what it leaves undecided.
 
@@ -14,26 +15,33 @@ columns and the tree the requirements view reads through. The prototype is
 `design-doc-architecture-view.prototype.html`, drawn from the
 `examples/qdoc-java` design doc `2026-10-02-create-a-qdoc`.
 
+Built. Placement and checks follow the new system model
+([`new-system-model.md`](new-system-model.md), steps 3 and 4): the building
+block kinds, no visibility, and who calls a behavior read from the
+`invokes` and `performs` relations. The sections below say what is built;
+the steps keep the order it was built in.
+
 ## Decisions
 
-| Topic         | Decision                                                                                                                                                                                                       |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| What it shows | One design document, read-only, projected by the frontend from the design document. Nothing is stored for it                                                                                                   |
-| Hexagon       | A module that holds building blocks. The modules above it are the system boundary and are not drawn as hexagons                                                                                                |
-| Rings         | By building block type. Domain core: `aggregate`, `entity`, `value_object`, `domain_service`, `factory`. Application: `application_service`. Driven port: `repository`, `external_integration`                 |
-| Driving port  | A public behavior of an application service. The actors in its visibility drive it; a public behavior with no actors is called by another subsystem, which the view draws as an unknown caller                 |
-| Adapters      | Not in the design document. Every driving port gets an in adapter and every driven port an out adapter, drawn as placeholders marked "not designed"                                                            |
-| Edges         | Only what the document holds: actor to in adapter, in adapter to driving port, a port to the service that owns it, out adapter to driven port. Calls between services and driven ports are not in the document |
-| Flow by type  | A behavior's output type that another behavior takes as input is listed in the details as an inferred flow, marked "type match only" where the match is not a real flow. It is never drawn as an edge          |
-| Checks        | Computed from building block types, visibility and the types properties, inputs and outputs use. Each is a warning, a note or a pass, and names the elements it concerns                                       |
-| Needs         | Each need, and the driving ports whose behavior's rules answer it. A need no port answers says so                                                                                                              |
-| Tree          | The left pane is the pane the other views use: search, expand and collapse, rows with rails. Two groups: Checks, and Needs at the ports                                                                        |
-| Details       | Below the rows, in the tree pane, scrolling apart from them. The diagram stays whole                                                                                                                           |
-| Diagram       | The right pane. One hexagon per module, drawn by React Flow with a band layout of our own                                                                                                                      |
-| Selection     | One selection for both panes. A row selects its element, check or need; a card selects its element and opens the tree to its row. The elements a selection concerns are outlined                               |
-| Overlays      | Check markers on the cards (on by default) and rule counts (off by default), toggled in the diagram's toolbar                                                                                                  |
-| Switching     | `view: 'architecture'` on the design document route. The place is kept under names of its own, `arch` and `archQ`, as the requirements view keeps `entry` and `entryQ`                                         |
-| Changes       | A green-field design is drawn whole. In a brownfield one, an element whose type the design leaves unchanged cannot be placed from the document alone; see Data gap                                             |
+| Topic         | Decision                                                                                                                                                                                                                                                                                                           |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| What it shows | One design document, read-only, projected by the frontend from the design document. Nothing is stored for it                                                                                                                                                                                                       |
+| Hexagon       | A module that holds building blocks. The modules above it are the system boundary and are not drawn as hexagons                                                                                                                                                                                                    |
+| Rings         | By building block type. Domain core: `aggregate`, `entity`, `domain_service`, `factory`, `value_object`, and the messages the ports carry, `command`, `query`, `event`. Application: `application_service` and `in_adapter`. Driven port: `repository`, `external_integration`, `out_adapter`, `technical_service` |
+| Driving port  | Every behavior of an application service or an in adapter. Its actors perform the manual processes that invoke it, directly or through an in adapter's behavior. A port no manual process and no in adapter invokes is called by another subsystem, which the view draws as an unknown caller                      |
+| Adapters      | An in adapter the design holds is placed with the application services, an out adapter with the driven ports. Every driving port still gets an in adapter and every driven port an out adapter, drawn as placeholders marked "not designed"                                                                        |
+| Edges         | Actor or unknown caller to in adapter, in adapter to driving port, a port to the service that owns it, driven port to out adapter. The `invokes` relations are read for the actors, the unknown callers and the exposed band, never drawn                                                                          |
+| Flow by type  | A behavior's output type that another behavior takes as input is listed in the details as an inferred flow, marked "type match only" when the taker is in another hexagon and is no driving port. It is never drawn as an edge                                                                                     |
+| Checks        | Computed from building block types, the `invokes` and `performs` relations, and the types state, collaborators, inputs and outputs use. Each is a warning, a note or a pass, and names the elements it concerns                                                                                                    |
+| Needs         | Each need, and the driving ports whose behavior's rules answer it. A need no port answers says so                                                                                                                                                                                                                  |
+| Tree          | The left pane is the pane the other views use: search, expand and collapse, rows with rails. Two groups: Checks, and Needs at the ports                                                                                                                                                                            |
+| Details       | Below the rows, in the tree pane, scrolling apart from them. The diagram stays whole                                                                                                                                                                                                                               |
+| Diagram       | The right pane. One hexagon per module, drawn by React Flow with a band layout of our own                                                                                                                                                                                                                          |
+| Selection     | One selection for both panes. A row selects its element, check or need; a card selects its element and opens the tree to its row. The elements a selection concerns are outlined                                                                                                                                   |
+| Overlays      | Check markers on the cards (on by default) and rule counts (off by default), toggled in the diagram's toolbar                                                                                                                                                                                                      |
+| Switching     | `view: 'architecture'` on the design document route. The place is kept under names of its own, `arch` and `archQ`, as the requirements view keeps `entry` and `entryQ`                                                                                                                                             |
+| Exposed       | A behavior of a block that is no application service and no in adapter, which a manual process or a behavior of another module invokes: the core reached past its ports. Shown on its block's card, not as a card of its own                                                                                       |
+| Changes       | A green-field design is drawn whole. In a brownfield one, an element whose type the design leaves unchanged cannot be placed from the document alone; see Data gap                                                                                                                                                 |
 
 ## Library
 
@@ -90,54 +98,63 @@ Considered and left out:
 
 ## Checks
 
-| Check                                | Level   | Fails when                                                                                                      |
-| ------------------------------------ | ------- | --------------------------------------------------------------------------------------------------------------- |
-| Domain depends on no port            | Warning | A domain block's property, input or output uses a repository, an external integration or an application service |
-| Only application services are public | Warning | A behavior of any other building block is public: the core is exposed past its ports                            |
-| Type in no contract                  | Warning | A building block is used by no property, input or output                                                        |
-| Caller unknown                       | Note    | A public behavior names no actor                                                                                |
+| Check                                                             | Level   | Fails when                                                                                                             |
+| ----------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Domain depends on no port                                         | Warning | A domain core block's state, collaborator, input or output uses a driven port, an application service or an in adapter |
+| Only application services and in adapters are called from outside | Warning | A behavior is in the exposed band: a manual process or another module invokes a behavior of another kind of block      |
+| Type in no contract                                               | Warning | An aggregate, entity, value object, command, query or event is used by no state, collaborator, input or output         |
+| Caller unknown                                                    | Note    | A driving port is invoked by no manual process and no in adapter                                                       |
 
 A check that finds nothing is a pass and lists the elements it checked. On
 the qdoc design the first two pass, `NewQDocNotification` is in no contract (only `createQDoc`'s sequence diagram
-names it), and `notifyUsers`' caller is unknown.
+names it), and `notifyUsers`' caller is unknown: the manual process _Create a QDoc_ invokes
+`createQDoc` only.
 
 There is no check that a port's adapter is decided. A port is the hexagon's
 own contract and carries no technology; what sits behind it — a database, a
-broker, a REST endpoint — is the adapter's to say, and the design document
-has no adapters. The placeholders marked "not designed" show the gap.
+broker, a REST endpoint — is the adapter's to say. A design may hold in and
+out adapters as building blocks, but the view does not tie one to the port
+it serves; the placeholders marked "not designed" show the gap.
 
 ## Model (`server/frontend/src/features/design-docs/`)
 
 `design-doc-architecture.ts`, a pure function from a design document (and,
-later, the system model) to what the view renders, tested without React:
+later, the system model) to what the view renders, tested without React. The
+shapes are in `architecture-outline.ts`:
 
 ```ts
 interface ArchitectureOutline {
   hexagons: Hexagon[];
-  /** Elements the view cannot place: a type neither changed nor known. */
+  /** Elements the view cannot place: a type the design neither sets nor knows. */
   unplaced: PlacedElement[];
   checks: ArchitectureCheck[];
-  needsAtPorts: { need: DesignedNeed; ports: BehaviorId[] }[];
+  needsAtPorts: { need: DesignedNeedInput; ports: BehaviorId[] }[];
 }
 
 interface Hexagon {
   module: { id: ModuleId; name: string };
   drivingPorts: {
-    behavior: PlacedElement;
-    actors: string[]; // empty: called by another subsystem
+    behavior: PlacedBehavior;
+    service: BuildingBlockId; // the application service or in adapter it is on
+    actors: string[]; // who performs the manual processes that invoke it
+    callerKnown: boolean; // false: no manual process and no in adapter invokes it
   }[];
-  applicationServices: PlacedElement[];
-  domainCore: PlacedElement[];
-  drivenPorts: PlacedElement[];
+  applicationServices: PlacedBlock[]; // application services and in adapters
+  domainCore: PlacedBlock[];
+  drivenPorts: PlacedBlock[];
+  /** Behaviors of other blocks a manual process or another module invokes. */
+  exposed: PlacedBehavior[];
 }
 
 interface PlacedElement {
   id: BuildingBlockId | BehaviorId;
   name: string;
-  pattern: string; // building block type or behavior type
+  pattern: BuildingBlockType | null; // a behavior has none
   change: OutlineChange;
-  /** The building blocks its properties, inputs and outputs use, collections unwrapped. */
+  /** The building blocks its state, collaborators, inputs and outputs use; itself left out. */
   uses: BuildingBlockId[];
+  /** The rules it governs, and for a block those its behaviors govern. */
+  rules: PlacedRule[];
 }
 
 interface ArchitectureCheck {
@@ -210,19 +227,22 @@ type from the model.
 
 ## Not in this plan
 
-- Calls. The design document has no call edges, so the view cannot draw which
-  service uses which port, or a call from one hexagon to another
-  (`createQDoc` to `notifyUsers`). A `calls` field on behaviors would add
-  both, and a check that the domain calls no port.
-- Adapters as building blocks. A placeholder is drawn for each port until the
-  design document can say what sits there.
+- Drawing calls. The design document holds `invokes` relations now, but the
+  view reads them only for who drives a port and for the exposed band; it does
+  not draw which service uses which port, or a call from one hexagon to
+  another (`createQDoc` to `notifyUsers`), and has no check that the domain
+  calls no port.
+- Adapters at their ports. In and out adapters are building block kinds, but
+  nothing says which port an adapter serves, so a placeholder is drawn for
+  each port.
 - Editing the design from the diagram.
 
 ## Open questions
 
-- Whether a `calls` field on behaviors belongs in the design document, or the
-  calls stay in the sequence diagrams.
-- Whether events need a building block type of their own. The prototype tells
-  `QDocCreated` apart only by its definition starting "Event:".
+- Whether a `calls` field on behaviors belongs in the design document.
+  _Settled_: the new system model's `invokes` relations, which a design
+  writes too.
+- Whether events need a building block type of their own. _Settled_: `event`,
+  `command` and `query` are building block kinds, placed in the domain core.
 - Whether the system model travels with the design document or by a route of
   its own.

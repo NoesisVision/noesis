@@ -23,11 +23,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -44,11 +39,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -65,11 +55,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -86,11 +71,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -107,11 +87,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -128,11 +103,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -149,11 +119,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -170,11 +135,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -191,11 +151,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -212,11 +167,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -233,11 +183,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -254,11 +199,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -275,11 +215,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -296,11 +231,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -317,11 +247,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ],
@@ -349,25 +274,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -389,25 +295,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -429,25 +316,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -469,25 +337,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -509,25 +358,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -549,25 +379,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -589,25 +400,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -629,25 +421,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -669,25 +442,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -709,25 +463,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -749,25 +484,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -789,25 +505,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -829,25 +526,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -869,25 +547,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -909,25 +568,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -949,25 +589,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -989,25 +610,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1029,25 +631,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1069,25 +652,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1109,25 +673,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1149,25 +694,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1189,25 +715,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1229,25 +736,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1269,25 +757,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1309,25 +778,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1349,25 +799,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1389,25 +820,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1429,25 +841,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1469,25 +862,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1509,25 +883,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1549,25 +904,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1589,25 +925,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1629,25 +946,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1669,25 +967,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1709,25 +988,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1749,25 +1009,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1789,25 +1030,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1829,25 +1051,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1869,25 +1072,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1909,25 +1093,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1949,25 +1114,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -1989,25 +1135,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2029,25 +1156,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2069,25 +1177,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2109,25 +1198,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2149,25 +1219,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2189,25 +1240,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "implements": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ],
@@ -2223,11 +1255,6 @@
           "value": "New",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a new, unique client id.",
@@ -2235,34 +1262,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2272,11 +1271,6 @@
           "value": "From",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the client id of a known identifier.",
@@ -2284,34 +1278,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2321,11 +1287,6 @@
           "value": "GetStatusFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells the status of a client.",
@@ -2333,34 +1294,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2370,11 +1303,6 @@
           "value": "Zero",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives no money in a currency.",
@@ -2382,34 +1310,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2419,11 +1319,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives an amount of money in a currency.",
@@ -2431,34 +1326,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2468,11 +1335,6 @@
           "value": "Max",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the larger of two amounts.",
@@ -2480,34 +1342,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2517,11 +1351,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a percentage of a whole number.",
@@ -2529,34 +1358,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2566,11 +1367,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the rate converting into a currency.",
@@ -2578,34 +1374,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2615,11 +1383,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Converts a price at this rate.",
@@ -2627,34 +1390,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2664,11 +1399,6 @@
           "value": "NewWithMaxTotalCostFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Creates an order for a client, capped at the total cost risk management allows them.",
@@ -2676,34 +1406,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2713,11 +1415,6 @@
           "value": "NewWith",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Creates an order capped at a total cost.",
@@ -2725,34 +1422,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2762,11 +1431,6 @@
           "value": "ImmediatelyPlacedBasedOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Creates an order from an offer, with its prices agreed and the order placed.",
@@ -2774,34 +1438,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2811,11 +1447,6 @@
           "value": "Non",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the agreement of an item whose price is not agreed yet.",
@@ -2823,34 +1454,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2860,11 +1463,6 @@
           "value": "Temporary",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives an agreement on a price valid until a date.",
@@ -2872,34 +1470,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2909,11 +1479,6 @@
           "value": "Final",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives an agreement on a price for good.",
@@ -2921,34 +1486,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -2958,11 +1495,6 @@
           "value": "CanChangePrice",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells whether the agreed price may still change.",
@@ -2970,34 +1502,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3007,11 +1511,6 @@
           "value": "IsValidOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells whether the agreement holds on a date.",
@@ -3019,34 +1518,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3056,11 +1527,6 @@
           "value": "GetBy",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Finds an order by its id.",
@@ -3068,34 +1534,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3105,11 +1543,6 @@
           "value": "Save",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Stores an order.",
@@ -3117,34 +1550,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3154,11 +1559,6 @@
           "value": "Add",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Adds a product amount to the order, to the item of that product unit if there is one.",
@@ -3166,34 +1566,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3203,11 +1575,6 @@
           "value": "ConfirmPrices",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Agrees the prices of an offer for the order's items, final or until a date, where the price-change policy allows.",
@@ -3215,34 +1582,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3252,11 +1591,6 @@
           "value": "Place",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Places the order, once every item has a price agreement valid now; placing it again changes nothing.",
@@ -3264,34 +1598,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3301,11 +1607,6 @@
           "value": "HasSameDataAs",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells whether another order holds the same data.",
@@ -3313,34 +1614,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3350,11 +1623,6 @@
           "value": "CanChangePrices",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Allows any new prices.",
@@ -3362,34 +1630,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3399,11 +1639,6 @@
           "value": "CanChangePrices",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Allows new prices only when their total is lower than that of the prices they replace.",
@@ -3411,34 +1646,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3448,11 +1655,6 @@
           "value": "ChooseFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Chooses the price-change policy for a client by their status.",
@@ -3460,34 +1662,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3497,11 +1671,6 @@
           "value": "CanChangePrices",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells whether the old quotes may be replaced by the new ones.",
@@ -3509,34 +1678,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3546,11 +1687,6 @@
           "value": "For",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Calculates the quote of one product amount, or the offer for several, for a client, sales channel and currency.",
@@ -3558,34 +1694,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3595,11 +1703,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the client's discount for each product unit, or their base discount, to a quote or every quote of an offer.",
@@ -3607,34 +1710,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3644,11 +1719,6 @@
           "value": "Percentage",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a discount of a percentage.",
@@ -3656,34 +1726,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3693,11 +1735,6 @@
           "value": "Value",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a discount of a value.",
@@ -3705,34 +1742,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3742,11 +1751,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the price after this discount.",
@@ -3754,34 +1758,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3791,11 +1767,6 @@
           "value": "GetFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Finds the discounts of a client, or those on the given products.",
@@ -3803,34 +1774,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3840,11 +1783,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a discount of a percentage.",
@@ -3852,34 +1790,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3889,11 +1799,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the price less the percentage.",
@@ -3901,34 +1806,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3938,11 +1815,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a discount on a product unit.",
@@ -3950,34 +1822,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -3987,11 +1831,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the discounts on the given product units.",
@@ -3999,34 +1838,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4036,11 +1847,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the discount of each quote's product unit, where there is one, to a quote or every quote of an offer.",
@@ -4048,34 +1854,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4085,11 +1863,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a discount of a value.",
@@ -4097,34 +1870,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4134,11 +1879,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the price less the value, but never below zero.",
@@ -4146,34 +1886,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4183,11 +1895,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives each quote the lower of its price after the client's discounts and after the product discounts.",
@@ -4195,34 +1902,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4232,11 +1911,6 @@
           "value": "FromQuotes",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives an offer of quotes in a currency.",
@@ -4244,34 +1918,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4281,11 +1927,6 @@
           "value": "Compare",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells whether this offer's total is within an accuracy of another's.",
@@ -4293,34 +1934,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4330,11 +1943,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the offer with its prices modified.",
@@ -4342,34 +1950,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4379,11 +1959,6 @@
           "value": "ChooseFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Chooses the modifier of an offer request: three for two over every second box for half price, over individual sales conditions in wholesale or product discounts elsewhere.",
@@ -4391,34 +1966,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4428,11 +1975,6 @@
           "value": "For",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a request for an offer for a client, sales channel and product amounts.",
@@ -4440,34 +1982,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4477,11 +1991,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the base price of a product unit.",
@@ -4489,34 +1998,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4526,11 +2007,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives base prices of several product units.",
@@ -4538,34 +2014,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4575,11 +2023,6 @@
           "value": "GetFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the base price of a product amount.",
@@ -4587,34 +2030,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4624,11 +2039,6 @@
           "value": "GetBasePriceFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Finds the base price of a product amount for a client.",
@@ -4636,34 +2046,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4673,11 +2055,6 @@
           "value": "GetBasePricesFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Finds the base prices of product amounts for a client.",
@@ -4685,34 +2062,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4722,11 +2071,6 @@
           "value": "For",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the quote of a product amount at a price.",
@@ -4734,34 +2078,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4771,11 +2087,6 @@
           "value": "ChangePrice",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the same product amount at a new price.",
@@ -4783,34 +2094,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4820,11 +2103,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the quote with its price modified.",
@@ -4832,34 +2110,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4869,11 +2119,6 @@
           "value": "Or",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the offer with a modifier to fall back on.",
@@ -4881,34 +2126,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4918,11 +2135,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the special offer to an offer; until it is implemented, the fallback modifier.",
@@ -4930,34 +2142,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -4967,11 +2151,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the fallback modifier to an offer.",
@@ -4979,34 +2158,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -5016,11 +2167,6 @@
           "value": "Or",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the offer with a modifier to fall back on.",
@@ -5028,34 +2174,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -5065,11 +2183,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the special offer to an offer; until it is implemented, the fallback modifier.",
@@ -5077,34 +2190,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -5114,11 +2199,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a quantity in a unit.",
@@ -5126,34 +2206,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -5163,11 +2215,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives an amount of a product.",
@@ -5175,34 +2222,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -5212,11 +2231,6 @@
           "value": "New",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a new, unique product id.",
@@ -5224,34 +2238,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -5261,11 +2247,6 @@
           "value": "From",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the product id of a known identifier.",
@@ -5273,34 +2254,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -5310,11 +2263,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a product in a unit.",
@@ -5322,37 +2270,34 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ],
+    "removed": [],
+    "modified": []
+  },
+  "rules": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "scenarios": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "actors": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "manualProcesses": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "relations": {
+    "added": [],
     "removed": [],
     "modified": []
   },

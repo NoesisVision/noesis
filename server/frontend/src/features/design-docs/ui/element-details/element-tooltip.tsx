@@ -1,4 +1,4 @@
-import { IconBraces } from '@tabler/icons-react';
+import { IconArrowsLeftRight, IconBraces } from '@tabler/icons-react';
 import { clsx } from 'clsx';
 import { cloneElement, type ReactElement, type ReactNode } from 'react';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
@@ -20,6 +20,7 @@ import {
 } from '../../element-id.ts';
 import {
   type ChangeListItem,
+  collaboratorItems,
   parameterItems,
   propertyItems,
   resultItems,
@@ -43,52 +44,52 @@ const ICON_SIZE = 12;
 /** What the design says an element is made of, as the tooltip lists it. */
 interface Shape {
   properties?: Line[];
+  collaborators?: Line[];
   input?: Line[];
   output?: Line[];
   buildingBlocks?: Line[];
   behaviors?: Line[];
 }
 
-/** The address a name points at: `name: a.b.C[]` points at `a.b.C`. */
+/** The address a name points at: `name: a.b.C [0..*]` points at `a.b.C`. */
 const addressOf = (name: string) =>
   name
     .slice(name.indexOf(':') + 1)
     .trim()
-    .replace(/(\[\])+$/, '');
+    .replace(/\s*\[[^\]]*\]$/, '');
 
 /** Each line as declared, its type read short; what the design removes left out. */
 const lines = (items: ChangeListItem[]): Line[] =>
   items
     .filter(({ change }) => change !== 'removed')
-    .map(({ label, name, type }) =>
+    .map(({ label, name, type, cardinality }) =>
       name === undefined && type === undefined
         ? { key: label, name: label }
         : {
             key: label,
             name,
-            type: type === undefined ? undefined : shortName(type).type,
+            type:
+              type === undefined
+                ? undefined
+                : `${shortName(type).type}${cardinality ?? ''}`,
           },
     );
 
 /** A behavior as a signature: `place(order: Order): Receipt`, its types read short. */
-const signatureOf = (behavior: DesignedBehaviorInput): Line => {
-  const input = lines(parameterItems(behavior.input))
+const signatureOf = (
+  doc: DesignDocumentInput,
+  behavior: DesignedBehaviorInput,
+): Line => {
+  const input = lines(parameterItems(doc, behavior.id))
     .map(({ name, type }) => (type === undefined ? name : `${name}: ${type}`))
     .join(', ');
-  const output = lines(resultItems(behavior.output))
+  const output = lines(resultItems(doc, behavior.id))
     .map(({ type }) => type)
     .join(', ');
   return {
     key: behavior.id,
     name: `${nameOf(behavior.id)}(${input})`,
-    // A command, a query, an event — as the tree marks it.
-    icon: (
-      <KindIcon
-        kind="behavior"
-        pattern={valueOf(behavior.type)}
-        size={ICON_SIZE}
-      />
-    ),
+    icon: <KindIcon kind="behavior" pattern={null} size={ICON_SIZE} />,
     ...(output === '' ? {} : { type: output }),
   };
 };
@@ -97,7 +98,7 @@ const signatureOf = (behavior: DesignedBehaviorInput): Line => {
 const behaviorsOf = (doc: DesignDocumentInput, blockId: string): Line[] =>
   writtenIn(doc.behaviors)
     .filter(({ id }) => ownerOf(id) === blockId)
-    .map(signatureOf);
+    .map((behavior) => signatureOf(doc, behavior));
 
 /** A module's building blocks the document writes, each by its name and kind. */
 const buildingBlocksOf = (doc: DesignDocumentInput, moduleId: string): Line[] =>
@@ -115,26 +116,27 @@ const isEmpty = (shape: Shape) =>
 
 /**
  * The shape the document gives the element at an address, if it gives one:
- * a behavior's input and output, a building block's properties and
- * behaviors, a module's building blocks.
+ * a behavior's input and output, a building block's properties,
+ * collaborators and behaviors, a module's building blocks.
  */
 const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
   const behavior = findById(doc.behaviors, behaviorIdAt(address));
   if (behavior) {
-    const input = lines(parameterItems(behavior.input));
-    const output = lines(resultItems(behavior.output));
+    const input = lines(parameterItems(doc, behavior.id));
+    const output = lines(resultItems(doc, behavior.id));
     return input.length + output.length > 0 ? { input, output } : null;
   }
   const blockId = blockIdAt(address);
-  const block = findById(doc.buildingBlocks, blockId);
   const shape: Shape = {
     behaviors: behaviorsOf(doc, blockId),
-    properties: block
-      ? lines(propertyItems(block.id, block.properties)).map((line) => ({
-          ...line,
-          icon: <IconBraces size={ICON_SIZE} stroke={2} aria-hidden />,
-        }))
-      : [],
+    properties: lines(propertyItems(doc, blockId)).map((line) => ({
+      ...line,
+      icon: <IconBraces size={ICON_SIZE} stroke={2} aria-hidden />,
+    })),
+    collaborators: lines(collaboratorItems(doc, blockId)).map((line) => ({
+      ...line,
+      icon: <IconArrowsLeftRight size={ICON_SIZE} stroke={2} aria-hidden />,
+    })),
   };
   if (!isEmpty(shape)) return shape;
   const moduleId = moduleIdAt(address);
@@ -218,6 +220,7 @@ function Details({ address, shape }: { address: string; shape: Shape | null }) {
       <Address address={address} />
       <Lines label="Behaviors" lines={shape?.behaviors} />
       <Lines label="Properties" lines={shape?.properties} />
+      <Lines label="Collaborators" lines={shape?.collaborators} />
       <Lines label="Input" lines={shape?.input} />
       <Lines label="Output" lines={shape?.output} />
       <Lines label="Building blocks" lines={shape?.buildingBlocks} />

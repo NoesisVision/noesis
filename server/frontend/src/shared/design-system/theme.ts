@@ -218,20 +218,54 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * How each kind of relation is drawn on the exploration, all of it here: its
  * line (and arrow) and its word, in the light and in the dark, and its
  * dashes when the edges run — a dash and a gap in pixels of the line, and
- * the seconds they take to move one length along. What an element uses
- * reads as a dependency resting: a soft blue in short dots drifting slowly;
- * what it invokes as a call going: violet in long dashes moving fast. A
- * quiet line may have a word of a stronger ink. Its arrow's shape is the
- * canvas's to draw (EDGE_ARROW in relation-colors.ts).
+ * the seconds they take to move one length along. What an element holds as
+ * state reads as a dependency resting: a soft blue in short dots drifting
+ * slowly; what it works with as a dependency held: pink in medium dashes,
+ * drifting as slowly; what a behavior takes as input, teal, and gives back as output,
+ * orange, in the same short dots, the two sides of a signature told apart
+ * by colour alone; what it extends as a kinship standing: a grey in longer
+ * dashes, slower still; what it invokes as a call going: violet in long
+ * dashes moving fast. A quiet line may have a word of a stronger ink. Its
+ * arrow's shape is the canvas's to draw (EDGE_ARROW in relation-colors.ts).
  */
-function relationEdges({ colors: { brand, violet } }: MantineThemeOf) {
+function relationEdges({
+  colors: { brand, gray, violet, teal, orange, pink, green, yellow },
+}: MantineThemeOf) {
   return {
-    uses: {
+    state: {
       line: { light: brand[4], dark: '#5a7aa3' },
       word: { light: brand[9], dark: brand[2] },
       dash: 3,
       gap: 4,
       seconds: 0.7,
+    },
+    collaborator: {
+      line: { light: pink[5], dark: pink[4] },
+      word: { light: pink[8], dark: pink[2] },
+      dash: 6,
+      gap: 4,
+      seconds: 0.7,
+    },
+    input: {
+      line: { light: teal[5], dark: teal[4] },
+      word: { light: teal[8], dark: teal[2] },
+      dash: 3,
+      gap: 4,
+      seconds: 0.7,
+    },
+    output: {
+      line: { light: orange[5], dark: orange[4] },
+      word: { light: orange[8], dark: orange[2] },
+      dash: 3,
+      gap: 4,
+      seconds: 0.7,
+    },
+    extends: {
+      line: { light: gray[5], dark: gray[5] },
+      word: { light: gray[7], dark: gray[4] },
+      dash: 8,
+      gap: 4,
+      seconds: 1,
     },
     invokes: {
       line: { light: violet[6], dark: violet[2] },
@@ -239,6 +273,22 @@ function relationEdges({ colors: { brand, violet } }: MantineThemeOf) {
       dash: 10,
       gap: 5,
       seconds: 0.35,
+    },
+    performs: {
+      line: { light: green[6], dark: green[4] },
+      word: { light: green[8], dark: green[2] },
+      dash: 4,
+      gap: 3,
+      seconds: 0.7,
+    },
+    // What holds an element it is not drawn round: a layer, a library, a
+    // unit, a container. Long dashes, slow, as a frame's border is still.
+    contains: {
+      line: { light: yellow[7], dark: yellow[5] },
+      word: { light: yellow[9], dark: yellow[3] },
+      dash: 12,
+      gap: 6,
+      seconds: 1.2,
     },
   };
 }

@@ -94,11 +94,9 @@ describe('ArchitectureView', () => {
   });
 
   it('draws a card for every port, named by what it is', () => {
+    expect(page).toMatch(/aria-label="createQDoc, driving port, added"/);
     expect(page).toMatch(
-      /aria-label="createQDoc, driving port, Command, added"/,
-    );
-    expect(page).toMatch(
-      /aria-label="notifyUsers, driving port, Command, added, 1 note"/,
+      /aria-label="notifyUsers, driving port, added, 1 note"/,
     );
     expect(page).toContain('aria-label="Another subsystem, unknown caller"');
   });
@@ -109,7 +107,9 @@ describe('ArchitectureView', () => {
     // In the box the model lists what a block implements in.
     expect(html).toMatch(/<dt[^>]*>.*Concerns.*<\/dt>/s);
     expect(html).toMatch(/<button[^>]*>.*notifyUsers.*<\/button>/s);
-    expect(html).toContain('notifyUsers is public and names no actor');
+    expect(html).toContain(
+      'notifyUsers is invoked by no manual process and no in adapter',
+    );
   });
 
   it('outlines the cards a check concerns', () => {
@@ -155,7 +155,9 @@ describe('ArchitectureView', () => {
   });
 
   it("folds a rule's description in the panel, and only there", () => {
-    const TITLE = 'building_block|qdocmanagement.preparation.QDocTitle';
+    // The rule is the creation's, which governs it.
+    const TITLE =
+      'behavior|qdocmanagement.preparation.QDocCreationService.createQDoc';
     const BLANK = 'a blank title cannot be created';
     const glance = read(TITLE);
     expect(glance).toMatch(/aria-expanded="false"[^>]*>Show description</);

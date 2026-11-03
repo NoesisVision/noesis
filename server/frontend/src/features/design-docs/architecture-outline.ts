@@ -7,10 +7,8 @@ import type {
   ModuleId,
 } from '#backend/app/element-id.ts';
 import type {
-  BehaviorType,
   BuildingBlockType,
-  RuleCategory,
-  RuleType,
+  RuleKind,
 } from '#backend/app/system-model/system-model.ts';
 import type { kindOf } from './element-id.ts';
 
@@ -33,41 +31,41 @@ export interface Hexagon {
   applicationServices: PlacedBlock[];
   domainCore: PlacedBlock[];
   drivenPorts: PlacedBlock[];
-  /** Public behaviors of any block but an application service: the core reached past its ports. */
+  /** Behaviors of any block but an application service or an in adapter that a manual process or another module calls: the core reached past its ports. */
   exposed: PlacedBehavior[];
 }
 
 interface DrivingPort {
   behavior: PlacedBehavior;
-  /** The application service the behavior is on. */
+  /** The application service or in adapter the behavior is on. */
   service: BuildingBlockId;
-  /** Empty when another subsystem calls it. */
+  /** Who performs the manual processes that invoke it, directly or through an in adapter, by name. */
   actors: string[];
+  /** Whether a manual process or an in adapter invokes it; when neither does, another subsystem calls it. */
+  callerKnown: boolean;
 }
 
 export interface PlacedElement<
-  Pattern extends BuildingBlockType | BehaviorType =
-    | BuildingBlockType
-    | BehaviorType,
+  Id extends BuildingBlockId | BehaviorId = BuildingBlockId | BehaviorId,
 > {
-  id: Pattern extends BuildingBlockType ? BuildingBlockId : BehaviorId;
+  id: Id;
   name: string;
-  /** The building block type, or the behavior type. */
-  pattern: Pattern | null;
+  /** The building block type; a behavior has none. */
+  pattern: BuildingBlockType | null;
   change: OutlineChange;
-  /** The building blocks its properties, inputs and outputs use, collections unwrapped; itself left out. */
+  /** The building blocks its properties, collaborators, inputs and outputs use, collections unwrapped; itself left out. */
   uses: BuildingBlockId[];
-  /** Its own rules and those of its behaviors the view does not draw apart from it. */
+  /** The rules it governs, and for a block those its behaviors govern, which the view does not draw apart from it. */
   rules: PlacedRule[];
 }
 
-export type PlacedBlock = PlacedElement<BuildingBlockType>;
-export type PlacedBehavior = PlacedElement<BehaviorType>;
+export type PlacedBlock = PlacedElement<BuildingBlockId>;
+export type PlacedBehavior = PlacedElement<BehaviorId>;
 
 export interface PlacedRule {
+  id: string;
   name: string;
-  category: RuleCategory | null;
-  ruleType: RuleType | null;
+  kind: RuleKind | null;
   needs: string[];
 }
 
@@ -96,6 +94,8 @@ export const CHECK_LEVEL_META: Record<
 const DRIVEN_PORTS = [
   'repository',
   'external_integration',
+  'out_adapter',
+  'technical_service',
 ] as const satisfies readonly BuildingBlockType[];
 
 /** Every element in a hexagon, in the order the rings are drawn. */
@@ -178,7 +178,7 @@ export const ARCHITECTURE_KIND_META: Record<
     about: {
       eyebrow: 'Actor',
       text: () =>
-        'Named on a public behavior as the actor that calls it, through an in adapter.',
+        'Performs a manual process that invokes this port, directly or through an in adapter.',
     },
   },
   caller: {
@@ -188,7 +188,7 @@ export const ARCHITECTURE_KIND_META: Record<
     about: {
       eyebrow: 'Caller · unknown',
       text: (port) =>
-        `${port} is public and names no actor, so another subsystem calls it. Which one is not in the design document.`,
+        `${port} is invoked by no manual process and no in adapter, so another subsystem calls it. Which one is not in the design document.`,
       port: 'Calls',
     },
   },
@@ -229,4 +229,12 @@ export const UNDRAWN_NAME: Record<ReturnType<typeof kindOf>, string> = {
   module: 'Module',
   building_block: 'Building block',
   behavior: 'Behavior',
+  rule: 'Rule',
+  scenario: 'Scenario',
+  actor: 'Actor',
+  manual_process: 'Manual process',
+  deployable_unit: 'Deployable unit',
+  library: 'Library',
+  layer: 'Layer',
+  deployment_container: 'Deployment container',
 };

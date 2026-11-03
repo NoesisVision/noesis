@@ -12,7 +12,15 @@ import {
   UNREACHED,
   behavior as invocation,
 } from '../support/csharp-fixture-expectations';
+import { trackFeatureFiles } from '../support/feature-files';
 import { fixedClock } from '../support/fixed-clock';
+import {
+  extendsOf,
+  inputOf,
+  invokedTargetsOf,
+  outputOf,
+  stateOf,
+} from '../support/relations';
 import { scannerOver } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
@@ -131,22 +139,22 @@ describe('Scanning through the C# parser', () => {
     ).toEqual([
       [block('AbstractBlock'), 'entity'],
       [block('AggregateBlock'), 'aggregate'],
-      [block('AggregateBlock NestedEvent'), 'value_object'],
+      [block('AggregateBlock NestedEvent'), 'event'],
       [block('AggregateBlock Repository'), 'repository'],
       [block('ApplicationServiceBlock'), 'application_service'],
-      [block('CommandBlock'), 'value_object'],
-      [block('DomainEventBlock'), 'value_object'],
+      [block('CommandBlock'), 'command'],
+      [block('DomainEventBlock'), 'event'],
       [block('DomainServiceBlock'), 'domain_service'],
       [block('EntityBlock'), 'entity'],
       [block('EnumBlock'), 'value_object'],
-      [block('EventBlock'), 'value_object'],
+      [block('EventBlock'), 'event'],
       [block('ExternalIntegrationBlock'), 'external_integration'],
       [block('FactoryBlock'), 'factory'],
       [block('GenericRepositoryBlock'), 'repository'],
       [block('ImplementsBlocksAndOthers'), 'entity'],
       [block('NameOverrideIsNoElementName'), 'value_object'],
       [block('Named nested entity'), 'entity'],
-      [block('QueryBlock'), 'value_object'],
+      [block('QueryBlock'), 'query'],
       [block('ReadModelBlock'), 'value_object'],
       [block('RecordStructBlock'), 'value_object'],
       [block('StructBlock'), 'value_object'],
@@ -164,64 +172,26 @@ describe('Scanning through the C# parser', () => {
     );
     expect<unknown>(aggregate).toMatchObject({
       description: 'An aggregate with a *short* description.',
-      implements: [],
-      scenarios: [{ name: 'Aggregate scenario', description: null, steps: [] }],
       source: { path: `${SOURCES}/Blocks/BlockKinds.cs`, line: 10 },
     });
+    expect<unknown>(extendsOf(model, block('AggregateBlock'))).toEqual([]);
     // Public instance members only; the dictionary and the unannotated
     // interface have no word in the model; the excluded property is dropped.
-    expect<unknown>(aggregate?.properties).toEqual([
-      {
-        name: 'Entities',
-        type: { collectionOf: block('EntityBlock') },
-        description: 'A collection, backed by a field of the same name.',
-        optional: false,
-      },
-      {
-        name: 'OptionalValueObject',
-        type: block('ValueObjectBlock'),
-        description: null,
-        optional: true,
-      },
-      {
-        name: 'OptionalPrimitive',
-        type: 'primitive|datetime',
-        description: null,
-        optional: true,
-      },
-      {
-        name: 'Enum',
-        type: block('EnumBlock'),
-        description: null,
-        optional: false,
-      },
+    expect<unknown>(stateOf(model, block('AggregateBlock'))).toEqual([
+      ['Entities', block('EntityBlock'), '0..*'],
+      ['Enum', block('EnumBlock'), '1'],
+      ['OptionalValueObject', block('ValueObjectBlock'), '0..1'],
+      ['OptionalPrimitive', 'primitive|datetime', '0..1'],
     ]);
-    // Positional record properties are properties too.
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.id === block('CommandBlock'))
-        ?.properties,
-    ).toEqual([
-      {
-        name: 'Id',
-        type: block('ValueObjectBlock'),
-        description: null,
-        optional: false,
-      },
-      {
-        name: 'Note',
-        type: 'primitive|string',
-        description: null,
-        optional: true,
-      },
+    // Positional record properties are state too.
+    expect<unknown>(stateOf(model, block('CommandBlock'))).toEqual([
+      ['Id', block('ValueObjectBlock'), '1'],
+      ['Note', 'primitive|string', '0..1'],
     ]);
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.id === block('EnumBlock'))?.properties,
-    ).toEqual([]);
+    expect<unknown>(stateOf(model, block('EnumBlock'))).toEqual([]);
     // Direct supertypes that are blocks only (R4.4).
     expect<unknown>(
-      model.buildingBlocks.find(
-        (b) => b.id === block('ImplementsBlocksAndOthers'),
-      )?.implements,
+      extendsOf(model, block('ImplementsBlocksAndOthers')),
     ).toEqual([block('AbstractBlock'), block('ExternalIntegrationBlock')]);
 
     // Public methods become behaviors: static ones too; not the excluded,
@@ -230,133 +200,145 @@ describe('Scanning through the C# parser', () => {
     expect<unknown>(
       model.behaviors
         .filter((b) => b.id.startsWith('behavior|Projection.Behaviors.'))
-        .map((b) => [
-          b.id,
-          b.type,
-          b.visibility,
-          b.input.map((i) => [i.name, i.type, i.optional]),
-          b.output.map((o) => [o.type, o.optional]),
-        ]),
+        .map((b) => [b.id, inputOf(model, b.id), outputOf(model, b.id)]),
     ).toEqual([
-      [
-        form('ArrayOutput'),
-        'Command',
-        { kind: 'public', actors: [] },
-        [],
-        [[{ collectionOf: block('ValueObjectBlock') }, false]],
-      ],
-      [
-        form('CollectionOutput'),
-        'Command',
-        { kind: 'public', actors: [] },
-        [],
-        [[{ collectionOf: block('ValueObjectBlock') }, false]],
-      ],
-      [
-        form('EntryPointCommand'),
-        'Command',
-        { kind: 'public', actors: [] },
-        [],
-        [],
-      ],
-      [
-        form('EntryPointQuery'),
-        'Query',
-        { kind: 'public', actors: [] },
-        [],
-        [[block('ValueObjectBlock'), false]],
-      ],
-      [
-        form('InputWithoutWord'),
-        'Command',
-        { kind: 'public', actors: [] },
-        [],
-        [],
-      ],
-      [
-        form('Named behavior'),
-        'Command',
-        { kind: 'public', actors: [] },
-        [],
-        [],
-      ],
+      [form('ArrayOutput'), [], [[block('ValueObjectBlock'), '0..*']]],
+      [form('CollectionOutput'), [], [[block('ValueObjectBlock'), '0..*']]],
+      [form('EntryPointCommand'), [], []],
+      [form('EntryPointQuery'), [], [[block('ValueObjectBlock'), '1']]],
+      [form('InputWithoutWord'), [], []],
+      [form('Named behavior'), [], []],
       [
         form('OptionalInputs'),
-        'Command',
-        { kind: 'public', actors: [] },
         [
-          ['nullable', block('ValueObjectBlock'), true],
-          ['withDefault', 'primitive|integer', true],
+          ['nullable', block('ValueObjectBlock'), '0..1'],
+          ['withDefault', 'primitive|integer', '0..1'],
         ],
         [],
       ],
-      [
-        form('OptionalOutput'),
-        'Command',
-        { kind: 'public', actors: [] },
-        [],
-        [[block('ValueObjectBlock'), true]],
-      ],
+      [form('OptionalOutput'), [], [[block('ValueObjectBlock'), '0..1']]],
       [
         form('Overloaded'),
-        'Command',
-        { kind: 'public', actors: [] },
         [
-          ['first', 'primitive|integer', false],
-          ['second', 'primitive|integer', false],
+          ['first', 'primitive|integer', '1'],
+          ['second', 'primitive|integer', '1'],
         ],
         [],
       ],
       [
         form('StaticFactory'),
-        'Command',
-        { kind: 'public', actors: [] },
         [],
-        [['building_block|Projection.Behaviors.BehaviorForms', false]],
+        [['building_block|Projection.Behaviors.BehaviorForms', '1']],
       ],
-      [
-        form('TaskOutputIsVoid'),
-        'Command',
-        { kind: 'public', actors: [] },
-        [],
-        [],
-      ],
-      [
-        form('TaskOutputUnwrapped'),
-        'Command',
-        { kind: 'public', actors: [] },
-        [],
-        [[block('ValueObjectBlock'), false]],
-      ],
-      [
-        form('WithActor'),
-        'Command',
-        { kind: 'public', actors: ['Customer'] },
-        [],
-        [],
-      ],
+      [form('TaskOutputIsVoid'), [], []],
+      [form('TaskOutputUnwrapped'), [], [[block('ValueObjectBlock'), '1']]],
+      [form('WithActor'), [], []],
     ]);
     expect<unknown>(
       model.behaviors.find((b) => b.id === form('Named behavior')),
     ).toMatchObject({
       description: 'Named by its annotation.',
-      scenarios: [{ name: 'Behavior scenario' }],
       source: { path: `${SOURCES}/Behaviors/BehaviorForms.cs`, line: 23 },
     });
-    // An annotated private method is a private behavior; an explicit
-    // interface implementation and a member inherited from a non-block base
-    // give the block no behavior of their own.
-    expect<unknown>(
-      model.behaviors.find(
-        (b) => b.id === invocation('CallChains.Private behavior'),
-      )?.visibility,
-    ).toEqual({ kind: 'private' });
+    // R13: each project that declares a block is a deployable unit when it
+    // builds an executable, a library otherwise.
+    expect<unknown>(ids(model.deployableUnits)).toEqual([
+      'deployable_unit|CSharpSyntax',
+    ]);
+    expect<unknown>(model.deployableUnits[0]?.source).toEqual({
+      path: 'code-parsers/dotnet/test/fixtures/CSharpSyntax',
+      line: null,
+    });
+    // The dots of a project's name are part of it.
+    expect<unknown>(ids(model.libraries)).toEqual([
+      'library|CSharpSyntax.OtherProject',
+    ]);
+    // An actor annotation on a behavior names an actor of the model, and
+    // nothing on the behavior.
+    expect<unknown>(model.actors).toEqual([
+      {
+        id: 'actor|Customer',
+        name: 'Customer',
+        description: null,
+        source: {
+          path: `${SOURCES}/Behaviors/BehaviorForms.cs`,
+          line: 13,
+        },
+      },
+    ]);
+    // An annotated private method is a behavior too; an explicit interface
+    // implementation and a member inherited from a non-block base give the
+    // block no behavior of their own.
+    expect<unknown>(ids(model.behaviors)).toContain(
+      invocation('CallChains.Private behavior'),
+    );
     expect<unknown>(ids(model.behaviors)).not.toContain(
       invocation('ExplicitBlockImplementor.Contract'),
     );
     expect<unknown>(ids(model.behaviors)).not.toContain(
       invocation('SatisfiedByBaseMember.Provided'),
     );
+  });
+
+  it("makes the rules and scenarios of the fixture's feature file, governed by the behaviors its Reqnroll steps invoke", async () => {
+    const FEATURE = `${SOURCES}/Rules/behavior-forms.feature`;
+    await trackFeatureFiles(t.root, REPOSITORY, [FEATURE]);
+    const WIDEST = 'rule|Projection.Behaviors.Overloads take the widest';
+    const NAMED = 'rule|Projection.Behaviors.Named behaviors keep their name';
+
+    const model = SystemModel.parse(await scanner.scan());
+
+    expect<unknown>(model.rules).toEqual([
+      {
+        id: NAMED,
+        name: 'Named behaviors keep their name',
+        kind: 'post',
+        description: null,
+        source: { path: FEATURE, line: 15 },
+      },
+      {
+        id: WIDEST,
+        name: 'Overloads take the widest',
+        kind: 'validation',
+        description:
+          'The overload with the most parameters stands for the behavior.',
+        source: { path: FEATURE, line: 7 },
+      },
+    ]);
+    expect<unknown>(model.scenarios).toEqual([
+      {
+        id: `scenario|${NAMED.slice(5)}.The named behavior runs`,
+        name: 'The named behavior runs',
+        description: null,
+        steps: [
+          { kind: 'given', text: 'a behavior form' },
+          { kind: 'when', text: 'the named behavior runs' },
+          { kind: 'then', text: 'nothing is returned' },
+        ],
+        source: { path: FEATURE, line: 16 },
+      },
+      {
+        id: `scenario|${WIDEST.slice(5)}.One argument`,
+        name: 'One argument',
+        description: null,
+        steps: [
+          { kind: 'given', text: 'a behavior form' },
+          { kind: 'when', text: 'the overloaded behavior runs with 1' },
+          { kind: 'then', text: 'nothing is returned' },
+        ],
+        source: { path: FEATURE, line: 10 },
+      },
+    ]);
+    expect<unknown>(
+      model.relations.filter((r) => r.kind === 'governs'),
+    ).toEqual([
+      { kind: 'governs', from: form('Named behavior'), to: NAMED },
+      { kind: 'governs', from: form('Overloaded'), to: WIDEST },
+    ]);
+    // The step definitions' class is no building block, its methods no behaviors.
+    expect<unknown>(
+      ids(model.buildingBlocks).filter((id) => id.includes('Rules')),
+    ).toEqual([]);
   });
 
   it('derives invokes from the invocation chains of the fixture, by the rules of section 11', async () => {
@@ -368,7 +350,9 @@ describe('Scanning through the C# parser', () => {
         !b.id.startsWith('behavior|Projection.Invocations.Reached.'),
     );
     expect<unknown>(
-      Object.fromEntries(invocations.map((b) => [b.id, b.invokes])),
+      Object.fromEntries(
+        invocations.map((b) => [b.id, invokedTargetsOf(model, b.id)]),
+      ),
     ).toEqual(INVOKES);
 
     // The leaves invoke nothing, and some of them nothing reaches.
@@ -376,9 +360,11 @@ describe('Scanning through the C# parser', () => {
       b.id.startsWith('behavior|Projection.Invocations.Reached.'),
     );
     expect<unknown>(leaves.length).toBeGreaterThan(40);
-    expect<unknown>(leaves.every((b) => b.invokes.length === 0)).toBe(true);
+    expect<unknown>(
+      leaves.every((b) => invokedTargetsOf(model, b.id).length === 0),
+    ).toBe(true);
     const reachedByAnyone = new Set<string>(
-      model.behaviors.flatMap((b) => b.invokes),
+      model.relations.flatMap((r) => (r.kind === 'invokes' ? [r.to] : [])),
     );
     for (const leaf of UNREACHED) {
       expect<unknown>(ids(leaves)).toContain(leaf);

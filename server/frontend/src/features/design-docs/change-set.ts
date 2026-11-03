@@ -38,15 +38,9 @@ export function findById<Item extends { id: string }>(
 }
 
 export function findByName<Item extends { name: string }>(
-  set: ChangeSetInput<Item, string> | undefined,
+  set: ChangeSetInput<Item, unknown> | undefined,
   name: string,
 ): Item | null {
   const matches = (item: Item) => item.name === name;
   return set?.added?.find(matches) ?? set?.modified?.find(matches) ?? null;
 }
-
-/** What the design writes for an element that keeps rules: a building block, a behavior or a module. */
-export const designedOf = (doc: DesignDocumentInput, id: string) =>
-  findById(doc.buildingBlocks, id) ??
-  findById(doc.behaviors, id) ??
-  findById(doc.modules, id);

@@ -9,7 +9,7 @@
       "-Dnoesis.out={out}",
       "-Dnoesis.repository={name}",
       "-Dmaven.compiler.failOnError=false",
-      "process-classes",
+      "process-test-classes",
       "noesis:parse"
     ],
     "installHint": "Run the service on a JDK with Maven on the PATH; the build takes noesis-parser-maven-plugin from the local repository (mvn install in code-parsers/java)."

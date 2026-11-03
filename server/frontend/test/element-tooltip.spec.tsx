@@ -18,17 +18,6 @@ const document = {
         id: 'building_block|pay.Hold',
         type: plain('aggregate'),
         definition: plain('Holds a card. Never shown in a tooltip.'),
-        properties: {
-          added: [
-            {
-              name: 'amount',
-              type: plain('building_block|pay.Money'),
-              optional: plain(true),
-              description: plain('What is held.'),
-            },
-          ],
-          removed: ['legacyId'],
-        },
       },
     ],
   },
@@ -37,21 +26,66 @@ const document = {
       {
         id: 'behavior|pay.Hold.place',
         definition: plain('Places a hold.'),
-        input: {
-          added: [{ name: 'amount', type: plain('building_block|pay.Money') }],
-        },
-        output: { added: [{ type: 'building_block|pay.Hold' }] },
+      },
+      { id: 'behavior|pay.Hold.release' },
+      { id: 'behavior|pay.Hold.balance' },
+    ],
+  },
+  relations: {
+    added: [
+      {
+        kind: 'has_state',
+        from: 'building_block|pay.Hold',
+        name: 'amount',
+        to: plain('building_block|pay.Money'),
+        cardinality: plain('0..1'),
       },
       {
-        id: 'behavior|pay.Hold.release',
-        type: plain('Command'),
-        input: { added: [{ name: 'reason', type: plain('string') }] },
+        kind: 'has_collaborator',
+        from: 'building_block|pay.Hold',
+        name: 'ledger',
+        to: plain('building_block|pay.Ledger'),
       },
       {
-        id: 'behavior|pay.Hold.balance',
-        type: plain('Query'),
-        output: { added: [{ type: 'building_block|pay.Money' }] },
+        kind: 'has_input',
+        from: 'behavior|pay.Hold.place',
+        name: 'amount',
+        to: plain('building_block|pay.Money'),
+        cardinality: plain('1'),
+        position: plain(1),
       },
+      {
+        kind: 'has_output',
+        from: 'behavior|pay.Hold.place',
+        to: 'building_block|pay.Hold',
+        cardinality: plain('1'),
+      },
+      {
+        kind: 'has_input',
+        from: 'behavior|pay.Hold.release',
+        name: 'reason',
+        to: plain('primitive|string'),
+        cardinality: plain('1'),
+        position: plain(2),
+      },
+      // Listed after the reason, yet first in the signature.
+      {
+        kind: 'has_input',
+        from: 'behavior|pay.Hold.release',
+        name: 'by',
+        to: plain('primitive|string'),
+        cardinality: plain('1'),
+        position: plain(1),
+      },
+      {
+        kind: 'has_output',
+        from: 'behavior|pay.Hold.balance',
+        to: 'building_block|pay.Money',
+        cardinality: plain('1'),
+      },
+    ],
+    removed: [
+      { kind: 'has_state', from: 'building_block|pay.Hold', name: 'legacyId' },
     ],
   },
   implemented: false,
@@ -84,7 +118,7 @@ describe('ElementTooltip', () => {
     expect(html).toMatch(/>Hold<\/span><span[^>]*>pay</);
     expect(html).toContain('>Properties<');
     // The type apart from the name, coloured as a declaration box colours it.
-    expect(html).toMatch(/>amount\?: <span[^>]*>Money<\/span>/);
+    expect(html).toMatch(/>amount: <span[^>]*>Money \[0\.\.1\]<\/span>/);
     // What the design removes is not part of what the block is.
     expect(html).not.toContain('legacyId');
   });
@@ -103,18 +137,21 @@ describe('ElementTooltip', () => {
     expect(html.indexOf('>Behaviors<')).toBeLessThan(
       html.indexOf('>Properties<'),
     );
-    expect(html).toMatch(/>release\(reason: string\)</);
+    // Its parameters in the order of their positions, not of the document.
+    expect(html).toMatch(/>release\(by: string, reason: string\)</);
     expect(html).toMatch(/>balance\(\): <span[^>]*>Money<\/span>/);
     // One whose kind the design leaves as it is still listed.
     expect(html).toMatch(/>place\(amount: Money\): <span[^>]*>Hold<\/span>/);
   });
 
-  it('marks each behavior by its kind and each property with braces', () => {
+  it('marks each behavior as one, each property with braces and each collaborator with arrows', () => {
     const html = render('pay.Hold');
-    expect(html).toContain('tabler-icon-circle-letter-c');
-    expect(html).toContain('tabler-icon-circle-letter-q');
     expect(html).toContain('tabler-icon-activity');
+    expect(html).not.toContain('tabler-icon-circle-letter-c');
     expect(html).toContain('tabler-icon-braces');
+    expect(html).toContain('>Collaborators<');
+    expect(html).toContain('tabler-icon-arrows-left-right');
+    expect(html).toMatch(/>ledger: <span[^>]*>Ledger/);
   });
 
   it("lists a module's building blocks with their kind", () => {
@@ -123,8 +160,8 @@ describe('ElementTooltip', () => {
     expect(html).toMatch(/>Hold: <span[^>]*>aggregate<\/span>/);
   });
 
-  it('reads a collection by its item', () => {
-    expect(render('pay.Hold[]')).toMatch(/>amount\?: <span[^>]*>Money</);
+  it('reads a slot by its type, however many it holds', () => {
+    expect(render('pay.Hold [0..*]')).toMatch(/>amount: <span[^>]*>Money/);
   });
 
   it('never shows a definition or a description', () => {

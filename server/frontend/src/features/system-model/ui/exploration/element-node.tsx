@@ -257,10 +257,20 @@ function ChainEntry({
 const REACH_ACTION = {
   contains: 'Contains',
   isPartOf: 'Part of',
-  uses: 'Uses',
-  usedBy: 'Used by',
+  hasState: 'Has state',
+  stateOf: 'State of',
+  hasCollaborator: 'Has collaborator',
+  collaboratorOf: 'Collaborator of',
+  hasInput: 'Has input',
+  inputOf: 'Input of',
+  hasOutput: 'Has output',
+  outputOf: 'Output of',
+  extends: 'Extends',
+  extendedBy: 'Extended by',
   invokes: 'Invokes',
   invokedBy: 'Invoked by',
+  performs: 'Performs',
+  performedBy: 'Performed by',
 } as const satisfies Record<Reach, string>;
 
 /*

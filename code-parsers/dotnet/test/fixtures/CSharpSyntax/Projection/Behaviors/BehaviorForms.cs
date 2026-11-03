@@ -21,7 +21,6 @@ public class BehaviorForms
 
     /// <summary>Named by its annotation.</summary>
     [DomainBehavior("Named behavior")]
-    [Scenario("Behavior scenario")]
     public void NamedByAnnotation() { }
 
     public void Overloaded(int first) => Overloaded(first, 0);

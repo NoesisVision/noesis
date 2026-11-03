@@ -104,38 +104,38 @@ None.
 
 | Measure | source | bytecode | hybrid |
 | --- | ---: | ---: | ---: |
-| namespace nodes | 21 | 21 | 21 |
-| type nodes | 361 | 361 | 361 |
-| method nodes | 1048 | 1080 | 1048 |
-| field nodes | 357 | 357 | 357 |
-| nodes with a location | 1386 | 1758 | 1386 |
-| nodes located to a line (line > 0) | 1386 | 957 | 1386 |
-| nodes located to a column (column > 0) | 1386 | 0 | 1386 |
-| nodes with documentation | 62 | 0 | 62 |
-| nodes with annotations | 200 | 50 | 200 |
-| annotations on nodes | 219 | 67 | 219 |
-| generated members | 400 | 40 | 400 |
+| namespace nodes | 22 | 22 | 22 |
+| type nodes | 362 | 362 | 362 |
+| method nodes | 1053 | 1085 | 1053 |
+| field nodes | 358 | 358 | 358 |
+| nodes with a location | 1393 | 1765 | 1393 |
+| nodes located to a line (line > 0) | 1393 | 962 | 1393 |
+| nodes located to a column (column > 0) | 1393 | 0 | 1393 |
+| nodes with documentation | 63 | 0 | 63 |
+| nodes with annotations | 204 | 54 | 204 |
+| annotations on nodes | 223 | 71 | 223 |
+| generated members | 401 | 40 | 401 |
 | methods with parameters named arg<i> | 0 | 0 | 0 |
-| CONTAINS edges | 1787 | 1819 | 1787 |
+| CONTAINS edges | 1795 | 1827 | 1795 |
 | EXTENDS edges | 186 | 189 | 186 |
 | IMPLEMENTS edges | 168 | 168 | 168 |
 | OVERRIDES edges | 147 | 147 | 147 |
 | IMPLEMENTS_MEMBER edges | 458 | 458 | 458 |
-| INVOKES edges | 1249 | 1545 | 1249 |
+| INVOKES edges | 1255 | 1551 | 1255 |
 | INVOKES with type arguments | 170 | 0 | 170 |
 | INVOKES via closure | 26 | 67 | 26 |
-| INVOKES with a column | 1249 | 0 | 1249 |
-| INVOKES receiver = other | 4 | 686 | 4 |
+| INVOKES with a column | 1255 | 0 | 1255 |
+| INVOKES receiver = other | 4 | 689 | 4 |
 | INVOKES receiver kinds used | 11 | 5 | 11 |
 | INVOKES to unresolved targets | 0 | 0 | 0 |
-| ACCESSES edges | 274 | 538 | 274 |
+| ACCESSES edges | 276 | 540 | 276 |
 | ACCESSES readWrite | 17 | 0 | 17 |
 | ACCESSES receiver kinds used | 8 | 2 | 8 |
 | USES_TYPE edges | 85 | 25 | 85 |
 | USES_TYPE cast | 19 | 0 | 19 |
 | USES_TYPE creation | 41 | 0 | 41 |
 | USES_TYPE typeTest | 25 | 25 | 25 |
-| stubs | 501 | 517 | 501 |
+| stubs | 509 | 525 | 509 |
 | diagnostics | 1 | 0 | 1 |
 
 ### Diagnostics by code
@@ -150,13 +150,13 @@ None.
 
 | Difference | Count | First examples |
 | --- | ---: | --- |
-| field differs: annotations | 154 | `F:vision.noesis.fixture.syntax.generics.GenericTypes+WildcardUses.raw (java.lang.SuppressWarnings[value!Array[items=[Literal[text="rawtypes"]]]] \| )`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1#query() (java.lang.SuppressWarnings[value!Array[items=[Literal[text="unchecked"], Literal[text="rawtypes"]]]] vision.noesis.annotations.QueryHandler[] \| vision.noesis.annotations.QueryHandler[])`<br>`M:vision.noesis.fixture.syntax.generics.GenericMethods+GenericMethodsInInterfaceImplementation#method`1(!!0) (java.lang.Override[] \| )` |
+| field differs: annotations | 155 | `F:vision.noesis.fixture.syntax.generics.GenericTypes+WildcardUses.raw (java.lang.SuppressWarnings[value!Array[items=[Literal[text="rawtypes"]]]] \| )`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1#query() (java.lang.SuppressWarnings[value!Array[items=[Literal[text="unchecked"], Literal[text="rawtypes"]]]] vision.noesis.annotations.QueryHandler[] \| vision.noesis.annotations.QueryHandler[])`<br>`M:vision.noesis.fixture.syntax.generics.GenericMethods+GenericMethodsInInterfaceImplementation#method`1(!!0) (java.lang.Override[] \| )` |
 | field differs: bag | 8 | `M:vision.noesis.fixture.syntax.members.MethodDeclarations#strictMethod() ({java.strictfp=true} \| {})`<br>`M:vision.noesis.fixture.syntax.types.ClassKinds+StrictClass#.ctor() ({java.strictfp=true} \| {})`<br>`T:vision.noesis.fixture.syntax.types.BuiltInAndSpecialTypes+AnonymousAndImplicitTypes+1+1 ({java.enclosingMethod=F:vision.noesis.fixture.syntax.types.BuiltInAndSpecialTypes+AnonymousAndImplicitTypes+1.anonymousNested, java.isAnonymous=true} \| {java.isAnonymous=true})` |
-| field differs: documentation | 62 | `F:vision.noesis.fixture.syntax.javadoc.DocumentedTypes.documentedField (true \| false)`<br>`M:vision.noesis.fixture.syntax.generics.GenericMethods+GenericClassWithShadowedParameter`1#genericMethodWithTypeParameterShadowingClassParameter`1(!!0) (true \| false)`<br>`M:vision.noesis.fixture.syntax.inheritance.AbstractInheritance+AbstractIntermediate#virtualMethodWithDefaultBody() (true \| false)` |
-| field differs: location.column | 1746 | `F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord.text (35 \| 0)`<br>`F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1.annotatedField (5 \| 0)`<br>`F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1.fromOtherModule (5 \| 0)` |
-| field differs: location.file | 381 | `M:vision.noesis.fixture.shared.SharedNamespaceInSyntax#.ctor() ( \| code-parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/shared/SharedNamespaceInSyntax.java)`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord#.ctor(java.lang.String) ( \| code-parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/annotations/AnnotationUsage.java)`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord#equals(java.lang.Object) ( \| code-parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/annotations/AnnotationUsage.java)` |
-| field differs: location.line | 1706 | `F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord.text (44 \| 0)`<br>`F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1.annotatedField (18 \| 0)`<br>`F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1.fromOtherModule (22 \| 0)` |
-| field differs: origin | 360 | `M:vision.noesis.fixture.shared.SharedNamespaceInSyntax#.ctor() (generated \| declared)`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord#.ctor(java.lang.String) (generated \| declared)`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord#equals(java.lang.Object) (generated \| declared)` |
+| field differs: documentation | 63 | `F:vision.noesis.fixture.syntax.javadoc.DocumentedTypes.documentedField (true \| false)`<br>`M:vision.noesis.fixture.syntax.generics.GenericMethods+GenericClassWithShadowedParameter`1#genericMethodWithTypeParameterShadowingClassParameter`1(!!0) (true \| false)`<br>`M:vision.noesis.fixture.syntax.inheritance.AbstractInheritance+AbstractIntermediate#virtualMethodWithDefaultBody() (true \| false)` |
+| field differs: location.column | 1754 | `F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord.text (35 \| 0)`<br>`F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1.annotatedField (5 \| 0)`<br>`F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1.fromOtherModule (5 \| 0)` |
+| field differs: location.file | 383 | `M:vision.noesis.fixture.shared.SharedNamespaceInSyntax#.ctor() ( \| code-parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/shared/SharedNamespaceInSyntax.java)`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord#.ctor(java.lang.String) ( \| code-parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/annotations/AnnotationUsage.java)`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord#equals(java.lang.Object) ( \| code-parsers/java/test-fixtures/java-syntax/src/main/java/vision/noesis/fixture/syntax/annotations/AnnotationUsage.java)` |
+| field differs: location.line | 1714 | `F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord.text (44 \| 0)`<br>`F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1.annotatedField (18 \| 0)`<br>`F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1.fromOtherModule (22 \| 0)` |
+| field differs: origin | 361 | `M:vision.noesis.fixture.shared.SharedNamespaceInSyntax#.ctor() (generated \| declared)`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord#.ctor(java.lang.String) (generated \| declared)`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord#equals(java.lang.Object) (generated \| declared)` |
 | field differs: type | 4 | `F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedNested (vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1+NestedClassSharingOuterParameter[java.lang.Integer] \| vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1+NestedClassSharingOuterParameter)`<br>`F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedNestedGeneric (vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1+NestedGenericClass`1[java.lang.Integer,java.lang.String] \| vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1+NestedGenericClass`1[java.lang.String])`<br>`F:vision.noesis.fixture.syntax.generics.GenericTypes+WildcardUses.innerGenericOfConstructed (vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1+NestedGenericClass`1[java.lang.String,java.lang.Integer] \| vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1+NestedGenericClass`1[java.lang.Integer])` |
 | field differs: typeParameters | 1 | `T:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1 (T@0[][vision.noesis.fixture.syntax.annotations.OwnAnnotation] \| T@0[][])` |
 | node only in bytecode: .cctor | 32 | `M:vision.noesis.fixture.syntax.invocations.InvocationForms#.cctor()`<br>`M:vision.noesis.fixture.syntax.invocations.InvocationTarget#.cctor()`<br>`M:vision.noesis.fixture.syntax.members.FieldDeclarations#.cctor()` |
@@ -176,14 +176,14 @@ None.
 | ACCESSES on a different line | 16 | `M:vision.noesis.fixture.syntax.inheritance.ClassInheritance+ImplicitSuperCall#.ctor() -> F:vision.noesis.fixture.syntax.inheritance.ClassInheritance+ImplicitSuperCall.initialised (127 \| 123)`<br>`M:vision.noesis.fixture.syntax.inheritance.ClassInheritance+ImplicitSuperCall#.ctor() -> F:vision.noesis.fixture.syntax.inheritance.ClassInheritance+ImplicitSuperCall.initialised (131 \| 127)`<br>`M:vision.noesis.fixture.syntax.invocations.InvocationForms#accesses(vision.noesis.fixture.syntax.invocations.InvocationForms) -> F:vision.noesis.fixture.syntax.invocations.InvocationForms.field (57 \| 56)` |
 | ACCESSES only in bytecode | 283 | `M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord#.ctor(java.lang.String) -> F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord.text`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord#text() -> F:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1+AnnotatedRecord.text`<br>`M:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages#.ctor() -> F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedDelegate` |
 | ACCESSES only in source | 19 | `F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedNested -> F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedWithValueType`<br>`F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedNestedGeneric -> F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedWithValueType`<br>`F:vision.noesis.fixture.syntax.members.FieldDeclarations.ENUM_FIELD -> F:vision.noesis.fixture.syntax.types.EnumKinds+PlainEnum.FIRST` |
-| ACCESSES receiver differs | 200 | `M:vision.noesis.fixture.syntax.generics.GenericMethods+GenericClassWithGenericMethods`1#methodMixingClassAndMethodParameters`1(!!0) -> F:vision.noesis.fixture.syntax.generics.GenericMethods+GenericClassWithGenericMethods`1.classValue (THIS \| OTHER)`<br>`M:vision.noesis.fixture.syntax.generics.GenericMethods+GenericMethodInvocations#invokeWithInferredAndExplicitTypeArguments() -> F:vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1+NestedGenericClass`1.map (LOCAL \| OTHER)`<br>`M:vision.noesis.fixture.syntax.inheritance.AbstractInheritance+AbstractClassWithConstructor#.ctor(int) -> F:vision.noesis.fixture.syntax.inheritance.AbstractInheritance+AbstractClassWithConstructor.value (THIS \| OTHER)` |
+| ACCESSES receiver differs | 202 | `M:vision.noesis.fixture.syntax.generics.GenericMethods+GenericClassWithGenericMethods`1#methodMixingClassAndMethodParameters`1(!!0) -> F:vision.noesis.fixture.syntax.generics.GenericMethods+GenericClassWithGenericMethods`1.classValue (THIS \| OTHER)`<br>`M:vision.noesis.fixture.syntax.generics.GenericMethods+GenericMethodInvocations#invokeWithInferredAndExplicitTypeArguments() -> F:vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1+NestedGenericClass`1.map (LOCAL \| OTHER)`<br>`M:vision.noesis.fixture.syntax.inheritance.AbstractInheritance+AbstractClassWithConstructor#.ctor(int) -> F:vision.noesis.fixture.syntax.inheritance.AbstractInheritance+AbstractClassWithConstructor.value (THIS \| OTHER)` |
 | INVOKES on a different line | 15 | `M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1#.ctor() -> M:java.lang.Object#.ctor() (25 \| 26)`<br>`M:vision.noesis.fixture.syntax.invocations.InvocationForms#argumentForms() -> M:java.util.Optional`1#orElseThrow() (288 \| 290)`<br>`M:vision.noesis.fixture.syntax.invocations.InvocationForms#argumentForms() -> M:java.util.stream.Stream`1#findFirst() (288 \| 290)` |
 | INVOKES only in bytecode: external target | 341 | `M:vision.noesis.fixture.syntax.Program#main(java.lang.String[]) -> M:java.lang.Integer#valueOf(int)`<br>`M:vision.noesis.fixture.syntax.generics.GenericMethods#callers(java.util.Map`2[java.lang.String,java.lang.Integer]) -> M:java.lang.Integer#valueOf(int)`<br>`M:vision.noesis.fixture.syntax.generics.GenericMethods#callers(java.util.Map`2[java.lang.String,java.lang.Integer]) -> M:java.lang.Integer#valueOf(int)` |
 | INVOKES only in bytecode: parsed target | 83 | `M:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages#.ctor() -> M:vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1#.ctor()`<br>`M:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages#.ctor() -> M:vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1#.ctor()`<br>`M:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages#.ctor() -> M:vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1#.ctor()` |
 | INVOKES only in source: external target | 55 | `F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedDelegate -> M:java.lang.Integer#toString()`<br>`F:vision.noesis.fixture.syntax.imports.dotted.deeply.nested.ClassInDeeplyNestedPackage.genericInterfaceViaSingleTypeImport -> M:java.util.ArrayList`1#.ctor()`<br>`F:vision.noesis.fixture.syntax.imports.dotted.deeply.nested.ClassInDeeplyNestedPackage.nonGenericCollectionViaOnDemandImport -> M:java.util.ArrayList`1#.ctor()` |
 | INVOKES only in source: parsed target | 73 | `F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedNested -> M:vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1+NestedClassSharingOuterParameter#.ctor()`<br>`F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedNestedGeneric -> M:vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithOneParameter`1+NestedGenericClass`1#.ctor()`<br>`F:vision.noesis.fixture.syntax.generics.GenericTypes+ClosedGenericUsages.closedTwoNested -> M:vision.noesis.fixture.syntax.generics.GenericTypes+GenericClassWithTwoParameters`2#.ctor()` |
-| INVOKES receiver differs | 514 | `M:vision.noesis.fixture.syntax.Program#main(java.lang.String[]) -> M:java.io.PrintStream#println(java.lang.String) (FIELD \| OTHER)`<br>`M:vision.noesis.fixture.syntax.Program#main(java.lang.String[]) -> M:java.lang.Object#toString() (CREATION \| OTHER)`<br>`M:vision.noesis.fixture.syntax.Program#main(java.lang.String[]) -> M:java.util.concurrent.CompletableFuture`1#join() (RETURN_VALUE \| OTHER)` |
-| INVOKES site bag differs | 290 | `M:vision.noesis.fixture.shared.SharedNamespaceInSyntax#.ctor() -> M:java.lang.Object#.ctor()`<br>`M:vision.noesis.fixture.syntax.Program#.ctor() -> M:java.lang.Object#.ctor()`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1#.ctor() -> M:java.lang.Object#.ctor()` |
+| INVOKES receiver differs | 517 | `M:vision.noesis.fixture.syntax.Program#main(java.lang.String[]) -> M:java.io.PrintStream#println(java.lang.String) (FIELD \| OTHER)`<br>`M:vision.noesis.fixture.syntax.Program#main(java.lang.String[]) -> M:java.lang.Object#toString() (CREATION \| OTHER)`<br>`M:vision.noesis.fixture.syntax.Program#main(java.lang.String[]) -> M:java.util.concurrent.CompletableFuture`1#join() (RETURN_VALUE \| OTHER)` |
+| INVOKES site bag differs | 291 | `M:vision.noesis.fixture.shared.SharedNamespaceInSyntax#.ctor() -> M:java.lang.Object#.ctor()`<br>`M:vision.noesis.fixture.syntax.Program#.ctor() -> M:java.lang.Object#.ctor()`<br>`M:vision.noesis.fixture.syntax.annotations.AnnotationUsage`1#.ctor() -> M:java.lang.Object#.ctor()` |
 | INVOKES typeArguments differ | 137 | `M:vision.noesis.fixture.syntax.Program#main(java.lang.String[]) -> M:java.util.concurrent.CompletableFuture`1#supplyAsync`1(java.util.function.Supplier`1[!!0])`<br>`M:vision.noesis.fixture.syntax.generics.GenericMethods#asyncGenericMethod`1(!!0) -> M:java.util.concurrent.CompletableFuture`1#completedFuture`1(!!0)`<br>`M:vision.noesis.fixture.syntax.generics.GenericMethods#callers(java.util.Map`2[java.lang.String,java.lang.Integer]) -> M:java.util.List`1#of`1(!!0)` |
 | USES_TYPE only in source: cast | 19 | `cast M:vision.noesis.fixture.syntax.inheritance.ClassInheritance+SelfReferencingGenericBase`1#self() -> !0`<br>`cast M:vision.noesis.fixture.syntax.invocations.InvocationForms#argumentForms() -> int`<br>`cast M:vision.noesis.fixture.syntax.invocations.InvocationForms#functionalInterfaceInvocations() -> java.util.function.Supplier`1[java.lang.Integer]` |
 | USES_TYPE only in source: creation | 41 | `creation F:vision.noesis.fixture.syntax.invocations.InvocationForms.arrayField -> vision.noesis.fixture.syntax.invocations.InvocationTarget[]`<br>`creation F:vision.noesis.fixture.syntax.invocations.InvocationForms.numbers -> int[]`<br>`creation F:vision.noesis.fixture.syntax.localvariables.LocalVariableForms.array -> int[]` |
