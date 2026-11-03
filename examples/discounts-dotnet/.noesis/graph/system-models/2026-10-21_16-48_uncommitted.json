@@ -1290,7 +1290,284 @@
   "scenarios": [],
   "actors": [],
   "manualProcesses": [],
+  "deployableUnits": [],
+  "libraries": [
+    {
+      "id": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "name": "MyCompany.ECommerce.Sales.DeepModel",
+      "description": null,
+      "source": {
+        "path": "Sources/Sales/Sales.DeepModel",
+        "line": null
+      }
+    }
+  ],
   "relations": [
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Clients.ClientId"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Clients.ClientRepository"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Clients.ClientStatus"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Commons.Currency"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Commons.Money"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Commons.Percentage"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Commons.TaxId"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.ExchangeRates.ExchangeRate"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.ExchangeRates.ExchangeRateProvider"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.AllOrderDetails"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.InvoicingDetails"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.Order"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.Order CreatedFromOffer"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.Order Factory"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.Order Placed"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.Order PriceAgreement"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.Order PricesConfirmed"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.Order ProductAmountAdded"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.Order Repository"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.OrderItemDetails"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.PriceAgreementType"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.CalculatePrices"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.Discounts.Discount"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.Discounts.DiscountsRepository"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.Discounts.PercentageDiscount"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.Discounts.ProductDiscount"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.Discounts.ValueDiscount"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.IndividualSalesConditions"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.Offer"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.OfferModifier"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.OfferModifiers"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.OfferRequest"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.PriceLists.BasePrice"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.PriceLists.BasePrices"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.PriceLists.PriceListRepository"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.Quote"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.QuoteModifier"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Products.Amount"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Products.AmountUnit"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Products.ProductAmount"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Products.ProductId"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Products.ProductUnit"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.SalesChannels.SalesChannel"
+    },
+    {
+      "kind": "contains",
+      "from": "library|MyCompany.ECommerce.Sales.DeepModel",
+      "to": "building_block|Sales.Time.Clock"
+    },
     {
       "kind": "contains",
       "from": "module|Sales",

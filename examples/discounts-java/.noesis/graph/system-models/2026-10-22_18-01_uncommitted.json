@@ -338,7 +338,34 @@
   "scenarios": [],
   "actors": [],
   "manualProcesses": [],
+  "deployableUnits": [
+    {
+      "id": "deployable_unit|app",
+      "name": "app",
+      "description": null,
+      "source": {
+        "path": "app",
+        "line": null
+      }
+    }
+  ],
+  "libraries": [],
   "relations": [
+    {
+      "kind": "contains",
+      "from": "deployable_unit|app",
+      "to": "module|discounts.calculation"
+    },
+    {
+      "kind": "contains",
+      "from": "deployable_unit|app",
+      "to": "module|discounts.offers"
+    },
+    {
+      "kind": "contains",
+      "from": "deployable_unit|app",
+      "to": "module|discounts.users"
+    },
     {
       "kind": "contains",
       "from": "module|discounts",
