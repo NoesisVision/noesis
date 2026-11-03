@@ -1,9 +1,12 @@
 import { z } from 'zod';
 import {
   ActorId,
+  ArtifactName,
   BehaviorId,
   BuildingBlockId,
+  DeployableUnitId,
   ElementName,
+  LibraryId,
   ManualProcessId,
   ModuleId,
   RuleId,
@@ -207,6 +210,31 @@ export const ScannedManualProcess = z.strictObject({
 });
 export type ScannedManualProcess = z.infer<typeof ScannedManualProcess>;
 
+/**
+ * Something built and shipped as one piece: an executable artifact of the
+ * build (a service, a runnable JAR, an executable assembly), named as the
+ * build names it; it contains modules.
+ */
+export const ScannedDeployableUnit = z.strictObject({
+  id: DeployableUnitId,
+  name: ArtifactName,
+  description: z.string().nullable().default(null),
+  source: SourceLocation.nullable().default(null),
+});
+export type ScannedDeployableUnit = z.infer<typeof ScannedDeployableUnit>;
+
+/**
+ * A reusable package of building blocks: an artifact of the build that is no
+ * executable, named as the build names it; it contains building blocks.
+ */
+export const ScannedLibrary = z.strictObject({
+  id: LibraryId,
+  name: ArtifactName,
+  description: z.string().nullable().default(null),
+  source: SourceLocation.nullable().default(null),
+});
+export type ScannedLibrary = z.infer<typeof ScannedLibrary>;
+
 /*
  * The relations between elements, one list for all of them: an element
  * carries only what is its own, and a relation carries what the diagram
@@ -236,10 +264,10 @@ export const RelationKind = z.enum([
 export type RelationKind = z.infer<typeof RelationKind>;
 
 export const ContainsRelation = relation('contains', {
-  from: ModuleId,
+  from: z.union([ModuleId, DeployableUnitId, LibraryId]),
   to: z.union([ModuleId, BuildingBlockId]),
 }).describe(
-  "A module holds a module or a building block; `to`'s id path is `from`'s path and its own name.",
+  "A module holds a module or a building block, `to`'s id path being `from`'s path and its own name; a deployable unit holds a module; a library holds a building block.",
 );
 export const ExtendsRelation = relation('extends', {
   from: BuildingBlockId,
@@ -389,6 +417,8 @@ export const SystemModel = z
     scenarios: z.array(ScannedScenario).default([]),
     actors: z.array(ScannedActor).default([]),
     manualProcesses: z.array(ScannedManualProcess).default([]),
+    deployableUnits: z.array(ScannedDeployableUnit).default([]),
+    libraries: z.array(ScannedLibrary).default([]),
     relations: z.array(relationSchema).default([]),
   })
   .describe(

@@ -206,6 +206,26 @@ hand — a manual process — and that work calls the system's behaviors.
 { "kind": "invokes", "from": "manual_process|Refund a returned order", "to": "behavior|sales.refunds.RefundService.issue", "order": { "value": 1 } }
 ```
 
+## Deployable units and libraries
+
+What the code ships as. The scan makes one of each build artifact that
+declares a building block: an executable one (a service, a runnable JAR, an
+executable assembly) is a deployable unit, any other a library.
+
+- Each is named as the build names it, dots and all: `deployable_unit|shop-api`,
+  `library|MyCompany.Sales.DeepModel`. Reuse the names in the system model
+  verbatim.
+- A deployable unit `contains` modules; a library `contains` building
+  blocks. The service refuses any other pair (`containmentOutsideKinds`).
+- Add one only when the design changes what ships: a new service or a new
+  shared package. A new module or block that ships in an existing unit or
+  library gets a `contains` from it; otherwise leave packaging alone.
+
+```json
+{ "kind": "contains", "from": "deployable_unit|shop-api", "to": "module|sales.refunds" },
+{ "kind": "contains", "from": "library|MyCompany.Sales", "to": "building_block|sales.refunds.Refund" }
+```
+
 ## Rules
 
 A rule states one requirement a behavior follows. It is an element of its

@@ -233,4 +233,6 @@ export const UNDRAWN_NAME: Record<ReturnType<typeof kindOf>, string> = {
   scenario: 'Scenario',
   actor: 'Actor',
   manual_process: 'Manual process',
+  deployable_unit: 'Deployable unit',
+  library: 'Library',
 };

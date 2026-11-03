@@ -240,6 +240,19 @@ describe('Scanning through the C# parser', () => {
       description: 'Named by its annotation.',
       source: { path: `${SOURCES}/Behaviors/BehaviorForms.cs`, line: 23 },
     });
+    // R13: each project that declares a block is a deployable unit when it
+    // builds an executable, a library otherwise.
+    expect<unknown>(ids(model.deployableUnits)).toEqual([
+      'deployable_unit|CSharpSyntax',
+    ]);
+    expect<unknown>(model.deployableUnits[0]?.source).toEqual({
+      path: 'code-parsers/dotnet/test/fixtures/CSharpSyntax',
+      line: null,
+    });
+    // The dots of a project's name are part of it.
+    expect<unknown>(ids(model.libraries)).toEqual([
+      'library|CSharpSyntax.OtherProject',
+    ]);
     // An actor annotation on a behavior names an actor of the model, and
     // nothing on the behavior.
     expect<unknown>(model.actors).toEqual([

@@ -137,6 +137,54 @@ export const ManualProcessId = Object.assign(manualProcessIdSchema, {
 });
 export type ManualProcessId = z.infer<typeof manualProcessIdSchema>;
 
+/*
+ * A deployable unit or a library is a build artifact, named as the build
+ * names it: `MyCompany.Sales.Api` is one name, so its dots are part of it.
+ * It holds nothing by its path, so its id is its kind and that one name.
+ */
+const ARTIFACT_NAME = String.raw`[^|\s](?:[^|]*[^|\s])?`;
+
+export const ArtifactName = z
+  .string()
+  .regex(new RegExp(`^${ARTIFACT_NAME}$`))
+  .describe(
+    "The name of a deployable unit or a library, as its build names it, e.g. 'MyCompany.Sales.Api' or 'shop-domain': never empty, never padded with whitespace, never containing '|'; dots are part of the name.",
+  );
+export type ArtifactName = z.infer<typeof ArtifactName>;
+
+const artifactIdPattern = (kind: string) =>
+  new RegExp(`^${kind}\\|${ARTIFACT_NAME}$`);
+
+const DEPLOYABLE_UNIT_KIND = 'deployable_unit';
+const deployableUnitIdSchema = z
+  .string()
+  .regex(artifactIdPattern(DEPLOYABLE_UNIT_KIND), 'Invalid DeployableUnitId')
+  .describe(
+    "A deployable unit's id: 'deployable_unit|', then its name, e.g. 'deployable_unit|shop-api'; dots are part of the name.",
+  )
+  .brand<'DeployableUnitId'>();
+export const DeployableUnitId = Object.assign(deployableUnitIdSchema, {
+  of: (name: string) =>
+    deployableUnitIdSchema.parse(
+      `${DEPLOYABLE_UNIT_KIND}|${ArtifactName.parse(name)}`,
+    ),
+});
+export type DeployableUnitId = z.infer<typeof deployableUnitIdSchema>;
+
+const LIBRARY_KIND = 'library';
+const libraryIdSchema = z
+  .string()
+  .regex(artifactIdPattern(LIBRARY_KIND), 'Invalid LibraryId')
+  .describe(
+    "A library's id: 'library|', then its name, e.g. 'library|MyCompany.Sales.DeepModel'; dots are part of the name.",
+  )
+  .brand<'LibraryId'>();
+export const LibraryId = Object.assign(libraryIdSchema, {
+  of: (name: string) =>
+    libraryIdSchema.parse(`${LIBRARY_KIND}|${ArtifactName.parse(name)}`),
+});
+export type LibraryId = z.infer<typeof libraryIdSchema>;
+
 const elementIdSchema = z.union([
   moduleIdSchema,
   buildingBlockIdSchema,
@@ -145,9 +193,15 @@ const elementIdSchema = z.union([
   scenarioIdSchema,
   actorIdSchema,
   manualProcessIdSchema,
+  deployableUnitIdSchema,
+  libraryIdSchema,
 ]);
 export const ElementId = Object.assign(elementIdSchema, {
-  nameOf: (id: ElementId): ElementName => pathOf(id).split('.').at(-1)!,
+  /** The element's own name: the last segment of its path, or a whole artifact name. */
+  nameOf: (id: ElementId): string =>
+    ElementId.isDeployableUnit(id) || ElementId.isLibrary(id)
+      ? pathOf(id)
+      : pathOf(id).split('.').at(-1)!,
   isModule: (id: ElementId): id is ModuleId => id.startsWith(`${MODULE_KIND}|`),
   isBuildingBlock: (id: ElementId): id is BuildingBlockId =>
     id.startsWith(`${BUILDING_BLOCK_KIND}|`),
@@ -159,6 +213,10 @@ export const ElementId = Object.assign(elementIdSchema, {
   isActor: (id: ElementId): id is ActorId => id.startsWith(`${ACTOR_KIND}|`),
   isManualProcess: (id: ElementId): id is ManualProcessId =>
     id.startsWith(`${MANUAL_PROCESS_KIND}|`),
+  isDeployableUnit: (id: ElementId): id is DeployableUnitId =>
+    id.startsWith(`${DEPLOYABLE_UNIT_KIND}|`),
+  isLibrary: (id: ElementId): id is LibraryId =>
+    id.startsWith(`${LIBRARY_KIND}|`),
   match: <R>(id: ElementId, on: ElementIdHandlers<R>): R => {
     if (ElementId.isModule(id)) return on.module(id);
     if (ElementId.isBuildingBlock(id)) return on.buildingBlock(id);
@@ -166,6 +224,8 @@ export const ElementId = Object.assign(elementIdSchema, {
     if (ElementId.isScenario(id)) return on.scenario(id);
     if (ElementId.isActor(id)) return on.actor(id);
     if (ElementId.isManualProcess(id)) return on.manualProcess(id);
+    if (ElementId.isDeployableUnit(id)) return on.deployableUnit(id);
+    if (ElementId.isLibrary(id)) return on.library(id);
     return on.behavior(id);
   },
 });
@@ -179,6 +239,8 @@ type ElementIdHandlers<R> = {
   scenario: (id: ScenarioId) => R;
   actor: (id: ActorId) => R;
   manualProcess: (id: ManualProcessId) => R;
+  deployableUnit: (id: DeployableUnitId) => R;
+  library: (id: LibraryId) => R;
 };
 
 function pathOf(id: ElementId): string {

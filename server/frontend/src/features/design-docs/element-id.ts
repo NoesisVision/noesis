@@ -3,7 +3,9 @@ import type {
   ActorId,
   BehaviorId,
   BuildingBlockId,
+  DeployableUnitId,
   ElementId,
+  LibraryId,
   ManualProcessId,
   ModuleId,
   RuleId,
@@ -17,7 +19,8 @@ import type {
  * its building block, a building block and a submodule under their module,
  * a root module under nothing — and a rule under the module of the behavior
  * that governs it, a scenario under its rule. An actor and a manual process
- * hang under nothing: their address is their name.
+ * hang under nothing: their address is their name. So do a deployable unit
+ * and a library, whose name is the build's, dots and all.
  *
  * The ids are the server's own value objects, imported as types only: the
  * page may not run backend code, so an id is told by its prefix here, the
@@ -33,6 +36,8 @@ const RULE = 'rule|';
 const SCENARIO = 'scenario|';
 const ACTOR = 'actor|';
 const MANUAL_PROCESS = 'manual_process|';
+const DEPLOYABLE_UNIT = 'deployable_unit|';
+const LIBRARY = 'library|';
 
 /**
  * A wire string, or an id already known to be `Expected`: an id branded as
@@ -45,8 +50,12 @@ type IdOrWire<Expected extends ElementId, Given extends string> =
 /** An id's address: its dotted path, without the kind it is written with. */
 export const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
 
-/** The element's own name: `PaymentHold`, never `scheduling.payments.PaymentHold`. */
-export const nameOf = (id: string) => addressOf(id).split('.').at(-1) ?? id;
+/**
+ * The element's own name: `PaymentHold`, never `scheduling.payments.PaymentHold`;
+ * a deployable unit's or a library's whole, as `MyCompany.Sales` is one name.
+ */
+export const nameOf = (id: string) =>
+  isArtifact(id) ? addressOf(id) : (addressOf(id).split('.').at(-1) ?? id);
 
 /** The building block a type reference names; null for a primitive. */
 export function blockOfRef(ref: string): BuildingBlockId | null {
@@ -65,6 +74,8 @@ export function kindOf(
   | 'scenario'
   | 'actor'
   | 'manual_process'
+  | 'deployable_unit'
+  | 'library'
 > {
   if (isBehavior(id)) return 'behavior';
   if (isBuildingBlock(id)) return 'building_block';
@@ -73,6 +84,8 @@ export function kindOf(
   if (isScenario(id)) return 'scenario';
   if (isActor(id)) return 'actor';
   if (isManualProcess(id)) return 'manual_process';
+  if (isDeployableUnit(id)) return 'deployable_unit';
+  if (isLibrary(id)) return 'library';
   throw new Error(`Not an element id: ${id}`);
 }
 
@@ -111,7 +124,7 @@ export const behaviorIdAt = (address: string): BehaviorId =>
 export const moduleIdAt = (address: string): ModuleId =>
   asModule(`${MODULE}${address}`);
 
-/** What an element hangs under by its id; null for a root module, an actor or a manual process. */
+/** What an element hangs under by its id; null for a root module and every element that hangs under nothing. */
 export function parentOf(
   id: string,
 ): ModuleId | BuildingBlockId | RuleId | null {
@@ -129,10 +142,12 @@ export const isElementId = (value: string): boolean =>
   isRule(value) ||
   isScenario(value) ||
   isActor(value) ||
-  isManualProcess(value);
+  isManualProcess(value) ||
+  isArtifact(value);
 
-/** Whether an element hangs under nothing whatever its name: an actor, a manual process. */
-const isTopLevel = (id: string): boolean => isActor(id) || isManualProcess(id);
+/** Whether an element hangs under nothing whatever its name: an actor, a manual process, a unit, a library. */
+const isTopLevel = (id: string): boolean =>
+  isActor(id) || isManualProcess(id) || isArtifact(id);
 
 const PREFIX_OF = {
   module: MODULE,
@@ -142,6 +157,8 @@ const PREFIX_OF = {
   scenario: SCENARIO,
   actor: ACTOR,
   manual_process: MANUAL_PROCESS,
+  deployable_unit: DEPLOYABLE_UNIT,
+  library: LIBRARY,
 } as const;
 
 /**
@@ -201,6 +218,19 @@ function isActor(id: string): id is ActorId {
 
 function isManualProcess(id: string): id is ManualProcessId {
   return id.startsWith(MANUAL_PROCESS);
+}
+
+function isDeployableUnit(id: string): id is DeployableUnitId {
+  return id.startsWith(DEPLOYABLE_UNIT);
+}
+
+function isLibrary(id: string): id is LibraryId {
+  return id.startsWith(LIBRARY);
+}
+
+/** A build artifact: a deployable unit or a library. */
+function isArtifact(id: string): id is DeployableUnitId | LibraryId {
+  return isDeployableUnit(id) || isLibrary(id);
 }
 
 function asModule(id: string): ModuleId {

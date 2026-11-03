@@ -246,15 +246,17 @@ class ArtifactBuilder {
   private readonly stubs: StubNode[] = [];
   private readonly annotations: Annotation[];
   private readonly dependencies: string[];
+  private readonly executable: boolean;
   private line = 1;
 
   constructor(
     readonly name: string,
-    options: { annotations?: Annotation[]; dependsOn?: string[] } = {},
+    options: ArtifactOptions = {},
   ) {
     this.id = `A:${name}`;
     this.annotations = options.annotations ?? [];
     this.dependencies = options.dependsOn ?? [];
+    this.executable = options.executable ?? false;
   }
 
   private location(file?: string, line?: number): SourceSpan {
@@ -500,7 +502,7 @@ class ArtifactBuilder {
         version: null,
         rootDirectory: this.name,
         target: 'net10.0',
-        executable: false,
+        executable: this.executable,
         dependencies: this.dependencies.map((id) => ({
           id,
           kind: 'source',
@@ -517,10 +519,15 @@ class ArtifactBuilder {
   }
 }
 
-const artifact = (
-  name: string,
-  options?: { annotations?: Annotation[]; dependsOn?: string[] },
-) => new ArtifactBuilder(name, options);
+interface ArtifactOptions {
+  annotations?: Annotation[];
+  dependsOn?: string[];
+  /** Built to run on its own: a deployable unit rather than a library (R13). */
+  executable?: boolean;
+}
+
+const artifact = (name: string, options?: ArtifactOptions) =>
+  new ArtifactBuilder(name, options);
 
 /** Builds the system model of the artifacts in the given (dependency) order. */
 function buildFrom(
@@ -1014,6 +1021,7 @@ describe('5. state', () => {
         .property('P:Sales.Orders.Order.Total', prim('decimal')),
     ]);
     expect<unknown>(model.relations).toEqual([
+      { kind: 'contains', from: 'library|Sales', to: ORDER },
       { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Orders' },
       { kind: 'contains', from: 'module|Sales.Orders', to: ORDER },
       {
@@ -1412,6 +1420,7 @@ describe('6. modules', () => {
     expect<unknown>(built.model.buildingBlocks).toEqual([]);
     expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining('maps to no module'),
+      expect.stringContaining('declares no building block'),
     ]);
   });
 
@@ -1427,6 +1436,7 @@ describe('6. modules', () => {
       'module|Sales.Orders',
     ]);
     expect<unknown>(model.relations).toEqual([
+      { kind: 'contains', from: 'library|Sales', to: ORDER },
       { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Orders' },
       { kind: 'contains', from: 'module|Sales.Orders', to: ORDER },
     ]);
@@ -2001,6 +2011,7 @@ describe('9. behaviors', () => {
       expect.stringContaining(
         'M:Sales.Helpers#Count() is marked a behavior but its type is no building block',
       ),
+      expect.stringContaining('declares no building block'),
     ]);
   });
 });
@@ -2038,6 +2049,16 @@ describe('10. order and determinism', () => {
       'actor|Zoe',
     ]);
     expect<unknown>(first.model.relations).toEqual([
+      {
+        kind: 'contains',
+        from: 'library|Sales',
+        to: 'building_block|Sales.Alpha',
+      },
+      {
+        kind: 'contains',
+        from: 'library|Sales',
+        to: 'building_block|Sales.Zed',
+      },
       {
         kind: 'contains',
         from: 'module|Sales',
@@ -2266,6 +2287,17 @@ describe('12. relations', () => {
     expect<unknown>(
       model.relations.filter((r) => r.kind !== 'has_state'),
     ).toEqual([
+      {
+        kind: 'contains',
+        from: 'library|Sales',
+        to: 'building_block|Sales.Orders.Line',
+      },
+      { kind: 'contains', from: 'library|Sales', to: ORDER },
+      {
+        kind: 'contains',
+        from: 'library|Sales',
+        to: 'building_block|Sales.Pricing.Quote',
+      },
       { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Orders' },
       { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Pricing' },
       {
@@ -2784,5 +2816,108 @@ describe('12. rules and scenarios from feature files (R12)', () => {
       from: 'behavior|shop.orders.Order.place',
       to: 'rule|shop.orders.Placing',
     });
+  });
+});
+
+/* ================================================ 13 artifacts (R13) */
+
+describe('13. deployable units and libraries (R13)', () => {
+  const unitsAndLibraries = (model: BuiltSystemModel['model']) => ({
+    deployableUnits: model.deployableUnits,
+    libraries: model.libraries,
+    contains: model.relations.filter(
+      (relation) =>
+        relation.kind === 'contains' &&
+        (relation.from.startsWith('deployable_unit|') ||
+          relation.from.startsWith('library|')),
+    ),
+  });
+
+  it('R13.1 makes an executable artifact a deployable unit containing the modules that hold its blocks, by its name and root directory', () => {
+    const { model } = buildFrom([
+      artifact('MyCompany.Shop.Api', { executable: true })
+        .type('T:Sales.Orders.Order', { annotations: [aggregate()] })
+        .type('T:Sales.Orders.Line', { annotations: [entity()] })
+        .type('T:Sales.Pricing.Quote', { annotations: [valueObject()] }),
+    ]);
+    expect<unknown>(unitsAndLibraries(model)).toEqual({
+      deployableUnits: [
+        {
+          id: 'deployable_unit|MyCompany.Shop.Api',
+          name: 'MyCompany.Shop.Api',
+          description: null,
+          source: { path: 'MyCompany.Shop.Api', line: null },
+        },
+      ],
+      libraries: [],
+      contains: [
+        {
+          kind: 'contains',
+          from: 'deployable_unit|MyCompany.Shop.Api',
+          to: 'module|Sales.Orders',
+        },
+        {
+          kind: 'contains',
+          from: 'deployable_unit|MyCompany.Shop.Api',
+          to: 'module|Sales.Pricing',
+        },
+      ],
+    });
+  });
+
+  it('R13.2 makes any other artifact a library containing its blocks', () => {
+    const { model } = buildFrom([
+      sales().type('T:Sales.Orders.Line', { annotations: [entity()] }),
+    ]);
+    expect<unknown>(unitsAndLibraries(model)).toEqual({
+      deployableUnits: [],
+      libraries: [
+        {
+          id: 'library|Sales',
+          name: 'Sales',
+          description: null,
+          source: { path: 'Sales', line: null },
+        },
+      ],
+      contains: [
+        {
+          kind: 'contains',
+          from: 'library|Sales',
+          to: 'building_block|Sales.Orders.Line',
+        },
+        { kind: 'contains', from: 'library|Sales', to: ORDER },
+      ],
+    });
+  });
+
+  it('R13.3 makes nothing of an artifact that declares no block or is excluded, with a diagnostic for the first', () => {
+    const built = buildFrom([
+      sales(),
+      artifact('Sales.Tests', { executable: true }).type('T:Sales.Tests.Steps'),
+      artifact('Legacy', { annotations: [exclude()] }).type(
+        'T:Legacy.Old.Thing',
+        { annotations: [aggregate()] },
+      ),
+    ]);
+    expect<unknown>(ids(built.model.deployableUnits)).toEqual([]);
+    expect<unknown>(ids(built.model.libraries)).toEqual(['library|Sales']);
+    expect<unknown>(messages(built, 'info')).toEqual([
+      'A:Sales.Tests declares no building block; no deployable unit or library',
+    ]);
+  });
+
+  it('R13.4 keeps the first of two artifacts with one name, with a diagnostic', () => {
+    const built = buildFrom([
+      artifact('Shop').type('T:Sales.Orders.Order', {
+        annotations: [aggregate()],
+      }),
+      artifact('Shop').type('T:Sales.Pricing.Quote', {
+        annotations: [valueObject()],
+      }),
+    ]);
+    expect<unknown>(ids(built.model.libraries)).toEqual(['library|Shop']);
+    expect<unknown>(messages(built, 'info')).toContainEqual(
+      'A:Shop has the id library|Shop, which came first; dropped',
+    );
   });
 });

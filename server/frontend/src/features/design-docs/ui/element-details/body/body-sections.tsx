@@ -43,8 +43,14 @@ export const bodySections = (
   if (behavior) return behaviorSections(behavior, doc);
   const process = findById(doc.manualProcesses, node.elementId);
   if (process) return manualProcessSections(process, doc);
-  // An actor is its definition, and the processes named over it.
-  if (findById(doc.actors, node.elementId)) return [];
+  // An actor is its definition, and the processes named over it; a unit or
+  // a library its definition, and what it contains.
+  if (
+    findById(doc.actors, node.elementId) ||
+    findById(doc.deployableUnits, node.elementId) ||
+    findById(doc.libraries, node.elementId)
+  )
+    return [];
   // Named by no change set, the element is only here for what is under it,
   // which is then all there is to list.
   return [
@@ -69,7 +75,9 @@ const sectionsUnder = (
   if (
     node.elementId === null ||
     node.kind === 'actor' ||
-    node.kind === 'manual_process'
+    node.kind === 'manual_process' ||
+    node.kind === 'deployable_unit' ||
+    node.kind === 'library'
   )
     return [];
   const element: ElementRef = {

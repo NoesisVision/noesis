@@ -1,7 +1,7 @@
 # Plan: introducing the new system model
 
-Status: in progress (November 2026); steps 1, 2, 3 and 4 of section 11 are
-built, step 3 before step 2: the two share files but neither needs the
+Status: in progress (November 2026); steps 1, 2, 3, 4 and 5 of section 11
+are built, step 3 before step 2: the two share files but neither needs the
 other.
 
 [`system-model-structure.md`](system-model-structure.md) describes the
@@ -528,7 +528,24 @@ fixtures and the skills together, so no step leaves two shapes alive.
    ports. The committed examples were converted by script; the two
    designs that named actors gained a process each.
 5. **Deployable units and libraries** (decision 13): `DeployableUnitId`,
-   `LibraryId`, the artifact projection and its `contains`.
+   `LibraryId`, the artifact projection and its `contains`. _Built_: R13
+   of `code-model-to-system-model.md` (section 14). Beyond the plan: the
+   two ids take the artifact's name whole, dots and all (`ArtifactName`),
+   as a C# project's `MyCompany.Sales.DeepModel` is one name; a unit
+   `contains` the modules that directly hold its blocks, not every module
+   its namespaces declare, since every artifact declares the namespaces
+   above its own; an artifact that declares no block (a test project) is
+   no element, with a diagnostic; the repository root is the source `.`.
+   The design document's `deployableUnits` and `libraries` are change
+   sets keyed by id with `name` and `definition`, and a writer's rule
+   `containmentOutsideKinds` (a unit contains modules, a library blocks).
+   The SPA shows each unit and library as a row at the top of the model
+   tree after the actors; its panel lists what it Contains, a module's
+   says where it is Deployed in, a block's which library it is In; names
+   and definitions are written in place, nothing adds one yet, and the
+   explorer leaves them out. The committed examples were converted by
+   script; a Spring Boot application with no `mainClass` in its build
+   (`qdoc-java`) is a library until its build names one.
 6. **Layers and deployment containers** (decisions 14, 15): `LayerId`,
    `DeploymentContainerId`, the `layer` role, `hosts`, design-only
    containers.

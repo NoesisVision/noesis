@@ -4,7 +4,9 @@ import type {
   DesignedActorInput,
   DesignedBehaviorInput,
   DesignedBuildingBlockInput,
+  DesignedDeployableUnitInput,
   DesignedDomainModuleInput,
+  DesignedLibraryInput,
   DesignedManualProcessInput,
   DesignedNeedInput,
   DesignedRuleInput,
@@ -63,11 +65,11 @@ import { rulesUnder } from './rules.ts';
  */
 
 export type ElementKind = 'module' | 'building_block' | 'behavior';
-/** Who drives the system and the work they do: elements of no module. */
-type PeopleKind = 'actor' | 'manual_process';
+/** Elements of no module: who drives the system, the work they do, what the code ships as. */
+type TopLevelKind = 'actor' | 'manual_process' | 'deployable_unit' | 'library';
 type OwnedPartKind = 'rule' | 'scenario';
 type PartKind = OwnedPartKind | RelationPartKind;
-export type UnitKind = 'need' | ElementKind | PeopleKind | PartKind;
+export type UnitKind = 'need' | ElementKind | TopLevelKind | PartKind;
 
 /** The element a part is written under — a rule's behavior — and the rule for a scenario. */
 export interface PartOwner {
@@ -82,7 +84,7 @@ export interface PartOwner {
  * extended block's id.
  */
 export type UnitRef =
-  | { kind: 'need' | ElementKind | PeopleKind; id: string }
+  | { kind: 'need' | ElementKind | TopLevelKind; id: string }
   | { kind: PartKind; id: string; owner: PartOwner };
 
 /** What the design does to a unit: its place in the unit's change set. */
@@ -95,6 +97,8 @@ interface UnitOf {
   behavior: DesignedBehaviorInput;
   actor: DesignedActorInput;
   manual_process: DesignedManualProcessInput;
+  deployable_unit: DesignedDeployableUnitInput;
+  library: DesignedLibraryInput;
   rule: DesignedRuleInput;
   scenario: DesignedScenarioInput;
   property: DesignedStateInput;
@@ -112,6 +116,8 @@ export const UNIT_LABEL: Record<UnitKind, string> = {
   behavior: 'behavior',
   actor: 'actor',
   manual_process: 'manual process',
+  deployable_unit: 'deployable unit',
+  library: 'library',
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',
@@ -128,8 +134,10 @@ const COLLECTION_OF = {
   behavior: 'behaviors',
   actor: 'actors',
   manual_process: 'manualProcesses',
+  deployable_unit: 'deployableUnits',
+  library: 'libraries',
 } as const satisfies Record<
-  'need' | ElementKind | PeopleKind,
+  'need' | ElementKind | TopLevelKind,
   keyof DesignDocumentInput
 >;
 
@@ -168,7 +176,7 @@ const isRelation = (item: unknown): item is RelationLike =>
 export type UnitTarget =
   | {
       mode: 'add';
-      kind: 'need' | ElementKind | PeopleKind;
+      kind: 'need' | ElementKind | TopLevelKind;
       parent: string | null;
     }
   | { mode: 'add'; kind: PartKind; owner: PartOwner }
@@ -267,6 +275,8 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
     case 'behavior':
     case 'actor':
     case 'manual_process':
+    case 'deployable_unit':
+    case 'library':
     case 'extends':
     case 'result':
       return nameOf(ref.id);
@@ -523,6 +533,8 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
   behavior: [field('name'), field('definition'), field('diagram')],
   actor: [field('name'), field('definition')],
   manual_process: [field('name'), field('definition')],
+  deployable_unit: [field('name'), field('definition')],
+  library: [field('name'), field('definition')],
   rule: [
     field('name'),
     field('kind'),
@@ -964,7 +976,9 @@ const VIOLATION_MESSAGE: Record<DesignDocViolation['reason'], string> = {
   unknownRelationEnd:
     'Neither this design nor the scanned model has this element.',
   containmentOutsideIdPath:
-    "What holds what is in the ids: a 'contains', 'exposes' or 'illustrates' joins an element to the one its id names.",
+    "What holds what is in the ids: a module's 'contains', an 'exposes' or an 'illustrates' joins an element to the one its id names.",
+  containmentOutsideKinds:
+    'A deployable unit contains modules, a library building blocks.',
   slotOutsideTypeKind:
     'A value of the domain is held as state, any other block as a collaborator.',
 };

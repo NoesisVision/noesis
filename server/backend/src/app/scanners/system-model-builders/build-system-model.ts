@@ -1,9 +1,12 @@
 import { posix } from 'node:path';
 import {
   ActorId,
+  ArtifactName,
   BehaviorId,
   BuildingBlockId,
+  DeployableUnitId,
   ElementName,
+  LibraryId,
   ModuleId,
   RuleId,
   ScenarioId,
@@ -14,7 +17,9 @@ import {
   type ScannedActor,
   type ScannedBehavior,
   type ScannedBuildingBlock,
+  type ScannedDeployableUnit,
   type ScannedDomainModule,
+  type ScannedLibrary,
   type ScannedRule,
   type ScannedScenario,
   type SourceLocation,
@@ -98,6 +103,8 @@ type BuiltModel = Pick<
   | 'scenarios'
   | 'actors'
   | 'manualProcesses'
+  | 'deployableUnits'
+  | 'libraries'
   | 'relations'
 >;
 
@@ -181,6 +188,7 @@ class ModelAssembly {
     this.collectBehaviors();
     this.collectInvocations();
     this.collectRules();
+    const { deployableUnits, libraries } = this.artifacts();
     const model: BuiltModel = {
       modules: this.modules(),
       buildingBlocks: [...this.blocks.values()]
@@ -195,6 +203,8 @@ class ModelAssembly {
       actors: [...this.actors.values()].sort(byId),
       // Never scanned: a design document authors them.
       manualProcesses: [],
+      deployableUnits,
+      libraries,
       relations: this.relations.sort(Relation.compare),
     };
     return { model, diagnostics: this.diagnostics };
@@ -1086,6 +1096,91 @@ class ModelAssembly {
     return { path: dir, line: null };
   }
 
+  /* --------------------------------------------------------- artifacts */
+
+  /**
+   * R13: each artifact that declares a building block, by its name: an
+   * executable one a deployable unit containing the modules of its blocks,
+   * any other a library containing its blocks. The first of two with one id
+   * wins.
+   */
+  private artifacts(): {
+    deployableUnits: ScannedDeployableUnit[];
+    libraries: ScannedLibrary[];
+  } {
+    const deployableUnits = new Map<DeployableUnitId, ScannedDeployableUnit>();
+    const libraries = new Map<LibraryId, ScannedLibrary>();
+    const blocks = [...this.blocks.values()];
+    for (const artifact of this.index.artifacts) {
+      const node = artifact.file.artifact;
+      if (this.excluded(node.annotations)) continue;
+      // The repository root itself is '.', as a module's directory is (R6.4).
+      const source =
+        node.rootDirectory === null
+          ? null
+          : { path: node.rootDirectory || '.', line: null };
+      const declared = blocks.filter((block) => block.artifact === artifact);
+      if (declared.length === 0) {
+        this.infoAt(
+          `${artifact.id} declares no building block; no deployable unit or library`,
+          source,
+        );
+        continue;
+      }
+      const name = ArtifactName.safeParse(node.name);
+      if (!name.success) {
+        this.infoAt(
+          `${artifact.id}: the artifact name "${node.name}" is no artifact name (empty, padded, or with '|'); dropped`,
+          source,
+        );
+        continue;
+      }
+      const element = {
+        name: name.data,
+        description: null,
+        source,
+      };
+      if (node.executable) {
+        const id = DeployableUnitId.of(name.data);
+        if (this.firstWith(id, deployableUnits, artifact.id, source)) {
+          deployableUnits.set(id, { id, ...element });
+          for (const module of sortedUnique(
+            declared.map((block) => moduleIdOf(block.modulePath)),
+          )) {
+            this.relations.push({ kind: 'contains', from: id, to: module });
+          }
+        }
+      } else {
+        const id = LibraryId.of(name.data);
+        if (this.firstWith(id, libraries, artifact.id, source)) {
+          libraries.set(id, { id, ...element });
+          for (const block of declared) {
+            this.relations.push({ kind: 'contains', from: id, to: block.id });
+          }
+        }
+      }
+    }
+    return {
+      deployableUnits: [...deployableUnits.values()].sort(byId),
+      libraries: [...libraries.values()].sort(byId),
+    };
+  }
+
+  /** Whether no artifact before took `id`; a diagnostic when one did. */
+  private firstWith(
+    id: string,
+    taken: ReadonlyMap<string, unknown>,
+    artifact: NodeId,
+    source: SourceLocation | null,
+  ): boolean {
+    if (!taken.has(id)) return true;
+    this.infoAt(
+      `${artifact} has the id ${id}, which came first; dropped`,
+      source,
+    );
+    return false;
+  }
+
   /* ------------------------------------------------------------ shared */
 
   private excluded(annotations: readonly Annotation[]): boolean {
@@ -1115,7 +1210,7 @@ class ModelAssembly {
     });
   }
 
-  private infoAt(message: string, source: SourceLocation): void {
+  private infoAt(message: string, source: SourceLocation | null): void {
     this.diagnostics.push({ level: 'info', message, source });
   }
 

@@ -107,6 +107,8 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
         'Order total',
         'Placing an order',
       ]);
+      expect<unknown>(model.deployableUnits).toEqual(committed.deployableUnits);
+      expect<unknown>(model.libraries).toEqual(committed.libraries);
       expect<unknown>(model.relations).toEqual(committed.relations);
       expect<unknown>(
         model.buildingBlocks.find(

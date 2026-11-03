@@ -129,6 +129,20 @@ export function designOf(model: SystemModel): DesignDocument {
         definition: optional(process.description),
       })),
     ),
+    deployableUnits: added(
+      model.deployableUnits.map((unit) => ({
+        id: unit.id,
+        name: field(unit.name),
+        definition: optional(unit.description),
+      })),
+    ),
+    libraries: added(
+      model.libraries.map((library) => ({
+        id: library.id,
+        name: field(library.name),
+        definition: optional(library.description),
+      })),
+    ),
     relations: added(model.relations.map(designedRelation)),
     implemented: true,
     implementedAt: model.scanned_at,

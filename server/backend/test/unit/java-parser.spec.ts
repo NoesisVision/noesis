@@ -84,6 +84,15 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ],
     ]);
 
+    // R13: a Maven module that declares a block is a library, as none has a
+    // main class; shop-infrastructure declares none, so it is nothing.
+    expect<unknown>(model.deployableUnits).toEqual([]);
+    expect<unknown>(ids(model.libraries)).toEqual(['library|shop-domain']);
+    expect<unknown>(model.libraries[0]?.source).toEqual({
+      path: 'shop-domain',
+      line: null,
+    });
+
     expect<unknown>(model.buildingBlocks.map((b) => [b.id, b.type])).toEqual([
       ['building_block|shop.orders.Money', 'value_object'],
       ['building_block|shop.orders.Order', 'aggregate'],

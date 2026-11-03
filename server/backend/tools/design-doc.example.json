@@ -322,6 +322,11 @@
   "relations": {
     "added": [
       {
+        "kind": "contains",
+        "from": "deployable_unit|shop-api",
+        "to": "module|sales.refunds"
+      },
+      {
         "kind": "performs",
         "from": "actor|Support agent",
         "to": "manual_process|Refund a returned order"

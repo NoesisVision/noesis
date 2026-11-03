@@ -730,6 +730,98 @@ describe('Actors and manual processes', () => {
   });
 });
 
+describe('Deployable units and libraries', () => {
+  const API = 'deployable_unit|refunds-api';
+  const SALES = 'library|MyCompany.Sales';
+  const REFUNDS = 'module|sales.refunds';
+  const packaging = (relations: object[]) =>
+    DesignDocument.validateAgentGenerated(
+      DesignDocument.parse(
+        design({
+          modules: {
+            added: [
+              {
+                id: REFUNDS,
+                name: { value: 'refunds' },
+                definition: { value: 'Refunds.' },
+              },
+            ],
+          },
+          buildingBlocks: {
+            added: [
+              {
+                id: REFUND,
+                name: { value: 'Refund' },
+                type: { value: 'aggregate' },
+                definition: { value: 'Money back.' },
+              },
+            ],
+          },
+          deployableUnits: {
+            added: [
+              {
+                id: API,
+                name: { value: 'refunds-api' },
+                definition: { value: 'Issues refunds.' },
+              },
+            ],
+          },
+          libraries: {
+            added: [
+              {
+                id: SALES,
+                name: { value: 'MyCompany.Sales' },
+                definition: { value: 'The sales domain.' },
+              },
+            ],
+          },
+          relations: { added: relations },
+        }),
+      ),
+    );
+
+  it('lets a deployable unit contain a module and a library a building block, whatever their paths', () => {
+    expect(
+      packaging([
+        { kind: 'contains', from: API, to: REFUNDS },
+        { kind: 'contains', from: SALES, to: REFUND },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('refuses a deployable unit containing a block, or a library a module', () => {
+    expect(
+      packaging([
+        { kind: 'contains', from: API, to: REFUND },
+        { kind: 'contains', from: SALES, to: REFUNDS },
+      ]),
+    ).toEqual([
+      {
+        path: `relations.added[contains|${API}|${REFUND}].to`,
+        reason: 'containmentOutsideKinds',
+      },
+      {
+        path: `relations.added[contains|${SALES}|${REFUNDS}].to`,
+        reason: 'containmentOutsideKinds',
+      },
+    ]);
+  });
+
+  it("names a unit or a library by the build's name, dots and all, never with a module path", () => {
+    const adding = (id: string, name: string) =>
+      isValid(
+        design({
+          libraries: {
+            added: [{ id, name: { value: name }, definition: { value: '' } }],
+          },
+        }),
+      );
+    expect(adding(SALES, 'MyCompany.Sales')).toBe(true);
+    expect(adding('library|a|b', 'a|b')).toBe(false);
+    expect(adding('module|sales', 'sales')).toBe(false);
+  });
+});
+
 describe('A design document an agent wrote', () => {
   const ORDERS = 'module|sales.orders';
   const ORDER = 'building_block|sales.orders.Order';

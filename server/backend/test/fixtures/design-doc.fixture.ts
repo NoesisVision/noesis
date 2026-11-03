@@ -39,6 +39,8 @@ const ONE_LINE = `scenario|sales.refunds.Refund never exceeds paid amount.Refund
 const STAYS_CANCELLED = 'rule|sales.orders.Cancelled orders stay cancelled';
 const SUPPORT_AGENT = 'actor|Support agent';
 const REFUND_A_RETURN = 'manual_process|Refund a returned order';
+const REFUNDS_API = 'deployable_unit|refunds-api';
+const SALES_LIBRARY = 'library|MyCompany.Sales';
 
 export const designDocFixture = {
   id: '2026-01-01-partial-refunds-for-orders',
@@ -224,9 +226,32 @@ export const designDocFixture = {
     removed: [],
     modified: [],
   },
+  deployableUnits: {
+    added: [
+      {
+        id: REFUNDS_API,
+        name: byAgent('refunds-api'),
+        definition: byAgent('The service that issues refunds.'),
+      },
+    ],
+    removed: [],
+    modified: [],
+  },
+  libraries: {
+    added: [
+      {
+        id: SALES_LIBRARY,
+        name: byAgent('MyCompany.Sales'),
+        definition: byAgent('The sales domain, shared by the services.'),
+      },
+    ],
+    removed: [],
+    modified: [],
+  },
   relations: {
     added: [
       { kind: 'performs', from: SUPPORT_AGENT, to: REFUND_A_RETURN },
+      { kind: 'contains', from: REFUNDS_API, to: 'module|sales.refunds' },
       {
         kind: 'invokes',
         from: REFUND_A_RETURN,
@@ -382,6 +407,8 @@ export const greenFieldDesignDocFixture: DesignDocumentInput = {
   scenarios: { added: byAgentOnly.scenarios.added },
   actors: { added: byAgentOnly.actors.added },
   manualProcesses: { added: byAgentOnly.manualProcesses.added },
+  deployableUnits: { added: byAgentOnly.deployableUnits.added },
+  libraries: { added: byAgentOnly.libraries.added },
   relations: { added: byAgentOnly.relations.added },
 };
 
@@ -399,6 +426,8 @@ export const humanEditedDesignDocFixture: DesignDocumentInput = {
   scenarios: { added: designDocFixture.scenarios.added },
   actors: { added: designDocFixture.actors.added },
   manualProcesses: { added: designDocFixture.manualProcesses.added },
+  deployableUnits: { added: designDocFixture.deployableUnits.added },
+  libraries: { added: designDocFixture.libraries.added },
   relations: { added: designDocFixture.relations.added },
 };
 

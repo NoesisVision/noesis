@@ -217,6 +217,8 @@ const ICON_KIND: Record<UnitKind, OutlineKind> = {
   behavior: 'behavior',
   actor: 'actor',
   manual_process: 'manual_process',
+  deployable_unit: 'deployable_unit',
+  library: 'library',
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',

@@ -17,6 +17,9 @@ const OUTLINE_KINDS = [
   // Who drives the system, and the work they do by hand.
   'actor',
   'manual_process',
+  // What the code is built and shipped as.
+  'deployable_unit',
+  'library',
   'building_block',
   'behavior',
   'property',
@@ -100,12 +103,15 @@ const BUILDING_BLOCK_READING_ORDER = [
 
 /**
  * Submodules above the blocks they hold; rules and scenarios last of all. At
- * the top, the modules, then who drives them and the work they do.
+ * the top, the modules, then who drives them and the work they do, then
+ * what the code ships as.
  */
 const KIND_ORDER: readonly OutlineKind[] = [
   'module',
   'actor',
   'manual_process',
+  'deployable_unit',
+  'library',
   'building_block',
   'behavior',
   'property',

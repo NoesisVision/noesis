@@ -19,9 +19,11 @@ import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
 import {
+  containedItems,
   extenderItems,
   extendsItems,
   invokerItems,
+  packagedInItems,
   performedItems,
   performerItems,
 } from './change-list-items.ts';
@@ -74,6 +76,9 @@ export function ElementDetail({
   // Who drives the system: what an actor performs, who performs a manual
   // process, and the processes that invoke a behavior.
   const people = peopleRelationsOf(doc, node);
+  // What the code ships as: what a unit or a library holds, and where a
+  // module or a block ships.
+  const packaging = packagingRelationsOf(doc, node);
   // What the element is, under its name: a module's, a block's, a behavior's.
   const designed = designedOf(doc, node);
   // An element the design leaves alone is still shown: its definition is too.
@@ -126,6 +131,7 @@ export function ElementDetail({
           { label: 'Extends', items: implemented },
           { label: 'Extended by', items: implementers },
           ...people,
+          ...packaging,
         ]}
         tree={tree}
       />
@@ -173,7 +179,9 @@ function elementRefOf(node: OutlineNode): UnitRef | null {
     node.kind === 'building_block' ||
     node.kind === 'behavior' ||
     node.kind === 'actor' ||
-    node.kind === 'manual_process'
+    node.kind === 'manual_process' ||
+    node.kind === 'deployable_unit' ||
+    node.kind === 'library'
     ? { kind: node.kind, id: node.elementId }
     : null;
 }
@@ -189,6 +197,23 @@ function peopleRelationsOf(doc: DesignDocumentInput, node: OutlineNode) {
       return [{ label: 'Performed by', items: performerItems(doc, id) }];
     case 'behavior':
       return [{ label: 'Invoked by', items: invokerItems(doc, id) }];
+    default:
+      return [];
+  }
+}
+
+/** The rows of what the code ships as the element is one end of. */
+function packagingRelationsOf(doc: DesignDocumentInput, node: OutlineNode) {
+  const id = node.elementId;
+  if (id === null) return [];
+  switch (node.kind) {
+    case 'deployable_unit':
+    case 'library':
+      return [{ label: 'Contains', items: containedItems(doc, id) }];
+    case 'module':
+      return [{ label: 'Deployed in', items: packagedInItems(doc, id) }];
+    case 'building_block':
+      return [{ label: 'In library', items: packagedInItems(doc, id) }];
     default:
       return [];
   }
@@ -232,7 +257,11 @@ function designedOf(doc: DesignDocumentInput, node: OutlineNode) {
             ? doc.actors
             : node.kind === 'manual_process'
               ? doc.manualProcesses
-              : undefined;
+              : node.kind === 'deployable_unit'
+                ? doc.deployableUnits
+                : node.kind === 'library'
+                  ? doc.libraries
+                  : undefined;
   return collection === undefined
     ? undefined
     : (findById(collection, node.elementId) ?? null);
@@ -240,7 +269,11 @@ function designedOf(doc: DesignDocumentInput, node: OutlineNode) {
 
 function ownerOfScenarios(node: OutlineNode): PartOwner | undefined {
   const ref = elementRefOf(node);
-  return ref === null || ref.kind === 'actor' || ref.kind === 'manual_process'
+  return ref === null ||
+    ref.kind === 'actor' ||
+    ref.kind === 'manual_process' ||
+    ref.kind === 'deployable_unit' ||
+    ref.kind === 'library'
     ? undefined
     : { kind: ref.kind as PartOwner['kind'], id: ref.id };
 }

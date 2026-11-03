@@ -49,6 +49,8 @@ const model = {
   scenarios: [],
   actors: [],
   manualProcesses: [],
+  deployableUnits: [],
+  libraries: [],
   modules: [
     { id: 'module|shop', name: 'shop', description: null, source },
     {

@@ -49,8 +49,10 @@ export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   addBuildingBlocks(nodes, document.buildingBlocks);
   addBehaviors(nodes, document.behaviors);
   addRules(nodes, document);
-  addActors(nodes, document);
+  addTopLevel(nodes, document.actors);
   addManualProcesses(nodes, document);
+  addTopLevel(nodes, document.deployableUnits);
+  addTopLevel(nodes, document.libraries);
   addProperties(nodes, document.relations);
   addImpliedAncestors(nodes);
   return inReadingOrder(nodes.values());
@@ -86,14 +88,14 @@ function addBehaviors(
   for (const id of behaviors?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
-function addActors(
+/** Elements that hang under nothing, each a row at the top: an actor, a deployable unit, a library. */
+function addTopLevel(
   nodes: Map<string, OutlineNode>,
-  document: DesignDocumentInput,
+  elements: ChangeSetInput<{ id: string }, string> | undefined,
 ): void {
-  for (const [actor, change] of named(document.actors))
-    put(nodes, element(actor.id, change));
-  for (const id of document.actors?.removed ?? [])
-    put(nodes, element(id, 'removed'));
+  for (const [item, change] of named(elements))
+    put(nodes, element(item.id, change));
+  for (const id of elements?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
 /** A manual process under every actor that performs it — an actor the design leaves alone is implied — or at the top. */

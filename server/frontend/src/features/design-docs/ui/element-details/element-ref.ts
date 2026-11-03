@@ -18,7 +18,9 @@ export type ElementRef =
         | 'buildingBlocks'
         | 'behaviors'
         | 'actors'
-        | 'manualProcesses';
+        | 'manualProcesses'
+        | 'deployableUnits'
+        | 'libraries';
       id: string;
     }
   | {
@@ -35,10 +37,11 @@ const KIND_OF = {
   behaviors: 'behavior',
 } as const;
 
-/** The element a section's parts are written in; none for a part's own section, an actor's or a manual process's. */
+/** The element a section's parts are written in; none for a part's own section or an element of no module. */
 export const partOwnerOf = (element: ElementRef): PartOwner | null =>
-  'collection' in element &&
-  element.collection !== 'actors' &&
-  element.collection !== 'manualProcesses'
-    ? { kind: KIND_OF[element.collection], id: element.id }
+  'collection' in element && element.collection in KIND_OF
+    ? {
+        kind: KIND_OF[element.collection as keyof typeof KIND_OF],
+        id: element.id,
+      }
     : null;

@@ -63,6 +63,8 @@ const systemModel = {
   scenarios: [],
   actors: [],
   manualProcesses: [],
+  deployableUnits: [],
+  libraries: [],
   relations: [
     {
       kind: 'governs',

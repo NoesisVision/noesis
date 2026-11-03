@@ -2,9 +2,13 @@ import { z } from 'zod';
 import type { Clock } from '#backend/app/clock';
 import {
   ActorId,
+  ArtifactName,
   BehaviorId,
   BuildingBlockId,
+  DeployableUnitId,
+  ElementId,
   ElementName,
+  LibraryId,
   ManualProcessId,
   ModuleId,
   RuleId,
@@ -177,6 +181,28 @@ export const DesignedManualProcess = z
   );
 export type DesignedManualProcess = z.infer<typeof DesignedManualProcess>;
 
+export const DesignedDeployableUnit = z
+  .strictObject({
+    id: DeployableUnitId,
+    name: DesignDocField(ArtifactName),
+    definition: DesignDocField(z.string()),
+  })
+  .describe(
+    "Something built and shipped as one piece (a service, a runnable JAR, an executable assembly): its 'contains' relations name the modules in it. Scanned from the build's executable artifacts, named as the build names them.",
+  );
+export type DesignedDeployableUnit = z.infer<typeof DesignedDeployableUnit>;
+
+export const DesignedLibrary = z
+  .strictObject({
+    id: LibraryId,
+    name: DesignDocField(ArtifactName),
+    definition: DesignDocField(z.string()),
+  })
+  .describe(
+    "A reusable package of building blocks: its 'contains' relations name the blocks in it. Scanned from the build's artifacts that are no executable, named as the build names them.",
+  );
+export type DesignedLibrary = z.infer<typeof DesignedLibrary>;
+
 const designDocumentSchema = z.strictObject({
   id: DesignDocId.describe(
     "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted by the server when the design document is created and never changed, even when the name is.",
@@ -195,8 +221,10 @@ const designDocumentSchema = z.strictObject({
   scenarios: changeSet(DesignedScenario, ScenarioId),
   actors: changeSet(DesignedActor, ActorId),
   manualProcesses: changeSet(DesignedManualProcess, ManualProcessId),
+  deployableUnits: changeSet(DesignedDeployableUnit, DeployableUnitId),
+  libraries: changeSet(DesignedLibrary, LibraryId),
   relations: changeSet(DesignedRelation, DesignedRelationKey).describe(
-    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), what a module contains, which rules a behavior follows ('governs'), which scenarios illustrate a rule ('illustrates'), which manual processes an actor performs ('performs') and which behaviors a manual process calls, in order ('invokes'). Both ends of an added relation exist, in the design or the model; a 'contains', 'exposes' or 'illustrates' agrees with the ids, whose paths already say what holds what; an added rule is governed by a behavior.",
+    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), what a module, a deployable unit (modules) or a library (building blocks) contains, which rules a behavior follows ('governs'), which scenarios illustrate a rule ('illustrates'), which manual processes an actor performs ('performs') and which behaviors a manual process calls, in order ('invokes'). Both ends of an added relation exist, in the design or the model; a module's 'contains', an 'exposes' or an 'illustrates' agrees with the ids, whose paths already say what holds what; a deployable unit contains only modules, a library only building blocks; an added rule is governed by a behavior.",
   ),
   implemented: z
     .boolean()
@@ -243,6 +271,7 @@ export interface DesignDocViolation {
     | 'ungovernedRule'
     | 'unknownRelationEnd'
     | 'containmentOutsideIdPath'
+    | 'containmentOutsideKinds'
     | 'slotOutsideTypeKind';
 }
 
@@ -274,6 +303,10 @@ export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;
 export type DesignedBehaviorInput = z.input<typeof DesignedBehavior>;
 export type DesignedActorInput = z.input<typeof DesignedActor>;
 export type DesignedManualProcessInput = z.input<typeof DesignedManualProcess>;
+export type DesignedDeployableUnitInput = z.input<
+  typeof DesignedDeployableUnit
+>;
+export type DesignedLibraryInput = z.input<typeof DesignedLibrary>;
 export type DesignedRelationInput = z.input<typeof DesignedRelation>;
 export type DesignedRelationKeyInput = z.input<typeof DesignedRelationKey>;
 export type DesignedRuleInput = z.input<typeof DesignedRule>;
@@ -421,6 +454,7 @@ function rulesOfEveryDesign(
     ...ungovernedRules(document),
     ...unknownRelationEnds(document, systemModel),
     ...containmentsOutsideIdPaths(document),
+    ...containmentsOutsideKinds(document),
     ...slotsOutsideTypeKinds(document, systemModel),
   ];
 }
@@ -433,6 +467,8 @@ const ELEMENT_LISTS = [
   'scenarios',
   'actors',
   'manualProcesses',
+  'deployableUnits',
+  'libraries',
 ] as const;
 
 /** Both ends of an added relation are elements the design adds or the model has; a primitive is always known. */
@@ -464,14 +500,16 @@ function unknownRelationEnds(
 }
 
 /**
- * What holds what is in the ids: a `contains` or `exposes` says what `to`'s
- * path already says, an `illustrates` what `from`'s does.
+ * What holds what is in the ids: a module's `contains` or an `exposes` says
+ * what `to`'s path already says, an `illustrates` what `from`'s does.
  */
 function containmentsOutsideIdPaths(
   document: DesignDocumentContent,
 ): DesignDocViolation[] {
   return document.relations.added
     .filter((relation) => {
+      if (relation.kind === 'contains' && !ElementId.isModule(relation.from))
+        return false;
       if (relation.kind === 'contains' || relation.kind === 'exposes')
         return parentPathOf(relation.to) !== pathOf(relation.from);
       if (relation.kind === 'illustrates')
@@ -481,6 +519,25 @@ function containmentsOutsideIdPaths(
     .map((relation) => ({
       path: `relations.added[${Relation.keyOf(relation)}]`,
       reason: 'containmentOutsideIdPath' as const,
+    }));
+}
+
+/** A deployable unit contains modules, a library building blocks. */
+function containmentsOutsideKinds(
+  document: DesignDocumentContent,
+): DesignDocViolation[] {
+  return document.relations.added
+    .filter(
+      (relation) =>
+        relation.kind === 'contains' &&
+        ((ElementId.isDeployableUnit(relation.from) &&
+          !ElementId.isModule(relation.to)) ||
+          (ElementId.isLibrary(relation.from) &&
+            !ElementId.isBuildingBlock(relation.to))),
+    )
+    .map((relation) => ({
+      path: `relations.added[${Relation.keyOf(relation)}].to`,
+      reason: 'containmentOutsideKinds' as const,
     }));
 }
 

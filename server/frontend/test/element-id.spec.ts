@@ -7,6 +7,7 @@ import {
   blockOfRef,
   kindOf,
   moduleOf,
+  nameOf,
   ownerOf,
   parentOf,
 } from '../src/features/design-docs/element-id';
@@ -20,6 +21,14 @@ describe('kindOf', () => {
     expect(kindOf(module)).toBe('module');
     expect(kindOf(block)).toBe('building_block');
     expect(kindOf(behavior)).toBe('behavior');
+  });
+
+  it('reads a deployable unit and a library, whose dotted name is one name under nothing', () => {
+    const library = 'library|MyCompany.Sales.DeepModel';
+    expect(kindOf('deployable_unit|shop-api')).toBe('deployable_unit');
+    expect(kindOf(library)).toBe('library');
+    expect(nameOf(library)).toBe('MyCompany.Sales.DeepModel');
+    expect(parentOf(library)).toBeNull();
   });
 
   it.each(['need|refunds', 'sales.orders', ''])(

@@ -84,6 +84,8 @@ describe('A system model', () => {
     expect(parsed.scenarios).toEqual([]);
     expect(parsed.actors).toEqual([]);
     expect<unknown>(parsed.manualProcesses).toEqual([]);
+    expect<unknown>(parsed.deployableUnits).toEqual([]);
+    expect<unknown>(parsed.libraries).toEqual([]);
     expect(parsed.relations).toEqual([]);
   });
 
@@ -248,6 +250,53 @@ describe('An actor and a manual process', () => {
     expect(isValid(model({ actors: [{ ...actor, source: undefined }] }))).toBe(
       false,
     );
+  });
+});
+
+describe('A deployable unit and a library', () => {
+  const unit = {
+    id: 'deployable_unit|shop-api',
+    name: 'shop-api',
+    source: { path: 'shop-api' },
+  };
+  const library = {
+    id: 'library|MyCompany.Sales',
+    name: 'MyCompany.Sales',
+  };
+
+  it('are elements of their own, named as the build names them, dots and all', () => {
+    const parsed = SystemModel.parse(
+      model({ deployableUnits: [unit], libraries: [library] }),
+    );
+    expect<unknown>(parsed.deployableUnits).toEqual([
+      { ...unit, description: null, source: { path: 'shop-api', line: null } },
+    ]);
+    expect<unknown>(parsed.libraries).toEqual([
+      { ...library, description: null, source: null },
+    ]);
+    expect(
+      isValid(model({ libraries: [{ ...library, id: 'library|a|b' }] })),
+    ).toBe(false);
+  });
+
+  it('contain modules, for a unit, and building blocks, for a library', () => {
+    expect(
+      isValid(
+        model({
+          deployableUnits: [unit],
+          libraries: [library],
+          relations: [
+            { kind: 'contains', from: unit.id, to: ORDERS },
+            { kind: 'contains', from: library.id, to: ORDER },
+          ],
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isValid(
+        model({ relations: [{ kind: 'contains', from: unit.id, to: PLACE }] }),
+      ),
+    ).toBe(false);
   });
 });
 

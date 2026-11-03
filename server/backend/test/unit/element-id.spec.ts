@@ -4,8 +4,10 @@ import {
   ActorId,
   BehaviorId,
   BuildingBlockId,
+  DeployableUnitId,
   ElementId,
   ElementName,
+  LibraryId,
   ManualProcessId,
   ModuleId,
   RuleId,
@@ -196,6 +198,8 @@ describe('ElementId', () => {
       'scenario|a.b.c',
       'actor|Support agent',
       'manual_process|Refund a return',
+      'deployable_unit|shop-api',
+      'library|MyCompany.Sales.DeepModel',
     ].map((v) => ElementId.parse(v));
     const only = (index: number) => ids.map((_, i) => i === index);
     expect(ids.map(ElementId.isModule)).toEqual(only(0));
@@ -205,6 +209,8 @@ describe('ElementId', () => {
     expect(ids.map(ElementId.isScenario)).toEqual(only(4));
     expect(ids.map(ElementId.isActor)).toEqual(only(5));
     expect(ids.map(ElementId.isManualProcess)).toEqual(only(6));
+    expect(ids.map(ElementId.isDeployableUnit)).toEqual(only(7));
+    expect(ids.map(ElementId.isLibrary)).toEqual(only(8));
     expect(
       ids.map((id) =>
         ElementId.match(id, {
@@ -215,6 +221,8 @@ describe('ElementId', () => {
           scenario: () => 'scenario',
           actor: () => 'actor',
           manualProcess: () => 'manual process',
+          deployableUnit: () => 'deployable unit',
+          library: () => 'library',
         }),
       ),
     ).toEqual([
@@ -225,6 +233,8 @@ describe('ElementId', () => {
       'scenario',
       'actor',
       'manual process',
+      'deployable unit',
+      'library',
     ]);
   });
 
@@ -236,6 +246,18 @@ describe('ElementId', () => {
     expect(() => ActorId.of('Support.agent')).toThrow();
     expect(ActorId.safeParse('actor|a.b').success).toBe(false);
     expect(ManualProcessId.safeParse('manual_process|a.b').success).toBe(false);
+  });
+
+  it('names a deployable unit and a library by the whole name the build gives, dots and all', () => {
+    expect<string>(DeployableUnitId.of('shop-api')).toBe(
+      'deployable_unit|shop-api',
+    );
+    const library = LibraryId.of('MyCompany.Sales.DeepModel');
+    expect<string>(library).toBe('library|MyCompany.Sales.DeepModel');
+    expect(ElementId.nameOf(library)).toBe('MyCompany.Sales.DeepModel');
+    expect(() => LibraryId.of('a|b')).toThrow();
+    expect(() => DeployableUnitId.of(' api')).toThrow();
+    expect(LibraryId.safeParse('library|').success).toBe(false);
   });
 
   it('reports a bad element at its path', () => {

@@ -50,6 +50,8 @@ export interface ChangeListItem {
   classification?: string;
   /** The needs a rule answers, by name; none for a design decision. */
   needs?: string[];
+  /** The label is one name, dots and all — a deployable unit's or a library's — never shortened to its last segment. */
+  whole?: boolean;
 }
 
 /** Every item of a change set, each with what the design does to it. */
@@ -304,3 +306,57 @@ export const stepItems = (
       description: address.slice(0, -2).join('.'),
     };
   });
+
+/** The `contains` relations of a design that start at a deployable unit or a library. */
+const packagingRelations = (
+  doc: DesignDocumentInput,
+): [{ from: string; to: string }, OutlineChange][] =>
+  [...changed(doc.relations)].flatMap(([relation, change]) =>
+    relation.kind === 'contains' &&
+    (relation.from.startsWith('deployable_unit|') ||
+      relation.from.startsWith('library|'))
+      ? [[relation, change] as [{ from: string; to: string }, OutlineChange]]
+      : [],
+  );
+
+/**
+ * What a deployable unit or a library contains, each opening its row: a
+ * unit's modules by their path, a library's blocks by name, their module
+ * under them.
+ */
+export const containedItems = (
+  doc: DesignDocumentInput,
+  artifactId: string,
+): ChangeListItem[] =>
+  packagingRelations(doc).flatMap(([relation, change]) => {
+    if (relation.from !== artifactId) return [];
+    const address = addressOf(relation.to).split('.');
+    return [
+      relation.to.startsWith('module|')
+        ? { change, label: address.join('.'), path: relation.to }
+        : {
+            change,
+            label: nameOf(relation.to),
+            path: relation.to,
+            description: address.slice(0, -1).join('.'),
+          },
+    ];
+  });
+
+/** The deployable units a module ships in, or the libraries a block is in, each opening its row. */
+export const packagedInItems = (
+  doc: DesignDocumentInput,
+  elementId: string,
+): ChangeListItem[] =>
+  packagingRelations(doc).flatMap(([relation, change]) =>
+    relation.to === elementId
+      ? [
+          {
+            change,
+            label: nameOf(relation.from),
+            path: relation.from,
+            whole: true,
+          },
+        ]
+      : [],
+  );
