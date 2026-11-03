@@ -138,7 +138,7 @@ const labelOf = (kind: UnitKind, spec: FieldSpec): string =>
   kind === 'extends'
     ? 'Extends'
     : kind === 'collaborator' && spec.name === 'ref'
-      ? 'Works with'
+      ? 'Has collaborator'
       : LABEL[spec.name];
 
 function FieldInput({

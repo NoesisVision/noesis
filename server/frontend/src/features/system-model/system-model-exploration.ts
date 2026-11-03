@@ -59,7 +59,7 @@ export const DRAWN_RELATIONS = [
     kind: 'collaborator',
     model: 'has_collaborator',
     label: 'Collaborators',
-    word: 'works with',
+    word: 'has collaborator',
     reach: 'hasCollaborator',
     back: 'collaboratorOf',
   },

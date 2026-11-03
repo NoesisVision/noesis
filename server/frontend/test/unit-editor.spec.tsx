@@ -176,7 +176,7 @@ describe('the fields of a part', () => {
   it('name a collaborator and the block it works with, with no count', () => {
     const html = render(<Fields kind="collaborator" id={null} />);
     expect(html).toMatch(/aria-label="Name"/);
-    expect(html).toMatch(/aria-label="Works with"/);
+    expect(html).toMatch(/aria-label="Has collaborator"/);
     expect(html).not.toMatch(/aria-label="How many"/);
   });
 
