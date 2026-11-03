@@ -31,7 +31,7 @@ export class GitSourceRepository implements SourceRepository {
     const out = await this.git(['ls-files', '-z', '--', '*.feature']);
     const paths = (out ?? '').split('\0').filter((path) => path !== '');
     const files = await Promise.all(
-      paths.sort().map(async (path) => {
+      paths.sort(byCodeUnit).map(async (path) => {
         const file = Bun.file(join(this.root, path));
         return (await file.exists()) ? { path, text: await file.text() } : null;
       }),
@@ -58,4 +58,9 @@ export class GitSourceRepository implements SourceRepository {
     ]);
     return exitCode === 0 ? out : null;
   }
+}
+
+/** Paths are sorted by code unit, as Git lists them, without a locale. */
+function byCodeUnit(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
 }

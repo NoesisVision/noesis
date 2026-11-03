@@ -49,4 +49,8 @@ export const invokesOf = (model: Built, behavior: string): string[] =>
 export const invokedTargetsOf = (model: Built, behavior: string): string[] =>
   from(model, 'invokes', behavior)
     .map((r) => r.to)
-    .sort();
+    .sort(byCodeUnit);
+
+/** Ids are ASCII, so code-unit order is alphabetical without a locale. */
+const byCodeUnit = (a: string, b: string): number =>
+  a < b ? -1 : a > b ? 1 : 0;
