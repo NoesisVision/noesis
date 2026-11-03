@@ -299,10 +299,6 @@
       "id": "behavior|qdocmanagement.notifications.NotificationSender.send",
       "name": "send",
       "description": "Delivers one notification to its recipient.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationSender.java",
         "line": 16
@@ -312,10 +308,6 @@
       "id": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
       "name": "notifyUsers",
       "description": "Tells each user another subsystem names what that subsystem wants them told: one notification per recipient, with the subject and the body of the request. A failed delivery to one recipient stops no other.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationService.java",
         "line": 32
@@ -325,10 +317,6 @@
       "id": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
       "name": "next",
       "description": "Gives the QDoc being created its document number.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentNumberGenerator.java",
         "line": 20
@@ -338,10 +326,6 @@
       "id": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers",
       "name": "findQualityManagers",
       "description": "Lists every user who holds the quality manager role in the organisation at the moment of the call.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
         "line": 29
@@ -351,10 +335,6 @@
       "id": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
       "name": "isQualityManager",
       "description": "Answers whether the user holds the quality manager role at the moment of the call.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
         "line": 22
@@ -364,10 +344,6 @@
       "id": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish",
       "name": "publish",
       "description": "Publishes a QDocCreated event to the subscribing subsystems.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/PreparationEventPublisher.java",
         "line": 17
@@ -377,10 +353,6 @@
       "id": "behavior|qdocmanagement.preparation.QDoc.create",
       "name": "create",
       "description": "Creates an active QDoc from a validated creation request and its document number, together with its first version. Records the QDocCreated event, telling the other subsystems the QDoc exists, for the application service to publish.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDoc.java",
         "line": 69
@@ -390,10 +362,6 @@
       "id": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
       "name": "createQDoc",
       "description": "Creates a QDoc on a quality manager's request: gives it a document number, starts its first version with the people the request names, announces the new QDoc to the other subsystems and has every quality manager told of it. Actors: Quality manager.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreationService.java",
         "line": 50
@@ -403,10 +371,6 @@
       "id": "behavior|qdocmanagement.preparation.QDocRepository.save",
       "name": "save",
       "description": "Stores a QDoc aggregate, whole.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocRepository.java",
         "line": 15
@@ -416,10 +380,6 @@
       "id": "behavior|qdocmanagement.preparation.Version.createFirst",
       "name": "createFirst",
       "description": "Creates the first version of a new QDoc, with the people named at creation assigned to it.",
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/Version.java",
         "line": 40
@@ -428,6 +388,8 @@
   ],
   "rules": [],
   "scenarios": [],
+  "actors": [],
+  "manualProcesses": [],
   "relations": [
     {
       "kind": "contains",

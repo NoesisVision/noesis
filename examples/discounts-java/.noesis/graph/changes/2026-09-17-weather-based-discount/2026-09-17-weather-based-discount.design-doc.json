@@ -273,13 +273,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -296,13 +289,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -319,13 +305,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -342,13 +321,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -365,13 +337,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       }
     ],
@@ -389,9 +354,6 @@
           "changed": true,
           "value": "sequenceDiagram\n  DiscountPolicyFactory->>UserStatusProvider: getFor(userId)\n  UserStatusProvider-->>DiscountPolicyFactory: UserStatus\n  DiscountPolicyFactory->>WeatherProvider: getCurrent()\n  WeatherProvider-->>DiscountPolicyFactory: Option<Weather>\n  DiscountPolicyFactory->>DiscountsConfigProvider: getDiscountsConfig()\n  DiscountsConfigProvider-->>DiscountPolicyFactory: DiscountConfig\n  DiscountPolicyFactory->>Conditions: build(userStatus, weather)\n  DiscountPolicyFactory->>DiscountConfig: getDiscountsForConditions(conditions)\n  DiscountConfig->>PotentialPrecipitationDiscount: isApplicableFor(conditions)\n  DiscountConfig-->>DiscountPolicyFactory: List<Discount>",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": false
         }
       },
       {
@@ -403,9 +365,6 @@
           "changed": false
         },
         "diagram": {
-          "changed": false
-        },
-        "visibility": {
           "changed": false
         }
       }
@@ -801,6 +760,16 @@
         }
       }
     ],
+    "removed": [],
+    "modified": []
+  },
+  "actors": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "manualProcesses": {
+    "added": [],
     "removed": [],
     "modified": []
   },

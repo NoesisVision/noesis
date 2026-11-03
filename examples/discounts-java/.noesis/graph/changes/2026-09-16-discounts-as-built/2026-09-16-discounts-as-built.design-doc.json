@@ -498,14 +498,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -522,14 +514,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -546,13 +530,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -569,13 +546,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -592,13 +562,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -615,13 +578,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -638,13 +594,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -661,13 +610,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -684,14 +626,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -708,14 +642,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -732,14 +658,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -756,14 +674,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -780,14 +690,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -804,14 +706,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -828,14 +722,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -852,14 +738,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -876,14 +754,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       }
     ],
@@ -896,6 +766,16 @@
     "modified": []
   },
   "scenarios": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "actors": {
+    "added": [],
+    "removed": [],
+    "modified": []
+  },
+  "manualProcesses": {
     "added": [],
     "removed": [],
     "modified": []
