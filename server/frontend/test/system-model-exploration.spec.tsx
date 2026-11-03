@@ -79,7 +79,6 @@ const model = {
       id: 'behavior|shop.orders.Order.place',
       name: 'place',
       description: null,
-      visibility: { kind: 'private' },
       source,
     },
   ],
@@ -128,7 +127,7 @@ const model = {
 /** A model with more relations, as a scanner would write them. */
 const relating = (
   relations: Record<string, unknown>[],
-  patch: { behaviors?: Record<string, unknown>[] } = {},
+  patch: Record<string, Record<string, unknown>[]> = {},
 ) =>
   ({
     ...model,
@@ -231,6 +230,53 @@ describe('the exploration of a system model', () => {
     expect(
       neighbours.get('behavior|shop.orders.Line.check')!.invokedBy,
     ).toEqual(['behavior|shop.orders.Order.place']);
+  });
+
+  it('draws an actor and a manual process, which performs and invokes join', () => {
+    const ACTOR = 'actor|Customer';
+    const PROCESS = 'manual_process|Place an order';
+    const PLACE = 'behavior|shop.orders.Order.place';
+    const people = explorationOf(
+      relating(
+        [
+          { kind: 'performs', from: ACTOR, to: PROCESS },
+          { kind: 'invokes', from: PROCESS, to: PLACE, order: 1 },
+        ],
+        {
+          actors: [{ id: ACTOR, name: 'Customer', description: null, source }],
+          manualProcesses: [
+            {
+              id: PROCESS,
+              name: 'Place an order',
+              description: null,
+              source: null,
+            },
+          ],
+        },
+      ),
+    );
+    expect(
+      people.elements
+        .filter(({ kind }) => kind === 'actor' || kind === 'manual_process')
+        .map(({ id, container }) => [id, container]),
+    ).toEqual([
+      [ACTOR, null],
+      [PROCESS, null],
+    ]);
+    expect(people.edges.performs).toEqual([[ACTOR, PROCESS]]);
+    expect(people.edges.invokes).toEqual([[PROCESS, PLACE]]);
+    expect(elementSectionsOf(people).map(({ title }) => title)).toContain(
+      'Manual processes',
+    );
+    expect(neighboursOf(people).get(PROCESS)!.performedBy).toEqual([ACTOR]);
+    expect(
+      chainOf(
+        neighboursOf(people),
+        new Map(people.elements.map((each) => [each.id, each])),
+        PROCESS,
+        'invokes',
+      ),
+    ).toEqual([PLACE]);
   });
 
   it('draws no edge between a card and the frame it is drawn inside', () => {
@@ -354,6 +400,7 @@ it('lays out every relation and every kind in the visibility panel', () => {
     'output',
     'extends',
     'invokes',
+    'performs',
   ]);
   const html = renderToStaticMarkup(
     <MantineProvider>
@@ -376,6 +423,7 @@ it('lays out every relation and every kind in the visibility panel', () => {
     'Output',
     'Extends',
     'Invokes',
+    'Performs',
   ])
     expect(html).toContain(`>${label}<`);
   expect(html).not.toContain('Not implemented');

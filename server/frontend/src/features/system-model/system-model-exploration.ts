@@ -15,16 +15,23 @@ import type {
  * implements. A behavior invokes the behaviors the scan found it calls, in
  * the order of the calls — where the scanner records calls; one that does
  * not leaves the model without any. A card reads containment from inside
- * too, as what it is part of; the filter names it once.
+ * too, as what it is part of; the filter names it once. An actor performs
+ * manual processes, and a manual process invokes behaviors in order, as a
+ * behavior does; neither is contained by anything.
  */
 
-type ExploredKind = 'module' | 'building_block' | 'behavior';
+type ExploredKind =
+  | 'module'
+  | 'building_block'
+  | 'behavior'
+  | 'actor'
+  | 'manual_process';
 
 export interface ExploredElement {
   id: string;
   kind: ExploredKind;
   name: string;
-  /** The building block's type; null for a module or a behavior. */
+  /** The building block's type; null for any other element. */
   pattern: BuildingBlockType | null;
   /** The element that contains this one, if the model holds it. */
   container: string | null;
@@ -87,6 +94,14 @@ export const DRAWN_RELATIONS = [
     word: 'invokes',
     reach: 'invokes',
     back: 'invokedBy',
+  },
+  {
+    kind: 'performs',
+    model: 'performs',
+    label: 'Performs',
+    word: 'performs',
+    reach: 'performs',
+    back: 'performedBy',
   },
 ] as const;
 
@@ -157,12 +172,33 @@ export function explorationOf(model: SystemModel): Exploration {
       pattern: null,
       container: blockOf(behavior.id),
     })),
+    ...model.actors.map((actor) => ({
+      id: actor.id,
+      kind: 'actor' as const,
+      name: actor.name,
+      pattern: null,
+      container: null,
+    })),
+    ...model.manualProcesses.map((process) => ({
+      id: process.id,
+      kind: 'manual_process' as const,
+      name: process.name,
+      pattern: null,
+      container: null,
+    })),
   ];
 
   // A slot typed by a primitive, or a relation of an element the model does
   // not list, joins nothing drawn; a relation to oneself is no edge either.
-  const behaviorIds = new Set<string>(model.behaviors.map(({ id }) => id));
-  const known = (id: string) => blockIds.has(id) || behaviorIds.has(id);
+  const joinable = new Set<string>(
+    [
+      ...model.buildingBlocks,
+      ...model.behaviors,
+      ...model.actors,
+      ...model.manualProcesses,
+    ].map(({ id }) => id),
+  );
+  const known = (id: string) => joinable.has(id);
   const pairs = new Map<DrawnRelationKind, Map<string, Pair>>(
     DRAWN_RELATIONS.map(({ kind }) => [kind, new Map()]),
   );
@@ -193,7 +229,12 @@ export const groupLabelOf = (group: string): string =>
   titleCase(group.replaceAll('_', ' '));
 
 export interface ElementSection {
-  title: 'Modules' | 'Building blocks' | 'Behaviors';
+  title:
+    | 'Modules'
+    | 'Building blocks'
+    | 'Behaviors'
+    | 'Actors'
+    | 'Manual processes';
   groups: { group: string; count: number }[];
 }
 
@@ -201,6 +242,8 @@ const SECTIONS = [
   ['Modules', 'module'],
   ['Building blocks', 'building_block'],
   ['Behaviors', 'behavior'],
+  ['Actors', 'actor'],
+  ['Manual processes', 'manual_process'],
 ] as const satisfies readonly [ElementSection['title'], ExploredKind][];
 
 /** The groups a reader may hide, by kind of element, as many as the model holds. */
@@ -436,6 +479,8 @@ const KIND_WORD = {
   module: 'Module',
   building_block: 'Building block',
   behavior: 'Behavior',
+  actor: 'Actor',
+  manual_process: 'Manual process',
 } as const satisfies Record<ExploredKind, string>;
 
 /** What an element is, in words: "Building block · Value Object". */
@@ -519,8 +564,8 @@ export const relationOfChain = (reach: ChainReach): DrawnRelationKind =>
 /**
  * Everything an element reaches one way, step after step, up to the next
  * element of its own type: that one is reached, but not followed further.
- * Only behaviors invoke, so a building block's or module's calls are its
- * behaviors', and a behavior stops the chain when the block it is on is
+ * Behaviors and manual processes invoke, so a building block's or module's
+ * calls are its behaviors', and a behavior stops the chain when the block it is on is
  * of the type it started from. Those behaviors, and the blocks such a
  * chain ends on, are reached too, so the chain reads whole. It goes no
  * more than `depth` steps from the element, or from its behaviors.
@@ -536,7 +581,8 @@ export function chainOf(
   if (start === undefined) return [];
   const type = groupOf(start);
   const throughBehaviours =
-    (reach === 'invokes' || reach === 'invokedBy') && start.kind !== 'behavior';
+    (reach === 'invokes' || reach === 'invokedBy') &&
+    (start.kind === 'module' || start.kind === 'building_block');
   const blockOf = (element: ExploredElement) =>
     element.kind === 'behavior' && element.container !== null
       ? elements.get(element.container)

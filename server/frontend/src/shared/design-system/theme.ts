@@ -229,7 +229,7 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * arrow's shape is the canvas's to draw (EDGE_ARROW in relation-colors.ts).
  */
 function relationEdges({
-  colors: { brand, gray, violet, teal, orange, pink },
+  colors: { brand, gray, violet, teal, orange, pink, green },
 }: MantineThemeOf) {
   return {
     state: {
@@ -273,6 +273,13 @@ function relationEdges({
       dash: 10,
       gap: 5,
       seconds: 0.35,
+    },
+    performs: {
+      line: { light: green[6], dark: green[4] },
+      word: { light: green[8], dark: green[2] },
+      dash: 4,
+      gap: 3,
+      seconds: 0.7,
     },
   };
 }

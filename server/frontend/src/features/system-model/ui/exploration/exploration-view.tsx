@@ -194,6 +194,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         'input',
         'output',
         'invokes',
+        'performs',
       ]),
   );
   const [drawing, setDrawing] = useState<Drawing>({

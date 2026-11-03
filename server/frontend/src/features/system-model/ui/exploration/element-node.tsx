@@ -269,6 +269,8 @@ const REACH_ACTION = {
   extendedBy: 'Extended by',
   invokes: 'Invokes',
   invokedBy: 'Invoked by',
+  performs: 'Performs',
+  performedBy: 'Performed by',
 } as const satisfies Record<Reach, string>;
 
 /*
