@@ -30,6 +30,10 @@ const SHOWABLE = new Set([
   'behavior',
   'actor',
   'manual_process',
+  'deployable_unit',
+  'library',
+  'layer',
+  'deployment_container',
 ]);
 
 /** The element a row stands for: a manual process is a row under each actor that performs it. */

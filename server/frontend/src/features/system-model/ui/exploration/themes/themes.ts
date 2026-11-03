@@ -19,7 +19,7 @@ import { isometric } from './isometric/index.ts';
  *    `.theme[data-diagram-theme]`. That root sits on the canvas (never
  *    the toolbar above it, which stays the app's own), so its
  *    custom properties reach every part: `--edge-state`,
- *    `--edge-collaborator`, `--edge-input`, `--edge-output`, `--edge-extends`, `--edge-invokes`, `--edge-performs` and
+ *    `--edge-collaborator`, `--edge-input`, `--edge-output`, `--edge-extends`, `--edge-invokes`, `--edge-performs`, `--edge-contains` and
  *    `--edge-highlight` recolour the relations and their arrows.
  * 3. Add it to the list below.
  *

@@ -96,6 +96,11 @@
     border-color: var(--noesis-diagram-block-border);
     background: var(--noesis-diagram-block);
   }
+
+  /* A layer cuts across modules, so its frame is dashed, as a slice is drawn. */
+  &[data-kind='layer'] {
+    border-style: dashed;
+  }
 }
 
 /* The frame's name is its button; the rest of the frame is a backdrop. */

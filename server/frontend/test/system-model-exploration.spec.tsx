@@ -51,6 +51,8 @@ const model = {
   manualProcesses: [],
   deployableUnits: [],
   libraries: [],
+  layers: [],
+  deploymentContainers: [],
   modules: [
     { id: 'module|shop', name: 'shop', description: null, source },
     {
@@ -321,6 +323,164 @@ describe('the exploration of a system model', () => {
         ],
       },
       { title: 'Behaviors', groups: [{ group: 'behavior', count: 1 }] },
+    ]);
+  });
+});
+
+describe('layers, libraries, units and containers', () => {
+  const layer = (name: string) => ({
+    id: `layer|${name}`,
+    name,
+    description: null,
+    source,
+  });
+  const holds = (from: string, ...blocks: string[]) =>
+    blocks.map((name) => ({
+      kind: 'contains',
+      from,
+      to: `building_block|shop.${name}`,
+    }));
+  const framesOf = (found: SystemModel) =>
+    explorationOf(found)
+      .elements.filter(({ kind }) => kind !== 'behavior')
+      .map(({ id, container }) => [id, container]);
+
+  it('draws a layer inside the module when it holds only some of its blocks', () => {
+    const found = relating(holds('layer|domain', 'orders.Order'), {
+      layers: [layer('domain')],
+    });
+    expect(framesOf(found)).toEqual([
+      ['layer|domain', 'module|shop.orders'],
+      ['module|shop', null],
+      ['module|shop.orders', 'module|shop'],
+      ['building_block|shop.orders.Order', 'layer|domain'],
+      ['building_block|shop.orders.Line', 'module|shop.orders'],
+    ]);
+  });
+
+  it('draws a layer round the modules whose blocks it holds, holding the same as the layer', () => {
+    const found = relating(
+      holds('layer|domain', 'orders.Order', 'orders.Line'),
+      {
+        layers: [layer('domain')],
+      },
+    );
+    expect(framesOf(found)).toEqual([
+      ['layer|domain', null],
+      ['module|shop', 'layer|domain'],
+      ['module|shop.orders', 'module|shop'],
+      ['building_block|shop.orders.Order', 'module|shop.orders'],
+      ['building_block|shop.orders.Line', 'module|shop.orders'],
+    ]);
+  });
+
+  it('draws a container outermost, the unit it hosts inside it, and the modules inside the unit', () => {
+    const found = relating(
+      [
+        {
+          kind: 'hosts',
+          from: 'deployment_container|k8s',
+          to: 'deployable_unit|app',
+        },
+        { kind: 'contains', from: 'deployable_unit|app', to: 'module|shop' },
+      ],
+      {
+        deploymentContainers: [
+          {
+            id: 'deployment_container|k8s',
+            name: 'k8s',
+            description: null,
+            source,
+          },
+        ],
+        deployableUnits: [
+          { id: 'deployable_unit|app', name: 'app', description: null, source },
+        ],
+      },
+    );
+    expect(framesOf(found).slice(0, 3)).toEqual([
+      ['deployment_container|k8s', null],
+      ['deployable_unit|app', 'deployment_container|k8s'],
+      ['module|shop', 'deployable_unit|app'],
+    ]);
+    const graph = graphOf(explorationOf(found), {
+      hidden: new Set(['deployable_unit']),
+      relations: new Set(['contains']),
+    });
+    expect(graph.elements.find(({ id }) => id === 'module|shop')?.parent).toBe(
+      'deployment_container|k8s',
+    );
+    expect(kindWordOf(explorationOf(found).elements[0]!)).toBe(
+      'Deployment container',
+    );
+    expect(
+      elementSectionsOf(explorationOf(found)).map(({ title }) => title),
+    ).toEqual([
+      'Deployment containers',
+      'Deployable units',
+      'Modules',
+      'Building blocks',
+      'Behaviors',
+    ]);
+  });
+
+  it('draws what holds an element it is not drawn round as an edge, with containment shown', () => {
+    const found = relating(
+      [
+        { kind: 'contains', from: 'module|shop', to: 'module|shop.billing' },
+        {
+          kind: 'contains',
+          from: 'module|shop.billing',
+          to: 'building_block|shop.billing.Invoice',
+        },
+        ...holds('layer|domain', 'orders.Order', 'billing.Invoice'),
+      ],
+      {
+        layers: [layer('domain')],
+        modules: [
+          ...model.modules,
+          {
+            id: 'module|shop.billing',
+            name: 'billing',
+            description: null,
+            source,
+          },
+        ],
+        buildingBlocks: [
+          ...model.buildingBlocks,
+          {
+            id: 'building_block|shop.billing.Invoice',
+            name: 'Invoice',
+            type: 'aggregate',
+            description: null,
+            source,
+          },
+        ],
+      },
+    );
+    const explored = explorationOf(found);
+    expect(framesOf(found)).toContainEqual(['layer|domain', 'module|shop']);
+    expect(framesOf(found)).toContainEqual([
+      'module|shop.billing',
+      'layer|domain',
+    ]);
+    expect(framesOf(found)).toContainEqual([
+      'building_block|shop.orders.Order',
+      'module|shop.orders',
+    ]);
+    const shown = (relations: RelationKind[]) =>
+      graphOf(explored, {
+        hidden: new Set(),
+        relations: new Set(relations),
+      }).relations.map(({ id }) => id);
+    expect(shown(['contains'])).toEqual([
+      'contains:layer|domain->building_block|shop.orders.Order',
+    ]);
+    expect(shown([])).toEqual([]);
+    // The layer's card offers every block it holds, drawn round it or not.
+    expect(neighboursOf(explored).get('layer|domain')?.contains).toEqual([
+      'building_block|shop.orders.Order',
+      'building_block|shop.billing.Invoice',
     ]);
   });
 });
@@ -652,6 +812,45 @@ it('lays out the whole model under a box that filters it', () => {
   expect(html).toMatch(
     /role="tree"[^>]*aria-label="The model"|aria-label="The model"[^>]*role="tree"/,
   );
+});
+
+it('lets a layer, a library, a unit and a container be ticked in, as a module is', () => {
+  const found = relating([], {
+    layers: [{ id: 'layer|domain', name: 'domain', description: null, source }],
+    libraries: [
+      { id: 'library|core', name: 'core', description: null, source },
+    ],
+    deployableUnits: [
+      { id: 'deployable_unit|app', name: 'app', description: null, source },
+    ],
+    deploymentContainers: [
+      {
+        id: 'deployment_container|k8s',
+        name: 'k8s',
+        description: null,
+        source,
+      },
+    ],
+  });
+  const html = renderToStaticMarkup(
+    <MantineProvider>
+      <ElementSearch
+        document={designOf(found)}
+        isShown={() => false}
+        onShow={() => {}}
+      />
+    </MantineProvider>,
+  );
+  const row = (path: string) =>
+    html.split('<li').find((chunk) => chunk.includes(`data-path="${path}"`));
+  for (const path of [
+    'module|shop',
+    'layer|domain',
+    'library|core',
+    'deployable_unit|app',
+    'deployment_container|k8s',
+  ])
+    expect(row(path)).toContain('aria-checked="false"');
 });
 
 describe('elements put in or taken out one by one', () => {

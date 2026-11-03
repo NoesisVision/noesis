@@ -229,7 +229,7 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * arrow's shape is the canvas's to draw (EDGE_ARROW in relation-colors.ts).
  */
 function relationEdges({
-  colors: { brand, gray, violet, teal, orange, pink, green },
+  colors: { brand, gray, violet, teal, orange, pink, green, yellow },
 }: MantineThemeOf) {
   return {
     state: {
@@ -280,6 +280,15 @@ function relationEdges({
       dash: 4,
       gap: 3,
       seconds: 0.7,
+    },
+    // What holds an element it is not drawn round: a layer, a library, a
+    // unit, a container. Long dashes, slow, as a frame's border is still.
+    contains: {
+      line: { light: yellow[7], dark: yellow[5] },
+      word: { light: yellow[9], dark: yellow[3] },
+      dash: 12,
+      gap: 6,
+      seconds: 1.2,
     },
   };
 }

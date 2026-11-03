@@ -421,14 +421,15 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [exploration],
   );
   // What the model holds inside each element, all the way down.
+  // All it holds, all the way down — drawn round it or not, as a layer's
+  // blocks whose module lies partly outside it are.
   const insideOf = useMemo(() => {
     const kids = new Map<string, string[]>();
-    for (const { id, container } of exploration.elements)
-      if (container !== null)
-        kids.set(container, [...(kids.get(container) ?? []), id]);
+    for (const { from, to } of exploration.holdings)
+      kids.set(from, [...(kids.get(from) ?? []), to]);
     const all = (id: string): string[] =>
       (kids.get(id) ?? []).flatMap((kid) => [kid, ...all(kid)]);
-    return all;
+    return (id: string) => [...new Set(all(id))];
   }, [exploration]);
   // What was just added — from a card's menu, the picker or the canvas's own
   // menu — with the card it came from, if any: in hand at once, and, once the
