@@ -179,15 +179,13 @@ describe('the exploration of a system model', () => {
     expect(graph.relations.map(({ kind }) => kind)).toEqual(['state', 'input']);
   });
 
-  it('draws containment either way round as nesting, never as an edge', () => {
-    for (const relation of ['contains', 'isPartOf'] as const) {
-      const graph = draw([relation], ['aggregate', 'value_object', 'Command']);
-      expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
-        ['module|shop', null],
-        ['module|shop.orders', 'module|shop'],
-      ]);
-      expect(graph.relations).toEqual([]);
-    }
+  it('draws containment as nesting, never as an edge', () => {
+    const graph = draw(['contains'], ['aggregate', 'value_object', 'Command']);
+    expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
+      ['module|shop', null],
+      ['module|shop.orders', 'module|shop'],
+    ]);
+    expect(graph.relations).toEqual([]);
   });
 
   it('leaves out a relation to a hidden element rather than moving it', () => {
@@ -329,7 +327,6 @@ it('keeps the calls of a behavior in the order the scan gives them', () => {
 it('lays out every relation and every kind in the visibility panel', () => {
   expect(RELATIONS.map(({ kind }) => kind)).toEqual([
     'contains',
-    'isPartOf',
     'state',
     'input',
     'output',
@@ -352,7 +349,6 @@ it('lays out every relation and every kind in the visibility panel', () => {
   expect(html).toContain('aria-label="Close the visibility panel"');
   for (const label of [
     'Contains',
-    'Is part of',
     'State',
     'Input',
     'Output',

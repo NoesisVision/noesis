@@ -12,10 +12,10 @@ import type {
  * block contains its behaviors. A building block has as state the blocks
  * its state is typed with, a behavior has as input the blocks it takes and
  * as output those it gives back; a block extends the blocks it extends or
- * implements. "Is part of" is containment read from the inside. A behavior
- * invokes the behaviors the scan found it calls, in the order of the calls
- * — where the scanner records calls; one that does not leaves the model
- * without any.
+ * implements. A behavior invokes the behaviors the scan found it calls, in
+ * the order of the calls — where the scanner records calls; one that does
+ * not leaves the model without any. A card reads containment from inside
+ * too, as what it is part of; the filter names it once.
  */
 
 type ExploredKind = 'module' | 'building_block' | 'behavior';
@@ -94,12 +94,11 @@ export interface Exploration {
   edges: Record<DrawnRelationKind, Pair[]>;
 }
 
-export type RelationKind = 'contains' | 'isPartOf' | DrawnRelationKind;
+export type RelationKind = 'contains' | DrawnRelationKind;
 
 /** Every relation the view names. */
 export const RELATIONS: readonly { kind: RelationKind; label: string }[] = [
   { kind: 'contains', label: 'Contains' },
-  { kind: 'isPartOf', label: 'Is part of' },
   ...DRAWN_RELATIONS.map(({ kind, label }) => ({ kind, label })),
 ];
 
@@ -382,8 +381,8 @@ export function graphOf(
       id = byId.get(id)?.container ?? null;
     return id;
   };
-  // Containment, either way round, is drawn as cards inside their container.
-  const nested = relations.has('contains') || relations.has('isPartOf');
+  // Containment is drawn as cards inside their container.
+  const nested = relations.has('contains');
 
   // Whether one is drawn inside the other, at any depth: an edge between
   // them would only run from a card to the border round it, and the
