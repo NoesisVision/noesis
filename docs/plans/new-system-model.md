@@ -2,7 +2,8 @@
 
 Status: in progress (November 2026); steps 1, 2, 3, 4, 5 and 6 of section 11
 are built, step 3 before step 2: the two share files but neither needs the
-other; step 7 is built for Java, its release and its C# half pending.
+other; step 7 is built for Java, its release and its C# half pending;
+steps 8 and 9 are built.
 
 [`system-model-structure.md`](system-model-structure.md) describes the
 metamodel the system model moves to: its elements, relations and kinds. This
@@ -594,9 +595,29 @@ fixtures and the skills together, so no step leaves two shapes alive.
    `implement-java-spring` writes `@Actor` and `@TechnicalService` now. The
    C# half waits for the NuGet package (section 12).
 8. **Scenario generation in the skills**: section 9's `implement-java-spring`
-   change, checked against `examples/qdoc-java`.
+   change, checked against `examples/qdoc-java`. _Built_, at the user's
+   choice: a designed scenario is tested by its Cucumber scenario only, no
+   JUnit test beside it. The skill writes one feature file per use case
+   (the rules of the domain behaviors it reaches with it), one steps class
+   per feature file, and a runner; each scenario's `When` calls the
+   behavior that governs its rule, the use case through the full graph,
+   another block alone. Found while checking: Cucumber binds a wording to
+   one step definition in the whole suite, so one `When` wording calls one
+   behavior; the skill rewords a clash and reports it, and
+   `create-design-doc`'s modelling guidance asks for distinct wordings.
+   `qdoc-java`'s features now hold every designed scenario, its JUnit
+   scenario tests are gone, and its scan matches the design's rules,
+   scenarios and `illustrates` by id; five designed rules have no
+   scenario, so no feature holds them, and the document-type rule, which
+   the design gives to `DocumentNumberGenerator.next` (an interface with
+   no check of the type), binds to `createQDoc`.
 9. **Documents**: section 9's edits; `code-model-to-system-model.md` marked
-   as superseded in the rules this plan changed.
+   as superseded in the rules this plan changed. _Built_: the design skills
+   speak of a design's two halves and every element list;
+   `code-model-to-system-model.md` marks the section 12 decisions this plan
+   overturned and opens section 14 with what changed; `ARCHITECTURE.md`
+   and `design-doc-architecture-view.md` describe the scanner and the
+   architecture view as built.
 
 ## 12. Open questions
 

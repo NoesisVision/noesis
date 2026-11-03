@@ -1,15 +1,17 @@
 ---
 name: create-design-doc
-description: Design what a Noesis change does to the code's domain model — the modules, building blocks and behaviors it adds, modifies or removes, the rules those behaviors follow and the scenarios that illustrate them — from the change's documents and the scanned system model, and store it in the change as a design document, or as several alternative ones, each designed by its own subagent, for the user to compare. Use when the user asks to design a change, model it, plan its implementation or write its design doc from the specs, notes or transcripts it collects.
+description: Design what a Noesis change does to the code's domain model — the modules, building blocks and behaviors it adds, modifies or removes, the rules those behaviors follow, the scenarios that illustrate them, the actors and manual processes that drive them, and the relations between them all — from the change's documents and the scanned system model, and store it in the change as a design document, or as several alternative ones, each designed by its own subagent, for the user to compare. Use when the user asks to design a change, model it, plan its implementation or write its design doc from the specs, notes or transcripts it collects.
 argument-hint: [change-id] [number of designs] [instructions]
 ---
 
 # Create a design document
 
-A design document says what a change does to the implemented model: the
-modules, building blocks and behaviors it adds, modifies or removes, the
-rules those behaviors follow, the scenarios that illustrate the rules, and
-the relations between them all. It is a diff against the newest
+A design document says what a change does to the implemented model, in two
+halves: the elements it adds, modifies or removes — modules, building
+blocks, behaviors, the rules those behaviors follow, the scenarios that
+illustrate the rules, actors, manual processes, deployable units,
+libraries, layers and deployment containers — and the relations between
+them, a change set of their own. It is a diff against the newest
 system model — what the scanner found in the code — and never against an
 earlier design document. You read the change's documents and the system
 model, design the change as an experienced architect and analyst would,
@@ -31,8 +33,9 @@ Both are JSON Schema. Read them at step 6, not from memory.
 ## Modelling guidance
 
 `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/modelling.md`:
-definitions, needs, modules, building block types, use cases and actors,
-rules, scenarios. Read it at step 5.
+definitions, needs, modules, building block types, behaviors, actors and
+manual processes, deployable units and libraries, layers and deployment
+containers, rules, scenarios. Read it at step 5.
 
 ## Steps
 
@@ -102,7 +105,8 @@ rules, scenarios. Read it at step 5.
      quality or a constraint no behavior follows is no rule.
    - **Scenarios**, at least one per rule, each illustrating one rule
      (`illustrates`), as the Gherkin steps of given, when and then they
-     become, the `when` calling the behavior that governs the rule.
+     become, the `when` calling the behavior that governs the rule. A
+     scenario lives in a feature file in the code, where the scan reads it.
 
    Then look for contradictions between sources, missing information and
    places where several designs fit. Resolve one yourself only when a
@@ -159,8 +163,8 @@ rules, scenarios. Read it at step 5.
    `has_state`, any other block `has_collaborator`. A `has_state`,
    `has_collaborator` or `has_input` is known by its holder and `name`, so its type may change in place; a
    `has_output` is known by its `to`, so an output of another type is one
-   removed and one added; `extends`, `governs`, `illustrates` and
-   `performs` have nothing to modify. `cardinality`
+   removed and one added; `contains`, `extends`, `exposes`, `governs`,
+   `illustrates`, `performs` and `hosts` have nothing to modify. `cardinality`
    is `1`, `0..1`, `0..*` or `1..*`: a collection and an optional value are
    told apart by it, never by the type. Both ends of an added relation
    exist, in the design or in the model; a module's `contains`, an
@@ -200,8 +204,9 @@ rules, scenarios. Read it at step 5.
 9. **Save it.** Call `create_design_doc_in_change` with the change's id and
    the working file's `path`.
 10. **Report** the id the tool answered with, what the design adds, modifies
-    and removes (counted per modules, building blocks, behaviors, rules and
-    scenarios), the needs no rule answers, the rules no need asks for, the
+    and removes (counted per modules, building blocks, behaviors, rules,
+    scenarios and the other element lists it touches, and relations), the
+    needs no rule answers, the rules no need asks for, the
     requirements left to the documents because no behavior follows them,
     and every assumption you made that no source stated.
 
@@ -270,7 +275,11 @@ results.
     Scan with `scan_system_model` and call again.
   - _the item is new, so this field needs a value_: give that field of the
     added item a `{ "value" }`.
-  - _write every field as the agent_: remove `author` from the field.
+  - _a human wrote or accepted this field with another value, or not at
+    all_: remove `author` from the field; you write every field as the
+    agent.
+  - _move the ` ```mermaid ` fence out of the definition_: write the diagram's
+    source, without the fence, to the element's `diagram`.
   - _the design document states no such need_: add the need to `needs`, or
     take its id out of the rule's `needs`.
   - _a rule enters the model only through a behavior that follows it_: add
@@ -283,6 +292,13 @@ results.
     `illustrates` disagrees with an id's path. A scenario's id is its
     rule's path and its own name, a behavior's its block's: fix the id, or
     drop the relation.
+  - _a deployable unit contains only modules, and a library or a layer
+    only building blocks_: point the `contains` at an element of that kind,
+    or drop it.
+  - _the kind of the block a slot points at says which slot it is_: a
+    `has_state` points at a block of a collaborator kind, or a
+    `has_collaborator` at a primitive or a value of the domain. Change the
+    relation's kind, or the block's.
 
   Fix every line, then call again; repeat until the tool accepts the file.
 
@@ -291,8 +307,9 @@ results.
 
 ## Rules
 
-- Design only what the sources support. A rule, scenario or property no
-  source states is an assumption: ask about it, or name it in the report.
+- Design only what the sources support. A rule, a scenario or a piece of
+  state no source states is an assumption: ask about it, or name it in the
+  report.
   Choosing building blocks and behaviors that realise the sources is the
   design's job.
 - Never write under `.noesis/` yourself, except the working file in the

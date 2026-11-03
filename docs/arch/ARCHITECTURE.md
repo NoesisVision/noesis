@@ -119,15 +119,27 @@ Both land on the same service layer. Neither bypasses it.
   change — including changes Noesis did not make, such as a `git checkout` or a branch switch.
 - **Scanner** reads the project source and projects the implemented model into the
   system model files, when an agent calls `scan_system_model` or a person presses Scan on the
-  System model page. At every scan `ScannerFactory` picks the parser the repository names in
-  `.noesis/settings.json` (`"parser": { "language": … }`), read through `ScannerSettingsRepository`. `java`
+  System model page. A system model is a set of element lists, one per kind — modules,
+  building blocks, behaviors, rules, scenarios, actors, manual processes, deployable units,
+  libraries, layers, deployment containers — and one list of relations between them
+  (`contains`, `has_state`, `invokes`, `governs`, …), each element carrying only what is its
+  own. At every scan `ScannerFactory` picks the parser the repository names in
+  `.noesis/settings.json` (`"parser": { "language": … }`) and builds a `SystemModelBuilder` over
+  its namespace settings and the library manifests in `.noesis/libraries/`, both read through
+  `ScannerSettingsRepository`. `java`
   runs the `command` in its parser settings (a Gradle build's `noesisParse` task, say)
-  and `SystemModelBuilder` projects the code model it wrote onto the system model by the
+  and the builder projects the code model it wrote onto the system model by the
   vocabulary of the language the manifest names, with the rules in
-  `docs/plans/code-model-to-system-model.md`. Beside the code model the builder reads the
-  `*.feature` files Git tracks (`SourceRepository.featureFiles`): each tagged `Rule:` is a
+  `docs/plans/code-model-to-system-model.md`: annotations name the building blocks, their
+  behaviors and the actors who call them, a `@Layer` on a package names the layer of the blocks
+  below it, and each build artifact is a deployable unit when it is executable and a library
+  otherwise. A library manifest (`.noesis/libraries/<file>.json`) describes a library the code
+  depends on but the scan does not read, its listed types becoming building blocks. The second
+  input of a scan is the repository's feature files: the `SourceRepository` port, implemented by
+  `GitSourceRepository`, lists the `*.feature` files Git tracks, and each tagged `Rule:` is a
   rule, governed by the behavior its scenarios' `When` steps reach through their Cucumber
-  or Reqnroll step definitions (R12). A Java repository
+  or Reqnroll step definitions (R12). Manual processes and deployment containers are never
+  scanned; only design documents author them. A Java repository
   is parsed this way: its build declares the Noesis Maven or Gradle plugin, with the engine in the
   plugin's configuration, and the command runs it. `csharp` (the .NET parser,
   `noesis-parse-csharp` on the PATH) is a fixed command line of the same kind. The service knows
@@ -165,6 +177,7 @@ All knowledge graph files live under `.noesis/` at the repository root:
 <project>/.noesis/
 ├── .gitignore                  written by the service on first run; contains `sessions/`, `logs/`, `tmp/`
 ├── settings.json               repository settings: which parser, how namespaces map to modules
+├── libraries/<file>.json       a library the scan does not read, described by hand: its building blocks
 ├── sessions/<session>/         scratch space between the agent and the service — never versioned;
 │                               one subdirectory per service process, removed when it exits
 ├── tmp/<uuid>/                 the service's own scratch, e.g. the C# parser's code model —
@@ -176,7 +189,8 @@ All knowledge graph files live under `.noesis/` at the repository root:
     │       ├── <id>.document.json       an imported document — title, date and verbatim content
     │       └── <id>.design-doc.json     a designed model, as a diff against the implemented system
     └── system-models/
-        └── YYYY-MM-DD_HH-MM_<commit>.json   the implemented model, projected from the code by the scanner;
+        └── YYYY-MM-DD_HH-MM_<commit>.json   the implemented model, projected from the code and its feature
+                                             files by the scanner: element lists and relations;
                                              scan minute in UTC, short commit hash or `uncommitted`
 ```
 

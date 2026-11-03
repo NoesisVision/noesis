@@ -1,6 +1,6 @@
 ---
 name: update-design-doc
-description: Revise an existing Noesis design document as the user asks — add, change, move, rename or remove its needs, modules, building blocks, behaviors, rules, scenarios or diagrams — starting from the version stored now, edits made in the Noesis page included, and store it in place under the same id. Use when the user asks to change, revise, correct, extend, rework or apply feedback to a design document (design doc) of a change.
+description: Revise an existing Noesis design document as the user asks — add, change, move, rename or remove its needs, modules, building blocks, behaviors, rules, scenarios, actors, manual processes, relations or diagrams — starting from the version stored now, edits made in the Noesis page included, and store it in place under the same id. Use when the user asks to change, revise, correct, extend, rework or apply feedback to a design document (design doc) of a change.
 argument-hint: [change-id] [design-doc-id] [what to change]
 ---
 
@@ -180,8 +180,8 @@ step 6.
    design document's id and the working file's `path`. The id stays as it
    was, even when the name changes.
 9. **Report** what the revision changed, counted per needs, modules,
-   building blocks, behaviors, rules and scenarios added, modified and
-   removed by this
+   building blocks, behaviors, rules, scenarios, the other element lists
+   it touches and relations added, modified and removed by this
    revision (not by the whole design); the accepted fields the user let you
    change, which now wait to be accepted again, and the ones kept because
    the user said no; the needs no rule answers and the rules no need asks
@@ -219,6 +219,16 @@ step 6.
     `illustrates` disagrees with an id's path. A scenario's id is its
     rule's path and its own name, a behavior's its block's: fix the id, or
     drop the relation.
+  - _a deployable unit contains only modules, and a library or a layer
+    only building blocks_: point the `contains` at an element of that kind,
+    or drop it.
+  - _the kind of the block a slot points at says which slot it is_: a
+    `has_state` points at a block of a collaborator kind, or a
+    `has_collaborator` at a primitive or a value of the domain. Change the
+    relation's kind; when the revision changed the block's kind, move the
+    slots that point at it as step 6 says.
+  - _move the ` ```mermaid ` fence out of the definition_: write the diagram's
+    source, without the fence, to the element's `diagram`.
 
   Fix every line, then call again; repeat until the tool accepts the file.
   An element the newest scan dropped since the design was written fails
@@ -235,8 +245,8 @@ step 6.
   delete one, nor rename or move what holds it, without the user's yes, and
   never write a field in a person's name. One you leave alone stays theirs.
 - Revise only what the request reaches and what must change with it. A
-  rule, scenario or property no source states is an assumption: ask about
-  it, or name it in the report.
+  rule, a scenario or a piece of state no source states is an assumption:
+  ask about it, or name it in the report.
 - Never write under `.noesis/` yourself, except the working file in the
   scratch directory; the tool stores the design document.
 - Never create a design document here: a new design, or an alternative to

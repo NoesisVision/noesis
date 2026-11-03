@@ -4,12 +4,14 @@ The second stage of the scanner. The first stage (one per language, the
 Roslyn parser for C#) writes the **code model**: declarations, edges and
 stubs, see [`docs/arch/code-model.md`](../arch/code-model.md).
 This stage reads that model and writes the **system model** the server keeps
-in `.noesis/graph/system-models/`: modules, building blocks and behaviors,
-and the relations between them (section 14),
+in `.noesis/graph/system-models/`: its elements, one list per kind, and the
+relations between them (section 14),
 see `server/backend/src/app/system-model/system-model.ts`. It runs in the
 TypeScript server, once for every language, and knows a language only through
 its **annotation vocabulary**: which annotation types mean what, which
-platform types are the model's primitives, which are collections.
+platform types are the model's primitives, which are collections. Beside the
+code model it reads the repository's feature files (R12) and its library
+manifests (R14).
 
 This document states the rules of the system model builder. Section 12 records the
 decisions taken on the first draft, section 13 the implementation. The old
@@ -26,11 +28,15 @@ namespace-wide annotations).
 | Annotation vocabulary         | One per language, in code (section 2); chosen by the manifest's `language`                                                                                                                                           |
 | `.noesis/settings.json`       | In the repository: `parser` (which parser reads the repository, by `language`, with its settings: the `java` parser's `command`), `engine` (the Java presets' engine), `namespacePartsToSkip`, `namespacesToExclude` |
 | Clock, repository name        | From the scanner adapter, as today                                                                                                                                                                                   |
+| Feature files                 | Every `*.feature` file Git tracks under the repository root, read through the `SourceRepository` port (R12)                                                                                                          |
+| `.noesis/libraries/*.json`    | In the repository: one manifest per library the scan does not read, by file name (R14)                                                                                                                               |
 
-Output: the `modules`, `buildingBlocks`, `behaviors` and `relations` of
-one `SystemModel`, plus diagnostics. The stage is a pure function of its inputs;
-the adapter around it mints the id, stamps the time, reads the files and logs
-the diagnostics.
+Output: the element lists (`modules`, `buildingBlocks`, `behaviors`,
+`rules`, `scenarios`, `actors`, `deployableUnits`, `libraries`, `layers`;
+`manualProcesses` and `deploymentContainers` always empty, as no scan finds
+one) and the `relations` of one `SystemModel`, plus diagnostics. The stage
+is a pure function of its inputs; the adapter around it mints the id, stamps
+the time, reads the files and logs the diagnostics.
 
 ## 2. The annotation vocabulary
 
@@ -48,6 +54,7 @@ with an annotation goes through a role, so Java's
 | `actor`          | Who drives the system: the `actor` argument (C# `name`) becomes an `actors` element (R9.5)                                              | `Actor`                                                                                                                                                                                                                                                                                                                                                                                              |
 | `description`    | The element's description, Markdown                                                                                                     | `ShortDescription` (`markdownText`)                                                                                                                                                                                                                                                                                                                                                                  |
 | `stepDefinition` | The method is a step definition a feature file's `When` step binds to, by its expression (R12)                                          | Reqnroll's `When` (`expression`); Java: Cucumber's `io.cucumber.java.en.When` (`value`)                                                                                                                                                                                                                                                                                                              |
+| `layer`          | The namespace, and those below it no nearer annotation claims, is in the named layer (R15)                                              | none yet; Java: `Layer` (`value`) on `package-info.java`                                                                                                                                                                                                                                                                                                                                             |
 | `exclude`        | The element is not in the system model (section 3)                                                                                      | `ExcludeFromDocs`                                                                                                                                                                                                                                                                                                                                                                                    |
 | ignored          | Read for nothing in this iteration                                                                                                      | `DomainModel`, `NotDomainModel`, `DomainModule`, `DddBoundedContext`, `SkipNamespaceInDomainModulesHierarchy` (section 12: no namespace-wide annotations yet), `DomainObject` alone, `CoreConcept`, `Exemplary`, `PublicContract`, `ExternalContract`, `Process`, everything under `People` except `Actor`, everything under `Technology`                                                            |
 
@@ -72,7 +79,7 @@ package annotation (decision 13). Primitives are the eight keywords and the
 `java.lang` boxes, `String`, `BigDecimal`, `UUID` and the `java.time` types;
 collections are the `java.util` collection interfaces and classes and
 `Stream`; `Map` and its kin are dictionaries; `CompletableFuture`,
-`CompletionStage` and `Future` are looked through, `Optional` marks optional,
+`CompletionStage` and `Future` are looked through, `Optional` makes a slot `0..1`,
 `Void` is nothing.
 
 Besides annotations the vocabulary names, per language:
@@ -234,7 +241,8 @@ A `TypeRef` resolves to a block id or a `primitive|…` with a cardinality,
 or to nothing. The rules apply in this order; the first that fits decides.
 
 - **R7.1 Transparent wrappers.** A `named` reference to `Task<T>`,
-  `ValueTask<T>` resolves as `T`; to `Nullable<T>` as `T`, marked optional.
+  `ValueTask<T>` resolves as `T`; to `Nullable<T>` as `T`, with the
+  cardinality `0..1` (R5.4).
   A non-generic `Task`/`ValueTask`, `void` and `dynamic` resolve to nothing.
 - **R7.2 Primitives.** A `primitive` reference by name (`bool` → boolean;
   `byte`, `sbyte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`,
@@ -345,10 +353,9 @@ projects is one module.
 
 ## 10. Order, determinism, diagnostics
 
-- **R10.1** `modules`, `buildingBlocks` and `behaviors` are sorted by id
-  (code unit order), `actors` too; `relations` by kind, `from`, `to`, then
-  `name` or `order` (section 14). Two builds from one code model give one
-  output.
+- **R10.1** Every element list is sorted by id (code unit order);
+  `relations` by kind, `from`, `position`, `to`, then `name` or `order`
+  (section 14). Two builds from one code model give one output.
 - **R10.2** Every drop and every fallback above is a diagnostic: the stage
   returns them beside the model (`{ model, diagnostics }`), the adapter logs
   them (`info` for a dropped element or override, `debug` for a member whose
@@ -359,11 +366,11 @@ projects is one module.
 
 The old scanner derived three relations between elements:
 
-| Old relation                     | How it was found                                                                                                                                                                                                                                                            | Home in the system model                                                                                  |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `DomainObject.UsesObject`        | The types of a type's fields and properties, generic arguments walked, arrays unwrapped; the source is the type and every base type and interface that is a domain object                                                                                                   | `ScannedBuildingBlock.properties` (sections 5, 7)                                                         |
-| `DomainBehavior.UsesObject`      | The parameter, return and constraint types of the behavior's method, and of every method it calls                                                                                                                                                                           | `input` and `output` (section 9) for the method's own signature; the called methods' signatures have none |
-| `DomainBehavior.InvokesBehavior` | From a method call: the caller resolved to its behaviors (the method, its base methods and the interface members it implements), the callee to a behavior; a callee that is no behavior is walked through its own outgoing calls, transitively, until behaviors are reached | `ScannedBehavior.invokes` (added by this design, section 12)                                              |
+| Old relation                     | How it was found                                                                                                                                                                                                                                                            | Home in the system model                                                                                         |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `DomainObject.UsesObject`        | The types of a type's fields and properties, generic arguments walked, arrays unwrapped; the source is the type and every base type and interface that is a domain object                                                                                                   | `has_state` and `has_collaborator` relations (sections 5, 7)                                                     |
+| `DomainBehavior.UsesObject`      | The parameter, return and constraint types of the behavior's method, and of every method it calls                                                                                                                                                                           | `has_input` and `has_output` relations (section 9) for the method's own signature; the called methods' have none |
+| `DomainBehavior.InvokesBehavior` | From a method call: the caller resolved to its behaviors (the method, its base methods and the interface members it implements), the callee to a behavior; a callee that is no behavior is walked through its own outgoing calls, transitively, until behaviors are reached | `invokes` relations with `order` (R11.3; added by this design, section 12)                                       |
 
 - **R11.1 Source of a call.** An `INVOKES` edge whose `from` is a method
   is attributed to the behaviors of that method: the behavior the method
@@ -396,9 +403,12 @@ them.
 1. **Invocations** are in the system model: `ScannedBehavior.invokes:
    BehaviorId[]` (default empty), filled by section 11. The design document's
    `DesignedBehavior` does not carry it yet; the dummy scanner leaves it
-   empty.
+   empty. _Superseded (section 14): `invokes` relations with `order`, which
+   a design document writes too._
 2. **Messages are value objects.** `Command`, `Query`, `Event`,
    `DddDomainEvent` and `ReadModel` become `value_object` blocks.
+   _Superseded (section 14): the messages are `command`, `query` and
+   `event`; `ReadModel` stays `value_object`._
 3. **No annotation inheritance.** Every block is annotated itself. The old
    scanner's walk over base types and interfaces is not implemented.
 4. **Public methods only** are behaviors.
@@ -407,11 +417,14 @@ them.
 6. **The behavior type comes from the annotation** (`EntryPoint`,
    `TriggeredBy`), never from the return type or the name. A behavior
    without one is a `Command`, the one default this design takes on its own;
-   it is written here so it can be changed in one place.
+   it is written here so it can be changed in one place. _Superseded
+   (section 14): a behavior has no type (R9.4)._
 7. **Dictionaries are collections of key-value pairs.** The contract cannot
    say so (`BuildingBlockRef` is a block, a primitive or a collection of
    one); until it can, a dictionary resolves to nothing. Open: add a pair
-   (`{ pairOf: [key, value] }` or a tuple) to `BuildingBlockRef`.
+   (`{ pairOf: [key, value] }` or a tuple) to `BuildingBlockRef`. _Since
+   section 14 a slot's type is a block or a primitive with a cardinality;
+   the pair is still open, and a dictionary still resolves to nothing._
 8. **Looking through unmapped generics** (R7.6) stays.
 9. **Scenarios** were mapped by title only, from a `Scenario` annotation;
    since step 2 of the new model (section 14) they come from feature files
@@ -436,23 +449,33 @@ them.
 system model builder, pure functions over the two contracts, in the app layer
 because they are domain logic every parser's code model goes through.
 
-| File                      | What                                                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `vocabulary.ts`           | The `AnnotationVocabulary` interface: roles by annotation id, primitives, collections, wrappers              |
-| `csharp.vocabulary.ts`    | Section 2's C# table                                                                                         |
-| `java.vocabulary.ts`      | The Java table                                                                                               |
-| `annotations.ts`          | Reading an annotation's arguments: literals unquoted, `null` as absent, enum members                         |
-| `code-model-index.ts`     | Per-artifact lookup of nodes, stubs and edges; cross-artifact resolution (section 8)                         |
-| `namespace-config.ts`     | `NamespaceConfig` (moved from the C# adapter; the file reading stays in the adapter) and R6.1                |
-| `type-resolution.ts`      | Section 7                                                                                                    |
-| `build-system-model.ts`   | Sections 3 to 6, 9 to 11: `buildSystemModel(manifest, files, vocabulary, config) → { model, diagnostics }`   |
-| `system-model-builder.ts` | `SystemModelBuilder`: picks the vocabulary by the manifest's language and builds over the namespace settings |
+| File                      | What                                                                                                                                   |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `vocabulary.ts`           | The `AnnotationVocabulary` interface: roles by annotation id, primitives, collections, wrappers                                        |
+| `library-manifest.ts`     | The shape of a `.noesis/libraries/*.json` manifest (R14)                                                                               |
+| `csharp.vocabulary.ts`    | Section 2's C# table                                                                                                                   |
+| `java.vocabulary.ts`      | The Java table                                                                                                                         |
+| `annotations.ts`          | Reading an annotation's arguments: literals unquoted, `null` as absent, enum members                                                   |
+| `code-model-index.ts`     | Per-artifact lookup of nodes, stubs and edges; cross-artifact resolution (section 8)                                                   |
+| `namespace-config.ts`     | `NamespaceConfig` (moved from the C# adapter; the file reading stays in the adapter) and R6.1                                          |
+| `type-resolution.ts`      | Section 7                                                                                                                              |
+| `build-system-model.ts`   | Sections 3 to 6, 9 to 11 and R12 to R15: the model of a code model and the feature files, with diagnostics                             |
+| `system-model-builder.ts` | `SystemModelBuilder`: picks the vocabulary by the manifest's language and builds over the namespace settings and the library manifests |
+
+Reading and matching feature files is in `app/scanners/feature-files/`:
+`feature-file.ts` parses one with `@cucumber/gherkin`, `step-expression.ts`
+matches a step's text with `@cucumber/cucumber-expressions`.
 
 The scan itself is domain logic too: `Scanner`
 (`app/scanners/scanner.ts`) takes a `CodeParser`
-(`app/scanners/code-parsers/code-parser.ts`) and a `SystemModelBuilder`, runs the parser,
-builds the system model of what it read, reports the diagnostics through the
-`ScanLog` port and returns the `SystemModel`. The adapters are only parsers:
+(`app/scanners/code-parsers/code-parser.ts`), a `SystemModelBuilder` and a
+`SourceRepository` (`app/scanners/source-repository.ts`: the repository's
+name, its head commit and its feature files, which `GitSourceRepository`
+in `adapters/out/scanners/` lists with `git ls-files`), runs the parser and
+reads the feature files, builds the system model of both, reports the
+diagnostics through the `ScanLog` port and returns the `SystemModel`.
+`ScannerFactory` builds the builder at every scan over the namespace
+settings and the library manifests `ScannerSettingsRepository` reads. The adapters are only parsers:
 `CSharpParser` and `JavaParser` (`adapters/out/scanners/code-parsers/`) run their
 tool, and read and validate the files it wrote with the `code-model.ts` schemas.
 
@@ -468,7 +491,13 @@ parser, scans the same fixture through `CSharpParser` and asserts the model
 and the time each stage took. The expected `invokes` of every chain in the
 fixture are in `test/support/csharp-fixture-expectations.ts`, shared by both.
 
-## 14. The relations list (November 2026)
+## 14. The new system model (November 2026)
+
+[`new-system-model.md`](new-system-model.md) moved the system model to
+elements and relations, in steps. Each step edited the rules above that it
+changed in place, and marked the decisions of section 12 it overturned as
+superseded; this section records what each step changed, and holds the
+rules the new model added (R12 to R15).
 
 The first step of [`new-system-model.md`](new-system-model.md) moved what a
 building block or behavior held of other elements out of the elements and
@@ -602,9 +631,10 @@ building blocks. The scan reads the files, by file name, at every scan, and
 refuses an invalid one.
 
 - **R14.1 A listed block** is a type the manifest names by its code-model
-  id without the `T:` (`MyCompany.Shared.Money`, `Order+Line`, `Result`1`),
+  id without the `T:` (`MyCompany.Shared.Money`, `Order+Line`, ``Result`1``),
   of the manifest's `kind`. Its module is its namespace's, mapped as R6.1
-  maps a scanned block's; its `description`the manifest's; its`source`the manifest file,`line: null`. It has no behaviors, state or relations
+  maps a scanned block's; its `description` the manifest's; its `source`
+  the manifest file, `line: null`. It has no behaviors, state or relations
   of its own.
 - **R14.2 Name.** The manifest's `name`, else the type's own: nested types
   joined by a space (R4.2), a generic's arity left out. A module that only
