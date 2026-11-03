@@ -113,9 +113,9 @@ The diagram groups the kinds in six columns:
 
 ### 4.2 Primitive kinds
 
-`String`, `Int`, `Boolean`, `Decimal`, `UUID`.
-
-Date and time is not a primitive. It is modelled as a value object.
+`String`, `Int`, `Boolean`, `Decimal`, `UUID`, as the diagram shows, and
+the date and time primitives the current contract has: `Date`, `DateTime`,
+`Duration`.
 
 ### 4.3 Rule kinds
 
@@ -148,7 +148,7 @@ The current contract (`system-model.schema.json`) has three lists:
 | Inheritance             | `implements` list on a building block.                                                                                                                                                                        | `extends` relation between building blocks.                                                                                                   |
 | Collaborators           | Derived from invocations (see `code-model-to-system-model.md`, section 11).                                                                                                                                   | Explicit `has collaborator [name]`.                                                                                                           |
 | State and parameters    | `properties`, `input`, `output` with `optional: boolean`.                                                                                                                                                     | `has state` / `has in / out` with `cardinality`.                                                                                              |
-| Primitives              | String refs `primitive\|string`, `integer`, `boolean`, `decimal`, `uuid`, `datetime`.                                                                                                                         | Primitive as an element: String, Int, Boolean, Decimal, UUID. Date and time becomes a value object.                                           |
+| Primitives              | String refs `primitive\|string`, `integer`, `boolean`, `decimal`, `uuid`, `datetime`.                                                                                                                         | Primitive as an element; the same eight kinds.                                                                                                |
 | Invocations             | `invokes` is an unordered list of behavior ids.                                                                                                                                                               | `invokes [order]`.                                                                                                                            |
 | Rules                   | Attached to modules, building blocks and behaviors; categorised by `category` (Business / Quality / Constraint) and `ruleType` (Consistency, Structure, Computation, State change, Performance, Security, …). | Attached only to behaviors; kinds are Validation, State Change, Post, Computation, Coordination, Configuration. No `category`, no `ruleType`. |
 | Scenarios               | Attached to building blocks and behaviors.                                                                                                                                                                    | Illustrate a rule.                                                                                                                            |
