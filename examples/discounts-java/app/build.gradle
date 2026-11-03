@@ -10,10 +10,12 @@ plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
     // Parses the build into the Noesis code model: ./gradlew noesisParse writes .noesis/tmp/parser/code-model/java/.
-    id 'vision.noesis.parser' version '0.1.0'
+    id 'vision.noesis.parser' version '0.1.0-SNAPSHOT'
 }
 
 repositories {
+    // The Noesis annotations snapshot, until it is released: mvn install in code-parsers/java.
+    mavenLocal()
     // Use Maven Central for resolving dependencies.
     mavenCentral()
 }
@@ -26,8 +28,8 @@ java {
 
 dependencies {
 
-    // DDD stereotypes the Noesis scanner reads: @AggregateRoot, @DomainEntity, @ValueObject, ...
-    implementation 'vision.noesis:noesis-annotations:0.1.0'
+    // DDD stereotypes the Noesis scanner reads: @AggregateRoot, @DomainEntity, @ValueObject, @Actor, ...
+    implementation 'vision.noesis:noesis-annotations:0.1.0-SNAPSHOT'
 
     implementation 'io.vavr:vavr:0.11.0'
     compileOnly 'org.projectlombok:lombok:1.18.48'
@@ -46,6 +48,12 @@ dependencies {
 application {
     // Define the main class for the application.
     mainClass = 'com.itlibrium.discounts.App'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Keeps constructor parameter names in the classes: the hybrid engine reads Lombok's generated constructors from
+    // them, and their parameters name the collaborators the scanner finds.
+    options.compilerArgs << '-parameters'
 }
 
 tasks.named('test') {
