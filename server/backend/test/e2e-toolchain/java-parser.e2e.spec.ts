@@ -111,7 +111,7 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
           CodeModelFile.parse(await Bun.file(join(FIXTURE, file)).json()),
         ),
       );
-      const { model: committed } = buildSystemModel({
+      const { model: committed, diagnostics } = buildSystemModel({
         manifest,
         files,
         featureFiles: await new GitSourceRepository(FIXTURE).featureFiles(),
@@ -136,7 +136,30 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       ]);
       expect<unknown>(model.deployableUnits).toEqual(committed.deployableUnits);
       expect<unknown>(model.libraries).toEqual(committed.libraries);
+      expect<unknown>(model.layers).toEqual(committed.layers);
       expect<unknown>(model.relations).toEqual(committed.relations);
+      // `@Layer` on package-info.java reaches the model through the real
+      // parser: com.acme.shop's names the domain layer, which holds every
+      // block below it; the infrastructure package's holds none (R15).
+      expect<unknown>(model.layers).toEqual([
+        {
+          id: 'layer|domain',
+          name: 'domain',
+          description: null,
+          source: {
+            path: 'shop-domain/src/main/java/com/acme/shop/package-info.java',
+            line: 3,
+          },
+        },
+      ]);
+      expect<unknown>(model.relations).toContainEqual({
+        kind: 'contains',
+        from: 'layer|domain',
+        to: 'building_block|shop.orders.Order',
+      });
+      expect<unknown>(diagnostics.map((d) => d.message)).toContain(
+        'layer|infrastructure holds no building block; dropped',
+      );
       // The money API is a real dependency the build resolves and no scan
       // parses; its manifest makes the stubbed currency a block (R14).
       expect<unknown>(model.relations).toContainEqual({

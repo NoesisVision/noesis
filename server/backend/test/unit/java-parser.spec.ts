@@ -118,6 +118,28 @@ describe('A Java repository scanned through its Maven plugin', () => {
     expect<unknown>(
       model.relations.filter((r) => r.from === 'library|money-api'),
     ).toEqual([{ kind: 'contains', from: 'library|money-api', to: CURRENCY }]);
+
+    // R15: `@Layer("domain")` on com.acme.shop's package-info.java puts every
+    // block of the packages below it in the domain layer; the infrastructure
+    // package's nearer `@Layer` holds no block, so it is no layer.
+    expect<unknown>(model.layers).toEqual([
+      {
+        id: 'layer|domain',
+        name: 'domain',
+        description: null,
+        source: { path: `${domain}/package-info.java`, line: 3 },
+      },
+    ]);
+    const inLayer = (from: string) =>
+      model.relations
+        .filter((r) => r.kind === 'contains' && r.from === from)
+        .map((r) => r.to);
+    expect<unknown>(inLayer('layer|domain')).toEqual(
+      inLayer('library|shop-domain'),
+    );
+    expect<unknown>(inLayer('layer|domain')).toContain(
+      'building_block|shop.orders.Order',
+    );
     expect<unknown>(
       model.buildingBlocks.find((b) => b.id === CURRENCY),
     ).toEqual({

@@ -16,7 +16,10 @@ steps bind to them (the parser reads the test sources too). `Order`'s
 `currency`, behind its getter, is a `javax.money.CurrencyUnit` of the money
 API (`javax.money:money-api`), a dependency no scan parses: the library
 manifest `.noesis/libraries/money-api.json` lists it, so the stub resolves to
-a block of the model (R14).
+a block of the model (R14). `@Layer("domain")` on
+`com.acme.shop`'s `package-info.java` puts every block below it in the domain
+layer; the infrastructure package's `@Layer("infrastructure")` holds no block,
+so the model drops it (R15).
 
 `code-model/` is the Java parser's output over these sources and is
 committed, so the server's tests need no JDK. Regenerate it after changing
