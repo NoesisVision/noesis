@@ -9,6 +9,7 @@ import {
   CHAIN_REACHES,
   chainOf,
   elementSectionsOf,
+  type DrawnRelationKind,
   type Exploration,
   type ExplorationGraph,
   type ExploredElement,
@@ -48,13 +49,18 @@ export interface ExplorationState {
 
 /**
  * What the tools may do to the diagram. Each resolves once the cards have
- * landed where it puts them.
+ * landed where it puts them. A relation to `draw` with what is shown is
+ * drawn in the same step, as a card's chain does.
  */
 export interface ExplorationActions {
   /** Puts these on the diagram, placed anew, and takes them in hand. */
-  show: (ids: readonly string[]) => Promise<void>;
+  show: (ids: readonly string[], draw?: DrawnRelationKind) => Promise<void>;
   /** Puts these on the diagram beside a card drawn already, and takes them in hand. */
-  showBeside: (ids: readonly string[], from: string) => Promise<void>;
+  showBeside: (
+    ids: readonly string[],
+    from: string,
+    draw?: DrawnRelationKind,
+  ) => Promise<void>;
   /** Takes these, drawn, off the diagram with all drawn inside them. */
   hide: (ids: readonly string[]) => Promise<void>;
   setRelations: (relations: ReadonlySet<RelationKind>) => Promise<void>;
@@ -370,13 +376,14 @@ export function explorationTools(
           id,
           reach,
         ).filter((each) => !drawn.has(each));
+        // The relation is drawn with the chain, one step to go back through.
         const relation = relationOfChain(reach);
-        if (!state.relations.has(relation))
-          await act.setRelations(new Set([...state.relations, relation]));
-        if (missing.length > 0) {
-          if (drawn.has(id)) await act.showBeside(missing, id);
-          else await act.show([id, ...missing]);
-        } else if (!drawn.has(id)) await act.show([id]);
+        const draw = state.relations.has(relation) ? undefined : relation;
+        if (drawn.has(id) && missing.length > 0)
+          await act.showBeside(missing, id, draw);
+        else if (!drawn.has(id)) await act.show([id, ...missing], draw);
+        else if (draw !== undefined)
+          await act.setRelations(new Set([...state.relations, draw]));
         return { added: missing.length, ...briefOf(now()) };
       },
     }),

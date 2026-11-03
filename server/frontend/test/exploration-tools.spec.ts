@@ -113,8 +113,14 @@ function stateOf(drawn: string[], selection: string[] = []): ExplorationState {
 let state: ExplorationState;
 let calls: [string, ...unknown[]][];
 const actions: ExplorationActions = {
-  show: async (ids) => void calls.push(['show', ids]),
-  showBeside: async (ids, from) => void calls.push(['showBeside', ids, from]),
+  show: async (ids, draw) =>
+    void calls.push(draw === undefined ? ['show', ids] : ['show', ids, draw]),
+  showBeside: async (ids, from, draw) =>
+    void calls.push(
+      draw === undefined
+        ? ['showBeside', ids, from]
+        : ['showBeside', ids, from, draw],
+    ),
   hide: async (ids) => void calls.push(['hide', ids]),
   setRelations: async (relations) =>
     void calls.push(['setRelations', [...relations]]),
@@ -224,8 +230,8 @@ describe('the exploration offered to an agent', () => {
     state = { ...stateOf([ORDER]), relations: new Set(['contains']) };
     const call = await toolsOf();
     const answer = await call('show_chain', { id: ORDER, reach: 'invokes' });
+    // The relation goes with the chain, so one step takes both back.
     expect(calls).toEqual([
-      ['setRelations', ['contains', 'invokes']],
       [
         'showBeside',
         [
@@ -234,6 +240,7 @@ describe('the exploration offered to an agent', () => {
           STOCK,
         ],
         ORDER,
+        'invokes',
       ],
     ]);
     expect(answer.added).toBe(3);

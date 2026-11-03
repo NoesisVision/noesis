@@ -70,8 +70,8 @@ export function useExplorationTools(
     const now = () => latest.current.actions;
     return registerTools(
       explorationTools(() => latest.current.state, {
-        show: (ids) => now().show(ids),
-        showBeside: (ids, from) => now().showBeside(ids, from),
+        show: (ids, draw) => now().show(ids, draw),
+        showBeside: (ids, from, draw) => now().showBeside(ids, from, draw),
         hide: (ids) => now().hide(ids),
         setRelations: (relations) => now().setRelations(relations),
         select: (ids) => now().select(ids),

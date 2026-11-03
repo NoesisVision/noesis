@@ -746,12 +746,15 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       canRedo: stepAt.at < stepAt.count - 1,
     },
     {
-      show: (ids) => {
+      // A relation asked for with them is drawn in the same step.
+      show: (ids, draw) => {
+        if (draw !== undefined) reading.onDraw(draw);
         onShowAll(ids, true);
         bringIn(ids);
         return settled();
       },
-      showBeside: (ids, from) => {
+      showBeside: (ids, from, draw) => {
+        if (draw !== undefined) reading.onDraw(draw);
         placeBeside(from);
         onShowAll(ids, true);
         bringIn(ids, from);
