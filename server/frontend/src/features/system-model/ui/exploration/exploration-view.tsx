@@ -96,6 +96,7 @@ import { type RelationEdge, RelationEdgeView } from './relation-edge.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
 import { DiagramThemeContext } from './themes/diagram-theme-context.ts';
 import { useDiagramTheme } from './themes/use-diagram-theme.ts';
+import { useExplorationTools, useSettled } from './use-exploration-tools.ts';
 import { VisibilityPanel } from './visibility-panel.tsx';
 import classes from './exploration.module.css';
 
@@ -151,7 +152,7 @@ const ALGORITHM = 'layered';
 
 export function ExplorationView({ model }: { model: SystemModel }) {
   const {
-    features: { animateEdgesWhileDragging },
+    features: { animateEdgesWhileDragging, webMcpTools },
   } = useDevToolsContext();
   const exploration = useMemo(() => explorationOf(model), [model]);
   const modelId = model.id;
@@ -724,6 +725,75 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       onShowAll,
       bringIn,
     ],
+  );
+
+  // Offered to an agent in the browser, behind its dev tools flag: each tool
+  // takes the reader's own paths, so its changes are steps like theirs, and
+  // answers once the cards have landed.
+  const settled = useSettled(placing || gliding);
+  useExplorationTools(
+    webMcpTools,
+    {
+      exploration,
+      neighbours,
+      elements: elementsById,
+      graph,
+      relations,
+      direction,
+      selection,
+      veiled,
+      canUndo: stepAt.at > 0,
+      canRedo: stepAt.at < stepAt.count - 1,
+    },
+    {
+      show: (ids) => {
+        onShowAll(ids, true);
+        bringIn(ids);
+        return settled();
+      },
+      showBeside: (ids, from) => {
+        placeBeside(from);
+        onShowAll(ids, true);
+        bringIn(ids, from);
+        return settled();
+      },
+      hide: (ids) => {
+        const [first] = ids;
+        if (first !== undefined) remove(ids, first);
+        return settled();
+      },
+      setRelations: (kinds) => {
+        setRelations(kinds);
+        return settled();
+      },
+      select: (ids) => {
+        setSelection(ids);
+        return settled();
+      },
+      focus: async (ids) => {
+        await flow?.fitView({
+          ...focusOn(ids.length === 1),
+          nodes: ids.map((id) => ({ id })),
+        });
+      },
+      arrange: (toward) => {
+        if (toward === undefined || toward === direction) autoPlace();
+        else setDrawing((was) => ({ ...was, direction: toward }));
+        return settled();
+      },
+      undo: () => {
+        undo();
+        return settled();
+      },
+      redo: () => {
+        redo();
+        return settled();
+      },
+      clear: () => {
+        clear();
+        return settled();
+      },
+    },
   );
 
   return (
