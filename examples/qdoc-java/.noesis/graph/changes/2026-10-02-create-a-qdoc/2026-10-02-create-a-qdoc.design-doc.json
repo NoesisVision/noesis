@@ -1436,11 +1436,6 @@
           "value": "createQDoc",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Creates a QDoc on a quality manager's request: gives it a document number, starts its first version with the people the request names, announces the new QDoc to the other subsystems and has every quality manager told of it.",
@@ -1805,11 +1800,6 @@
           "value": "create",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Creates an active QDoc from a validated creation request and its document number, together with its first version.",
@@ -1904,11 +1894,6 @@
         "name": {
           "changed": true,
           "value": "createFirst",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -2305,11 +2290,6 @@
           "value": "save",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Stores a QDoc aggregate, whole.",
@@ -2341,11 +2321,6 @@
         "name": {
           "changed": true,
           "value": "next",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -2381,11 +2356,6 @@
           "value": "isQualityManager",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Answers whether the user holds the quality manager role at the moment of the call.",
@@ -2419,11 +2389,6 @@
           "value": "publish",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Publishes a QDocCreated event to the subscribing subsystems.",
@@ -2455,11 +2420,6 @@
         "name": {
           "changed": true,
           "value": "notifyUsers",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -2652,11 +2612,6 @@
           "value": "findQualityManagers",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Lists every user who holds the quality manager role in the organisation at the moment of the call.",
@@ -2688,11 +2643,6 @@
         "name": {
           "changed": true,
           "value": "send",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {

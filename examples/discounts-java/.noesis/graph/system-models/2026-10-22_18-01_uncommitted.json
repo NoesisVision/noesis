@@ -279,7 +279,6 @@
     {
       "id": "behavior|discounts.calculation.Discount.apply",
       "name": "apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -295,7 +294,6 @@
     {
       "id": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "name": "calculate",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -311,7 +309,6 @@
     {
       "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
       "name": "getDiscountsConfig",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -327,7 +324,6 @@
     {
       "id": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
       "name": "apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -343,7 +339,6 @@
     {
       "id": "behavior|discounts.calculation.FixedDiscount.apply",
       "name": "apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -359,7 +354,6 @@
     {
       "id": "behavior|discounts.calculation.PotentialDiscount.getDiscount",
       "name": "getDiscount",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -375,7 +369,6 @@
     {
       "id": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
       "name": "isApplicableFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -391,7 +384,6 @@
     {
       "id": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount",
       "name": "getDiscount",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -407,7 +399,6 @@
     {
       "id": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
       "name": "isApplicableFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -423,7 +414,6 @@
     {
       "id": "behavior|discounts.calculation.ProductDiscount.apply",
       "name": "apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -439,7 +429,6 @@
     {
       "id": "behavior|discounts.users.UserStatusProvider.getFor",
       "name": "getFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -640,6 +629,24 @@
       "to": "building_block|discounts.calculation.Discount"
     },
     {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.DiscountAmount",
+      "to": "building_block|discounts.calculation.Discount",
+      "name": "appliedDiscount"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.DiscountConfig",
+      "to": "building_block|discounts.calculation.PotentialDiscount",
+      "name": "potentialDiscounts"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+      "to": "building_block|discounts.calculation.Discount",
+      "name": "discountToApply"
+    },
+    {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.Discount.apply",
       "to": "building_block|discounts.calculation.DiscountedOffer",
@@ -786,20 +793,6 @@
     },
     {
       "kind": "has_state",
-      "from": "building_block|discounts.calculation.DiscountAmount",
-      "to": "building_block|discounts.calculation.Discount",
-      "name": "appliedDiscount",
-      "cardinality": "1"
-    },
-    {
-      "kind": "has_state",
-      "from": "building_block|discounts.calculation.DiscountConfig",
-      "to": "building_block|discounts.calculation.PotentialDiscount",
-      "name": "potentialDiscounts",
-      "cardinality": "1"
-    },
-    {
-      "kind": "has_state",
       "from": "building_block|discounts.calculation.DiscountedOffer",
       "to": "building_block|discounts.calculation.DiscountAmount",
       "name": "offerLevelDiscounts",
@@ -818,13 +811,6 @@
       "to": "building_block|discounts.calculation.DiscountAmount",
       "name": "discountAmounts",
       "cardinality": "0..*"
-    },
-    {
-      "kind": "has_state",
-      "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
-      "to": "building_block|discounts.calculation.Discount",
-      "name": "discountToApply",
-      "cardinality": "1"
     },
     {
       "kind": "has_state",

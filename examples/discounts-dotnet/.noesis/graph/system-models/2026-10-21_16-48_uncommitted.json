@@ -777,7 +777,6 @@
     {
       "id": "behavior|Sales.Clients.ClientId.From",
       "name": "From",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -793,7 +792,6 @@
     {
       "id": "behavior|Sales.Clients.ClientId.New",
       "name": "New",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -809,7 +807,6 @@
     {
       "id": "behavior|Sales.Clients.ClientRepository.GetStatusFor",
       "name": "GetStatusFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -825,7 +822,6 @@
     {
       "id": "behavior|Sales.Commons.Money.Max",
       "name": "Max",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -841,7 +837,6 @@
     {
       "id": "behavior|Sales.Commons.Money.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -857,7 +852,6 @@
     {
       "id": "behavior|Sales.Commons.Money.Zero",
       "name": "Zero",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -873,7 +867,6 @@
     {
       "id": "behavior|Sales.Commons.Percentage.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -889,7 +882,6 @@
     {
       "id": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -905,7 +897,6 @@
     {
       "id": "behavior|Sales.ExchangeRates.ExchangeRate.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -921,7 +912,6 @@
     {
       "id": "behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor",
       "name": "GetFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -937,7 +927,6 @@
     {
       "id": "behavior|Sales.Orders.Order CreatedFromOffer.Apply",
       "name": "Apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -953,7 +942,6 @@
     {
       "id": "behavior|Sales.Orders.Order Factory.ImmediatelyPlacedBasedOn",
       "name": "ImmediatelyPlacedBasedOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -969,7 +957,6 @@
     {
       "id": "behavior|Sales.Orders.Order Factory.NewWith",
       "name": "NewWith",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -985,7 +972,6 @@
     {
       "id": "behavior|Sales.Orders.Order Factory.NewWithMaxTotalCostFor",
       "name": "NewWithMaxTotalCostFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1001,7 +987,6 @@
     {
       "id": "behavior|Sales.Orders.Order Placed.Apply",
       "name": "Apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1017,7 +1002,6 @@
     {
       "id": "behavior|Sales.Orders.Order PriceAgreement.CanChangePrice",
       "name": "CanChangePrice",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1033,7 +1017,6 @@
     {
       "id": "behavior|Sales.Orders.Order PriceAgreement.Final",
       "name": "Final",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1049,7 +1032,6 @@
     {
       "id": "behavior|Sales.Orders.Order PriceAgreement.IsValidOn",
       "name": "IsValidOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1065,7 +1047,6 @@
     {
       "id": "behavior|Sales.Orders.Order PriceAgreement.Non",
       "name": "Non",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1081,7 +1062,6 @@
     {
       "id": "behavior|Sales.Orders.Order PriceAgreement.Temporary",
       "name": "Temporary",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1097,7 +1077,6 @@
     {
       "id": "behavior|Sales.Orders.Order PricesConfirmed.Apply",
       "name": "Apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1113,7 +1092,6 @@
     {
       "id": "behavior|Sales.Orders.Order ProductAmountAdded.Apply",
       "name": "Apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1129,7 +1107,6 @@
     {
       "id": "behavior|Sales.Orders.Order Repository.GetBy",
       "name": "GetBy",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1145,7 +1122,6 @@
     {
       "id": "behavior|Sales.Orders.Order Repository.Save",
       "name": "Save",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1161,7 +1137,6 @@
     {
       "id": "behavior|Sales.Orders.Order.Add",
       "name": "Add",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1177,7 +1152,6 @@
     {
       "id": "behavior|Sales.Orders.Order.ConfirmPrices",
       "name": "ConfirmPrices",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1193,7 +1167,6 @@
     {
       "id": "behavior|Sales.Orders.Order.HasSameDataAs",
       "name": "HasSameDataAs",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1209,7 +1182,6 @@
     {
       "id": "behavior|Sales.Orders.Order.Place",
       "name": "Place",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1225,7 +1197,6 @@
     {
       "id": "behavior|Sales.Orders.Order.RestoreFrom",
       "name": "RestoreFrom",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1241,7 +1212,6 @@
     {
       "id": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices",
       "name": "CanChangePrices",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1257,7 +1227,6 @@
     {
       "id": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices",
       "name": "CanChangePrices",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1273,7 +1242,6 @@
     {
       "id": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor",
       "name": "ChooseFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1289,7 +1257,6 @@
     {
       "id": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
       "name": "CanChangePrices",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1305,7 +1272,6 @@
     {
       "id": "behavior|Sales.Pricing.CalculatePrices.For",
       "name": "For",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1321,7 +1287,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1337,7 +1302,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1353,7 +1317,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
       "name": "Percentage",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1369,7 +1332,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.Discount.Value",
       "name": "Value",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1385,7 +1347,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor",
       "name": "GetFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1401,7 +1362,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1417,7 +1377,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1433,7 +1392,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.ProductDiscount.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1449,7 +1407,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1465,7 +1422,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1481,7 +1437,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1497,7 +1452,6 @@
     {
       "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1513,7 +1467,6 @@
     {
       "id": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1529,7 +1482,6 @@
     {
       "id": "behavior|Sales.Pricing.Offer.Compare",
       "name": "Compare",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1545,7 +1497,6 @@
     {
       "id": "behavior|Sales.Pricing.Offer.FromQuotes",
       "name": "FromQuotes",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1561,7 +1512,6 @@
     {
       "id": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1577,7 +1527,6 @@
     {
       "id": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
       "name": "ChooseFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1593,7 +1542,6 @@
     {
       "id": "behavior|Sales.Pricing.OfferRequest.For",
       "name": "For",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1609,7 +1557,6 @@
     {
       "id": "behavior|Sales.Pricing.PriceLists.BasePrice.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1625,7 +1572,6 @@
     {
       "id": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor",
       "name": "GetFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1641,7 +1587,6 @@
     {
       "id": "behavior|Sales.Pricing.PriceLists.BasePrices.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1657,7 +1602,6 @@
     {
       "id": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePriceFor",
       "name": "GetBasePriceFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1673,7 +1617,6 @@
     {
       "id": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor",
       "name": "GetBasePricesFor",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1689,7 +1632,6 @@
     {
       "id": "behavior|Sales.Pricing.Quote.ChangePrice",
       "name": "ChangePrice",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1705,7 +1647,6 @@
     {
       "id": "behavior|Sales.Pricing.Quote.For",
       "name": "For",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1721,7 +1662,6 @@
     {
       "id": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1737,7 +1677,6 @@
     {
       "id": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1753,7 +1692,6 @@
     {
       "id": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or",
       "name": "Or",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1769,7 +1707,6 @@
     {
       "id": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1785,7 +1722,6 @@
     {
       "id": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn",
       "name": "ApplyOn",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1801,7 +1737,6 @@
     {
       "id": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or",
       "name": "Or",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1817,7 +1752,6 @@
     {
       "id": "behavior|Sales.Products.Amount.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1833,7 +1767,6 @@
     {
       "id": "behavior|Sales.Products.ProductAmount.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1849,7 +1782,6 @@
     {
       "id": "behavior|Sales.Products.ProductId.From",
       "name": "From",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1865,7 +1797,6 @@
     {
       "id": "behavior|Sales.Products.ProductId.New",
       "name": "New",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -1881,7 +1812,6 @@
     {
       "id": "behavior|Sales.Products.ProductUnit.Of",
       "name": "Of",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",

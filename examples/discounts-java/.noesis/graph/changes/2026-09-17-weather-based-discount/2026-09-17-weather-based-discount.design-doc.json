@@ -458,11 +458,6 @@
           "value": "getCurrent",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells the current weather at the shop's location, or that it is unknown.",
@@ -494,11 +489,6 @@
         "name": {
           "changed": true,
           "value": "getCurrent",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -621,11 +611,6 @@
           "value": "apply",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Grants the percentage discount on an offer.",
@@ -657,11 +642,6 @@
         "name": {
           "changed": true,
           "value": "isApplicableFor",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -843,11 +823,6 @@
           "value": "getDiscount",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the discount granted while it rains or snows.",
@@ -880,9 +855,6 @@
       {
         "id": "behavior|discounts.calculation.DiscountPolicyFactory.get",
         "name": {
-          "changed": false
-        },
-        "type": {
           "changed": false
         },
         "definition": {
@@ -971,9 +943,6 @@
         "name": {
           "changed": false
         },
-        "type": {
-          "changed": false
-        },
         "definition": {
           "changed": false
         },
@@ -1044,17 +1013,12 @@
         "to": "building_block|discounts.calculation.PotentialDiscount"
       },
       {
-        "kind": "has_state",
+        "kind": "has_collaborator",
         "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+        "name": "discount",
         "to": {
           "changed": true,
           "value": "building_block|discounts.calculation.PercentageDiscount",
-          "author": "agent"
-        },
-        "name": "discount",
-        "cardinality": {
-          "changed": true,
-          "value": "1",
           "author": "agent"
         }
       },
@@ -1154,17 +1118,12 @@
         }
       },
       {
-        "kind": "has_state",
+        "kind": "has_collaborator",
         "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+        "name": "weatherProvider",
         "to": {
           "changed": true,
           "value": "building_block|discounts.weather.WeatherProvider",
-          "author": "agent"
-        },
-        "name": "weatherProvider",
-        "cardinality": {
-          "changed": true,
-          "value": "1",
           "author": "agent"
         }
       }

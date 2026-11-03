@@ -761,11 +761,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a price the threshold discount: reduced by the percentage when the price is above the threshold, unchanged otherwise.",
@@ -798,11 +793,6 @@
         "name": {
           "changed": true,
           "value": "Threshold",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -840,9 +830,6 @@
       {
         "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
         "name": {
-          "changed": false
-        },
-        "type": {
           "changed": false
         },
         "definition": {
@@ -985,9 +972,6 @@
         "name": {
           "changed": false
         },
-        "type": {
-          "changed": false
-        },
         "definition": {
           "changed": true,
           "value": "Takes the discount's amount off a price, never going below zero.",
@@ -1128,11 +1112,6 @@
         "name": {
           "changed": false
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Makes a `Discount` that reduces prices by a given percentage.",
@@ -1160,11 +1139,6 @@
         "name": {
           "changed": false
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Makes a `Discount` that takes a fixed amount of money off prices.",
@@ -1190,9 +1164,6 @@
       {
         "id": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
         "name": {
-          "changed": false
-        },
-        "type": {
           "changed": false
         },
         "definition": {

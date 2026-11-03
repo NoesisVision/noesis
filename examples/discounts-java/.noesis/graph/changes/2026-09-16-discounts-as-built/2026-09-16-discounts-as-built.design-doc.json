@@ -701,11 +701,6 @@
           "value": "apply",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the offer with this discount added.",
@@ -738,11 +733,6 @@
         "name": {
           "changed": true,
           "value": "calculate",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -779,11 +769,6 @@
           "value": "getDiscountsForConditions",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells which of the shop's discounts apply under the given conditions.",
@@ -815,11 +800,6 @@
         "name": {
           "changed": true,
           "value": "get",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -855,11 +835,6 @@
           "value": "applyDiscount",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies a discount to the offer.",
@@ -891,11 +866,6 @@
         "name": {
           "changed": true,
           "value": "createFrom",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -931,11 +901,6 @@
           "value": "applyDiscount",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies a product discount to this product.",
@@ -969,11 +934,6 @@
           "value": "from",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Starts a product's discounting with no discount on it.",
@@ -1005,11 +965,6 @@
         "name": {
           "changed": true,
           "value": "getDiscountsConfig",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1046,11 +1001,6 @@
           "value": "apply",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the wrapped discount unless the offer already carries a discount of the excluding kind.",
@@ -1083,11 +1033,6 @@
         "name": {
           "changed": true,
           "value": "apply",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -1124,11 +1069,6 @@
           "value": "getDiscount",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the discount granted when the condition holds.",
@@ -1161,11 +1101,6 @@
         "name": {
           "changed": true,
           "value": "isApplicableFor",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1202,11 +1137,6 @@
           "value": "getDiscount",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the fixed discount granted to VIP customers.",
@@ -1239,11 +1169,6 @@
         "name": {
           "changed": true,
           "value": "isApplicableFor",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1280,11 +1205,6 @@
           "value": "apply",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the discount to every product of the offer, leaving the offer-level discounts as they are.",
@@ -1317,11 +1237,6 @@
         "name": {
           "changed": true,
           "value": "getFor",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1373,77 +1288,52 @@
         }
       },
       {
-        "kind": "has_state",
+        "kind": "has_collaborator",
         "from": "building_block|discounts.calculation.DiscountAmount",
+        "name": "appliedDiscount",
         "to": {
           "changed": true,
           "value": "building_block|discounts.calculation.Discount",
           "author": "agent"
-        },
-        "name": "appliedDiscount",
-        "cardinality": {
-          "changed": true,
-          "value": "1",
-          "author": "agent"
         }
       },
       {
-        "kind": "has_state",
+        "kind": "has_collaborator",
         "from": "building_block|discounts.calculation.DiscountCalculation",
+        "name": "discountsFactory",
         "to": {
           "changed": true,
           "value": "building_block|discounts.calculation.DiscountPolicyFactory",
           "author": "agent"
-        },
-        "name": "discountsFactory",
-        "cardinality": {
-          "changed": true,
-          "value": "1",
-          "author": "agent"
         }
       },
       {
-        "kind": "has_state",
+        "kind": "has_collaborator",
         "from": "building_block|discounts.calculation.DiscountConfig",
+        "name": "potentialDiscounts",
         "to": {
           "changed": true,
           "value": "building_block|discounts.calculation.PotentialDiscount",
           "author": "agent"
-        },
-        "name": "potentialDiscounts",
-        "cardinality": {
-          "changed": true,
-          "value": "0..*",
-          "author": "agent"
         }
       },
       {
-        "kind": "has_state",
+        "kind": "has_collaborator",
         "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+        "name": "discountsConfigProvider",
         "to": {
           "changed": true,
           "value": "building_block|discounts.calculation.DiscountsConfigProvider",
           "author": "agent"
-        },
-        "name": "discountsConfigProvider",
-        "cardinality": {
-          "changed": true,
-          "value": "1",
-          "author": "agent"
         }
       },
       {
-        "kind": "has_state",
+        "kind": "has_collaborator",
         "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+        "name": "userStatusProvider",
         "to": {
           "changed": true,
           "value": "building_block|discounts.users.UserStatusProvider",
-          "author": "agent"
-        },
-        "name": "userStatusProvider",
-        "cardinality": {
-          "changed": true,
-          "value": "1",
           "author": "agent"
         }
       },
@@ -1498,17 +1388,12 @@
         "to": "building_block|discounts.calculation.Discount"
       },
       {
-        "kind": "has_state",
+        "kind": "has_collaborator",
         "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+        "name": "discountToApply",
         "to": {
           "changed": true,
           "value": "building_block|discounts.calculation.Discount",
-          "author": "agent"
-        },
-        "name": "discountToApply",
-        "cardinality": {
-          "changed": true,
-          "value": "1",
           "author": "agent"
         }
       },
@@ -1538,17 +1423,12 @@
         "to": "building_block|discounts.calculation.PotentialDiscount"
       },
       {
-        "kind": "has_state",
+        "kind": "has_collaborator",
         "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+        "name": "fixedDiscount",
         "to": {
           "changed": true,
           "value": "building_block|discounts.calculation.FixedDiscount",
-          "author": "agent"
-        },
-        "name": "fixedDiscount",
-        "cardinality": {
-          "changed": true,
-          "value": "1",
           "author": "agent"
         }
       },
