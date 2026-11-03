@@ -331,14 +331,34 @@ All in `vision.noesis.annotations`. On a type:
 | `@ExternalIntegration`          | external integration |
 | `@Adapter(Direction.PRIMARY)`   | in adapter           |
 | `@Adapter(Direction.SECONDARY)` | out adapter          |
+| `@TechnicalService`             | technical service    |
 | `@Command`                      | command              |
 | `@Query`                        | query                |
 | `@Event`                        | event                |
 
 On a method of an application service: `@CommandHandler`, `@QueryHandler`,
 `@EventHandler`. They mark a behavior; what kind of message it handles is
-the kind of the block it takes. Modules come from the package structure; the scanner does
-not read `@Module` on `package-info.java` yet.
+the kind of the block it takes.
+
+`@Actor("<name>")` on a method, or on a type for all its behaviors, names
+who calls it, e.g. `@Actor("Quality manager")`; repeat it for several. Each
+name becomes an actor of the model; which manual process the actor performs
+and which behaviors that process invokes, a design document says.
+
+`@Layer("<name>")` on a package's `package-info.java` puts the building
+blocks of that package, and of every package below it that no nearer
+`@Layer` claims, in the named layer. Without it the model has no layers.
+
+```java
+@Layer("domain")
+package com.acme.shop;
+
+import vision.noesis.annotations.Layer;
+```
+
+`@TechnicalService`, `@Actor` and `@Layer` are in the annotations after
+0.1.0. Modules come from the package structure; the scanner does not read
+`@Module` on `package-info.java` yet.
 `${CLAUDE_PLUGIN_ROOT}/skills/implement-java-spring/references/mapping.md`
 has the full rules for how code becomes the model.
 

@@ -73,23 +73,23 @@ type `QDoc` in the package of `module|qdocmanagement.preparation`, in
 block's name, verbatim. The design document's `type` picks the shape and
 the annotation:
 
-| `type`                 | Java shape                                                          | Annotation                                  |
-| ---------------------- | ------------------------------------------------------------------- | ------------------------------------------- |
-| `aggregate`            | `public final class`, the aggregate root                            | `@AggregateRoot`                            |
-| `entity`               | `final class`, package-private when only its aggregate uses it      | `@DomainEntity`                             |
-| `value_object`         | `public record`; an `enum` for a closed set of values (below)       | `@ValueObject`, or `@Identifier` (below)    |
-| — an identifier        | `public record` with one component                                  | `@Identifier`                               |
-| `command`              | `public record`                                                     | `@Command`                                  |
-| `query`                | `public record`                                                     | `@Query`                                    |
-| `event`                | `public record`                                                     | `@Event`                                    |
-| `domain_service`       | `public final class`, or a `@FunctionalInterface` for one decision  | `@DomainService`                            |
-| `application_service`  | `public class` with constructor-injected collaborators              | `@ApplicationService`                       |
-| `repository`           | `public interface`                                                  | `@Repository`                               |
-| `factory`              | `public final class`                                                | `@Factory`                                  |
-| `external_integration` | `public interface`, the port; never its implementation              | `@ExternalIntegration(Direction.SECONDARY)` |
-| `in_adapter`           | `public class` that calls application services                      | `@Adapter(Direction.PRIMARY)`               |
-| `out_adapter`          | `public class` implementing the port it stands behind               | `@Adapter(Direction.SECONDARY)`             |
-| `technical_service`    | `public interface`, or `java.time.Clock` and the like when one fits | none yet: report it                         |
+| `type`                 | Java shape                                                          | Annotation                                                            |
+| ---------------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `aggregate`            | `public final class`, the aggregate root                            | `@AggregateRoot`                                                      |
+| `entity`               | `final class`, package-private when only its aggregate uses it      | `@DomainEntity`                                                       |
+| `value_object`         | `public record`; an `enum` for a closed set of values (below)       | `@ValueObject`, or `@Identifier` (below)                              |
+| — an identifier        | `public record` with one component                                  | `@Identifier`                                                         |
+| `command`              | `public record`                                                     | `@Command`                                                            |
+| `query`                | `public record`                                                     | `@Query`                                                              |
+| `event`                | `public record`                                                     | `@Event`                                                              |
+| `domain_service`       | `public final class`, or a `@FunctionalInterface` for one decision  | `@DomainService`                                                      |
+| `application_service`  | `public class` with constructor-injected collaborators              | `@ApplicationService`                                                 |
+| `repository`           | `public interface`                                                  | `@Repository`                                                         |
+| `factory`              | `public final class`                                                | `@Factory`                                                            |
+| `external_integration` | `public interface`, the port; never its implementation              | `@ExternalIntegration(Direction.SECONDARY)`                           |
+| `in_adapter`           | `public class` that calls application services                      | `@Adapter(Direction.PRIMARY)`                                         |
+| `out_adapter`          | `public class` implementing the port it stands behind               | `@Adapter(Direction.SECONDARY)`                                       |
+| `technical_service`    | `public interface`, or `java.time.Clock` and the like when one fits | `@TechnicalService`; a JDK or library type through a library manifest |
 
 A design document written before it could type messages types them as
 `value_object`; one written since types them `command`, `query` or
@@ -204,10 +204,10 @@ method `create` of the type `QDoc`.
   the design's manual processes invoke it and its actors perform them.
   Every behavior is a `public` method, because the scanner sees only
   public methods. A use case's actors — those performing a manual process
-  that invokes it — go in its Javadoc.
+  that invokes it — are each an `@Actor("<actor name>")` on its method,
+  the name verbatim; the scan makes them actors of the model.
 - **Javadoc**: the behavior's definition; `@param` for each input, saying
-  what the block it is typed with is for here; `@return` with the output's;
-  `Actors:` for a use case.
+  what the block it is typed with is for here; `@return` with the output's.
 
 ### When the signature cannot be written as given
 

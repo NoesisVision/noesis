@@ -34,7 +34,7 @@ export type AnnotationRole =
     }
   /** The method is a behavior; `name` overrides its name. */
   | { readonly role: 'behavior' }
-  /** Who calls the behavior: the `name` argument. */
+  /** Who calls the behavior: the `actor` argument. */
   | { readonly role: 'actor' }
   /** The element's description, Markdown, in the `description` argument. */
   | { readonly role: 'description' }
@@ -61,6 +61,8 @@ interface RoleArguments {
   readonly expression: string;
   /** The layer's name, on a layer annotation. */
   readonly layer: string;
+  /** The actor's name, on an actor annotation. */
+  readonly actor: string;
 }
 
 export interface AnnotationVocabulary {

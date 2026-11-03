@@ -25,7 +25,6 @@ const BUILDING_BLOCKS: Record<string, BuildingBlockType> = {
   [`${ANNOTATIONS}.Factory`]: 'factory',
   // The direction an external integration is reached in does not change what it is.
   [`${ANNOTATIONS}.ExternalIntegration`]: 'external_integration',
-  // Not in the annotation library yet: read as soon as a release has it.
   [`${ANNOTATIONS}.TechnicalService`]: 'technical_service',
   [`${ANNOTATIONS}.Command`]: 'command',
   [`${ANNOTATIONS}.Query`]: 'query',
@@ -54,8 +53,10 @@ const ROLES = new Map<string, AnnotationRole>([
   [`${ANNOTATIONS}.EventHandler`, { role: 'behavior' }],
   // Cucumber's: the step definitions a feature file's `When` steps bind to.
   ['T:io.cucumber.java.en.When', { role: 'stepDefinition' }],
-  // A package annotation, on `package-info.java`; in the annotation library, unreleased until `java-v*` after 0.1.0.
+  // A package annotation, on `package-info.java`.
   [`${ANNOTATIONS}.Layer`, { role: 'layer' }],
+  // Repeatable: two or more on one element come inside its `Actor.Actors` container.
+  [`${ANNOTATIONS}.Actor`, { role: 'actor' }],
   // `Module` is a package annotation too, not read yet (section 12).
 ]);
 
@@ -145,7 +146,7 @@ const TECHNICAL_MEMBERS = new Set([
 export const JAVA_VOCABULARY: AnnotationVocabulary = {
   language: 'java',
   roles: ROLES,
-  // No Java annotation carries these arguments today; the names are what a future one would use.
+  // No Java annotation carries a name or a description today; the names are what a future one would use.
   arguments: {
     name: 'name',
     description: 'description',
@@ -153,6 +154,7 @@ export const JAVA_VOCABULARY: AnnotationVocabulary = {
     direction: 'value',
     expression: 'value',
     layer: 'value',
+    actor: 'value',
   },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,

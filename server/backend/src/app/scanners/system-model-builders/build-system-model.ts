@@ -815,11 +815,14 @@ class ModelAssembly {
   ): void {
     for (const node of [...hierarchy.map((method) => method.node), type]) {
       for (const { annotation } of rolesOf(
-        node.annotations,
+        withRepeated(node.annotations),
         'actor',
         this.vocabulary,
       )) {
-        const name = stringArgument(annotation, this.vocabulary.arguments.name);
+        const name = stringArgument(
+          annotation,
+          this.vocabulary.arguments.actor,
+        );
         if (name === null) continue;
         const parsed = ElementName.safeParse(name);
         if (!parsed.success) {

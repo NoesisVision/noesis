@@ -2,7 +2,7 @@
 
 Status: in progress (November 2026); steps 1, 2, 3, 4, 5 and 6 of section 11
 are built, step 3 before step 2: the two share files but neither needs the
-other.
+other; step 7 is built for Java, its release and its C# half pending.
 
 [`system-model-structure.md`](system-model-structure.md) describes the
 metamodel the system model moves to: its elements, relations and kinds. This
@@ -578,7 +578,21 @@ fixtures and the skills together, so no step leaves two shapes alive.
    NuGet package's release when it is there; the examples annotated, their
    rules and scenarios moved into feature files with Cucumber or Reqnroll
    step definitions, and their system models regenerated; the setup skills'
-   tables.
+   tables. _Built for Java_, not yet released: `@TechnicalService` on a
+   type, `@Actor("<name>")` on a method or a type, repeatable (Java writes
+   two or more in one `Actor.Actors` container, which the builder reads
+   through as it reads `@When.Whens`); the vocabularies gain an `actor`
+   argument (Java `value`, C# `name`). The Java shop fixture covers both
+   through the real parser. `qdoc-java`'s `createQDoc` names its actor with
+   `@Actor` instead of its Javadoc; its rules were in feature files since
+   step 2. `discounts-java` builds on the parser plugin and annotations
+   snapshot from the local repository, compiles with `-parameters` so that
+   Lombok's constructors name the collaborators they take (`arg0`
+   otherwise), and names `Customer` on `calculate`; it gains no feature
+   file, as its code has no rule yet: the weather design's rules are for
+   code still to be written. Both models were rescanned. Beyond the plan,
+   `implement-java-spring` writes `@Actor` and `@TechnicalService` now. The
+   C# half waits for the NuGet package (section 12).
 8. **Scenario generation in the skills**: section 9's `implement-java-spring`
    change, checked against `examples/qdoc-java`.
 9. **Documents**: section 9's edits; `code-model-to-system-model.md` marked

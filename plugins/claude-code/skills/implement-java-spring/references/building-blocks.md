@@ -353,12 +353,11 @@ public class QDocCreationService {
     /**
      * Creates a QDoc on a quality manager's request.
      *
-     * <p>Actors: Quality manager.
-     *
      * @param command the creation request
      * @return the identity of the created QDoc
      */
     @CommandHandler
+    @Actor("Quality manager")
     @Transactional
     public QDocId createQDoc(CreateQDoc command) {
         if (!identities.isQualityManager(command.requestedBy())) {

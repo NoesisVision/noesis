@@ -147,6 +147,7 @@ export const CSHARP_VOCABULARY: AnnotationVocabulary = {
     expression: 'expression',
     // No C# attribute names a layer until the package has one.
     layer: 'name',
+    actor: 'name',
   },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,
