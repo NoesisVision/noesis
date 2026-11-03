@@ -772,8 +772,25 @@
       }
     }
   ],
-  "actors": [],
-  "manualProcesses": [],
+  "actors": [
+    {
+      "id": "actor|Quality manager",
+      "name": "Quality manager",
+      "description": "Prepares and approves quality documents.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreationService.java",
+        "line": 50
+      }
+    }
+  ],
+  "manualProcesses": [
+    {
+      "id": "manual_process|Create a QDoc",
+      "name": "Create a QDoc",
+      "description": "The quality manager starts a new QDoc, and its readers are told of it.",
+      "source": null
+    }
+  ],
   "relations": [
     {
       "kind": "contains",
@@ -1484,6 +1501,23 @@
       "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
       "to": "behavior|qdocmanagement.preparation.QDocRepository.save",
       "order": 4
+    },
+    {
+      "kind": "invokes",
+      "from": "manual_process|Create a QDoc",
+      "to": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+      "order": 2
+    },
+    {
+      "kind": "invokes",
+      "from": "manual_process|Create a QDoc",
+      "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "order": 1
+    },
+    {
+      "kind": "performs",
+      "from": "actor|Quality manager",
+      "to": "manual_process|Create a QDoc"
     }
   ]
 }
