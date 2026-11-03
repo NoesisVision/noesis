@@ -7,17 +7,46 @@ import {
 } from '#backend/app/element-id';
 import { SystemModelId } from './system-model-id';
 
-export const BuildingBlockType = z.enum([
+export const BuildingBlockType = z
+  .enum([
+    'aggregate',
+    'entity',
+    'value_object',
+    'domain_service',
+    'application_service',
+    'repository',
+    'factory',
+    'external_integration',
+    'in_adapter',
+    'out_adapter',
+    'technical_service',
+    'event',
+    'command',
+    'query',
+  ])
+  .describe(
+    "What a building block is. The domain's values: 'aggregate', 'entity', 'value_object', and the messages 'event', 'command', 'query'. The parts that do the work: 'domain_service', 'application_service', 'repository', 'factory', 'external_integration', 'in_adapter' (drives the system from outside), 'out_adapter' (the system drives something outside through it), 'technical_service'.",
+  );
+export type BuildingBlockType = z.infer<typeof BuildingBlockType>;
+
+/**
+ * The kinds a block holds as its state: the domain's values. A block of any
+ * other kind is one a block works with, held as a collaborator. The kind
+ * decides alone: a domain service held as a strategy is a collaborator, an
+ * aggregate a repository caches is state.
+ */
+const STATE_TYPES: ReadonlySet<BuildingBlockType> = new Set([
   'aggregate',
   'entity',
   'value_object',
-  'domain_service',
-  'application_service',
-  'repository',
-  'factory',
-  'external_integration',
+  'event',
+  'command',
+  'query',
 ]);
-export type BuildingBlockType = z.infer<typeof BuildingBlockType>;
+
+/** Whether a block of this kind is held as a collaborator rather than as state. */
+export const isCollaboratorType = (type: BuildingBlockType): boolean =>
+  !STATE_TYPES.has(type);
 
 export const RuleCategory = z
   .enum(['Business', 'Quality', 'Constraint'])
@@ -65,9 +94,6 @@ export const RULE_TYPES_OF: Record<RuleCategory, readonly RuleType[]> = {
   Quality: QUALITY_RULE_TYPES,
   Constraint: CONSTRAINT_RULE_TYPES,
 };
-
-export const BehaviorType = z.enum(['Command', 'Event', 'Query']);
-export type BehaviorType = z.infer<typeof BehaviorType>;
 
 const PRIMITIVE_KIND = 'primitive';
 const PRIMITIVES = [
@@ -190,7 +216,6 @@ export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
 export const ScannedBehavior = z.strictObject({
   id: BehaviorId,
   name: ElementName,
-  type: BehaviorType,
   description: z.string().nullable().default(null),
   visibility: Visibility,
   rules: z.array(ScannedRule).default([]),
@@ -216,6 +241,7 @@ export const RelationKind = z.enum([
   'contains',
   'extends',
   'has_state',
+  'has_collaborator',
   'exposes',
   'has_input',
   'has_output',
@@ -239,7 +265,14 @@ export const HasStateRelation = relation('has_state', {
   name: ElementName,
   cardinality: Cardinality,
 }).describe(
-  "A building block's piece of state: a field or property named `name`, typed by `to`, holding `cardinality` values.",
+  "A building block's piece of state: a field or property named `name`, typed by `to` (a primitive, or a block whose kind is a value of the domain), holding `cardinality` values.",
+);
+export const HasCollaboratorRelation = relation('has_collaborator', {
+  from: BuildingBlockId,
+  to: BuildingBlockId,
+  name: ElementName,
+}).describe(
+  'A building block works with another it holds, named `name`: a repository, a service, an integration or an adapter, by the kind of `to`. A value of the domain it holds is its state (`has_state`) instead.',
 );
 export const ExposesRelation = relation('exposes', {
   from: BuildingBlockId,
@@ -283,6 +316,7 @@ const relationSchema = z.discriminatedUnion('kind', [
   ContainsRelation,
   ExtendsRelation,
   HasStateRelation,
+  HasCollaboratorRelation,
   ExposesRelation,
   HasInputRelation,
   HasOutputRelation,
@@ -299,7 +333,11 @@ export interface RelationKey {
 }
 
 /** Relation kinds a holder may have several of to one type: unique by name, not by `to`. */
-const NAMED_SLOTS: ReadonlySet<string> = new Set(['has_state', 'has_input']);
+const NAMED_SLOTS: ReadonlySet<string> = new Set([
+  'has_state',
+  'has_collaborator',
+  'has_input',
+]);
 
 export const Relation = Object.assign(relationSchema, {
   /** The key a relation is unique by: `(kind, from, to)`, or `(kind, from, name)` for a named slot. */

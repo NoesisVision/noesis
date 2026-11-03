@@ -1,6 +1,7 @@
 # Plan: introducing the new system model
 
-Status: in progress (November 2026); step 1 of section 11 is built.
+Status: in progress (November 2026); steps 1 and 3 of section 11 are built,
+step 3 before step 2: the two share files but neither needs the other.
 
 [`system-model-structure.md`](system-model-structure.md) describes the
 metamodel the system model moves to: its elements, relations and kinds. This
@@ -367,6 +368,10 @@ gain feature files; the service's unit tests project them.
 - A new writer's rule (`invalid-design-doc-error.ts`): every relation's ends
   exist, in the design or in the system model; a `contains` agrees with the
   id path; the `from` and `to` kinds are ones the relation allows.
+- A writer's rule for decision 11 (`slotOutsideTypeKind`, added while
+  building step 3): a `has_state` or `has_collaborator` whose `to` is a
+  block the design or the model gives a kind must be the relation that
+  kind asks for; a type of unknown kind passes.
 
 The handlers do not change in kind; their fixtures do.
 
@@ -473,7 +478,19 @@ fixtures and the skills together, so no step leaves two shapes alive.
    rule guidance; the shop fixtures' feature files.
 3. **Kinds** (decisions 5, 6, 11): the fourteen kinds, no behavior type,
    `has_collaborator`, the vocabularies' new rows, the architecture view's
-   placement.
+   placement. _Built_, before step 2: `has_collaborator` comes from
+   members and from constructor parameters of a collaborator kind
+   (code-model-to-system-model.md R5.9), with no cardinality; Java's
+   `@Adapter` reads its direction, `@TechnicalService` is in the vocabulary
+   ahead of the annotation library (step 7). The architecture view keeps its
+   rings: an in adapter sits with the application services and its public
+   behaviors are driving ports, out adapters and technical services are
+   driven ports, the messages join the domain core. The SPA moves the C, Q
+   and E icons and tones from behaviors to the message blocks, draws
+   collaborators in a section of their own (read, not yet written there),
+   and the exploration gains a Collaborators relation. The committed
+   examples were converted by script again, so a collaborator a constructor
+   alone names appears only after step 7's regeneration.
 4. **Actors and manual processes** (decisions 7, 15, 16): `ActorId`,
    `ManualProcessId`, `actors`, `manualProcesses`, `performs`, `invokes`
    from a process, `visibility` goes, the driving-port check and the forms.

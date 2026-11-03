@@ -4,7 +4,11 @@ import type {
   DesignDocumentInput,
   DesignedBuildingBlockInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import { ruleItems, propertyItems } from '../change-list-items.ts';
+import {
+  collaboratorItems,
+  propertyItems,
+  ruleItems,
+} from '../change-list-items.ts';
 import type { ElementRef } from '../element-ref.ts';
 import { childSections } from './child-sections.tsx';
 import { section } from './section.ts';
@@ -31,6 +35,12 @@ export const buildingBlockSections = (
       title: 'Properties',
       kind: 'property',
       items: propertyItems(doc, block.id),
+    }),
+    ...section(ChangeListSection, 'collaborators', {
+      element,
+      title: 'Collaborators',
+      kind: 'collaborator',
+      items: collaboratorItems(doc, block.id),
     }),
     ...section(DiagramSection, 'diagram', {
       element,

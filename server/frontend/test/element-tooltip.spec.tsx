@@ -27,8 +27,8 @@ const document = {
         id: 'behavior|pay.Hold.place',
         definition: plain('Places a hold.'),
       },
-      { id: 'behavior|pay.Hold.release', type: plain('Command') },
-      { id: 'behavior|pay.Hold.balance', type: plain('Query') },
+      { id: 'behavior|pay.Hold.release' },
+      { id: 'behavior|pay.Hold.balance' },
     ],
   },
   relations: {
@@ -39,6 +39,12 @@ const document = {
         name: 'amount',
         to: plain('building_block|pay.Money'),
         cardinality: plain('0..1'),
+      },
+      {
+        kind: 'has_collaborator',
+        from: 'building_block|pay.Hold',
+        name: 'ledger',
+        to: plain('building_block|pay.Ledger'),
       },
       {
         kind: 'has_input',
@@ -138,12 +144,14 @@ describe('ElementTooltip', () => {
     expect(html).toMatch(/>place\(amount: Money\): <span[^>]*>Hold<\/span>/);
   });
 
-  it('marks each behavior by its kind and each property with braces', () => {
+  it('marks each behavior as one, each property with braces and each collaborator with arrows', () => {
     const html = render('pay.Hold');
-    expect(html).toContain('tabler-icon-circle-letter-c');
-    expect(html).toContain('tabler-icon-circle-letter-q');
     expect(html).toContain('tabler-icon-activity');
+    expect(html).not.toContain('tabler-icon-circle-letter-c');
     expect(html).toContain('tabler-icon-braces');
+    expect(html).toContain('>Collaborators<');
+    expect(html).toContain('tabler-icon-arrows-left-right');
+    expect(html).toMatch(/>ledger: <span[^>]*>Ledger/);
   });
 
   it("lists a module's building blocks with their kind", () => {

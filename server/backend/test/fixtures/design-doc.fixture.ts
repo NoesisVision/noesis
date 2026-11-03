@@ -183,7 +183,6 @@ export const designDocFixture = {
       {
         id: ISSUE,
         name: byAgent('issue'),
-        type: byHuman('Command'),
         definition: byAgent(
           'Issues a refund for the chosen lines of an order.',
         ),
@@ -214,7 +213,6 @@ export const designDocFixture = {
       {
         id: CANCEL,
         name: unchanged,
-        type: unchanged,
         definition: unchanged,
         diagram: unchanged,
         visibility: byAgent({ kind: 'private' }),

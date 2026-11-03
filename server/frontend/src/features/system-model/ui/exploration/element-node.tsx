@@ -259,6 +259,8 @@ const REACH_ACTION = {
   isPartOf: 'Part of',
   hasState: 'Has state',
   stateOf: 'State of',
+  hasCollaborator: 'Works with',
+  collaboratorOf: 'Collaborator of',
   hasInput: 'Has input',
   inputOf: 'Input of',
   hasOutput: 'Has output',

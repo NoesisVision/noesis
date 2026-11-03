@@ -219,6 +219,7 @@ const ICON_KIND: Record<UnitKind, OutlineKind> = {
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',
+  collaborator: 'collaborator',
   parameter: 'property',
   result: 'property',
   extends: 'building_block',

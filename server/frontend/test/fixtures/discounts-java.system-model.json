@@ -279,7 +279,6 @@
     {
       "id": "behavior|discounts.calculation.Discount.apply",
       "name": "apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -295,7 +294,6 @@
     {
       "id": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "name": "calculate",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -311,7 +309,6 @@
     {
       "id": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions",
       "name": "getDiscountsForConditions",
-      "type": "Query",
       "description": null,
       "visibility": {
         "kind": "private"
@@ -326,7 +323,6 @@
     {
       "id": "behavior|discounts.calculation.DiscountPolicyFactory.get",
       "name": "get",
-      "type": "Query",
       "description": null,
       "visibility": {
         "kind": "private"
@@ -341,7 +337,6 @@
     {
       "id": "behavior|discounts.calculation.DiscountedOffer.applyDiscount",
       "name": "applyDiscount",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "private"
@@ -356,7 +351,6 @@
     {
       "id": "behavior|discounts.calculation.DiscountedOffer.createFrom",
       "name": "createFrom",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "private"
@@ -371,7 +365,6 @@
     {
       "id": "behavior|discounts.calculation.DiscountedProduct.applyDiscount",
       "name": "applyDiscount",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "private"
@@ -386,7 +379,6 @@
     {
       "id": "behavior|discounts.calculation.DiscountedProduct.from",
       "name": "from",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "private"
@@ -401,7 +393,6 @@
     {
       "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
       "name": "getDiscountsConfig",
-      "type": "Query",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -417,7 +408,6 @@
     {
       "id": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
       "name": "apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -433,7 +423,6 @@
     {
       "id": "behavior|discounts.calculation.FixedDiscount.apply",
       "name": "apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -449,7 +438,6 @@
     {
       "id": "behavior|discounts.calculation.PotentialDiscount.getDiscount",
       "name": "getDiscount",
-      "type": "Query",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -465,7 +453,6 @@
     {
       "id": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
       "name": "isApplicableFor",
-      "type": "Query",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -481,7 +468,6 @@
     {
       "id": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount",
       "name": "getDiscount",
-      "type": "Query",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -497,7 +483,6 @@
     {
       "id": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
       "name": "isApplicableFor",
-      "type": "Query",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -513,7 +498,6 @@
     {
       "id": "behavior|discounts.calculation.ProductDiscount.apply",
       "name": "apply",
-      "type": "Command",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -529,7 +513,6 @@
     {
       "id": "behavior|discounts.users.UserStatusProvider.getFor",
       "name": "getFor",
-      "type": "Query",
       "description": null,
       "visibility": {
         "kind": "public",
@@ -758,6 +741,48 @@
       "kind": "extends",
       "from": "building_block|discounts.calculation.ProductDiscount",
       "to": "building_block|discounts.calculation.Discount"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.DiscountAmount",
+      "to": "building_block|discounts.calculation.Discount",
+      "name": "appliedDiscount"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.DiscountCalculation",
+      "to": "building_block|discounts.calculation.DiscountPolicyFactory",
+      "name": "discountsFactory"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.DiscountConfig",
+      "to": "building_block|discounts.calculation.PotentialDiscount",
+      "name": "potentialDiscounts"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+      "to": "building_block|discounts.calculation.DiscountsConfigProvider",
+      "name": "discountsConfigProvider"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+      "to": "building_block|discounts.users.UserStatusProvider",
+      "name": "userStatusProvider"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+      "to": "building_block|discounts.calculation.Discount",
+      "name": "discountToApply"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+      "to": "building_block|discounts.calculation.FixedDiscount",
+      "name": "fixedDiscount"
     },
     {
       "kind": "has_input",
@@ -990,41 +1015,6 @@
     },
     {
       "kind": "has_state",
-      "from": "building_block|discounts.calculation.DiscountAmount",
-      "to": "building_block|discounts.calculation.Discount",
-      "name": "appliedDiscount",
-      "cardinality": "1"
-    },
-    {
-      "kind": "has_state",
-      "from": "building_block|discounts.calculation.DiscountCalculation",
-      "to": "building_block|discounts.calculation.DiscountPolicyFactory",
-      "name": "discountsFactory",
-      "cardinality": "1"
-    },
-    {
-      "kind": "has_state",
-      "from": "building_block|discounts.calculation.DiscountConfig",
-      "to": "building_block|discounts.calculation.PotentialDiscount",
-      "name": "potentialDiscounts",
-      "cardinality": "0..*"
-    },
-    {
-      "kind": "has_state",
-      "from": "building_block|discounts.calculation.DiscountPolicyFactory",
-      "to": "building_block|discounts.calculation.DiscountsConfigProvider",
-      "name": "discountsConfigProvider",
-      "cardinality": "1"
-    },
-    {
-      "kind": "has_state",
-      "from": "building_block|discounts.calculation.DiscountPolicyFactory",
-      "to": "building_block|discounts.users.UserStatusProvider",
-      "name": "userStatusProvider",
-      "cardinality": "1"
-    },
-    {
-      "kind": "has_state",
       "from": "building_block|discounts.calculation.DiscountedOffer",
       "to": "building_block|discounts.calculation.DiscountAmount",
       "name": "offerLevelDiscounts",
@@ -1046,23 +1036,9 @@
     },
     {
       "kind": "has_state",
-      "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
-      "to": "building_block|discounts.calculation.Discount",
-      "name": "discountToApply",
-      "cardinality": "1"
-    },
-    {
-      "kind": "has_state",
       "from": "building_block|discounts.calculation.FixedDiscount",
       "to": "building_block|discounts.calculation.DiscountAmount",
       "name": "fixedDiscountAmount",
-      "cardinality": "1"
-    },
-    {
-      "kind": "has_state",
-      "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
-      "to": "building_block|discounts.calculation.FixedDiscount",
-      "name": "fixedDiscount",
       "cardinality": "1"
     },
     {

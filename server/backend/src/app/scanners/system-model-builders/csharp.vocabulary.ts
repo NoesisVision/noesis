@@ -25,11 +25,11 @@ const BUILDING_BLOCKS: Record<string, BuildingBlockType> = {
   [`${DDD}.DddRepositoryAttribute`]: 'repository',
   [`${DDD}.DddFactoryAttribute`]: 'factory',
   [`${DOMAIN}.ExternalSystemIntegrationAttribute`]: 'external_integration',
-  // Messages: the model has no message types, so they are value objects.
-  [`${DOMAIN}.CommandAttribute`]: 'value_object',
-  [`${DOMAIN}.QueryAttribute`]: 'value_object',
-  [`${DOMAIN}.EventAttribute`]: 'value_object',
-  [`${DDD}.DddDomainEventAttribute`]: 'value_object',
+  [`${DOMAIN}.CommandAttribute`]: 'command',
+  [`${DOMAIN}.QueryAttribute`]: 'query',
+  [`${DOMAIN}.EventAttribute`]: 'event',
+  [`${DDD}.DddDomainEventAttribute`]: 'event',
+  // A read model is a value the query side holds, no message.
   [`${DOMAIN}.ReadModelAttribute`]: 'value_object',
 };
 
@@ -141,7 +141,8 @@ export const CSHARP_VOCABULARY: AnnotationVocabulary = {
   arguments: {
     name: 'name',
     description: 'markdownText',
-    triggeredBy: 'TriggeredBy',
+    // No C# annotation reads a direction until the package has adapters.
+    direction: 'Direction',
   },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,

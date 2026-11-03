@@ -15,12 +15,12 @@ Find the element a scenario belongs to: the rule it is attached to belongs
 to a behavior or a building block, and so does a scenario attached
 directly.
 
-| The scenario belongs to                                                                        | Test                                                                                    |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| a `public` behavior of an `application_service`, or a rule of one                              | a **full-graph test** of that behavior                                                  |
-| an `application_service` building block, or one of its rules                                   | a **full-graph test** of the behavior the scenario's _when_ calls                       |
-| any other building block or behavior: value object, entity, aggregate, domain service, factory | a **unit test** of that element                                                         |
-| a `repository` or an `external_integration`, or a behavior of one                              | **no test now**: there is no implementation in scope. Report it for the adapter's tests |
+| The scenario belongs to                                                                              | Test                                                                                    |
+| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| a `public` behavior of an `application_service`, or a rule of one                                    | a **full-graph test** of that behavior                                                  |
+| an `application_service` building block, or one of its rules                                         | a **full-graph test** of the behavior the scenario's _when_ calls                       |
+| any other building block or behavior: value object, entity, aggregate, domain service, factory       | a **unit test** of that element                                                         |
+| a `repository`, an `external_integration`, an adapter or a `technical_service`, or a behavior of one | **no test now**: there is no implementation in scope. Report it for the adapter's tests |
 
 ### Full-graph tests
 

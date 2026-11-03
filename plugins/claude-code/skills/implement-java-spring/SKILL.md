@@ -13,8 +13,9 @@ Noesis Java parser reads back as the same model, and into tests that prove
 every scenario. Each module becomes a package, each building block a type
 carrying its `vision.noesis.annotations` stereotype, each behavior a public
 method. An application service's behaviors also carry `@CommandHandler`,
-`@QueryHandler` or `@EventHandler` after their type, and the commands,
-queries and events they handle carry `@Command`, `@Query` or `@Event`.
+`@QueryHandler` or `@EventHandler` after the message they take, and the
+design's `command`, `query` and `event` blocks carry `@Command`, `@Query`
+or `@Event`.
 Each scenario becomes exactly one test.
 
 The scope is the domain: value objects, entities, aggregates, domain
@@ -139,8 +140,9 @@ Read all three at step 5, before planning:
       building block a type with its annotation, and every behavior a
       public method of exactly its name;
     - every application service behavior carries `@CommandHandler`,
-      `@QueryHandler` or `@EventHandler` after its type, and no other
-      method does;
+      `@QueryHandler` or `@EventHandler` after the message it takes, and
+      no other method does;
+    - every `has_collaborator` is a constructor parameter of its `name`;
     - every command, query and event carries `@Command`, `@Query` or
       `@Event`;
     - an annotated type has no public method the design document does not

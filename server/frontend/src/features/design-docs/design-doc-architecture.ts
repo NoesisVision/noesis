@@ -40,9 +40,11 @@ import { relationsFrom } from './relations.ts';
 
 /*
  * The design read on the assumption that the system it designs is built as
- * hexagons: each module that holds building blocks is one, its application
- * services' public behaviors are the ports that drive it, and its
- * repositories and external integrations are the ports it drives. Nothing
+ * hexagons: each module that holds building blocks is one, the public
+ * behaviors of its application services and in adapters are the ports that
+ * drive it, and its repositories, external integrations, out adapters and
+ * technical services are the ports it drives. Its messages — commands,
+ * queries, events — sit in the domain core, as what crosses those ports. Nothing
  * here is stored — it is the same document, placed in rings by the building
  * block types it already names.
  *
@@ -56,8 +58,17 @@ const DOMAIN_CORE = [
   'domain_service',
   'factory',
   'value_object',
+  'command',
+  'query',
+  'event',
 ] as const satisfies readonly BuildingBlockType[];
-const APPLICATION_SERVICE = 'application_service' satisfies BuildingBlockType;
+/** The blocks that drive a hexagon: their public behaviors are its ports. */
+const DRIVING = [
+  'application_service',
+  'in_adapter',
+] as const satisfies readonly BuildingBlockType[];
+const isDriving = (type: BuildingBlockType | null) =>
+  (DRIVING as readonly (BuildingBlockType | null)[]).includes(type);
 
 export function architectureOf(
   document: DesignDocumentInput,
@@ -90,7 +101,7 @@ export function architectureOf(
       unplaced.push(behaviorElement(document, item, change));
       continue;
     }
-    if (type !== APPLICATION_SERVICE) {
+    if (!isDriving(type)) {
       // A block whose type the design leaves alone may well be a service.
       if (visibility?.kind === 'public' && type !== null)
         hexagonOf(owner).exposed.push(behaviorElement(document, item, change));
@@ -229,7 +240,7 @@ export function inferredFlowOf(
 type Ring = 'applicationServices' | 'domainCore' | 'drivenPorts';
 
 function ringOf(pattern: BuildingBlockType | null): Ring | null {
-  if (pattern === APPLICATION_SERVICE) return 'applicationServices';
+  if (isDriving(pattern)) return 'applicationServices';
   if (isDrivenPort(pattern)) return 'drivenPorts';
   if ((DOMAIN_CORE as readonly (BuildingBlockType | null)[]).includes(pattern))
     return 'domainCore';
@@ -254,6 +265,9 @@ function blockElement(
       ...writtenIn(relationsFrom(document, 'property', block.id)).map(
         ({ to }) => valueOf(to),
       ),
+      ...writtenIn(relationsFrom(document, 'collaborator', block.id)).map(
+        ({ to }) => valueOf(to),
+      ),
       ...behaviors.flatMap((behavior) => typesOfBehavior(document, behavior)),
     ]),
     rules: [block, ...behaviors].flatMap(rulesOf),
@@ -268,7 +282,7 @@ function behaviorElement(
   return {
     id: asBehavior(behavior.id),
     name: nameOf(behavior.id),
-    pattern: valueOf(behavior.type),
+    pattern: null,
     change,
     uses: usesOf(behavior.id, typesOfBehavior(document, behavior)),
     rules: rulesOf(behavior),

@@ -86,11 +86,16 @@ step 6.
    now. List each edit the request asks for, then follow each one through
    the design document to everything that must change with it:
    - **References.** The ends of a relation (the `to` of a `has_state`,
-     `has_input` or `has_output`, both ends of an `extends` or an
+     `has_collaborator`, `has_input` or `has_output`, both ends of an `extends` or an
      `invokes`), a rule's `needs`: each names a building block or behavior
      this design adds or modifies, one the system model has, a primitive,
      or a need this design adds. A rename moves every reference to the old
      id or name, the relations' `from` and `to` included.
+   - **Kinds.** A block's kind decides how it is held: a block that
+     changes to a value of the domain (`aggregate`, `entity`,
+     `value_object`, `command`, `query`, `event`) is held as `has_state`,
+     one that changes to any other kind as `has_collaborator`. Move the
+     slots that point at it from one relation to the other.
    - **Ids and names.** Ids spell the path (`building_block|sales.refunds.Refund`),
      so moving or renaming a module or a building block renames every
      element beneath it, and a name is always the last segment of its id.
@@ -139,7 +144,8 @@ step 6.
      what changes and why. An element's `definition` is never one, nor is a
      rule's `description`.
    - **In the model and retired:** `removed`, by id (a relation by its key:
-     `{ "kind", "from", "name" }` for a `has_state` or `has_input`,
+     `{ "kind", "from", "name" }` for a `has_state`, `has_collaborator` or
+     `has_input`,
      `{ "kind", "from", "to" }` for the rest). Remove a building block's
      behaviors and relations with it.
    - **In the model and unchanged:** left out. A rename of an element in

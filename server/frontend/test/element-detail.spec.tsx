@@ -132,6 +132,12 @@ const document = {
         cardinality: plain('0..1'),
       },
       {
+        kind: 'has_collaborator',
+        from: 'building_block|pay.Hold',
+        name: 'ledger',
+        to: plain('building_block|pay.Ledger'),
+      },
+      {
         kind: 'has_input',
         from: 'behavior|pay.Hold.place',
         name: 'amount',
@@ -496,6 +502,39 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/<span[^>]*>Money \[0\.\.1\]<\/span>/);
     expect(html).not.toContain('>pay.Money<');
     expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount</);
+  });
+
+  it('lists what a block works with in a section of its own, after its properties, with no count', () => {
+    const html = show('building_block|pay.Hold');
+    expect(html).toContain('>Collaborators<');
+    expect(html.indexOf('>Collaborators<')).toBeGreaterThan(
+      html.indexOf('>Properties<'),
+    );
+    expect(html).toContain('>ledger<');
+    expect(html).toMatch(/<span[^>]*>Ledger<\/span>/);
+  });
+
+  it('reads a collaborator as the field it declares', () => {
+    const html = show(
+      'building_block|pay.Hold#collaborator:ledger',
+      outlineTree(
+        [
+          ...outline,
+          node({
+            path: 'building_block|pay.Hold#collaborator:ledger',
+            parentPath: 'building_block|pay.Hold',
+            elementId: null,
+            kind: 'collaborator',
+            name: 'ledger',
+            depth: 2,
+            change: 'added',
+          }),
+        ],
+        [],
+      ),
+    );
+    expect(html).toContain('ledger:');
+    expect(html).toContain('Ledger');
   });
 
   it("opens a property's type when the tree has a row for it", () => {

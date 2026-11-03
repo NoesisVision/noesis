@@ -1,5 +1,8 @@
 import type { ReactElement } from 'react';
-import type { DesignedStateInput } from '../../../relations.ts';
+import type {
+  DesignedCollaboratorInput,
+  DesignedStateInput,
+} from '../../../relations.ts';
 import type { ElementRef, OwnerRef } from '../element-ref.ts';
 import { section } from './section.ts';
 import { PropertySignatureSection } from './sections/property-signature-section.tsx';
@@ -20,3 +23,15 @@ export const propertySections = (
     cardinality: property.cardinality,
   });
 };
+
+/** A collaborator reads as a property does, the block it works with as its type; it holds exactly one. */
+export const collaboratorSections = (
+  owner: OwnerRef,
+  collaborator: DesignedCollaboratorInput,
+): ReactElement[] =>
+  section(PropertySignatureSection, 'signature', {
+    element: { owner, part: 'collaborators', name: collaborator.name },
+    name: collaborator.name,
+    type: collaborator.to,
+    cardinality: { changed: false },
+  });

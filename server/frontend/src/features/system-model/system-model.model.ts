@@ -65,6 +65,8 @@ function designedRelation(relation: Relation): DesignedRelation {
         to: field(relation.to),
         cardinality: field(relation.cardinality),
       };
+    case 'has_collaborator':
+      return { ...relation, to: field(relation.to) };
     case 'has_input':
       return {
         ...relation,
@@ -112,7 +114,6 @@ export function designOf(model: SystemModel): DesignDocument {
       model.behaviors.map((behavior) => ({
         id: behavior.id,
         name: field(behavior.name),
-        type: field(behavior.type),
         definition: optional(behavior.description),
         diagram: UNSET,
         visibility: field(behavior.visibility),

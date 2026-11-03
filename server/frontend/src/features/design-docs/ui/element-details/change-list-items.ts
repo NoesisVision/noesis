@@ -14,6 +14,7 @@ import {
 import { blockOfRef } from '../../element-id.ts';
 import {
   cardinalitySuffixOf,
+  type DesignedCollaboratorInput,
   type DesignedInputInput,
   type DesignedStateInput,
   relationsFrom,
@@ -170,6 +171,38 @@ export const propertyItems = (
         partPathOf(blockId, 'property', property.name),
       ),
   );
+
+/** What a block works with, each as it would be declared, or by name when the block it is is kept. */
+export const collaboratorItems = (
+  doc: DesignDocumentInput,
+  blockId: string,
+): ChangeListItem[] =>
+  [...changed(relationsFrom(doc, 'collaborator', blockId))].map(
+    ([collaborator, change]) =>
+      collaboratorItem(
+        collaborator,
+        change,
+        partPathOf(blockId, 'collaborator', collaborator.name),
+      ),
+  );
+
+function collaboratorItem(
+  collaborator: DesignedCollaboratorInput | { name: string },
+  change: OutlineChange,
+  path: string,
+): ChangeListItem {
+  const type = 'to' in collaborator ? valueOf(collaborator.to) : null;
+  const { name } = collaborator;
+  return type === null
+    ? { change, key: name, label: name, path, name }
+    : {
+        change,
+        key: name,
+        label: `${name}: ${refAddressOf(type)}`,
+        path,
+        ...declared(name, type, null),
+      };
+}
 
 /** Rules, each by its name with what the design says of it and the needs it answers. */
 export const ruleItems = (

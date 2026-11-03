@@ -297,6 +297,68 @@ describe('The elements a design changes', () => {
     ).toBe(false);
   });
 
+  it('knows a collaborator by its holder and name, so the block it is is a field, and it has no cardinality', () => {
+    const LEDGER = 'building_block|sales.ledger.Ledger';
+    const parsed = DesignDocument.parse(
+      relating({
+        added: [
+          {
+            kind: 'has_collaborator',
+            from: REFUND,
+            name: 'ledger',
+            to: { value: LEDGER },
+          },
+        ],
+        removed: [{ kind: 'has_collaborator', from: REFUND, name: 'mailer' }],
+        modified: [
+          {
+            kind: 'has_collaborator',
+            from: REFUND,
+            name: 'orders',
+            to: { value: 'building_block|sales.orders.OrderArchive' },
+          },
+        ],
+      }),
+    );
+
+    expect<unknown>(parsed.relations.removed).toEqual([
+      { kind: 'has_collaborator', from: REFUND, name: 'mailer' },
+    ]);
+    expect(parsed.relations.modified[0]).toMatchObject({
+      name: 'orders',
+      to: { changed: true, value: 'building_block|sales.orders.OrderArchive' },
+    });
+    expect(
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_collaborator',
+              from: REFUND,
+              name: 'ledger',
+              to: { value: LEDGER },
+              cardinality: { value: '1' },
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_collaborator',
+              from: REFUND,
+              name: 'clock',
+              to: { value: 'primitive|datetime' },
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+  });
+
   it('knows an output by its type and a call by its target, so only the cardinality or the order is a field', () => {
     const parsed = DesignDocument.parse(
       relating({
@@ -370,8 +432,11 @@ describe('The elements a design changes', () => {
     expect(isValid(addingRefund({ type: { value: 'controller' } }))).toBe(
       false,
     );
-    expect(isValid(addingIssue({ type: { value: 'Command' } }))).toBe(true);
-    expect(isValid(addingIssue({ type: { value: 'Request' } }))).toBe(false);
+    expect(isValid(addingRefund({ type: { value: 'out_adapter' } }))).toBe(
+      true,
+    );
+    // A behavior has no type: what kind of message it handles is not its own.
+    expect(isValid(addingIssue({ type: { value: 'Command' } }))).toBe(false);
     expect(
       isValid(
         addingRefund({
@@ -647,7 +712,6 @@ describe('A design document an agent wrote', () => {
       {
         id: CANCEL,
         name: 'cancel',
-        type: 'Command',
         visibility: { kind: 'private' },
         source,
       },
@@ -970,7 +1034,6 @@ describe('A design document an agent wrote', () => {
                   {
                     id: ISSUE,
                     name: { value: 'issue' },
-                    type: { value: 'Command' },
                     definition: { value: 'Issues it.' },
                     visibility: { value: { kind: 'private' } },
                   },
@@ -988,6 +1051,85 @@ describe('A design document an agent wrote', () => {
         {
           path: `relations.added[exposes|${ORDER}|${ISSUE}]`,
           reason: 'containmentOutsideIdPath',
+        },
+      ]);
+    });
+
+    it('holds a value of the domain or a primitive as state, any other block as a collaborator', () => {
+      const LEDGER = 'building_block|sales.orders.Ledger';
+      expect(
+        validate(
+          relating(
+            {
+              added: [
+                {
+                  kind: 'has_state',
+                  from: ORDER,
+                  name: 'ledger',
+                  to: { value: LEDGER },
+                  cardinality: { value: '1' },
+                },
+                {
+                  kind: 'has_collaborator',
+                  from: ORDER,
+                  name: 'auditable',
+                  to: { value: AUDITABLE },
+                },
+                {
+                  kind: 'has_state',
+                  from: ORDER,
+                  name: 'note',
+                  to: { value: 'primitive|string' },
+                  cardinality: { value: '0..1' },
+                },
+                {
+                  kind: 'has_collaborator',
+                  from: ORDER,
+                  name: 'archive',
+                  to: { value: 'building_block|sales.orders.Archive' },
+                },
+              ],
+            },
+            {
+              buildingBlocks: {
+                added: [
+                  {
+                    id: LEDGER,
+                    name: { value: 'Ledger' },
+                    type: { value: 'out_adapter' },
+                    definition: { value: 'Where money is booked.' },
+                  },
+                  {
+                    id: 'building_block|sales.orders.Archive',
+                    name: { value: 'Archive' },
+                    type: { value: 'repository' },
+                    definition: { value: 'Where old orders go.' },
+                  },
+                ],
+              },
+            },
+          ),
+          SystemModel.parse({
+            ...scanned,
+            buildingBlocks: [
+              ...scanned.buildingBlocks,
+              {
+                id: AUDITABLE,
+                name: 'Auditable',
+                type: 'value_object',
+                source,
+              },
+            ],
+          }),
+        ),
+      ).toEqual([
+        {
+          path: `relations.added[has_state|${ORDER}|#ledger].kind`,
+          reason: 'slotOutsideTypeKind',
+        },
+        {
+          path: `relations.added[has_collaborator|${ORDER}|#auditable].kind`,
+          reason: 'slotOutsideTypeKind',
         },
       ]);
     });
@@ -1102,7 +1244,6 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingIssue({
-            type: { value: 'Command' },
             definition: { value: 'Issues a refund.' },
             visibility: { value: { kind: 'private' } },
           }),
@@ -1116,7 +1257,6 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingIssue({
-            type: { value: 'Command' },
             definition: { value: fenced },
             visibility: { value: { kind: 'private' } },
           }),
@@ -1132,7 +1272,6 @@ describe('A design document an agent wrote', () => {
         DesignDocument.validateHumanEdited(
           DesignDocument.parse(
             addingIssue({
-              type: { value: 'Command' },
               definition: { value: fenced },
               visibility: { value: { kind: 'private' } },
             }),
@@ -1142,7 +1281,6 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingIssue({
-            type: { value: 'Command' },
             definition: { value: 'Issues a refund.' },
             diagram: { value: 'sequenceDiagram\n  A->>B: issue' },
             visibility: { value: { kind: 'private' } },

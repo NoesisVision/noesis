@@ -71,10 +71,7 @@ function addBehaviors(
   behaviors: ChangeSetInput<DesignedBehaviorInput, string> | undefined,
 ): void {
   for (const [behavior, change] of named(behaviors)) {
-    put(
-      nodes,
-      element(behavior.id, change, valueOf(behavior.type), isDrawn(behavior)),
-    );
+    put(nodes, element(behavior.id, change, null, isDrawn(behavior)));
     addRules(nodes, behavior.id, behavior.rules);
     addScenarios(nodes, behavior.id, behavior.scenarios);
   }
@@ -82,31 +79,50 @@ function addBehaviors(
 }
 
 /**
- * A block's state hangs under it as its properties: the `has_state` relations
- * from it, wherever the document writes them — under a block it names, or
- * from one it leaves alone, which is then implied like any ancestor.
+ * A block's state hangs under it as its properties, and what it works with
+ * as its collaborators: the `has_state` and `has_collaborator` relations from
+ * it, wherever the document writes them — under a block it names, or from
+ * one it leaves alone, which is then implied like any ancestor.
  */
 function addProperties(
   nodes: Map<string, OutlineNode>,
   relations: DesignDocumentInput['relations'],
 ): void {
   for (const [relation, change] of named(relations)) {
-    if (relation.kind !== 'has_state') continue;
-    const type = valueOf(relation.to);
-    put(
-      nodes,
-      part(
-        relation.from,
-        'property',
-        relation.name,
-        change,
-        type === null ? null : slotLabelOf(type, valueOf(relation.cardinality)),
-      ),
-    );
+    if (relation.kind === 'has_state') {
+      const type = valueOf(relation.to);
+      put(
+        nodes,
+        part(
+          relation.from,
+          'property',
+          relation.name,
+          change,
+          type === null
+            ? null
+            : slotLabelOf(type, valueOf(relation.cardinality)),
+        ),
+      );
+    } else if (relation.kind === 'has_collaborator') {
+      const type = valueOf(relation.to);
+      put(
+        nodes,
+        part(
+          relation.from,
+          'collaborator',
+          relation.name,
+          change,
+          type === null ? null : slotLabelOf(type, null),
+        ),
+      );
+    }
   }
-  for (const key of relations?.removed ?? [])
+  for (const key of relations?.removed ?? []) {
     if (key.kind === 'has_state')
       put(nodes, part(key.from, 'property', key.name, 'removed'));
+    else if (key.kind === 'has_collaborator')
+      put(nodes, part(key.from, 'collaborator', key.name, 'removed'));
+  }
 }
 
 function addRules(

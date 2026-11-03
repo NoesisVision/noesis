@@ -1,7 +1,4 @@
-import type {
-  BehaviorType,
-  BuildingBlockType,
-} from '#backend/app/system-model/system-model';
+import type { BuildingBlockType } from '#backend/app/system-model/system-model';
 import type { Language, NodeId } from '../code-parsers/code-model';
 
 /*
@@ -24,10 +21,19 @@ export type PrimitiveName =
   | 'uuid';
 
 export type AnnotationRole =
-  /** The type is a building block of `type`; the `name` argument overrides its name. */
-  | { readonly role: 'buildingBlock'; readonly type: BuildingBlockType }
-  /** The method is a behavior; `name` overrides its name, `triggeredBy` fixes its type, or the role's own `type` does (Java's `@QueryHandler`). */
-  | { readonly role: 'behavior'; readonly type?: BehaviorType }
+  /**
+   * The type is a building block of `type`; the `name` argument overrides its
+   * name. With `byDirection`, the `direction` argument's member picks the
+   * kind instead (Java's `@Adapter(Direction.PRIMARY)`), `type` when it has
+   * none the table knows.
+   */
+  | {
+      readonly role: 'buildingBlock';
+      readonly type: BuildingBlockType;
+      readonly byDirection?: Readonly<Record<string, BuildingBlockType>>;
+    }
+  /** The method is a behavior; `name` overrides its name. */
+  | { readonly role: 'behavior' }
   /** Who calls the behavior: the `name` argument. */
   | { readonly role: 'actor' }
   /** The element's description, Markdown, in the `description` argument. */
@@ -41,7 +47,8 @@ export type AnnotationRole =
 interface RoleArguments {
   readonly name: string;
   readonly description: string;
-  readonly triggeredBy: string;
+  /** The enum argument a `byDirection` role reads. */
+  readonly direction: string;
 }
 
 export interface AnnotationVocabulary {

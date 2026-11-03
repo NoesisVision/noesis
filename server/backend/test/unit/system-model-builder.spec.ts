@@ -99,7 +99,7 @@ const JAVA = {
 /* ------------------------------------------------------- annotations */
 
 const ANNOTATIONS = 'T:NoesisVision.Annotations';
-type ArgumentInput = string | null | { readonly enum: string };
+type ArgumentInput = string | null;
 
 function attr(
   short: string,
@@ -116,15 +116,9 @@ function attr(
 }
 
 function argumentValue(value: ArgumentInput): AnnotationValue {
-  if (value === null) return { kind: 'literal', text: 'null' };
-  if (typeof value === 'string') {
-    return { kind: 'literal', text: JSON.stringify(value) };
-  }
-  return {
-    kind: 'enum',
-    type: named(`${ANNOTATIONS}.Domain.TriggeredBy`),
-    member: value.enum,
-  };
+  return value === null
+    ? { kind: 'literal', text: 'null' }
+    : { kind: 'literal', text: JSON.stringify(value) };
 }
 
 const aggregate = (name: string | null = null) =>
@@ -138,11 +132,6 @@ const repository = (name: string | null = null) =>
 const domainService = () => attr('Domain.DDD.DddDomainServiceAttribute');
 const behavior = (name: string | null = null) =>
   attr('Domain.DomainBehaviorAttribute', { name });
-const entryPoint = (triggeredBy: string, name: string | null = null) =>
-  attr('Domain.EntryPointAttribute', {
-    name,
-    TriggeredBy: { enum: triggeredBy },
-  });
 const actor = (name: string) => attr('People.ActorAttribute', { name });
 const description = (markdownText: string) =>
   attr('ShortDescriptionAttribute', { markdownText });
@@ -155,6 +144,22 @@ const domainModel = () => attr('Domain.DomainModelAttribute');
 const javaAnnotation = (short: string): Annotation => ({
   type: named(`T:vision.noesis.annotations.${short}`),
   arguments: [],
+});
+
+/** Java's `@Adapter(Direction.<direction>)`: one enum argument, named `value`. */
+const javaAdapter = (direction: string): Annotation => ({
+  type: named('T:vision.noesis.annotations.Adapter'),
+  arguments: [
+    {
+      name: 'value',
+      positional: true,
+      value: {
+        kind: 'enum',
+        type: named('T:vision.noesis.annotations.Direction'),
+        member: direction,
+      },
+    },
+  ],
 });
 
 /* ----------------------------------------------------------- builder */
@@ -549,6 +554,13 @@ const stateNamesOf = (model: BuiltSystemModel['model'], block: string) =>
 /** A block's state as `[name, to]`. */
 const stateTypesOf = (model: BuiltSystemModel['model'], block: string) =>
   stateOf(model, block).map((slot) => (slot as string[]).slice(0, 2));
+/** A block's collaborators as `[name, to]`, in the model's order. */
+const collaboratorsOf = (model: BuiltSystemModel['model'], block: string) =>
+  model.relations.flatMap((relation) =>
+    relation.kind === 'has_collaborator' && relation.from === block
+      ? [[relation.name, relation.to]]
+      : [],
+  );
 const messages = (built: BuiltSystemModel, level?: 'info' | 'debug') =>
   built.diagnostics
     .filter((d) => level === undefined || d.level === level)
@@ -742,6 +754,65 @@ describe('4. building blocks', () => {
       ['B', 'value_object'],
       ['C', 'repository'],
       ['D', 'value_object'],
+    ]);
+  });
+
+  it('R4.1 reads messages, adapters by their direction and technical services as kinds of their own', () => {
+    const java = buildFrom(
+      [
+        artifact('shop')
+          .type('T:com.acme.PlaceOrder', {
+            annotations: [javaAnnotation('Command')],
+          })
+          .type('T:com.acme.FindOrder', {
+            annotations: [javaAnnotation('Query')],
+          })
+          .type('T:com.acme.OrderPlaced', {
+            annotations: [javaAnnotation('Event')],
+          })
+          .type('T:com.acme.OrdersController', {
+            annotations: [javaAdapter('PRIMARY')],
+          })
+          .type('T:com.acme.SmtpMailer', {
+            annotations: [javaAdapter('SECONDARY')],
+          })
+          .type('T:com.acme.Weather', {
+            annotations: [javaAnnotation('ExternalIntegration')],
+          })
+          .type('T:com.acme.Clock', {
+            annotations: [javaAnnotation('TechnicalService')],
+          }),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    expect<unknown>(
+      java.model.buildingBlocks.map((b) => [b.name, b.type]),
+    ).toEqual([
+      ['Clock', 'technical_service'],
+      ['FindOrder', 'query'],
+      ['OrderPlaced', 'event'],
+      ['OrdersController', 'in_adapter'],
+      ['PlaceOrder', 'command'],
+      ['SmtpMailer', 'out_adapter'],
+      ['Weather', 'external_integration'],
+    ]);
+    const csharp = buildFrom([
+      artifact('Sales')
+        .type('T:Sales.Place', {
+          annotations: [attr('Domain.CommandAttribute')],
+        })
+        .type('T:Sales.Placed', {
+          annotations: [attr('Domain.DDD.DddDomainEventAttribute')],
+        })
+        .type('T:Sales.Find', { annotations: [attr('Domain.QueryAttribute')] }),
+    ]);
+    expect<unknown>(
+      csharp.model.buildingBlocks.map((b) => [b.name, b.type]),
+    ).toEqual([
+      ['Find', 'query'],
+      ['Place', 'command'],
+      ['Placed', 'event'],
     ]);
   });
 
@@ -1236,6 +1307,79 @@ describe('5. state', () => {
       'cardinality',
     ]);
   });
+
+  it('R5.9 holds a member typed by a block that is no value of the domain as a collaborator, without a cardinality', () => {
+    const { model } = buildFrom([
+      sales()
+        .type('T:Sales.Orders.IOrders', {
+          kind: 'interface',
+          annotations: [repository()],
+        })
+        .type('T:Sales.Orders.Pricing', { annotations: [domainService()] })
+        .type('T:Sales.Orders.Line', { annotations: [valueObject()] })
+        .property(
+          'P:Sales.Orders.Order.Orders',
+          named('T:Sales.Orders.IOrders'),
+        )
+        .property(
+          'P:Sales.Orders.Order.Policies',
+          named(SYS.list, named('T:Sales.Orders.Pricing')),
+        )
+        .property(
+          'P:Sales.Orders.Order.Lines',
+          named(SYS.list, named('T:Sales.Orders.Line')),
+        ),
+    ]);
+    expect<unknown>(collaboratorsOf(model, ORDER)).toEqual([
+      ['Orders', 'building_block|Sales.Orders.IOrders'],
+      ['Policies', 'building_block|Sales.Orders.Pricing'],
+    ]);
+    expect<unknown>(stateOf(model, ORDER)).toEqual([
+      ['Lines', 'building_block|Sales.Orders.Line', '0..*'],
+    ]);
+  });
+
+  it("R5.9 takes a constructor's parameters of a collaborator kind as collaborators, each name once", () => {
+    const { model, diagnostics } = buildFrom([
+      sales()
+        .type('T:Sales.Orders.IOrders', {
+          kind: 'interface',
+          annotations: [repository()],
+        })
+        .type('T:Sales.Orders.Pricing', { annotations: [domainService()] })
+        .type('T:Sales.Orders.Line', { annotations: [valueObject()] })
+        .property(
+          'P:Sales.Orders.Order.Orders',
+          named('T:Sales.Orders.IOrders'),
+        )
+        .method(
+          'M:Sales.Orders.Order#.ctor(Sales.Orders.IOrders,Sales.Orders.Pricing,Sales.Orders.Line,System.Guid)',
+          {
+            methodKind: 'constructor',
+            visibility: 'private',
+            parameters: [
+              { name: 'Orders', type: named('T:Sales.Orders.IOrders') },
+              { name: 'pricing', type: named('T:Sales.Orders.Pricing') },
+              { name: 'line', type: named('T:Sales.Orders.Line') },
+              { name: 'id', type: named(SYS.guid) },
+            ],
+          },
+        )
+        .method('M:Sales.Orders.Order#.ctor(Sales.Orders.Pricing)', {
+          methodKind: 'constructor',
+          origin: 'generated',
+          parameters: [
+            { name: 'pricing', type: named('T:Sales.Orders.Pricing') },
+          ],
+        }),
+    ]);
+    expect<unknown>(collaboratorsOf(model, ORDER)).toEqual([
+      ['Orders', 'building_block|Sales.Orders.IOrders'],
+      ['pricing', 'building_block|Sales.Orders.Pricing'],
+    ]);
+    expect<unknown>(stateOf(model, ORDER)).toEqual([]);
+    expect<unknown>(messages({ model, diagnostics })).toEqual([]);
+  });
 });
 
 /* ========================================================== 6 modules */
@@ -1473,9 +1617,9 @@ describe('7. resolving a type reference', () => {
         named('T:Shared.IRepository`1', named('T:Sales.Order')),
       );
     const { model } = buildFrom([shared, sales]);
-    expect<unknown>(stateTypesOf(model, 'building_block|Sales.Order')).toEqual([
-      ['Repo', 'building_block|Shared.IRepository'],
-    ]);
+    expect<unknown>(
+      collaboratorsOf(model, 'building_block|Sales.Order'),
+    ).toEqual([['Repo', 'building_block|Shared.IRepository']]);
   });
 
   it('R7.5 resolves a type parameter through its one resolving constraint; two, none or a cycle give nothing', () => {
@@ -1688,45 +1832,7 @@ describe('9. behaviors', () => {
     expect<unknown>(model.behaviors[0]?.source.line).toBe(5);
   });
 
-  it("R9.4 types a behavior by TriggeredBy on its own or an implemented member's annotation; a Command without one", () => {
-    const { model } = buildFrom([
-      sales()
-        .type('T:Sales.Orders.IHandler', {
-          kind: 'interface',
-          annotations: [domainService()],
-        })
-        .method('M:Sales.Orders.IHandler#Handle()', {
-          annotations: [entryPoint('Event')],
-        })
-        .method('M:Sales.Orders.Order#Total()', {
-          returns: prim('decimal'),
-          annotations: [entryPoint('Query')],
-        })
-        .method('M:Sales.Orders.Order#Place()', {
-          annotations: [entryPoint('Command')],
-        })
-        .method('M:Sales.Orders.Order#Handle()', {
-          implementsMember: ['M:Sales.Orders.IHandler#Handle()'],
-        })
-        .method('M:Sales.Orders.Order#Unspecified()', {
-          returns: prim('decimal'),
-          annotations: [entryPoint('Unspecified')],
-        })
-        .method('M:Sales.Orders.Order#GetTotal()', {
-          returns: prim('decimal'),
-        }),
-    ]);
-    expect<unknown>(model.behaviors.map((b) => [b.name, b.type])).toEqual([
-      ['Handle', 'Event'],
-      ['GetTotal', 'Command'],
-      ['Handle', 'Event'],
-      ['Place', 'Command'],
-      ['Total', 'Query'],
-      ['Unspecified', 'Command'],
-    ]);
-  });
-
-  it('R9.4 takes the type a Java handler annotation fixes itself, which carries no argument', () => {
+  it('R9.4 gives a behavior no type: a handler annotation only marks it', () => {
     const { model } = buildFrom(
       [
         artifact('shop')
@@ -1743,19 +1849,17 @@ describe('9. behaviors', () => {
           .method('M:com.acme.Orders#onPlaced()', {
             annotations: [javaAnnotation('EventHandler')],
             visibility: 'namespace',
-          })
-          .method('M:com.acme.Orders#list()', { returns: prim('long') }),
+          }),
       ],
       {},
       JAVA_VOCABULARY,
     );
     expect<unknown>(
-      model.behaviors.map((b) => [b.name, b.type, b.visibility.kind]),
+      model.behaviors.map((b) => [b.name, b.visibility.kind, 'type' in b]),
     ).toEqual([
-      ['list', 'Command', 'public'],
-      ['onPlaced', 'Event', 'private'],
-      ['place', 'Command', 'public'],
-      ['total', 'Query', 'public'],
+      ['onPlaced', 'private', false],
+      ['place', 'public', false],
+      ['total', 'public', false],
     ]);
   });
 

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import {
+  BuildingBlockType,
+  isCollaboratorType,
   PrimitiveId,
   RULE_TYPES_OF,
   Relation,
@@ -35,7 +37,6 @@ const block = {
 const behavior = {
   id: PLACE,
   name: 'place',
-  type: 'Command',
   visibility: { kind: 'public', actors: ['Customer'] },
   source: { path: 'src/sales/orders/order.ts', line: 30 },
 };
@@ -162,13 +163,54 @@ describe('A scanned building block', () => {
     expect(isValid(withBlock({ type: undefined }))).toBe(false);
     expect(isValid(withBlock({ type: 'controller' }))).toBe(false);
   });
+
+  it('may be a message, an adapter on either side, or a technical service', () => {
+    for (const type of [
+      'event',
+      'command',
+      'query',
+      'in_adapter',
+      'out_adapter',
+      'technical_service',
+    ])
+      expect(isValid(withBlock({ type }))).toBe(true);
+  });
+});
+
+describe('A building block kind', () => {
+  it('is held as state when it is a value of the domain, as a collaborator otherwise', () => {
+    const state = [
+      'aggregate',
+      'entity',
+      'value_object',
+      'event',
+      'command',
+      'query',
+    ];
+    const collaborators = BuildingBlockType.options.filter(
+      (type) => !state.includes(type),
+    );
+
+    for (const type of state)
+      expect(isCollaboratorType(type as BuildingBlockType)).toBe(false);
+    expect(collaborators).toEqual([
+      'domain_service',
+      'application_service',
+      'repository',
+      'factory',
+      'external_integration',
+      'in_adapter',
+      'out_adapter',
+      'technical_service',
+    ]);
+    for (const type of collaborators)
+      expect(isCollaboratorType(type)).toBe(true);
+  });
 });
 
 describe('A scanned behavior', () => {
-  it('is always classified as a command, an event or a query', () => {
-    expect(isValid(withBehavior({ type: 'Query' }))).toBe(true);
-    expect(isValid(withBehavior({ type: undefined }))).toBe(false);
-    expect(isValid(withBehavior({ type: 'Request' }))).toBe(false);
+  it('has no type: what kind of message it handles is not its own', () => {
+    expect(isValid(withBehavior({ type: 'Command' }))).toBe(false);
   });
 
   it('says nothing about a public behavior beyond the actors it names', () => {
@@ -218,6 +260,12 @@ describe('A relation', () => {
     cardinality: '1',
   };
   const invokes = { kind: 'invokes', from: CANCEL, to: PLACE, order: 1 };
+  const collaborator = {
+    kind: 'has_collaborator',
+    from: ORDER,
+    to: 'building_block|sales.orders.Orders',
+    name: 'orders',
+  };
 
   it('is one of the known kinds, between elements of the kinds it allows', () => {
     expect(
@@ -227,6 +275,7 @@ describe('A relation', () => {
           { kind: 'contains', from: 'module|sales', to: ORDERS },
           { kind: 'extends', from: ORDER, to: 'building_block|sales.Base' },
           state,
+          collaborator,
           { kind: 'exposes', from: ORDER, to: PLACE },
           input,
           output,
@@ -246,6 +295,12 @@ describe('A relation', () => {
       isValid(withRelations([{ kind: 'exposes', from: ORDERS, to: PLACE }])),
     ).toBe(false);
     expect(isValid(withRelations([{ ...invokes, to: ORDER }]))).toBe(false);
+    expect(
+      isValid(withRelations([{ ...collaborator, to: 'primitive|string' }])),
+    ).toBe(false);
+    expect(isValid(withRelations([{ ...collaborator, from: PLACE }]))).toBe(
+      false,
+    );
   });
 
   it('carries only what the diagram puts on the edge: a name, a cardinality, an order', () => {
@@ -257,6 +312,9 @@ describe('A relation', () => {
     expect(isValid(withRelations([{ ...invokes, cardinality: '1' }]))).toBe(
       false,
     );
+    expect(
+      isValid(withRelations([{ ...collaborator, cardinality: '1' }])),
+    ).toBe(false);
   });
 
   it('types a slot by a building block or a primitive, never by a wrapper', () => {
@@ -287,8 +345,11 @@ describe('A relation', () => {
     expect(isValid(withRelations([{ ...state, optional: true }]))).toBe(false);
   });
 
-  it('names a piece of state and an input, never an output', () => {
+  it('names a piece of state, a collaborator and an input, never an output', () => {
     expect(isValid(withRelations([{ ...state, name: undefined }]))).toBe(false);
+    expect(isValid(withRelations([{ ...collaborator, name: undefined }]))).toBe(
+      false,
+    );
     expect(isValid(withRelations([{ ...input, name: undefined }]))).toBe(false);
     expect(isValid(withRelations([{ ...state, name: 'a.b' }]))).toBe(false);
   });
@@ -305,6 +366,9 @@ describe('A relation', () => {
     expect(Relation.keyOf(contains)).toBe(Relation.keyOf({ ...contains }));
     expect(Relation.keyOf(state)).toBe(
       Relation.keyOf({ ...state, to: 'primitive|integer' }),
+    );
+    expect(Relation.keyOf(collaborator)).toBe(
+      Relation.keyOf({ ...collaborator, to: 'building_block|sales.Archive' }),
     );
     expect(Relation.keyOf(state)).not.toBe(
       Relation.keyOf({ ...state, name: 'count' }),

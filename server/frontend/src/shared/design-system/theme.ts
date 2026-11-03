@@ -220,7 +220,8 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * dashes when the edges run — a dash and a gap in pixels of the line, and
  * the seconds they take to move one length along. What an element holds as
  * state reads as a dependency resting: a soft blue in short dots drifting
- * slowly; what a behavior takes as input, teal, and gives back as output,
+ * slowly; what it works with as a dependency held: pink in medium dashes,
+ * drifting as slowly; what a behavior takes as input, teal, and gives back as output,
  * orange, in the same short dots, the two sides of a signature told apart
  * by colour alone; what it extends as a kinship standing: a grey in longer
  * dashes, slower still; what it invokes as a call going: violet in long
@@ -228,13 +229,20 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * arrow's shape is the canvas's to draw (EDGE_ARROW in relation-colors.ts).
  */
 function relationEdges({
-  colors: { brand, gray, violet, teal, orange },
+  colors: { brand, gray, violet, teal, orange, pink },
 }: MantineThemeOf) {
   return {
     state: {
       line: { light: brand[4], dark: '#5a7aa3' },
       word: { light: brand[9], dark: brand[2] },
       dash: 3,
+      gap: 4,
+      seconds: 0.7,
+    },
+    collaborator: {
+      line: { light: pink[5], dark: pink[4] },
+      word: { light: pink[8], dark: pink[2] },
+      dash: 6,
       gap: 4,
       seconds: 0.7,
     },

@@ -6,7 +6,7 @@ import {
   ModuleId,
 } from '#backend/app/element-id';
 import {
-  type BehaviorType,
+  isCollaboratorType,
   Relation,
   type ScannedBehavior,
   type ScannedBuildingBlock,
@@ -28,7 +28,13 @@ import type {
   TypeNode,
   TypeRef,
 } from '../code-parsers/code-model';
-import { enumArgument, hasRole, rolesOf, stringArgument } from './annotations';
+import {
+  enumArgument,
+  hasRole,
+  type RoleOf,
+  rolesOf,
+  stringArgument,
+} from './annotations';
 import {
   CodeModelIndex,
   type GlobalId,
@@ -175,7 +181,7 @@ class ModelAssembly {
         const block = this.blockOf(
           artifact,
           node,
-          first.role.type,
+          this.blockTypeOf(first),
           first.annotation,
         );
         if (block === null) continue;
@@ -190,6 +196,22 @@ class ModelAssembly {
         this.blocks.set(globalId(artifact, node.id), block);
       }
     }
+  }
+
+  /** R4.1: the role's kind, or the one its direction argument picks. */
+  private blockTypeOf({
+    annotation,
+    role,
+  }: RoleOf<'buildingBlock'>): Block['type'] {
+    if (role.byDirection === undefined) return role.type;
+    const direction = enumArgument(
+      annotation,
+      this.vocabulary.arguments.direction,
+    );
+    return (
+      (direction === null ? undefined : role.byDirection[direction]) ??
+      role.type
+    );
   }
 
   private blockOf(
@@ -253,7 +275,7 @@ class ModelAssembly {
     );
   }
 
-  /** The block's element, and its `contains`, `extends` and `has_state` relations. */
+  /** The block's element, and its `contains`, `extends`, `has_state` and `has_collaborator` relations. */
   private toBuildingBlock(block: Block): ScannedBuildingBlock {
     const { artifact, node } = block;
     this.relations.push({
@@ -331,12 +353,18 @@ class ModelAssembly {
 
   /* ------------------------------------------------------------- state */
 
-  /** R5.1 to R5.8: one `has_state` per public instance property or field, and Java's fields behind getters. */
+  /**
+   * R5.1 to R5.8: one slot per public instance property or field, and
+   * Java's fields behind getters: `has_collaborator` when its type is a
+   * block of a collaborator kind, `has_state` otherwise; then R5.9: one
+   * `has_collaborator` per constructor parameter of a collaborator kind no
+   * member named already.
+   */
   private collectState(block: Block): void {
     const { artifact, node } = block;
     const getters = this.gettersOf(block);
-    const candidates = artifact
-      .children(node.id)
+    const members = artifact.children(node.id);
+    const candidates = members
       .filter(
         (member): member is PropertyNode | FieldNode =>
           (member.kind === 'property' || member.kind === 'field') &&
@@ -355,6 +383,7 @@ class ModelAssembly {
         byName.set(key, member);
       }
     }
+    const named = new Set<ElementName>();
     for (const member of byName.values()) {
       const resolved = resolveTypeRef(
         member.type,
@@ -369,14 +398,88 @@ class ModelAssembly {
       }
       const name = ElementName.safeParse(member.name);
       if (!name.success) continue;
-      this.relations.push({
-        kind: 'has_state',
-        from: block.id,
-        to: resolved.ref,
-        name: name.data,
-        cardinality: resolved.cardinality,
-      });
+      named.add(name.data);
+      const collaborator = this.collaboratorOf(resolved.ref);
+      this.relations.push(
+        collaborator === null
+          ? {
+              kind: 'has_state',
+              from: block.id,
+              to: resolved.ref,
+              name: name.data,
+              cardinality: resolved.cardinality,
+            }
+          : {
+              kind: 'has_collaborator',
+              from: block.id,
+              to: collaborator,
+              name: name.data,
+            },
+      );
     }
+    this.collectInjected(block, members, named);
+  }
+
+  /**
+   * R5.9: what a block is handed as it is made, its constructors read in
+   * declaration order: each parameter typed by a block of a collaborator
+   * kind, by the parameter's name, once. A parameter of any other type says
+   * nothing a member does not, so it is passed over without a word.
+   */
+  private collectInjected(
+    block: Block,
+    members: readonly DeclarationNode[],
+    named: Set<ElementName>,
+  ): void {
+    const constructors = members
+      .filter(
+        (member): member is MethodNode =>
+          member.kind === 'method' &&
+          member.methodKind === 'constructor' &&
+          !this.excluded(member.annotations),
+      )
+      .sort(byLocationThenName);
+    const scope: ResolutionScope = {
+      vocabulary: this.vocabulary,
+      index: this.index,
+      from: block.artifact,
+      blockOf: (artifact, typeId) => this.blockIdOf(artifact, typeId),
+    };
+    for (const constructor of constructors) {
+      for (const parameter of constructor.signature.parameters) {
+        const name = ElementName.safeParse(parameter.name);
+        if (!name.success || named.has(name.data)) continue;
+        const resolved = resolveTypeRef(parameter.type, scope);
+        const collaborator =
+          resolved === null ? null : this.collaboratorOf(resolved.ref);
+        if (collaborator === null) continue;
+        named.add(name.data);
+        this.relations.push({
+          kind: 'has_collaborator',
+          from: block.id,
+          to: collaborator,
+          name: name.data,
+        });
+      }
+    }
+  }
+
+  /** The block `ref` names when its kind makes it a collaborator (decision 11); null for state. */
+  private collaboratorOf(ref: string): BuildingBlockId | null {
+    const type = this.blockTypes().get(ref);
+    return type !== undefined && isCollaboratorType(type)
+      ? (ref as BuildingBlockId)
+      : null;
+  }
+
+  private blockTypesById: Map<string, Block['type']> | null = null;
+
+  /** Every block's kind by its id, once the blocks are known. */
+  private blockTypes(): ReadonlyMap<string, Block['type']> {
+    this.blockTypesById ??= new Map(
+      [...this.blocks.values()].map((block) => [block.id, block.type]),
+    );
+    return this.blockTypesById;
   }
 
   /**
@@ -592,7 +695,6 @@ class ModelAssembly {
     return {
       id: behavior.id,
       name: behavior.name,
-      type: this.behaviorTypeOf(hierarchy),
       description:
         this.descriptionOf(chosen.node) ??
         behavior.overloads
@@ -649,33 +751,6 @@ class ModelAssembly {
         cardinality: returned.cardinality,
       });
     }
-  }
-
-  /** R9.4: `TriggeredBy` of a behavior role, or the type the role itself fixes, nearest member first; a Command without one. */
-  private behaviorTypeOf(
-    hierarchy: readonly Located<MethodNode>[],
-  ): BehaviorType {
-    for (const member of hierarchy) {
-      for (const { annotation, role } of rolesOf(
-        member.node.annotations,
-        'behavior',
-        this.vocabulary,
-      )) {
-        const triggeredBy = enumArgument(
-          annotation,
-          this.vocabulary.arguments.triggeredBy,
-        );
-        if (
-          triggeredBy === 'Command' ||
-          triggeredBy === 'Query' ||
-          triggeredBy === 'Event'
-        ) {
-          return triggeredBy;
-        }
-        if (role.type !== undefined) return role.type;
-      }
-    }
-    return 'Command';
   }
 
   /** R9.5: the actor roles on the method, the members it stands in for, and its type. */

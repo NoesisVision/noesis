@@ -94,11 +94,9 @@ describe('ArchitectureView', () => {
   });
 
   it('draws a card for every port, named by what it is', () => {
+    expect(page).toMatch(/aria-label="createQDoc, driving port, added"/);
     expect(page).toMatch(
-      /aria-label="createQDoc, driving port, Command, added"/,
-    );
-    expect(page).toMatch(
-      /aria-label="notifyUsers, driving port, Command, added, 1 note"/,
+      /aria-label="notifyUsers, driving port, added, 1 note"/,
     );
     expect(page).toContain('aria-label="Another subsystem, unknown caller"');
   });

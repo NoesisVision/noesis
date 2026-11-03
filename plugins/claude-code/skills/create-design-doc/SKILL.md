@@ -76,7 +76,7 @@ rules, scenarios. Read it at step 5.
      system model already uses, verbatim.
    - **Building blocks and behaviors**, with their types, and the
      **relations** between them: a block's state (`has_state`), what it
-     extends (`extends`), a behavior's inputs (`has_input`) and output
+     works with (`has_collaborator`), what it extends (`extends`), a behavior's inputs (`has_input`) and output
      (`has_output`), and what calls what (`invokes`). Take ready solutions
      from the sources, diagrams especially.
    - **Rules**, one per requirement statement, each with its category and
@@ -121,12 +121,17 @@ rules, scenarios. Read it at step 5.
    is added; a `modified` building block lists only the rules and
    scenarios that change. Relations are one list, `relations`, beside the
    elements, each `{ "kind", "from", "to", … }`: `has_state` (a block's
-   field: `name`, `to` and `cardinality` are fields), `has_input` (a
+   field: `name`, `to` and `cardinality` are fields), `has_collaborator`
+   (a block it works with: `name`, and `to` a field; no cardinality),
+   `has_input` (a
    behavior's parameter, the same way, plus `position`, a field: where it
    stands in the signature, counting from 1), `has_output` (a behavior's result:
    `to` is its key, `cardinality` a field), `extends`, `exposes`,
-   `contains` and `invokes` (`order` a field). A `has_state` or `has_input`
-   is known by its holder and `name`, so its type may change in place; a
+   `contains` and `invokes` (`order` a field). The kind of the block a
+   slot points at picks the relation: a primitive or a value of the domain
+   (`aggregate`, `entity`, `value_object`, `command`, `query`, `event`) is
+   `has_state`, any other block `has_collaborator`. A `has_state`,
+   `has_collaborator` or `has_input` is known by its holder and `name`, so its type may change in place; a
    `has_output` is known by its `to`, so an output of another type is one
    removed and one added; `extends` has nothing to modify. `cardinality`
    is `1`, `0..1`, `0..*` or `1..*`: a collection and an optional value are
@@ -152,7 +157,7 @@ rules, scenarios. Read it at step 5.
    `{ "value": … }` and never with `author`: you are the agent. Leave out a
    change set with nothing in it.
    Before saving, check that every end of a relation — the `to` of a
-   `has_state`, `has_input` or `has_output`, both ends of an `extends` or
+   `has_state`, `has_collaborator`, `has_input` or `has_output`, both ends of an `extends` or
    an `invokes` — names a building block or behavior this design adds, one
    the system model has, or a primitive, that
    nothing refers to an id the design removes, that every rule's `needs`

@@ -101,6 +101,8 @@ beforeEach(async () => {
 
 afterEach(() => t.cleanup());
 
+const ids = (items: readonly { id: string }[]) => items.map((item) => item.id);
+
 describe('The java parser configured in .noesis/settings.json', () => {
   it('runs the configured command from the repository root with the placeholders filled', async () => {
     await configure(
@@ -142,8 +144,8 @@ describe('The java parser configured in .noesis/settings.json', () => {
     expect<unknown>(
       model.buildingBlocks.map((b) => [b.id, b.type]),
     ).toContainEqual(['building_block|shop.orders.Order', 'aggregate']);
-    expect<unknown>(model.behaviors.find((b) => b.name === 'total')?.type).toBe(
-      'Query',
+    expect<unknown>(ids(model.behaviors)).toContain(
+      'behavior|shop.orders.Order.total',
     );
   });
 

@@ -207,7 +207,7 @@
         },
         "type": {
           "changed": true,
-          "value": "value_object",
+          "value": "event",
           "author": "agent"
         },
         "definition": {
@@ -299,11 +299,6 @@
           "value": "issue",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "human"
-        },
         "definition": {
           "changed": true,
           "value": "Issues a refund for the chosen lines of an order.",
@@ -371,9 +366,6 @@
       {
         "id": "behavior|sales.orders.Order.cancel",
         "name": {
-          "changed": false
-        },
-        "type": {
           "changed": false
         },
         "definition": {

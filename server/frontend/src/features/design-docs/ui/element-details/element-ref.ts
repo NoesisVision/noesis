@@ -15,7 +15,7 @@ export type ElementRef =
   | { collection: 'modules' | 'buildingBlocks' | 'behaviors'; id: string }
   | {
       owner: OwnerRef;
-      part: 'properties' | 'rules' | 'scenarios';
+      part: 'properties' | 'collaborators' | 'rules' | 'scenarios';
       name: string;
       /** The rule a scenario belongs to, when it is one of a rule's own. */
       rule?: string;

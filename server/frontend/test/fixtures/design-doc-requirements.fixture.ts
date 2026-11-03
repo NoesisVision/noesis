@@ -106,7 +106,6 @@ export const requirementsFixture = {
     added: [
       {
         id: 'behavior|sales.refunds.Refund.issue',
-        type: agent('Command'),
         definition: agent('How a refund is issued.'),
         rules: {
           added: [

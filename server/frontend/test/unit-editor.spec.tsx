@@ -149,11 +149,9 @@ describe('the fields of a unit', () => {
     expect(html).toContain('value="Aggregate"');
   });
 
-  it("choose a behavior's kind from chips, and a block's pattern from a list", () => {
+  it("choose a block's pattern from a list, and give a behavior none", () => {
     const behavior = render(<Fields kind="behavior" id={null} />);
-    expect(behavior).toMatch(/role="radiogroup" aria-label="Type"/);
-    for (const kind of ['Command', 'Event', 'Query'])
-      expect(behavior).toContain(`<span>${kind}</span>`);
+    expect(behavior).not.toMatch(/aria-label="Type"/);
     expect(render(<Fields kind="building_block" id={null} />)).toMatch(
       /role="combobox"[^>]*>|aria-label="Type"[^>]*role="combobox"/,
     );
@@ -191,6 +189,19 @@ describe('the fields of a part', () => {
     expect(html).toMatch(/aria-label="Type"/);
     expect(html).toMatch(/aria-label="How many"/);
     expect(html).not.toContain('A collection of it');
+  });
+
+  it('name a collaborator and the block it works with, with no count', () => {
+    const html = render(
+      <Fields
+        kind="collaborator"
+        id={null}
+        owner={{ kind: 'building_block', id: BLOCK }}
+      />,
+    );
+    expect(html).toMatch(/aria-label="Name"/);
+    expect(html).toMatch(/aria-label="Works with"/);
+    expect(html).not.toMatch(/aria-label="How many"/);
   });
 
   it('starts a new scenario at given, when and then, each a step to switch, remove or add one after', () => {

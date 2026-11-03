@@ -10,8 +10,9 @@ classes:
 - a **message** is a type annotated `@Command`, `@Query` or `@Event`;
 - a **behavior** is a public, non-synthetic method of a building block.
   An application service's behavior also carries `@CommandHandler`,
-  `@QueryHandler` or `@EventHandler` after the behavior's type; no other
-  building block's does.
+  `@QueryHandler` or `@EventHandler` after the kind of message it takes;
+  no other building block's does. A behavior has no type of its own: the
+  annotation only marks it.
 
 An application service's behavior handles each message of its own kind it
 takes as a parameter (an `@EventHandler` handles an event, not a command).
@@ -72,32 +73,38 @@ type `QDoc` in the package of `module|qdocmanagement.preparation`, in
 block's name, verbatim. The design document's `type` picks the shape and
 the annotation:
 
-| `type`                 | Java shape                                                         | Annotation                                  |
-| ---------------------- | ------------------------------------------------------------------ | ------------------------------------------- |
-| `aggregate`            | `public final class`, the aggregate root                           | `@AggregateRoot`                            |
-| `entity`               | `final class`, package-private when only its aggregate uses it     | `@DomainEntity`                             |
-| `value_object`         | `public record`; an `enum` for a closed set of values (below)      | `@ValueObject`, or one of the three below   |
-| — an identifier        | `public record` with one component                                 | `@Identifier`                               |
-| — a command or a query | `public record`                                                    | `@Command` or `@Query`                      |
-| — an event             | `public record`                                                    | `@Event`                                    |
-| `domain_service`       | `public final class`, or a `@FunctionalInterface` for one decision | `@DomainService`                            |
-| `application_service`  | `public class` with constructor-injected collaborators             | `@ApplicationService`                       |
-| `repository`           | `public interface`                                                 | `@Repository`                               |
-| `factory`              | `public final class`                                               | `@Factory`                                  |
-| `external_integration` | `public interface`, the port; never its implementation             | `@ExternalIntegration(Direction.SECONDARY)` |
+| `type`                 | Java shape                                                          | Annotation                                  |
+| ---------------------- | ------------------------------------------------------------------- | ------------------------------------------- |
+| `aggregate`            | `public final class`, the aggregate root                            | `@AggregateRoot`                            |
+| `entity`               | `final class`, package-private when only its aggregate uses it      | `@DomainEntity`                             |
+| `value_object`         | `public record`; an `enum` for a closed set of values (below)       | `@ValueObject`, or `@Identifier` (below)    |
+| — an identifier        | `public record` with one component                                  | `@Identifier`                               |
+| `command`              | `public record`                                                     | `@Command`                                  |
+| `query`                | `public record`                                                     | `@Query`                                    |
+| `event`                | `public record`                                                     | `@Event`                                    |
+| `domain_service`       | `public final class`, or a `@FunctionalInterface` for one decision  | `@DomainService`                            |
+| `application_service`  | `public class` with constructor-injected collaborators              | `@ApplicationService`                       |
+| `repository`           | `public interface`                                                  | `@Repository`                               |
+| `factory`              | `public final class`                                                | `@Factory`                                  |
+| `external_integration` | `public interface`, the port; never its implementation              | `@ExternalIntegration(Direction.SECONDARY)` |
+| `in_adapter`           | `public class` that calls application services                      | `@Adapter(Direction.PRIMARY)`               |
+| `out_adapter`          | `public class` implementing the port it stands behind               | `@Adapter(Direction.SECONDARY)`             |
+| `technical_service`    | `public interface`, or `java.time.Clock` and the like when one fits | none yet: report it                         |
 
-A design document types messages and identifiers as `value_object`. Tell
-them apart by their definition and their use:
+A design document written before it could type messages types them as
+`value_object`; one written since types them `command`, `query` or
+`event`. Tell an older document's apart by their definition and their use:
 
 - **Identifier**: the type of an `id` property, or named `<Something>Id`
   with a single `value` property (`QDocId`, `UserId`).
 - **Command**: the definition calls it a command or a request to change
-  something, it is named in the imperative, and a `Command` behavior takes
-  it as input (`CreateQDoc`).
-- **Query**: a request to read, taken as input by a `Query` behavior.
+  something, it is named in the imperative, and a behavior takes it as
+  input to change state (`CreateQDoc`).
+- **Query**: a request to read, taken as input by a behavior that only
+  reads.
 - **Event**: the definition calls it an event or says what happened, it is
-  named in the past tense, and a behavior outputs it or an `Event`
-  behavior takes it as input (`QDocCreated`).
+  named in the past tense, and a behavior outputs it or reacts to it
+  (`QDocCreated`).
 - **Enum**: a value object with one `value` property whose `Structure`
   rule names a closed set of values ("takes exactly one of two values:
   active, archived") is an `enum` with one constant per value, in upper
@@ -131,6 +138,11 @@ them in the dominant language of the design document; do not translate.
 Each `has_state` relation from a block is a record component or a
 `private final` field (a plain `private` field when a behavior changes it),
 named exactly as the relation's `name` and typed by its `to`.
+
+Each `has_collaborator` relation from a block is a `private final` field
+typed by its `to`, handed in through the constructor under the relation's
+`name`: the scanner reads a collaborator from the constructor's parameter
+of that name.
 
 | Design document `to`  | Java type                                                            |
 | --------------------- | -------------------------------------------------------------------- |
@@ -177,12 +189,13 @@ method `create` of the type `QDoc`.
   block creates it, so it is a `public static` factory method
   (`Version.createFirst(...)` returns a `Version`). Every other behavior
   is an instance method.
-- **Type**: a `Command` changes state, a `Query` only reads, and an
-  `Event` reacts to an event, which it takes as its parameter. On an
-  application service, the method carries the matching handler annotation,
-  `@CommandHandler`, `@QueryHandler` or `@EventHandler`, and every overload
-  of the behavior carries the same one. On any other building block the
-  type shapes the method but has no annotation.
+- **Handler**: on an application service, the method carries the handler
+  annotation of the message it takes — `@CommandHandler` for a `command`,
+  `@QueryHandler` for a `query`, `@EventHandler` for an `event` — and
+  every overload of the behavior carries the same one; one that takes no
+  message is a `@CommandHandler` when it changes state, a `@QueryHandler`
+  when it only reads. On any other building block the method has no
+  handler annotation.
 - **Interfaces**: on a repository or an external integration, the
   behavior is an abstract method, unannotated; no implementation is in
   scope.
@@ -247,7 +260,8 @@ not domain code. Leave it to the adapters and report it.
 - **Modified**: only the fields with `"changed": true` change. A new
   definition replaces the Javadoc; a rule or scenario is added, changed or
   removed in the code and its tests; so is a relation — a field for a
-  `has_state`, a parameter for a `has_input`, a return type for a
+  `has_state`, a constructor-injected field for a `has_collaborator`, a
+  parameter for a `has_input`, a return type for a
   `has_output`, an interface for an `extends`. A changed `extends` is one
   relation removed and one added.
 - **Removed**: delete the type or the method, every use of it, and the

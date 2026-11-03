@@ -61,10 +61,13 @@ For a new one:
   Equal by identity; its behaviors change state and guard invariants.
 - `value_object`: a concept without identity. Immutable, validated on
   creation, rich in meaning (calculations, formatting) rather than a bag of
-  primitives. Messages are value objects too: an event records something
-  meaningful that happened, is named in the past tense and carries the
-  minimum its subscribers need; a command is a request to change the
-  domain, named in the imperative; a query is a request to read it.
+  primitives.
+- `command`: a message asking to change the domain, named in the
+  imperative (`CreateQDoc`).
+- `query`: a message asking to read it (`FindOpenOrders`).
+- `event`: a message recording something meaningful that happened, named
+  in the past tense and carrying the minimum its subscribers need
+  (`QDocCreated`).
 - `domain_service`: a stateless operation that fits no entity or value
   object. Takes and returns domain concepts; owns no state.
 - `application_service`: orchestrates use cases — calls aggregates, domain
@@ -74,8 +77,29 @@ For a new one:
   aggregates, whole. Methods say intent (`findActiveOrdersFor`).
 - `factory`: creation too complex for a constructor. Returns fully valid
   objects.
-- `external_integration`: a port to another system, or the adapter that
-  implements one.
+- `external_integration`: a port to another system.
+- `in_adapter`: what drives the system from outside — a controller, a
+  listener, a scheduled job — and calls its application services.
+- `out_adapter`: what the system drives something outside through — the
+  implementation behind a repository or an external integration.
+- `technical_service`: a technical capability the domain does not name —
+  a clock, an id generator, a mailer's transport.
+
+### State and collaborators
+
+What a block holds is one of two relations, decided by the kind of the
+block it points at, never by how the code spells it:
+
+- `has_state`: a primitive, or a block that is a value of the domain — an
+  `aggregate`, `entity`, `value_object`, `command`, `query` or `event` —
+  with a `cardinality`.
+- `has_collaborator`: a block it works with — any other kind: a
+  repository, a service, a factory, an integration, an adapter — by the
+  name it holds it under, with no cardinality. A service's collaborators
+  are usually what its constructor is handed.
+
+The service refuses a `has_state` to a collaborator kind and a
+`has_collaborator` to a value of the domain (`slotOutsideTypeKind`).
 
 ### Interchangeable building blocks
 
@@ -98,11 +122,13 @@ Decide what a table stands for before modelling its rows:
 
 ## Behaviors
 
-- `Command` changes state, `Query` reads it, `Event` reacts to something
-  that happened.
+- A behavior has no type of its own: what kind of message it handles is
+  the kind of the block it takes (`has_input` a `command`, a `query` or an
+  `event`).
 - A use case is a public behavior: an action triggered from outside its
   module by a command, event or query. Group cohesive use cases as the
-  behaviors of one `application_service`; do not give every use case a
+  behaviors of one `application_service` (or of an `in_adapter`, when the
+  design shows the edge that receives them); do not give every use case a
   service of its own.
 - Everything else is private.
 - Inputs and outputs are building blocks or primitives. Prefer the value

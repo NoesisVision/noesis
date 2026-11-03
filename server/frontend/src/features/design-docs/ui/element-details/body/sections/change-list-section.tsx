@@ -1,4 +1,9 @@
-import { IconBraces, IconLink, IconScale } from '@tabler/icons-react';
+import {
+  IconArrowsLeftRight,
+  IconBraces,
+  IconLink,
+  IconScale,
+} from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import type { OutlineKind } from '#/features/design-docs/ui/model-tree/model-outline.ts';
@@ -27,7 +32,7 @@ interface ChangeListSectionProps {
 }
 
 /**
- * What the design does to one list an element keeps — its properties, rules
+ * What the design does to one list an element keeps — its properties, collaborators, rules
  * and scenarios, a behavior's input and output — one line each, coloured by the change. A line whose row is in the tree opens it, as
  * a click on the row itself would. Properties read as tiles and rules as
  * cards, each with what the design says about it.
@@ -69,6 +74,9 @@ export function ChangeListSection({
     >
       {kind === 'property' ? (
         <PropertyGrid items={sorted} owner={owner} />
+      ) : kind === 'collaborator' ? (
+        // Read, not written: a collaborator has no form of its own yet.
+        <PropertyGrid items={sorted} />
       ) : kind === 'rule' ? (
         <Stack gap={10}>
           {writable !== null && owner !== null && (
@@ -126,6 +134,7 @@ export function ChangeListSection({
 /** The design's own marks for the lists it draws its own way; the kind's icon for the rest. */
 const SECTION_ICONS: Partial<Record<OutlineKind, ReactNode>> = {
   property: <IconBraces />,
+  collaborator: <IconArrowsLeftRight />,
   rule: <IconScale />,
 };
 

@@ -9,7 +9,6 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BehaviorType,
   BuildingBlockType,
   RuleCategory,
   RuleType,
@@ -33,6 +32,7 @@ import {
   parentOf,
 } from './element-id.ts';
 import {
+  type DesignedCollaboratorInput,
   type DesignedExtendsInput,
   type DesignedInputInput,
   type DesignedOutputInput,
@@ -53,8 +53,8 @@ import {
  *
  * Every unit lives in a change set somewhere in the document — a need or an
  * element at the top, a rule inside the element that owns it, a rule's own
- * scenario inside that rule, and a property, an input, an output or an
- * extended type among the relations, from the element that owns it — and
+ * scenario inside that rule, and a property, a collaborator, an input, an
+ * output or an extended type among the relations, from the element that owns it — and
  * every operation is the same wherever it is, once it has found that set.
  */
 
@@ -89,6 +89,7 @@ interface UnitOf {
   rule: DesignedRuleInput;
   scenario: DesignedScenarioInput;
   property: DesignedStateInput;
+  collaborator: DesignedCollaboratorInput;
   parameter: DesignedInputInput;
   result: DesignedOutputInput;
   extends: DesignedExtendsInput;
@@ -103,6 +104,7 @@ export const UNIT_LABEL: Record<UnitKind, string> = {
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',
+  collaborator: 'collaborator',
   parameter: 'input',
   result: 'output',
   extends: 'extended type',
@@ -469,7 +471,6 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
   ],
   behavior: [
     field('name'),
-    field('type'),
     field('visibility'),
     field('definition'),
     field('diagram'),
@@ -484,6 +485,7 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
   ],
   scenario: [key('name'), field('description'), field('steps')],
   property: NAMED_SLOT,
+  collaborator: [key('name'), field('ref', 'to')],
   parameter: NAMED_SLOT,
   result: [key('ref', 'to'), field('cardinality')],
   extends: [key('ref', 'to')],
@@ -500,8 +502,13 @@ export const TYPES_OF: Partial<Record<UnitKind, readonly string[]>> = {
     'repository',
     'factory',
     'external_integration',
+    'in_adapter',
+    'out_adapter',
+    'technical_service',
+    'event',
+    'command',
+    'query',
   ] satisfies BuildingBlockType[],
-  behavior: ['Command', 'Event', 'Query'] satisfies BehaviorType[],
 };
 
 /** The rule types each category allows, as the server's `RULE_TYPES_OF` has them. */
@@ -676,6 +683,8 @@ function relationFromDraft(
       to: id,
       cardinality: written('cardinality', 'cardinality'),
     } as Unit;
+  if (kind === 'collaborator')
+    return { ...relation, name: id, to: written('ref', 'to') } as Unit;
   const slot = {
     ...relation,
     name: id,
@@ -926,6 +935,8 @@ const VIOLATION_MESSAGE: Record<DesignDocViolation['reason'], string> = {
     'Neither this design nor the scanned model has this element.',
   containmentOutsideIdPath:
     "What holds what is in the ids: a 'contains' or 'exposes' joins an element to the one its id names.",
+  slotOutsideTypeKind:
+    'A value of the domain is held as state, any other block as a collaborator.',
 };
 
 export const violationsInWords = (

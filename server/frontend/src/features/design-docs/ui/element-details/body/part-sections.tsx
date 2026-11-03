@@ -5,12 +5,15 @@ import { findById, findByName } from '../../../change-set.ts';
 import { ownerOfPart } from '../../../design-doc-outline.ts';
 import { relationsFrom } from '../../../relations.ts';
 import type { OwnerRef } from '../element-ref.ts';
-import { propertySections } from './property-sections.tsx';
+import {
+  collaboratorSections,
+  propertySections,
+} from './property-sections.tsx';
 import { ruleSections } from './rule-sections.tsx';
 import { scenarioSections } from './scenario-sections.tsx';
 
 /**
- * A property, rule or scenario, found through the element that owns it — and
+ * A property, collaborator, rule or scenario, found through the element that owns it — and
  * a rule's own scenario through that rule as well. A module owns only rules.
  */
 export const partSections = (
@@ -35,6 +38,13 @@ export const partSections = (
       node.name,
     );
     return property ? propertySections(owner, property) : [];
+  }
+  if (node.kind === 'collaborator') {
+    const collaborator = findByName(
+      relationsFrom(doc, 'collaborator', ownerId),
+      node.name,
+    );
+    return collaborator ? collaboratorSections(owner, collaborator) : [];
   }
   const parts = block ?? behavior ?? module;
   if (parts === null) return [];

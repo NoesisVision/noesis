@@ -39,7 +39,6 @@ const behavior = (
   visibility: { kind: 'private' } | { kind: 'public'; actors: string[] },
 ) => ({
   id: `behavior|${address}`,
-  type: agent('Command'),
   visibility: agent<typeof visibility>(visibility),
 });
 
@@ -185,6 +184,70 @@ describe('architectureOf', () => {
       blockIdAt('sales.orders.OrderLine'),
       blockIdAt('sales.billing.Invoice'),
     ]);
+  });
+
+  it('drives a hexagon through an in adapter as through a service, and places the other new kinds in the rings they serve', () => {
+    const { hexagons } = architectureOf({
+      ...clean,
+      buildingBlocks: {
+        added: [
+          block('sales.orders.OrdersController', 'in_adapter'),
+          block('sales.orders.Order', 'aggregate'),
+          block('sales.orders.PlaceOrder', 'command'),
+          block('sales.orders.OrderPlaced', 'event'),
+          block('sales.orders.Mailer', 'out_adapter'),
+          block('sales.orders.Clock', 'technical_service'),
+        ],
+      },
+      behaviors: {
+        added: [
+          behavior('sales.orders.OrdersController.post', {
+            kind: 'public',
+            actors: ['Customer'],
+          }),
+        ],
+      },
+      relations: { added: [] },
+    });
+    const [hexagon] = hexagons;
+    expect(hexagon?.applicationServices.map(({ name }) => name)).toEqual([
+      'OrdersController',
+    ]);
+    expect(hexagon?.drivingPorts.map(({ behavior }) => behavior.name)).toEqual([
+      'post',
+    ]);
+    expect(hexagon?.exposed).toEqual([]);
+    expect(hexagon?.domainCore.map(({ name }) => name)).toEqual([
+      'Order',
+      'PlaceOrder',
+      'OrderPlaced',
+    ]);
+    expect(hexagon?.drivenPorts.map(({ name }) => name)).toEqual([
+      'Mailer',
+      'Clock',
+    ]);
+  });
+
+  it('counts what a block works with in what it uses', () => {
+    const check = checkOf(
+      {
+        ...clean,
+        relations: {
+          added: [
+            ...clean.relations.added,
+            {
+              kind: 'has_collaborator',
+              from: 'building_block|sales.orders.Order',
+              name: 'orders',
+              to: agent('building_block|sales.orders.Orders'),
+            },
+          ],
+        },
+      },
+      'domain-depends-on-no-port',
+    );
+    expect(check?.level).toBe('warning');
+    expect(check?.text).toContain('Order uses Orders');
   });
 
   it('places nothing it cannot: every type here is set', () => {
@@ -545,7 +608,7 @@ describe('a public behavior off an application service', () => {
     const row = architectureTreeOf(outline, new Set()).find(
       ({ path }) => path === `${checkPath(exposing)}/${CANCEL}`,
     );
-    expect(row).toMatchObject({ change: 'added', pattern: 'Command' });
+    expect(row).toMatchObject({ change: 'added', kind: 'behavior' });
   });
 
   it('is found on its building block’s card', () => {

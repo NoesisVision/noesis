@@ -1,6 +1,5 @@
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type {
-  BehaviorType,
   BuildingBlockType,
   SystemModel,
 } from '#backend/app/system-model/system-model.ts';
@@ -10,7 +9,8 @@ import type {
  * behaviors, and the relations the scan holds between them. A module
  * contains the modules and building blocks its id path names; a building
  * block contains its behaviors. A building block has as state the blocks
- * its state is typed with, a behavior has as input the blocks it takes and
+ * its state is typed with, and as collaborators the blocks it works with; a
+ * behavior has as input the blocks it takes and
  * as output those it gives back; a block extends the blocks it extends or
  * implements. A behavior invokes the behaviors the scan found it calls, in
  * the order of the calls — where the scanner records calls; one that does
@@ -24,8 +24,8 @@ export interface ExploredElement {
   id: string;
   kind: ExploredKind;
   name: string;
-  /** The building block's or behavior's type; null for a module. */
-  pattern: BuildingBlockType | BehaviorType | null;
+  /** The building block's type; null for a module or a behavior. */
+  pattern: BuildingBlockType | null;
   /** The element that contains this one, if the model holds it. */
   container: string | null;
 }
@@ -47,6 +47,14 @@ export const DRAWN_RELATIONS = [
     word: 'has state',
     reach: 'hasState',
     back: 'stateOf',
+  },
+  {
+    kind: 'collaborator',
+    model: 'has_collaborator',
+    label: 'Collaborators',
+    word: 'works with',
+    reach: 'hasCollaborator',
+    back: 'collaboratorOf',
   },
   {
     kind: 'input',
@@ -146,7 +154,7 @@ export function explorationOf(model: SystemModel): Exploration {
       id: behavior.id,
       kind: 'behavior' as const,
       name: behavior.name,
-      pattern: behavior.type,
+      pattern: null,
       container: blockOf(behavior.id),
     })),
   ];

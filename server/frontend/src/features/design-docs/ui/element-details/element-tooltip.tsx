@@ -1,4 +1,4 @@
-import { IconBraces } from '@tabler/icons-react';
+import { IconArrowsLeftRight, IconBraces } from '@tabler/icons-react';
 import { clsx } from 'clsx';
 import { cloneElement, type ReactElement, type ReactNode } from 'react';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
@@ -20,6 +20,7 @@ import {
 } from '../../element-id.ts';
 import {
   type ChangeListItem,
+  collaboratorItems,
   parameterItems,
   propertyItems,
   resultItems,
@@ -43,6 +44,7 @@ const ICON_SIZE = 12;
 /** What the design says an element is made of, as the tooltip lists it. */
 interface Shape {
   properties?: Line[];
+  collaborators?: Line[];
   input?: Line[];
   output?: Line[];
   buildingBlocks?: Line[];
@@ -87,14 +89,7 @@ const signatureOf = (
   return {
     key: behavior.id,
     name: `${nameOf(behavior.id)}(${input})`,
-    // A command, a query, an event — as the tree marks it.
-    icon: (
-      <KindIcon
-        kind="behavior"
-        pattern={valueOf(behavior.type)}
-        size={ICON_SIZE}
-      />
-    ),
+    icon: <KindIcon kind="behavior" pattern={null} size={ICON_SIZE} />,
     ...(output === '' ? {} : { type: output }),
   };
 };
@@ -121,8 +116,8 @@ const isEmpty = (shape: Shape) =>
 
 /**
  * The shape the document gives the element at an address, if it gives one:
- * a behavior's input and output, a building block's properties and
- * behaviors, a module's building blocks.
+ * a behavior's input and output, a building block's properties,
+ * collaborators and behaviors, a module's building blocks.
  */
 const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
   const behavior = findById(doc.behaviors, behaviorIdAt(address));
@@ -137,6 +132,10 @@ const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
     properties: lines(propertyItems(doc, blockId)).map((line) => ({
       ...line,
       icon: <IconBraces size={ICON_SIZE} stroke={2} aria-hidden />,
+    })),
+    collaborators: lines(collaboratorItems(doc, blockId)).map((line) => ({
+      ...line,
+      icon: <IconArrowsLeftRight size={ICON_SIZE} stroke={2} aria-hidden />,
     })),
   };
   if (!isEmpty(shape)) return shape;
@@ -221,6 +220,7 @@ function Details({ address, shape }: { address: string; shape: Shape | null }) {
       <Address address={address} />
       <Lines label="Behaviors" lines={shape?.behaviors} />
       <Lines label="Properties" lines={shape?.properties} />
+      <Lines label="Collaborators" lines={shape?.collaborators} />
       <Lines label="Input" lines={shape?.input} />
       <Lines label="Output" lines={shape?.output} />
       <Lines label="Building blocks" lines={shape?.buildingBlocks} />

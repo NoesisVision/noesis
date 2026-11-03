@@ -7,7 +7,6 @@ import type {
   ModuleId,
 } from '#backend/app/element-id.ts';
 import type {
-  BehaviorType,
   BuildingBlockType,
   RuleCategory,
   RuleType,
@@ -33,36 +32,34 @@ export interface Hexagon {
   applicationServices: PlacedBlock[];
   domainCore: PlacedBlock[];
   drivenPorts: PlacedBlock[];
-  /** Public behaviors of any block but an application service: the core reached past its ports. */
+  /** Public behaviors of any block but an application service or an in adapter: the core reached past its ports. */
   exposed: PlacedBehavior[];
 }
 
 interface DrivingPort {
   behavior: PlacedBehavior;
-  /** The application service the behavior is on. */
+  /** The application service or in adapter the behavior is on. */
   service: BuildingBlockId;
   /** Empty when another subsystem calls it. */
   actors: string[];
 }
 
 export interface PlacedElement<
-  Pattern extends BuildingBlockType | BehaviorType =
-    | BuildingBlockType
-    | BehaviorType,
+  Id extends BuildingBlockId | BehaviorId = BuildingBlockId | BehaviorId,
 > {
-  id: Pattern extends BuildingBlockType ? BuildingBlockId : BehaviorId;
+  id: Id;
   name: string;
-  /** The building block type, or the behavior type. */
-  pattern: Pattern | null;
+  /** The building block type; a behavior has none. */
+  pattern: BuildingBlockType | null;
   change: OutlineChange;
-  /** The building blocks its properties, inputs and outputs use, collections unwrapped; itself left out. */
+  /** The building blocks its properties, collaborators, inputs and outputs use, collections unwrapped; itself left out. */
   uses: BuildingBlockId[];
   /** Its own rules and those of its behaviors the view does not draw apart from it. */
   rules: PlacedRule[];
 }
 
-export type PlacedBlock = PlacedElement<BuildingBlockType>;
-export type PlacedBehavior = PlacedElement<BehaviorType>;
+export type PlacedBlock = PlacedElement<BuildingBlockId>;
+export type PlacedBehavior = PlacedElement<BehaviorId>;
 
 export interface PlacedRule {
   name: string;
@@ -96,6 +93,8 @@ export const CHECK_LEVEL_META: Record<
 const DRIVEN_PORTS = [
   'repository',
   'external_integration',
+  'out_adapter',
+  'technical_service',
 ] as const satisfies readonly BuildingBlockType[];
 
 /** Every element in a hexagon, in the order the rings are drawn. */

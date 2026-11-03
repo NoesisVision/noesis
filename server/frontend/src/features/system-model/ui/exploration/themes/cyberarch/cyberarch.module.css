@@ -36,6 +36,7 @@
     'Rajdhani', 'DIN Alternate', 'Bahnschrift', 'Arial Narrow', ui-sans-serif,
     sans-serif;
   --edge-state: var(--cy-cyan);
+  --edge-collaborator: var(--cy-cyan);
   --edge-input: var(--cy-cyan);
   --edge-output: var(--cy-cyan);
   --edge-invokes: var(--cy-magenta);

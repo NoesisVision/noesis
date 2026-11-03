@@ -52,8 +52,7 @@ describe('outlineOf', () => {
     expect(at('behavior|sales.refunds.Refund.issue')).toMatchObject({
       kind: 'behavior',
       name: 'issue',
-      pattern: 'Command',
-      patternLabel: 'Command',
+      pattern: null,
       parentPath: 'building_block|sales.refunds.Refund',
       depth: 3,
     });
@@ -140,6 +139,41 @@ describe('outlineOf', () => {
         'behavior|sales.refunds.Refund.issue#rule:Only paid orders are refundable',
       ).pattern,
     ).toBe('State change');
+  });
+
+  it('hangs what a block works with under it as its collaborators, without how many', () => {
+    const outline = outlineOf({
+      ...changedEverywhereFixture,
+      relations: {
+        added: [
+          {
+            kind: 'has_collaborator',
+            from: 'building_block|sales.refunds.Refund',
+            name: 'ledger',
+            to: { value: 'building_block|sales.ledger.Ledger' },
+          },
+        ],
+        removed: [
+          {
+            kind: 'has_collaborator',
+            from: 'building_block|sales.refunds.Refund',
+            name: 'mailer',
+          },
+        ],
+      },
+    });
+    const node = (path: string) => outline.find((n) => n.path === path);
+    expect(
+      node('building_block|sales.refunds.Refund#collaborator:ledger'),
+    ).toMatchObject({
+      kind: 'collaborator',
+      change: 'added',
+      pattern: 'Ledger',
+      parentPath: 'building_block|sales.refunds.Refund',
+    });
+    expect(
+      node('building_block|sales.refunds.Refund#collaborator:mailer')?.change,
+    ).toBe('removed');
   });
 
   it("hangs a rule's own scenarios under the rule, not beside it", () => {

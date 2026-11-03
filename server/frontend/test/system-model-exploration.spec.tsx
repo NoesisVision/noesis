@@ -79,7 +79,6 @@ const model = {
     {
       id: 'behavior|shop.orders.Order.place',
       name: 'place',
-      type: 'Command',
       description: null,
       visibility: { kind: 'private' },
       rules: [],
@@ -181,7 +180,7 @@ describe('the exploration of a system model', () => {
   });
 
   it('draws containment as nesting, never as an edge', () => {
-    const graph = draw(['contains'], ['aggregate', 'value_object', 'Command']);
+    const graph = draw(['contains'], ['aggregate', 'value_object', 'behavior']);
     expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
       ['module|shop', null],
       ['module|shop.orders', 'module|shop'],
@@ -276,9 +275,32 @@ describe('the exploration of a system model', () => {
           { group: 'value_object', count: 1 },
         ],
       },
-      { title: 'Behaviors', groups: [{ group: 'Command', count: 1 }] },
+      { title: 'Behaviors', groups: [{ group: 'behavior', count: 1 }] },
     ]);
   });
+});
+
+it('draws what a block works with as an edge of its own, and reads it from both sides', () => {
+  const working = explorationOf(
+    relating([
+      {
+        kind: 'has_collaborator',
+        from: 'building_block|shop.orders.Order',
+        to: 'building_block|shop.orders.Line',
+        name: 'lines',
+      },
+    ]),
+  );
+  expect(working.edges.collaborator).toEqual([
+    ['building_block|shop.orders.Order', 'building_block|shop.orders.Line'],
+  ]);
+  const neighbours = neighboursOf(working);
+  expect(
+    neighbours.get('building_block|shop.orders.Order')?.hasCollaborator,
+  ).toEqual(['building_block|shop.orders.Line']);
+  expect(
+    neighbours.get('building_block|shop.orders.Line')?.collaboratorOf,
+  ).toEqual(['building_block|shop.orders.Order']);
 });
 
 it('draws what a block extends as an edge of its own, and reads it from both sides', () => {
@@ -330,6 +352,7 @@ it('lays out every relation and every kind in the visibility panel', () => {
   expect(RELATIONS.map(({ kind }) => kind)).toEqual([
     'contains',
     'state',
+    'collaborator',
     'input',
     'output',
     'extends',
@@ -465,7 +488,7 @@ describe('the selection', () => {
     expect([module, order, behavior].map((each) => kindWordOf(each!))).toEqual([
       'Module',
       'Building block · Aggregate',
-      'Behavior · Command',
+      'Behavior',
     ]);
   });
 

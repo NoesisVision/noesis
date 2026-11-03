@@ -17,6 +17,7 @@ const OUTLINE_KINDS = [
   'building_block',
   'behavior',
   'property',
+  'collaborator',
   'rule',
   'scenario',
   // A design's requirements: a group of them, and the need a rule answers.
@@ -73,18 +74,25 @@ export const BARE_ROW = {
  * how the design is taught, so it belongs with the model rather than with the
  * view that draws it.
  *
- * `external_integration` stands where a hexagonal port would; the model has no
- * port of its own.
+ * The adapters stand at the edges they serve: an in adapter before the
+ * services it calls, an out adapter among the ports it stands behind. The
+ * messages close it, as what crosses those edges.
  */
 const BUILDING_BLOCK_READING_ORDER = [
+  'in_adapter',
   'application_service',
   'domain_service',
   'repository',
   'factory',
   'external_integration',
+  'out_adapter',
+  'technical_service',
   'aggregate',
   'entity',
   'value_object',
+  'command',
+  'query',
+  'event',
 ] as const;
 
 /** Submodules above the blocks they hold; rules and scenarios last of all. */
@@ -93,6 +101,7 @@ const KIND_ORDER: readonly OutlineKind[] = [
   'building_block',
   'behavior',
   'property',
+  'collaborator',
   'rule',
   'scenario',
   'group',

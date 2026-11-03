@@ -145,7 +145,11 @@ export function UnitFields({
 }
 
 const labelOf = (kind: UnitKind, spec: FieldSpec): string =>
-  kind === 'extends' ? 'Extends' : LABEL[spec.name];
+  kind === 'extends'
+    ? 'Extends'
+    : kind === 'collaborator' && spec.name === 'ref'
+      ? 'Works with'
+      : LABEL[spec.name];
 
 function FieldInput({
   kind,
@@ -337,7 +341,7 @@ function FieldInput({
         <RefInput
           {...common}
           value={fields.ref!.value}
-          blocksOnly={kind === 'extends'}
+          blocksOnly={kind === 'extends' || kind === 'collaborator'}
           document={doc}
           onChange={(ref) => form.setFieldValue(path, ref)}
         />

@@ -8,15 +8,16 @@ import type { ChangeSetInput } from './change-set.ts';
 
 /*
  * The relations of a design document, read from one end. The document keeps
- * them in one change set; a reader wants the state of a block, the inputs of
- * a behavior, what a block extends — each the relations of one kind from one
- * element — and names them as the parts they were: a property, an input, an
- * output, an extended type.
+ * them in one change set; a reader wants the state of a block, what it works
+ * with, the inputs of a behavior, what a block extends — each the relations
+ * of one kind from one element — and names them as the parts they were: a
+ * property, a collaborator, an input, an output, an extended type.
  */
 
 /** The parts of an element that are relations, by the kind the model gives each. */
 export const RELATION_KIND_OF = {
   property: 'has_state',
+  collaborator: 'has_collaborator',
   parameter: 'has_input',
   result: 'has_output',
   extends: 'extends',
@@ -33,6 +34,7 @@ type KeyOf<Kind extends DesignedRelationKeyInput['kind']> = Extract<
 >;
 
 export type DesignedStateInput = RelationOf<'has_state'>;
+export type DesignedCollaboratorInput = RelationOf<'has_collaborator'>;
 export type DesignedInputInput = RelationOf<'has_input'>;
 export type DesignedOutputInput = RelationOf<'has_output'>;
 export type DesignedExtendsInput = RelationOf<'extends'>;
@@ -48,7 +50,15 @@ export type RelationLike = {
 };
 
 /** Named slots are unique by their holder and name; every other relation by its ends. */
-const NAMED_SLOTS: ReadonlySet<string> = new Set(['has_state', 'has_input']);
+const NAMED_SLOTS: ReadonlySet<string> = new Set([
+  'has_state',
+  'has_collaborator',
+  'has_input',
+]);
+
+/** The parts known by their name rather than by what they point at. */
+const isNamedPart = (kind: RelationPartKind) =>
+  NAMED_SLOTS.has(RELATION_KIND_OF[kind]);
 
 /** The key the server knows a relation by: `kind|from|#name` for a named slot, `kind|from|to` otherwise. */
 export const relationKeyOf = (relation: RelationLike): string =>
@@ -63,7 +73,7 @@ export const relationKeyOfPart = (
   id: string,
 ): string =>
   relationKeyOf(
-    kind === 'property' || kind === 'parameter'
+    isNamedPart(kind)
       ? { kind: RELATION_KIND_OF[kind], from: owner, name: id }
       : { kind: RELATION_KIND_OF[kind], from: owner, to: id },
   );
@@ -74,14 +84,20 @@ export const removalKeyOfPart = (
   owner: string,
   id: string,
 ): DesignedRelationKeyInput =>
-  kind === 'property' || kind === 'parameter'
-    ? { kind: RELATION_KIND_OF[kind], from: owner, name: id }
+  isNamedPart(kind)
+    ? ({ kind: RELATION_KIND_OF[kind], from: owner, name: id } as KeyOf<
+        'has_state' | 'has_collaborator' | 'has_input'
+      >)
     : ({ kind: RELATION_KIND_OF[kind], from: owner, to: id } as KeyOf<
         'has_output' | 'extends'
       >);
 
 type PartsOf = {
   property: ChangeSetInput<DesignedStateInput, KeyOf<'has_state'>>;
+  collaborator: ChangeSetInput<
+    DesignedCollaboratorInput,
+    KeyOf<'has_collaborator'>
+  >;
   parameter: ChangeSetInput<DesignedInputInput, KeyOf<'has_input'>>;
   result: ChangeSetInput<DesignedOutputInput, KeyOf<'has_output'>>;
   extends: ChangeSetInput<DesignedExtendsInput, KeyOf<'extends'>>;
@@ -89,8 +105,8 @@ type PartsOf = {
 
 /**
  * The relations of one kind from one element, as the change set of that
- * element's parts: a block's state, a behavior's inputs, its output, what a
- * block extends.
+ * element's parts: a block's state, what it works with, a behavior's
+ * inputs, its output, what a block extends.
  */
 export function relationsFrom<Kind extends RelationPartKind>(
   doc: DesignDocumentInput,

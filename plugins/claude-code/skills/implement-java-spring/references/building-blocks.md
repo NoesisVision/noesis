@@ -214,8 +214,8 @@ inside one aggregate.
 4. The application service publishes it through the external integration
    the design document names for that (`PreparationEventPublisher`), in the
    same transaction as the save.
-5. A handler of an event is an `Event` behavior: an application service
-   method annotated `@EventHandler` that takes the event record as its parameter.
+5. A handler of an event is an application service behavior that takes
+   the event record as its parameter, annotated `@EventHandler`.
    When it changes another aggregate it MUST be idempotent: handling the
    same event twice changes nothing the second time.
 

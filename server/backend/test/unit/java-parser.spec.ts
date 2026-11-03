@@ -89,9 +89,9 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ['building_block|shop.orders.Order Repository', 'repository'],
       ['building_block|shop.orders.OrderId', 'value_object'],
       ['building_block|shop.orders.OrderLine', 'entity'],
-      ['building_block|shop.orders.OrderLineAdded', 'value_object'],
+      ['building_block|shop.orders.OrderLineAdded', 'event'],
       ['building_block|shop.orders.OrderStatus', 'value_object'],
-      ['building_block|shop.orders.PlaceOrder', 'value_object'],
+      ['building_block|shop.orders.PlaceOrder', 'command'],
       ['building_block|shop.orders.PlaceOrderHandler', 'application_service'],
       ['building_block|shop.pricing.PriceRepository', 'repository'],
       ['building_block|shop.pricing.PricingService', 'domain_service'],
@@ -128,6 +128,29 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ['unitPrice', 'building_block|shop.orders.Money', '1'],
       ['product', 'building_block|shop.products.ProductId', '1'],
     ]);
+    // What a service is handed in its constructor, by a collaborator kind,
+    // is a collaborator (R5.9), though the field that keeps it is private.
+    expect<unknown>(
+      model.relations
+        .filter((r) => r.kind === 'has_collaborator')
+        .map((r) => [r.from, r.name, r.to]),
+    ).toEqual([
+      [
+        'building_block|shop.orders.PlaceOrderHandler',
+        'repository',
+        'building_block|shop.orders.Order Repository',
+      ],
+      [
+        'building_block|shop.orders.PlaceOrderHandler',
+        'pricing',
+        'building_block|shop.pricing.PricingService',
+      ],
+      [
+        'building_block|shop.pricing.PricingService',
+        'prices',
+        'building_block|shop.pricing.PriceRepository',
+      ],
+    ]);
     expect<unknown>(ids(model.behaviors)).not.toContain(
       'behavior|shop.orders.Money.amount',
     );
@@ -138,93 +161,70 @@ describe('A Java repository scanned through its Maven plugin', () => {
     expect<unknown>(
       model.behaviors.map((b) => [
         b.id,
-        b.type,
         inputOf(model, b.id).map((slot) => (slot as string[])[0]),
         outputOf(model, b.id).map((slot) => (slot as string[])[0]),
       ]),
     ).toEqual([
       [
         'behavior|shop.orders.Money.add',
-        'Command',
         ['other'],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.orders.Money.zero',
-        'Command',
         ['currency'],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.orders.Order Repository.getBy',
-        'Command',
         ['id'],
         ['building_block|shop.orders.Order'],
       ],
-      ['behavior|shop.orders.Order Repository.save', 'Command', ['order'], []],
+      ['behavior|shop.orders.Order Repository.save', ['order'], []],
       // The overload with the most parameters stands for both addLine methods.
-      [
-        'behavior|shop.orders.Order.addLine',
-        'Command',
-        ['product', 'quantity'],
-        [],
-      ],
+      ['behavior|shop.orders.Order.addLine', ['product', 'quantity'], []],
       [
         'behavior|shop.orders.Order.create',
-        'Command',
         ['id'],
         ['building_block|shop.orders.Order'],
       ],
-      ['behavior|shop.orders.Order.persist', 'Command', ['repository'], []],
-      ['behavior|shop.orders.Order.placeOrder', 'Command', [], []],
-      // @QueryHandler fixes the type (R9.4).
+      ['behavior|shop.orders.Order.persist', ['repository'], []],
+      ['behavior|shop.orders.Order.placeOrder', [], []],
       [
         'behavior|shop.orders.Order.total',
-        'Query',
         [],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.orders.OrderLine.price',
-        'Command',
         [],
         ['building_block|shop.orders.Money'],
       ],
-      [
-        'behavior|shop.orders.PlaceOrderHandler.handle',
-        'Command',
-        ['command'],
-        [],
-      ],
+      ['behavior|shop.orders.PlaceOrderHandler.handle', ['command'], []],
       [
         'behavior|shop.pricing.PriceRepository.get',
-        'Command',
         ['id'],
         ['building_block|shop.orders.Order'],
       ],
-      ['behavior|shop.pricing.PricingService.discount', 'Command', [], []],
+      ['behavior|shop.pricing.PricingService.discount', [], []],
       // List<Money> is a collection, Optional<Money> and CompletableFuture<Money> are looked through.
       [
         'behavior|shop.pricing.PricingService.history',
-        'Command',
         ['id'],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.pricing.PricingService.priceFor',
-        'Command',
         ['order'],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.pricing.PricingService.priceLater',
-        'Command',
         ['order'],
         ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.pricing.PricingService.tryPrice',
-        'Command',
         ['order'],
         ['building_block|shop.orders.Money'],
       ],

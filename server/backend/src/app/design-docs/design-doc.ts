@@ -7,12 +7,12 @@ import {
   ModuleId,
 } from '#backend/app/element-id';
 import {
-  BehaviorType,
   BuildingBlockType,
   Cardinality,
   ContainsRelation,
   ExposesRelation,
   ExtendsRelation,
+  HasCollaboratorRelation,
   HasInputRelation,
   HasOutputRelation,
   HasStateRelation,
@@ -23,6 +23,7 @@ import {
   RuleCategory,
   RuleType,
   ScenarioSteps,
+  isCollaboratorType,
   type ScannedRule,
   type SystemModel,
   TypeRef,
@@ -53,9 +54,9 @@ export type DesignedScenario = z.infer<typeof DesignedScenario>;
  * A relation as a design writes it: the scanned shape, with what is not its
  * identity as fields, so a design may change a slot's type or cardinality,
  * or a call's order, or a parameter's position, without removing and adding
- * the relation. A named slot (`has_state`, `has_input`) is known by its
- * holder and name, so its type is a field; every other relation is known by
- * its ends.
+ * the relation. A named slot (`has_state`, `has_collaborator`, `has_input`)
+ * is known by its holder and name, so its type is a field; every other
+ * relation is known by its ends.
  */
 const designedSlot = {
   to: DesignDocField(TypeRef),
@@ -65,6 +66,7 @@ export const DesignedRelation = z.discriminatedUnion('kind', [
   ContainsRelation,
   ExtendsRelation,
   HasStateRelation.extend(designedSlot),
+  HasCollaboratorRelation.extend({ to: DesignDocField(BuildingBlockId) }),
   ExposesRelation,
   HasInputRelation.extend({
     ...designedSlot,
@@ -83,13 +85,14 @@ export const DesignedRelationKey = z
     ContainsRelation.pick({ kind: true, from: true, to: true }),
     ExtendsRelation.pick({ kind: true, from: true, to: true }),
     HasStateRelation.pick({ kind: true, from: true, name: true }),
+    HasCollaboratorRelation.pick({ kind: true, from: true, name: true }),
     ExposesRelation.pick({ kind: true, from: true, to: true }),
     HasInputRelation.pick({ kind: true, from: true, name: true }),
     HasOutputRelation.pick({ kind: true, from: true, to: true }),
     InvokesRelation.pick({ kind: true, from: true, to: true }),
   ])
   .describe(
-    "A relation by what makes it one of a kind: its kind, `from` and `to`; for 'has_state' and 'has_input', its kind, `from` and `name`.",
+    "A relation by what makes it one of a kind: its kind, `from` and `to`; for 'has_state', 'has_collaborator' and 'has_input', its kind, `from` and `name`.",
   );
 export type DesignedRelationKey = z.infer<typeof DesignedRelationKey>;
 
@@ -133,7 +136,6 @@ export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlock>;
 export const DesignedBehavior = z.strictObject({
   id: BehaviorId,
   name: DesignDocField(ElementName),
-  type: DesignDocField(BehaviorType),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
   visibility: DesignDocField(Visibility),
@@ -157,7 +159,7 @@ const designDocumentSchema = z.strictObject({
   buildingBlocks: changeSet(DesignedBuildingBlock, BuildingBlockId),
   behaviors: changeSet(DesignedBehavior, BehaviorId),
   relations: changeSet(DesignedRelation, DesignedRelationKey).describe(
-    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds ('has_state'), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), and what a module contains. Both ends of an added relation exist, in the design or the model; a 'contains' or 'exposes' agrees with the ids, whose paths already say what holds what.",
+    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), and what a module contains. Both ends of an added relation exist, in the design or the model; a 'contains' or 'exposes' agrees with the ids, whose paths already say what holds what.",
   ),
   implemented: z
     .boolean()
@@ -204,7 +206,8 @@ export interface DesignDocViolation {
     | 'ruleTypeOutsideCategory'
     | 'businessRuleOnModule'
     | 'unknownRelationEnd'
-    | 'containmentOutsideIdPath';
+    | 'containmentOutsideIdPath'
+    | 'slotOutsideTypeKind';
 }
 
 export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
@@ -383,6 +386,7 @@ function rulesOfEveryDesign(
     ...businessRulesOnModules(rules),
     ...unknownRelationEnds(document, systemModel),
     ...containmentsOutsideIdPaths(document),
+    ...slotsOutsideTypeKinds(document, systemModel),
   ];
 }
 
@@ -430,6 +434,53 @@ function containmentsOutsideIdPaths(
       path: `relations.added[${Relation.keyOf(relation)}]`,
       reason: 'containmentOutsideIdPath' as const,
     }));
+}
+
+/**
+ * The kind of the block a slot points at says which slot it is: a value of
+ * the domain or a primitive is state, any other block a collaborator. A type
+ * neither the design nor the model gives a kind passes.
+ */
+function slotsOutsideTypeKinds(
+  document: DesignDocumentContent,
+  systemModel: SystemModel | undefined,
+): DesignDocViolation[] {
+  const kinds = new Map<string, BuildingBlockType>();
+  for (const { id, type } of systemModel?.buildingBlocks ?? [])
+    kinds.set(id, type);
+  for (const kind of ['added', 'modified'] as const)
+    for (const { id, type } of document.buildingBlocks[kind])
+      if (type.changed) kinds.set(id, type.value);
+  const scannedTo = new Map(
+    (systemModel?.relations ?? []).map((relation) => [
+      Relation.keyOf(relation),
+      relation.to,
+    ]),
+  );
+  return (['added', 'modified'] as const).flatMap((change) =>
+    document.relations[change].flatMap((relation) => {
+      if (relation.kind !== 'has_state' && relation.kind !== 'has_collaborator')
+        return [];
+      const key = Relation.keyOf(relation);
+      const to = relation.to.changed ? relation.to.value : scannedTo.get(key);
+      if (to === undefined) return [];
+      const kind = kinds.get(to);
+      const collaborator = to.startsWith('primitive|')
+        ? false
+        : kind === undefined
+          ? null
+          : isCollaboratorType(kind);
+      if (collaborator === null) return [];
+      return collaborator === (relation.kind === 'has_collaborator')
+        ? []
+        : [
+            {
+              path: `relations.${change}[${key}].kind`,
+              reason: 'slotOutsideTypeKind' as const,
+            },
+          ];
+    }),
+  );
 }
 
 const pathOf = (id: string) => id.slice(id.indexOf('|') + 1);

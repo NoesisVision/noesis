@@ -162,7 +162,6 @@ export const changedEverywhereFixture = {
     added: [
       {
         id: 'behavior|sales.refunds.Refund.issue',
-        type: human('Command'),
         definition: agent('How a refund is issued.'),
         diagram: agent(ISSUE_DIAGRAM),
         rules: {
