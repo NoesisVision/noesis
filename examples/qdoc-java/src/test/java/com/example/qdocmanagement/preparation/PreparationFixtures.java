@@ -7,8 +7,6 @@ final class PreparationFixtures {
 
 	static final Instant NOW = Instant.parse("2026-10-01T09:00:00Z");
 
-	static final UserId MANAGER = new UserId("manager");
-
 	static final UserId ALICE = new UserId("alice");
 
 	static final UserId BOB = new UserId("bob");
@@ -34,10 +32,6 @@ final class PreparationFixtures {
 
 	static CreateQDoc aRequestNamingNoAuthor(UserId requester) {
 		return new CreateQDoc(requester, aTitle(), procedure(), List.of(), List.of(), List.of());
-	}
-
-	static QDoc aCreatedQDoc() {
-		return QDoc.create(aValidCreationRequest(MANAGER), new DocumentNumber("PROCEDURE-0001"), NOW);
 	}
 
 	static List<UserId> assigned(Version version, AssignmentRole role) {

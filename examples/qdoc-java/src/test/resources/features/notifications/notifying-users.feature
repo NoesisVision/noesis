@@ -5,7 +5,7 @@ Feature: Notifying users
   Background:
     Given a request naming 3 recipients, a subject and a body
 
-  @post
+  @state_change
   Rule: Each named recipient receives the notification
     When a subsystem asks the Notifications subsystem to notify users, each
     recipient the request names receives one notification carrying the

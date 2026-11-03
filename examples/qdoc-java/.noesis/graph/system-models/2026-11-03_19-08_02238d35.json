@@ -1,0 +1,2343 @@
+{
+  "id": "01a1a2d0-890f-7456-9eba-502c68581922",
+  "name": "qdoc-java",
+  "scanned_at": "2026-11-03T19:08:57.999Z",
+  "commit": "02238d35",
+  "modules": [
+    {
+      "id": "module|java",
+      "name": "java",
+      "description": null,
+      "source": {
+        "path": ".noesis/libraries/java-time.json",
+        "line": null
+      }
+    },
+    {
+      "id": "module|java.time",
+      "name": "time",
+      "description": null,
+      "source": {
+        "path": ".noesis/libraries/java-time.json",
+        "line": null
+      }
+    },
+    {
+      "id": "module|qdocmanagement",
+      "name": "qdocmanagement",
+      "description": null,
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/DomainException.java",
+        "line": 1
+      }
+    },
+    {
+      "id": "module|qdocmanagement.notifications",
+      "name": "notifications",
+      "description": null,
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/notifications/Notification.java",
+        "line": 1
+      }
+    },
+    {
+      "id": "module|qdocmanagement.preparation",
+      "name": "preparation",
+      "description": null,
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/Assignment.java",
+        "line": 1
+      }
+    }
+  ],
+  "buildingBlocks": [
+    {
+      "id": "building_block|java.time.Clock",
+      "name": "Clock",
+      "type": "technical_service",
+      "description": "Tells the current instant; injected so tests can fix the time.",
+      "source": {
+        "path": ".noesis/libraries/java-time.json",
+        "line": null
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.notifications.Notification",
+      "name": "Notification",
+      "type": "value_object",
+      "description": "A message to one user: a subject and a body, as the requesting subsystem wrote them.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/notifications/Notification.java",
+        "line": 15
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.notifications.NotificationSender",
+      "name": "NotificationSender",
+      "type": "external_integration",
+      "description": "Port that delivers a notification to a user.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationSender.java",
+        "line": 9
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.notifications.NotificationService",
+      "name": "NotificationService",
+      "type": "application_service",
+      "description": "The service the Notifications subsystem offers every other subsystem: takes a request to tell users something and has a notification delivered to each of them.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationService.java",
+        "line": 15
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.notifications.NotifyUsers",
+      "name": "NotifyUsers",
+      "type": "command",
+      "description": "Command: a request from another subsystem to tell users something, naming the recipients, a subject and a body. The requesting subsystem chooses the recipients and writes the text.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/notifications/NotifyUsers.java",
+        "line": 17
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.notifications.Recipient",
+      "name": "Recipient",
+      "type": "value_object",
+      "description": "A user a notification goes to, by the user's identifier in the identity provider.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/notifications/Recipient.java",
+        "line": 13
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.Assignment",
+      "name": "Assignment",
+      "type": "value_object",
+      "description": "The link between a user, a version and one role the user holds on the version.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/Assignment.java",
+        "line": 14
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.AssignmentRole",
+      "name": "AssignmentRole",
+      "type": "value_object",
+      "description": "The role a user holds on a version: author, reviewer or approver.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/AssignmentRole.java",
+        "line": 8
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.ContentFile",
+      "name": "ContentFile",
+      "type": "entity",
+      "description": "A rich-text file the authors write; the body of a QDoc version. Each version has at least one. Its editing, change history and comments belong to the Content management subsystem.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/ContentFile.java",
+        "line": 12
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.ContentFileId",
+      "name": "ContentFileId",
+      "type": "value_object",
+      "description": "Identity of a content file.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/ContentFileId.java",
+        "line": 13
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "name": "CreateQDoc",
+      "type": "command",
+      "description": "Command: a quality manager's QDoc creation request, naming the title, the document type, at least one author and, optionally, reviewers and approvers.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/CreateQDoc.java",
+        "line": 21
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "name": "DocumentNumber",
+      "type": "value_object",
+      "description": "The human-facing identifier a QDoc gets at creation, for searching and for referring to the QDoc. Not a security device.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentNumber.java",
+        "line": 13
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.DocumentNumberGenerator",
+      "name": "DocumentNumberGenerator",
+      "type": "domain_service",
+      "description": "Gives a new QDoc its document number, and owns the rules by which document numbers are composed, sequenced and kept unique. The format, the sequence and the uniqueness are defined by UC-2.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentNumberGenerator.java",
+        "line": 10
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.DocumentType",
+      "name": "DocumentType",
+      "type": "value_object",
+      "description": "The type of a QDoc, one of the list of document types: procedure, guideline, instruction, policy. The list may grow.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentType.java",
+        "line": 14
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.IdentityProvider",
+      "name": "IdentityProvider",
+      "type": "external_integration",
+      "description": "Port to the Identity subsystem, or to a directory the organisation runs: answers which roles a user holds and which users hold the quality manager role.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
+        "line": 13
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.NewQDocNotification",
+      "name": "NewQDocNotification",
+      "type": "value_object",
+      "description": "The message telling the quality managers about a new QDoc: names the QDoc, its document number and its creator, and gives the subject and the body the Notifications subsystem is asked to deliver.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/NewQDocNotification.java",
+        "line": 19
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.PreparationEventPublisher",
+      "name": "PreparationEventPublisher",
+      "type": "external_integration",
+      "description": "Port that publishes the events of the Preparation subsystem to the other subsystems.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/PreparationEventPublisher.java",
+        "line": 10
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.QDoc",
+      "name": "QDoc",
+      "type": "aggregate",
+      "description": "A quality document: a package of files that always works as a whole. Has a title, a document type, a document number and one or more versions; is either active or archived. Invariants: A QDoc keeps at least one version: every QDoc holds at least one version at all times (FR-PRE-010); no operation leaves a QDoc with zero versions.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDoc.java",
+        "line": 21
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.QDocCreated",
+      "name": "QDocCreated",
+      "type": "event",
+      "description": "Event: a QDoc was created. Published by the Preparation subsystem for any subsystem that follows new QDocs.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreated.java",
+        "line": 18
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.QDocCreationService",
+      "name": "QDocCreationService",
+      "type": "application_service",
+      "description": "Use cases that create QDocs in the Preparation subsystem.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreationService.java",
+        "line": 16
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.QDocId",
+      "name": "QDocId",
+      "type": "value_object",
+      "description": "Identity of a QDoc inside the QDoc System. Technical identifier, not the document number people use.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDocId.java",
+        "line": 14
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.QDocRepository",
+      "name": "QDocRepository",
+      "type": "repository",
+      "description": "Stores and loads QDoc aggregates, whole.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDocRepository.java",
+        "line": 8
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.QDocStatus",
+      "name": "QDocStatus",
+      "type": "value_object",
+      "description": "The status of a QDoc itself: active or archived. Workflow statuses belong to versions, not to the QDoc.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDocStatus.java",
+        "line": 9
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.QDocTitle",
+      "name": "QDocTitle",
+      "type": "value_object",
+      "description": "The title of a QDoc.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDocTitle.java",
+        "line": 12
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.UserId",
+      "name": "UserId",
+      "type": "value_object",
+      "description": "Identity of a user, a person with an account in the identity provider. The Preparation subsystem refers to users only by this identity.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/UserId.java",
+        "line": 13
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.Version",
+      "name": "Version",
+      "type": "entity",
+      "description": "A complete, self-contained edition of a QDoc, numbered from 1. Carries the workflow status, the content files and the assignments of people.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/Version.java",
+        "line": 13
+      }
+    },
+    {
+      "id": "building_block|qdocmanagement.preparation.VersionStatus",
+      "name": "VersionStatus",
+      "type": "value_object",
+      "description": "The workflow status of a version: new, approved, published, no longer in force or archived.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/VersionStatus.java",
+        "line": 9
+      }
+    }
+  ],
+  "behaviors": [
+    {
+      "id": "behavior|qdocmanagement.notifications.NotificationSender.send",
+      "name": "send",
+      "description": "Delivers one notification to its recipient.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationSender.java",
+        "line": 16
+      }
+    },
+    {
+      "id": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+      "name": "notifyUsers",
+      "description": "Tells each user another subsystem names what that subsystem wants them told: one notification per recipient, with the subject and the body of the request. A failed delivery to one recipient stops no other.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationService.java",
+        "line": 32
+      }
+    },
+    {
+      "id": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+      "name": "next",
+      "description": "Gives the QDoc being created its document number.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentNumberGenerator.java",
+        "line": 20
+      }
+    },
+    {
+      "id": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers",
+      "name": "findQualityManagers",
+      "description": "Lists every user who holds the quality manager role in the organisation at the moment of the call.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
+        "line": 29
+      }
+    },
+    {
+      "id": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+      "name": "isQualityManager",
+      "description": "Answers whether the user holds the quality manager role at the moment of the call.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
+        "line": 22
+      }
+    },
+    {
+      "id": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish",
+      "name": "publish",
+      "description": "Publishes a QDocCreated event to the subscribing subsystems.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/PreparationEventPublisher.java",
+        "line": 17
+      }
+    },
+    {
+      "id": "behavior|qdocmanagement.preparation.QDoc.create",
+      "name": "create",
+      "description": "Creates an active QDoc from a validated creation request and its document number, together with its first version. Records the QDocCreated event, telling the other subsystems the QDoc exists, for the application service to publish.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDoc.java",
+        "line": 69
+      }
+    },
+    {
+      "id": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "name": "createQDoc",
+      "description": "Creates a QDoc on a quality manager's request: gives it a document number, starts its first version with the people the request names, announces the new QDoc to the other subsystems and has every quality manager told of it.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreationService.java",
+        "line": 50
+      }
+    },
+    {
+      "id": "behavior|qdocmanagement.preparation.QDocRepository.save",
+      "name": "save",
+      "description": "Stores a QDoc aggregate, whole.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDocRepository.java",
+        "line": 15
+      }
+    },
+    {
+      "id": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "name": "createFirst",
+      "description": "Creates the first version of a new QDoc, with the people named at creation assigned to it.",
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/Version.java",
+        "line": 40
+      }
+    }
+  ],
+  "rules": [
+    {
+      "id": "rule|qdocmanagement.notifications.A failed delivery stops no other",
+      "name": "A failed delivery stops no other",
+      "kind": "post",
+      "description": "When delivering the notification to one recipient fails, the\nnotifications to the other recipients are still sent.",
+      "source": {
+        "path": "src/test/resources/features/notifications/notifying-users.feature",
+        "line": 19
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.notifications.Each named recipient receives the notification",
+      "name": "Each named recipient receives the notification",
+      "kind": "state_change",
+      "description": "When a subsystem asks the Notifications subsystem to notify users, each\nrecipient the request names receives one notification carrying the\nsubject and the body of the request.",
+      "source": {
+        "path": "src/test/resources/features/notifications/notifying-users.feature",
+        "line": 9
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.A QDoc is saved and announced together",
+      "name": "A QDoc is saved and announced together",
+      "kind": "validation",
+      "description": "The new QDoc is saved and QDocCreated is published in the same unit of\nwork: either both happen or neither does. A rejected request creates\nnothing and publishes nothing.",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 107
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.A QDoc keeps at least one version",
+      "name": "A QDoc keeps at least one version",
+      "kind": "validation",
+      "description": "Every QDoc holds at least one version at all times (FR-PRE-010); no\noperation leaves a QDoc with zero versions.",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 61
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author",
+      "name": "A creation request names a title, a document type and at least one author",
+      "kind": "validation",
+      "description": "A QDoc creation request that lacks the title, the document type or at\nleast one author is rejected (FR-PRE-001). Reviewers and approvers are\noptional.",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 39
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.A document type comes from the list of document types",
+      "name": "A document type comes from the list of document types",
+      "kind": "validation",
+      "description": "A document type is one of procedure, guideline, instruction and policy\n(FR-PRE-002). Adding a type to the list is a change to this list, not to\nany QDoc.",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 18
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.A new QDoc carries a document number",
+      "name": "A new QDoc carries a document number",
+      "kind": "validation",
+      "description": "Every QDoc gets its document number when it is created (FR-PRE-009), from\nthe DocumentNumberGenerator; the format is defined by UC-2.",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 98
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.A new QDoc is active",
+      "name": "A new QDoc is active",
+      "kind": "state_change",
+      "description": "A QDoc starts with the status active (FR-PRE-003).",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 134
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.A title is never blank",
+      "name": "A title is never blank",
+      "kind": "validation",
+      "description": "A QDoc title holds at least one character other than whitespace; a blank\ntitle cannot be created.",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 9
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.Each quality manager learns of a new QDoc",
+      "name": "Each quality manager learns of a new QDoc",
+      "kind": "state_change",
+      "description": "When a QDoc is created, the Preparation subsystem asks the Notifications\nsubsystem to notify each quality manager of the organisation, naming the\nQDoc, its number and its creator (FR-NOT-001). The quality managers are\nthose holding the role at the moment the QDoc is created.",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 117
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.Only quality managers create QDocs",
+      "name": "Only quality managers create QDocs",
+      "kind": "state_change",
+      "description": "A QDoc creation request from a user who lacks the quality manager role is\nrejected (SR-PRE-001). Authors, reviewers, approvers and auditors create\nnothing. The requester's roles are those held at the moment of the\nrequest.",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 70
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.The named approvers are assigned to version 1",
+      "name": "The named approvers are assigned to version 1",
+      "kind": "validation",
+      "description": "Each approver named in the creation request is assigned to version 1 as\napprover (FR-PRE-008).",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 184
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.The named authors are assigned to version 1",
+      "name": "The named authors are assigned to version 1",
+      "kind": "validation",
+      "description": "Each author named in the creation request is assigned to version 1 as\nauthor (FR-PRE-006).",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 159
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.The named reviewers are assigned to version 1",
+      "name": "The named reviewers are assigned to version 1",
+      "kind": "validation",
+      "description": "Each reviewer named in the creation request is assigned to version 1 as\nreviewer (FR-PRE-007).",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 169
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.Version 1 holds one empty content file",
+      "name": "Version 1 holds one empty content file",
+      "kind": "validation",
+      "description": "Version 1 is created with exactly one content file holding no text, and\nno attachment (FR-PRE-005).",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 150
+      }
+    },
+    {
+      "id": "rule|qdocmanagement.preparation.Version 1 starts with the status new",
+      "name": "Version 1 starts with the status new",
+      "kind": "state_change",
+      "description": "Creating a QDoc creates its version 1, with the status new (FR-PRE-004).",
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 142
+      }
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "scenario|qdocmanagement.notifications.A failed delivery stops no other.One delivery fails",
+      "name": "One delivery fails",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a request naming 3 recipients, a subject and a body"
+        },
+        {
+          "kind": "given",
+          "text": "delivery to one of them fails"
+        },
+        {
+          "kind": "when",
+          "text": "a subsystem asks the Notifications subsystem to notify them"
+        },
+        {
+          "kind": "then",
+          "text": "the other 2 recipients each receive the notification"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/notifications/notifying-users.feature",
+        "line": 23
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.notifications.Each named recipient receives the notification.Three recipients notified",
+      "name": "Three recipients notified",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a request naming 3 recipients, a subject and a body"
+        },
+        {
+          "kind": "when",
+          "text": "a subsystem asks the Notifications subsystem to notify them"
+        },
+        {
+          "kind": "then",
+          "text": "each of the 3 receives one notification with that subject and that body"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/notifications/notifying-users.feature",
+        "line": 14
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A QDoc is saved and announced together.An invalid request leaves no trace",
+      "name": "An invalid request leaves no trace",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a QDoc creation request that names no author"
+        },
+        {
+          "kind": "then",
+          "text": "the request is rejected, no QDoc is saved and no QDocCreated is published"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 112
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A QDoc keeps at least one version.Creation yields a version",
+      "name": "Creation yields a version",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "a QDoc is created from a valid request"
+        },
+        {
+          "kind": "then",
+          "text": "the QDoc holds one version"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 65
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.All mandatory data",
+      "name": "All mandatory data",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a creation request with a title, the document type procedure and one author, and no reviewer or approver"
+        },
+        {
+          "kind": "then",
+          "text": "the request is accepted and the QDoc is created"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 56
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No author",
+      "name": "No author",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a creation request naming no author"
+        },
+        {
+          "kind": "then",
+          "text": "the request is rejected and no QDoc is created"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 52
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No document type",
+      "name": "No document type",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a creation request without a document type"
+        },
+        {
+          "kind": "then",
+          "text": "the request is rejected and no QDoc is created"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 48
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No title",
+      "name": "No title",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a creation request without a title"
+        },
+        {
+          "kind": "then",
+          "text": "the request is rejected and no QDoc is created"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 44
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A document type comes from the list of document types.A type outside the list is rejected",
+      "name": "A type outside the list is rejected",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a creation request with the document type 'memo'"
+        },
+        {
+          "kind": "then",
+          "text": "the request is rejected and no QDoc is created"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 34
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A document type comes from the list of document types.Each listed type is accepted",
+      "name": "Each listed type is accepted",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a valid QDoc creation request for the document type <type>"
+        },
+        {
+          "kind": "then",
+          "text": "the request is accepted and the QDoc carries the document type <type>"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 23
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A new QDoc carries a document number.Number at creation",
+      "name": "Number at creation",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a valid QDoc creation request"
+        },
+        {
+          "kind": "then",
+          "text": "the new QDoc carries a document number"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 102
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A new QDoc is active.New QDoc listed as active",
+      "name": "New QDoc listed as active",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "a QDoc is created from a valid request"
+        },
+        {
+          "kind": "then",
+          "text": "the QDoc is listed with the status active"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 137
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.A title is never blank.Blank title",
+      "name": "Blank title",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a QDoc creation request whose title is only spaces"
+        },
+        {
+          "kind": "then",
+          "text": "the request is rejected and no QDoc is created"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 13
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.Each quality manager learns of a new QDoc.A rejected request notifies nobody",
+      "name": "A rejected request notifies nobody",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "given",
+          "text": "2 more quality managers"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a QDoc creation request that names no author"
+        },
+        {
+          "kind": "then",
+          "text": "the request is rejected and no quality manager is notified"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 128
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.Each quality manager learns of a new QDoc.Three quality managers notified",
+      "name": "Three quality managers notified",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "given",
+          "text": "2 more quality managers"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a valid QDoc creation request"
+        },
+        {
+          "kind": "then",
+          "text": "each of the 3 quality managers receives a notification naming the QDoc, its document number and its creator"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 123
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.A quality manager is accepted",
+      "name": "A quality manager is accepted",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager submits a valid QDoc creation request"
+        },
+        {
+          "kind": "then",
+          "text": "the QDoc is created"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 88
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.Creating a procedure",
+      "name": "Creating a procedure",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "given",
+          "text": "2 more quality managers"
+        },
+        {
+          "kind": "when",
+          "text": "the quality manager creates the procedure 'Supplier audit' with one author and two reviewers"
+        },
+        {
+          "kind": "then",
+          "text": "an active QDoc with a document number exists, its version 1 has the status new, one empty content file, the author and the two reviewers, QDocCreated is published and each of the 3 quality managers is notified of the new QDoc"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 92
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.Non-quality-managers are rejected",
+      "name": "Non-quality-managers are rejected",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "given",
+          "text": "a user holding only the <role> role"
+        },
+        {
+          "kind": "when",
+          "text": "that user submits a valid QDoc creation request"
+        },
+        {
+          "kind": "then",
+          "text": "the request is rejected and no QDoc is created"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 76
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.The named approvers are assigned to version 1.No approver",
+      "name": "No approver",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "given",
+          "text": "a creation request naming no approver"
+        },
+        {
+          "kind": "when",
+          "text": "version 1 is created for the request"
+        },
+        {
+          "kind": "then",
+          "text": "version 1 has no approver"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 193
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.The named approvers are assigned to version 1.Two approvers",
+      "name": "Two approvers",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "given",
+          "text": "a creation request naming two approvers"
+        },
+        {
+          "kind": "when",
+          "text": "version 1 is created for the request"
+        },
+        {
+          "kind": "then",
+          "text": "version 1 has the two approvers"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 188
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.The named authors are assigned to version 1.Authors assigned",
+      "name": "Authors assigned",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "given",
+          "text": "a creation request naming two authors"
+        },
+        {
+          "kind": "when",
+          "text": "version 1 is created for the request"
+        },
+        {
+          "kind": "then",
+          "text": "both appear as authors of version 1"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 163
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.The named reviewers are assigned to version 1.No reviewer",
+      "name": "No reviewer",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "given",
+          "text": "a creation request naming no reviewer"
+        },
+        {
+          "kind": "when",
+          "text": "version 1 is created for the request"
+        },
+        {
+          "kind": "then",
+          "text": "version 1 has no reviewer"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 178
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.The named reviewers are assigned to version 1.Two reviewers",
+      "name": "Two reviewers",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "given",
+          "text": "a creation request naming two reviewers"
+        },
+        {
+          "kind": "when",
+          "text": "version 1 is created for the request"
+        },
+        {
+          "kind": "then",
+          "text": "version 1 has the two reviewers"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 173
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.Version 1 holds one empty content file.Empty content file",
+      "name": "Empty content file",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "version 1 is created for a valid request"
+        },
+        {
+          "kind": "then",
+          "text": "version 1 holds one content file with no text and no attachment"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 154
+      }
+    },
+    {
+      "id": "scenario|qdocmanagement.preparation.Version 1 starts with the status new.One version, numbered 1, new",
+      "name": "One version, numbered 1, new",
+      "description": null,
+      "steps": [
+        {
+          "kind": "given",
+          "text": "a quality manager"
+        },
+        {
+          "kind": "when",
+          "text": "version 1 is created for a valid request"
+        },
+        {
+          "kind": "then",
+          "text": "version 1 is numbered 1, with the status new"
+        }
+      ],
+      "source": {
+        "path": "src/test/resources/features/preparation/creating-a-qdoc.feature",
+        "line": 145
+      }
+    }
+  ],
+  "actors": [
+    {
+      "id": "actor|Quality manager",
+      "name": "Quality manager",
+      "description": null,
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreationService.java",
+        "line": 50
+      }
+    }
+  ],
+  "manualProcesses": [],
+  "deployableUnits": [],
+  "libraries": [
+    {
+      "id": "library|java.time",
+      "name": "java.time",
+      "description": "The JDK's date and time API: a platform package the scan never parses.",
+      "source": {
+        "path": ".noesis/libraries/java-time.json",
+        "line": null
+      }
+    },
+    {
+      "id": "library|qdoc",
+      "name": "qdoc",
+      "description": null,
+      "source": {
+        "path": ".",
+        "line": null
+      }
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer|business",
+      "name": "business",
+      "description": null,
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/preparation/package-info.java",
+        "line": 9
+      }
+    },
+    {
+      "id": "layer|platform",
+      "name": "platform",
+      "description": null,
+      "source": {
+        "path": "src/main/java/com/example/qdocmanagement/notifications/package-info.java",
+        "line": 14
+      }
+    }
+  ],
+  "deploymentContainers": [],
+  "relations": [
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.Assignment"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.AssignmentRole"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.ContentFile"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.ContentFileId"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.CreateQDoc"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.DocumentType"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.IdentityProvider"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.QDoc"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.QDocCreated"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.QDocCreationService"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.QDocId"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.QDocRepository"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.QDocStatus"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.QDocTitle"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.UserId"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.Version"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|business",
+      "to": "building_block|qdocmanagement.preparation.VersionStatus"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|platform",
+      "to": "building_block|qdocmanagement.notifications.Notification"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|platform",
+      "to": "building_block|qdocmanagement.notifications.NotificationSender"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|platform",
+      "to": "building_block|qdocmanagement.notifications.NotificationService"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|platform",
+      "to": "building_block|qdocmanagement.notifications.NotifyUsers"
+    },
+    {
+      "kind": "contains",
+      "from": "layer|platform",
+      "to": "building_block|qdocmanagement.notifications.Recipient"
+    },
+    {
+      "kind": "contains",
+      "from": "library|java.time",
+      "to": "building_block|java.time.Clock"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.notifications.Notification"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.notifications.NotificationSender"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.notifications.NotificationService"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.notifications.NotifyUsers"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.notifications.Recipient"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.Assignment"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.AssignmentRole"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.ContentFile"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.ContentFileId"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.CreateQDoc"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.DocumentType"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.IdentityProvider"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.QDoc"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.QDocCreated"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.QDocCreationService"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.QDocId"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.QDocRepository"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.QDocStatus"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.QDocTitle"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.UserId"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.Version"
+    },
+    {
+      "kind": "contains",
+      "from": "library|qdoc",
+      "to": "building_block|qdocmanagement.preparation.VersionStatus"
+    },
+    {
+      "kind": "contains",
+      "from": "module|java",
+      "to": "module|java.time"
+    },
+    {
+      "kind": "contains",
+      "from": "module|java.time",
+      "to": "building_block|java.time.Clock"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement",
+      "to": "module|qdocmanagement.notifications"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement",
+      "to": "module|qdocmanagement.preparation"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.notifications",
+      "to": "building_block|qdocmanagement.notifications.Notification"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.notifications",
+      "to": "building_block|qdocmanagement.notifications.NotificationSender"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.notifications",
+      "to": "building_block|qdocmanagement.notifications.NotificationService"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.notifications",
+      "to": "building_block|qdocmanagement.notifications.NotifyUsers"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.notifications",
+      "to": "building_block|qdocmanagement.notifications.Recipient"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.Assignment"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.AssignmentRole"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.ContentFile"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.ContentFileId"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.CreateQDoc"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.DocumentType"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.IdentityProvider"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDoc"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocCreated"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocCreationService"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocId"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocRepository"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocStatus"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocTitle"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.UserId"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.Version"
+    },
+    {
+      "kind": "contains",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.VersionStatus"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.notifications.NotificationSender",
+      "to": "behavior|qdocmanagement.notifications.NotificationSender.send"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.notifications.NotificationService",
+      "to": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.DocumentNumberGenerator",
+      "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.IdentityProvider",
+      "to": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.IdentityProvider",
+      "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.PreparationEventPublisher",
+      "to": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.QDoc",
+      "to": "behavior|qdocmanagement.preparation.QDoc.create"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.QDocCreationService",
+      "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.QDocRepository",
+      "to": "behavior|qdocmanagement.preparation.QDocRepository.save"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.Version",
+      "to": "behavior|qdocmanagement.preparation.Version.createFirst"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+      "to": "rule|qdocmanagement.notifications.A failed delivery stops no other"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+      "to": "rule|qdocmanagement.notifications.Each named recipient receives the notification"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "rule|qdocmanagement.preparation.A QDoc keeps at least one version"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "rule|qdocmanagement.preparation.A new QDoc is active"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "rule|qdocmanagement.preparation.A QDoc is saved and announced together"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "rule|qdocmanagement.preparation.A document type comes from the list of document types"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "rule|qdocmanagement.preparation.A new QDoc carries a document number"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "rule|qdocmanagement.preparation.A title is never blank"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "rule|qdocmanagement.preparation.Each quality manager learns of a new QDoc"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "rule|qdocmanagement.preparation.The named approvers are assigned to version 1"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "rule|qdocmanagement.preparation.The named authors are assigned to version 1"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "rule|qdocmanagement.preparation.The named reviewers are assigned to version 1"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "rule|qdocmanagement.preparation.Version 1 holds one empty content file"
+    },
+    {
+      "kind": "governs",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "rule|qdocmanagement.preparation.Version 1 starts with the status new"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|qdocmanagement.notifications.NotificationService",
+      "to": "building_block|qdocmanagement.notifications.NotificationSender",
+      "name": "sender"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|qdocmanagement.preparation.QDocCreationService",
+      "to": "building_block|java.time.Clock",
+      "name": "clock"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|qdocmanagement.preparation.QDocCreationService",
+      "to": "building_block|qdocmanagement.notifications.NotificationService",
+      "name": "notifications"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|qdocmanagement.preparation.QDocCreationService",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator",
+      "name": "documentNumbers"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|qdocmanagement.preparation.QDocCreationService",
+      "to": "building_block|qdocmanagement.preparation.IdentityProvider",
+      "name": "identities"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|qdocmanagement.preparation.QDocCreationService",
+      "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher",
+      "name": "events"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|qdocmanagement.preparation.QDocCreationService",
+      "to": "building_block|qdocmanagement.preparation.QDocRepository",
+      "name": "qdocs"
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.notifications.NotificationSender.send",
+      "to": "building_block|qdocmanagement.notifications.Notification",
+      "name": "notification",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+      "to": "building_block|qdocmanagement.notifications.NotifyUsers",
+      "name": "command",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+      "to": "building_block|qdocmanagement.preparation.DocumentType",
+      "name": "documentType",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "user",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish",
+      "to": "building_block|qdocmanagement.preparation.QDocCreated",
+      "name": "event",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "name": "command",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "name": "documentNumber",
+      "cardinality": "1",
+      "position": 2
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "primitive|datetime",
+      "name": "now",
+      "cardinality": "1",
+      "position": 3
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "name": "command",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.QDocRepository.save",
+      "to": "building_block|qdocmanagement.preparation.QDoc",
+      "name": "qdoc",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "authors",
+      "cardinality": "0..*",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "reviewers",
+      "cardinality": "0..*",
+      "position": 2
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "approvers",
+      "cardinality": "0..*",
+      "position": 3
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "cardinality": "0..*"
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+      "to": "primitive|boolean",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "building_block|qdocmanagement.preparation.QDoc",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "building_block|qdocmanagement.preparation.QDocId",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "building_block|qdocmanagement.preparation.Version",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.Notification",
+      "to": "building_block|qdocmanagement.notifications.Recipient",
+      "name": "recipient",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.Notification",
+      "to": "primitive|string",
+      "name": "body",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.Notification",
+      "to": "primitive|string",
+      "name": "subject",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+      "to": "building_block|qdocmanagement.notifications.Recipient",
+      "name": "recipients",
+      "cardinality": "0..*"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+      "to": "primitive|string",
+      "name": "body",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+      "to": "primitive|string",
+      "name": "subject",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.Recipient",
+      "to": "primitive|string",
+      "name": "userId",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.Assignment",
+      "to": "building_block|qdocmanagement.preparation.AssignmentRole",
+      "name": "role",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.Assignment",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "user",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.ContentFileId",
+      "to": "primitive|uuid",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.DocumentType",
+      "name": "documentType",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.QDocTitle",
+      "name": "title",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "approvers",
+      "cardinality": "0..*"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "authors",
+      "cardinality": "0..*"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "requestedBy",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "reviewers",
+      "cardinality": "0..*"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "to": "primitive|string",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.DocumentType",
+      "to": "primitive|string",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "name": "documentNumber",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+      "to": "building_block|qdocmanagement.preparation.QDocTitle",
+      "name": "qdocTitle",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "createdBy",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocCreated",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "name": "documentNumber",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocCreated",
+      "to": "building_block|qdocmanagement.preparation.QDocId",
+      "name": "qdocId",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocCreated",
+      "to": "building_block|qdocmanagement.preparation.QDocTitle",
+      "name": "title",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocCreated",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "createdBy",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocCreated",
+      "to": "primitive|datetime",
+      "name": "createdAt",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocId",
+      "to": "primitive|uuid",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocTitle",
+      "to": "primitive|string",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.UserId",
+      "to": "primitive|string",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.notifications.A failed delivery stops no other.One delivery fails",
+      "to": "rule|qdocmanagement.notifications.A failed delivery stops no other"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.notifications.Each named recipient receives the notification.Three recipients notified",
+      "to": "rule|qdocmanagement.notifications.Each named recipient receives the notification"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A QDoc is saved and announced together.An invalid request leaves no trace",
+      "to": "rule|qdocmanagement.preparation.A QDoc is saved and announced together"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A QDoc keeps at least one version.Creation yields a version",
+      "to": "rule|qdocmanagement.preparation.A QDoc keeps at least one version"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.All mandatory data",
+      "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No author",
+      "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No document type",
+      "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A creation request names a title, a document type and at least one author.No title",
+      "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A document type comes from the list of document types.A type outside the list is rejected",
+      "to": "rule|qdocmanagement.preparation.A document type comes from the list of document types"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A document type comes from the list of document types.Each listed type is accepted",
+      "to": "rule|qdocmanagement.preparation.A document type comes from the list of document types"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A new QDoc carries a document number.Number at creation",
+      "to": "rule|qdocmanagement.preparation.A new QDoc carries a document number"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A new QDoc is active.New QDoc listed as active",
+      "to": "rule|qdocmanagement.preparation.A new QDoc is active"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.A title is never blank.Blank title",
+      "to": "rule|qdocmanagement.preparation.A title is never blank"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.Each quality manager learns of a new QDoc.A rejected request notifies nobody",
+      "to": "rule|qdocmanagement.preparation.Each quality manager learns of a new QDoc"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.Each quality manager learns of a new QDoc.Three quality managers notified",
+      "to": "rule|qdocmanagement.preparation.Each quality manager learns of a new QDoc"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.A quality manager is accepted",
+      "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.Creating a procedure",
+      "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.Only quality managers create QDocs.Non-quality-managers are rejected",
+      "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.The named approvers are assigned to version 1.No approver",
+      "to": "rule|qdocmanagement.preparation.The named approvers are assigned to version 1"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.The named approvers are assigned to version 1.Two approvers",
+      "to": "rule|qdocmanagement.preparation.The named approvers are assigned to version 1"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.The named authors are assigned to version 1.Authors assigned",
+      "to": "rule|qdocmanagement.preparation.The named authors are assigned to version 1"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.The named reviewers are assigned to version 1.No reviewer",
+      "to": "rule|qdocmanagement.preparation.The named reviewers are assigned to version 1"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.The named reviewers are assigned to version 1.Two reviewers",
+      "to": "rule|qdocmanagement.preparation.The named reviewers are assigned to version 1"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.Version 1 holds one empty content file.Empty content file",
+      "to": "rule|qdocmanagement.preparation.Version 1 holds one empty content file"
+    },
+    {
+      "kind": "illustrates",
+      "from": "scenario|qdocmanagement.preparation.Version 1 starts with the status new.One version, numbered 1, new",
+      "to": "rule|qdocmanagement.preparation.Version 1 starts with the status new"
+    },
+    {
+      "kind": "invokes",
+      "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+      "to": "behavior|qdocmanagement.notifications.NotificationSender.send",
+      "order": 1
+    },
+    {
+      "kind": "invokes",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "order": 1
+    },
+    {
+      "kind": "invokes",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+      "order": 3
+    },
+    {
+      "kind": "invokes",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+      "order": 1
+    },
+    {
+      "kind": "invokes",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "behavior|qdocmanagement.preparation.QDoc.create",
+      "order": 2
+    },
+    {
+      "kind": "invokes",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "behavior|qdocmanagement.preparation.QDocRepository.save",
+      "order": 4
+    }
+  ]
+}
