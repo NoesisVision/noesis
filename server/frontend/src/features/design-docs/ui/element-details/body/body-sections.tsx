@@ -9,6 +9,7 @@ import { buildingBlockSections } from './building-block-sections.tsx';
 import { childSections } from './child-sections.tsx';
 import { moduleSections } from './module-sections.tsx';
 import { partSections } from './part-sections.tsx';
+import { manualProcessSections } from './people-sections.tsx';
 import { section } from './section.ts';
 import { NoteSection } from './sections/note-section.tsx';
 
@@ -40,6 +41,10 @@ export const bodySections = (
   if (block) return buildingBlockSections(block, tree, doc);
   const behavior = findById(doc.behaviors, node.elementId);
   if (behavior) return behaviorSections(behavior, doc);
+  const process = findById(doc.manualProcesses, node.elementId);
+  if (process) return manualProcessSections(process, doc);
+  // An actor is its definition, and the processes named over it.
+  if (findById(doc.actors, node.elementId)) return [];
   // Named by no change set, the element is only here for what is under it,
   // which is then all there is to list.
   return [
@@ -61,7 +66,12 @@ const sectionsUnder = (
   tree: OutlineTree,
   doc: DesignDocumentInput,
 ): ReactElement[] => {
-  if (node.elementId === null) return [];
+  if (
+    node.elementId === null ||
+    node.kind === 'actor' ||
+    node.kind === 'manual_process'
+  )
+    return [];
   const element: ElementRef = {
     collection:
       node.kind === 'module'

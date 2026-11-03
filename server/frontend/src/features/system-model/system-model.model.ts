@@ -111,11 +111,24 @@ export function designOf(model: SystemModel): DesignDocument {
         name: field(behavior.name),
         definition: optional(behavior.description),
         diagram: UNSET,
-        visibility: field(behavior.visibility),
       })),
     ),
     rules: rules(model.rules),
     scenarios: scenarios(model.scenarios),
+    actors: added(
+      model.actors.map((actor) => ({
+        id: actor.id,
+        name: field(actor.name),
+        definition: optional(actor.description),
+      })),
+    ),
+    manualProcesses: added(
+      model.manualProcesses.map((process) => ({
+        id: process.id,
+        name: field(process.name),
+        definition: optional(process.description),
+      })),
+    ),
     relations: added(model.relations.map(designedRelation)),
     implemented: true,
     implementedAt: model.scanned_at,

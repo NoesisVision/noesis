@@ -5,7 +5,6 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { useDebouncedValue } from '#/shared/design-system/hooks.ts';
 import { Select } from '#/shared/design-system/select.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
-import { TagsInput } from '#/shared/design-system/tags-input.tsx';
 import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Textarea } from '#/shared/design-system/textarea.tsx';
@@ -13,7 +12,6 @@ import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { MermaidDiagram } from '#/shared/ui/mermaid-diagram.tsx';
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import type { Visibility } from '#backend/app/system-model/system-model.ts';
 import { writtenIn } from '../../change-set.ts';
 import {
   blocksNamedIn,
@@ -47,7 +45,6 @@ const LABEL: Record<UnitFieldName, string> = {
   definition: 'Definition',
   diagram: 'Diagram',
   type: 'Type',
-  visibility: 'Visibility',
   kind: 'Kind',
   description: 'Description',
   needs: 'Answers the needs',
@@ -244,13 +241,6 @@ function FieldInput({
         />
       );
     }
-    case 'visibility':
-      return (
-        <VisibilityInput
-          value={fields.visibility!.value}
-          onChange={(visibility) => form.setFieldValue(path, visibility)}
-        />
-      );
     case 'kind':
       return (
         <Select
@@ -407,43 +397,6 @@ function DiagramInput({ form, invalid }: { form: UnitForm; invalid: boolean }) {
         {...valueProps(form, 'fields.diagram.value')}
       />
       {drawn !== '' && <MermaidDiagram chart={drawn} />}
-    </Stack>
-  );
-}
-
-function VisibilityInput({
-  value,
-  onChange,
-}: {
-  value: Visibility;
-  onChange: (visibility: Visibility) => void;
-}) {
-  return (
-    <Stack gap="xs">
-      <ChipChoice
-        label="Visibility"
-        options={[
-          { value: 'private', label: 'Private' },
-          { value: 'public', label: 'Public' },
-        ]}
-        value={value.kind}
-        onChange={(kind) =>
-          onChange(
-            kind === 'public'
-              ? { kind: 'public', actors: [] }
-              : { kind: 'private' },
-          )
-        }
-      />
-      {value.kind === 'public' && (
-        <TagsInput
-          aria-label="Actors"
-          description="Who may call it. Press Enter after each."
-          placeholder="Add an actor"
-          value={value.actors}
-          onChange={(actors) => onChange({ kind: 'public', actors })}
-        />
-      )}
     </Stack>
   );
 }

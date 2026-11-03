@@ -21,6 +21,8 @@ const ORDERS = 'module|sales.orders';
 const ORDER = 'building_block|sales.orders.Order';
 const PLACE = 'behavior|sales.orders.Order.place';
 const CANCEL = 'behavior|sales.orders.Order.cancel';
+const CUSTOMER = 'actor|Customer';
+const RETURN_GOODS = 'manual_process|Return goods';
 
 const module = {
   id: ORDERS,
@@ -36,7 +38,6 @@ const block = {
 const behavior = {
   id: PLACE,
   name: 'place',
-  visibility: { kind: 'public', actors: ['Customer'] },
   source: { path: 'src/sales/orders/order.ts', line: 30 },
 };
 
@@ -81,6 +82,8 @@ describe('A system model', () => {
     expect(parsed.behaviors).toEqual([]);
     expect(parsed.rules).toEqual([]);
     expect(parsed.scenarios).toEqual([]);
+    expect(parsed.actors).toEqual([]);
+    expect<unknown>(parsed.manualProcesses).toEqual([]);
     expect(parsed.relations).toEqual([]);
   });
 
@@ -213,26 +216,38 @@ describe('A scanned behavior', () => {
     expect(isValid(withBehavior({ type: 'Command' }))).toBe(false);
   });
 
-  it('says nothing about a public behavior beyond the actors it names', () => {
+  it('says nothing of who may call it: actors drive the system through manual processes', () => {
     expect(
-      isValid(
-        withBehavior({
-          visibility: { kind: 'public', actors: ['Clerk'], roles: ['admin'] },
-        }),
-      ),
+      isValid(withBehavior({ visibility: { kind: 'public', actors: [] } })),
+    ).toBe(false);
+  });
+});
+
+describe('An actor and a manual process', () => {
+  const actor = {
+    id: CUSTOMER,
+    name: 'Customer',
+    source: { path: 'src/sales/orders/order.ts', line: 29 },
+  };
+  const process = { id: RETURN_GOODS, name: 'Return goods' };
+
+  it('are elements of their own, named by their name alone', () => {
+    const parsed = SystemModel.parse(
+      model({ actors: [actor], manualProcesses: [process] }),
+    );
+    expect<unknown>(parsed.actors).toEqual([{ ...actor, description: null }]);
+    expect<unknown>(parsed.manualProcesses).toEqual([
+      { ...process, description: null, source: null },
+    ]);
+    expect(
+      isValid(model({ actors: [{ ...actor, id: 'actor|sales.Customer' }] })),
     ).toBe(false);
   });
 
-  it('is either private, or public to the actors it names', () => {
-    expect(isValid(withBehavior({ visibility: { kind: 'private' } }))).toBe(
-      true,
+  it('say where in the code an actor was named; a manual process is never in it', () => {
+    expect(isValid(model({ actors: [{ ...actor, source: undefined }] }))).toBe(
+      false,
     );
-    expect(isValid(withBehavior({ visibility: undefined }))).toBe(false);
-    expect(
-      isValid(
-        withBehavior({ visibility: { kind: 'private', actors: ['Clerk'] } }),
-      ),
-    ).toBe(false);
   });
 });
 
@@ -280,9 +295,22 @@ describe('A relation', () => {
           input,
           output,
           invokes,
+          { kind: 'invokes', from: RETURN_GOODS, to: PLACE, order: 1 },
+          { kind: 'performs', from: CUSTOMER, to: RETURN_GOODS },
         ]),
       ),
     ).toBe(true);
+    expect(isValid(withRelations([{ ...invokes, from: CUSTOMER }]))).toBe(
+      false,
+    );
+    expect(
+      isValid(withRelations([{ kind: 'performs', from: CUSTOMER, to: PLACE }])),
+    ).toBe(false);
+    expect(
+      isValid(
+        withRelations([{ kind: 'performs', from: PLACE, to: RETURN_GOODS }]),
+      ),
+    ).toBe(false);
     expect(isValid(withRelations([{ ...contains, kind: 'holds' }]))).toBe(
       false,
     );

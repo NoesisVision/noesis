@@ -1,6 +1,6 @@
 # Plan: introducing the new system model
 
-Status: in progress (November 2026); steps 1, 2 and 3 of section 11 are
+Status: in progress (November 2026); steps 1, 2, 3 and 4 of section 11 are
 built, step 3 before step 2: the two share files but neither needs the
 other.
 
@@ -510,6 +510,23 @@ fixtures and the skills together, so no step leaves two shapes alive.
 4. **Actors and manual processes** (decisions 7, 15, 16): `ActorId`,
    `ManualProcessId`, `actors`, `manualProcesses`, `performs`, `invokes`
    from a process, `visibility` goes, the driving-port check and the forms.
+   _Built_: a scanned actor is an element with no relation, its source
+   where it is first named (R9.5); Java's `@Actor` waits for step 7. The
+   design document's `actors` and `manualProcesses` are change sets keyed
+   by id with `name` and `definition`. The SPA shows an actor at the top
+   of the model tree after the modules, a manual process under each actor
+   that performs it (at the top when none does); an actor's panel has
+   Performs, a process's Performed by and a Steps section in order, a
+   behavior's Invoked by, and the Public/Private badge and field are gone;
+   names and definitions are written in place, and nothing adds an actor
+   or a process yet. The architecture view takes every behavior of an
+   application service or an in adapter for a driving port, its actors
+   those performing the processes that invoke it, directly or through an
+   in adapter; "Caller unknown" flags a port no process or in adapter
+   invokes, the exposed band a behavior of another kind a process or
+   another module invokes, and the tree's "Public only" keeps the driving
+   ports. The committed examples were converted by script; the two
+   designs that named actors gained a process each.
 5. **Deployable units and libraries** (decision 13): `DeployableUnitId`,
    `LibraryId`, the artifact projection and its `contains`.
 6. **Layers and deployment containers** (decisions 14, 15): `LayerId`,

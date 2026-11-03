@@ -13,6 +13,7 @@ import {
   IconDatabase,
   IconDiamond,
   IconFolder,
+  IconHandClick,
   IconId,
   IconInfoCircle,
   IconListCheck,
@@ -29,6 +30,7 @@ import {
   IconStatusChange,
   IconTarget,
   IconTool,
+  IconUser,
   IconWorld,
 } from '@tabler/icons-react';
 import type { OutlineKind, OutlineNode } from './model-outline.ts';
@@ -36,6 +38,8 @@ import classes from './model-tree.module.css';
 
 const KIND_ICONS = {
   module: IconFolder,
+  actor: IconUser,
+  manual_process: IconHandClick,
   building_block: IconBlocks,
   behavior: IconActivity,
   property: IconPoint,

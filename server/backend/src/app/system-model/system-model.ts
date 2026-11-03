@@ -1,8 +1,10 @@
 import { z } from 'zod';
 import {
+  ActorId,
   BehaviorId,
   BuildingBlockId,
   ElementName,
+  ManualProcessId,
   ModuleId,
   RuleId,
   ScenarioId,
@@ -103,12 +105,6 @@ export const Cardinality = z
   );
 export type Cardinality = z.infer<typeof Cardinality>;
 
-export const Visibility = z.discriminatedUnion('kind', [
-  z.strictObject({ kind: z.literal('private') }),
-  z.strictObject({ kind: z.literal('public'), actors: z.array(z.string()) }),
-]);
-export type Visibility = z.infer<typeof Visibility>;
-
 export const SourceLocation = z.strictObject({
   path: z.string(),
   line: z.int().min(1).nullable().default(null),
@@ -186,10 +182,30 @@ export const ScannedBehavior = z.strictObject({
   id: BehaviorId,
   name: ElementName,
   description: z.string().nullable().default(null),
-  visibility: Visibility,
   source: SourceLocation,
 });
 export type ScannedBehavior = z.infer<typeof ScannedBehavior>;
+
+/** A person or role outside the code: named by an actor annotation on a behavior, found where it is first named. */
+export const ScannedActor = z.strictObject({
+  id: ActorId,
+  name: ElementName,
+  description: z.string().nullable().default(null),
+  source: SourceLocation,
+});
+export type ScannedActor = z.infer<typeof ScannedActor>;
+
+/**
+ * Work an actor performs that is not automated, calling behaviors in order.
+ * No scan finds one: a design document authors it.
+ */
+export const ScannedManualProcess = z.strictObject({
+  id: ManualProcessId,
+  name: ElementName,
+  description: z.string().nullable().default(null),
+  source: SourceLocation.nullable().default(null),
+});
+export type ScannedManualProcess = z.infer<typeof ScannedManualProcess>;
 
 /*
  * The relations between elements, one list for all of them: an element
@@ -215,6 +231,7 @@ export const RelationKind = z.enum([
   'invokes',
   'governs',
   'illustrates',
+  'performs',
 ]);
 export type RelationKind = z.infer<typeof RelationKind>;
 
@@ -271,15 +288,17 @@ export const HasOutputRelation = relation('has_output', {
   'What a behavior gives back: typed by `to`, holding `cardinality` values; a behavior has at most one.',
 );
 export const InvokesRelation = relation('invokes', {
-  from: BehaviorId,
+  from: z.union([BehaviorId, ManualProcessId]),
   to: BehaviorId,
   order: z
     .int()
     .min(1)
     .describe(
-      'The position of the call within the calling behavior, counting from 1; a behavior called twice keeps its first.',
+      'The position of the call within the calling behavior or manual process, counting from 1; a behavior called twice keeps its first.',
     ),
-}).describe('A behavior calls another, as the `order`th step; never itself.');
+}).describe(
+  'A behavior or a manual process calls a behavior, as its `order`th step; a behavior never calls itself.',
+);
 export const GovernsRelation = relation('governs', {
   from: BehaviorId,
   to: RuleId,
@@ -293,6 +312,11 @@ export const IllustratesRelation = relation('illustrates', {
   "A scenario is an example of a rule; the scenario's id path is the rule's path and its own name.",
 );
 
+export const PerformsRelation = relation('performs', {
+  from: ActorId,
+  to: ManualProcessId,
+}).describe('An actor carries out a manual process.');
+
 const relationSchema = z.discriminatedUnion('kind', [
   ContainsRelation,
   ExtendsRelation,
@@ -304,6 +328,7 @@ const relationSchema = z.discriminatedUnion('kind', [
   InvokesRelation,
   GovernsRelation,
   IllustratesRelation,
+  PerformsRelation,
 ]);
 export type Relation = z.infer<typeof relationSchema>;
 
@@ -362,6 +387,8 @@ export const SystemModel = z
     behaviors: z.array(ScannedBehavior).default([]),
     rules: z.array(ScannedRule).default([]),
     scenarios: z.array(ScannedScenario).default([]),
+    actors: z.array(ScannedActor).default([]),
+    manualProcesses: z.array(ScannedManualProcess).default([]),
     relations: z.array(relationSchema).default([]),
   })
   .describe(

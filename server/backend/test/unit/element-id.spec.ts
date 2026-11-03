@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import {
+  ActorId,
   BehaviorId,
   BuildingBlockId,
   ElementId,
   ElementName,
+  ManualProcessId,
   ModuleId,
   RuleId,
   ScenarioId,
@@ -192,42 +194,17 @@ describe('ElementId', () => {
       'behavior|a.b.c',
       'rule|a.b',
       'scenario|a.b.c',
+      'actor|Support agent',
+      'manual_process|Refund a return',
     ].map((v) => ElementId.parse(v));
-    expect(ids.map(ElementId.isModule)).toEqual([
-      true,
-      false,
-      false,
-      false,
-      false,
-    ]);
-    expect(ids.map(ElementId.isBuildingBlock)).toEqual([
-      false,
-      true,
-      false,
-      false,
-      false,
-    ]);
-    expect(ids.map(ElementId.isBehavior)).toEqual([
-      false,
-      false,
-      true,
-      false,
-      false,
-    ]);
-    expect(ids.map(ElementId.isRule)).toEqual([
-      false,
-      false,
-      false,
-      true,
-      false,
-    ]);
-    expect(ids.map(ElementId.isScenario)).toEqual([
-      false,
-      false,
-      false,
-      false,
-      true,
-    ]);
+    const only = (index: number) => ids.map((_, i) => i === index);
+    expect(ids.map(ElementId.isModule)).toEqual(only(0));
+    expect(ids.map(ElementId.isBuildingBlock)).toEqual(only(1));
+    expect(ids.map(ElementId.isBehavior)).toEqual(only(2));
+    expect(ids.map(ElementId.isRule)).toEqual(only(3));
+    expect(ids.map(ElementId.isScenario)).toEqual(only(4));
+    expect(ids.map(ElementId.isActor)).toEqual(only(5));
+    expect(ids.map(ElementId.isManualProcess)).toEqual(only(6));
     expect(
       ids.map((id) =>
         ElementId.match(id, {
@@ -236,9 +213,29 @@ describe('ElementId', () => {
           behavior: () => 'behavior',
           rule: () => 'rule',
           scenario: () => 'scenario',
+          actor: () => 'actor',
+          manualProcess: () => 'manual process',
         }),
       ),
-    ).toEqual(['module', 'building block', 'behavior', 'rule', 'scenario']);
+    ).toEqual([
+      'module',
+      'building block',
+      'behavior',
+      'rule',
+      'scenario',
+      'actor',
+      'manual process',
+    ]);
+  });
+
+  it('names an actor and a manual process by their name alone', () => {
+    expect<string>(ActorId.of('Support agent')).toBe('actor|Support agent');
+    expect<string>(ManualProcessId.of('Refund a return')).toBe(
+      'manual_process|Refund a return',
+    );
+    expect(() => ActorId.of('Support.agent')).toThrow();
+    expect(ActorId.safeParse('actor|a.b').success).toBe(false);
+    expect(ManualProcessId.safeParse('manual_process|a.b').success).toBe(false);
   });
 
   it('reports a bad element at its path', () => {

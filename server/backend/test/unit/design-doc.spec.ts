@@ -625,28 +625,108 @@ describe('The type of a piece of state, an input or an output', () => {
   });
 });
 
-describe('The visibility of a behavior', () => {
-  it('names the actors that may call a public behavior', () => {
+describe('Actors and manual processes', () => {
+  const CLERK = 'actor|Clerk';
+  const REFUND_A_RETURN = 'manual_process|Refund a return';
+  const people = (relations: object[]) =>
+    design({
+      actors: {
+        added: [
+          {
+            id: CLERK,
+            name: { value: 'Clerk' },
+            definition: { value: 'Serves customers at the counter.' },
+          },
+        ],
+      },
+      manualProcesses: {
+        added: [
+          {
+            id: REFUND_A_RETURN,
+            name: { value: 'Refund a return' },
+            definition: { value: 'The clerk refunds what came back.' },
+          },
+        ],
+      },
+      relations: { added: relations },
+    });
+
+  it('lets an actor perform a manual process that invokes behaviors in order', () => {
     expect(
       isValid(
-        addingIssue({
-          visibility: { value: { kind: 'public', actors: ['Clerk'] } },
-        }),
+        people([
+          { kind: 'performs', from: CLERK, to: REFUND_A_RETURN },
+          {
+            kind: 'invokes',
+            from: REFUND_A_RETURN,
+            to: ISSUE,
+            order: { value: 1 },
+          },
+        ]),
       ),
     ).toBe(true);
   });
 
-  it('names no actor for a private behavior', () => {
-    expect(
-      isValid(addingIssue({ visibility: { value: { kind: 'private' } } })),
-    ).toBe(true);
+  it('names an actor and a manual process by their name alone', () => {
     expect(
       isValid(
-        addingIssue({
-          visibility: { value: { kind: 'private', actors: ['Clerk'] } },
+        design({
+          actors: {
+            added: [
+              {
+                id: 'actor|sales.Clerk',
+                name: { value: 'Clerk' },
+                definition: { value: '' },
+              },
+            ],
+          },
         }),
       ),
     ).toBe(false);
+  });
+
+  it('lets only an actor perform, and only a manual process', () => {
+    expect(
+      isValid(people([{ kind: 'performs', from: ISSUE, to: REFUND_A_RETURN }])),
+    ).toBe(false);
+    expect(
+      isValid(people([{ kind: 'performs', from: CLERK, to: ISSUE }])),
+    ).toBe(false);
+    expect(
+      isValid(
+        people([
+          { kind: 'invokes', from: CLERK, to: ISSUE, order: { value: 1 } },
+        ]),
+      ),
+    ).toBe(false);
+  });
+
+  it('says nothing of who may call a behavior on the behavior', () => {
+    expect(
+      isValid(
+        addingIssue({
+          definition: { value: 'Issues a refund.' },
+          diagram: { value: '' },
+          visibility: { value: { kind: 'public', actors: ['Clerk'] } },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('refuses a performs whose actor neither the design nor the model has', () => {
+    const violations = DesignDocument.validateAgentGenerated(
+      DesignDocument.parse(
+        design({
+          relations: {
+            added: [{ kind: 'performs', from: CLERK, to: REFUND_A_RETURN }],
+          },
+        }),
+      ),
+    );
+    expect(violations).toContainEqual({
+      path: `relations.added[performs|${CLERK}|${REFUND_A_RETURN}].from`,
+      reason: 'unknownRelationEnd',
+    });
   });
 });
 
@@ -724,7 +804,6 @@ describe('A design document an agent wrote', () => {
       {
         id: CANCEL,
         name: 'cancel',
-        visibility: { kind: 'private' },
         source,
       },
     ],
@@ -1027,7 +1106,6 @@ describe('A design document an agent wrote', () => {
                     id: ISSUE,
                     name: { value: 'issue' },
                     definition: { value: 'Issues it.' },
-                    visibility: { value: { kind: 'private' } },
                   },
                 ],
               },
@@ -1219,7 +1297,6 @@ describe('A design document an agent wrote', () => {
         validate(
           addingIssue({
             definition: { value: 'Issues a refund.' },
-            visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([]);
@@ -1232,7 +1309,6 @@ describe('A design document an agent wrote', () => {
         validate(
           addingIssue({
             definition: { value: fenced },
-            visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([
@@ -1247,7 +1323,6 @@ describe('A design document an agent wrote', () => {
           DesignDocument.parse(
             addingIssue({
               definition: { value: fenced },
-              visibility: { value: { kind: 'private' } },
             }),
           ),
         ),
@@ -1257,7 +1332,6 @@ describe('A design document an agent wrote', () => {
           addingIssue({
             definition: { value: 'Issues a refund.' },
             diagram: { value: 'sequenceDiagram\n  A->>B: issue' },
-            visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([]);
@@ -1424,9 +1498,7 @@ describe('A rule of a design', () => {
         source,
       },
     ],
-    behaviors: [
-      { id: CANCEL, name: 'cancel', visibility: { kind: 'private' }, source },
-    ],
+    behaviors: [{ id: CANCEL, name: 'cancel', source }],
     rules: [
       { id: PAID_ONLY, name: 'Paid orders only', kind: 'state_change', source },
     ],

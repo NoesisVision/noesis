@@ -14,6 +14,9 @@ import { titleCase } from '#/shared/ui/title-case.ts';
 
 const OUTLINE_KINDS = [
   'module',
+  // Who drives the system, and the work they do by hand.
+  'actor',
+  'manual_process',
   'building_block',
   'behavior',
   'property',
@@ -95,9 +98,14 @@ const BUILDING_BLOCK_READING_ORDER = [
   'event',
 ] as const;
 
-/** Submodules above the blocks they hold; rules and scenarios last of all. */
+/**
+ * Submodules above the blocks they hold; rules and scenarios last of all. At
+ * the top, the modules, then who drives them and the work they do.
+ */
 const KIND_ORDER: readonly OutlineKind[] = [
   'module',
+  'actor',
+  'manual_process',
   'building_block',
   'behavior',
   'property',

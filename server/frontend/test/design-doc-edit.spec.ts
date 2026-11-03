@@ -67,7 +67,6 @@ const doc = (): DesignDocumentInput => ({
         id: SETTLE,
         name: agent('settle'),
         definition: agent('Settles.'),
-        visibility: agent({ kind: 'private' }),
       },
     ],
   },

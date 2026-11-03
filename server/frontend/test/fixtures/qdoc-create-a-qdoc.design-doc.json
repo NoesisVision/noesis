@@ -690,14 +690,6 @@
           "changed": true,
           "value": "sequenceDiagram\n  accTitle: Creating a QDoc\n  actor QM as Quality manager\n  QM->>QDocCreationService: createQDoc(command)\n  QDocCreationService->>IdentityProvider: isQualityManager(requestedBy)\n  QDocCreationService->>DocumentNumberGenerator: next()\n  QDocCreationService->>QDoc: create(command, number)\n  QDoc->>Version: createFirst(authors, reviewers, approvers)\n  QDocCreationService->>QDocRepository: save(qdoc)\n  QDocCreationService->>PreparationEventPublisher: publish(QDocCreated)\n  QDocCreationService->>IdentityProvider: findQualityManagers()\n  QDocCreationService->>NotificationService: notifyUsers(NewQDocNotification for the quality managers)\n  QDocCreationService-->>QM: QDocId",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": ["Quality manager"]
-          },
-          "author": "agent"
         }
       },
       {
@@ -714,13 +706,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -737,13 +722,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -760,13 +738,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -783,13 +754,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -806,13 +770,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -829,13 +786,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -854,14 +804,6 @@
           "changed": true,
           "value": "sequenceDiagram\n  accTitle: Notifying users on another subsystem's request\n  participant Caller as Calling subsystem\n  Caller->>NotificationService: notifyUsers(command)\n  loop each recipient\n    NotificationService->>NotificationSender: send(Notification)\n  end",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -878,13 +820,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -901,13 +836,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       }
     ],
@@ -2269,8 +2197,61 @@
     "removed": [],
     "modified": []
   },
+  "actors": {
+    "added": [
+      {
+        "id": "actor|Quality manager",
+        "name": {
+          "changed": true,
+          "value": "Quality manager",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Prepares and approves quality documents.",
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "manualProcesses": {
+    "added": [
+      {
+        "id": "manual_process|Create a QDoc",
+        "name": {
+          "changed": true,
+          "value": "Create a QDoc",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The quality manager starts a new quality document.",
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
   "relations": {
     "added": [
+      {
+        "kind": "performs",
+        "from": "actor|Quality manager",
+        "to": "manual_process|Create a QDoc"
+      },
+      {
+        "kind": "invokes",
+        "from": "manual_process|Create a QDoc",
+        "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "order": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
+      },
       {
         "kind": "has_state",
         "from": "building_block|qdocmanagement.preparation.QDocId",

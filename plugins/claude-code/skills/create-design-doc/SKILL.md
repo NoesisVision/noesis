@@ -71,14 +71,18 @@ rules, scenarios. Read it at step 5.
    - **Modules.** Place the work in existing modules first. A new module
      only for a cohesive group of building blocks, under the module closest
      to it in meaning. A new root module needs the user's approval, always.
-   - **Use cases and actors.** Every action triggered from outside the
-     module by a command, event or query is a public behavior. Its actors
-     are the human personas that trigger it; reuse the actor names the
-     system model already uses, verbatim.
+   - **Actors and manual processes.** Every goal a person reaches by
+     driving the system is a manual process (`manualProcesses`): the work
+     they do by hand, whose `invokes` relations call the system's
+     behaviors in order. The actor who does it (`actors`) `performs` it;
+     reuse the actor names the system model already uses, verbatim. The
+     behaviors a process invokes are behaviors of application services or
+     in adapters.
    - **Building blocks and behaviors**, with their types, and the
      **relations** between them: a block's state (`has_state`), what it
      works with (`has_collaborator`), what it extends (`extends`), a behavior's inputs (`has_input`) and output
-     (`has_output`), and what calls what (`invokes`). Take ready solutions
+     (`has_output`), and what calls what (`invokes`, from a behavior or a
+     manual process). Take ready solutions
      from the sources, diagrams especially.
    - **Rules**, one per requirement statement, each with its kind, the
      needs it answers (none for a design decision) and, when a source gives
@@ -131,23 +135,25 @@ rules, scenarios. Read it at step 5.
    behavior's parameter, the same way, plus `position`, a field: where it
    stands in the signature, counting from 1), `has_output` (a behavior's result:
    `to` is its key, `cardinality` a field), `extends`, `exposes`,
-   `contains`, `invokes` (`order` a field), `governs` (from a behavior to a
-   rule it follows) and `illustrates` (from a scenario to its rule). The
+   `contains`, `invokes` (from a behavior or a manual process; `order` a
+   field), `governs` (from a behavior to a rule it follows),
+   `illustrates` (from a scenario to its rule) and `performs` (from an
+   actor to a manual process). The
    kind of the block a
    slot points at picks the relation: a primitive or a value of the domain
    (`aggregate`, `entity`, `value_object`, `command`, `query`, `event`) is
    `has_state`, any other block `has_collaborator`. A `has_state`,
    `has_collaborator` or `has_input` is known by its holder and `name`, so its type may change in place; a
    `has_output` is known by its `to`, so an output of another type is one
-   removed and one added; `extends`, `governs` and `illustrates` have
-   nothing to modify. `cardinality`
+   removed and one added; `extends`, `governs`, `illustrates` and
+   `performs` have nothing to modify. `cardinality`
    is `1`, `0..1`, `0..*` or `1..*`: a collection and an optional value are
    told apart by it, never by the type. Both ends of an added relation
    exist, in the design or in the model; a `contains`, `exposes` or
    `illustrates` only says what the ids already say, so write one only
    when it does. Every added rule has an added `governs` to it. Needs
    are only ever `added`: no scan holds one, so there is nothing to modify
-   or remove. A rename of an element in the model is a removal of the old
+   or remove; nor are manual processes, which no scan finds. A rename of an element in the model is a removal of the old
    id and an addition of the new one, and every reference to the old id
    moves to the new one.
 
@@ -161,12 +167,13 @@ rules, scenarios. Read it at step 5.
    read
    `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/description.md`
    before writing it), `needs`, `modules`, `buildingBlocks`, `behaviors`,
-   `rules`, `scenarios` and `relations`. No `id`, no `implemented`. Write every field as
+   `rules`, `scenarios`, `actors`, `manualProcesses` and `relations`. No `id`, no `implemented`. Write every field as
    `{ "value": … }` and never with `author`: you are the agent. Leave out a
    change set with nothing in it.
    Before saving, check that every end of a relation — the `to` of a
    `has_state`, `has_collaborator`, `has_input` or `has_output`, both ends of an `extends`,
-   an `invokes`, a `governs` or an `illustrates` — names an element this
+   an `invokes`, a `governs`, an `illustrates` or a `performs` — names an
+   element this
    design adds, one the system model has, or a primitive, that
    nothing refers to an id the design removes, that every added rule has a
    `governs` and every added scenario an `illustrates` to the rule its id

@@ -48,7 +48,6 @@ const systemModel = {
       id: 'behavior|shop.Basket.checkOut',
       name: 'checkOut',
       description: null,
-      visibility: { kind: 'public' },
       source,
     },
   ],
@@ -62,6 +61,8 @@ const systemModel = {
     },
   ],
   scenarios: [],
+  actors: [],
+  manualProcesses: [],
   relations: [
     {
       kind: 'governs',

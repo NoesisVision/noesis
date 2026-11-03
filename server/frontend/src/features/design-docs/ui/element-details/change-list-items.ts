@@ -4,7 +4,8 @@ import type { ChangeSetInput } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
 import { needNamesOf } from '../../design-doc-requirements.ts';
-import { blockOfRef, nameOf } from '../../element-id.ts';
+import { addressOf, blockOfRef, nameOf } from '../../element-id.ts';
+import { processPathOf, processPathUnder, stepsOf } from '../../people.ts';
 import {
   cardinalitySuffixOf,
   type DesignedCollaboratorInput,
@@ -233,5 +234,73 @@ export const ruleItems = (
       ...(scenarios > 0 ? { scenarios, scenarioNames } : {}),
       ...(classification ? { classification } : {}),
       ...(traced ? { needs: needNamesOf(traced, doc.needs) } : {}),
+    };
+  });
+
+/** The `performs` and `invokes` relations of a design, each with what the design does to it. */
+const peopleRelations = (doc: DesignDocumentInput) =>
+  [...changed(doc.relations)].filter(
+    ([relation]) => relation.kind === 'performs' || relation.kind === 'invokes',
+  );
+
+/** The manual processes an actor performs, each opening its row under the actor. */
+export const performedItems = (
+  doc: DesignDocumentInput,
+  actorId: string,
+): ChangeListItem[] =>
+  peopleRelations(doc).flatMap(([relation, change]) =>
+    relation.kind === 'performs' && relation.from === actorId
+      ? [
+          {
+            change,
+            label: nameOf(relation.to),
+            path: processPathUnder(actorId, relation.to),
+          },
+        ]
+      : [],
+  );
+
+/** The actors who perform a manual process, each opening its row. */
+export const performerItems = (
+  doc: DesignDocumentInput,
+  processId: string,
+): ChangeListItem[] =>
+  peopleRelations(doc).flatMap(([relation, change]) =>
+    relation.kind === 'performs' && relation.to === processId
+      ? [{ change, label: nameOf(relation.from), path: relation.from }]
+      : [],
+  );
+
+/** The manual processes that invoke a behavior, each opening its first row. */
+export const invokerItems = (
+  doc: DesignDocumentInput,
+  behaviorId: string,
+): ChangeListItem[] =>
+  peopleRelations(doc).flatMap(([relation, change]) =>
+    relation.kind === 'invokes' &&
+    relation.to === behaviorId &&
+    relation.from.startsWith('manual_process|')
+      ? [
+          {
+            change,
+            label: nameOf(relation.from),
+            path: processPathOf(doc, relation.from),
+          },
+        ]
+      : [],
+  );
+
+/** The behaviors a manual process invokes, in order, each by its block and name, its module under it. */
+export const stepItems = (
+  doc: DesignDocumentInput,
+  processId: string,
+): ChangeListItem[] =>
+  stepsOf(doc, processId).map(({ behavior, order, change }) => {
+    const address = addressOf(behavior).split('.');
+    return {
+      change,
+      label: `${order === null ? '–' : order}. ${address.slice(-2).join('.')}`,
+      path: behavior,
+      description: address.slice(0, -2).join('.'),
     };
   });

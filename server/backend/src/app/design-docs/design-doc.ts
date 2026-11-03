@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import type { Clock } from '#backend/app/clock';
 import {
+  ActorId,
   BehaviorId,
   BuildingBlockId,
   ElementName,
+  ManualProcessId,
   ModuleId,
   RuleId,
   ScenarioId,
@@ -21,6 +23,7 @@ import {
   HasStateRelation,
   IllustratesRelation,
   InvokesRelation,
+  PerformsRelation,
   Relation,
   type RelationKey,
   RuleKind,
@@ -28,7 +31,6 @@ import {
   isCollaboratorType,
   type SystemModel,
   TypeId,
-  Visibility,
 } from '#backend/app/system-model/system-model';
 import { type ChangedDesignDocField, DesignDocField } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
@@ -84,6 +86,7 @@ export const DesignedRelation = z.discriminatedUnion('kind', [
   }),
   GovernsRelation,
   IllustratesRelation,
+  PerformsRelation,
 ]);
 export type DesignedRelation = z.infer<typeof DesignedRelation>;
 
@@ -100,6 +103,7 @@ export const DesignedRelationKey = z
     InvokesRelation.pick({ kind: true, from: true, to: true }),
     GovernsRelation.pick({ kind: true, from: true, to: true }),
     IllustratesRelation.pick({ kind: true, from: true, to: true }),
+    PerformsRelation.pick({ kind: true, from: true, to: true }),
   ])
   .describe(
     "A relation by what makes it one of a kind: its kind, `from` and `to`; for 'has_state', 'has_collaborator' and 'has_input', its kind, `from` and `name`.",
@@ -148,9 +152,30 @@ export const DesignedBehavior = z.strictObject({
   name: DesignDocField(ElementName),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
-  visibility: DesignDocField(Visibility),
 });
 export type DesignedBehavior = z.infer<typeof DesignedBehavior>;
+
+export const DesignedActor = z
+  .strictObject({
+    id: ActorId,
+    name: DesignDocField(ElementName),
+    definition: DesignDocField(z.string()),
+  })
+  .describe(
+    "A person or role outside the code who drives the system: a 'performs' relation names the manual processes they carry out.",
+  );
+export type DesignedActor = z.infer<typeof DesignedActor>;
+
+export const DesignedManualProcess = z
+  .strictObject({
+    id: ManualProcessId,
+    name: DesignDocField(ElementName),
+    definition: DesignDocField(z.string()),
+  })
+  .describe(
+    "Work an actor does by hand, outside the code: its 'invokes' relations are the behaviors it calls, in order, and a 'performs' relation names who does it. Never scanned.",
+  );
+export type DesignedManualProcess = z.infer<typeof DesignedManualProcess>;
 
 const designDocumentSchema = z.strictObject({
   id: DesignDocId.describe(
@@ -168,8 +193,10 @@ const designDocumentSchema = z.strictObject({
   behaviors: changeSet(DesignedBehavior, BehaviorId),
   rules: changeSet(DesignedRule, RuleId),
   scenarios: changeSet(DesignedScenario, ScenarioId),
+  actors: changeSet(DesignedActor, ActorId),
+  manualProcesses: changeSet(DesignedManualProcess, ManualProcessId),
   relations: changeSet(DesignedRelation, DesignedRelationKey).describe(
-    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), what a module contains, which rules a behavior follows ('governs') and which scenarios illustrate a rule ('illustrates'). Both ends of an added relation exist, in the design or the model; a 'contains', 'exposes' or 'illustrates' agrees with the ids, whose paths already say what holds what; an added rule is governed by a behavior.",
+    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), what a module contains, which rules a behavior follows ('governs'), which scenarios illustrate a rule ('illustrates'), which manual processes an actor performs ('performs') and which behaviors a manual process calls, in order ('invokes'). Both ends of an added relation exist, in the design or the model; a 'contains', 'exposes' or 'illustrates' agrees with the ids, whose paths already say what holds what; an added rule is governed by a behavior.",
   ),
   implemented: z
     .boolean()
@@ -245,6 +272,8 @@ export function implementedAtOf(
 export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
 export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;
 export type DesignedBehaviorInput = z.input<typeof DesignedBehavior>;
+export type DesignedActorInput = z.input<typeof DesignedActor>;
+export type DesignedManualProcessInput = z.input<typeof DesignedManualProcess>;
 export type DesignedRelationInput = z.input<typeof DesignedRelation>;
 export type DesignedRelationKeyInput = z.input<typeof DesignedRelationKey>;
 export type DesignedRuleInput = z.input<typeof DesignedRule>;
@@ -402,6 +431,8 @@ const ELEMENT_LISTS = [
   'behaviors',
   'rules',
   'scenarios',
+  'actors',
+  'manualProcesses',
 ] as const;
 
 /** Both ends of an added relation are elements the design adds or the model has; a primitive is always known. */

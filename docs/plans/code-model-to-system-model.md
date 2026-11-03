@@ -45,7 +45,7 @@ with an annotation goes through a role, so Java's
 | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `buildingBlock`  | The type is a building block of the given `BuildingBlockType`; `name` overrides its name; a direction argument may pick the type (R4.1) | `DddAggregate` → aggregate, `DddEntity` → entity, `DddValueObject` → value_object, `DddDomainService` → domain_service, `DddApplicationService` → application_service, `DddRepository` → repository, `DddFactory` → factory, `ExternalSystemIntegration` → external_integration; the messages `Command` → command, `Query` → query, `Event` and `DddDomainEvent` → event; `ReadModel` → value_object |
 | `behavior`       | The method is a behavior; `name` overrides its name; it says nothing of a type (R9.4)                                                   | `DomainBehavior`, `EntryPoint` (`TriggeredBy` is not read)                                                                                                                                                                                                                                                                                                                                           |
-| `actor`          | Who calls: `name` goes to the behavior's `visibility.actors`                                                                            | `Actor`                                                                                                                                                                                                                                                                                                                                                                                              |
+| `actor`          | Who drives the system: `name` becomes an `actors` element (R9.5)                                                                        | `Actor`                                                                                                                                                                                                                                                                                                                                                                                              |
 | `description`    | The element's description, Markdown                                                                                                     | `ShortDescription` (`markdownText`)                                                                                                                                                                                                                                                                                                                                                                  |
 | `stepDefinition` | The method is a step definition a feature file's `When` step binds to, by its expression (R12)                                          | Reqnroll's `When` (`expression`); Java: Cucumber's `io.cucumber.java.en.When` (`value`)                                                                                                                                                                                                                                                                                                              |
 | `exclude`        | The element is not in the system model (section 3)                                                                                      | `ExcludeFromDocs`                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -315,10 +315,13 @@ projects is one module.
   the kind of the block it takes (a `has_input` to a `command`, `query` or
   `event`). Was the `Command`, `Query` or `Event` read from `TriggeredBy` or
   fixed by Java's handler annotations; section 14.
-- **R9.5 Visibility.** `public` with its actors when the node is `public`,
-  else `private` (a `behavior` role on a non-public method). Actors: the
-  `actor` roles on the method, on the members it overrides or implements,
-  and on the containing type, as names, sorted and unique.
+- **R9.5 Actors.** A behavior says nothing of who may call it. The `actor`
+  roles on the method, on the members it overrides or implements, and on
+  the containing type each name an `actors` element, `actor|<name>`, one
+  per distinct name, its `source` where it is first named (behaviors by
+  id); no relation joins it to the behavior. A name that is no
+  `ElementName` is dropped with a diagnostic. Was the behavior's
+  `visibility`; section 14.
 - **R9.6 Input.** One `has_input` relation per parameter whose type
   resolves (section 7): `name`, `to`, `cardinality` by R5.4, `0..1`
   also when the parameter is `optional` (has a default), and `position`,
@@ -501,6 +504,15 @@ The kinds step of the plan (step 3) changed, in short:
 | `ScannedBehavior.type` (R9.4)                            | gone                                                                                     |
 
 `has_collaborator` is unique by `(kind, from, name)`, as `has_state` is.
+
+The actors step of the plan (step 4) changed, in short:
+
+| Was                                               | Is                                                              |
+| ------------------------------------------------- | --------------------------------------------------------------- |
+| `ScannedBehavior.visibility`, `public` or private | gone, from the design document too                              |
+| actors as names in `visibility.actors`            | an `actors` list of its own, one element per name (R9.5)        |
+| nothing                                           | a `manualProcesses` list, never scanned: a design authors it    |
+| `invokes` from a behavior                         | `invokes` from a behavior or a manual process; `performs` added |
 
 The rules and scenarios step of the plan (step 2) changed, in short:
 

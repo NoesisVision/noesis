@@ -1740,7 +1740,7 @@ describe('9. behaviors', () => {
     ]);
   });
 
-  it('R9.1 takes a method with a behavior annotation whatever its visibility or name, as a private behavior when not public', () => {
+  it('R9.1 takes a method with a behavior annotation whatever its visibility or name', () => {
     const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#Audit()', {
@@ -1751,12 +1751,10 @@ describe('9. behaviors', () => {
           annotations: [behavior('Describe')],
         }),
     ]);
-    expect<unknown>(model.behaviors.map((b) => [b.name, b.visibility])).toEqual(
-      [
-        ['Audit', { kind: 'private' }],
-        ['Describe', { kind: 'public', actors: [] }],
-      ],
-    );
+    expect<unknown>(model.behaviors.map((b) => b.name)).toEqual([
+      'Audit',
+      'Describe',
+    ]);
   });
 
   it('R9.2 names a behavior by the annotation on the method, else on the member it implements or overrides, else the code', () => {
@@ -1845,16 +1843,14 @@ describe('9. behaviors', () => {
       {},
       JAVA_VOCABULARY,
     );
-    expect<unknown>(
-      model.behaviors.map((b) => [b.name, b.visibility.kind, 'type' in b]),
-    ).toEqual([
-      ['onPlaced', 'private', false],
-      ['place', 'public', false],
-      ['total', 'public', false],
+    expect<unknown>(model.behaviors.map((b) => [b.name, 'type' in b])).toEqual([
+      ['onPlaced', false],
+      ['place', false],
+      ['total', false],
     ]);
   });
 
-  it('R9.5 collects the actors of the method, the members it implements and its type, sorted and unique', () => {
+  it('R9.5 makes an actor of each name on the method, the members it implements and its type, once, and nothing on the behavior', () => {
     const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.IOrder', {
@@ -1871,11 +1867,32 @@ describe('9. behaviors', () => {
         })
         .method('M:Sales.Order#Cancel()'),
     ]);
-    expect<unknown>(model.behaviors.map((b) => b.visibility)).toEqual([
-      { kind: 'public', actors: ['Sales rep'] },
-      { kind: 'public', actors: ['Customer'] },
-      { kind: 'public', actors: ['Admin', 'Customer', 'Sales rep'] },
+    expect<unknown>(model.actors.map((a) => [a.id, a.name])).toEqual([
+      ['actor|Admin', 'Admin'],
+      ['actor|Customer', 'Customer'],
+      ['actor|Sales rep', 'Sales rep'],
     ]);
+    expect<unknown>(model.behaviors.every((b) => !('visibility' in b))).toBe(
+      true,
+    );
+    expect<unknown>(model.relations.map((r) => r.kind)).not.toContain(
+      'performs',
+    );
+    expect<unknown>(model.manualProcesses).toEqual([]);
+  });
+
+  it('R9.5 drops an actor whose name is no element name, with a diagnostic', () => {
+    const { model, diagnostics } = buildFrom([
+      artifact('Sales')
+        .type('T:Sales.Order', { annotations: [aggregate()] })
+        .method('M:Sales.Order#Place()', {
+          annotations: [actor('Sales.rep'), actor('Customer')],
+        }),
+    ]);
+    expect<unknown>(model.actors.map((a) => a.name)).toEqual(['Customer']);
+    expect<unknown>(diagnostics.map((d) => d.message)).toContainEqual(
+      expect.stringContaining('the actor name "Sales.rep" is no element name'),
+    );
   });
 
   it('R9.6 takes one has_input per parameter, 0..1 for a default or a nullable type, leaving out what has no word', () => {
@@ -2016,9 +2033,10 @@ describe('10. order and determinism', () => {
       'behavior|Sales.Alpha.Zip',
       'behavior|Sales.Zed.Make',
     ]);
-    expect<unknown>(first.model.behaviors[1]).toMatchObject({
-      visibility: { kind: 'public', actors: ['Adam', 'Zoe'] },
-    });
+    expect<unknown>(ids(first.model.actors)).toEqual([
+      'actor|Adam',
+      'actor|Zoe',
+    ]);
     expect<unknown>(first.model.relations).toEqual([
       {
         kind: 'contains',

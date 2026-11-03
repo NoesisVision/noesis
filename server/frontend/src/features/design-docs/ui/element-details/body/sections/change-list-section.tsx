@@ -57,10 +57,10 @@ export function ChangeListSection({
   const qualified = kind === 'building_block';
   const sortKey = (label: string) =>
     qualified ? shortName(label).type : label;
-  // Rules read in the design's own order, the newest added on top; the
-  // rest by name.
+  // Rules read in the design's own order, the newest added on top, and a
+  // manual process's steps in theirs; the rest by name.
   const sorted =
-    kind === 'rule'
+    kind === 'rule' || kind === 'behavior'
       ? items
       : [...items].sort((a, b) =>
           sortKey(a.label).localeCompare(sortKey(b.label)),

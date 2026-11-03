@@ -1,9 +1,11 @@
 import type {
   DesignDocumentInput,
   DesignDocViolation,
+  DesignedActorInput,
   DesignedBehaviorInput,
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
+  DesignedManualProcessInput,
   DesignedNeedInput,
   DesignedRuleInput,
   DesignedScenarioInput,
@@ -12,7 +14,6 @@ import type {
   BuildingBlockType,
   RuleKind,
   ScenarioStep,
-  Visibility,
 } from '#backend/app/system-model/system-model.ts';
 import { writtenIn } from './change-set.ts';
 import {
@@ -62,9 +63,11 @@ import { rulesUnder } from './rules.ts';
  */
 
 export type ElementKind = 'module' | 'building_block' | 'behavior';
+/** Who drives the system and the work they do: elements of no module. */
+type PeopleKind = 'actor' | 'manual_process';
 type OwnedPartKind = 'rule' | 'scenario';
 type PartKind = OwnedPartKind | RelationPartKind;
-export type UnitKind = 'need' | ElementKind | PartKind;
+export type UnitKind = 'need' | ElementKind | PeopleKind | PartKind;
 
 /** The element a part is written under — a rule's behavior — and the rule for a scenario. */
 export interface PartOwner {
@@ -79,7 +82,7 @@ export interface PartOwner {
  * extended block's id.
  */
 export type UnitRef =
-  | { kind: 'need' | ElementKind; id: string }
+  | { kind: 'need' | ElementKind | PeopleKind; id: string }
   | { kind: PartKind; id: string; owner: PartOwner };
 
 /** What the design does to a unit: its place in the unit's change set. */
@@ -90,6 +93,8 @@ interface UnitOf {
   module: DesignedDomainModuleInput;
   building_block: DesignedBuildingBlockInput;
   behavior: DesignedBehaviorInput;
+  actor: DesignedActorInput;
+  manual_process: DesignedManualProcessInput;
   rule: DesignedRuleInput;
   scenario: DesignedScenarioInput;
   property: DesignedStateInput;
@@ -105,6 +110,8 @@ export const UNIT_LABEL: Record<UnitKind, string> = {
   module: 'module',
   building_block: 'building block',
   behavior: 'behavior',
+  actor: 'actor',
+  manual_process: 'manual process',
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',
@@ -119,7 +126,12 @@ const COLLECTION_OF = {
   module: 'modules',
   building_block: 'buildingBlocks',
   behavior: 'behaviors',
-} as const satisfies Record<'need' | ElementKind, keyof DesignDocumentInput>;
+  actor: 'actors',
+  manual_process: 'manualProcesses',
+} as const satisfies Record<
+  'need' | ElementKind | PeopleKind,
+  keyof DesignDocumentInput
+>;
 
 const PART_SET: Record<OwnedPartKind, string> = {
   rule: 'rules',
@@ -154,7 +166,11 @@ const isRelation = (item: unknown): item is RelationLike =>
 
 /** Where a new unit goes, or the unit a form revises. */
 export type UnitTarget =
-  | { mode: 'add'; kind: 'need' | ElementKind; parent: string | null }
+  | {
+      mode: 'add';
+      kind: 'need' | ElementKind | PeopleKind;
+      parent: string | null;
+    }
   | { mode: 'add'; kind: PartKind; owner: PartOwner }
   | { mode: 'edit'; ref: UnitRef };
 
@@ -249,6 +265,8 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
     case 'module':
     case 'building_block':
     case 'behavior':
+    case 'actor':
+    case 'manual_process':
     case 'extends':
     case 'result':
       return nameOf(ref.id);
@@ -456,7 +474,6 @@ interface UnitFieldValues {
   definition: string;
   diagram: string;
   type: string;
-  visibility: Visibility;
   /** A rule's kind. */
   kind: string;
   description: string;
@@ -503,12 +520,9 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
     field('definition'),
     field('diagram'),
   ],
-  behavior: [
-    field('name'),
-    field('visibility'),
-    field('definition'),
-    field('diagram'),
-  ],
+  behavior: [field('name'), field('definition'), field('diagram')],
+  actor: [field('name'), field('definition')],
+  manual_process: [field('name'), field('definition')],
   rule: [
     field('name'),
     field('kind'),
@@ -576,7 +590,6 @@ const BLANK: UnitFieldValues = {
   definition: '',
   diagram: '',
   type: '',
-  visibility: { kind: 'private' },
   kind: '',
   description: '',
   needs: [],

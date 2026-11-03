@@ -19,6 +19,7 @@ import {
   valueOf,
 } from './design-doc-field.ts';
 import { kindOf, nameOf, parentOf } from './element-id.ts';
+import { performersOf, processPathUnder } from './people.ts';
 import {
   placesOf,
   ruleKindLabelOf,
@@ -38,7 +39,8 @@ import {
  * field the writer left out is absent rather than defaulted.
  *
  * A rule is no part of what its id names: it hangs under each behavior that
- * governs it (rules.ts), its scenarios under it.
+ * governs it (rules.ts), its scenarios under it. A manual process hangs
+ * under each actor that performs it (people.ts), at the top when none does.
  */
 
 export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
@@ -47,6 +49,8 @@ export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   addBuildingBlocks(nodes, document.buildingBlocks);
   addBehaviors(nodes, document.behaviors);
   addRules(nodes, document);
+  addActors(nodes, document);
+  addManualProcesses(nodes, document);
   addProperties(nodes, document.relations);
   addImpliedAncestors(nodes);
   return inReadingOrder(nodes.values());
@@ -80,6 +84,37 @@ function addBehaviors(
     put(nodes, element(behavior.id, change, null, isDrawn(behavior)));
   }
   for (const id of behaviors?.removed ?? []) put(nodes, element(id, 'removed'));
+}
+
+function addActors(
+  nodes: Map<string, OutlineNode>,
+  document: DesignDocumentInput,
+): void {
+  for (const [actor, change] of named(document.actors))
+    put(nodes, element(actor.id, change));
+  for (const id of document.actors?.removed ?? [])
+    put(nodes, element(id, 'removed'));
+}
+
+/** A manual process under every actor that performs it — an actor the design leaves alone is implied — or at the top. */
+function addManualProcesses(
+  nodes: Map<string, OutlineNode>,
+  document: DesignDocumentInput,
+): void {
+  const placed = (id: string, change: OutlineChange) => {
+    const performers = performersOf(document, id);
+    if (performers.length === 0) put(nodes, element(id, change));
+    for (const actor of performers)
+      put(nodes, {
+        ...element(id, change),
+        path: processPathUnder(actor, id),
+        parentPath: actor,
+      });
+  };
+  for (const [process, change] of named(document.manualProcesses))
+    placed(process.id, change);
+  for (const id of document.manualProcesses?.removed ?? [])
+    placed(id, 'removed');
 }
 
 /**

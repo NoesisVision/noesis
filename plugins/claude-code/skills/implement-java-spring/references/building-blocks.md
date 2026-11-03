@@ -306,8 +306,8 @@ public interface IdentityProvider {
 
 ## Application services
 
-The entry point of the use cases: a public behavior with actors, or one an
-event triggers. Orchestration only, no business rules.
+The entry point of the use cases: a behavior a manual process invokes, or
+one an event triggers. Orchestration only, no business rules.
 
 1. One class per `application_service` building block, one public method
    per behavior, named as the design document names them. Each carries

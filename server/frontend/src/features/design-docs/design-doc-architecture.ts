@@ -35,9 +35,10 @@ import { ruleNameOf, rulesUnder } from './rules.ts';
 
 /*
  * The design read on the assumption that the system it designs is built as
- * hexagons: each module that holds building blocks is one, the public
- * behaviors of its application services and in adapters are the ports that
- * drive it, and its repositories, external integrations, out adapters and
+ * hexagons: each module that holds building blocks is one, the behaviors of
+ * its application services and in adapters are the ports that drive it —
+ * their actors those who perform the manual processes that invoke them,
+ * directly or through an in adapter — and its repositories, external integrations, out adapters and
  * technical services are the ports it drives. Its messages — commands,
  * queries, events — sit in the domain core, as what crosses those ports. Nothing
  * here is stored — it is the same document, placed in rings by the building
@@ -57,7 +58,7 @@ const DOMAIN_CORE = [
   'query',
   'event',
 ] as const satisfies readonly BuildingBlockType[];
-/** The blocks that drive a hexagon: their public behaviors are its ports. */
+/** The blocks that drive a hexagon: their behaviors are its ports. */
 const DRIVING = [
   'application_service',
   'in_adapter',
@@ -85,10 +86,10 @@ export function architectureOf(
     return hexagon;
   };
 
+  const callers = callersOf(document, typeOf);
   const ports = new Set<BehaviorId>();
   for (const [item, change] of behaviors) {
     const owner = ownerOf(item.id);
-    const visibility = valueOf(item.visibility);
     const type = typeOf.get(owner);
     // A design may change a behavior and leave its block out: nothing says
     // what the block is, and the behavior has no block here to be read with.
@@ -98,20 +99,16 @@ export function architectureOf(
     }
     if (!isDriving(type)) {
       // A block whose type the design leaves alone may well be a service.
-      if (visibility?.kind === 'public' && type !== null)
+      if (type !== null && callers.reachesPast(item.id))
         hexagonOf(owner).exposed.push(behaviorElement(document, item, change));
       continue;
     }
-    if (visibility === null) {
-      unplaced.push(behaviorElement(document, item, change));
-      continue;
-    }
-    if (visibility.kind !== 'public') continue;
     ports.add(asBehavior(item.id));
     hexagonOf(owner).drivingPorts.push({
       behavior: behaviorElement(document, item, change),
       service: owner,
-      actors: visibility.actors,
+      actors: callers.actorsOf(item.id),
+      callerKnown: callers.isKnown(item.id),
     });
   }
 
@@ -139,6 +136,49 @@ export function architectureOf(
     unplaced,
     checks: architectureChecks({ hexagons: drawn, unplaced }),
     needsAtPorts: needsAtPorts(document, drawn),
+  };
+}
+
+/**
+ * Who calls a behavior, as the design's `invokes` relations say: a manual
+ * process, whose actors drive it, or a behavior — an in adapter's passing
+ * its own actors on, or one of another module reaching past that module's
+ * ports.
+ */
+function callersOf(
+  document: DesignDocumentInput,
+  typeOf: ReadonlyMap<string, BuildingBlockType | null>,
+) {
+  const invokers = new Map<string, string[]>();
+  const performers = new Map<string, string[]>();
+  const add = (map: Map<string, string[]>, key: string, value: string) =>
+    map.set(key, [...(map.get(key) ?? []), value]);
+  for (const relation of writtenIn(document.relations))
+    if (relation.kind === 'invokes') add(invokers, relation.to, relation.from);
+    else if (relation.kind === 'performs')
+      add(performers, relation.to, nameOf(relation.from));
+  const isProcess = (id: string) => id.startsWith('manual_process|');
+  const isInAdapter = (id: string) =>
+    !isProcess(id) && typeOf.get(ownerOf(id)) === 'in_adapter';
+  const actorsOf = (id: string, seen: Set<string>): string[] =>
+    (invokers.get(id) ?? []).flatMap((caller) => {
+      if (isProcess(caller)) return performers.get(caller) ?? [];
+      if (!isInAdapter(caller) || seen.has(caller)) return [];
+      return actorsOf(caller, new Set([...seen, caller]));
+    });
+  return {
+    actorsOf: (id: string) =>
+      [...new Set(actorsOf(id, new Set([id])))].sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    isKnown: (id: string) =>
+      (invokers.get(id) ?? []).some(
+        (caller) => isProcess(caller) || isInAdapter(caller),
+      ),
+    reachesPast: (id: string) =>
+      (invokers.get(id) ?? []).some(
+        (caller) => isProcess(caller) || moduleOf(caller) !== moduleOf(id),
+      ),
   };
 }
 

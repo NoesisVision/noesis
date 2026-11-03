@@ -107,7 +107,9 @@ describe('ArchitectureView', () => {
     // In the box the model lists what a block implements in.
     expect(html).toMatch(/<dt[^>]*>.*Concerns.*<\/dt>/s);
     expect(html).toMatch(/<button[^>]*>.*notifyUsers.*<\/button>/s);
-    expect(html).toContain('notifyUsers is public and names no actor');
+    expect(html).toContain(
+      'notifyUsers is invoked by no manual process and no in adapter',
+    );
   });
 
   it('outlines the cards a check concerns', () => {

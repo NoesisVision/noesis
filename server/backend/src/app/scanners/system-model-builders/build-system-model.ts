@@ -1,5 +1,6 @@
 import { posix } from 'node:path';
 import {
+  ActorId,
   BehaviorId,
   BuildingBlockId,
   ElementName,
@@ -10,6 +11,7 @@ import {
 import {
   isCollaboratorType,
   Relation,
+  type ScannedActor,
   type ScannedBehavior,
   type ScannedBuildingBlock,
   type ScannedDomainModule,
@@ -94,6 +96,8 @@ type BuiltModel = Pick<
   | 'behaviors'
   | 'rules'
   | 'scenarios'
+  | 'actors'
+  | 'manualProcesses'
   | 'relations'
 >;
 
@@ -151,6 +155,7 @@ class ModelAssembly {
   private readonly behaviors = new Map<BehaviorId, Behavior>();
   private readonly rules = new Map<RuleId, ScannedRule>();
   private readonly scenarios = new Map<ScenarioId, ScannedScenario>();
+  private readonly actors = new Map<ActorId, ScannedActor>();
   /** Every overload's behavior, by the method's global id. */
   private readonly behaviorOfMethod = new Map<GlobalId, BehaviorId>();
   private readonly memberBehaviors = new Map<GlobalId, Set<BehaviorId>>();
@@ -182,10 +187,14 @@ class ModelAssembly {
         .map((block) => this.toBuildingBlock(block))
         .sort(byId),
       behaviors: [...this.behaviors.values()]
-        .map((behavior) => this.toBehavior(behavior))
-        .sort(byId),
+        .sort(byId)
+        .map((behavior) => this.toBehavior(behavior)),
       rules: [...this.rules.values()].sort(byId),
       scenarios: [...this.scenarios.values()].sort(byId),
+      // Found as the behaviors are built, just above.
+      actors: [...this.actors.values()].sort(byId),
+      // Never scanned: a design document authors them.
+      manualProcesses: [],
       relations: this.relations.sort(Relation.compare),
     };
     return { model, diagnostics: this.diagnostics };
@@ -694,9 +703,9 @@ class ModelAssembly {
   /** The behavior's element, and its `exposes`, `has_input` and `has_output` relations. */
   private toBehavior(behavior: Behavior): ScannedBehavior {
     const { chosen, block } = behavior;
-    const hierarchy = this.memberHierarchy(chosen);
     this.relations.push({ kind: 'exposes', from: block.id, to: behavior.id });
     this.collectSignature(behavior);
+    this.collectActors(this.memberHierarchy(chosen), block.node);
     return {
       id: behavior.id,
       name: behavior.name,
@@ -706,10 +715,6 @@ class ModelAssembly {
           .map((overload) => this.descriptionOf(overload.node))
           .find((text) => text !== null) ??
         null,
-      visibility:
-        chosen.node.visibility === 'public'
-          ? { kind: 'public', actors: this.actorsOf(hierarchy, block.node) }
-          : { kind: 'private' },
       source: locationOf(chosen.node),
     };
   }
@@ -754,26 +759,41 @@ class ModelAssembly {
     }
   }
 
-  /** R9.5: the actor roles on the method, the members it stands in for, and its type. */
-  private actorsOf(
+  /**
+   * R9.5: an actor per name the actor roles on the method, the members it
+   * stands in for, and its type give, found where it is first named; the
+   * behavior keeps nothing of it.
+   */
+  private collectActors(
     hierarchy: readonly Located<MethodNode>[],
     type: TypeNode,
-  ): string[] {
-    const annotations = [
-      ...hierarchy.map((m) => m.node.annotations),
-      type.annotations,
-    ].flat();
-    return sortedUnique(
-      rolesOf(annotations, 'actor', this.vocabulary).flatMap(
-        ({ annotation }) => {
-          const name = stringArgument(
-            annotation,
-            this.vocabulary.arguments.name,
+  ): void {
+    for (const node of [...hierarchy.map((method) => method.node), type]) {
+      for (const { annotation } of rolesOf(
+        node.annotations,
+        'actor',
+        this.vocabulary,
+      )) {
+        const name = stringArgument(annotation, this.vocabulary.arguments.name);
+        if (name === null) continue;
+        const parsed = ElementName.safeParse(name);
+        if (!parsed.success) {
+          this.info(
+            `${node.id}: the actor name "${name}" is no element name; dropped`,
+            node,
           );
-          return name === null ? [] : [name];
-        },
-      ),
-    );
+          continue;
+        }
+        const id = ActorId.of(parsed.data);
+        if (this.actors.has(id)) continue;
+        this.actors.set(id, {
+          id,
+          name: parsed.data,
+          description: null,
+          source: locationOf(node),
+        });
+      }
+    }
   }
 
   /* ------------------------------------------------------- invocations */

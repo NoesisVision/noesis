@@ -125,12 +125,13 @@ Decide what a table stands for before modelling its rows:
 - A behavior has no type of its own: what kind of message it handles is
   the kind of the block it takes (`has_input` a `command`, a `query` or an
   `event`).
-- A use case is a public behavior: an action triggered from outside its
-  module by a command, event or query. Group cohesive use cases as the
-  behaviors of one `application_service` (or of an `in_adapter`, when the
-  design shows the edge that receives them); do not give every use case a
-  service of its own.
-- Everything else is private.
+- A use case is a behavior that drives its module: an action triggered
+  from outside it by a manual process, a command, an event or a query.
+  Group cohesive use cases as the behaviors of one `application_service`
+  (or of an `in_adapter`, when the design shows the edge that receives
+  them); do not give every use case a service of its own.
+- A behavior says nothing of who may call it: the `invokes` relations that
+  end at it do.
 - Inputs and outputs are building blocks or primitives. Prefer the value
   object that gives a primitive its meaning (`Money`, not `decimal`) when
   the model has one.
@@ -176,15 +177,34 @@ Decide what a table stands for before modelling its rows:
   than its definition: the states of an entity (`stateDiagram-v2`), the
   collaborators of a module (`flowchart`).
 
-## Actors
+## Actors and manual processes
+
+Who drives the system is not said on a behavior. A person does some work by
+hand — a manual process — and that work calls the system's behaviors.
 
 - An actor is always a human persona or role: _Customer_, _Warehouse
-  operator_, _Approving manager_.
+  operator_, _Approving manager_. Its id is its name alone:
+  `actor|Warehouse operator`.
 - Never another system, another module, a scheduler or a technical layer.
-  A behavior such a trigger starts is public with no actors, reached by a
-  command or an event.
+  A behavior such a trigger starts is invoked by no manual process,
+  reached by a command or an event.
 - Reuse the actor names the system model already uses, verbatim. Introduce
   a new name only when no existing persona fits.
+- A manual process is one goal an actor reaches, named as the work:
+  `manual_process|Refund a returned order`. Its `invokes` relations are the
+  behaviors it calls, `order` counting from 1 in the order the actor calls
+  them; a `performs` relation joins each actor who does it. A process that
+  calls a single behavior is fine.
+- A process invokes the behaviors that drive the system: those of
+  application services and in adapters, never an aggregate's or a
+  repository's.
+- No scan finds a manual process: a design adds every one it needs, even
+  one an earlier design added.
+
+```json
+{ "kind": "performs", "from": "actor|Support agent", "to": "manual_process|Refund a returned order" },
+{ "kind": "invokes", "from": "manual_process|Refund a returned order", "to": "behavior|sales.refunds.RefundService.issue", "order": { "value": 1 } }
+```
 
 ## Rules
 

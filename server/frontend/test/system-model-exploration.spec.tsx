@@ -47,6 +47,8 @@ const model = {
   scanned_at: '2026-10-19T10:00:00Z',
   rules: [],
   scenarios: [],
+  actors: [],
+  manualProcesses: [],
   modules: [
     { id: 'module|shop', name: 'shop', description: null, source },
     {

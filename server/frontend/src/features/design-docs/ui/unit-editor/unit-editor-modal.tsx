@@ -215,6 +215,8 @@ const ICON_KIND: Record<UnitKind, OutlineKind> = {
   module: 'module',
   building_block: 'building_block',
   behavior: 'behavior',
+  actor: 'actor',
+  manual_process: 'manual_process',
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',

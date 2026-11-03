@@ -156,7 +156,7 @@ function changeEntries(change: ChangeWithEntries): SearchEntry[] {
 }
 
 /**
- * The scanned model's modules, building blocks, behaviors and rules, each
+ * The scanned model's modules, building blocks, behaviors, rules and actors, each
  * opening the model tree at its row — a rule at the first behavior that
  * governs it. Properties and scenarios are left to the tree. Too many to
  * list unasked, so each waits for a query.
@@ -173,7 +173,10 @@ function modelElements(model: SystemModel): SearchEntry[] {
       {
         id: `element:${node.path}`,
         label: node.name,
-        context: [node.patternLabel ?? titleCase(node.kind), owner]
+        context: [
+          node.patternLabel ?? titleCase(node.kind.replaceAll('_', ' ')),
+          owner,
+        ]
           .filter(Boolean)
           .join(' · '),
         icon: kindIconOf(node.kind, node.pattern),

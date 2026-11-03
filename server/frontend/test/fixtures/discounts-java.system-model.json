@@ -238,10 +238,6 @@
       "id": "behavior|discounts.calculation.Discount.apply",
       "name": "apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 9
@@ -251,10 +247,6 @@
       "id": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "name": "calculate",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountCalculation.java",
         "line": 16
@@ -264,9 +256,6 @@
       "id": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions",
       "name": "getDiscountsForConditions",
       "description": null,
-      "visibility": {
-        "kind": "private"
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountConfig.java",
         "line": 13
@@ -276,9 +265,6 @@
       "id": "behavior|discounts.calculation.DiscountPolicyFactory.get",
       "name": "get",
       "description": null,
-      "visibility": {
-        "kind": "private"
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountPolicyFactory.java",
         "line": 19
@@ -288,9 +274,6 @@
       "id": "behavior|discounts.calculation.DiscountedOffer.applyDiscount",
       "name": "applyDiscount",
       "description": null,
-      "visibility": {
-        "kind": "private"
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
         "line": 20
@@ -300,9 +283,6 @@
       "id": "behavior|discounts.calculation.DiscountedOffer.createFrom",
       "name": "createFrom",
       "description": null,
-      "visibility": {
-        "kind": "private"
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
         "line": 16
@@ -312,9 +292,6 @@
       "id": "behavior|discounts.calculation.DiscountedProduct.applyDiscount",
       "name": "applyDiscount",
       "description": null,
-      "visibility": {
-        "kind": "private"
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java",
         "line": 20
@@ -324,9 +301,6 @@
       "id": "behavior|discounts.calculation.DiscountedProduct.from",
       "name": "from",
       "description": null,
-      "visibility": {
-        "kind": "private"
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java",
         "line": 16
@@ -336,10 +310,6 @@
       "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
       "name": "getDiscountsConfig",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountsConfigProvider.java",
         "line": 10
@@ -349,10 +319,6 @@
       "id": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
       "name": "apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 44
@@ -362,10 +328,6 @@
       "id": "behavior|discounts.calculation.FixedDiscount.apply",
       "name": "apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 30
@@ -375,10 +337,6 @@
       "id": "behavior|discounts.calculation.PotentialDiscount.getDiscount",
       "name": "getDiscount",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 10
@@ -388,10 +346,6 @@
       "id": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
       "name": "isApplicableFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 9
@@ -401,10 +355,6 @@
       "id": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount",
       "name": "getDiscount",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 22
@@ -414,10 +364,6 @@
       "id": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
       "name": "isApplicableFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 18
@@ -427,10 +373,6 @@
       "id": "behavior|discounts.calculation.ProductDiscount.apply",
       "name": "apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 16
@@ -440,10 +382,6 @@
       "id": "behavior|discounts.users.UserStatusProvider.getFor",
       "name": "getFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java",
         "line": 9
@@ -452,6 +390,8 @@
   ],
   "rules": [],
   "scenarios": [],
+  "actors": [],
+  "manualProcesses": [],
   "relations": [
     {
       "kind": "contains",

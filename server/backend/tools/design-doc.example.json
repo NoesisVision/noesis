@@ -165,14 +165,6 @@
           "changed": true,
           "value": "sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund->>RefundRepository: save(refund)\n  Refund-->>Support agent: RefundIssued",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": ["Support agent"]
-          },
-          "author": "human"
         }
       }
     ],
@@ -188,13 +180,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       }
     ]
@@ -296,8 +281,61 @@
     "removed": [],
     "modified": []
   },
+  "actors": {
+    "added": [
+      {
+        "id": "actor|Support agent",
+        "name": {
+          "changed": true,
+          "value": "Support agent",
+          "author": "human"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Answers customers who return goods.",
+          "author": "human"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "manualProcesses": {
+    "added": [
+      {
+        "id": "manual_process|Refund a returned order",
+        "name": {
+          "changed": true,
+          "value": "Refund a returned order",
+          "author": "human"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The support agent checks the returned lines and refunds them.",
+          "author": "human"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
   "relations": {
     "added": [
+      {
+        "kind": "performs",
+        "from": "actor|Support agent",
+        "to": "manual_process|Refund a returned order"
+      },
+      {
+        "kind": "invokes",
+        "from": "manual_process|Refund a returned order",
+        "to": "behavior|sales.refunds.Refund.issue",
+        "order": {
+          "changed": true,
+          "value": 1,
+          "author": "human"
+        }
+      },
       {
         "kind": "has_state",
         "from": "building_block|sales.refunds.Refund",

@@ -200,10 +200,11 @@ method `create` of the type `QDoc`.
 - **Interfaces**: on a repository or an external integration, the
   behavior is an abstract method, unannotated; no implementation is in
   scope.
-- **Visibility and actors**: a behavior's `visibility` (`public` with
-  actors for a use case, `private` for the rest) is a design notion, not a
-  Java one. Every behavior is a `public` method, because the scanner sees
-  only public methods. A use case's actors go in its Javadoc.
+- **Actors and manual processes**: who calls a behavior is no part of it;
+  the design's manual processes invoke it and its actors perform them.
+  Every behavior is a `public` method, because the scanner sees only
+  public methods. A use case's actors — those performing a manual process
+  that invokes it — go in its Javadoc.
 - **Javadoc**: the behavior's definition; `@param` for each input, saying
   what the block it is typed with is for here; `@return` with the output's;
   `Actors:` for a use case.
