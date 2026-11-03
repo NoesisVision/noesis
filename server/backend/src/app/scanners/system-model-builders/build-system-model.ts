@@ -1066,7 +1066,7 @@ class ModelAssembly {
           const expression =
             source === null
               ? new Error('it has no expression')
-              : StepExpression.of(source);
+              : StepExpression.of(source, this.vocabulary.stepExpressions);
           if (expression instanceof Error) {
             this.info(
               `${node.id}: a step definition no step can bind to (${expression.message}); left out`,

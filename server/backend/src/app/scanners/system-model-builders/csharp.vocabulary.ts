@@ -138,6 +138,7 @@ const TECHNICAL_MEMBERS = new Set([
 
 export const CSHARP_VOCABULARY: AnnotationVocabulary = {
   language: 'csharp',
+  stepExpressions: 'reqnroll',
   roles: ROLES,
   arguments: {
     name: 'name',

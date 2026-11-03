@@ -145,6 +145,7 @@ const TECHNICAL_MEMBERS = new Set([
 
 export const JAVA_VOCABULARY: AnnotationVocabulary = {
   language: 'java',
+  stepExpressions: 'cucumber',
   roles: ROLES,
   // No Java annotation carries a name or a description today; the names are what a future one would use.
   arguments: {

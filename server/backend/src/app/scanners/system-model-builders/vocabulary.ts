@@ -1,5 +1,6 @@
 import type { BuildingBlockType } from '#backend/app/system-model/system-model';
 import type { Language, NodeId } from '../code-parsers/code-model';
+import type { StepExpressionDialect } from '../feature-files/step-expression';
 
 /*
  * What the system model builder knows about one language: which annotation types mean
@@ -67,6 +68,8 @@ interface RoleArguments {
 
 export interface AnnotationVocabulary {
   readonly language: Language;
+  /** How the language's step library reads a step definition's expression. */
+  readonly stepExpressions: StepExpressionDialect;
   /** Roles by the annotation type's node or stub id, e.g. `T:NoesisVision.Annotations.Domain.DDD.DddAggregateAttribute`. */
   readonly roles: ReadonlyMap<NodeId, AnnotationRole>;
   readonly arguments: RoleArguments;

@@ -569,10 +569,14 @@ builder beside the code model (`app/scanners/feature-files/`).
   `given` at the start; tables and doc strings are not kept). An outline is
   one scenario, its placeholders as written.
 - **R12.3 Binding.** Each `When` step (and the `And`/`But` after it) is
-  matched to the step definitions' expressions as Cucumber matches them: a
-  regular expression when it starts with `^` or ends with `$`, a Cucumber
-  expression with the built-in parameter types otherwise; an outline's step
-  is matched with its first example's values filled in. Java's repeated
+  matched to the step definitions' expressions as the language's step
+  library matches them, a Cucumber expression with the built-in parameter
+  types unless the library reads a regular expression: cucumber-jvm when
+  it starts with `^` or ends with `$`, or is written `/…/`; Reqnroll when
+  it starts with `^` or ends with `$`, or, holding no `{parameter}`, shows
+  a regular expression's idioms (`(.*)`, `\d+`, `\.`), anchored at both
+  ends when it is not. An outline's step is matched with its first
+  example's values filled in. Java's repeated
   `@When` is read through its container annotation. The behaviors the
   matched methods reach — directly, or through methods that are no
   behavior, as a call does (R11.2) — must be exactly one: it governs the

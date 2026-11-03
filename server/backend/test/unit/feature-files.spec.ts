@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'bun:test';
 import { readFeatureFile } from '#backend/app/scanners/feature-files/feature-file';
-import { StepExpression } from '#backend/app/scanners/feature-files/step-expression';
+import {
+  StepExpression,
+  type StepExpressionDialect,
+} from '#backend/app/scanners/feature-files/step-expression';
 
 const PATH = 'features/orders.feature';
 const read = (text: string) => readFeatureFile({ path: PATH, text });
@@ -217,8 +220,12 @@ Właściwość: Zamówienia
 });
 
 describe('A step expression', () => {
-  const matches = (source: string, text: string) => {
-    const expression = StepExpression.of(source);
+  const matches = (
+    source: string,
+    text: string,
+    dialect: StepExpressionDialect = 'cucumber',
+  ) => {
+    const expression = StepExpression.of(source, dialect);
     if (expression instanceof Error) throw expression;
     return expression.matches(text);
   };
@@ -246,6 +253,13 @@ describe('A step expression', () => {
     ).toBe(false);
   });
 
+  it('reads an expression written /…/ as a regular expression, as cucumber-jvm does', () => {
+    expect(matches('/^the total is (\\d+)$/', 'the total is 3')).toBe(true);
+    expect(matches('/^the total is (\\d+)$/', 'the total is three')).toBe(
+      false,
+    );
+  });
+
   it('matches the whole text, not a part of it', () => {
     expect(matches('the order is placed', 'the order is placed twice')).toBe(
       false,
@@ -253,8 +267,56 @@ describe('A step expression', () => {
   });
 
   it('is no expression with a parameter type Cucumber does not know', () => {
-    expect<unknown>(StepExpression.of('a {customer} orders')).toBeInstanceOf(
-      Error,
-    );
+    expect<unknown>(
+      StepExpression.of('a {customer} orders', 'cucumber'),
+    ).toBeInstanceOf(Error);
+  });
+
+  describe("in Reqnroll's dialect", () => {
+    const reqnroll = (source: string, text: string) =>
+      matches(source, text, 'reqnroll');
+
+    it("reads an unanchored expression with a regular expression's idioms as one, anchored", () => {
+      expect(
+        reqnroll(
+          'the customer adds (.*) to the cart',
+          'the customer adds 3 apples to the cart',
+        ),
+      ).toBe(true);
+      expect(
+        reqnroll(
+          'the customer adds (.*) to the cart',
+          'so the customer adds 3 apples to the cart',
+        ),
+      ).toBe(false);
+      expect(reqnroll('the total is (\\d+)', 'the total is 3')).toBe(true);
+      expect(reqnroll('the total is (\\d+)', 'the total is 3 now')).toBe(false);
+      expect(reqnroll('version 1\\.2 ships', 'version 1.2 ships')).toBe(true);
+      expect(reqnroll('the (\\w+) order', 'the big order')).toBe(true);
+    });
+
+    it('reads an expression with a {parameter} as a Cucumber expression, whatever else it holds', () => {
+      expect(
+        reqnroll(
+          'the customer adds {int} line(s)',
+          'the customer adds 2 lines',
+        ),
+      ).toBe(true);
+      expect(
+        reqnroll(
+          'the customer adds {int} line(s)',
+          'the customer adds two lines',
+        ),
+      ).toBe(false);
+    });
+
+    it('reads plain text as a Cucumber expression', () => {
+      expect(reqnroll('the line(s) are added', 'the lines are added')).toBe(
+        true,
+      );
+      expect(reqnroll('the order is placed', 'the order is placed twice')).toBe(
+        false,
+      );
+    });
   });
 });
