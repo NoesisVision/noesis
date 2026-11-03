@@ -137,7 +137,19 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       expect<unknown>(model.deployableUnits).toEqual(committed.deployableUnits);
       expect<unknown>(model.libraries).toEqual(committed.libraries);
       expect<unknown>(model.layers).toEqual(committed.layers);
+      expect<unknown>(model.actors).toEqual(committed.actors);
       expect<unknown>(model.relations).toEqual(committed.relations);
+      // `@Actor`, repeated on one method, and `@TechnicalService` reach the
+      // model through the real parser (R9.5, decision 5).
+      expect<unknown>(model.actors.map((a) => a.id)).toEqual([
+        'actor|Customer',
+        'actor|Sales rep',
+      ]);
+      expect<unknown>(
+        model.buildingBlocks.find(
+          (b) => b.id === 'building_block|shop.orders.Clock',
+        )?.type,
+      ).toBe('technical_service');
       // `@Layer` on package-info.java reaches the model through the real
       // parser: com.acme.shop's names the domain layer, which holds every
       // block below it; the infrastructure package's holds none (R15).

@@ -85,7 +85,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ['module|javax', moneyApi],
       ['module|javax.money', moneyApi],
       ['module|shop', { path: `${domain}/internal/Hidden.java`, line: 1 }],
-      ['module|shop.orders', { path: `${domain}/orders/Money.java`, line: 1 }],
+      ['module|shop.orders', { path: `${domain}/orders/Clock.java`, line: 1 }],
       [
         'module|shop.pricing',
         { path: `${domain}/pricing/PriceRepository.java`, line: 1 },
@@ -152,6 +152,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
 
     expect<unknown>(model.buildingBlocks.map((b) => [b.id, b.type])).toEqual([
       [CURRENCY, 'value_object'],
+      ['building_block|shop.orders.Clock', 'technical_service'],
       ['building_block|shop.orders.Money', 'value_object'],
       ['building_block|shop.orders.Order', 'aggregate'],
       ['building_block|shop.orders.Order Repository', 'repository'],
@@ -164,6 +165,27 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ['building_block|shop.pricing.PriceRepository', 'repository'],
       ['building_block|shop.pricing.PricingService', 'domain_service'],
       ['building_block|shop.products.ProductId', 'value_object'],
+    ]);
+
+    // R9.5: `@Actor`, repeated on `handle` and so inside its `Actor.Actors`
+    // container, makes an actor per name, found at the method.
+    const handle = {
+      path: `${domain}/orders/PlaceOrderHandler.java`,
+      line: 22,
+    };
+    expect<unknown>(model.actors).toEqual([
+      {
+        id: 'actor|Customer',
+        name: 'Customer',
+        description: null,
+        source: handle,
+      },
+      {
+        id: 'actor|Sales rep',
+        name: 'Sales rep',
+        description: null,
+        source: handle,
+      },
     ]);
 
     const order = model.buildingBlocks.find((b) => b.name === 'Order');
@@ -199,12 +221,18 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ['product', 'building_block|shop.products.ProductId', '1'],
     ]);
     // What a service is handed in its constructor, by a collaborator kind,
-    // is a collaborator (R5.9), though the field that keeps it is private.
+    // is a collaborator (R5.9), though the field that keeps it is private;
+    // a `@TechnicalService` is a collaborator kind.
     expect<unknown>(
       model.relations
         .filter((r) => r.kind === 'has_collaborator')
         .map((r) => [r.from, r.name, r.to]),
     ).toEqual([
+      [
+        'building_block|shop.orders.PlaceOrderHandler',
+        'clock',
+        'building_block|shop.orders.Clock',
+      ],
       [
         'building_block|shop.orders.PlaceOrderHandler',
         'repository',
@@ -235,6 +263,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
         outputOf(model, b.id).map((slot) => (slot as string[])[0]),
       ]),
     ).toEqual([
+      ['behavior|shop.orders.Clock.now', [], ['primitive|datetime']],
       [
         'behavior|shop.orders.Money.add',
         ['other'],

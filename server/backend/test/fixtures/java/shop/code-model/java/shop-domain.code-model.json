@@ -747,15 +747,45 @@
     },
     {
       "kind": "field",
+      "id": "F:com.acme.shop.orders.PlaceOrderHandler.clock",
+      "name": "clock",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
+          "startLine": 14,
+          "startColumn": 5,
+          "endLine": 14,
+          "endColumn": 31
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": ["readonly"],
+      "type": {
+        "kind": "named",
+        "type": "T:com.acme.shop.orders.Clock",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
       "id": "F:com.acme.shop.orders.PlaceOrderHandler.pricing",
       "name": "pricing",
       "origin": "declared",
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 12,
+          "startLine": 13,
           "startColumn": 5,
-          "endLine": 12,
+          "endLine": 13,
           "endColumn": 42
         }
       ],
@@ -783,9 +813,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 11,
+          "startLine": 12,
           "startColumn": 5,
-          "endLine": 11,
+          "endLine": 12,
           "endColumn": 47
         }
       ],
@@ -1030,6 +1060,42 @@
       },
       "extensionReceiver": null,
       "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:com.acme.shop.orders.Clock#now()",
+      "name": "now",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/Clock.java",
+          "startLine": 10,
+          "startColumn": 5,
+          "endLine": 10,
+          "endColumn": 19
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": ["abstract"],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "named",
+          "type": "T:java.time.Instant",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": true
     },
     {
       "kind": "method",
@@ -3109,15 +3175,15 @@
     },
     {
       "kind": "method",
-      "id": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService)",
+      "id": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService,com.acme.shop.orders.Clock)",
       "name": ".ctor",
       "origin": "declared",
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 14,
+          "startLine": 16,
           "startColumn": 5,
-          "endLine": 17,
+          "endLine": 20,
           "endColumn": 6
         }
       ],
@@ -3161,6 +3227,22 @@
             "defaultValue": null,
             "annotations": [],
             "languageSpecific": {}
+          },
+          {
+            "name": "clock",
+            "type": {
+              "kind": "named",
+              "type": "T:com.acme.shop.orders.Clock",
+              "typeArguments": [],
+              "unbound": false,
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
           }
         ],
         "returnType": {
@@ -3180,9 +3262,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 19,
+          "startLine": 22,
           "startColumn": 5,
-          "endLine": 26,
+          "endLine": 31,
           "endColumn": 6
         }
       ],
@@ -3196,6 +3278,70 @@
             "nullable": false
           },
           "arguments": []
+        },
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:vision.noesis.annotations.Actor+Actors",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": false,
+              "value": {
+                "kind": "array",
+                "items": [
+                  {
+                    "kind": "annotation",
+                    "annotation": {
+                      "type": {
+                        "kind": "named",
+                        "type": "T:vision.noesis.annotations.Actor",
+                        "typeArguments": [],
+                        "unbound": false,
+                        "nullable": false
+                      },
+                      "arguments": [
+                        {
+                          "name": "value",
+                          "positional": true,
+                          "value": {
+                            "kind": "literal",
+                            "text": "\"Customer\""
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "annotation",
+                    "annotation": {
+                      "type": {
+                        "kind": "named",
+                        "type": "T:vision.noesis.annotations.Actor",
+                        "typeArguments": [],
+                        "unbound": false,
+                        "nullable": false
+                      },
+                      "arguments": [
+                        {
+                          "name": "value",
+                          "positional": true,
+                          "value": {
+                            "kind": "literal",
+                            "text": "\"Sales rep\""
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }
       ],
       "documentation": null,
@@ -3240,9 +3386,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 28,
+          "startLine": 33,
           "startColumn": 5,
-          "endLine": 30,
+          "endLine": 35,
           "endColumn": 6
         }
       ],
@@ -3843,6 +3989,13 @@
           "endColumn": 12
         },
         {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/Clock.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 12
+        },
+        {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Money.java",
           "startLine": 1,
           "startColumn": 9,
@@ -3952,6 +4105,13 @@
           "endColumn": 17
         },
         {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/Clock.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 17
+        },
+        {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Money.java",
           "startLine": 1,
           "startColumn": 9,
@@ -4055,6 +4215,13 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/internal/Hidden.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 22
+        },
+        {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/Clock.java",
           "startLine": 1,
           "startColumn": 9,
           "endLine": 1,
@@ -4201,6 +4368,13 @@
       "origin": "declared",
       "locations": [
         {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/Clock.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 29
+        },
+        {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Money.java",
           "startLine": 1,
           "startColumn": 9,
@@ -4342,6 +4516,42 @@
       "typeKind": "class",
       "visibility": "public",
       "modifiers": ["final", "record"],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:com.acme.shop.orders.Clock",
+      "name": "Clock",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/Clock.java",
+          "startLine": 7,
+          "startColumn": 1,
+          "endLine": 11,
+          "endColumn": 2
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:vision.noesis.annotations.TechnicalService",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": []
+        }
+      ],
+      "documentation": "The time orders are placed at: a technical service, no part of the domain.",
+      "languageSpecific": {},
+      "typeKind": "interface",
+      "visibility": "public",
+      "modifiers": [],
       "typeParameters": [],
       "underlyingType": null,
       "delegateSignature": null,
@@ -4668,9 +4878,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 8,
+          "startLine": 9,
           "startColumn": 1,
-          "endLine": 31,
+          "endLine": 36,
           "endColumn": 2
         }
       ],
@@ -5384,15 +5594,33 @@
     },
     {
       "kind": "ACCESSES",
-      "from": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService)",
+      "from": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService,com.acme.shop.orders.Clock)",
+      "to": "F:com.acme.shop.orders.PlaceOrderHandler.clock",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
+          "startLine": 19,
+          "startColumn": 9,
+          "endLine": 19,
+          "endColumn": 19
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "this"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService,com.acme.shop.orders.Clock)",
       "to": "F:com.acme.shop.orders.PlaceOrderHandler.pricing",
       "access": "write",
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 16,
+          "startLine": 18,
           "startColumn": 9,
-          "endLine": 16,
+          "endLine": 18,
           "endColumn": 21
         },
         "viaClosure": false,
@@ -5402,15 +5630,15 @@
     },
     {
       "kind": "ACCESSES",
-      "from": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService)",
+      "from": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService,com.acme.shop.orders.Clock)",
       "to": "F:com.acme.shop.orders.PlaceOrderHandler.repository",
       "access": "write",
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 15,
+          "startLine": 17,
           "startColumn": 9,
-          "endLine": 15,
+          "endLine": 17,
           "endColumn": 24
         },
         "viaClosure": false,
@@ -5426,9 +5654,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 24,
+          "startLine": 29,
           "startColumn": 9,
-          "endLine": 24,
+          "endLine": 29,
           "endColumn": 16
         },
         "viaClosure": false,
@@ -5444,9 +5672,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 21,
+          "startLine": 26,
           "startColumn": 23,
-          "endLine": 21,
+          "endLine": 26,
           "endColumn": 33
         },
         "viaClosure": false,
@@ -5462,9 +5690,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 25,
+          "startLine": 30,
           "startColumn": 9,
-          "endLine": 25,
+          "endLine": 30,
           "endColumn": 19
         },
         "viaClosure": false,
@@ -5480,9 +5708,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 29,
+          "startLine": 34,
           "startColumn": 9,
-          "endLine": 29,
+          "endLine": 34,
           "endColumn": 19
         },
         "viaClosure": false,
@@ -5574,6 +5802,11 @@
     {
       "kind": "CONTAINS",
       "from": "N:com.acme.shop.orders",
+      "to": "T:com.acme.shop.orders.Clock"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:com.acme.shop.orders",
       "to": "T:com.acme.shop.orders.Money"
     },
     {
@@ -5660,6 +5893,11 @@
       "kind": "CONTAINS",
       "from": "T:com.acme.shop.internal.Hidden",
       "to": "M:com.acme.shop.internal.Hidden#value()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.Clock",
+      "to": "M:com.acme.shop.orders.Clock#now()"
     },
     {
       "kind": "CONTAINS",
@@ -6024,6 +6262,11 @@
     {
       "kind": "CONTAINS",
       "from": "T:com.acme.shop.orders.PlaceOrderHandler",
+      "to": "F:com.acme.shop.orders.PlaceOrderHandler.clock"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.PlaceOrderHandler",
       "to": "F:com.acme.shop.orders.PlaceOrderHandler.pricing"
     },
     {
@@ -6034,7 +6277,7 @@
     {
       "kind": "CONTAINS",
       "from": "T:com.acme.shop.orders.PlaceOrderHandler",
-      "to": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService)"
+      "to": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService,com.acme.shop.orders.Clock)"
     },
     {
       "kind": "CONTAINS",
@@ -7796,15 +8039,15 @@
     },
     {
       "kind": "INVOKES",
-      "from": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService)",
+      "from": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService,com.acme.shop.orders.Clock)",
       "to": "M:java.lang.Object#.ctor()",
       "typeArguments": [],
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 14,
+          "startLine": 16,
           "startColumn": 5,
-          "endLine": 14,
+          "endLine": 16,
           "endColumn": 5
         },
         "viaClosure": false,
@@ -7823,9 +8066,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 22,
+          "startLine": 27,
           "startColumn": 9,
-          "endLine": 22,
+          "endLine": 27,
           "endColumn": 27
         },
         "viaClosure": false,
@@ -7842,9 +8085,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 21,
+          "startLine": 26,
           "startColumn": 23,
-          "endLine": 21,
+          "endLine": 26,
           "endColumn": 58
         },
         "viaClosure": false,
@@ -7861,9 +8104,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 25,
+          "startLine": 30,
           "startColumn": 9,
-          "endLine": 25,
+          "endLine": 30,
           "endColumn": 31
         },
         "viaClosure": false,
@@ -7880,9 +8123,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 21,
+          "startLine": 26,
           "startColumn": 40,
-          "endLine": 21,
+          "endLine": 26,
           "endColumn": 57
         },
         "viaClosure": false,
@@ -7899,9 +8142,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 23,
+          "startLine": 28,
           "startColumn": 9,
-          "endLine": 23,
+          "endLine": 28,
           "endColumn": 24
         },
         "viaClosure": false,
@@ -7918,9 +8161,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 24,
+          "startLine": 29,
           "startColumn": 9,
-          "endLine": 24,
+          "endLine": 29,
           "endColumn": 32
         },
         "viaClosure": false,
@@ -7937,9 +8180,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 29,
+          "startLine": 34,
           "startColumn": 28,
-          "endLine": 29,
+          "endLine": 34,
           "endColumn": 41
         },
         "viaClosure": false,
@@ -7956,9 +8199,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 29,
+          "startLine": 34,
           "startColumn": 9,
-          "endLine": 29,
+          "endLine": 34,
           "endColumn": 42
         },
         "viaClosure": false,
@@ -8892,6 +9135,20 @@
       "artifact": "A:javax.money:money-api@1.1"
     },
     {
+      "id": "T:vision.noesis.annotations.Actor",
+      "kind": "type",
+      "name": "Actor",
+      "typeKind": "interface",
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
+      "id": "T:vision.noesis.annotations.Actor+Actors",
+      "kind": "type",
+      "name": "Actors",
+      "typeKind": "interface",
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
       "id": "T:vision.noesis.annotations.AggregateRoot",
       "kind": "type",
       "name": "AggregateRoot",
@@ -8965,6 +9222,13 @@
       "id": "T:vision.noesis.annotations.Repository",
       "kind": "type",
       "name": "Repository",
+      "typeKind": "interface",
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
+      "id": "T:vision.noesis.annotations.TechnicalService",
+      "kind": "type",
+      "name": "TechnicalService",
       "typeKind": "interface",
       "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
     },
