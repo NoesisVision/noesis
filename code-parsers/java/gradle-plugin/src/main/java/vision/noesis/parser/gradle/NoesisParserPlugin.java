@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -17,7 +19,8 @@ import org.gradle.api.tasks.compile.JavaCompile;
  * plugin, so the model has every module and one manifest whichever project the plugin is applied to. Applying it a
  * second time (in another project, or through {@code allprojects}) adds nothing: the task and the {@code noesis}
  * extension are shared. Every setting is also a Gradle property ({@code -Pnoesis.engine=bytecode}) that wins over the
- * build's {@code noesis { }} block. When {@code noesisParse} is asked for, a compile error fails no compile task, so the
+ * build's {@code noesis { }} block. Each project's {@code test} source set is parsed into its model too, unless
+ * {@code includeTests} is false. When {@code noesisParse} is asked for, a compile error fails no compile task, so the
  * parse reads every project with the compiler's errors in its model; any other build compiles as the build says.
  */
 public class NoesisParserPlugin implements Plugin<Project> {
@@ -45,6 +48,7 @@ public class NoesisParserPlugin implements Plugin<Project> {
         extension.getRepository().convention(extension.getRepositoryRoot().map(directory -> directory.getAsFile().toPath().toAbsolutePath().normalize().getFileName().toString()));
         extension.getRevision().convention("");
         extension.getEngine().convention("source");
+        extension.getIncludeTests().convention(true);
     }
 
     private static void register(Project root, NoesisExtension extension) {
@@ -59,6 +63,7 @@ public class NoesisParserPlugin implements Plugin<Project> {
             task.getRevision().set(providers.gradleProperty("noesis.revision").orElse(extension.getRevision()));
             task.getEngine().set(providers.gradleProperty("noesis.engine").orElse(extension.getEngine()));
             task.getRelease().set(providers.gradleProperty("noesis.release").map(Integer::parseInt).orElse(extension.getRelease()));
+            task.getIncludeTests().set(providers.gradleProperty("noesis.includeTests").map(Boolean::parseBoolean).orElse(extension.getIncludeTests()));
             task.getRootFile().set(ProjectInputs.rootFile(root));
             task.getPluginVersion().set(pluginVersion());
         });
@@ -68,10 +73,13 @@ public class NoesisParserPlugin implements Plugin<Project> {
         }
         root.allprojects(project -> project.getPluginManager().withPlugin("java", applied -> {
             Provider<ModuleInputs> inputs = ProjectInputs.of(project);
+            TaskProvider<Task> testClasses = project.getTasks().named(JavaPlugin.TEST_CLASSES_TASK_NAME);
             parse.configure(task -> {
                 task.getModules().add(inputs);
-                // The engines read the compiled classes of the module and of the siblings on its classpath.
+                // The engines read the compiled classes of the module and of the siblings on its classpath, and its test classes.
                 task.dependsOn(project.getTasks().named(JavaPlugin.CLASSES_TASK_NAME));
+                // A callable, so the setting is read once the build scripts have set it.
+                task.dependsOn((Callable<Object>) () -> task.getIncludeTests().get() ? testClasses : List.of());
             });
         }));
     }

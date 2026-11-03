@@ -47,18 +47,22 @@ final class ClassFileDetails {
     private final Map<String, Object> constants = new HashMap<>();
     private boolean parameterNamesMissing;
 
-    static ClassFileDetails read(Path classDirectory) throws IOException {
+    static ClassFileDetails read(List<Path> classDirectories) throws IOException {
         ClassFileDetails details = new ClassFileDetails();
-        if (!Files.isDirectory(classDirectory)) return details;
+        for (Path classDirectory : classDirectories) details.readDirectory(classDirectory);
+        return details;
+    }
+
+    private void readDirectory(Path classDirectory) throws IOException {
+        if (!Files.isDirectory(classDirectory)) return;
         try (Stream<Path> files = Files.walk(classDirectory)) {
             Path versions = versionsDirectory(classDirectory);
             for (Path file : files.filter(path -> path.toString().endsWith(".class") && !path.startsWith(versions)).sorted().toList()) {
                 try (InputStream in = Files.newInputStream(file)) {
-                    new ClassReader(in).accept(details.visitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
+                    new ClassReader(in).accept(visitor(), ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
                 }
             }
         }
-        return details;
     }
 
     /** By the binary class name, member name and descriptor, the way ArchUnit names them. */

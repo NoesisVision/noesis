@@ -40,6 +40,11 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
+    <!-- The step definitions under src/test/java bind to Cucumber's annotations; the parser reads the test sources too. -->
+    <dependency>
+      <groupId>io.cucumber</groupId>
+      <artifactId>cucumber-java</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

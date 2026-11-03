@@ -35,6 +35,8 @@ class ManifestFactsTest {
     private static final String GUAVA = "A:com.google.guava:guava@" + System.getProperty("noesis.version.guava");
     private static final String ANNOTATIONS = "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT";
     private static final String PLATFORM = "A:java.base@17";
+    /** Test-scoped and referenced by the step definitions; apiguardian, on the test classpath too but referenced by nothing, is no dependency. */
+    private static final String CUCUMBER = "A:io.cucumber:cucumber-java@" + System.getProperty("noesis.version.cucumber");
 
     @ParameterizedTest
     @EnumSource(EngineKind.class)
@@ -85,7 +87,7 @@ class ManifestFactsTest {
     @EnumSource(EngineKind.class)
     void dependenciesTellSourceLibraryAndPlatformApart(EngineKind engine) {
         List<ArtifactDependency> dependencies = Models.syntax(engine).artifact().dependencies();
-        assertEquals(List.of(GUAVA, OTHER, PLATFORM, ANNOTATIONS), dependencies.stream().map(dependency -> dependency.id().value()).toList());
+        assertEquals(List.of(GUAVA, CUCUMBER, OTHER, PLATFORM, ANNOTATIONS), dependencies.stream().map(dependency -> dependency.id().value()).toList());
         assertEquals(dependencies.stream().sorted(Comparator.comparing(ArtifactDependency::id)).toList(), dependencies);
         ArtifactDependency other = Models.one(dependencies, dependency -> dependency.id().value().equals(OTHER), "other module");
         assertEquals(ArtifactKind.SOURCE, other.kind());
@@ -96,6 +98,8 @@ class ManifestFactsTest {
         ArtifactDependency annotations = Models.one(dependencies, dependency -> dependency.id().value().equals(ANNOTATIONS), "annotations");
         assertEquals(ArtifactKind.LIBRARY, annotations.kind());
         assertEquals(new PackageReference("vision.noesis:noesis-annotations", "0.1.0-SNAPSHOT"), annotations.packageReference());
+        ArtifactDependency cucumber = Models.one(dependencies, dependency -> dependency.id().value().equals(CUCUMBER), "cucumber");
+        assertEquals(new PackageReference("io.cucumber:cucumber-java", System.getProperty("noesis.version.cucumber")), cucumber.packageReference());
         ArtifactDependency platform = Models.one(dependencies, dependency -> dependency.id().value().equals(PLATFORM), "platform");
         assertEquals(ArtifactKind.PLATFORM, platform.kind());
         assertNull(platform.packageReference());

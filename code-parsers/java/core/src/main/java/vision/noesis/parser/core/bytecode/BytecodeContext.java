@@ -54,7 +54,7 @@ final class BytecodeContext {
         Optional<Source> source = topLevel(type).getSource();
         if (source.isEmpty() || !"file".equals(source.get().getUri().getScheme())) return false;
         Path file = Path.of(source.get().getUri()).toAbsolutePath().normalize();
-        return file.startsWith(input.outputDirectory().toAbsolutePath().normalize());
+        return input.classDirectories().stream().anyMatch(directory -> file.startsWith(directory.toAbsolutePath().normalize()));
     }
 
     /** Neither this module nor a sibling of the build: referenced through a stub. */

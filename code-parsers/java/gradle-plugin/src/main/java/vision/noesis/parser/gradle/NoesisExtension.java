@@ -26,4 +26,7 @@ public abstract class NoesisExtension {
 
     /** The Java release the sources are written for; the compile task's {@code release}, else {@code targetCompatibility}, when not set. */
     public abstract Property<Integer> getRelease();
+
+    /** Whether each project's {@code test} source set is parsed too, into the project's own model. Default: {@code true}. */
+    public abstract Property<Boolean> getIncludeTests();
 }

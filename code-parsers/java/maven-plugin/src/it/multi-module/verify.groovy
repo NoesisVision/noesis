@@ -44,6 +44,19 @@ assert b.nodes.any { it.id == 'M:com.example.b.App#main(java.lang.String[])' }
 assert b.edges.any { it.kind == 'INVOKES' && it.to == 'M:com.example.a.Greeting#text()' }
 assert !b.stubs.any { it.id.startsWith('T:com.example.a.') } : "a sibling module is never stubbed"
 assert b.nodes.find { it.id == 'T:com.example.b.App' }.locations[0].file == 'b/src/main/java/com/example/b/App.java'
+// The test sources are in the module's own model, bound against the test classpath.
+def steps = b.nodes.find { it.id == 'T:com.example.b.AppSteps' }
+assert steps != null : "the test source AppSteps expected in b's model"
+assert steps.locations[0].file == 'b/src/test/java/com/example/b/AppSteps.java'
+def step = b.nodes.find { it.id == 'M:com.example.b.AppSteps#theAppGreets(java.lang.String)' }
+def when = step.annotations.find { it.type.type == 'T:io.cucumber.java.en.When' }
+assert when != null : "the step's @When expected, got ${step.annotations}"
+assert when.arguments == [[name: 'value', positional: true, value: [kind: 'literal', text: '"the app greets {string}"']]]
+assert b.edges.any { it.kind == 'INVOKES' && it.from == step.id && it.to == 'M:com.example.a.Greeting#text()' }
+def cucumber = b.artifact.dependencies.find { it.id.startsWith('A:io.cucumber:cucumber-java@') }
+assert cucumber != null && cucumber.kind == 'library' : "the test-scoped cucumber-java expected, got ${b.artifact.dependencies*.id}"
+assert b.stubs.any { it.id == 'T:io.cucumber.java.en.When' && it.artifact == cucumber.id }
+assert b.diagnostics.findAll { it.severity == 'error' } == []
 
 def extra = json.parse(new File(basedir, 'target/noesis/' + manifest.artifacts[2].file))
 assert extra.artifact.id == 'A:com.example.extra:a'
@@ -51,4 +64,5 @@ assert extra.artifact.name == 'a'
 def extraOnA = extra.artifact.dependencies.find { it.id == 'A:com.example:a' }
 assert extraOnA != null && extraOnA.kind == 'source' : "the extra a depends on com.example:a as a source artifact, got ${extra.artifact.dependencies}"
 assert extra.edges.any { it.kind == 'INVOKES' && it.to == 'M:com.example.a.Greeting#text()' }
+assert !extra.nodes.any { it.id == 'T:com.example.extra.EchoCheck' } : "noesis.includeTests=false leaves the tests out"
 return true

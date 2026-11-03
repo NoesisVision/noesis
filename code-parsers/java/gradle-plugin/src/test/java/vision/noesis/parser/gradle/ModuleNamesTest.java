@@ -35,12 +35,12 @@ class ModuleNamesTest {
         List<ModuleInputs> modules = List.of(billing, shipping, app);
         Map<String, String> names = ModuleInputs.uniqueNames(modules);
 
-        ArtifactInput input = app.toArtifactInput(null, names);
+        ArtifactInput input = app.toArtifactInput(null, names, true);
 
         assertEquals("A:app", input.id().value());
         assertEquals(List.of("A:billing:api", "A:shipping:api"), input.classpath().stream().map(entry -> entry.dependency().id().value()).toList());
-        assertEquals("A:billing:api", billing.toArtifactInput(null, names).id().value());
-        assertEquals("api", billing.toArtifactInput(null, names).artifactId());
+        assertEquals("A:billing:api", billing.toArtifactInput(null, names, true).id().value());
+        assertEquals("api", billing.toArtifactInput(null, names, true).artifactId());
     }
 
     @Test
@@ -61,6 +61,6 @@ class ModuleNamesTest {
                         dependency.substring(dependency.lastIndexOf(':') + 1), null, null))
                 .toList();
         return new ModuleInputs(path, "com.acme", name, "1.0", new File(ROOT, path.replace(':', '/')), null, List.of(),
-                new File(ROOT, path.replace(':', '/') + "/build/classes/java/main"), new File(ROOT, path.replace(':', '/') + "/build"), classpath, 17, "UTF-8", "jar", null);
+                new File(ROOT, path.replace(':', '/') + "/build/classes/java/main"), new File(ROOT, path.replace(':', '/') + "/build"), classpath, List.of(), null, List.of(), 17, "UTF-8", "jar", null);
     }
 }

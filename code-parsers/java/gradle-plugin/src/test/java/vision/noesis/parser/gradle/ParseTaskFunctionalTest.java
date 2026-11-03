@@ -3,6 +3,7 @@ package vision.noesis.parser.gradle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -24,7 +25,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Runs {@code noesisParse} on {@code src/test/resources/multi-project}, the Gradle twin of the Maven plugin's
- * {@code src/it/multi-module} (b depends on a, a uses Guava, b has a main class), with the invocation the service would
+ * {@code src/it/multi-module} (b depends on a, a uses Guava, b has a main class and a step definition in its tests), with the invocation the service would
  * make, and asserts what its {@code verify.groovy} asserts.
  */
 class ParseTaskFunctionalTest {
@@ -97,9 +98,39 @@ class ParseTaskFunctionalTest {
     }
 
     @Test
+    void bHoldsItsTestSourcesBoundAgainstTheTestClasspath() throws IOException {
+        JsonNode b = JSON.readTree(out.resolve("code-model/java/b.code-model.json").toFile());
+        JsonNode steps = find(b.get("nodes"), n -> n.get("id").asText().equals("T:com.example.b.AppSteps"));
+        assertNotNull(steps, "the test source AppSteps expected in b's model");
+        assertEquals("b/src/test/java/com/example/b/AppSteps.java", steps.at("/locations/0/file").asText());
+        JsonNode step = find(b.get("nodes"), n -> n.get("id").asText().equals("M:com.example.b.AppSteps#theAppGreets(java.lang.String)"));
+        JsonNode when = find(step.get("annotations"), a -> a.at("/type/type").asText().equals("T:io.cucumber.java.en.When"));
+        assertNotNull(when, "the step's @When expected, got " + step.get("annotations"));
+        assertEquals("value", when.at("/arguments/0/name").asText());
+        assertEquals("\"the app greets {string}\"", when.at("/arguments/0/value/text").asText());
+        assertNotNull(find(b.get("edges"), e -> e.get("kind").asText().equals("INVOKES") && e.get("from").asText().equals(step.get("id").asText())
+                && e.get("to").asText().equals("M:com.example.a.Greeting#text()")));
+        JsonNode cucumber = find(b.at("/artifact/dependencies"), d -> d.get("id").asText().equals("A:io.cucumber:cucumber-java@7.34.9"));
+        assertNotNull(cucumber, "the test dependency expected, got " + texts(b.at("/artifact/dependencies"), "id"));
+        assertNotNull(find(b.get("stubs"), s -> s.get("id").asText().equals("T:io.cucumber.java.en.When") && s.get("artifact").asText().equals(cucumber.get("id").asText())));
+        assertEquals(List.of(), stream(b.get("diagnostics")).filter(d -> d.get("severity").asText().equals("error")).toList());
+    }
+
+    @Test
+    void includeTestsFalseLeavesTheTestSourcesOut(@TempDir Path dir) throws IOException {
+        copy(Path.of(System.getProperty("noesis.fixturesDir"), "multi-project"), dir);
+        BuildResult build = runner(dir, "-Pnoesis.includeTests=false").build();
+        assertNull(build.task(":b:compileTestJava"), "the tests are not compiled for a parse that leaves them out");
+        JsonNode b = JSON.readTree(dir.resolve("build/noesis/code-model/java/b.code-model.json").toFile());
+        assertNull(find(b.get("nodes"), n -> n.get("id").asText().equals("T:com.example.b.AppSteps")));
+        assertNull(find(b.at("/artifact/dependencies"), d -> d.get("id").asText().startsWith("A:io.cucumber:")));
+    }
+
+    @Test
     void theTaskCompilesFirstAndIsUpToDateOnARerun() {
         assertEquals(TaskOutcome.SUCCESS, result.task(":a:compileJava").getOutcome());
         assertEquals(TaskOutcome.SUCCESS, result.task(":b:compileJava").getOutcome());
+        assertEquals(TaskOutcome.SUCCESS, result.task(":b:compileTestJava").getOutcome());
         assertEquals(TaskOutcome.SUCCESS, result.task(":noesisParse").getOutcome());
         assertFalse(result.getOutput().contains("deprecated"), "no deprecation warnings expected:\n" + result.getOutput());
         BuildResult rerun = runner().build();

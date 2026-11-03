@@ -22,14 +22,14 @@ public final class ParseSession {
 
     public ParseSession(Generator generator, ParseRequest request) {
         this(generator, request.repositoryRoot(), request.artifacts(),
-                request.artifacts().stream().map(ArtifactInput::uniqueName).collect(Collectors.toList()),
-                request.artifacts().stream().map(ArtifactInput::outputDirectory).collect(Collectors.toList()));
+                request.artifacts().stream().flatMap(input -> input.classDirectories().stream().map(directory -> input.uniqueName())).collect(Collectors.toList()),
+                request.artifacts().stream().flatMap(input -> input.classDirectories().stream()).collect(Collectors.toList()));
     }
 
     /**
      * @param inputs            the artifacts whose classpaths are known here; the index also covers their output directories
-     * @param sourceArtifactIds every artifact of the build, parsed in this process or another
-     * @param outputDirectories the class directories of every artifact of the build
+     * @param sourceArtifactIds every artifact of the build, parsed in this process or another, once per class directory
+     * @param outputDirectories the class directories of every artifact of the build, in the order of {@code sourceArtifactIds}
      */
     public ParseSession(Generator generator, Path repositoryRoot, List<ArtifactInput> inputs, Collection<String> sourceArtifactIds, Collection<Path> outputDirectories) {
         this.generator = generator;

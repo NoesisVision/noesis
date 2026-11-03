@@ -74,6 +74,9 @@ public abstract class ParseTask extends DefaultTask {
     @Optional
     public abstract Property<Integer> getRelease();
 
+    @Input
+    public abstract Property<Boolean> getIncludeTests();
+
     /** Absolute path of the build's entry file; empty when the build has none. */
     @Input
     public abstract Property<String> getRootFile();
@@ -90,7 +93,8 @@ public abstract class ParseTask extends DefaultTask {
         List<ModuleInputs> modules = inDependencyOrder(getModules().get());
         Map<String, String> uniqueNames = ModuleInputs.uniqueNames(modules);
         List<ArtifactInput> artifacts = new ArrayList<>();
-        for (ModuleInputs module : modules) artifacts.add(module.toArtifactInput(release, uniqueNames));
+        boolean includeTests = getIncludeTests().get();
+        for (ModuleInputs module : modules) artifacts.add(module.toArtifactInput(release, uniqueNames, includeTests));
         String rootFile = getRootFile().get();
         ParseRequest request = new ParseRequest(
                 repositoryRoot,

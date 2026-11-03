@@ -67,10 +67,10 @@ class NamespaceFactsTest {
         List<SourceSpan> syntax = Models.namespace(model, FIXTURE + ".syntax").locations();
         Models.one(syntax, span -> span.file().equals(SOURCES + "syntax/Program.java") && span.startLine() == 1 && span.startColumn() == 9, "Program.java package clause");
         Models.one(syntax, span -> span.file().equals(SOURCES + "syntax/package-info.java") && span.startLine() == 3, "package-info.java package clause");
-        assertEquals(43, syntax.size());
+        assertEquals(44, syntax.size());
         // The parent levels also hold the package clause of SharedNamespaceInSyntax.
         for (String level : List.of("vision", "vision.noesis", FIXTURE)) {
-            assertEquals(44, Models.namespace(model, level).locations().size(), level);
+            assertEquals(45, Models.namespace(model, level).locations().size(), level);
         }
         assertTrue(syntax.stream().noneMatch(span -> span.file().contains("\\")));
         assertEquals(syntax.stream().sorted().toList(), syntax);

@@ -59,6 +59,12 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <!-- On the syntax fixture's test classpath, so its step definitions' annotations resolve. -->
+    <dependency>
+      <groupId>io.cucumber</groupId>
+      <artifactId>cucumber-java</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!-- On the Lombok fixture's parse classpath only, so its annotations resolve; the engines run no processor. -->
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -92,6 +98,9 @@
             <noesis.classpath.guava>${com.google.guava:guava:jar}</noesis.classpath.guava>
             <noesis.classpath.other>${vision.noesis.fixtures:java-syntax-other:jar}</noesis.classpath.other>
             <noesis.classpath.lombok>${org.projectlombok:lombok:jar}</noesis.classpath.lombok>
+            <noesis.classpath.cucumber>${io.cucumber:cucumber-java:jar}</noesis.classpath.cucumber>
+            <noesis.classpath.apiguardian>${org.apiguardian:apiguardian-api:jar}</noesis.classpath.apiguardian>
+            <noesis.version.cucumber>${cucumber.version}</noesis.version.cucumber>
             <noesis.version.lombok>${lombok.version}</noesis.version.lombok>
             <noesis.version.guava>${guava.version}</noesis.version.guava>
           </systemPropertyVariables>

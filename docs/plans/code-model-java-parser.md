@@ -74,16 +74,16 @@ which Java fact fills each field. "javac" is the source engine's input,
 
 ### 2.1 Artifact and namespaces
 
-| Model                      | javac / Maven                                                                                                                                                                                                                                                               | ArchUnit                                         |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| `ArtifactNode.id`, `name`  | `A:<artifactId>` and the artifactId; when another module of the build has the same artifactId, the id says the group (`A:com.acme.billing:api`; a Gradle project's path, `A:billing:api`) and the name stays short, so two modules never share an id (`JavaIds.moduleName`) | same                                             |
-| `version`, `rootDirectory` | the module's version; its base directory, repository-relative                                                                                                                                                                                                               | same                                             |
-| `target`                   | `jdk-<release>`, the release the sources are bound against (`maven.compiler.release`, else `maven.compiler.target`, else the running JVM)                                                                                                                                   | same                                             |
-| `executable`               | a `mainClass` configured on `maven-jar-plugin` or `spring-boot-maven-plugin`, `${property}` references resolved from the project's properties (an unresolved one, the Spring Boot parent's `${start-class}`, is no main class); the class is `java.mainClass` in the bag    | same                                             |
-| `dependencies`             | every compile-scope artifact: a reactor sibling is `source` (`A:<artifactId>`, `package: null`), anything else `library` with `package {id, version}`; the platform modules stubs reached are appended, as the .NET parser appends stub assemblies                          | same                                             |
-| `annotations`              | `[]` (no module-level annotations; `module-info` is deferred)                                                                                                                                                                                                               | `[]`                                             |
-| `languageSpecific`         | `java.groupId`, `java.packaging`, `java.buildFile` (repository-relative pom), `java.engine` (`source`, `bytecode` or `hybrid`), `java.mainClass`                                                                                                                            | same                                             |
-| `NamespaceNode`            | one per dotted level of every package clause, plus the empty root the artifact contains; `locations` are the spans of each prefix of every `package` clause (`package-info.java` included); `annotations` are the `package-info` annotations                                | locations `[]`, annotations from the class files |
+| Model                      | javac / Maven                                                                                                                                                                                                                                                                                                                                                | ArchUnit                                         |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| `ArtifactNode.id`, `name`  | `A:<artifactId>` and the artifactId; when another module of the build has the same artifactId, the id says the group (`A:com.acme.billing:api`; a Gradle project's path, `A:billing:api`) and the name stays short, so two modules never share an id (`JavaIds.moduleName`)                                                                                  | same                                             |
+| `version`, `rootDirectory` | the module's version; its base directory, repository-relative                                                                                                                                                                                                                                                                                                | same                                             |
+| `target`                   | `jdk-<release>`, the release the sources are bound against (`maven.compiler.release`, else `maven.compiler.target`, else the running JVM)                                                                                                                                                                                                                    | same                                             |
+| `executable`               | a `mainClass` configured on `maven-jar-plugin` or `spring-boot-maven-plugin`, `${property}` references resolved from the project's properties (an unresolved one, the Spring Boot parent's `${start-class}`, is no main class); the class is `java.mainClass` in the bag                                                                                     | same                                             |
+| `dependencies`             | every compile-scope artifact, and a test-scoped one when the model references it (a stub of `cucumber-java`, not its own dependencies): a reactor sibling is `source` (`A:<artifactId>`, `package: null`), anything else `library` with `package {id, version}`; the platform modules stubs reached are appended, as the .NET parser appends stub assemblies | same                                             |
+| `annotations`              | `[]` (no module-level annotations; `module-info` is deferred)                                                                                                                                                                                                                                                                                                | `[]`                                             |
+| `languageSpecific`         | `java.groupId`, `java.packaging`, `java.buildFile` (repository-relative pom), `java.engine` (`source`, `bytecode` or `hybrid`), `java.mainClass`                                                                                                                                                                                                             | same                                             |
+| `NamespaceNode`            | one per dotted level of every package clause, plus the empty root the artifact contains; `locations` are the spans of each prefix of every `package` clause (`package-info.java` included); `annotations` are the `package-info` annotations                                                                                                                 | locations `[]`, annotations from the class files |
 
 ### 2.2 Types
 
@@ -231,8 +231,8 @@ the compiler's per artifact.
 ## 3. The source engine
 
 ```
-sources under the compile source roots, but module-info.java (it would make the sources a named module, which cannot read the classpath)
-→ javac: -proc:none --release <release> -implicit:none -Xlint:-options -classpath <compile classpath minus the module's own classes>
+sources under the compile and the test compile source roots, but module-info.java (it would make the sources a named module, which cannot read the classpath)
+→ javac: -proc:none --release <release> -implicit:none -Xlint:-options -classpath <test classpath minus the module's own classes and test classes>
   parse() + analyze()
 → declaration pass: every top-level class of every unit, through javax.lang.model, trees for spans and Javadoc
 → body pass: a TreePathScanner per unit; local and anonymous classes are handed back to the declaration pass
@@ -240,8 +240,11 @@ sources under the compile source roots, but module-info.java (it would make the 
 → compiler diagnostics → the model, sorted
 ```
 
-The module's own `target/classes` is removed from the classpath so sources
-bind to sources, never to a stale class. Attributed trees survive errors:
+The module's main and test sources are one compilation, as they are one
+artifact: a test binds to the main sources it calls, package-private members
+included. The module's own `target/classes` and `target/test-classes` are
+removed from the classpath so sources bind to sources, never to a stale
+class. Attributed trees survive errors:
 an error type is `unresolved`, an unbound call is a diagnostic, and a javac
 crash on one module leaves an empty model with `NS1001` while the parse goes
 on. The engine runs on a thread of its own with a 512 MB stack, reserved
@@ -253,10 +256,10 @@ filled get-then-put, never with `computeIfAbsent`.
 ## 4. The bytecode engine
 
 ```
-target/classes imported with ArchUnit's ClassFileImporter, a class loader on the context class loader
+target/classes and target/test-classes (those that exist) imported with ArchUnit's ClassFileImporter, a class loader on the context class loader
   (ArchUnit resolves referenced classes through it; a class it knows by name only is imported on demand):
   the JDK of the module's release first, read from the running JDK's lib/ct.sym as javac --release does,
-  then the compile classpath; the running JDK's classes only when ct.sym has no such release (NS1008)
+  then the test classpath; the running JDK's classes only when ct.sym has no such release (NS1008)
 → an ASM pass over the same class files for what ArchUnit does not expose: parameter names, ACC_VARARGS, ConstantValue
 → declarations over the imported classes (synthetic classes and members, bridges and lambda methods skipped)
 → accesses per code unit: calls, field accesses, instanceof checks, lambda bodies flagged by ArchUnit
@@ -410,8 +413,19 @@ type arguments are absent, the location is a line.
 
 ## 5. The Maven plugin
 
-`noesis:parse`, bound to `process-classes` so the module and the reactor
-siblings it depends on are compiled:
+`noesis:parse`, bound to `process-test-classes` so the module, its tests and
+the reactor siblings it depends on are compiled, with the test classpath
+resolved. A module's test source roots (`src/test/java`, generated test
+sources included) are parsed into the module's own model, beside the main
+ones: one artifact per module, as the build has one. That is where the
+Cucumber step definitions are, which bind a feature file's steps, so the
+system model builder reaches the behavior a scenario exercises through their
+`INVOKES` edges; the .NET parser has them because it parses a solution's test
+projects too. A test type carries no mark of its own (its location is under
+the test root). A library only the tests use (`ClasspathEntry.testOnly`) is a
+dependency of the module only when a stub names it, so a test framework does
+not bring its own dependencies into the module's. The released `0.1.0` parsed main sources only, after
+`process-classes`:
 
 | Property                | Default                                                     | Meaning                                                                           |
 | ----------------------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------- |
@@ -421,6 +435,7 @@ siblings it depends on are compiled:
 | `noesis.revision`       | `""`                                                        | `repository.revision`                                                             |
 | `noesis.engine`         | `source`                                                    | `source`, `bytecode` or `hybrid`                                                  |
 | `noesis.release`        | the compiler plugin's `release` → `target` → `source` → JVM | the release the sources are bound against                                         |
+| `noesis.includeTests`   | `true`                                                      | parse the test sources and test classes too; `false` reads the main sources alone |
 | `noesis.skip`           | `false`                                                     | skip this module                                                                  |
 
 Each of the compiler plugin's `release`, `target` and `source` is read as the
@@ -442,7 +457,7 @@ needs no change:
 
 ```sh
 mvn -B -q -ntp -Dnoesis.out=<.noesis/tmp/<uuid>> -Dnoesis.repositoryRoot=<root> -Dnoesis.repository=<name> \
-  process-classes vision.noesis:noesis-parser-maven-plugin:0.1.0-SNAPSHOT:parse
+  process-test-classes vision.noesis:noesis-parser-maven-plugin:0.1.0-SNAPSHOT:parse
 ```
 
 The plugin must be in the local repository: `mvn -q install -DskipTests` in
@@ -454,13 +469,15 @@ The plugin must be in the local repository: `mvn -q install -DskipTests` in
 not on Maven Central) that takes `core` from the local repository and
 publishes the `vision.noesis.parser` plugin there. Applied to any project of
 a build, it registers one `noesisParse` task on the root project, so a build
-has one parse whichever project applies it; the task depends on `classes` of
-every project with the `java` plugin and hands them all to
+has one parse whichever project applies it; the task depends on `classes` and
+`testClasses` of every project with the `java` plugin and hands them all to
 `JavaParser.parse(ParseRequest)` in one go, in dependency order (a project
 before the projects whose compile classpath has it), so the manifest is
 written once and complete, where the Maven plugin rewrites it per module. A
-project's inputs are read off the configured project: the main source set's
-source roots and classes directory, the resolved `compileClasspath` with each
+project's inputs are read off the configured project: the main and the `test`
+source set's source roots and classes directories, the resolved
+`compileClasspath`, followed by what `testCompileClasspath` adds (it does not
+inherit `compileOnly`, which the main sources still need), with each
 element's component (a project of this build is a `source` dependency, a
 module a `library` by its coordinates, a plain file a library named after
 itself), the compile task's `release` else `targetCompatibility`, the
@@ -511,7 +528,7 @@ the compiler's errors land in the model. A Maven repository:
       "-Dnoesis.out={out}",
       "-Dnoesis.repository={name}",
       "-Dmaven.compiler.failOnError=false",
-      "process-classes",
+      "process-test-classes",
       "noesis:parse"
     ]
   }
@@ -549,8 +566,9 @@ until the Gradle plugin covered them, has since been removed.
 ## 6. Testing
 
 - **Golden model**: the two fixture modules under `code-parsers/java/test-fixtures`
-  (`java-syntax`, one file per topic, and `java-syntax-other`, the types it
-  reaches across a module boundary) parsed to a checked-in model file per
+  (`java-syntax`, one file per topic, with Cucumber step definitions in its
+  test sources, and `java-syntax-other`, the types it reaches across a module
+  boundary) parsed to a checked-in model file per
   module plus the manifest, under `core/src/test/resources/golden/<engine>/`;
   `java-lombok`, parsed as a request of its own, has a model file per engine
   there too. `NOESIS_UPDATE_GOLDEN=1 mvn test` rewrites them. The three
@@ -579,7 +597,7 @@ until the Gradle plugin covered them, has since been removed.
   and the dropped diagnostics are what section 4a says.
 - **Facts per engine**: the `*FactsTest` classes (types, members,
   inheritance, interfaces, generics, invocations, bodies, namespaces, the
-  other module, the manifest) mirror the .NET parser's test classes over
+  other module, the manifest, the test sources) mirror the .NET parser's test classes over
   the mirrored fixtures; a fact every engine holds runs as a
   `@ParameterizedTest` over `EngineKind` (the hybrid engine takes the
   source engine's branch), a fact in section 4's list runs on the source
@@ -595,11 +613,14 @@ until the Gradle plugin covered them, has since been removed.
   the fixture for real with the fixture's own settings, asserting the same
   model as the committed files project to.
 - **Plugin**: `maven-plugin/src/it/multi-module` is a two-module reactor
-  project (b depends on a, a uses Guava) that `maven-invoker-plugin` builds
-  with the exact invocation the service makes (`process-classes` plus the
-  goal's full coordinates); a Groovy script asserts the manifest's reactor
-  order, b's `source` dependency on a, a's library and platform dependencies,
-  the main class, the ids and an invocation across the modules.
+  project (b depends on a, a uses Guava, b's tests hold a Cucumber step
+  definition) that `maven-invoker-plugin` builds with the exact invocation the
+  service makes (`process-test-classes` plus the goal's full coordinates); a
+  Groovy script asserts the manifest's reactor order, b's `source` dependency
+  on a, a's library and platform dependencies, the main class, the ids, an
+  invocation across the modules, and the step definition with its `@When`, its
+  call into a and its test-scoped library; a module with
+  `noesis.includeTests=false` has no test types.
 
 ## 7. Deferred
 

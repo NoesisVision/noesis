@@ -11,6 +11,7 @@ repositories {
 
 dependencies {
     implementation project(':a')
+    testImplementation 'io.cucumber:cucumber-java:7.34.9'
 }
 
 tasks.withType(JavaCompile).configureEach {

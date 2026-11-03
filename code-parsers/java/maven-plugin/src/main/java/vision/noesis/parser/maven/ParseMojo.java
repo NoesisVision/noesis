@@ -29,11 +29,12 @@ import vision.noesis.parser.model.RepositoryInfo;
 import vision.noesis.parser.model.ParseManifest;
 
 /**
- * Parses the module into the common code model: one {@code <artifactId>.code-model.json} per module under
- * {@code <out>/code-model/java/} and a manifest listing every module parsed so far, in reactor order. Bound to
- * {@code process-classes} so the module and the siblings it depends on are compiled.
+ * Parses the module, its main and its test sources, into the common code model: one
+ * {@code <artifactId>.code-model.json} per module under {@code <out>/code-model/java/} and a manifest listing every module
+ * parsed so far, in reactor order. Bound to {@code process-test-classes} so the module's classes and test classes and the
+ * siblings it depends on are compiled; the test classpath is resolved, since the test sources bind against it.
  */
-@Mojo(name = "parse", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
+@Mojo(name = "parse", defaultPhase = LifecyclePhase.PROCESS_TEST_CLASSES, requiresDependencyResolution = ResolutionScope.TEST, threadSafe = true)
 public class ParseMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
@@ -68,6 +69,10 @@ public class ParseMojo extends AbstractMojo {
     @Parameter(property = "noesis.release")
     private Integer release;
 
+    /** Whether the test sources are parsed too, into the module's own model; the step definitions of its feature files are there. */
+    @Parameter(property = "noesis.includeTests", defaultValue = "true")
+    private boolean includeTests;
+
     @Parameter(property = "noesis.skip", defaultValue = "false")
     private boolean skip;
 
@@ -89,7 +94,7 @@ public class ParseMojo extends AbstractMojo {
     }
 
     private void parseModule(ReactorState state, Path outputRoot) throws IOException {
-        ArtifactInput input = ProjectInputs.of(project, session, release);
+        ArtifactInput input = ProjectInputs.of(project, session, release, includeTests);
         Engine parser = JavaParser.engineFor(EngineKind.of(engine));
         ParseSession parseSession = new ParseSession(generator(), fromExecutionRoot(repositoryRoot), List.of(input), reactorArtifactIds(), reactorOutputDirectories());
         long started = System.nanoTime();
@@ -133,15 +138,21 @@ public class ParseMojo extends AbstractMojo {
         List<String> names = ProjectInputs.moduleNames(session);
         List<String> ids = new ArrayList<>();
         for (MavenProject other : session.getProjects()) {
-            if (!"pom".equals(other.getPackaging())) ids.add(ProjectInputs.uniqueName(other.getGroupId(), other.getArtifactId(), names));
+            if ("pom".equals(other.getPackaging())) continue;
+            String id = ProjectInputs.uniqueName(other.getGroupId(), other.getArtifactId(), names);
+            ids.add(id);
+            if (includeTests) ids.add(id);
         }
         return ids;
     }
 
+    /** Every module's class directories, in the order of {@link #reactorArtifactIds()}. */
     private List<Path> reactorOutputDirectories() {
         List<Path> directories = new ArrayList<>();
         for (MavenProject other : session.getProjects()) {
-            if (!"pom".equals(other.getPackaging())) directories.add(Path.of(other.getBuild().getOutputDirectory()));
+            if ("pom".equals(other.getPackaging())) continue;
+            directories.add(Path.of(other.getBuild().getOutputDirectory()));
+            if (includeTests) directories.add(Path.of(other.getBuild().getTestOutputDirectory()));
         }
         return directories;
     }

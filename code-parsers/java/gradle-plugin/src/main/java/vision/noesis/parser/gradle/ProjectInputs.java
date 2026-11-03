@@ -36,29 +36,28 @@ final class ProjectInputs {
      * classpath, which sibling projects' tasks produce, is joined to it by a function that holds no project.
      */
     static Provider<ModuleInputs> of(Project project) {
-        Provider<Set<ResolvedArtifactResult>> artifacts = project.getConfigurations()
-                .getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
-                .getIncoming()
-                .getArtifacts()
-                .getResolvedArtifacts();
-        return project.provider(() -> read(project)).zip(artifacts, ProjectInputs::withClasspath);
+        return project.provider(() -> read(project))
+                .zip(resolved(project, JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME), (module, artifacts) -> module.withClasspath(elementsOf(artifacts)))
+                .zip(resolved(project, JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME), (module, artifacts) -> module.withTestClasspath(elementsOf(artifacts)));
+    }
+
+    private static Provider<Set<ResolvedArtifactResult>> resolved(Project project, String configuration) {
+        return project.getConfigurations().getByName(configuration).getIncoming().getArtifacts().getResolvedArtifacts();
     }
 
     /** In resolution order, the order the compile task sees: with a class in two jars, the first one wins, as it does for javac. */
-    private static ModuleInputs withClasspath(ModuleInputs module, Set<ResolvedArtifactResult> resolved) {
+    private static List<ClasspathElement> elementsOf(Set<ResolvedArtifactResult> resolved) {
         List<ClasspathElement> classpath = new ArrayList<>();
         for (ResolvedArtifactResult artifact : resolved) classpath.add(elementOf(artifact));
-        return module.withClasspath(classpath);
+        return classpath;
     }
 
     /** The project without its classpath. */
     private static ModuleInputs read(Project project) {
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         SourceSet main = java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        JavaCompile compile = project.getTasks().named(main.getCompileJavaTaskName(), JavaCompile.class).get();
-        List<File> sourceRoots = new ArrayList<>(main.getJava().getSrcDirs());
-        File generated = compile.getOptions().getGeneratedSourceOutputDirectory().getAsFile().getOrNull();
-        if (generated != null && !sourceRoots.contains(generated)) sourceRoots.add(generated);
+        JavaCompile compile = compileTaskOf(project, main);
+        SourceSet test = java.getSourceSets().findByName(SourceSet.TEST_SOURCE_SET_NAME);
         String version = project.getVersion().toString();
         return new ModuleInputs(
                 project.getPath(),
@@ -67,14 +66,29 @@ final class ProjectInputs {
                 Project.DEFAULT_VERSION.equals(version) ? "" : version,
                 project.getProjectDir(),
                 project.getBuildFile().isFile() ? project.getBuildFile() : null,
-                sourceRoots,
+                sourceRootsOf(main, compile),
                 main.getJava().getClassesDirectory().get().getAsFile(),
                 project.getLayout().getBuildDirectory().get().getAsFile(),
+                List.of(),
+                test == null ? List.of() : sourceRootsOf(test, compileTaskOf(project, test)),
+                test == null ? null : test.getJava().getClassesDirectory().get().getAsFile(),
                 List.of(),
                 releaseOf(java, compile),
                 encodingOf(compile),
                 project.getPluginManager().hasPlugin("war") ? "war" : "jar",
                 mainClassOf(project));
+    }
+
+    private static JavaCompile compileTaskOf(Project project, SourceSet sourceSet) {
+        return project.getTasks().named(sourceSet.getCompileJavaTaskName(), JavaCompile.class).get();
+    }
+
+    /** The source set's roots, then the directory its compile task writes generated sources to. */
+    private static List<File> sourceRootsOf(SourceSet sourceSet, JavaCompile compile) {
+        List<File> sourceRoots = new ArrayList<>(sourceSet.getJava().getSrcDirs());
+        File generated = compile.getOptions().getGeneratedSourceOutputDirectory().getAsFile().getOrNull();
+        if (generated != null && !sourceRoots.contains(generated)) sourceRoots.add(generated);
+        return sourceRoots;
     }
 
     /** A project of this build is a source artifact; a module is a library named by its coordinates; a plain file is a library named after itself. */

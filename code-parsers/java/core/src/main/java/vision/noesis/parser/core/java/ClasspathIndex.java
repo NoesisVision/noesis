@@ -63,6 +63,11 @@ public final class ClasspathIndex {
         return Optional.empty();
     }
 
+    /** A classpath element's artifact by its id, with the package coordinates the build gave it. */
+    public Optional<ArtifactDependency> dependency(NodeId id) {
+        return byPath.values().stream().filter(dependency -> dependency.id().equals(id)).findFirst();
+    }
+
     /** A JDK module the declarations were bound against, labelled with the configured release. */
     public ArtifactDependency platform(String moduleName, int release) {
         NodeId id = JavaIds.platformArtifact(moduleName, release);

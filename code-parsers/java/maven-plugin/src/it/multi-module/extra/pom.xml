@@ -14,6 +14,11 @@
   <groupId>com.example.extra</groupId>
   <artifactId>a</artifactId>
 
+  <properties>
+    <!-- A module may leave its tests out of its model. -->
+    <noesis.includeTests>false</noesis.includeTests>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.example</groupId>

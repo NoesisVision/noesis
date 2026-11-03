@@ -7,7 +7,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -24,7 +26,7 @@ import vision.noesis.parser.model.PackageReference;
 /**
  * What the engines need about one Gradle project, snapshotted off the configured project so the task holds no project at
  * execution time and Gradle can tell when a rerun is due: the sources, the classes and the classpath are file inputs, the
- * rest values.
+ * rest values. The {@code test} source set is held beside the main one; the task decides whether the parse reads it.
  */
 public class ModuleInputs implements Serializable {
 
@@ -58,14 +60,17 @@ public class ModuleInputs implements Serializable {
     private final File outputDirectory;
     private final File buildDirectory;
     private final List<ClasspathElement> classpath;
+    private final List<File> testSourceRoots;
+    private final File testOutputDirectory;
+    private final List<ClasspathElement> testClasspath;
     private final int release;
     private final String encoding;
     private final String packaging;
     private final String mainClass;
 
     public ModuleInputs(String projectPath, String group, String name, String version, File rootDirectory, File buildFile, List<File> sourceRoots,
-                        File outputDirectory, File buildDirectory, List<ClasspathElement> classpath, int release, String encoding, String packaging,
-                        String mainClass) {
+                        File outputDirectory, File buildDirectory, List<ClasspathElement> classpath, List<File> testSourceRoots, File testOutputDirectory,
+                        List<ClasspathElement> testClasspath, int release, String encoding, String packaging, String mainClass) {
         this.projectPath = projectPath;
         this.group = group;
         this.name = name;
@@ -76,6 +81,9 @@ public class ModuleInputs implements Serializable {
         this.outputDirectory = outputDirectory;
         this.buildDirectory = buildDirectory;
         this.classpath = List.copyOf(classpath);
+        this.testSourceRoots = List.copyOf(testSourceRoots);
+        this.testOutputDirectory = testOutputDirectory;
+        this.testClasspath = List.copyOf(testClasspath);
         this.release = release;
         this.encoding = encoding;
         this.packaging = packaging;
@@ -83,7 +91,13 @@ public class ModuleInputs implements Serializable {
     }
 
     ModuleInputs withClasspath(List<ClasspathElement> classpath) {
-        return new ModuleInputs(projectPath, group, name, version, rootDirectory, buildFile, sourceRoots, outputDirectory, buildDirectory, classpath, release, encoding, packaging, mainClass);
+        return new ModuleInputs(projectPath, group, name, version, rootDirectory, buildFile, sourceRoots, outputDirectory, buildDirectory, classpath,
+                testSourceRoots, testOutputDirectory, testClasspath, release, encoding, packaging, mainClass);
+    }
+
+    ModuleInputs withTestClasspath(List<ClasspathElement> testClasspath) {
+        return new ModuleInputs(projectPath, group, name, version, rootDirectory, buildFile, sourceRoots, outputDirectory, buildDirectory, classpath,
+                testSourceRoots, testOutputDirectory, testClasspath, release, encoding, packaging, mainClass);
     }
 
     @Input
@@ -147,17 +161,38 @@ public class ModuleInputs implements Serializable {
 
     @Classpath
     public List<File> getClasspathFiles() {
-        List<File> files = new ArrayList<>(classpath.size());
-        for (ClasspathElement element : classpath) files.add(element.file());
-        return files;
+        return files(classpath);
     }
 
     /** The artifact each classpath element belongs to, which names the stubs; the files themselves are {@link #getClasspathFiles()}. */
     @Input
     public List<String> getClasspathArtifacts() {
-        List<String> artifacts = new ArrayList<>(classpath.size());
-        for (ClasspathElement element : classpath) artifacts.add(element.key());
-        return artifacts;
+        return keys(classpath);
+    }
+
+    /** The {@code test} source set's roots, generated sources included; empty when the project has no such source set. */
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public List<File> getTestSourceRoots() {
+        return testSourceRoots;
+    }
+
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @Optional
+    public File getTestOutputDirectory() {
+        return testOutputDirectory;
+    }
+
+    /** The resolved {@code testCompileClasspath}, which the test sources bind against. */
+    @Classpath
+    public List<File> getTestClasspathFiles() {
+        return files(testClasspath);
+    }
+
+    @Input
+    public List<String> getTestClasspathArtifacts() {
+        return keys(testClasspath);
     }
 
     @Input
@@ -190,6 +225,18 @@ public class ModuleInputs implements Serializable {
         return paths;
     }
 
+    private static List<File> files(List<ClasspathElement> elements) {
+        List<File> files = new ArrayList<>(elements.size());
+        for (ClasspathElement element : elements) files.add(element.file());
+        return files;
+    }
+
+    private static List<String> keys(List<ClasspathElement> elements) {
+        List<String> keys = new ArrayList<>(elements.size());
+        for (ClasspathElement element : elements) keys.add(element.key());
+        return keys;
+    }
+
     /**
      * The name each project has in its artifact id: its name, or its path without the leading colon ({@code billing:api})
      * when another parsed project has the same name.
@@ -205,15 +252,35 @@ public class ModuleInputs implements Serializable {
         return unique;
     }
 
-    ArtifactInput toArtifactInput(Integer releaseOverride, Map<String, String> uniqueNames) {
+    /**
+     * @param includeTests whether the {@code test} source set is parsed too, into the same artifact: its roots after the
+     *                     main ones, its classes, and the test classpath's elements the compile classpath lacks after the
+     *                     compile classpath, whose {@code compileOnly} elements ({@code testCompileClasspath} does not
+     *                     inherit them) the main sources still need
+     */
+    ArtifactInput toArtifactInput(Integer releaseOverride, Map<String, String> uniqueNames, boolean includeTests) {
         List<Path> roots = new ArrayList<>(sourceRoots.size());
+        addExisting(sourceRoots, roots);
+        List<ClasspathEntry> entries = new ArrayList<>(classpath.size());
+        Set<File> onClasspath = new HashSet<>();
+        for (ClasspathElement element : classpath) {
+            if (onClasspath.add(element.file())) entries.add(new ClasspathEntry(element.file().toPath(), element.dependency(uniqueNames)));
+        }
+        if (includeTests) {
+            addExisting(testSourceRoots, roots);
+            for (ClasspathElement element : testClasspath) {
+                if (onClasspath.add(element.file())) entries.add(new ClasspathEntry(element.file().toPath(), element.dependency(uniqueNames), true));
+            }
+        }
+        return new ArtifactInput(group, name, version, rootDirectory.toPath(), buildFile == null ? null : buildFile.toPath(), roots,
+                outputDirectory.toPath(), entries, releaseOverride != null ? releaseOverride : release, Charset.forName(encoding), packaging, mainClass,
+                uniqueNames.getOrDefault(projectPath, name), buildDirectory.toPath(),
+                includeTests && testOutputDirectory != null ? testOutputDirectory.toPath() : null);
+    }
+
+    private static void addExisting(List<File> sourceRoots, List<Path> roots) {
         for (File root : sourceRoots) {
             if (root.isDirectory()) roots.add(root.toPath());
         }
-        List<ClasspathEntry> entries = new ArrayList<>(classpath.size());
-        for (ClasspathElement element : classpath) entries.add(new ClasspathEntry(element.file().toPath(), element.dependency(uniqueNames)));
-        return new ArtifactInput(group, name, version, rootDirectory.toPath(), buildFile == null ? null : buildFile.toPath(), roots,
-                outputDirectory.toPath(), entries, releaseOverride != null ? releaseOverride : release, Charset.forName(encoding), packaging, mainClass,
-                uniqueNames.getOrDefault(projectPath, name), buildDirectory.toPath());
     }
 }
