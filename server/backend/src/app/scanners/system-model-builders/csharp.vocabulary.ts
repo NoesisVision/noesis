@@ -44,7 +44,8 @@ const ROLES = new Map<string, AnnotationRole>([
   [`${DOMAIN}.EntryPointAttribute`, { role: 'behavior' }],
   [`${ANNOTATIONS}.People.ActorAttribute`, { role: 'actor' }],
   [`${ANNOTATIONS}.ShortDescriptionAttribute`, { role: 'description' }],
-  [`${DOMAIN}.ScenarioAttribute`, { role: 'scenario' }],
+  // Reqnroll's, not SpecFlow's: the step definitions a feature file's `When` steps bind to.
+  ['T:Reqnroll.WhenAttribute', { role: 'stepDefinition' }],
   [`${ANNOTATIONS}.ExcludeFromDocsAttribute`, { role: 'exclude' }],
 ]);
 
@@ -143,6 +144,7 @@ export const CSHARP_VOCABULARY: AnnotationVocabulary = {
     description: 'markdownText',
     // No C# annotation reads a direction until the package has adapters.
     direction: 'Direction',
+    expression: 'expression',
   },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,

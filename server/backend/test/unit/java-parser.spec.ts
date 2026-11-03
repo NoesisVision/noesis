@@ -4,6 +4,7 @@ import { basename, join } from 'node:path';
 import { JavaParser } from '#backend/adapters/out/scanners/code-parsers/java-parser';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
+import { trackFeatureFiles } from '../support/feature-files';
 import { fixedClock } from '../support/fixed-clock';
 import { invokesOf, outputOf, stateOf, inputOf } from '../support/relations';
 import { settingsScanner } from '../support/test-scanner';
@@ -293,5 +294,54 @@ describe('A Java repository scanned through its Maven plugin', () => {
       'module|com.acme.shop.pricing',
       'module|com.acme.shop.products',
     ]);
+  });
+
+  it("makes the rules of the fixture's feature file, governed by the behaviors its Cucumber steps in the test sources invoke", async () => {
+    const FEATURE =
+      'shop-domain/src/test/resources/features/placing-orders.feature';
+    await trackFeatureFiles(t.root, FIXTURE, [FEATURE]);
+    const PLACING = 'rule|shop.orders.Placing an order';
+    const TOTAL = 'rule|shop.orders.Order total';
+
+    const model = SystemModel.parse(await scanner.scan());
+
+    expect<unknown>(model.rules).toEqual([
+      {
+        id: TOTAL,
+        name: 'Order total',
+        kind: 'computation',
+        description: 'The total is the sum of the lines, less the discount.',
+        source: { path: FEATURE, line: 15 },
+      },
+      {
+        id: PLACING,
+        name: 'Placing an order',
+        kind: 'state_change',
+        description: 'A new order becomes placed when the customer places it.',
+        source: { path: FEATURE, line: 7 },
+      },
+    ]);
+    expect<unknown>(model.scenarios.map((s) => [s.id, s.steps.length])).toEqual(
+      [
+        ['scenario|shop.orders.Order total.The total after more lines', 3],
+        ['scenario|shop.orders.Order total.The total of one line', 3],
+        ['scenario|shop.orders.Placing an order.A new order is placed', 3],
+      ],
+    );
+    // The outline binds by its first example; adding lines and reading the
+    // total are two behaviors, so the rule has two governors.
+    expect<unknown>(
+      model.relations
+        .filter((r) => r.kind === 'governs')
+        .map((r) => [r.from, r.to]),
+    ).toEqual([
+      ['behavior|shop.orders.Order.addLine', TOTAL],
+      ['behavior|shop.orders.Order.placeOrder', PLACING],
+      ['behavior|shop.orders.Order.total', TOTAL],
+    ]);
+    // The step definitions' class is in the test sources and is no block.
+    expect<unknown>(
+      model.buildingBlocks.some((b) => b.name === 'OrderSteps'),
+    ).toBe(false);
   });
 });

@@ -10,10 +10,39 @@ import { needPath } from './design-doc-requirements.ts';
  * description is read. So a link written today to an element the outline has
  * not got starts working, with no change to the description, once the page
  * learns to show such elements.
+ *
+ * An id with a space in it — a rule's, whose name is a sentence, or a
+ * block's like `Order Repository` — is written in the link's angle brackets,
+ * as CommonMark allows, `[Paid](<noesis:rule|sales.Paid orders only>)`, or
+ * with the space percent-encoded.
  */
 
-const DESCRIPTION_LINK = /\[([^\]]*)\]\(noesis:([^)\s]+)\)/g;
+const DESCRIPTION_LINK =
+  /\[([^\]]*)\]\((?:<noesis:([^>\n]+)>|noesis:([^)\s]+))\)/g;
 const NEED = 'need|';
+
+/** A link of the description: the words it is written with and the id it names. */
+interface DescriptionLink {
+  label: string;
+  target: string;
+}
+
+function* linksIn(markdown: string): Generator<DescriptionLink> {
+  for (const [, label = '', bracketed, bare] of markdown.matchAll(
+    DESCRIPTION_LINK,
+  ))
+    yield { label, target: decoded(bracketed ?? bare ?? '') };
+}
+
+/** The id a link target spells, its percent-escapes read; one that is no escape is taken as written. */
+function decoded(target: string): string {
+  try {
+    return decodeURIComponent(target);
+  } catch (error) {
+    if (error instanceof URIError) return target;
+    throw error;
+  }
+}
 
 /** Where a link in the description takes the reader: a row of the model, or an entry of the requirements. */
 export type DescriptionTarget =
@@ -21,12 +50,12 @@ export type DescriptionTarget =
   | { view: 'requirements'; entry: string };
 
 /**
- * Where a link's target opens in this design: an element the outline has, in
- * the model; a need the design states, in the requirements; anything else
- * nowhere.
+ * Where a link's target opens in this design: an element the outline has, at
+ * its row in the model — a rule or a scenario at the first row it is shown
+ * at; a need the design states, in the requirements; anything else nowhere.
  */
 export const descriptionTargets =
-  (has: (path: string) => boolean, document: DesignDocumentInput) =>
+  (rowOf: (id: string) => string | null, document: DesignDocumentInput) =>
   (target: string): DescriptionTarget | null => {
     if (target.startsWith(NEED)) {
       const need = target.slice(NEED.length);
@@ -34,7 +63,8 @@ export const descriptionTargets =
         ? null
         : { view: 'requirements', entry: needPath(need) };
     }
-    return has(target) ? { view: 'model', node: target } : null;
+    const row = rowOf(target);
+    return row === null ? null : { view: 'model', node: row };
   };
 
 /**
@@ -48,12 +78,15 @@ export const readableDescription = (
   resolve: (target: string) => DescriptionTarget | null,
   page: string,
 ): string =>
-  markdown.replaceAll(DESCRIPTION_LINK, (_, label: string, target: string) => {
-    const opens = resolve(target);
-    return opens === null
-      ? label
-      : `[${label}](${hrefOf(page, opens)} "${OPENS_IN[opens.view]}")`;
-  });
+  markdown.replaceAll(
+    DESCRIPTION_LINK,
+    (_, label: string, bracketed?: string, bare?: string) => {
+      const opens = resolve(decoded(bracketed ?? bare ?? ''));
+      return opens === null
+        ? label
+        : `[${label}](${hrefOf(page, opens)} "${OPENS_IN[opens.view]}")`;
+    },
+  );
 
 /** What a link says it does, for whoever cannot see the icon before it. */
 const OPENS_IN: Record<DescriptionTarget['view'], string> = {
@@ -67,9 +100,7 @@ export function linkedViews(
   resolve: (target: string) => DescriptionTarget | null,
 ): DescriptionTarget['view'][] {
   const views = new Set(
-    [...markdown.matchAll(DESCRIPTION_LINK)].map(
-      ([, , target]) => resolve(target ?? '')?.view,
-    ),
+    [...linksIn(markdown)].map(({ target }) => resolve(target)?.view),
   );
   return (['model', 'requirements'] as const).filter((view) => views.has(view));
 }
@@ -90,9 +121,7 @@ export function linkedTargets(
   resolve: (target: string) => DescriptionTarget | null,
 ): LinkedTarget[] {
   const seen = new Map<string, LinkedTarget>();
-  for (const [, label = '', target = ''] of markdown.matchAll(
-    DESCRIPTION_LINK,
-  )) {
+  for (const { label, target } of linksIn(markdown)) {
     const opens = resolve(target);
     if (opens !== null && !seen.has(target)) {
       seen.set(target, { label, target: opens });

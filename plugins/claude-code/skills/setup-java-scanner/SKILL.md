@@ -105,8 +105,10 @@ plugin moves on.
    schema the plugin does not read is [Update](#update)) and scan again.
 10. **Tell the user what is next.** The parser turns annotated types into
     building blocks: list the [annotations](#annotations) and offer to
-    annotate the existing domain code. Do not annotate it as part of this
-    setup.
+    annotate the existing domain code. Rules and scenarios come from
+    feature files instead: say how, as
+    [Rules and scenarios](#rules-and-scenarios) does. Do not annotate the
+    code or write feature files as part of this setup.
 
 ## Maven
 
@@ -339,3 +341,50 @@ the kind of the block it takes. Modules come from the package structure; the sca
 not read `@Module` on `package-info.java` yet.
 `${CLAUDE_PLUGIN_ROOT}/skills/implement-java-spring/references/mapping.md`
 has the full rules for how code becomes the model.
+
+## Rules and scenarios
+
+No annotation makes a rule or a scenario. The scan reads them from the
+Gherkin feature files (`*.feature`) Git tracks in the repository, run as
+tests with Cucumber:
+
+```gherkin
+Feature: Placing orders
+
+  @validation
+  Rule: Non-empty order
+    An order must have at least one line.
+
+    Scenario: An order without lines is refused
+      Given a customer with no lines picked
+      When the customer places the order
+      Then the order is refused
+```
+
+```java
+@When("the customer places the order")
+public void theCustomerPlacesTheOrder() {
+    result = orders.place(customer, List.of());
+}
+```
+
+- A `Rule:` is a rule, the text under it its description. It carries
+  exactly one kind tag: `@validation`, `@state_change`, `@post`,
+  `@computation`, `@coordination` or `@configuration`.
+- A `Scenario:` or `Scenario Outline:` under it is a scenario, its steps as
+  written, a `Background:` before them. A scenario outside a `Rule:` is
+  not read.
+- The scenario's `When` step, with the `And` and `But` steps after it,
+  binds to Cucumber step definitions, `@When("…")` from
+  `io.cucumber.java.en.When`, by their Cucumber expression or regular
+  expression. Between them, those methods call exactly one behavior: that
+  behavior governs the rule, and the rule is in its module.
+
+The step definitions live in the test sources (`src/test/java`). The
+parser reads test sources from its next release on; with a release that
+reads main sources only, the scan binds no `When` step and the model has
+no rules or scenarios. What the scan cannot read it drops and notes in the
+service log (`.noesis/logs/noesis.log`, under `scanner`): a rule with no
+kind tag or two, a `When` step matching no step definition or several,
+`When` steps calling no behavior or several. A rule none of whose scenarios
+binds is dropped too.

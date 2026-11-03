@@ -4,6 +4,8 @@ import {
   BuildingBlockId,
   ElementName,
   ModuleId,
+  RuleId,
+  ScenarioId,
 } from '#backend/app/element-id';
 import {
   isCollaboratorType,
@@ -11,6 +13,7 @@ import {
   type ScannedBehavior,
   type ScannedBuildingBlock,
   type ScannedDomainModule,
+  type ScannedRule,
   type ScannedScenario,
   type SourceLocation,
   type SystemModel,
@@ -29,11 +32,19 @@ import type {
   TypeRef,
 } from '../code-parsers/code-model';
 import {
+  type FeatureFileSource,
+  type FeatureRule,
+  type FeatureScenario,
+  readFeatureFile,
+} from '../feature-files/feature-file';
+import { StepExpression } from '../feature-files/step-expression';
+import {
   enumArgument,
   hasRole,
   type RoleOf,
   rolesOf,
   stringArgument,
+  withRepeated,
 } from './annotations';
 import {
   CodeModelIndex,
@@ -63,6 +74,8 @@ export interface SystemModelBuildInput {
   readonly manifest: ParseManifest;
   /** The manifest's files, each parsed; order does not matter. */
   readonly files: readonly CodeModelFile[];
+  /** The repository's feature files, the rules and scenarios of R12; order does not matter. */
+  readonly featureFiles: readonly FeatureFileSource[];
   readonly vocabulary: AnnotationVocabulary;
   readonly config: NamespaceConfig;
 }
@@ -76,7 +89,12 @@ export interface BuildDiagnostic {
 
 type BuiltModel = Pick<
   SystemModel,
-  'modules' | 'buildingBlocks' | 'behaviors' | 'relations'
+  | 'modules'
+  | 'buildingBlocks'
+  | 'behaviors'
+  | 'rules'
+  | 'scenarios'
+  | 'relations'
 >;
 
 export interface BuiltSystemModel {
@@ -110,6 +128,12 @@ interface Call {
   readonly targets: ReadonlySet<BehaviorId>;
 }
 
+/** A method a `When` step binds to by its expression (R12). */
+interface StepDefinition {
+  readonly expression: StepExpression;
+  readonly method: Located<MethodNode>;
+}
+
 export function buildSystemModel(
   input: SystemModelBuildInput,
 ): BuiltSystemModel {
@@ -120,10 +144,13 @@ class ModelAssembly {
   private readonly vocabulary: AnnotationVocabulary;
   private readonly config: NamespaceConfig;
   private readonly index: CodeModelIndex;
+  private readonly featureFiles: readonly FeatureFileSource[];
   private readonly diagnostics: BuildDiagnostic[] = [];
   private readonly relations: Relation[] = [];
   private readonly blocks = new Map<GlobalId, Block>();
   private readonly behaviors = new Map<BehaviorId, Behavior>();
+  private readonly rules = new Map<RuleId, ScannedRule>();
+  private readonly scenarios = new Map<ScenarioId, ScannedScenario>();
   /** Every overload's behavior, by the method's global id. */
   private readonly behaviorOfMethod = new Map<GlobalId, BehaviorId>();
   private readonly memberBehaviors = new Map<GlobalId, Set<BehaviorId>>();
@@ -131,16 +158,24 @@ class ModelAssembly {
   /** R5.8: each block's fields a getter exposes, with the getter, by field id. */
   private readonly getters = new Map<GlobalId, Map<NodeId, MethodNode>>();
 
-  constructor({ manifest, files, vocabulary, config }: SystemModelBuildInput) {
+  constructor({
+    manifest,
+    files,
+    featureFiles,
+    vocabulary,
+    config,
+  }: SystemModelBuildInput) {
     this.vocabulary = vocabulary;
     this.config = config;
     this.index = new CodeModelIndex(manifest, files);
+    this.featureFiles = featureFiles;
   }
 
   assemble(): BuiltSystemModel {
     this.collectBlocks();
     this.collectBehaviors();
     this.collectInvocations();
+    this.collectRules();
     const model: BuiltModel = {
       modules: this.modules(),
       buildingBlocks: [...this.blocks.values()]
@@ -149,6 +184,8 @@ class ModelAssembly {
       behaviors: [...this.behaviors.values()]
         .map((behavior) => this.toBehavior(behavior))
         .sort(byId),
+      rules: [...this.rules.values()].sort(byId),
+      scenarios: [...this.scenarios.values()].sort(byId),
       relations: this.relations.sort(Relation.compare),
     };
     return { model, diagnostics: this.diagnostics };
@@ -299,8 +336,6 @@ class ModelAssembly {
       name: block.name,
       type: block.type,
       description: this.descriptionOf(node),
-      rules: [],
-      scenarios: this.scenariosOf([node]),
       source: locationOf(node),
     };
   }
@@ -319,36 +354,6 @@ class ModelAssembly {
       if (text !== null) return text;
     }
     return node.documentation;
-  }
-
-  /** R4.7, R9.9: one scenario per scenario role, by name only. */
-  private scenariosOf(nodes: readonly DeclarationNode[]): ScannedScenario[] {
-    const scenarios = new Map<string, ScannedScenario>();
-    for (const node of nodes) {
-      for (const { annotation } of rolesOf(
-        node.annotations,
-        'scenario',
-        this.vocabulary,
-      )) {
-        const name = stringArgument(annotation, this.vocabulary.arguments.name);
-        const parsed = ElementName.safeParse(name);
-        if (!parsed.success) {
-          this.info(
-            `${node.id}: a scenario ${name === null ? 'without a name' : `named "${name}"`} is no element name; dropped`,
-            node,
-          );
-          continue;
-        }
-        if (!scenarios.has(parsed.data)) {
-          scenarios.set(parsed.data, {
-            name: parsed.data,
-            description: null,
-            steps: [],
-          });
-        }
-      }
-    }
-    return [...scenarios.values()];
   }
 
   /* ------------------------------------------------------------- state */
@@ -705,10 +710,6 @@ class ModelAssembly {
         chosen.node.visibility === 'public'
           ? { kind: 'public', actors: this.actorsOf(hierarchy, block.node) }
           : { kind: 'private' },
-      rules: [],
-      scenarios: this.scenariosOf(
-        behavior.overloads.map((overload) => overload.node),
-      ),
       source: locationOf(chosen.node),
     };
   }
@@ -847,6 +848,171 @@ class ModelAssembly {
     return reached;
   }
 
+  /* ------------------------------------------------------------- rules */
+
+  /**
+   * R12: every rule of every feature file, by path, then as the file states
+   * them, whose scenarios' `When` steps bind to behaviors: the rule is in
+   * the module of the first one's behavior, governed by each distinct one,
+   * illustrated by each scenario that binds.
+   */
+  private collectRules(): void {
+    const definitions = this.stepDefinitions();
+    const files = [...this.featureFiles].sort((a, b) =>
+      byCodeUnit(a.path, b.path),
+    );
+    for (const file of files) {
+      const { rules, diagnostics } = readFeatureFile(file);
+      for (const { message, source } of diagnostics) {
+        this.infoAt(message, source);
+      }
+      for (const rule of rules) this.collectRule(rule, definitions);
+    }
+  }
+
+  private collectRule(
+    rule: FeatureRule,
+    definitions: readonly StepDefinition[],
+  ): void {
+    const bound = rule.scenarios.flatMap((scenario) => {
+      const behavior = this.governorOf(scenario, definitions);
+      return behavior === null ? [] : [{ scenario, behavior }];
+    });
+    const [first] = bound;
+    if (first === undefined) {
+      this.infoAt(
+        `rule "${rule.name}": none of its scenarios binds to a behavior; dropped`,
+        rule.source,
+      );
+      return;
+    }
+    const id = RuleId.within(ModuleId.containing(first.behavior), rule.name);
+    const taken = this.rules.get(id);
+    if (taken !== undefined) {
+      this.infoAt(
+        `rule "${rule.name}" has the id ${id} of the rule at ${taken.source.path}:${taken.source.line}, which came first; dropped`,
+        rule.source,
+      );
+      return;
+    }
+    this.rules.set(id, {
+      id,
+      name: rule.name,
+      kind: rule.kind,
+      description: rule.description,
+      source: rule.source,
+    });
+    const governors = new Set<BehaviorId>();
+    for (const { scenario, behavior } of bound) {
+      const scenarioId = ScenarioId.within(id, scenario.name);
+      if (this.scenarios.has(scenarioId)) {
+        this.infoAt(
+          `scenario "${scenario.name}" is the second of its name in rule "${rule.name}"; dropped`,
+          scenario.source,
+        );
+        continue;
+      }
+      this.scenarios.set(scenarioId, {
+        id: scenarioId,
+        name: scenario.name,
+        description: scenario.description,
+        steps: [...scenario.steps],
+        source: scenario.source,
+      });
+      this.relations.push({ kind: 'illustrates', from: scenarioId, to: id });
+      if (!governors.has(behavior)) {
+        governors.add(behavior);
+        this.relations.push({ kind: 'governs', from: behavior, to: id });
+      }
+    }
+  }
+
+  /**
+   * R12: the one behavior a scenario's `When` steps invoke: each step bound
+   * to exactly one step definition, the behaviors those methods reach as a
+   * call reaches them (R11.2), and exactly one among them all. Null, with a
+   * diagnostic, otherwise.
+   */
+  private governorOf(
+    scenario: FeatureScenario,
+    definitions: readonly StepDefinition[],
+  ): BehaviorId | null {
+    const reached = new Set<BehaviorId>();
+    for (const text of scenario.whenSteps) {
+      const matching = definitions.filter(({ expression }) =>
+        expression.matches(text),
+      );
+      const [definition] = matching;
+      if (definition === undefined || matching.length > 1) {
+        this.infoAt(
+          `scenario "${scenario.name}": the When step "${text}" matches ${
+            definition === undefined
+              ? 'no step definition'
+              : `${matching.length} step definitions (${matching.map(({ method }) => method.node.id).join(', ')})`
+          }; dropped`,
+          scenario.source,
+        );
+        return null;
+      }
+      for (const id of this.reachedBy(definition.method)) reached.add(id);
+    }
+    const [behavior, ...more] = [...reached].sort(byCodeUnit);
+    if (behavior === undefined || more.length > 0) {
+      this.infoAt(
+        `scenario "${scenario.name}": its When steps invoke ${
+          behavior === undefined
+            ? 'no behavior'
+            : `${reached.size} behaviors (${[behavior, ...more].join(', ')})`
+        }, not one; dropped`,
+        scenario.source,
+      );
+      return null;
+    }
+    return behavior;
+  }
+
+  /** The behaviors a step definition's calls reach. */
+  private reachedBy({ artifact, node }: Located<MethodNode>): Set<BehaviorId> {
+    const reached = new Set<BehaviorId>();
+    for (const { to } of artifact.invokedBy.get(node.id) ?? []) {
+      for (const id of this.callTargetsOf(artifact, to)) reached.add(id);
+    }
+    return reached;
+  }
+
+  /** R12: every method with a step definition role, once per annotation whose expression is one. */
+  private stepDefinitions(): StepDefinition[] {
+    const definitions: StepDefinition[] = [];
+    for (const artifact of this.index.artifacts) {
+      for (const node of artifact.file.nodes) {
+        if (node.kind !== 'method') continue;
+        for (const { annotation } of rolesOf(
+          withRepeated(node.annotations),
+          'stepDefinition',
+          this.vocabulary,
+        )) {
+          const source = stringArgument(
+            annotation,
+            this.vocabulary.arguments.expression,
+          );
+          const expression =
+            source === null
+              ? new Error('it has no expression')
+              : StepExpression.of(source);
+          if (expression instanceof Error) {
+            this.info(
+              `${node.id}: a step definition no step can bind to (${expression.message}); left out`,
+              node,
+            );
+            continue;
+          }
+          definitions.push({ expression, method: { artifact, node } });
+        }
+      }
+    }
+    return definitions;
+  }
+
   /* ----------------------------------------------------------- modules */
 
   /** R6.2 to R6.4: a module per prefix of every block's module path, each containing the next. */
@@ -862,7 +1028,6 @@ class ModelAssembly {
           id,
           name: ElementName.parse(path.at(-1)),
           description: null,
-          rules: [],
           source:
             namespaceLocations.get(path.join('.')) ??
             this.directoryAbove(block, block.modulePath.length - depth),
@@ -928,6 +1093,10 @@ class ModelAssembly {
       message,
       source: sourceOrNull(node),
     });
+  }
+
+  private infoAt(message: string, source: SourceLocation): void {
+    this.diagnostics.push({ level: 'info', message, source });
   }
 
   private debug(message: string, node: DeclarationNode): void {

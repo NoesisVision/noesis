@@ -11,16 +11,16 @@ use AssertJ only.
 
 ## Which test a scenario gets
 
-Find the element a scenario belongs to: the rule it is attached to belongs
-to a behavior or a building block, and so does a scenario attached
-directly.
+Find the behavior a scenario belongs to: its `illustrates` names its rule,
+the `governs` relations to that rule name the behaviors that follow it, and
+the scenario's _when_ calls one of them. With one governing behavior, that
+is it; with several, the one the _when_ describes.
 
-| The scenario belongs to                                                                              | Test                                                                                    |
-| ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| a `public` behavior of an `application_service`, or a rule of one                                    | a **full-graph test** of that behavior                                                  |
-| an `application_service` building block, or one of its rules                                         | a **full-graph test** of the behavior the scenario's _when_ calls                       |
-| any other building block or behavior: value object, entity, aggregate, domain service, factory       | a **unit test** of that element                                                         |
-| a `repository`, an `external_integration`, an adapter or a `technical_service`, or a behavior of one | **no test now**: there is no implementation in scope. Report it for the adapter's tests |
+| The behavior is one of                                                             | Test                                                                                    |
+| ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| an `application_service`                                                           | a **full-graph test** of that behavior                                                  |
+| any other building block: value object, entity, aggregate, domain service, factory | a **unit test** of its building block                                                   |
+| a `repository`, an `external_integration`, an adapter or a `technical_service`     | **no test now**: there is no implementation in scope. Report it for the adapter's tests |
 
 ### Full-graph tests
 
@@ -50,8 +50,9 @@ build the real value objects and aggregates it takes. A domain service's
 external integration collaborator, when it has one, gets the same test
 double a full-graph test would use.
 
-A scenario is often written from the use case's point of view, even when it
-is attached to a value object ("when the quality manager submits a request
+A scenario is often written from the use case's point of view, even when
+the behavior that governs its rule is an aggregate's or a value object's
+("when the quality manager submits a request
 whose title is only spaces, then the request is rejected"). Test it at the
 level of the element it belongs to: the part of the _when_ that reaches the
 element (constructing a title of spaces) and the part of the _then_ the
@@ -67,12 +68,11 @@ faked.
 - Inside it, one `@Nested` class per behavior that has scenarios, named
   after the behavior in upper camel case plus `Tests`
   (`CreateQDocTests`), with `@DisplayName("<behavior name>")`.
-- Inside the building block's or the behavior's class, one `@Nested`
-  class per rule that has scenarios, named after the rule in upper camel
-  case (`OnlyQualityManagersCreateQDocs`), with
-  `@DisplayName("<rule name>")`.
-- One test method per scenario, where it is attached: in its rule's class,
-  or directly in its behavior's or building block's class.
+- Inside the behavior's class, one `@Nested` class per rule it governs
+  that has scenarios, named after the rule in upper camel case
+  (`OnlyQualityManagersCreateQDocs`), with `@DisplayName("<rule name>")`.
+- One test method per scenario, in its rule's class under the behavior
+  the scenario belongs to.
   `@DisplayName("<scenario name>")` verbatim, the method named after the
   scenario in snake case (`a_quality_manager_is_accepted`).
 - The method's body falls into three parts, each opened by a comment that

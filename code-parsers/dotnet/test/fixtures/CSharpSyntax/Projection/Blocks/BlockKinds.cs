@@ -9,7 +9,6 @@ namespace CSharpSyntax.Projection.Blocks;
 /// <summary>Doc comment shadowed by the ShortDescription.</summary>
 [DddAggregate]
 [ShortDescription("An aggregate with a *short* description.")]
-[Scenario("Aggregate scenario")]
 public class AggregateBlock
 {
     private readonly List<EntityBlock> _entities = new();

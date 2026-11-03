@@ -13,6 +13,7 @@ import { Title } from '#/shared/design-system/title.tsx';
 import type { DesignedScenarioInput } from '#backend/app/design-docs/design-doc.ts';
 import type { PartOwner } from '../../../design-doc-edit.ts';
 import { valueOf } from '../../../design-doc-field.ts';
+import { ruleNameOf } from '../../../rules.ts';
 import { NewScenarioButton } from '../../unit-editor/new-buttons.tsx';
 import { ScenarioActions } from '../../unit-editor/scenario-actions.tsx';
 import { ChangeBadge } from '../change-badge.tsx';
@@ -118,7 +119,7 @@ export function ScenarioColumn({
       >
         {scenarios.map((entry, index) => (
           <Accordion.Item
-            key={`${entry.rule ?? ''}:${entry.change}:${entry.name}`}
+            key={`${entry.change}:${entry.id}`}
             value={values[index]!}
             // What a rule's count looks for to bring it into view.
             data-scenario={values[index]}
@@ -146,10 +147,10 @@ export function ScenarioColumn({
                     </WrittenBy>
                     <ChangeBadge change={entry.change} inline />
                   </span>
-                  {entry.rule !== undefined && (
+                  {entry.ruleName !== undefined && (
                     <span className={classes.rule}>
                       <IconScale size={12} aria-hidden />
-                      <span className={classes.ellipsis}>{entry.rule}</span>
+                      <span className={classes.ellipsis}>{entry.ruleName}</span>
                     </span>
                   )}
                 </span>
@@ -158,7 +159,7 @@ export function ScenarioColumn({
                 <ScenarioActions
                   scenario={{
                     kind: 'scenario',
-                    id: entry.name,
+                    id: entry.id,
                     owner:
                       entry.rule === undefined
                         ? owner
@@ -195,7 +196,8 @@ function ScenarioBody({ scenario }: { scenario: DesignedScenarioInput }) {
   const description = valueOf(scenario.description)?.trim();
   // The control above already names it; a description that only repeats the
   // name — give or take its case, spacing or a full stop — says nothing more.
-  const says = description && plain(description) !== plain(scenario.name);
+  const says =
+    description && plain(description) !== plain(ruleNameOf(scenario));
   return (
     <>
       {says && (

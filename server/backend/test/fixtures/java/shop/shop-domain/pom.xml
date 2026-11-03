@@ -17,5 +17,10 @@
       <groupId>vision.noesis</groupId>
       <artifactId>noesis-annotations</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.cucumber</groupId>
+      <artifactId>cucumber-java</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

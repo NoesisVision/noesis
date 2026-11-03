@@ -5,6 +5,7 @@
 // committed code model, which keeps the fixture's committed files honest.
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { join, resolve } from 'node:path';
+import { GitSourceRepository } from '#backend/adapters/out/scanners/git-source-repository';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { systemClock } from '#backend/app/clock';
 import {
@@ -87,6 +88,7 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       const { model: committed } = buildSystemModel({
         manifest,
         files,
+        featureFiles: await new GitSourceRepository(FIXTURE).featureFiles(),
         vocabulary: JAVA_VOCABULARY,
         config,
       });
@@ -99,6 +101,12 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       expect<unknown>(model.modules).toEqual(committed.modules);
       expect<unknown>(model.buildingBlocks).toEqual(committed.buildingBlocks);
       expect<unknown>(model.behaviors).toEqual(committed.behaviors);
+      expect<unknown>(model.rules).toEqual(committed.rules);
+      expect<unknown>(model.scenarios).toEqual(committed.scenarios);
+      expect<unknown>(model.rules.map((r) => r.name)).toEqual([
+        'Order total',
+        'Placing an order',
+      ]);
       expect<unknown>(model.relations).toEqual(committed.relations);
       expect<unknown>(
         model.buildingBlocks.find(

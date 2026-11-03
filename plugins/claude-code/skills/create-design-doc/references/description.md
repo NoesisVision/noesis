@@ -59,8 +59,14 @@ model and which need or requirement each change answers, nothing more.
 Write links as the contract says, to elements and to needs.
 
 - **Elements:** the label is the element's name, or `Block.behavior` for a
-  behavior. A property, rule or scenario has no id: name it in words beside
-  its element's link. An element opens in the model view.
+  behavior. An element opens in the model view. A piece of state, an input
+  or an output is a relation and has no id: name it in words beside its
+  element's link. A rule or a scenario is linked like any element, the
+  label its name; it opens at the first behavior it is shown under.
+- **An id with a space in it** — a rule's or a scenario's, whose name is a
+  sentence, or a block's like `Order Repository` — goes in angle brackets:
+  `[Paid orders only](<noesis:rule|sales.orders.Paid orders only>)`. A
+  link's target holds no space otherwise.
 - **Needs:** link every need the design states where a change answers it.
   A need opens in the requirements view.
 - Link what the design adds, modifies or removes, or a need it states. Link

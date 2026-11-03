@@ -38,8 +38,11 @@ export type AnnotationRole =
   | { readonly role: 'actor' }
   /** The element's description, Markdown, in the `description` argument. */
   | { readonly role: 'description' }
-  /** A scenario of the block or behavior, by its `name` only. */
-  | { readonly role: 'scenario' }
+  /**
+   * The method is a step definition a `When` step of a feature file binds
+   * to, by the `expression` argument (R12).
+   */
+  | { readonly role: 'stepDefinition' }
   /** The element is not in the system model. */
   | { readonly role: 'exclude' };
 
@@ -49,6 +52,8 @@ interface RoleArguments {
   readonly description: string;
   /** The enum argument a `byDirection` role reads. */
   readonly direction: string;
+  /** The step definition's Cucumber expression or regular expression. */
+  readonly expression: string;
 }
 
 export interface AnnotationVocabulary {

@@ -69,11 +69,8 @@ describe('A design document', () => {
 
     expect(parsed.modules).toEqual({ added: [], removed: [], modified: [] });
     expect(parsed.relations).toEqual({ added: [], removed: [], modified: [] });
-    expect(parsed.buildingBlocks.added[0]?.rules).toEqual({
-      added: [],
-      removed: [],
-      modified: [],
-    });
+    expect(parsed.rules).toEqual({ added: [], removed: [], modified: [] });
+    expect(parsed.scenarios).toEqual({ added: [], removed: [], modified: [] });
   });
 
   it('refuses a key it does not know, so nothing written is lost', () => {
@@ -146,39 +143,54 @@ describe('The elements a design changes', () => {
     expect(isValid(design({ behaviors: { removed: [REFUND] } }))).toBe(false);
   });
 
-  it('removes a rule or a scenario by its name', () => {
+  it('removes a rule or a scenario by its id', () => {
+    const RULE = 'rule|sales.refunds.Refund only paid orders';
     const parsed = DesignDocument.parse(
-      addingRefund({
-        rules: { removed: ['Refund only paid orders'] },
-        scenarios: { removed: ['Refunding a whole order'] },
-      }),
-    );
-    const block = parsed.buildingBlocks.added[0]!;
-
-    expect(block.rules.removed).toEqual(['Refund only paid orders']);
-    expect(block.scenarios.removed).toEqual(['Refunding a whole order']);
-  });
-
-  it('holds the scenarios of a building block, a behavior and a rule', () => {
-    const parsed = DesignDocument.parse(
-      addingRefund({
-        rules: {
-          modified: [
-            {
-              name: 'Refund only paid orders',
-              scenarios: { removed: ['Refunding an unpaid order'] },
-            },
+      design({
+        rules: { removed: [RULE] },
+        scenarios: {
+          removed: [
+            `scenario|sales.refunds.Refund only paid orders.Whole order`,
           ],
         },
       }),
     );
 
+    expect<string[]>(parsed.rules.removed).toEqual([RULE]);
+    expect<string[]>(parsed.scenarios.removed).toEqual([
+      'scenario|sales.refunds.Refund only paid orders.Whole order',
+    ]);
     expect(
-      parsed.buildingBlocks.added[0]?.rules.modified[0]?.scenarios.removed,
-    ).toEqual(['Refunding an unpaid order']);
+      isValid(design({ rules: { removed: ['Refund only paid orders'] } })),
+    ).toBe(false);
+    expect(isValid(design({ scenarios: { removed: [RULE] } }))).toBe(false);
+  });
+
+  it('holds rules and scenarios as elements of their own, on no module, block or behavior', () => {
+    expect(isValid(addingRefund({ rules: { removed: [] } }))).toBe(false);
+    expect(isValid(addingIssue({ scenarios: { removed: [] } }))).toBe(false);
     expect(
-      isValid(addingIssue({ scenarios: { removed: ['Refunding'] } })),
-    ).toBe(true);
+      isValid(
+        design({
+          modules: { added: [{ id: 'module|sales.refunds', rules: {} }] },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('classifies a rule by its kind alone', () => {
+    const adding = (rule: object) =>
+      design({
+        rules: {
+          added: [{ id: 'rule|sales.refunds.Paid only', ...rule }],
+        },
+      });
+    expect(isValid(adding({ kind: { value: 'validation' } }))).toBe(true);
+    expect(isValid(adding({ kind: { value: 'Validation' } }))).toBe(false);
+    expect(isValid(adding({ category: { value: 'Business' } }))).toBe(false);
+    expect(isValid(adding({ ruleType: { value: 'State change' } }))).toBe(
+      false,
+    );
   });
 
   it('adds and removes a relation of every kind the model has, each by its kind and ends', () => {
@@ -195,6 +207,12 @@ describe('The elements a design changes', () => {
             to: 'behavior|sales.ledger.Ledger.post',
             order: { value: 1 },
           },
+          { kind: 'governs', from: ISSUE, to: 'rule|sales.refunds.Paid only' },
+          {
+            kind: 'illustrates',
+            from: 'scenario|sales.refunds.Paid only.Unpaid',
+            to: 'rule|sales.refunds.Paid only',
+          },
         ],
         removed: [
           { kind: 'extends', from: REFUND, to: 'building_block|sales.Legacy' },
@@ -208,6 +226,8 @@ describe('The elements a design changes', () => {
       'contains',
       'exposes',
       'invokes',
+      'governs',
+      'illustrates',
     ]);
     expect<unknown>(parsed.relations.removed).toEqual([
       { kind: 'extends', from: REFUND, to: 'building_block|sales.Legacy' },
@@ -437,15 +457,6 @@ describe('The elements a design changes', () => {
     );
     // A behavior has no type: what kind of message it handles is not its own.
     expect(isValid(addingIssue({ type: { value: 'Command' } }))).toBe(false);
-    expect(
-      isValid(
-        addingRefund({
-          rules: {
-            added: [{ name: 'Paid only', ruleType: { value: 'Validation' } }],
-          },
-        }),
-      ),
-    ).toBe(false);
   });
 });
 
@@ -646,11 +657,13 @@ describe('A design document an agent wrote', () => {
   const source = { path: 'src/sales/orders/order.ts' };
 
   const AUDITABLE = 'building_block|sales.shared.Auditable';
+  const PAID_ONLY = 'rule|sales.orders.Paid orders only';
+  const CANCELLING_PAID = `scenario|sales.orders.Paid orders only.Cancelling a paid order`;
 
   /**
    * What the scanner found: the orders module; its Order, which extends
-   * Auditable, has a total and a rule with one scenario; and Order.cancel,
-   * which takes an order and returns a boolean.
+   * Auditable and has a total; and Order.cancel, which takes an order,
+   * returns a boolean and follows a rule with one scenario.
    */
   const scanned = SystemModel.parse({
     id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
@@ -682,28 +695,27 @@ describe('A design document an agent wrote', () => {
         to: 'primitive|boolean',
         cardinality: '1',
       },
+      { kind: 'governs', from: CANCEL, to: PAID_ONLY },
+      { kind: 'illustrates', from: CANCELLING_PAID, to: PAID_ONLY },
     ],
-    buildingBlocks: [
+    buildingBlocks: [{ id: ORDER, name: 'Order', type: 'aggregate', source }],
+    rules: [
       {
-        id: ORDER,
-        name: 'Order',
-        type: 'aggregate',
-        rules: [
-          {
-            name: 'Paid orders only',
-            ruleType: 'State change',
-            scenarios: [
-              {
-                name: 'Cancelling a paid order',
-                description: 'The happy path.',
-                steps: [
-                  { kind: 'given', text: 'a paid order' },
-                  { kind: 'when', text: 'the customer cancels it' },
-                  { kind: 'then', text: 'the order is cancelled' },
-                ],
-              },
-            ],
-          },
+        id: PAID_ONLY,
+        name: 'Paid orders only',
+        kind: 'state_change',
+        source,
+      },
+    ],
+    scenarios: [
+      {
+        id: CANCELLING_PAID,
+        name: 'Cancelling a paid order',
+        description: 'The happy path.',
+        steps: [
+          { kind: 'given', text: 'a paid order' },
+          { kind: 'when', text: 'the customer cancels it' },
+          { kind: 'then', text: 'the order is cancelled' },
         ],
         source,
       },
@@ -912,22 +924,12 @@ describe('A design document an agent wrote', () => {
                 },
               ],
             },
-            buildingBlocks: {
-              modified: [
-                {
-                  id: ORDER,
-                  rules: {
-                    modified: [
-                      {
-                        name: 'Paid orders only',
-                        scenarios: { removed: ['Cancelling a paid order'] },
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
+            buildingBlocks: { modified: [{ id: ORDER }] },
             behaviors: { modified: [{ id: CANCEL }] },
+            rules: {
+              modified: [{ id: PAID_ONLY, kind: { value: 'validation' } }],
+            },
+            scenarios: { removed: [CANCELLING_PAID] },
           }),
           scanned,
         ),
@@ -946,20 +948,10 @@ describe('A design document an agent wrote', () => {
               ],
               modified: [{ kind: 'has_state', from: ORDER, name: 'discount' }],
             },
-            buildingBlocks: {
+            rules: { removed: ['rule|sales.orders.Open orders only'] },
+            scenarios: {
               modified: [
-                {
-                  id: ORDER,
-                  rules: {
-                    removed: ['Open orders only'],
-                    modified: [
-                      {
-                        name: 'Paid orders only',
-                        scenarios: { removed: ['Cancelling a shipped order'] },
-                      },
-                    ],
-                  },
-                },
+                { id: `scenario|sales.orders.Paid orders only.Shipped` },
               ],
             },
           }),
@@ -967,11 +959,11 @@ describe('A design document an agent wrote', () => {
         ),
       ).toEqual([
         {
-          path: `buildingBlocks.modified[${ORDER}].rules.removed[Open orders only]`,
+          path: 'rules.removed[rule|sales.orders.Open orders only]',
           reason: 'unknownElement',
         },
         {
-          path: `buildingBlocks.modified[${ORDER}].rules.modified[Paid orders only].scenarios.removed[Cancelling a shipped order]`,
+          path: 'scenarios.modified[scenario|sales.orders.Paid orders only.Shipped]',
           reason: 'unknownElement',
         },
         {
@@ -1141,7 +1133,7 @@ describe('A design document an agent wrote', () => {
         validate(
           design({
             buildingBlocks: {
-              modified: [{ id: missing, rules: { removed: ['Paid'] } }],
+              modified: [{ id: missing, name: { value: 'Line' } }],
             },
           }),
           scanned,
@@ -1149,24 +1141,6 @@ describe('A design document an agent wrote', () => {
       ).toEqual([
         {
           path: `buildingBlocks.modified[${missing}]`,
-          reason: 'unknownElement',
-        },
-      ]);
-    });
-
-    it('modifies and removes nothing inside an element it adds', () => {
-      expect(
-        validate(
-          addingRefund({
-            definition: { value: 'Money back.' },
-            type: { value: 'aggregate' },
-            rules: { removed: ['Paid orders only'] },
-          }),
-          scanned,
-        ),
-      ).toEqual([
-        {
-          path: `buildingBlocks.added[${REFUND}].rules.removed[Paid orders only]`,
           reason: 'unknownElement',
         },
       ]);
@@ -1390,240 +1364,230 @@ describe('The needs of a design', () => {
   });
 });
 
+describe('The steps of a scenario', () => {
+  it('may repeat a kind or leave one out, but are never none', () => {
+    const scenario = (steps: unknown[]) =>
+      isValid(
+        design({
+          scenarios: {
+            added: [
+              {
+                id: 'scenario|sales.Refunds are bounded.Refunding a line',
+                steps: { value: steps },
+              },
+            ],
+          },
+        }),
+      );
+    expect(
+      scenario([
+        { kind: 'given', text: 'a paid order' },
+        { kind: 'given', text: 'a voucher' },
+        { kind: 'then', text: 'the voucher is void' },
+      ]),
+    ).toBe(true);
+    expect(scenario([{ kind: 'then', text: 'nothing happens' }])).toBe(true);
+    expect(scenario([])).toBe(false);
+    expect(scenario([{ kind: 'and', text: 'a voucher' }])).toBe(false);
+  });
+});
+
 describe('A rule of a design', () => {
-  const SALES = 'module|sales';
-  const ORDER = 'building_block|sales.Order';
-  const source = { path: 'src/sales' };
+  const ORDERS = 'module|sales.orders';
+  const CANCEL = 'behavior|sales.orders.Order.cancel';
+  const PAID_ONLY = 'rule|sales.orders.Paid orders only';
+  const source = { path: 'features/orders.feature', line: 3 };
   const need = {
     id: 'refund-single-lines',
     name: { value: 'Refund single lines' },
     stakeholder: { value: 'Support agents' },
     statement: { value: 'Support agents need to refund one line of an order.' },
   };
-  const businessRule = {
-    name: 'Paid orders only',
-    category: { value: 'Business' },
-    ruleType: { value: 'State change' },
-    description: { value: 'Only a paid order is refunded.' },
+  const rule = {
+    id: PAID_ONLY,
+    name: { value: 'Paid orders only' },
+    kind: { value: 'state_change' },
+    description: { value: 'Only a paid order is cancelled.' },
     needs: { value: ['refund-single-lines'] },
-  };
-  const qualityRule = {
-    name: 'Fast refunds',
-    category: { value: 'Quality' },
-    ruleType: { value: 'Performance' },
-    description: { value: 'A refund is issued within a second.' },
-    needs: { value: [] },
   };
 
   const scanned = SystemModel.parse({
     id: '01a0d22d-7f47-76b9-abd4-bd21d66a1d17',
     name: 'shop',
     scanned_at: '2026-09-25T08:00:00.000Z',
-    modules: [
-      {
-        id: SALES,
-        name: 'sales',
-        rules: [
-          {
-            name: 'Fast refunds',
-            category: 'Quality',
-            ruleType: 'Performance',
-          },
-        ],
-        source,
-      },
-    ],
+    modules: [{ id: ORDERS, name: 'orders', source }],
     buildingBlocks: [
       {
-        id: ORDER,
+        id: 'building_block|sales.orders.Order',
         name: 'Order',
         type: 'aggregate',
-        rules: [{ name: 'Paid orders only', ruleType: 'State change' }],
         source,
       },
     ],
+    behaviors: [
+      { id: CANCEL, name: 'cancel', visibility: { kind: 'private' }, source },
+    ],
+    rules: [
+      { id: PAID_ONLY, name: 'Paid orders only', kind: 'state_change', source },
+    ],
+    relations: [{ kind: 'governs', from: CANCEL, to: PAID_ONLY }],
   });
 
+  /** A design adding `rules`, each governed by Order.cancel unless `governed` says otherwise. */
   const addingRules = (
-    rules: { block?: object[]; module?: object[] },
-    needs: object[] = [need],
+    rules: ({ id: string } & Record<string, unknown>)[],
+    {
+      needs = [need],
+      governed = true,
+    }: { needs?: object[]; governed?: boolean } = {},
   ) =>
     design({
       needs: { added: needs },
-      modules: {
-        added: [
-          {
-            id: 'module|billing',
-            name: { value: 'billing' },
-            definition: { value: 'Charging customers.' },
-            rules: { added: rules.module ?? [] },
-          },
-        ],
-      },
-      buildingBlocks: {
-        added: [
-          {
-            id: 'building_block|billing.Invoice',
-            name: { value: 'Invoice' },
-            type: { value: 'aggregate' },
-            definition: { value: 'What a customer is asked to pay.' },
-            rules: { added: rules.block ?? [] },
-          },
-        ],
+      rules: { added: rules },
+      relations: {
+        added: governed
+          ? rules.map(({ id }) => ({ kind: 'governs', from: CANCEL, to: id }))
+          : [],
       },
     });
 
-  const validate = (document: unknown, systemModel?: SystemModel) =>
+  const validate = (document: unknown, systemModel = scanned) =>
     DesignDocument.validateAgentGenerated(
       DesignDocument.parse(document),
       systemModel,
     );
 
-  it('reads back a rule written before rules had a category, needs or a rationale', () => {
-    const rule = DesignDocument.parse(
-      addingRules({ block: [{ name: 'Paid orders only' }] }),
-    ).buildingBlocks.added[0]!.rules.added[0]!;
+  it('is in the module of the behavior that governs it', () => {
+    expect(isValid(design({ rules: { added: [rule] } }))).toBe(true);
+    expect(
+      isValid(design({ rules: { added: [{ ...rule, id: 'rule|Paid' }] } })),
+    ).toBe(false);
+  });
 
-    expect(rule.category).toEqual({ changed: false });
-    expect(rule.needs).toEqual({ changed: false });
-    expect(rule.rationale).toEqual({ changed: false });
+  it('reads back with no rationale until one is written', () => {
+    const [parsed] = DesignDocument.parse(addingRules([rule])).rules.added;
+
+    expect(parsed?.rationale).toEqual({ changed: false });
   });
 
   it('traces to needs the design states, or to none as a design decision', () => {
+    const DECIDED = 'rule|sales.orders.Decided';
     expect(
       validate(
-        addingRules({
-          block: [
-            businessRule,
-            { ...businessRule, name: 'Decided', needs: { value: [] } },
-          ],
-          module: [qualityRule],
-        }),
+        addingRules([
+          { ...rule, id: 'rule|sales.orders.Paid first' },
+          { ...rule, id: DECIDED, needs: { value: [] } },
+        ]),
       ),
     ).toEqual([]);
     expect(
       validate(
-        addingRules({
-          block: [{ ...businessRule, needs: { value: ['issue-refunds'] } }],
-        }),
+        addingRules([
+          {
+            ...rule,
+            id: 'rule|sales.orders.Paid first',
+            needs: { value: ['issue-refunds'] },
+          },
+        ]),
       ),
     ).toEqual([
       {
-        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].needs[issue-refunds]',
+        path: 'rules.added[rule|sales.orders.Paid first].needs[issue-refunds]',
         reason: 'unknownNeed',
-      },
-    ]);
-  });
-
-  it('always says its category and its needs when added, and may leave its rationale out', () => {
-    expect(
-      validate(
-        addingRules({
-          block: [
-            { ...businessRule, category: undefined, needs: undefined },
-            { ...businessRule, name: 'Reasoned', rationale: { value: 'Why.' } },
-          ],
-        }),
-      ),
-    ).toEqual([
-      {
-        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].category',
-        reason: 'unchangedFieldInAddedItem',
-      },
-      {
-        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].needs',
-        reason: 'unchangedFieldInAddedItem',
-      },
-    ]);
-  });
-
-  it('has a type of its own category', () => {
-    expect(
-      validate(
-        addingRules({
-          block: [{ ...businessRule, ruleType: { value: 'Performance' } }],
-        }),
-      ),
-    ).toEqual([
-      {
-        path: 'buildingBlocks.added[building_block|billing.Invoice].rules.added[Paid orders only].ruleType',
-        reason: 'ruleTypeOutsideCategory',
-      },
-    ]);
-  });
-
-  it('keeps a modified rule to the category or type the scan has for the half it leaves alone', () => {
-    const modifying = (rule: object) =>
-      design({
-        buildingBlocks: {
-          modified: [{ id: ORDER, rules: { modified: [rule] } }],
-        },
-      });
-
-    expect(
-      validate(
-        modifying({
-          name: 'Paid orders only',
-          ruleType: { value: 'Structure' },
-        }),
-        scanned,
-      ),
-    ).toEqual([]);
-    expect(
-      validate(
-        modifying({
-          name: 'Paid orders only',
-          ruleType: { value: 'Reliability' },
-        }),
-        scanned,
-      ),
-    ).toEqual([
-      {
-        path: `buildingBlocks.modified[${ORDER}].rules.modified[Paid orders only].ruleType`,
-        reason: 'ruleTypeOutsideCategory',
-      },
-    ]);
-    expect(
-      validate(
-        modifying({ name: 'Paid orders only', category: { value: 'Quality' } }),
-        scanned,
-      ),
-    ).toEqual([
-      {
-        path: `buildingBlocks.modified[${ORDER}].rules.modified[Paid orders only].ruleType`,
-        reason: 'ruleTypeOutsideCategory',
-      },
-    ]);
-  });
-
-  it('on a module is a quality or constraint rule, never a business one', () => {
-    expect(validate(addingRules({ module: [businessRule] }))).toEqual([
-      {
-        path: 'modules.added[module|billing].rules.added[Paid orders only].category',
-        reason: 'businessRuleOnModule',
       },
     ]);
     expect(
       validate(
         design({
-          modules: {
-            modified: [
+          rules: {
+            modified: [{ id: PAID_ONLY, needs: { value: ['issue-refunds'] } }],
+          },
+        }),
+      ),
+    ).toEqual([
+      {
+        path: `rules.modified[${PAID_ONLY}].needs[issue-refunds]`,
+        reason: 'unknownNeed',
+      },
+    ]);
+  });
+
+  it('always says its name, kind, description and needs when added, and may leave its rationale out', () => {
+    const NEW = 'rule|sales.orders.Paid first';
+    expect(
+      validate(addingRules([{ id: NEW, name: { value: 'Paid first' } }])),
+    ).toEqual([
+      { path: `rules.added[${NEW}].kind`, reason: 'unchangedFieldInAddedItem' },
+      {
+        path: `rules.added[${NEW}].description`,
+        reason: 'unchangedFieldInAddedItem',
+      },
+      {
+        path: `rules.added[${NEW}].needs`,
+        reason: 'unchangedFieldInAddedItem',
+      },
+    ]);
+  });
+
+  it('enters the design only through a behavior that governs it', () => {
+    const NEW = 'rule|sales.orders.Paid first';
+    expect(
+      validate(addingRules([{ ...rule, id: NEW }], { governed: false })),
+    ).toEqual([{ path: `rules.added[${NEW}]`, reason: 'ungovernedRule' }]);
+  });
+
+  it('is illustrated by a scenario named under it', () => {
+    const SCENARIO = `scenario|sales.orders.Paid first.Unpaid`;
+    const adding = (from: string) =>
+      design({
+        scenarios: {
+          added: [
+            {
+              id: from,
+              name: { value: 'Unpaid' },
+              description: { value: 'An unpaid order.' },
+              steps: {
+                value: [{ kind: 'when', text: 'the customer cancels it' }],
+              },
+            },
+          ],
+        },
+        relations: {
+          added: [{ kind: 'illustrates', from, to: PAID_ONLY }],
+        },
+      });
+
+    expect(
+      validate(adding(`scenario|sales.orders.Paid orders only.Unpaid`)),
+    ).toEqual([]);
+    expect(validate(adding(SCENARIO))).toEqual([
+      {
+        path: `relations.added[illustrates|${SCENARIO}|${PAID_ONLY}]`,
+        reason: 'containmentOutsideIdPath',
+      },
+    ]);
+  });
+
+  it('is governed only by a behavior the design or the model has', () => {
+    expect(
+      validate(
+        design({
+          relations: {
+            added: [
               {
-                id: SALES,
-                rules: {
-                  modified: [
-                    {
-                      name: 'Fast refunds',
-                      description: { value: 'Within half a second.' },
-                    },
-                  ],
-                },
+                kind: 'governs',
+                from: 'behavior|sales.orders.Order.ship',
+                to: PAID_ONLY,
               },
             ],
           },
         }),
-        scanned,
       ),
-    ).toEqual([]);
+    ).toEqual([
+      {
+        path: `relations.added[governs|behavior|sales.orders.Order.ship|${PAID_ONLY}].from`,
+        reason: 'unknownRelationEnd',
+      },
+    ]);
   });
 });

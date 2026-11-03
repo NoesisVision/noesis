@@ -3,6 +3,7 @@ import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import type { UnitRef } from '../../design-doc-edit.ts';
+import { nameOf } from '../../element-id.ts';
 import { RemoveButton } from './remove-button.tsx';
 import { useUnitEditing } from './unit-editing.ts';
 import { useWritableUnit } from './writable-unit.ts';
@@ -24,7 +25,7 @@ export function ScenarioActions({ scenario }: { scenario: UnitRef }) {
           className={quiet.quiet}
           variant="subtle"
           size="md"
-          aria-label={`Edit the scenario ${scenario.id}`}
+          aria-label={`Edit the scenario ${nameOf(scenario.id)}`}
           onClick={() => editing.write({ mode: 'edit', ref: scenario })}
         >
           <IconPencil size={18} aria-hidden />

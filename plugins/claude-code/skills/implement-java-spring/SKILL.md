@@ -7,8 +7,9 @@ argument-hint: [change-id] [design-doc-id] [instructions]
 # Implement a design document in Java and Spring
 
 A design document says what a change does to the domain model: the modules,
-building blocks and behaviors it adds, modifies or removes, with their
-rules, scenarios and the relations between them. You turn it into Java domain code that the
+building blocks and behaviors it adds, modifies or removes, the rules
+those behaviors follow, the scenarios that illustrate the rules, and the
+relations between them all. You turn it into Java domain code that the
 Noesis Java parser reads back as the same model, and into tests that prove
 every scenario. Each module becomes a package, each building block a type
 carrying its `vision.noesis.annotations` stereotype, each behavior a public
@@ -62,7 +63,10 @@ Read all three at step 5, before planning:
    `.design-doc.json`). When the chosen one has `implemented: true`, ask
    whether to implement it anyway. Read both contracts now: every field of
    the document is `{ "changed": true, "value": … }` or
-   `{ "changed": false }`, and only a changed field has a value.
+   `{ "changed": false }`, and only a changed field has a value. Rules and
+   scenarios are lists of their own, `rules` and `scenarios`: the
+   behaviors that follow a rule are the `from` of the `governs` relations
+   to it, and a scenario's rule is the `to` of its `illustrates`.
 3. **Load the baseline.** Call `get_newest_system_model`. Every `modified`
    and `removed` id names an element in it, and its `source.path` says
    where its code lives. Scan first with `scan_system_model`, then call
@@ -98,8 +102,8 @@ Read all three at step 5, before planning:
    creation behavior whose output is not the block it creates), several
    outputs with no base building block, a collaborator a behavior's
    diagram calls that the design does not name, a property typed with
-   another aggregate, a scenario on an interface that has no implementation
-   in scope, a rule with no scenario. Resolve one yourself only when the
+   another aggregate, a rule governed only by a behavior of an interface
+   that has no implementation in scope, a rule with no scenario. Resolve one yourself only when the
    design document or the references say how. Ask the user about every
    other one in one `AskUserQuestion` round, each question with two or
    three candidate answers, your recommendation first. Do not add a

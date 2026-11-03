@@ -41,43 +41,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "A refund is issued within a second",
-              "category": {
-                "changed": true,
-                "value": "Quality",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Performance",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Issuing a refund answers within one second for an order of up to 100 lines.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["refund-single-lines"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         }
       }
     ],
@@ -95,11 +58,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ]
@@ -125,77 +83,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Refund never exceeds paid amount",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Consistency",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The sum of all refunds of an order is at most what the customer paid for it.",
-                "author": "human"
-              },
-              "needs": {
-                "changed": true,
-                "value": ["refund-single-lines"],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": true,
-                "value": "Support may never pay out more than the order brought in.",
-                "author": "agent"
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [
-            {
-              "name": "Refunding one line of a paid order",
-              "description": {
-                "changed": true,
-                "value": "The happy path of a partial refund.",
-                "author": "agent"
-              },
-              "steps": {
-                "changed": true,
-                "value": [
-                  {
-                    "kind": "given",
-                    "text": "a paid order with two lines"
-                  },
-                  {
-                    "kind": "when",
-                    "text": "support refunds the first line"
-                  },
-                  {
-                    "kind": "then",
-                    "text": "a refund for that line's amount is issued and the second line stays refundable"
-                  }
-                ],
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -217,16 +104,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -248,16 +125,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ],
@@ -276,16 +143,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ]
@@ -316,48 +173,6 @@
             "actors": ["Support agent"]
           },
           "author": "human"
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Only paid orders are refundable",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "State change",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "An unpaid order has nothing to refund.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ],
@@ -380,19 +195,106 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ]
+  },
+  "rules": {
+    "added": [
+      {
+        "id": "rule|sales.refunds.Refund never exceeds paid amount",
+        "name": {
+          "changed": true,
+          "value": "Refund never exceeds paid amount",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "The sum of all refunds of an order is at most what the customer paid for it.",
+          "author": "human"
+        },
+        "needs": {
+          "changed": true,
+          "value": ["refund-single-lines"],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": true,
+          "value": "Support may never pay out more than the order brought in.",
+          "author": "agent"
+        }
+      },
+      {
+        "id": "rule|sales.refunds.Only paid orders are refundable",
+        "name": {
+          "changed": true,
+          "value": "Only paid orders are refundable",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "state_change",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "An unpaid order has nothing to refund.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "scenarios": {
+    "added": [
+      {
+        "id": "scenario|sales.refunds.Refund never exceeds paid amount.Refunding one line of a paid order",
+        "name": {
+          "changed": true,
+          "value": "Refunding one line of a paid order",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "The happy path of a partial refund.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a paid order with two lines"
+            },
+            {
+              "kind": "when",
+              "text": "support refunds the first line"
+            },
+            {
+              "kind": "then",
+              "text": "a refund for that line's amount is issued and the second line stays refundable"
+            }
+          ],
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
   },
   "relations": {
     "added": [
@@ -545,6 +447,21 @@
           "value": "1",
           "author": "agent"
         }
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "to": "rule|sales.refunds.Refund never exceeds paid amount"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|sales.refunds.Refund never exceeds paid amount.Refunding one line of a paid order",
+        "to": "rule|sales.refunds.Refund never exceeds paid amount"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "to": "rule|sales.refunds.Only paid orders are refundable"
       }
     ],
     "removed": [

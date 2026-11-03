@@ -86,11 +86,12 @@ step 6.
    now. List each edit the request asks for, then follow each one through
    the design document to everything that must change with it:
    - **References.** The ends of a relation (the `to` of a `has_state`,
-     `has_collaborator`, `has_input` or `has_output`, both ends of an `extends` or an
-     `invokes`), a rule's `needs`: each names a building block or behavior
-     this design adds or modifies, one the system model has, a primitive,
-     or a need this design adds. A rename moves every reference to the old
-     id or name, the relations' `from` and `to` included.
+     `has_collaborator`, `has_input` or `has_output`, both ends of an
+     `extends`, an `invokes`, a `governs` or an `illustrates`), a rule's
+     `needs`: each names an element this design adds or modifies, one the
+     system model has, a primitive, or a need this design adds. A rename
+     moves every reference to the old id or name, the relations' `from` and
+     `to` included.
    - **Kinds.** A block's kind decides how it is held: a block that
      changes to a value of the domain (`aggregate`, `entity`,
      `value_object`, `command`, `query`, `event`) is held as `has_state`,
@@ -99,14 +100,23 @@ step 6.
    - **Ids and names.** Ids spell the path (`building_block|sales.refunds.Refund`),
      so moving or renaming a module or a building block renames every
      element beneath it, and a name is always the last segment of its id.
-     Follow the casing of the ids in the system model.
+     A rule's id is the module of the behavior that governs it
+     (`rule|sales.refunds.Refund never exceeds paid amount`) and a
+     scenario's is under its rule, so moving that behavior to another
+     module, or renaming the module or the rule, renames the rule and its
+     scenarios. Follow the casing of the ids in the system model.
    - **Diagrams.** Every diagram that draws a changed element: a module's
      flowchart, a behavior's sequence diagram, an aggregate's entity
      diagram.
    - **Rules and scenarios.** A rule or scenario that states what the
      revision changes is rewritten with it; one that no longer holds is
-     dropped; a new requirement is a new rule, attached at exactly one
-     level, with its scenarios.
+     dropped, a rule with its scenarios and relations. A new requirement is
+     a new rule, of the kind that fits, governed by the behaviors that
+     follow it, with at least one scenario. A removed or renamed behavior
+     takes its `governs` with it: a rule no behavior governs any more moves
+     to the behavior that now follows it, or is dropped. A scenario's
+     `when` calls the behavior that governs its rule; when that behavior
+     changes, so does the step.
    - **The description.** The design document's `description` says what
      the design covers and why, including why each element it modifies
      changes. Revise it to match.
@@ -147,9 +157,14 @@ step 6.
      `{ "kind", "from", "name" }` for a `has_state`, `has_collaborator` or
      `has_input`,
      `{ "kind", "from", "to" }` for the rest). Remove a building block's
-     behaviors and relations with it.
+     behaviors and relations with it, and a rule's scenarios and relations
+     with the rule.
    - **In the model and unchanged:** left out. A rename of an element in
      the model is a removal of the old id and an addition of the new one.
+
+   Rules and scenarios are lists of their own, `rules` and `scenarios`,
+   joined to behaviors and rules by `governs` and `illustrates` in
+   `relations`; every added rule has an added `governs` to it.
 
    Write a field you change as `{ "value": … }`, without `author`: the
    service records it as the agent's. That holds for an accepted field the
@@ -163,7 +178,8 @@ step 6.
    design document's id and the working file's `path`. The id stays as it
    was, even when the name changes.
 9. **Report** what the revision changed, counted per needs, modules,
-   building blocks and behaviors added, modified and removed by this
+   building blocks, behaviors, rules and scenarios added, modified and
+   removed by this
    revision (not by the whole design); the accepted fields the user let you
    change, which now wait to be accepted again, and the ones kept because
    the user said no; the needs no rule answers and the rules no need asks
@@ -191,10 +207,16 @@ step 6.
     list shows it, and ask before changing it.
   - _the design document states no such need_: add the need to `needs`, or
     take its id out of the rule's `needs`.
-  - _the rule's type belongs to another category_: pick a `ruleType` of the
-    rule's `category`, or the `category` of its type.
-  - _a module holds only quality and constraint rules_: move the business
-    rule to the building block or behavior it governs.
+  - _a rule enters the model only through a behavior that follows it_: add
+    a `governs` relation from that behavior to the rule, or drop a rule no
+    behavior follows.
+  - _neither the design nor the scanned model has this element_: an end of
+    the relation names an id that is misspelt, not added yet, or renamed
+    by this revision. Point it at the element as it is now.
+  - _what holds what is in the ids_: a `contains`, `exposes` or
+    `illustrates` disagrees with an id's path. A scenario's id is its
+    rule's path and its own name, a behavior's its block's: fix the id, or
+    drop the relation.
 
   Fix every line, then call again; repeat until the tool accepts the file.
   An element the newest scan dropped since the design was written fails

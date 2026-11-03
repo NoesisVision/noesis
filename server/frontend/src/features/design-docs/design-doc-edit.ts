@@ -10,8 +10,7 @@ import type {
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BuildingBlockType,
-  RuleCategory,
-  RuleType,
+  RuleKind,
   ScenarioStep,
   Visibility,
 } from '#backend/app/system-model/system-model.ts';
@@ -28,6 +27,7 @@ import {
   childIdOf,
   isElementId,
   isWithin,
+  moduleOf,
   nameOf,
   parentOf,
 } from './element-id.ts';
@@ -45,17 +45,20 @@ import {
   relationsFrom,
   removalKeyOfPart,
 } from './relations.ts';
+import { rulesUnder } from './rules.ts';
 
 /*
  * A human's revision of a design document, one unit at a time. An edit is an
  * operation rather than a new document, so it can be applied to the newest
  * version just before it is saved: the server replaces the document whole.
  *
- * Every unit lives in a change set somewhere in the document — a need or an
- * element at the top, a rule inside the element that owns it, a rule's own
- * scenario inside that rule, and a property, a collaborator, an input, an
- * output or an extended type among the relations, from the element that owns it — and
- * every operation is the same wherever it is, once it has found that set.
+ * Every unit lives in a change set somewhere in the document — a need, an
+ * element, a rule or a scenario at the top, and a property, a collaborator,
+ * an input, an output or an extended type among the relations, from the
+ * element that owns it — and every operation is the same wherever it is,
+ * once it has found that set. A rule is written under the behavior that
+ * governs it and a scenario under its rule: adding one writes the
+ * `governs` or `illustrates` relation that joins them.
  */
 
 export type ElementKind = 'module' | 'building_block' | 'behavior';
@@ -63,7 +66,7 @@ type OwnedPartKind = 'rule' | 'scenario';
 type PartKind = OwnedPartKind | RelationPartKind;
 export type UnitKind = 'need' | ElementKind | PartKind;
 
-/** The element a part is written under, and the rule for a rule's own scenario. */
+/** The element a part is written under — a rule's behavior — and the rule for a scenario. */
 export interface PartOwner {
   kind: ElementKind;
   id: string;
@@ -72,7 +75,8 @@ export interface PartOwner {
 
 /**
  * A unit by what it is and where it is. A part's `id` is the key its change
- * set knows it by: a name, a result's type, an extended block's id.
+ * set knows it by: a rule's or a scenario's id, a name, a result's type, an
+ * extended block's id.
  */
 export type UnitRef =
   | { kind: 'need' | ElementKind; id: string }
@@ -126,6 +130,8 @@ const ELEMENT_KINDS = ['module', 'building_block', 'behavior'] as const;
 
 const isRelationPart = (kind: UnitKind): kind is RelationPartKind =>
   kind in RELATION_KIND_OF;
+/** A part with an id of its own, which its name gives it: a rule, a scenario. */
+const isOwnedPart = (kind: UnitKind): kind is OwnedPartKind => kind in PART_SET;
 const isPart = (kind: UnitKind): kind is PartKind =>
   kind in PART_SET || isRelationPart(kind);
 
@@ -234,6 +240,12 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
       const name = need === null ? null : valueOf(fieldOf(need, 'name'));
       return typeof name === 'string' ? name : ref.id;
     }
+    case 'rule':
+    case 'scenario': {
+      const unit = unitOf(doc, ref);
+      const name = unit === null ? null : valueOf(fieldOf(unit, 'name'));
+      return typeof name === 'string' ? name : nameOf(ref.id);
+    }
     case 'module':
     case 'building_block':
     case 'behavior':
@@ -253,12 +265,15 @@ export function applyEdit<Doc extends DesignDocumentInput>(
   switch (edit.op) {
     case 'add': {
       const unit = placed(doc, ref, edit.unit);
-      return updateAt(doc, ref, (set) => ({
-        ...set,
-        added: edit.first
-          ? [unit, ...(set.added ?? [])]
-          : [...(set.added ?? []), unit],
-      }));
+      return joined(
+        updateAt(doc, ref, (set) => ({
+          ...set,
+          added: edit.first
+            ? [unit, ...(set.added ?? [])]
+            : [...(set.added ?? []), unit],
+        })),
+        ref,
+      );
     }
     case 'write':
       return written(doc, ref, edit.unit);
@@ -276,10 +291,13 @@ export function applyEdit<Doc extends DesignDocumentInput>(
     case 'move':
       return renamed(doc, ref.id, movedIdOf(ref, edit.to));
     case 'relocate':
-      return updateAt(discarded(doc, edit.from), ref, (set) => ({
-        ...set,
-        added: [...(set.added ?? []), edit.unit],
-      }));
+      return joined(
+        updateAt(discarded(doc, edit.from), ref, (set) => ({
+          ...set,
+          added: [...(set.added ?? []), edit.unit],
+        })),
+        ref,
+      );
     case 'restore':
       return updateAt(doc, ref, (set) => ({
         ...set,
@@ -294,16 +312,39 @@ const removalKeyOf = (ref: UnitRef): unknown =>
     ? removalKeyOfPart(ref.kind, ref.owner.id, ref.id)
     : ref.id;
 
+/**
+ * A rule or a scenario added is joined to what it is shown under: a rule
+ * governed by its behavior, a scenario illustrating its rule.
+ */
+function joined<Doc extends DesignDocumentInput>(doc: Doc, ref: UnitRef): Doc {
+  if (!('owner' in ref) || !isOwnedPart(ref.kind)) return doc;
+  const { owner } = ref;
+  const relation =
+    ref.kind === 'rule'
+      ? owner.kind === 'behavior'
+        ? { kind: 'governs', from: owner.id, to: ref.id }
+        : null
+      : owner.rule === undefined
+        ? null
+        : { kind: 'illustrates', from: ref.id, to: owner.rule };
+  if (relation === null) return doc;
+  const relations = (doc.relations ?? {}) as LooseSet;
+  const key = relationKeyOf(relation as RelationLike);
+  if ((relations.added ?? []).some((item) => keyOf(item) === key)) return doc;
+  return {
+    ...doc,
+    relations: { ...relations, added: [...(relations.added ?? []), relation] },
+  };
+}
+
 /** The names of the rules that answer a need, which lose it when it goes. */
 export function rulesTracing(
   doc: DesignDocumentInput,
   needId: string,
 ): string[] {
-  return elementsWithRules(doc).flatMap((element) =>
-    [...(element.rules?.added ?? []), ...(element.rules?.modified ?? [])]
-      .filter((rule) => (valueOf(rule.needs) ?? []).includes(needId))
-      .map(({ name }) => name),
-  );
+  return writtenIn(doc.rules)
+    .filter((rule) => (valueOf(rule.needs) ?? []).includes(needId))
+    .map((rule) => valueOf(rule.name) ?? nameOf(rule.id));
 }
 
 /**
@@ -311,16 +352,9 @@ export function rulesTracing(
  * an element, the scenarios of a rule.
  */
 export function unitsWithin(doc: DesignDocumentInput, ref: UnitRef): number {
-  if (ref.kind === 'rule') {
-    const scenarios = (unitOf(doc, ref) as DesignedRuleInput | null)?.scenarios;
-    return (
-      (scenarios?.added?.length ?? 0) +
-      (scenarios?.modified?.length ?? 0) +
-      (scenarios?.removed?.length ?? 0)
-    );
-  }
-  if (!isElementId(ref.id) || isPart(ref.kind)) return 0;
-  return ELEMENT_KINDS.flatMap((kind) => {
+  if (!isElementId(ref.id) || (isPart(ref.kind) && ref.kind !== 'rule'))
+    return 0;
+  return CONTAINED_KINDS.flatMap((kind) => {
     const set = topSetOf(doc, kind);
     return [
       ...(set.added ?? []).map(keyOf),
@@ -423,8 +457,8 @@ interface UnitFieldValues {
   diagram: string;
   type: string;
   visibility: Visibility;
-  category: string;
-  ruleType: string;
+  /** A rule's kind. */
+  kind: string;
   description: string;
   needs: string[];
   rationale: string;
@@ -476,14 +510,13 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
     field('diagram'),
   ],
   rule: [
-    key('name'),
-    field('category'),
-    field('ruleType'),
+    field('name'),
+    field('kind'),
     field('description'),
     field('needs'),
     field('rationale'),
   ],
-  scenario: [key('name'), field('description'), field('steps')],
+  scenario: [field('name'), field('description'), field('steps')],
   property: NAMED_SLOT,
   collaborator: [key('name'), field('ref', 'to')],
   parameter: NAMED_SLOT,
@@ -511,20 +544,15 @@ export const TYPES_OF: Partial<Record<UnitKind, readonly string[]>> = {
   ] satisfies BuildingBlockType[],
 };
 
-/** The rule types each category allows, as the server's `RULE_TYPES_OF` has them. */
-export const RULE_TYPES_OF: Record<RuleCategory, readonly RuleType[]> = {
-  Business: ['Consistency', 'Structure', 'Computation', 'State change'],
-  Quality: [
-    'Performance',
-    'Security',
-    'Reliability',
-    'Usability',
-    'Compatibility',
-    'Maintainability',
-    'Portability',
-  ],
-  Constraint: ['Technology', 'Regulation', 'Interface', 'Organisation'],
-};
+/** The kinds a rule may be, as the model spells them. */
+export const RULE_KINDS = [
+  'validation',
+  'state_change',
+  'post',
+  'computation',
+  'coordination',
+  'configuration',
+] as const satisfies readonly RuleKind[];
 
 export const PRIMITIVES = [
   'primitive|string',
@@ -549,8 +577,7 @@ const BLANK: UnitFieldValues = {
   diagram: '',
   type: '',
   visibility: { kind: 'private' },
-  category: '',
-  ruleType: '',
+  kind: '',
   description: '',
   needs: [],
   rationale: '',
@@ -607,6 +634,7 @@ export function idOfDraft(
 ): string {
   const kind = kindOfTarget(target);
   const { name, ref } = draft.fields;
+  if (isOwnedPart(kind)) return ownedIdOf(doc, target, kind, name);
   if (isPart(kind)) {
     if (kind === 'result' || kind === 'extends') return ref?.value ?? '';
     return name?.value.trim() ?? '';
@@ -626,8 +654,35 @@ export function idOfDraft(
 }
 
 /**
- * The unit a draft writes, everything it does not edit — its rules, its
- * scenarios — kept. A relation part is written from the element that owns
+ * A rule's id is its name under the module of the behavior that governs it,
+ * a scenario's its name under its rule; it moves with the name while the
+ * design adds the unit.
+ */
+function ownedIdOf(
+  doc: DesignDocumentInput,
+  target: UnitTarget,
+  kind: OwnedPartKind,
+  name: FieldDraft<string> | undefined,
+): string {
+  const written = name?.value.trim() ?? '';
+  if (target.mode === 'add') {
+    const owner = 'owner' in target ? target.owner : null;
+    const parent =
+      owner === null
+        ? null
+        : kind === 'rule'
+          ? moduleOf(owner.id)
+          : (owner.rule ?? null);
+    return childIdOf(kind, parent, written);
+  }
+  const current = target.ref;
+  if (unitStateOf(doc, current) !== 'added' || !name?.written)
+    return current.id;
+  return childIdOf(kind, parentOf(current.id), written);
+}
+
+/**
+ * The unit a draft writes, everything it does not edit kept. A relation part is written from the element that owns
  * it, which the draft does not hold.
  */
 export function unitFromDraft(
@@ -660,7 +715,7 @@ export function unitFromDraft(
     }),
   );
   const unit = { ...(original as object | null), ...fields };
-  return (isPart(kind) ? unit : { ...unit, id }) as Unit;
+  return (isPart(kind) && !isOwnedPart(kind) ? unit : { ...unit, id }) as Unit;
 }
 
 function relationFromDraft(
@@ -737,7 +792,8 @@ export function draftErrors(
 ): Record<string, string> {
   const kind = kindOfTarget(target);
   const errors: Record<string, string> = {};
-  const { name, type, ref, category, ruleType, steps } = draft.fields;
+  const { name, type, ref, steps } = draft.fields;
+  const ruleKind = draft.fields.kind;
   if (name?.written) {
     if (name.value.trim() === '')
       errors['fields.name.value'] = 'A name is required.';
@@ -753,10 +809,8 @@ export function draftErrors(
     draft.fields.cardinality.value === ''
   )
     errors['fields.cardinality.value'] = 'Choose how many it holds.';
-  if (category?.written && category.value === '')
-    errors['fields.category.value'] = 'Choose a category.';
-  if (ruleType?.written && ruleType.value === '')
-    errors['fields.ruleType.value'] = 'Choose a rule type.';
+  if (ruleKind?.written && ruleKind.value === '')
+    errors['fields.kind.value'] = 'Choose a kind.';
   if (steps?.written) {
     if (steps.value.length === 0)
       errors['fields.steps.value'] = 'A scenario needs at least one step.';
@@ -766,32 +820,6 @@ export function draftErrors(
           'Write this step, or remove it.';
     });
   }
-  if (
-    category?.written &&
-    ruleType?.written &&
-    category.value !== '' &&
-    ruleType.value !== '' &&
-    !RULE_TYPES_OF[category.value as RuleCategory].includes(
-      ruleType.value as RuleType,
-    )
-  )
-    errors['fields.ruleType.value'] =
-      `A ${category.value} rule is one of: ${RULE_TYPES_OF[category.value as RuleCategory].join(', ')}.`;
-  const owner =
-    target.mode === 'add'
-      ? 'owner' in target
-        ? target.owner
-        : null
-      : 'owner' in target.ref
-        ? target.ref.owner
-        : null;
-  if (
-    kind === 'rule' &&
-    owner?.kind === 'module' &&
-    category?.written &&
-    category.value === 'Business'
-  )
-    errors['fields.category.value'] = 'A module holds no business rules.';
   if (
     kind === 'need' &&
     target.mode === 'add' &&
@@ -819,53 +847,43 @@ export function draftErrors(
 }
 
 /**
- * A rule to write in place: added to an element under a name none of its
- * rules has, with a kind the element may hold — a module holds no business
- * rules — and nothing said of it yet.
+ * A rule to write in place: added under a behavior, which governs it, with a
+ * name no rule of its module has, and nothing said of it yet.
  */
 export function newRuleOf(
   doc: DesignDocumentInput,
   owner: PartOwner,
   named?: string,
 ): DesignDocEdit {
-  const taken = new Set(rulesOf(doc, owner));
+  const idOf = (name: string) => childIdOf('rule', moduleOf(owner.id), name);
+  const taken = (name: string) =>
+    unitStateOf(doc, { kind: 'rule', id: idOf(name), owner }) !== 'unchanged';
   let name = named ?? 'New rule';
   if (named === undefined)
-    for (let n = 2; taken.has(name); n += 1) name = `New rule ${n}`;
-  const [category, ruleType]: [RuleCategory, RuleType] =
-    owner.kind === 'module'
-      ? ['Quality', 'Performance']
-      : ['Business', 'Consistency'];
+    for (let n = 2; taken(name); n += 1) name = `New rule ${n}`;
   const written = <T>(value: T) => ({
     changed: true as const,
     value,
     author: 'human' as const,
   });
+  const id = idOf(name);
   return {
     op: 'add',
     first: true,
-    ref: { kind: 'rule', id: name, owner },
+    ref: { kind: 'rule', id, owner },
     unit: {
-      name,
-      category: written(category),
-      ruleType: written(ruleType),
+      id,
+      name: written(name),
+      kind: written('validation'),
       description: written(''),
       needs: written([]),
     },
   };
 }
 
-/** The names of the rules the design writes for an element: added, then modified. */
-export function rulesOf(doc: DesignDocumentInput, owner: PartOwner): string[] {
-  const element = unitOf(doc, {
-    kind: owner.kind,
-    id: owner.id,
-  }) as ElementWithRules | null;
-  return [
-    ...(element?.rules?.added ?? []),
-    ...(element?.rules?.modified ?? []),
-  ].map(({ name }) => name);
-}
+/** The ids of the rules the design shows under an element: added, then modified. */
+export const rulesOf = (doc: DesignDocumentInput, owner: PartOwner): string[] =>
+  writtenIn(rulesUnder(doc, owner.id)).map(({ id }) => id);
 
 /** Fields written in place, by name, each with its new value. */
 export type InlineFields = Partial<UnitFieldValues>;
@@ -929,12 +947,11 @@ const VIOLATION_MESSAGE: Record<DesignDocViolation['reason'], string> = {
   diagramInDefinition:
     'Draw the diagram in its own field, not in the definition.',
   unknownNeed: 'It answers a need this design does not state.',
-  ruleTypeOutsideCategory: 'This rule type is not one of its category.',
-  businessRuleOnModule: 'A module holds no business rules.',
+  ungovernedRule: 'A rule needs a behavior that follows it.',
   unknownRelationEnd:
     'Neither this design nor the scanned model has this element.',
   containmentOutsideIdPath:
-    "What holds what is in the ids: a 'contains' or 'exposes' joins an element to the one its id names.",
+    "What holds what is in the ids: a 'contains', 'exposes' or 'illustrates' joins an element to the one its id names.",
   slotOutsideTypeKind:
     'A value of the domain is held as state, any other block as a collaborator.',
 };
@@ -948,17 +965,14 @@ export const violationsInWords = (
 
 /**
  * The violations on the unit's own fields, by form path, and the rest in
- * words. The path the server names a unit by runs through what it hangs
- * under, each as the saved document has it: an owner the design left alone
- * is modified once a part is written in it.
+ * words, by the path the server names the unit by.
  */
 export function violationsOf(
-  doc: DesignDocumentInput,
   ref: UnitRef,
   state: UnitState,
   violations: readonly DesignDocViolation[],
 ): { fields: Record<string, string>; rest: string[] } {
-  const prefix = `${serverPathOf(doc, ref, state)}.`;
+  const prefix = `${serverPathOf(ref, state)}.`;
   const specs = UNIT_FIELDS[ref.kind];
   const fields: Record<string, string> = {};
   const rest: string[] = [];
@@ -975,19 +989,12 @@ export function violationsOf(
   return { fields, rest };
 }
 
-function serverPathOf(
-  doc: DesignDocumentInput,
-  ref: UnitRef,
-  state: UnitState,
-): string {
+function serverPathOf(ref: UnitRef, state: UnitState): string {
   if (isRelationPart(ref.kind) && 'owner' in ref)
     return `relations.${state}[${relationKeyOfPart(ref.kind, ref.owner.id, ref.id)}]`;
-  const owner = ownerRefOf(ref);
   const at = `[${ref.id}]`;
-  if (owner === null)
-    return `${COLLECTION_OF[ref.kind as 'need' | ElementKind]}.${state}${at}`;
-  const ownerState = unitStateOf(doc, owner);
-  return `${serverPathOf(doc, owner, ownerState === 'unchanged' ? 'modified' : ownerState)}.${PART_SET[ref.kind as OwnedPartKind]}.${state}${at}`;
+  if (isOwnedPart(ref.kind)) return `${PART_SET[ref.kind]}.${state}${at}`;
+  return `${COLLECTION_OF[ref.kind as 'need' | ElementKind]}.${state}${at}`;
 }
 
 // --- The document's change sets, read loosely: every unit is known by its key ---
@@ -1001,13 +1008,8 @@ interface LooseSet {
 type Container = Record<string, unknown>;
 
 interface RuleInput {
-  name: string;
-  needs?: DesignDocFieldInput<string[]>;
-}
-
-interface ElementWithRules {
   id: string;
-  rules?: { added?: RuleInput[]; modified?: RuleInput[]; removed?: string[] };
+  needs?: DesignDocFieldInput<string[]>;
 }
 
 /** The key a change set knows an item by, as the server reads it. */
@@ -1034,21 +1036,21 @@ const keyValueOf = (unit: Unit, spec: FieldSpec): unknown =>
 function locationOf(ref: UnitRef): { sets: string[]; keys: string[] } {
   if (!('owner' in ref)) return { sets: [COLLECTION_OF[ref.kind]], keys: [] };
   if (isRelationPart(ref.kind)) return { sets: ['relations'], keys: [] };
-  const { owner } = ref;
-  const partSet = PART_SET[ref.kind as OwnedPartKind];
-  return owner.rule === undefined
-    ? {
-        sets: [COLLECTION_OF[owner.kind], partSet],
-        keys: [owner.id],
-      }
-    : {
-        sets: [COLLECTION_OF[owner.kind], 'rules', partSet],
-        keys: [owner.id, owner.rule],
-      };
+  return { sets: [PART_SET[ref.kind as OwnedPartKind]], keys: [] };
 }
 
-const topSetOf = (doc: DesignDocumentInput, kind: 'need' | ElementKind) =>
-  (doc[COLLECTION_OF[kind]] ?? {}) as LooseSet;
+/** The kinds an element's id holds the ids of, at the top of the document. */
+const CONTAINED_KINDS = [...ELEMENT_KINDS, 'rule', 'scenario'] as const;
+type ContainedKind = (typeof CONTAINED_KINDS)[number];
+
+const SET_OF: Record<'need' | ContainedKind, keyof DesignDocumentInput> = {
+  ...COLLECTION_OF,
+  rule: 'rules',
+  scenario: 'scenarios',
+};
+
+const topSetOf = (doc: DesignDocumentInput, kind: 'need' | ContainedKind) =>
+  (doc[SET_OF[kind]] ?? {}) as LooseSet;
 
 /** The unit's change set; null while the design writes nothing of what it hangs under. */
 function setAt(doc: DesignDocumentInput, ref: UnitRef): LooseSet | null {
@@ -1102,9 +1104,7 @@ function updateIn(
     throw new Error(
       `Nothing is written in ${owner}, which the design removes.`,
     );
-  const current =
-    set.modified?.find(matches) ??
-    (setName === 'rules' ? { name: owner } : { id: owner });
+  const current = set.modified?.find(matches) ?? { id: owner };
   const updated = inside(current);
   const others = (set.modified ?? []).filter((item) => !matches(item));
   return {
@@ -1178,7 +1178,7 @@ function written<Doc extends DesignDocumentInput>(
     ),
   }));
   const id = keyOf(unit);
-  return id === ref.id || isPart(ref.kind)
+  return id === ref.id || (isPart(ref.kind) && !isOwnedPart(ref.kind))
     ? replaced
     : renamed(replaced, ref.id, id);
 }
@@ -1194,9 +1194,12 @@ function discarded<Doc extends DesignDocumentInput>(
     modified: set.modified?.filter((item) => !matchesRef(ref, item)),
   }));
   if (state !== 'added') return dropped;
-  // Nothing the design added can stand under one it no longer adds, and no rule answers a need it no longer states.
+  // Nothing the design added can stand under one it no longer adds, no rule
+  // answers a need it no longer states, and none stays that no behavior
+  // the design adds follows.
   if (ref.kind === 'need') return untraced(dropped, ref.id);
-  return isPart(ref.kind) ? dropped : withoutWithin(dropped, ref.id);
+  if (isPart(ref.kind) && !isOwnedPart(ref.kind)) return dropped;
+  return withoutUngoverned(withoutWithin(dropped, ref.id));
 }
 
 /**
@@ -1227,11 +1230,11 @@ function withoutWithin<Doc extends DesignDocumentInput>(
       removed: relations.removed?.filter(apart),
     },
   };
-  return ELEMENT_KINDS.reduce((next, kind) => {
+  return CONTAINED_KINDS.reduce((next, kind) => {
     const set = topSetOf(next, kind);
     return {
       ...next,
-      [COLLECTION_OF[kind]]: {
+      [SET_OF[kind]]: {
         ...set,
         added: set.added?.filter(outside),
         modified: set.modified?.filter(outside),
@@ -1241,11 +1244,29 @@ function withoutWithin<Doc extends DesignDocumentInput>(
   }, kept);
 }
 
+/** The document without the rules it adds that no behavior it adds governs any longer. */
+function withoutUngoverned<Doc extends DesignDocumentInput>(doc: Doc): Doc {
+  const governed = new Set(
+    ((doc.relations ?? {}) as LooseSet).added
+      ?.filter(isRelation)
+      .flatMap((relation) =>
+        relation.kind === 'governs' && typeof relation.to === 'string'
+          ? [relation.to]
+          : [],
+      ),
+  );
+  const lost = (topSetOf(doc, 'rule').added ?? [])
+    .map(keyOf)
+    .filter((id) => !governed.has(id));
+  return lost.reduce((next, id) => withoutWithin(next, id), doc);
+}
+
 function untraced<Doc extends DesignDocumentInput>(
   doc: Doc,
   needId: string,
 ): Doc {
-  const untrace = (rule: RuleInput): RuleInput => {
+  const untrace = (item: unknown): unknown => {
+    const rule = item as RuleInput;
     const needs = valueOf(rule.needs);
     if (needs === null || !needs.includes(needId)) return rule;
     return {
@@ -1257,39 +1278,15 @@ function untraced<Doc extends DesignDocumentInput>(
       },
     };
   };
-  const withRules = (item: unknown): unknown => {
-    const { rules } = item as ElementWithRules;
-    if (rules === undefined) return item;
-    return {
-      ...(item as object),
-      rules: {
-        ...rules,
-        added: rules.added?.map(untrace),
-        modified: rules.modified?.map(untrace),
-      },
-    };
+  const set = topSetOf(doc, 'rule');
+  return {
+    ...doc,
+    rules: {
+      ...set,
+      added: set.added?.map(untrace),
+      modified: set.modified?.map(untrace),
+    },
   };
-  return ELEMENT_KINDS.reduce((next, kind) => {
-    const set = topSetOf(next, kind);
-    return {
-      ...next,
-      [COLLECTION_OF[kind]]: {
-        ...set,
-        added: set.added?.map(withRules),
-        modified: set.modified?.map(withRules),
-      },
-    };
-  }, doc);
-}
-
-function elementsWithRules(doc: DesignDocumentInput): ElementWithRules[] {
-  return ELEMENT_KINDS.flatMap((kind) => {
-    const set = topSetOf(doc, kind);
-    return [
-      ...(set.added ?? []),
-      ...(set.modified ?? []),
-    ] as ElementWithRules[];
-  });
 }
 
 /**

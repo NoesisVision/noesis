@@ -8,7 +8,6 @@
       "id": "module|discounts",
       "name": "discounts",
       "description": null,
-      "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts",
         "line": null
@@ -18,7 +17,6 @@
       "id": "module|discounts.calculation",
       "name": "calculation",
       "description": null,
-      "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation",
         "line": null
@@ -28,7 +26,6 @@
       "id": "module|discounts.offers",
       "name": "offers",
       "description": null,
-      "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/offers",
         "line": null
@@ -38,7 +35,6 @@
       "id": "module|discounts.users",
       "name": "users",
       "description": null,
-      "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users",
         "line": null
@@ -51,8 +47,6 @@
       "name": "Conditions",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Conditions.java",
         "line": 12
@@ -63,8 +57,6 @@
       "name": "Discount",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 8
@@ -75,8 +67,6 @@
       "name": "DiscountAmount",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountAmount.java",
         "line": 8
@@ -87,8 +77,6 @@
       "name": "DiscountCalculation",
       "type": "application_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountCalculation.java",
         "line": 12
@@ -99,8 +87,6 @@
       "name": "DiscountConfig",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountConfig.java",
         "line": 10
@@ -111,8 +97,6 @@
       "name": "DiscountPolicyFactory",
       "type": "factory",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountPolicyFactory.java",
         "line": 13
@@ -123,8 +107,6 @@
       "name": "DiscountedOffer",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
         "line": 11
@@ -135,8 +117,6 @@
       "name": "DiscountedProduct",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java",
         "line": 11
@@ -147,8 +127,6 @@
       "name": "DiscountsConfigProvider",
       "type": "repository",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountsConfigProvider.java",
         "line": 8
@@ -159,8 +137,6 @@
       "name": "ExclusiveOfferLevelDiscount",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 37
@@ -171,8 +147,6 @@
       "name": "FixedDiscount",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 25
@@ -183,8 +157,6 @@
       "name": "PotentialDiscount",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 8
@@ -195,8 +167,6 @@
       "name": "PotentialVipUserDiscount",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 15
@@ -207,8 +177,6 @@
       "name": "ProductDiscount",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 13
@@ -219,8 +187,6 @@
       "name": "Offer",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/offers/Offer.java",
         "line": 10
@@ -231,8 +197,6 @@
       "name": "Product",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/offers/Product.java",
         "line": 6
@@ -243,8 +207,6 @@
       "name": "UserId",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserId.java",
         "line": 11
@@ -255,8 +217,6 @@
       "name": "UserStatus",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatus.java",
         "line": 9
@@ -267,8 +227,6 @@
       "name": "UserStatusProvider",
       "type": "external_integration",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java",
         "line": 7
@@ -284,8 +242,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 9
@@ -299,8 +255,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountCalculation.java",
         "line": 16
@@ -313,8 +267,6 @@
       "visibility": {
         "kind": "private"
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountConfig.java",
         "line": 13
@@ -327,8 +279,6 @@
       "visibility": {
         "kind": "private"
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountPolicyFactory.java",
         "line": 19
@@ -341,8 +291,6 @@
       "visibility": {
         "kind": "private"
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
         "line": 20
@@ -355,8 +303,6 @@
       "visibility": {
         "kind": "private"
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedOffer.java",
         "line": 16
@@ -369,8 +315,6 @@
       "visibility": {
         "kind": "private"
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java",
         "line": 20
@@ -383,8 +327,6 @@
       "visibility": {
         "kind": "private"
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountedProduct.java",
         "line": 16
@@ -398,8 +340,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountsConfigProvider.java",
         "line": 10
@@ -413,8 +353,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 44
@@ -428,8 +366,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 30
@@ -443,8 +379,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 10
@@ -458,8 +392,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 9
@@ -473,8 +405,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 22
@@ -488,8 +418,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "line": 18
@@ -503,8 +431,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "line": 16
@@ -518,14 +444,14 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java",
         "line": 9
       }
     }
   ],
+  "rules": [],
+  "scenarios": [],
   "relations": [
     {
       "kind": "contains",

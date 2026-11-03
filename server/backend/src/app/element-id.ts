@@ -76,10 +76,40 @@ export const BehaviorId = Object.assign(behaviorIdSchema, {
 });
 export type BehaviorId = z.infer<typeof behaviorIdSchema>;
 
+const RULE_KIND = 'rule';
+const ruleIdSchema = z
+  .string()
+  .regex(idPattern(RULE_KIND, 1), 'Invalid RuleId')
+  .describe(
+    "A rule's id: 'rule|', then the path of the module of the behavior that governs it, then its name, e.g. 'rule|sales.orders.Non-empty order'.",
+  )
+  .brand<'RuleId'>();
+export const RuleId = Object.assign(ruleIdSchema, {
+  within: (module: ModuleId, name: string) =>
+    ruleIdSchema.parse(`${RULE_KIND}|${childPath(module, name)}`),
+});
+export type RuleId = z.infer<typeof ruleIdSchema>;
+
+const SCENARIO_KIND = 'scenario';
+const scenarioIdSchema = z
+  .string()
+  .regex(idPattern(SCENARIO_KIND, 2), 'Invalid ScenarioId')
+  .describe(
+    "A scenario's id: 'scenario|', then its rule's path, then its name, e.g. 'scenario|sales.orders.Non-empty order.An order without lines is refused'.",
+  )
+  .brand<'ScenarioId'>();
+export const ScenarioId = Object.assign(scenarioIdSchema, {
+  within: (rule: RuleId, name: string) =>
+    scenarioIdSchema.parse(`${SCENARIO_KIND}|${childPath(rule, name)}`),
+});
+export type ScenarioId = z.infer<typeof scenarioIdSchema>;
+
 const elementIdSchema = z.union([
   moduleIdSchema,
   buildingBlockIdSchema,
   behaviorIdSchema,
+  ruleIdSchema,
+  scenarioIdSchema,
 ]);
 export const ElementId = Object.assign(elementIdSchema, {
   nameOf: (id: ElementId): ElementName => pathOf(id).split('.').at(-1)!,
@@ -88,9 +118,14 @@ export const ElementId = Object.assign(elementIdSchema, {
     id.startsWith(`${BUILDING_BLOCK_KIND}|`),
   isBehavior: (id: ElementId): id is BehaviorId =>
     id.startsWith(`${BEHAVIOR_KIND}|`),
+  isRule: (id: ElementId): id is RuleId => id.startsWith(`${RULE_KIND}|`),
+  isScenario: (id: ElementId): id is ScenarioId =>
+    id.startsWith(`${SCENARIO_KIND}|`),
   match: <R>(id: ElementId, on: ElementIdHandlers<R>): R => {
     if (ElementId.isModule(id)) return on.module(id);
     if (ElementId.isBuildingBlock(id)) return on.buildingBlock(id);
+    if (ElementId.isRule(id)) return on.rule(id);
+    if (ElementId.isScenario(id)) return on.scenario(id);
     return on.behavior(id);
   },
 });
@@ -100,6 +135,8 @@ type ElementIdHandlers<R> = {
   module: (id: ModuleId) => R;
   buildingBlock: (id: BuildingBlockId) => R;
   behavior: (id: BehaviorId) => R;
+  rule: (id: RuleId) => R;
+  scenario: (id: ScenarioId) => R;
 };
 
 function pathOf(id: ElementId): string {

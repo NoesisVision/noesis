@@ -20,6 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reqnroll step definitions (Projection/Rules) the feature files' steps bind to. The runtime package
+         alone: without Reqnroll.Tools.MsBuild.Generation no code-behind is generated for the .feature files. -->
+    <PackageReference Include="Reqnroll" Version="3.3.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Global usings declared in the project file instead of in a .cs file. -->
     <Using Include="System.Text" />
     <Using Include="System.Math" Static="true" />

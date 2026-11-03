@@ -108,7 +108,9 @@ The Noesis repository is `https://github.com/NoesisVision/noesis`.
    end of the tool's output, so fix what it names and scan again.
 8. **Tell the user what is next.** The scanner turns attributed types into
    building blocks: list the [attributes](#attributes) and offer to
-   annotate the existing domain code. Do not annotate it as part of this
+   annotate the existing domain code. Rules and scenarios come from feature
+   files instead: say how, as [Rules and scenarios](#rules-and-scenarios)
+   does. Do not annotate the code or write feature files as part of this
    setup.
 
 ## Attributes
@@ -132,6 +134,53 @@ From the `NoesisVision.Annotations` package. On a type:
 | `[ReadModel]`                 | `NoesisVision.Annotations.Domain`     | value object         |
 
 On a member: `[DomainBehavior]` and `[EntryPoint]` (`NoesisVision.Annotations.Domain`)
-mark behaviors, `[Scenario]` a scenario. `[ShortDescription("…")]` and
+mark behaviors. `[ShortDescription("…")]` and
 `[ExcludeFromDocs]` (`NoesisVision.Annotations`) describe or hide an element,
 and `[Actor]` (`NoesisVision.Annotations.People`) names an actor.
+`[Scenario]` marks nothing any more: no attribute makes a rule or a
+scenario.
+
+## Rules and scenarios
+
+The scan reads rules and scenarios from the Gherkin feature files
+(`*.feature`) Git tracks in the repository, run as tests with Reqnroll (not
+SpecFlow):
+
+```gherkin
+Feature: Placing orders
+
+  @validation
+  Rule: Non-empty order
+    An order must have at least one line.
+
+    Scenario: An order without lines is refused
+      Given a customer with no lines picked
+      When the customer places the order
+      Then the order is refused
+```
+
+```csharp
+[When("the customer places the order")]
+public void WhenTheCustomerPlacesTheOrder() =>
+    _result = _orders.Place(_customer, []);
+```
+
+- A `Rule:` is a rule, the text under it its description. It carries
+  exactly one kind tag: `@validation`, `@state_change`, `@post`,
+  `@computation`, `@coordination` or `@configuration`.
+- A `Scenario:` or `Scenario Outline:` under it is a scenario, its steps as
+  written, a `Background:` before them. A scenario outside a `Rule:` is
+  not read.
+- The scenario's `When` step, with the `And` and `But` steps after it,
+  binds to Reqnroll step definitions, `[When("…")]` from `Reqnroll`, by
+  their Cucumber expression or regular expression. Between them, those
+  methods call exactly one behavior: that behavior governs the rule, and
+  the rule is in its module.
+
+The tool parses the test projects with the rest of the solution, so the
+step definitions need no setting; `namespacesToExclude` leaves a test
+namespace out of the modules, not out of the binding. What the scan cannot
+read it drops and notes in the service log (`.noesis/logs/noesis.log`,
+under `scanner`): a rule with no kind tag or two, a `When` step matching no
+step definition or several, `When` steps calling no behavior or several. A
+rule none of whose scenarios binds is dropped too.

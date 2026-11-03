@@ -1,7 +1,8 @@
 # Plan: introducing the new system model
 
-Status: in progress (November 2026); steps 1 and 3 of section 11 are built,
-step 3 before step 2: the two share files but neither needs the other.
+Status: in progress (November 2026); steps 1, 2 and 3 of section 11 are
+built, step 3 before step 2: the two share files but neither needs the
+other.
 
 [`system-model-structure.md`](system-model-structure.md) describes the
 metamodel the system model moves to: its elements, relations and kinds. This
@@ -328,10 +329,10 @@ builder.
 
 **Test sources.** The .NET parser parses every project of the solution, test
 projects included, so a C# step definition is in the code model today. The
-Java parser parses main sources only (`noesis:parse` after
-`process-classes`); it has to read the test source roots too
-(`src/test/java`, after `process-test-classes` in Maven, the `test` source
-set in Gradle) and write them into the same artifact. The golden code models
+Java parser parses the test source roots too (`src/test/java`, after
+`process-test-classes` in Maven, the `test` source set in Gradle) into the
+same artifact, from the release after 0.1.0 (built in step 2); the
+`noesis.includeTests` property, true by default, turns it off. The golden code models
 of both parsers gain the test fixtures' step definitions, and the fixtures
 gain feature files; the service's unit tests project them.
 
@@ -475,7 +476,22 @@ fixtures and the skills together, so no step leaves two shapes alive.
    feature file reader and the step matching, the `stepDefinition` role and
    R12 in the builder; the Java parser reading test sources; `RuleCategory`,
    `RuleType`, `RULE_TYPES_OF`, the C# `[Scenario]` mapping and the skills'
-   rule guidance; the shop fixtures' feature files.
+   rule guidance; the shop fixtures' feature files. _Built_: the reader
+   and the binding are R12 of `code-model-to-system-model.md` (section 14).
+   Beyond the plan: an outline's `When` steps are matched with its first
+   example's values filled in, its steps kept as written; every step of
+   the `When` kind counts, wherever it stands; Java's repeated `@When` is
+   read through its container annotation; a rule none of whose scenarios
+   binds is dropped, as it has no behavior to name its module. The design
+   document's rules and scenarios are top-level change sets keyed by id,
+   with a writer's rule `ungovernedRule` (an added rule needs an added
+   `governs`); the old given/when/then upgrade of stored scenarios went
+   with the shape it read (decision 17). The SPA shows a rule under each
+   behavior that governs it — under its module when the design names
+   none — its scenarios under it, its panel with Kind and Governed by, one
+   Kind select in the forms, a new rule offered on a behavior only. The
+   committed examples were converted by script again: their models hold no
+   rules until step 7 gives them feature files.
 3. **Kinds** (decisions 5, 6, 11): the fourteen kinds, no behavior type,
    `has_collaborator`, the vocabularies' new rows, the architecture view's
    placement. _Built_, before step 2: `has_collaborator` comes from

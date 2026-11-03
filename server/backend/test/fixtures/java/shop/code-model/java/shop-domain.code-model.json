@@ -14,6 +14,14 @@
     "executable": false,
     "dependencies": [
       {
+        "id": "A:io.cucumber:cucumber-java@7.34.9",
+        "kind": "library",
+        "package": {
+          "id": "io.cucumber:cucumber-java",
+          "version": "7.34.9"
+        }
+      },
+      {
         "id": "A:java.base@17",
         "kind": "platform",
         "package": null
@@ -568,6 +576,66 @@
       "type": {
         "kind": "named",
         "type": "T:com.acme.shop.orders.OrderStatus",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:com.acme.shop.orders.OrderSteps.order",
+      "name": "order",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 11,
+          "startColumn": 5,
+          "endLine": 11,
+          "endColumn": 25
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [],
+      "type": {
+        "kind": "named",
+        "type": "T:com.acme.shop.orders.Order",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
+      "id": "F:com.acme.shop.orders.OrderSteps.total",
+      "name": "total",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 12,
+          "startColumn": 5,
+          "endLine": 12,
+          "endColumn": 25
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [],
+      "type": {
+        "kind": "named",
+        "type": "T:com.acme.shop.orders.Money",
         "typeArguments": [],
         "unbound": false,
         "nullable": false
@@ -2402,6 +2470,357 @@
     },
     {
       "kind": "method",
+      "id": "M:com.acme.shop.orders.OrderSteps#.ctor()",
+      "name": ".ctor",
+      "origin": "generated",
+      "locations": [],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "constructor",
+      "visibility": "public",
+      "modifiers": [],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:com.acme.shop.orders.OrderSteps#anOrderWithOneLine()",
+      "name": "anOrderWithOneLine",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 14,
+          "startColumn": 5,
+          "endLine": 18,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:io.cucumber.java.en.Given",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"an order with one line\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": ["virtual"],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:com.acme.shop.orders.OrderSteps#theCustomerAddsMoreLines(int)",
+      "name": "theCustomerAddsMoreLines",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 25,
+          "startColumn": 5,
+          "endLine": 28,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:io.cucumber.java.en.When",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"the customer adds {int} more lines\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": ["virtual"],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [
+          {
+            "name": "count",
+            "type": {
+              "kind": "primitive",
+              "name": "int",
+              "nullable": false
+            },
+            "passing": "value",
+            "variadic": false,
+            "optional": false,
+            "defaultValue": null,
+            "annotations": [],
+            "languageSpecific": {}
+          }
+        ],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:com.acme.shop.orders.OrderSteps#theCustomerPlacesTheOrder()",
+      "name": "theCustomerPlacesTheOrder",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 20,
+          "startColumn": 5,
+          "endLine": 23,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:io.cucumber.java.en.When",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"the customer places the order\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": ["virtual"],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:com.acme.shop.orders.OrderSteps#theOrderIsPlaced()",
+      "name": "theOrderIsPlaced",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 35,
+          "startColumn": 5,
+          "endLine": 37,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:io.cucumber.java.en.Then",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"the order is placed\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": ["virtual"],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:com.acme.shop.orders.OrderSteps#theTotalIsAskedFor()",
+      "name": "theTotalIsAskedFor",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 30,
+          "startColumn": 5,
+          "endLine": 33,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:io.cucumber.java.en.When",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"^the total is (?:asked for|read)$\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": ["virtual"],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
+      "id": "M:com.acme.shop.orders.OrderSteps#theTotalIsThePriceOfTheLines()",
+      "name": "theTotalIsThePriceOfTheLines",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 39,
+          "startColumn": 5,
+          "endLine": 41,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:io.cucumber.java.en.Then",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": true,
+              "value": {
+                "kind": "literal",
+                "text": "\"the total is the price of the lines\""
+              }
+            }
+          ]
+        }
+      ],
+      "documentation": null,
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": ["virtual"],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "void"
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:com.acme.shop.orders.PlaceOrder#.ctor(com.acme.shop.orders.OrderId,java.lang.String)",
       "name": ".ctor",
       "origin": "generated",
@@ -3425,6 +3844,13 @@
           "startColumn": 9,
           "endLine": 1,
           "endColumn": 12
+        },
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 12
         }
       ],
       "annotations": [],
@@ -3516,6 +3942,13 @@
         },
         {
           "file": "shop-domain/src/main/java/com/acme/shop/products/ProductId.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 17
+        },
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
           "startLine": 1,
           "startColumn": 9,
           "endLine": 1,
@@ -3615,6 +4048,13 @@
           "startColumn": 9,
           "endLine": 1,
           "endColumn": 22
+        },
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 22
         }
       ],
       "annotations": [],
@@ -3696,6 +4136,13 @@
         },
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
+          "startLine": 1,
+          "startColumn": 9,
+          "endLine": 1,
+          "endColumn": 29
+        },
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
           "startLine": 1,
           "startColumn": 9,
           "endLine": 1,
@@ -4032,6 +4479,31 @@
       "typeKind": "enum",
       "visibility": "public",
       "modifiers": ["final"],
+      "typeParameters": [],
+      "underlyingType": null,
+      "delegateSignature": null,
+      "aliasOf": null
+    },
+    {
+      "kind": "type",
+      "id": "T:com.acme.shop.orders.OrderSteps",
+      "name": "OrderSteps",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 9,
+          "startColumn": 1,
+          "endLine": 42,
+          "endColumn": 2
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "typeKind": "class",
+      "visibility": "public",
+      "modifiers": [],
       "typeParameters": [],
       "underlyingType": null,
       "delegateSignature": null,
@@ -4671,6 +5143,114 @@
     },
     {
       "kind": "ACCESSES",
+      "from": "M:com.acme.shop.orders.OrderSteps#anOrderWithOneLine()",
+      "to": "F:com.acme.shop.orders.OrderSteps.order",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 16,
+          "startColumn": 9,
+          "endLine": 16,
+          "endColumn": 14
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "this"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:com.acme.shop.orders.OrderSteps#anOrderWithOneLine()",
+      "to": "F:com.acme.shop.orders.OrderSteps.order",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 17,
+          "startColumn": 9,
+          "endLine": 17,
+          "endColumn": 14
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "this"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:com.acme.shop.orders.OrderSteps#theCustomerAddsMoreLines(int)",
+      "to": "F:com.acme.shop.orders.OrderSteps.order",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 27,
+          "startColumn": 41,
+          "endLine": 27,
+          "endColumn": 46
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "this"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:com.acme.shop.orders.OrderSteps#theCustomerPlacesTheOrder()",
+      "to": "F:com.acme.shop.orders.OrderSteps.order",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 22,
+          "startColumn": 9,
+          "endLine": 22,
+          "endColumn": 14
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "this"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:com.acme.shop.orders.OrderSteps#theTotalIsAskedFor()",
+      "to": "F:com.acme.shop.orders.OrderSteps.order",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 32,
+          "startColumn": 17,
+          "endLine": 32,
+          "endColumn": 22
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "this"
+    },
+    {
+      "kind": "ACCESSES",
+      "from": "M:com.acme.shop.orders.OrderSteps#theTotalIsAskedFor()",
+      "to": "F:com.acme.shop.orders.OrderSteps.total",
+      "access": "write",
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 32,
+          "startColumn": 9,
+          "endLine": 32,
+          "endColumn": 14
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "this"
+    },
+    {
+      "kind": "ACCESSES",
       "from": "M:com.acme.shop.orders.PlaceOrderHandler#.ctor(com.acme.shop.orders.Order+Repository,com.acme.shop.pricing.PricingService)",
       "to": "F:com.acme.shop.orders.PlaceOrderHandler.pricing",
       "access": "write",
@@ -4887,6 +5467,11 @@
       "kind": "CONTAINS",
       "from": "N:com.acme.shop.orders",
       "to": "T:com.acme.shop.orders.OrderStatus"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "N:com.acme.shop.orders",
+      "to": "T:com.acme.shop.orders.OrderSteps"
     },
     {
       "kind": "CONTAINS",
@@ -5207,6 +5792,51 @@
       "kind": "CONTAINS",
       "from": "T:com.acme.shop.orders.OrderStatus",
       "to": "M:com.acme.shop.orders.OrderStatus#values()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.OrderSteps",
+      "to": "F:com.acme.shop.orders.OrderSteps.order"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.OrderSteps",
+      "to": "F:com.acme.shop.orders.OrderSteps.total"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.OrderSteps",
+      "to": "M:com.acme.shop.orders.OrderSteps#.ctor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.OrderSteps",
+      "to": "M:com.acme.shop.orders.OrderSteps#anOrderWithOneLine()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.OrderSteps",
+      "to": "M:com.acme.shop.orders.OrderSteps#theCustomerAddsMoreLines(int)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.OrderSteps",
+      "to": "M:com.acme.shop.orders.OrderSteps#theCustomerPlacesTheOrder()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.OrderSteps",
+      "to": "M:com.acme.shop.orders.OrderSteps#theOrderIsPlaced()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.OrderSteps",
+      "to": "M:com.acme.shop.orders.OrderSteps#theTotalIsAskedFor()"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.OrderSteps",
+      "to": "M:com.acme.shop.orders.OrderSteps#theTotalIsThePriceOfTheLines()"
     },
     {
       "kind": "CONTAINS",
@@ -6791,6 +7421,198 @@
     },
     {
       "kind": "INVOKES",
+      "from": "M:com.acme.shop.orders.OrderSteps#.ctor()",
+      "to": "M:java.lang.Object#.ctor()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 9,
+          "startColumn": 8,
+          "endLine": 9,
+          "endColumn": 8
+        },
+        "viaClosure": false,
+        "languageSpecific": {
+          "java.implicitSuperCall": true
+        }
+      },
+      "invocationKind": "call",
+      "receiver": "base"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.orders.OrderSteps#anOrderWithOneLine()",
+      "to": "M:com.acme.shop.orders.Order#addLine(com.acme.shop.products.ProductId)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 17,
+          "startColumn": 9,
+          "endLine": 17,
+          "endColumn": 45
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "field"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.orders.OrderSteps#anOrderWithOneLine()",
+      "to": "M:com.acme.shop.orders.Order#create(com.acme.shop.orders.OrderId)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 16,
+          "startColumn": 17,
+          "endLine": 16,
+          "endColumn": 61
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "type"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.orders.OrderSteps#anOrderWithOneLine()",
+      "to": "M:com.acme.shop.orders.OrderId#.ctor(java.util.UUID)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 16,
+          "startColumn": 30,
+          "endLine": 16,
+          "endColumn": 60
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": null
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.orders.OrderSteps#anOrderWithOneLine()",
+      "to": "M:com.acme.shop.products.ProductId#.ctor(java.lang.String)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 17,
+          "startColumn": 23,
+          "endLine": 17,
+          "endColumn": 44
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": null
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.orders.OrderSteps#anOrderWithOneLine()",
+      "to": "M:java.util.UUID#randomUUID()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 16,
+          "startColumn": 42,
+          "endLine": 16,
+          "endColumn": 59
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "type"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.orders.OrderSteps#theCustomerAddsMoreLines(int)",
+      "to": "M:com.acme.shop.orders.Order#addLine(com.acme.shop.products.ProductId,int)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 27,
+          "startColumn": 41,
+          "endLine": 27,
+          "endColumn": 79
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "field"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.orders.OrderSteps#theCustomerAddsMoreLines(int)",
+      "to": "M:com.acme.shop.products.ProductId#.ctor(java.lang.String)",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 27,
+          "startColumn": 55,
+          "endLine": 27,
+          "endColumn": 75
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": null
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.orders.OrderSteps#theCustomerPlacesTheOrder()",
+      "to": "M:com.acme.shop.orders.Order#placeOrder()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 22,
+          "startColumn": 9,
+          "endLine": 22,
+          "endColumn": 27
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "field"
+    },
+    {
+      "kind": "INVOKES",
+      "from": "M:com.acme.shop.orders.OrderSteps#theTotalIsAskedFor()",
+      "to": "M:com.acme.shop.orders.Order#total()",
+      "typeArguments": [],
+      "site": {
+        "location": {
+          "file": "shop-domain/src/test/java/com/acme/shop/orders/OrderSteps.java",
+          "startLine": 32,
+          "startColumn": 17,
+          "endLine": 32,
+          "endColumn": 30
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "invocationKind": "call",
+      "receiver": "field"
+    },
+    {
+      "kind": "INVOKES",
       "from": "M:com.acme.shop.orders.PlaceOrder#.ctor(com.acme.shop.orders.OrderId,java.lang.String)",
       "to": "M:java.lang.Record#.ctor()",
       "typeArguments": [],
@@ -7446,11 +8268,46 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "M:java.util.UUID#randomUUID()",
+      "kind": "method",
+      "name": "randomUUID",
+      "typeKind": null,
+      "artifact": "A:java.base@17"
+    },
+    {
       "id": "M:java.util.concurrent.CompletableFuture`1#supplyAsync`1(java.util.function.Supplier`1[!!0])",
       "kind": "method",
       "name": "supplyAsync",
       "typeKind": null,
       "artifact": "A:java.base@17"
+    },
+    {
+      "id": "N:io",
+      "kind": "namespace",
+      "name": "io",
+      "typeKind": null,
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "N:io.cucumber",
+      "kind": "namespace",
+      "name": "cucumber",
+      "typeKind": null,
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "N:io.cucumber.java",
+      "kind": "namespace",
+      "name": "java",
+      "typeKind": null,
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "N:io.cucumber.java.en",
+      "kind": "namespace",
+      "name": "en",
+      "typeKind": null,
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
     },
     {
       "id": "N:java",
@@ -7535,6 +8392,27 @@
       "name": "annotations",
       "typeKind": null,
       "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
+      "id": "T:io.cucumber.java.en.Given",
+      "kind": "type",
+      "name": "Given",
+      "typeKind": "interface",
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "T:io.cucumber.java.en.Then",
+      "kind": "type",
+      "name": "Then",
+      "typeKind": "interface",
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
+    },
+    {
+      "id": "T:io.cucumber.java.en.When",
+      "kind": "type",
+      "name": "When",
+      "typeKind": "interface",
+      "artifact": "A:io.cucumber:cucumber-java@7.34.9"
     },
     {
       "id": "T:java.io.Closeable",

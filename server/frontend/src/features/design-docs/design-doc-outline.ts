@@ -11,8 +11,6 @@ import type {
   DesignedBehaviorInput,
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
-  DesignedRuleInput,
-  DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import { type ChangeSetInput, named } from './change-set.ts';
 import {
@@ -21,6 +19,13 @@ import {
   valueOf,
 } from './design-doc-field.ts';
 import { kindOf, nameOf, parentOf } from './element-id.ts';
+import {
+  placesOf,
+  ruleKindLabelOf,
+  ruleNameOf,
+  rulesNamedIn,
+  scenariosUnder,
+} from './rules.ts';
 
 /*
  * The other half of the design document's own sentence: the hierarchy is
@@ -31,6 +36,9 @@ import { kindOf, nameOf, parentOf } from './element-id.ts';
  *
  * The document is read as the wire carries it — ids are plain strings, and a
  * field the writer left out is absent rather than defaulted.
+ *
+ * A rule is no part of what its id names: it hangs under each behavior that
+ * governs it (rules.ts), its scenarios under it.
  */
 
 export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
@@ -38,6 +46,7 @@ export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   addModules(nodes, document.modules);
   addBuildingBlocks(nodes, document.buildingBlocks);
   addBehaviors(nodes, document.behaviors);
+  addRules(nodes, document);
   addProperties(nodes, document.relations);
   addImpliedAncestors(nodes);
   return inReadingOrder(nodes.values());
@@ -49,7 +58,6 @@ function addModules(
 ): void {
   for (const [module, change] of named(modules)) {
     put(nodes, element(module.id, change, null, isDrawn(module)));
-    addRules(nodes, module.id, module.rules);
   }
   for (const id of modules?.removed ?? []) put(nodes, element(id, 'removed'));
 }
@@ -60,8 +68,6 @@ function addBuildingBlocks(
 ): void {
   for (const [block, change] of named(blocks)) {
     put(nodes, element(block.id, change, valueOf(block.type), isDrawn(block)));
-    addRules(nodes, block.id, block.rules);
-    addScenarios(nodes, block.id, block.scenarios);
   }
   for (const id of blocks?.removed ?? []) put(nodes, element(id, 'removed'));
 }
@@ -72,8 +78,6 @@ function addBehaviors(
 ): void {
   for (const [behavior, change] of named(behaviors)) {
     put(nodes, element(behavior.id, change, null, isDrawn(behavior)));
-    addRules(nodes, behavior.id, behavior.rules);
-    addScenarios(nodes, behavior.id, behavior.scenarios);
   }
   for (const id of behaviors?.removed ?? []) put(nodes, element(id, 'removed'));
 }
@@ -125,47 +129,61 @@ function addProperties(
   }
 }
 
+/**
+ * Every rule the design names, under each element it is shown at, its
+ * scenarios under it; a rule only a scenario names is there unchanged.
+ */
 function addRules(
   nodes: Map<string, OutlineNode>,
-  owner: string,
-  rules: ChangeSetInput<DesignedRuleInput, string> | undefined,
+  document: DesignDocumentInput,
 ): void {
-  for (const [rule, change] of named(rules)) {
-    const node = part(
-      owner,
-      'rule',
-      rule.name,
-      change,
-      valueOf(rule.ruleType),
-      valueOf(rule.description),
-    );
-    put(nodes, node);
-    // A rule's own scenarios hang under the rule, not beside it.
-    addScenarios(nodes, node.path, rule.scenarios);
+  const rules = document.rules;
+  const written = new Map(
+    [...named(rules)].map(([rule, change]) => [rule.id, { rule, change }]),
+  );
+  const removed = new Set(rules?.removed ?? []);
+  for (const id of rulesNamedIn(document)) {
+    const found = written.get(id);
+    const change: OutlineChange =
+      found?.change ?? (removed.has(id) ? 'removed' : 'unchanged');
+    for (const place of placesOf(document, id)) {
+      const node = part(
+        place,
+        'rule',
+        id,
+        change,
+        found === undefined ? null : valueOf(found.rule.kind),
+        found === undefined ? null : valueOf(found.rule.description),
+        found === undefined ? nameOf(id) : ruleNameOf(found.rule),
+      );
+      put(nodes, node);
+      addScenarios(nodes, node.path, document, id);
+    }
   }
-  for (const name of rules?.removed ?? [])
-    put(nodes, part(owner, 'rule', name, 'removed'));
 }
 
 function addScenarios(
   nodes: Map<string, OutlineNode>,
   owner: string,
-  scenarios: ChangeSetInput<DesignedScenarioInput, string> | undefined,
+  document: DesignDocumentInput,
+  ruleId: string,
 ): void {
+  const scenarios = scenariosUnder(document, ruleId);
   for (const [scenario, change] of named(scenarios))
     put(
       nodes,
       part(
         owner,
         'scenario',
-        scenario.name,
+        scenario.id,
         change,
         null,
         valueOf(scenario.description),
+        ruleNameOf(scenario),
       ),
     );
-  for (const name of scenarios?.removed ?? [])
-    put(nodes, part(owner, 'scenario', name, 'removed'));
+  for (const id of scenarios.removed ?? [])
+    put(nodes, part(owner, 'scenario', id, 'removed', null, null, nameOf(id)));
 }
 
 /**
@@ -233,16 +251,17 @@ function element(
 function part(
   owner: string,
   kind: OutlineKind,
-  name: string,
+  key: string,
   change: OutlineChange,
   pattern: string | null = null,
   description: string | null | undefined = null,
+  name: string = key,
 ): OutlineNode {
   return {
-    // A part has no id of its own, so it is named under the element — or, for
-    // a rule's scenario, the rule — that owns it; a name never carries the
-    // separators, so the pair cannot collide.
-    path: partPathOf(owner, kind, name),
+    // A part is named under the element — or, for a rule's scenario, the
+    // rule — it is shown under, by its key: a property's name, a rule's or a
+    // scenario's id. A rule shown under two behaviors is two rows.
+    path: partPathOf(owner, kind, key),
     parentPath: owner,
     elementId: null,
     kind,
@@ -250,10 +269,9 @@ function part(
     depth: 0,
     change,
     pattern,
-    // Not written out as an element's pattern is: a property's is its type and
-    // a rule's is its kind, and both are spelled by whoever wrote them —
-    // `OrderId`, `RefundLine [0..*]`, `date`, `State change`.
-    patternLabel: pattern,
+    // A property's pattern is its type, spelled by whoever wrote it —
+    // `OrderId`, `RefundLine [0..*]`, `date`; a rule's is its kind.
+    patternLabel: kind === 'rule' ? ruleKindLabelOf(pattern) : pattern,
     hasDiagram: drawsDiagram(description),
   };
 }
@@ -261,13 +279,19 @@ function part(
 const PART_MARK = '#';
 const RULE_MARK = `${PART_MARK}rule:`;
 
-/** Where a part sits in the outline: under its owner, by its kind and name. */
-export const partPathOf = (owner: string, kind: OutlineKind, name: string) =>
-  `${owner}${PART_MARK}${kind}:${name}`;
+/** Where a part sits in the outline: under its owner, by its kind and key. */
+export const partPathOf = (owner: string, kind: OutlineKind, key: string) =>
+  `${owner}${PART_MARK}${kind}:${key}`;
+
+/** A part's key, read back off its path: a property's name, a rule's or a scenario's id. */
+export const partKeyOf = (node: OutlineNode): string => {
+  const mark = `${PART_MARK}${node.kind}:`;
+  return node.path.slice(node.path.lastIndexOf(mark) + mark.length);
+};
 
 /**
  * What a part hangs under, read back off the path `part` gave its parent: the
- * element that owns it and, for a scenario of a rule, that rule's name.
+ * element it is shown under and, for a scenario, its rule's id.
  */
 export function ownerOfPart(parentPath: string): {
   elementId: string;

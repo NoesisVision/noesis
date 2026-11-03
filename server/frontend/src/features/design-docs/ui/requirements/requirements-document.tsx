@@ -254,7 +254,8 @@ function Coverage({ rules }: { rules: TracedRule[] }) {
   const counted = rules.filter((traced) => traced.change !== 'removed');
   if (counted.length === 0) return null;
   const verified = counted.filter(
-    ({ rule }) => rule !== null && scenarioEntriesOf(rule.scenarios).length > 0,
+    (traced) =>
+      traced.rule !== null && scenarioEntriesOf(traced.scenarios).length > 0,
   ).length;
   const complete = verified === counted.length;
   return (

@@ -9,18 +9,15 @@ import { Group } from '#/shared/design-system/group.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import type { DesignedRuleInput } from '#backend/app/design-docs/design-doc.ts';
-import type {
-  RuleCategory,
-  RuleType,
-} from '#backend/app/system-model/system-model.ts';
 import { writtenIn } from '../../../../change-set.ts';
 import {
   type PartOwner,
-  RULE_TYPES_OF,
+  RULE_KINDS,
   unitOf,
 } from '../../../../design-doc-edit.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
 import { tracedTo } from '../../../../design-doc-requirements.ts';
+import { ruleKindLabelOf } from '../../../../rules.ts';
 import { InlineChips } from '../../../unit-editor/inline-chips.tsx';
 import { InlineChoice } from '../../../unit-editor/inline-choice.tsx';
 import { InlineMarkdown } from '../../../unit-editor/inline-markdown.tsx';
@@ -35,12 +32,7 @@ import { useDesignDocument } from '../../design-document-context.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import { ListTooltip } from '../../element-tooltip.tsx';
 import { useGlanceReading } from '../../glance-reading.ts';
-import {
-  nameFieldsOf,
-  writtenByHuman,
-  humanText,
-  WrittenBy,
-} from '../../human-mark.tsx';
+import { writtenByHuman, humanText, WrittenBy } from '../../human-mark.tsx';
 import { MarkdownReading } from '../../markdown-reading.tsx';
 import { SCENARIO_COLUMN_ID } from '../scenario-column.tsx';
 import { useScenarioFocus } from '../scenario-focus.tsx';
@@ -65,7 +57,7 @@ export function RuleCards({
     <ul className={classes.list}>
       {items.map((item) => (
         <RuleCard
-          key={`${item.change}:${item.label}`}
+          key={`${item.change}:${item.key ?? item.label}`}
           item={item}
           owner={owner}
         />
@@ -91,10 +83,12 @@ function RuleCard({
     classification,
     needs,
   } = item;
+  // A rule is known by its id; its name is what a reader reads.
+  const id = item.key ?? label;
   const { has, select } = useElementNavigation();
   const focus = useScenarioFocus();
   const writable = useWritableUnit(
-    owner === null ? null : { kind: 'rule', id: label, owner },
+    owner === null ? null : { kind: 'rule', id, owner },
   );
   const rule = writable?.unit as DesignedRuleInput | null | undefined;
   const document = useUnitEditing()?.document;
@@ -111,16 +105,10 @@ function RuleCard({
   const designed =
     doc === null || owner === null
       ? null
-      : (unitOf(doc, {
-          kind: 'rule',
-          id: label,
-          owner,
-        }) as DesignedRuleInput | null);
-  // What the rule's kind is made of, for who wrote it.
-  const kind = [designed?.category, designed?.ruleType];
-  // The rule's name is its key, with no writer of its own: marked only where
-  // a human made the whole rule.
-  const whole = nameFieldsOf(designed);
+      : (unitOf(doc, { kind: 'rule', id, owner }) as DesignedRuleInput | null);
+  // The rule's kind, for who wrote it.
+  const kind = [designed?.kind];
+  const whole = [designed?.name];
   const removed = change === 'removed' || undefined;
   return (
     <li className={classes.card}>
@@ -143,7 +131,7 @@ function RuleCard({
                 </UnstyledButton>
               </WrittenBy>
             ) : writable !== null && writable.state === 'added' ? (
-              // A rule is known by its name: only one the design adds is renamed.
+              // A rule's id follows its name: only one the design adds is renamed.
               <InlineText
                 label="Name"
                 human={writtenByHuman(whole)}
@@ -162,8 +150,8 @@ function RuleCard({
           </span>
           {owner !== null && (
             <Group gap={2} wrap="nowrap" className={classes.actions}>
-              <NewScenarioButton owner={{ ...owner, rule: label }} icon />
-              <RemoveButton unit={{ kind: 'rule', id: label, owner }} />
+              <NewScenarioButton owner={{ ...owner, rule: id }} icon />
+              <RemoveButton unit={{ kind: 'rule', id, owner }} />
             </Group>
           )}
         </div>
@@ -175,17 +163,12 @@ function RuleCard({
           )
         ) : (
           <InlineChoice
-            label="Rule type"
+            label="Kind"
             human={writtenByHuman(kind)}
-            value={valueOf(rule?.ruleType) ?? null}
-            data={ruleTypeChoices(owner)}
+            value={valueOf(rule?.kind) ?? null}
+            data={RULE_KIND_CHOICES}
             className={clsx(classes.classification, humanText(kind))}
-            onSave={(ruleType) =>
-              writable.save({
-                category: categoryOf(ruleType as RuleType),
-                ruleType,
-              })
-            }
+            onSave={(chosen) => writable.save({ kind: chosen })}
           >
             {classification ?? 'Not classified'}
           </InlineChoice>
@@ -257,13 +240,13 @@ function RuleCard({
               underline="never"
               className={classes.scenarios}
               // Its scenarios stand out: the same count again lets go of them.
-              data-active={focus?.rule === label || undefined}
+              data-active={focus?.rule === id || undefined}
               // Straight to the rule's first scenario, not the top of the
               // column; the link alone is for a rule drawn without one.
               onClick={(event) => {
                 if (focus === null) return;
                 event.preventDefault();
-                focus.showRule(label);
+                focus.showRule(id);
               }}
             >
               <span className={classes.dots} aria-hidden="true">
@@ -309,17 +292,8 @@ function Folded({ children }: { children: ReactNode }) {
   );
 }
 
-/** Every rule type by its category; a module holds no business rules. */
-const ruleTypeChoices = (owner: PartOwner | null) =>
-  (Object.keys(RULE_TYPES_OF) as RuleCategory[])
-    .filter((category) => owner?.kind !== 'module' || category !== 'Business')
-    .map((category) => ({
-      group: category,
-      items: [...RULE_TYPES_OF[category]],
-    }));
-
-/** The category a rule type belongs to: each type is in exactly one. */
-const categoryOf = (ruleType: RuleType): RuleCategory =>
-  (Object.keys(RULE_TYPES_OF) as RuleCategory[]).find((category) =>
-    RULE_TYPES_OF[category].includes(ruleType),
-  )!;
+/** Every kind a rule may be, as a reader reads it. */
+const RULE_KIND_CHOICES = RULE_KINDS.map((kind) => ({
+  value: kind,
+  label: ruleKindLabelOf(kind) ?? kind,
+}));

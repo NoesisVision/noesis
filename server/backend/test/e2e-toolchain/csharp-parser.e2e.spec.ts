@@ -8,6 +8,7 @@ import { mkdtemp, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CSharpParser } from '#backend/adapters/out/scanners/code-parsers/csharp-parser';
+import { GitSourceRepository } from '#backend/adapters/out/scanners/git-source-repository';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { systemClock } from '#backend/app/clock';
 import {
@@ -146,9 +147,13 @@ describe('the fixture solution through the C# parser (e2e)', () => {
         await rm(outDir, { recursive: true, force: true });
       }
       const buildStart = performance.now();
+      const featureFiles = await new GitSourceRepository(
+        FIXTURE,
+      ).featureFiles();
       const { model: built } = buildSystemModel({
         manifest,
         files,
+        featureFiles,
         vocabulary: CSHARP_VOCABULARY,
         config,
       });
@@ -164,6 +169,11 @@ describe('the fixture solution through the C# parser (e2e)', () => {
       expect<unknown>(firstStage).toBeLessThan(FIRST_STAGE_BUDGET_MS);
       expect<unknown>(building).toBeLessThan(BUILD_BUDGET_MS);
       expect<unknown>(built.buildingBlocks).toEqual(model.buildingBlocks);
+      expect<unknown>(built.rules).toEqual(model.rules);
+      expect<unknown>(model.rules.map((r) => r.name)).toEqual([
+        'Named behaviors keep their name',
+        'Overloads take the widest',
+      ]);
 
       // What the real scan gives the builder, by the rules; the unit test
       // over the golden model checks the same expectations in full.

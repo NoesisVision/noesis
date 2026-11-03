@@ -9,7 +9,10 @@ behind its fluent getter (R5.8), the `Map` field no word in the
 model has, the overloaded `addLine`, `@QueryHandler` fixing a type (R9.4),
 the chain `handle → logTotal → total`, the `internal` package
 `.noesis/settings.json` drops, the unannotated `SqlOrderRepository` whose calls
-count for the interface's behaviors.
+count for the interface's behaviors, and in the tests the Cucumber step
+definitions `OrderSteps` with the feature file
+`shop-domain/src/test/resources/features/placing-orders.feature` whose `When`
+steps bind to them (the parser reads the test sources too).
 
 `code-model/` is the Java parser's output over these sources and is
 committed, so the server's tests need no JDK. Regenerate it after changing
@@ -19,5 +22,5 @@ the sources (from this directory, with the plugin installed once by
 ```sh
 rm -rf code-model
 mvn -B -q -ntp -Dnoesis.out=. -Dnoesis.repository=shop -Dnoesis.revision=fixture \
-  process-classes noesis:parse
+  process-test-classes noesis:parse
 ```

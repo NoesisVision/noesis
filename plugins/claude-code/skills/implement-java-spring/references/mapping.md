@@ -105,10 +105,11 @@ A design document written before it could type messages types them as
 - **Event**: the definition calls it an event or says what happened, it is
   named in the past tense, and a behavior outputs it or reacts to it
   (`QDocCreated`).
-- **Enum**: a value object with one `value` property whose `Structure`
-  rule names a closed set of values ("takes exactly one of two values:
-  active, archived") is an `enum` with one constant per value, in upper
-  snake case (`ACTIVE`, `ARCHIVED`).
+- **Enum**: a value object with one `has_state` named `value` whose
+  definition, or a `validation` rule on a behavior that takes it, names a
+  closed set of values ("takes exactly one of two values: active,
+  archived") is an `enum` with one constant per value, in upper snake case
+  (`ACTIVE`, `ARCHIVED`).
 
 An external integration is `Direction.SECONDARY`, a port the domain calls,
 unless its definition says the outside world calls the domain through it;
@@ -130,7 +131,7 @@ package.
 ### Javadoc
 
 A type's Javadoc is its building block's definition. An aggregate's Javadoc
-adds the invariants it protects, one line per rule attached to it. Write
+adds the invariants it protects, one line per rule its behaviors govern. Write
 them in the dominant language of the design document; do not translate.
 
 ## State
@@ -236,16 +237,22 @@ nothing else. What Java writes itself the scanner skips: record accessors,
 
 ## Rules
 
-A rule is enforced in the element it is attached to:
+A rule is enforced by the behaviors that govern it (the `from` of the
+`governs` relations to it), in the place its `kind` says:
 
-| `ruleType`     | Where it lives                                                                                  |
-| -------------- | ----------------------------------------------------------------------------------------------- |
-| `Structure`    | the value object's compact constructor, or the closed set of an enum                            |
-| `Consistency`  | the aggregate or entity: checked by every behavior that could break it, and on creation         |
-| `Computation`  | a pure method of a value object or a domain service, exact in its units, precision and rounding |
-| `State change` | a guard at the start of the behavior it gates                                                   |
+| `kind`          | Where it lives                                                                                                                                              |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `validation`    | the compact constructor of the value object the behavior takes, or the closed set of an enum, for one value's shape; else a guard at the behavior's start   |
+| `state_change`  | a guard at the start of the behavior it gates, on the aggregate or entity whose state moves                                                                 |
+| `post`          | the end of the behavior: the state it leaves, the event it returns or publishes                                                                             |
+| `computation`   | a pure method of a value object or a domain service, exact in its units, precision and rounding                                                             |
+| `coordination`  | the application service's behavior: the order of its calls, what it saves and publishes in one transaction                                                  |
+| `configuration` | a value the behavior is given, never a literal: a constructor parameter of the service or policy that applies it; reading the setting is the adapters' work |
 
-A rule attached to an application service's behavior is either orchestration
+An invariant several behaviors govern is checked by each of them, and on
+creation.
+
+A rule governed by an application service's behavior is either orchestration
 (an authorization check through an external integration, saving and
 publishing in one transaction), which the application service does, or a
 domain invariant, which the domain enforces and the application service only

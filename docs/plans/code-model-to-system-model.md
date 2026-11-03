@@ -41,15 +41,15 @@ vocabulary maps annotation ids to the roles below; everything the stage does
 with an annotation goes through a role, so Java's
 `vision.noesis.annotations` is a second table, not a second builder.
 
-| Role            | Meaning                                                                                                                                 | C# (`NoesisVision.Annotations`)                                                                                                                                                                                                                                                                                                                                                                      |
-| --------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `buildingBlock` | The type is a building block of the given `BuildingBlockType`; `name` overrides its name; a direction argument may pick the type (R4.1) | `DddAggregate` → aggregate, `DddEntity` → entity, `DddValueObject` → value_object, `DddDomainService` → domain_service, `DddApplicationService` → application_service, `DddRepository` → repository, `DddFactory` → factory, `ExternalSystemIntegration` → external_integration; the messages `Command` → command, `Query` → query, `Event` and `DddDomainEvent` → event; `ReadModel` → value_object |
-| `behavior`      | The method is a behavior; `name` overrides its name; it says nothing of a type (R9.4)                                                   | `DomainBehavior`, `EntryPoint` (`TriggeredBy` is not read)                                                                                                                                                                                                                                                                                                                                           |
-| `actor`         | Who calls: `name` goes to the behavior's `visibility.actors`                                                                            | `Actor`                                                                                                                                                                                                                                                                                                                                                                                              |
-| `description`   | The element's description, Markdown                                                                                                     | `ShortDescription` (`markdownText`)                                                                                                                                                                                                                                                                                                                                                                  |
-| `scenario`      | A scenario of the block or behavior, by title only (section 9.9)                                                                        | `Scenario` (`name`)                                                                                                                                                                                                                                                                                                                                                                                  |
-| `exclude`       | The element is not in the system model (section 3)                                                                                      | `ExcludeFromDocs`                                                                                                                                                                                                                                                                                                                                                                                    |
-| ignored         | Read for nothing in this iteration                                                                                                      | `DomainModel`, `NotDomainModel`, `DomainModule`, `DddBoundedContext`, `SkipNamespaceInDomainModulesHierarchy` (section 12: no namespace-wide annotations yet), `DomainObject` alone, `CoreConcept`, `Exemplary`, `PublicContract`, `ExternalContract`, `Process`, everything under `People` except `Actor`, everything under `Technology`                                                            |
+| Role             | Meaning                                                                                                                                 | C# (`NoesisVision.Annotations`)                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `buildingBlock`  | The type is a building block of the given `BuildingBlockType`; `name` overrides its name; a direction argument may pick the type (R4.1) | `DddAggregate` → aggregate, `DddEntity` → entity, `DddValueObject` → value_object, `DddDomainService` → domain_service, `DddApplicationService` → application_service, `DddRepository` → repository, `DddFactory` → factory, `ExternalSystemIntegration` → external_integration; the messages `Command` → command, `Query` → query, `Event` and `DddDomainEvent` → event; `ReadModel` → value_object |
+| `behavior`       | The method is a behavior; `name` overrides its name; it says nothing of a type (R9.4)                                                   | `DomainBehavior`, `EntryPoint` (`TriggeredBy` is not read)                                                                                                                                                                                                                                                                                                                                           |
+| `actor`          | Who calls: `name` goes to the behavior's `visibility.actors`                                                                            | `Actor`                                                                                                                                                                                                                                                                                                                                                                                              |
+| `description`    | The element's description, Markdown                                                                                                     | `ShortDescription` (`markdownText`)                                                                                                                                                                                                                                                                                                                                                                  |
+| `stepDefinition` | The method is a step definition a feature file's `When` step binds to, by its expression (R12)                                          | Reqnroll's `When` (`expression`); Java: Cucumber's `io.cucumber.java.en.When` (`value`)                                                                                                                                                                                                                                                                                                              |
+| `exclude`        | The element is not in the system model (section 3)                                                                                      | `ExcludeFromDocs`                                                                                                                                                                                                                                                                                                                                                                                    |
+| ignored          | Read for nothing in this iteration                                                                                                      | `DomainModel`, `NotDomainModel`, `DomainModule`, `DddBoundedContext`, `SkipNamespaceInDomainModulesHierarchy` (section 12: no namespace-wide annotations yet), `DomainObject` alone, `CoreConcept`, `Exemplary`, `PublicContract`, `ExternalContract`, `Process`, everything under `People` except `Actor`, everything under `Technology`                                                            |
 
 An argument whose literal is `null` (an attribute's optional parameter left
 out, which Roslyn reports as `null`) counts as absent.
@@ -138,8 +138,8 @@ attribute.
 - **R4.5 Description.** The `description` role's text, else the node's
   `documentation`, else null.
 - **R4.6 Source.** The node's first location: `path`, `startLine`.
-- **R4.7 `rules`**: empty; nothing in the annotation package expresses a
-  rule. **`scenarios`**: one per `scenario` role on the type (section 9.9).
+- **R4.7 Rules and scenarios** are no part of a block: they come from
+  feature files (R12) and attach to behaviors.
 
 ## 5. State of a building block
 
@@ -224,7 +224,7 @@ is a block of a collaborator kind (R5.9), when it is a `has_collaborator`.
   skipping) takes the directory of the nearest descendant module's file,
   `line: null`, as the Java parser does today.
 - **R6.5 `description`**: null; the annotation package has no description
-  for a namespace. `rules`: empty.
+  for a namespace.
 
 ## 7. Resolving a type reference
 
@@ -332,12 +332,7 @@ projects is one module.
 - **R9.8 Description.** The `description` role on the method, else its
   `documentation`, else the first either of the other overloads has, else
   null.
-- **R9.9 Scenarios.** One `ScannedScenario` per `scenario` role on the
-  chosen overload and its siblings, with the role's `name` as its name,
-  no description and no steps (the annotation carries a title only; the
-  contract now allows that, section 12). A role without a name, or with one
-  that is no `ElementName`, is dropped with a diagnostic. The same for a
-  block's scenarios (R4.7).
+- **R9.9 Scenarios** come from feature files (R12), not from annotations.
 - **R9.10 Source.** The chosen overload's first location.
 - **R9.11 A `behavior` role on a method of a type that is no block** has no
   home (`BehaviorId` needs a block) and is dropped with a diagnostic; so is
@@ -413,9 +408,9 @@ them.
    one); until it can, a dictionary resolves to nothing. Open: add a pair
    (`{ pairOf: [key, value] }` or a tuple) to `BuildingBlockRef`.
 8. **Looking through unmapped generics** (R7.6) stays.
-9. **Scenarios** are mapped by title only. `ScannedScenario` is relaxed for
-   that: `description` nullable, `steps` may be empty. `DesignedScenario`
-   keeps its steps.
+9. **Scenarios** were mapped by title only, from a `Scenario` annotation;
+   since step 2 of the new model (section 14) they come from feature files
+   with their steps, and the annotation is not read.
 10. **`[assembly: DomainModule]`** and a `DomainModule` without
     `ApplyOnNamespace` are ignored, without a log line.
 11. **Running the first stage.** The C# adapter runs `noesis-parse-csharp`
@@ -506,3 +501,52 @@ The kinds step of the plan (step 3) changed, in short:
 | `ScannedBehavior.type` (R9.4)                            | gone                                                                                     |
 
 `has_collaborator` is unique by `(kind, from, name)`, as `has_state` is.
+
+The rules and scenarios step of the plan (step 2) changed, in short:
+
+| Was                                                           | Is                                                                                  |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `rules` on modules, blocks, behaviors, `category`, `ruleType` | a `rules` list of its own, `kind` the one classification, `governs` from behaviors  |
+| `scenarios` on blocks, behaviors, rules, from `[Scenario]`    | a `scenarios` list of its own, read from feature files, `illustrates` to their rule |
+| the `scenario` role                                           | the `stepDefinition` role on Cucumber's and Reqnroll's `When`                       |
+
+**R12 Rules and scenarios from feature files.** The scan reads every
+`*.feature` file Git tracks under the repository root and hands them to the
+builder beside the code model (`app/scanners/feature-files/`).
+
+- **R12.1 A rule** is a `Rule:` with exactly one kind tag (`@validation`,
+  `@state_change`, `@post`, `@computation`, `@coordination`,
+  `@configuration`); other tags are not read. Its name is the `Rule:` line,
+  its description the text under it, its common indentation taken off,
+  null when there is none; its source the feature file and the `Rule:`'s
+  line.
+- **R12.2 A scenario** is a `Scenario:` or `Scenario Outline:` under a rule:
+  its steps the feature's `Background:` steps, then the rule's, then its
+  own, each as written (`And`, `But`, `*` take the kind before them,
+  `given` at the start; tables and doc strings are not kept). An outline is
+  one scenario, its placeholders as written.
+- **R12.3 Binding.** Each `When` step (and the `And`/`But` after it) is
+  matched to the step definitions' expressions as Cucumber matches them: a
+  regular expression when it starts with `^` or ends with `$`, a Cucumber
+  expression with the built-in parameter types otherwise; an outline's step
+  is matched with its first example's values filled in. Java's repeated
+  `@When` is read through its container annotation. The behaviors the
+  matched methods reach — directly, or through methods that are no
+  behavior, as a call does (R11.2) — must be exactly one: it governs the
+  rule, and the scenario illustrates it.
+- **R12.4 Ids.** A rule is `rule|<module path>.<name>`, in the module of the
+  behavior its first binding scenario reaches; a scenario is
+  `scenario|<rule path>.<name>`. A rule is governed once by each distinct
+  behavior its scenarios reach.
+- **R12.5 Order.** Feature files by path, then as each states its rules; the
+  first of two rules with one id wins, and the first of two scenarios of
+  one name in a rule. Elements are sorted by id, relations as section 14
+  says.
+- **R12.6 Dropped, with a diagnostic:** a file the Gherkin parser refuses; a
+  scenario under no `Rule:`; a rule with no kind tag or with two; a rule or
+  scenario whose name is no `ElementName`; a scenario without steps; a
+  `When` step matching no step definition or several; a scenario whose
+  `When` steps reach no behavior or several; a rule none of whose scenarios
+  binds; a rule or scenario whose id another took first; a step definition
+  whose expression is none (an unknown parameter type, a broken regular
+  expression).

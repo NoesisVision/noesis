@@ -4,6 +4,8 @@ import {
   BuildingBlockId,
   ElementName,
   ModuleId,
+  RuleId,
+  ScenarioId,
 } from '#backend/app/element-id';
 import { SystemModelId } from './system-model-id';
 
@@ -48,52 +50,19 @@ const STATE_TYPES: ReadonlySet<BuildingBlockType> = new Set([
 export const isCollaboratorType = (type: BuildingBlockType): boolean =>
   !STATE_TYPES.has(type);
 
-export const RuleCategory = z
-  .enum(['Business', 'Quality', 'Constraint'])
-  .describe(
-    "What a rule is: 'Business', a truth of the domain; 'Quality', a measurable quality the system must have (ISO/IEC 25010); 'Constraint', a limit imposed on the solution from outside the domain.",
-  );
-export type RuleCategory = z.infer<typeof RuleCategory>;
-
-const BUSINESS_RULE_TYPES = [
-  'Consistency',
-  'Structure',
-  'Computation',
-  'State change',
-] as const;
-const QUALITY_RULE_TYPES = [
-  'Performance',
-  'Security',
-  'Reliability',
-  'Usability',
-  'Compatibility',
-  'Maintainability',
-  'Portability',
-] as const;
-const CONSTRAINT_RULE_TYPES = [
-  'Technology',
-  'Regulation',
-  'Interface',
-  'Organisation',
-] as const;
-
-export const RuleType = z
+export const RuleKind = z
   .enum([
-    ...BUSINESS_RULE_TYPES,
-    ...QUALITY_RULE_TYPES,
-    ...CONSTRAINT_RULE_TYPES,
+    'validation',
+    'state_change',
+    'post',
+    'computation',
+    'coordination',
+    'configuration',
   ])
   .describe(
-    `The kind of rule within its category. Business: ${BUSINESS_RULE_TYPES.join(', ')}. Quality: ${QUALITY_RULE_TYPES.join(', ')}. Constraint: ${CONSTRAINT_RULE_TYPES.join(', ')}.`,
+    "What a rule does: 'validation' accepts or rejects input before anything changes; 'state_change' says how state moves from one value to the next; 'post' must hold, or happen, after a behavior completes; 'computation' derives a value from others; 'coordination' orders or ties together work across behaviors or building blocks; 'configuration' is set by a setting rather than fixed in code.",
   );
-export type RuleType = z.infer<typeof RuleType>;
-
-/** The rule types each category allows. */
-export const RULE_TYPES_OF: Record<RuleCategory, readonly RuleType[]> = {
-  Business: BUSINESS_RULE_TYPES,
-  Quality: QUALITY_RULE_TYPES,
-  Constraint: CONSTRAINT_RULE_TYPES,
-};
+export type RuleKind = z.infer<typeof RuleKind>;
 
 const PRIMITIVE_KIND = 'primitive';
 const PRIMITIVES = [
@@ -173,23 +142,26 @@ export const ScenarioSteps = z
   );
 
 /**
- * A scenario as a scan found it. Code carries a scenario's title and little
- * else, so the description and the steps may be missing; a designed scenario
- * (`DesignedScenario`) has both.
+ * A scenario: a `Scenario:` of a feature file under the `Rule:` it
+ * illustrates, its steps as written there, the feature's and the rule's
+ * `Background:` first.
  */
 export const ScannedScenario = z.strictObject({
+  id: ScenarioId,
   name: ElementName,
   description: z.string().nullable().default(null),
-  steps: z.array(ScenarioStep).default([]),
+  steps: ScenarioSteps,
+  source: SourceLocation,
 });
 export type ScannedScenario = z.infer<typeof ScannedScenario>;
 
+/** A rule: a `Rule:` of a feature file, its kind the tag on it; behaviors govern it. */
 export const ScannedRule = z.strictObject({
+  id: RuleId,
   name: ElementName,
-  category: RuleCategory.default('Business'),
-  ruleType: RuleType,
+  kind: RuleKind,
   description: z.string().nullable().default(null),
-  scenarios: z.array(ScannedScenario).default([]),
+  source: SourceLocation,
 });
 export type ScannedRule = z.infer<typeof ScannedRule>;
 
@@ -197,7 +169,6 @@ export const ScannedDomainModule = z.strictObject({
   id: ModuleId,
   name: ElementName,
   description: z.string().nullable().default(null),
-  rules: z.array(ScannedRule).default([]),
   source: SourceLocation,
 });
 export type ScannedDomainModule = z.infer<typeof ScannedDomainModule>;
@@ -207,8 +178,6 @@ export const ScannedBuildingBlock = z.strictObject({
   name: ElementName,
   type: BuildingBlockType,
   description: z.string().nullable().default(null),
-  rules: z.array(ScannedRule).default([]),
-  scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,
 });
 export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
@@ -218,8 +187,6 @@ export const ScannedBehavior = z.strictObject({
   name: ElementName,
   description: z.string().nullable().default(null),
   visibility: Visibility,
-  rules: z.array(ScannedRule).default([]),
-  scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,
 });
 export type ScannedBehavior = z.infer<typeof ScannedBehavior>;
@@ -246,6 +213,8 @@ export const RelationKind = z.enum([
   'has_input',
   'has_output',
   'invokes',
+  'governs',
+  'illustrates',
 ]);
 export type RelationKind = z.infer<typeof RelationKind>;
 
@@ -311,6 +280,18 @@ export const InvokesRelation = relation('invokes', {
       'The position of the call within the calling behavior, counting from 1; a behavior called twice keeps its first.',
     ),
 }).describe('A behavior calls another, as the `order`th step; never itself.');
+export const GovernsRelation = relation('governs', {
+  from: BehaviorId,
+  to: RuleId,
+}).describe(
+  "A behavior enforces or follows a rule: the behavior the `When` steps of the rule's scenarios invoke.",
+);
+export const IllustratesRelation = relation('illustrates', {
+  from: ScenarioId,
+  to: RuleId,
+}).describe(
+  "A scenario is an example of a rule; the scenario's id path is the rule's path and its own name.",
+);
 
 const relationSchema = z.discriminatedUnion('kind', [
   ContainsRelation,
@@ -321,6 +302,8 @@ const relationSchema = z.discriminatedUnion('kind', [
   HasInputRelation,
   HasOutputRelation,
   InvokesRelation,
+  GovernsRelation,
+  IllustratesRelation,
 ]);
 export type Relation = z.infer<typeof relationSchema>;
 
@@ -377,6 +360,8 @@ export const SystemModel = z
     modules: z.array(ScannedDomainModule).default([]),
     buildingBlocks: z.array(ScannedBuildingBlock).default([]),
     behaviors: z.array(ScannedBehavior).default([]),
+    rules: z.array(ScannedRule).default([]),
+    scenarios: z.array(ScannedScenario).default([]),
     relations: z.array(relationSchema).default([]),
   })
   .describe(

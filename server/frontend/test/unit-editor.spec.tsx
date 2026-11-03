@@ -5,7 +5,6 @@ import {
   applyEdit,
   draftOfUnit,
   newRuleOf,
-  type PartOwner,
   type UnitKind,
   type UnitRef,
   unitOf,
@@ -112,15 +111,7 @@ describe('a designed field', () => {
   });
 });
 
-function Fields({
-  kind,
-  id,
-  owner = null,
-}: {
-  kind: UnitKind;
-  id: string | null;
-  owner?: PartOwner | null;
-}) {
+function Fields({ kind, id }: { kind: UnitKind; id: string | null }) {
   const original =
     id === null ? null : unitOf(document, { kind, id } as UnitRef);
   const state = id === null ? 'added' : 'modified';
@@ -134,7 +125,6 @@ function Fields({
       original={original}
       state={state}
       document={document}
-      owner={owner}
       newNeed={kind === 'need' && id === null}
     />
   );
@@ -166,52 +156,32 @@ describe('the fields of a unit', () => {
 });
 
 describe('the fields of a part', () => {
-  const owner = { kind: 'module', id: 'module|pay' } as const;
-
-  it('classify a rule and trace it to needs', () => {
-    const html = render(<Fields kind="rule" id={null} owner={owner} />);
-    // Each a chip: one category, any number of needs.
-    expect(html).toMatch(/role="radiogroup" aria-label="Category"/);
+  it('give a rule its kind and trace it to needs', () => {
+    const html = render(<Fields kind="rule" id={null} />);
+    // One kind from a list, any number of needs as chips.
+    expect(html).toMatch(/aria-label="Kind"/);
+    expect(html).not.toMatch(/aria-label="Category"/);
     expect(html).toMatch(/<fieldset[^>]*aria-label="Answers the needs"/);
     expect(html).toContain('>Hold a card<');
-    expect(html).toMatch(/aria-label="Rule type"/);
     expect(html).toMatch(/aria-label="Rationale"/);
   });
 
   it('type a property and say how many of the type it holds', () => {
-    const html = render(
-      <Fields
-        kind="property"
-        id={null}
-        owner={{ kind: 'building_block', id: BLOCK }}
-      />,
-    );
+    const html = render(<Fields kind="property" id={null} />);
     expect(html).toMatch(/aria-label="Type"/);
     expect(html).toMatch(/aria-label="How many"/);
     expect(html).not.toContain('A collection of it');
   });
 
   it('name a collaborator and the block it works with, with no count', () => {
-    const html = render(
-      <Fields
-        kind="collaborator"
-        id={null}
-        owner={{ kind: 'building_block', id: BLOCK }}
-      />,
-    );
+    const html = render(<Fields kind="collaborator" id={null} />);
     expect(html).toMatch(/aria-label="Name"/);
     expect(html).toMatch(/aria-label="Works with"/);
     expect(html).not.toMatch(/aria-label="How many"/);
   });
 
   it('starts a new scenario at given, when and then, each a step to switch, remove or add one after', () => {
-    const html = render(
-      <Fields
-        kind="scenario"
-        id={null}
-        owner={{ kind: 'building_block', id: BLOCK }}
-      />,
-    );
+    const html = render(<Fields kind="scenario" id={null} />);
     ['Given', 'When', 'Then'].forEach((keyword, index) => {
       expect(html).toContain(`aria-label="Step ${index + 1}, ${keyword}"`);
       expect(html).toContain(
@@ -227,41 +197,39 @@ describe('the fields of a part', () => {
   });
 });
 
+const SETTLE = 'behavior|pay.Hold.settle';
+const RULE = 'rule|pay.held once';
+const SCENARIO = 'scenario|pay.held once.settles';
 const parts: DesignDocumentInput = {
   ...document,
-  buildingBlocks: {
-    modified: [
+  behaviors: { modified: [{ id: SETTLE }] },
+  rules: {
+    added: [
       {
-        id: BLOCK,
-        rules: {
-          added: [
-            {
-              name: 'held once',
-              category: { value: 'Business' },
-              ruleType: { value: 'Consistency' },
-              description: { value: 'Once.' },
-              needs: { value: [] },
-            },
-          ],
-        },
-        scenarios: {
-          added: [
-            {
-              name: 'settles',
-              description: { value: '' },
-              steps: {
-                value: [
-                  { kind: 'given', text: 'a hold' },
-                  { kind: 'when', text: 'it settles' },
-                  { kind: 'then', text: 'it is gone' },
-                ],
-              },
-            },
+        id: RULE,
+        name: { value: 'held once' },
+        kind: { value: 'validation' },
+        description: { value: 'Once.' },
+        needs: { value: [] },
+      },
+    ],
+    removed: ['rule|pay.gone'],
+  },
+  scenarios: {
+    added: [
+      {
+        id: SCENARIO,
+        name: { value: 'settles' },
+        description: { value: '' },
+        steps: {
+          value: [
+            { kind: 'given', text: 'a hold' },
+            { kind: 'when', text: 'it settles' },
+            { kind: 'then', text: 'it is gone' },
           ],
         },
       },
     ],
-    removed: ['building_block|pay.Old'],
   },
   relations: {
     added: [
@@ -272,6 +240,8 @@ const parts: DesignDocumentInput = {
         to: { value: 'primitive|decimal' },
         cardinality: { value: '1' },
       },
+      { kind: 'governs', from: SETTLE, to: RULE },
+      { kind: 'illustrates', from: SCENARIO, to: RULE },
     ],
     modified: [
       {
@@ -292,14 +262,12 @@ const writing = {
   apply: async () => null,
 };
 const owner = { kind: 'building_block', id: BLOCK } as const;
-const block = parts.buildingBlocks!.modified![0]!;
+const settle = { kind: 'behavior', id: SETTLE } as const;
 const editable = (html: string) =>
   [...html.matchAll(/data-edit="([a-z ]+)"/g)].map((match) => match[1]);
 
 describe('a rule card', () => {
-  const card = (
-    <RuleCards items={ruleItems(BLOCK, block.rules)} owner={owner} />
-  );
+  const card = <RuleCards items={ruleItems(parts, SETTLE)} owner={settle} />;
 
   it('writes its name, kind, description and needs in place', () => {
     const html = render(
@@ -309,11 +277,11 @@ describe('a rule card', () => {
     );
     expect(editable(html)).toEqual([
       'name',
-      'rule type',
+      'kind',
       'description',
       'needs it answers',
     ]);
-    expect(html).toContain('>Business · Consistency<');
+    expect(html).toContain('>Validation<');
     expect(html).toContain('New scenario');
   });
 
@@ -343,7 +311,11 @@ describe('a property tile', () => {
 });
 
 describe("a scenario's buttons", () => {
-  const scenario = { kind: 'scenario', id: 'settles', owner } as const;
+  const scenario = {
+    kind: 'scenario',
+    id: SCENARIO,
+    owner: { ...settle, rule: RULE },
+  } as const;
 
   it('edit it and delete it', () => {
     const html = render(
@@ -355,7 +327,7 @@ describe("a scenario's buttons", () => {
     expect(html).toContain('aria-label="Delete the scenario settles"');
   });
 
-  it('are none where the document is read only, or in a removed element', () => {
+  it('are none where the document is read only, or under a removed rule', () => {
     expect(render(<ScenarioActions scenario={scenario} />)).toBe(render(null));
     expect(
       render(
@@ -363,7 +335,8 @@ describe("a scenario's buttons", () => {
           <ScenarioActions
             scenario={{
               ...scenario,
-              owner: { kind: 'building_block', id: 'building_block|pay.Old' },
+              id: 'scenario|pay.gone.lapses',
+              owner: { ...settle, rule: 'rule|pay.gone' },
             }}
           />
         </UnitEditingContext.Provider>,
@@ -376,20 +349,30 @@ describe('the new buttons', () => {
   it('add a rule, and open a scenario on its rule', () => {
     const html = render(
       <UnitEditingContext.Provider value={writing}>
-        <NewRuleButton owner={owner} />
-        <NewScenarioButton owner={owner} />
+        <NewRuleButton owner={settle} />
+        <NewScenarioButton owner={settle} />
       </UnitEditingContext.Provider>,
     );
     expect(html).toContain('Add rule');
     expect(html).toContain('Add scenario');
   });
 
+  it('open no scenario where no rule is shown to put it under', () => {
+    expect(
+      render(
+        <UnitEditingContext.Provider value={writing}>
+          <NewScenarioButton owner={owner} />
+        </UnitEditingContext.Provider>,
+      ),
+    ).toBe(render(null));
+  });
+
   it('are none where the document is read only', () => {
     expect(
       render(
         <>
-          <NewRuleButton owner={owner} />
-          <NewScenarioButton owner={owner} />
+          <NewRuleButton owner={settle} />
+          <NewScenarioButton owner={settle} />
         </>,
       ),
     ).toBe(render(null));
@@ -397,22 +380,23 @@ describe('the new buttons', () => {
 });
 
 describe('a new rule', () => {
-  it('is named "New rule", a name none of its rules has, and written whole', () => {
-    const edit = newRuleOf(parts, owner);
+  it('is named "New rule" in its behavior\'s module, a name no rule there has, and written whole', () => {
+    const edit = newRuleOf(parts, settle);
     expect(edit).toMatchObject({
       op: 'add',
-      ref: { kind: 'rule', id: 'New rule', owner },
-      unit: {
-        category: { value: 'Business' },
-        ruleType: { value: 'Consistency' },
-      },
+      ref: { kind: 'rule', id: 'rule|pay.New rule', owner: settle },
+      unit: { name: { value: 'New rule' }, kind: { value: 'validation' } },
     });
     const twice = applyEdit(parts, edit);
-    expect(newRuleOf(twice, owner).ref.id).toBe('New rule 2');
+    expect(newRuleOf(twice, settle).ref.id).toBe('rule|pay.New rule 2');
   });
 
-  it('is no business rule in a module', () => {
-    const edit = newRuleOf(parts, { kind: 'module', id: 'module|pay' });
-    expect(edit).toMatchObject({ unit: { category: { value: 'Quality' } } });
+  it('is governed by the behavior it is added under', () => {
+    const next = applyEdit(parts, newRuleOf(parts, settle));
+    expect(next.relations?.added).toContainEqual({
+      kind: 'governs',
+      from: SETTLE,
+      to: 'rule|pay.New rule',
+    });
   });
 });

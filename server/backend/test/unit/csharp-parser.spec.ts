@@ -12,6 +12,7 @@ import {
   UNREACHED,
   behavior as invocation,
 } from '../support/csharp-fixture-expectations';
+import { trackFeatureFiles } from '../support/feature-files';
 import { fixedClock } from '../support/fixed-clock';
 import {
   extendsOf,
@@ -171,7 +172,6 @@ describe('Scanning through the C# parser', () => {
     );
     expect<unknown>(aggregate).toMatchObject({
       description: 'An aggregate with a *short* description.',
-      scenarios: [{ name: 'Aggregate scenario', description: null, steps: [] }],
       source: { path: `${SOURCES}/Blocks/BlockKinds.cs`, line: 10 },
     });
     expect<unknown>(extendsOf(model, block('AggregateBlock'))).toEqual([]);
@@ -271,7 +271,6 @@ describe('Scanning through the C# parser', () => {
       model.behaviors.find((b) => b.id === form('Named behavior')),
     ).toMatchObject({
       description: 'Named by its annotation.',
-      scenarios: [{ name: 'Behavior scenario' }],
       source: { path: `${SOURCES}/Behaviors/BehaviorForms.cs`, line: 23 },
     });
     // An annotated private method is a private behavior; an explicit
@@ -288,6 +287,67 @@ describe('Scanning through the C# parser', () => {
     expect<unknown>(ids(model.behaviors)).not.toContain(
       invocation('SatisfiedByBaseMember.Provided'),
     );
+  });
+
+  it("makes the rules and scenarios of the fixture's feature file, governed by the behaviors its Reqnroll steps invoke", async () => {
+    const FEATURE = `${SOURCES}/Rules/behavior-forms.feature`;
+    await trackFeatureFiles(t.root, REPOSITORY, [FEATURE]);
+    const WIDEST = 'rule|Projection.Behaviors.Overloads take the widest';
+    const NAMED = 'rule|Projection.Behaviors.Named behaviors keep their name';
+
+    const model = SystemModel.parse(await scanner.scan());
+
+    expect<unknown>(model.rules).toEqual([
+      {
+        id: NAMED,
+        name: 'Named behaviors keep their name',
+        kind: 'post',
+        description: null,
+        source: { path: FEATURE, line: 15 },
+      },
+      {
+        id: WIDEST,
+        name: 'Overloads take the widest',
+        kind: 'validation',
+        description:
+          'The overload with the most parameters stands for the behavior.',
+        source: { path: FEATURE, line: 7 },
+      },
+    ]);
+    expect<unknown>(model.scenarios).toEqual([
+      {
+        id: `scenario|${NAMED.slice(5)}.The named behavior runs`,
+        name: 'The named behavior runs',
+        description: null,
+        steps: [
+          { kind: 'given', text: 'a behavior form' },
+          { kind: 'when', text: 'the named behavior runs' },
+          { kind: 'then', text: 'nothing is returned' },
+        ],
+        source: { path: FEATURE, line: 16 },
+      },
+      {
+        id: `scenario|${WIDEST.slice(5)}.One argument`,
+        name: 'One argument',
+        description: null,
+        steps: [
+          { kind: 'given', text: 'a behavior form' },
+          { kind: 'when', text: 'the overloaded behavior runs with 1' },
+          { kind: 'then', text: 'nothing is returned' },
+        ],
+        source: { path: FEATURE, line: 10 },
+      },
+    ]);
+    expect<unknown>(
+      model.relations.filter((r) => r.kind === 'governs'),
+    ).toEqual([
+      { kind: 'governs', from: form('Named behavior'), to: NAMED },
+      { kind: 'governs', from: form('Overloaded'), to: WIDEST },
+    ]);
+    // The step definitions' class is no building block, its methods no behaviors.
+    expect<unknown>(
+      ids(model.buildingBlocks).filter((id) => id.includes('Rules')),
+    ).toEqual([]);
   });
 
   it('derives invokes from the invocation chains of the fixture, by the rules of section 11', async () => {
