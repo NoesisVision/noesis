@@ -52,9 +52,10 @@ export type DesignedScenario = z.infer<typeof DesignedScenario>;
 /*
  * A relation as a design writes it: the scanned shape, with what is not its
  * identity as fields, so a design may change a slot's type or cardinality,
- * or a call's order, without removing and adding the relation. A named slot
- * (`has_state`, `has_input`) is known by its holder and name, so its type is
- * a field; every other relation is known by its ends.
+ * or a call's order, or a parameter's position, without removing and adding
+ * the relation. A named slot (`has_state`, `has_input`) is known by its
+ * holder and name, so its type is a field; every other relation is known by
+ * its ends.
  */
 const designedSlot = {
   to: DesignDocField(TypeRef),
@@ -65,7 +66,10 @@ export const DesignedRelation = z.discriminatedUnion('kind', [
   ExtendsRelation,
   HasStateRelation.extend(designedSlot),
   ExposesRelation,
-  HasInputRelation.extend(designedSlot),
+  HasInputRelation.extend({
+    ...designedSlot,
+    position: DesignDocField(HasInputRelation.shape.position),
+  }),
   HasOutputRelation.extend({ cardinality: DesignDocField(Cardinality) }),
   InvokesRelation.extend({
     order: DesignDocField(InvokesRelation.shape.order),

@@ -644,63 +644,72 @@
       "from": "behavior|discounts.calculation.Discount.apply",
       "to": "building_block|discounts.calculation.DiscountedOffer",
       "name": "discountedOffer",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "to": "building_block|discounts.offers.Offer",
       "name": "offer",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "to": "building_block|discounts.users.UserId",
       "name": "user",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 2
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
       "to": "building_block|discounts.calculation.DiscountedOffer",
       "name": "previous",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.FixedDiscount.apply",
       "to": "building_block|discounts.calculation.DiscountedOffer",
       "name": "previous",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
       "to": "building_block|discounts.calculation.Conditions",
       "name": "conditions",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
       "to": "building_block|discounts.calculation.Conditions",
       "name": "conditions",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.ProductDiscount.apply",
       "to": "building_block|discounts.calculation.DiscountedOffer",
       "name": "previous",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.users.UserStatusProvider.getFor",
       "to": "building_block|discounts.users.UserId",
       "name": "userId",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_output",

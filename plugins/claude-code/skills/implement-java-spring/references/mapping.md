@@ -161,8 +161,9 @@ method `create` of the type `QDoc`.
 
 - **Name**: the behavior's name, verbatim. One name, one behavior: Java
   overloads of it are the same behavior.
-- **Parameters**: the `has_input` relations of the behavior, named as the
-  relations, typed by their `to` and `cardinality` as in [State](#state).
+- **Parameters**: the `has_input` relations of the behavior in the order of
+  their `position`, named as the relations, typed by their `to` and
+  `cardinality` as in [State](#state).
   A `0..1` input that comes last is left out of an overload without it; one
   that does not come last is a parameter that may be `null`, and its
   Javadoc says so. Spring Boot's parent POM compiles with `-parameters`,

@@ -252,8 +252,14 @@ export const HasInputRelation = relation('has_input', {
   to: TypeRef,
   name: ElementName,
   cardinality: Cardinality,
+  position: z
+    .int()
+    .min(1)
+    .describe(
+      'Where the parameter stands in the signature, counting from 1; the parameters of a behavior read in this order.',
+    ),
 }).describe(
-  'A parameter of a behavior: named `name`, typed by `to`, holding `cardinality` values.',
+  'A parameter of a behavior: named `name`, typed by `to`, holding `cardinality` values, the `position`th of its signature.',
 );
 export const HasOutputRelation = relation('has_output', {
   from: BehaviorId,
@@ -301,10 +307,11 @@ export const Relation = Object.assign(relationSchema, {
     NAMED_SLOTS.has(relation.kind)
       ? `${relation.kind}|${relation.from}|#${relation.name}`
       : `${relation.kind}|${relation.from}|${String(relation.to)}`,
-  /** Sorted by kind, from, to, then name or order, so two builds give one file. */
+  /** Sorted by kind, from, position, to, then name or order, so two builds give one file and a signature reads in its order. */
   compare: (a: Relation, b: Relation): number =>
     byCodeUnit(a.kind, b.kind) ||
     byCodeUnit(a.from, b.from) ||
+    positionOf(a) - positionOf(b) ||
     byCodeUnit(a.to, b.to) ||
     byCodeUnit(nameOf(a), nameOf(b)) ||
     orderOf(a) - orderOf(b),
@@ -314,6 +321,8 @@ const nameOf = (relation: Relation) =>
   'name' in relation ? relation.name : '';
 const orderOf = (relation: Relation) =>
   'order' in relation ? relation.order : 0;
+const positionOf = (relation: Relation) =>
+  'position' in relation ? relation.position : 0;
 const byCodeUnit = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 export const SystemModel = z

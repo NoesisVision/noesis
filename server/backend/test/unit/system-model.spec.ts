@@ -209,6 +209,7 @@ describe('A relation', () => {
     to: 'primitive|uuid',
     name: 'customerId',
     cardinality: '1',
+    position: 1,
   };
   const output = {
     kind: 'has_output',

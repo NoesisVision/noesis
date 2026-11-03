@@ -195,7 +195,7 @@ Relation = discriminated on `kind`:
   { kind: 'has_state',        from: BuildingBlockId, to: TypeRef, name, cardinality }
   { kind: 'has_collaborator', from: BuildingBlockId, to: BuildingBlockId, name }
   { kind: 'exposes',          from: BuildingBlockId, to: BehaviorId }
-  { kind: 'has_input',        from: BehaviorId, to: TypeRef, name, cardinality }
+  { kind: 'has_input',        from: BehaviorId, to: TypeRef, name, cardinality, position }
   { kind: 'has_output',       from: BehaviorId, to: TypeRef, cardinality }
   { kind: 'invokes',          from: BehaviorId | ManualProcessId, to: BehaviorId, order }
   { kind: 'governs',          from: BehaviorId, to: RuleId }
@@ -215,8 +215,11 @@ pairs a `contains` may join are a writer's rule, not a schema. `has_input` and
 `has_output` are the diagram's "has in / out" split by direction. A relation
 is unique by `(kind, from, to)`, except `has_state`, `has_input` and
 `has_collaborator`, unique by `(kind, from, name)`: a block may hold two
-slots of one type. Relations are sorted by `kind`, `from`, `to`, then `name`
-or `order`, so two builds give one file.
+slots of one type. A `has_input` carries `position`, where the parameter
+stands in the signature counting from 1 (added while building step 1: the
+sort below would otherwise lose the order a signature is declared in).
+Relations are sorted by `kind`, `from`, `position`, `to`, then `name` or
+`order`, so two builds give one file and a signature reads in its order.
 
 ### 3.3 Ids
 
@@ -351,9 +354,10 @@ gain feature files; the service's unit tests project them.
   has one today; `DesignedRule` keeps `needs` and `rationale`;
   `DesignedScenario` keeps its steps as a field.
 - `relations: changeSet(DesignedRelation, RelationKey)`, keyed as section
-  3.2 says a relation is unique; `cardinality` and `order` are
-  `DesignDocField`s, so a design may change a slot's cardinality or a
-  call's order without removing and re-adding the relation. So is the `to`
+  3.2 says a relation is unique; `cardinality`, `order` and `position` are
+  `DesignDocField`s, so a design may change a slot's cardinality, a
+  call's order or a parameter's place without removing and re-adding the
+  relation. So is the `to`
   of a `has_state` or `has_input`, which is no part of their key: a design
   may change a slot's type in place, and a modified slot need not repeat
   the type it keeps (decided while building step 1). A designed property's

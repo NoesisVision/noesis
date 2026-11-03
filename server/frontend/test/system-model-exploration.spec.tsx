@@ -124,6 +124,7 @@ const model = {
       to: 'building_block|shop.orders.Line',
       name: 'line',
       cardinality: '1',
+      position: 1,
     },
   ],
 } as unknown as SystemModel;
@@ -246,6 +247,7 @@ describe('the exploration of a system model', () => {
           to: 'building_block|shop.orders.Order',
           name: 'order',
           cardinality: '1',
+          position: 1,
         },
       ]),
     );

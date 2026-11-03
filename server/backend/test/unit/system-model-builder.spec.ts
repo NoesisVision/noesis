@@ -1803,8 +1803,8 @@ describe('9. behaviors', () => {
       inputOf(built.model, 'behavior|Sales.Orders.Order.Place'),
     ).toEqual([
       ['other', ORDER, '1'],
-      ['count', 'primitive|integer', '0..1'],
       ['note', 'primitive|string', '0..1'],
+      ['count', 'primitive|integer', '0..1'],
     ]);
     expect<unknown>(messages(built, 'debug')).toEqual([
       expect.stringContaining('parameter token'),

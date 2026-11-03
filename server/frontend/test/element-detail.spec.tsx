@@ -137,6 +137,7 @@ const document = {
         name: 'amount',
         to: plain('building_block|pay.Money'),
         cardinality: plain('1'),
+        position: plain(1),
       },
       {
         kind: 'has_output',

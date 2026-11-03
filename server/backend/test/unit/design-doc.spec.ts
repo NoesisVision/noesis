@@ -236,6 +236,7 @@ describe('The elements a design changes', () => {
             name: 'lines',
             to: { value: 'building_block|sales.refunds.RefundLine' },
             cardinality: { value: '1..*' },
+            position: { value: 1 },
           },
         ],
         removed: [
@@ -470,6 +471,7 @@ describe('The type of a piece of state, an input or an output', () => {
               name: 'lines',
               to: { value: 'building_block|sales.Line' },
               cardinality: { value: '0..*' },
+              position: { value: 1 },
             },
             {
               kind: 'has_output',
@@ -491,6 +493,7 @@ describe('The type of a piece of state, an input or an output', () => {
               name: 'total',
               to: { value: 'primitive|money' },
               cardinality: { value: '1' },
+              position: { value: 1 },
             },
           ],
         }),
@@ -606,6 +609,7 @@ describe('A design document an agent wrote', () => {
         to: ORDER,
         name: 'order',
         cardinality: '1',
+        position: 1,
       },
       {
         kind: 'has_output',

@@ -122,7 +122,8 @@ rules, scenarios. Read it at step 5.
    scenarios that change. Relations are one list, `relations`, beside the
    elements, each `{ "kind", "from", "to", … }`: `has_state` (a block's
    field: `name`, `to` and `cardinality` are fields), `has_input` (a
-   behavior's parameter, the same way), `has_output` (a behavior's result:
+   behavior's parameter, the same way, plus `position`, a field: where it
+   stands in the signature, counting from 1), `has_output` (a behavior's result:
    `to` is its key, `cardinality` a field), `extends`, `exposes`,
    `contains` and `invokes` (`order` a field). A `has_state` or `has_input`
    is known by its holder and `name`, so its type may change in place; a

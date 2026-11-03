@@ -60,11 +60,17 @@ function rules(found: ScannedRule[]) {
 function designedRelation(relation: Relation): DesignedRelation {
   switch (relation.kind) {
     case 'has_state':
+      return {
+        ...relation,
+        to: field(relation.to),
+        cardinality: field(relation.cardinality),
+      };
     case 'has_input':
       return {
         ...relation,
         to: field(relation.to),
         cardinality: field(relation.cardinality),
+        position: field(relation.position),
       };
     case 'has_output':
       return { ...relation, cardinality: field(relation.cardinality) };

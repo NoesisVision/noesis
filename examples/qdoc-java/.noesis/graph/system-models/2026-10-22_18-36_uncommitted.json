@@ -707,91 +707,104 @@
       "from": "behavior|qdocmanagement.notifications.NotificationSender.send",
       "to": "building_block|qdocmanagement.notifications.Notification",
       "name": "notification",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
       "to": "building_block|qdocmanagement.notifications.NotifyUsers",
       "name": "command",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
       "to": "building_block|qdocmanagement.preparation.DocumentType",
       "name": "documentType",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "user",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish",
       "to": "building_block|qdocmanagement.preparation.QDocCreated",
       "name": "event",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.QDoc.create",
       "to": "building_block|qdocmanagement.preparation.CreateQDoc",
       "name": "command",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.QDoc.create",
       "to": "building_block|qdocmanagement.preparation.DocumentNumber",
       "name": "documentNumber",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 2
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.QDoc.create",
       "to": "primitive|datetime",
       "name": "now",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 3
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
       "to": "building_block|qdocmanagement.preparation.CreateQDoc",
       "name": "command",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.QDocRepository.save",
       "to": "building_block|qdocmanagement.preparation.QDoc",
       "name": "qdoc",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.Version.createFirst",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "approvers",
-      "cardinality": "0..*"
+      "cardinality": "0..*",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.Version.createFirst",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "authors",
-      "cardinality": "0..*"
+      "cardinality": "0..*",
+      "position": 2
     },
     {
       "kind": "has_input",
       "from": "behavior|qdocmanagement.preparation.Version.createFirst",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "reviewers",
-      "cardinality": "0..*"
+      "cardinality": "0..*",
+      "position": 3
     },
     {
       "kind": "has_output",

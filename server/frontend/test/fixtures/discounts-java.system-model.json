@@ -764,105 +764,120 @@
       "from": "behavior|discounts.calculation.Discount.apply",
       "to": "building_block|discounts.calculation.DiscountedOffer",
       "name": "discountedOffer",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "to": "building_block|discounts.offers.Offer",
       "name": "offer",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "to": "building_block|discounts.users.UserId",
       "name": "user",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 2
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions",
       "to": "building_block|discounts.calculation.Conditions",
       "name": "conditions",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.DiscountPolicyFactory.get",
       "to": "building_block|discounts.users.UserId",
       "name": "userId",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.DiscountedOffer.applyDiscount",
       "to": "building_block|discounts.calculation.Discount",
       "name": "discount",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.DiscountedOffer.createFrom",
       "to": "building_block|discounts.offers.Offer",
       "name": "offer",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.DiscountedProduct.applyDiscount",
       "to": "building_block|discounts.calculation.ProductDiscount",
       "name": "productDiscount",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.DiscountedProduct.from",
       "to": "building_block|discounts.offers.Product",
       "name": "product",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
       "to": "building_block|discounts.calculation.DiscountedOffer",
       "name": "previous",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.FixedDiscount.apply",
       "to": "building_block|discounts.calculation.DiscountedOffer",
       "name": "previous",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
       "to": "building_block|discounts.calculation.Conditions",
       "name": "conditions",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
       "to": "building_block|discounts.calculation.Conditions",
       "name": "conditions",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.calculation.ProductDiscount.apply",
       "to": "building_block|discounts.calculation.DiscountedOffer",
       "name": "previous",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_input",
       "from": "behavior|discounts.users.UserStatusProvider.getFor",
       "to": "building_block|discounts.users.UserId",
       "name": "userId",
-      "cardinality": "1"
+      "cardinality": "1",
+      "position": 1
     },
     {
       "kind": "has_output",

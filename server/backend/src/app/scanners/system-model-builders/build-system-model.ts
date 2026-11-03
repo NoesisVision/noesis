@@ -615,6 +615,9 @@ class ModelAssembly {
   private collectSignature({ id, chosen }: Behavior): void {
     const scope = this.scopeFor(chosen.artifact, chosen.node);
     const named = new Set<ElementName>();
+    // Numbered as declared, over the parameters that have a word: a gap
+    // left by one that has none would say nothing a reader could use.
+    let position = 0;
     for (const parameter of chosen.node.signature.parameters) {
       const resolved = resolveTypeRef(parameter.type, scope);
       const name = ElementName.safeParse(parameter.name);
@@ -634,6 +637,7 @@ class ModelAssembly {
         cardinality: parameter.optional
           ? optionalOf(resolved.cardinality)
           : resolved.cardinality,
+        position: ++position,
       });
     }
     const returned = resolveTypeRef(chosen.node.signature.returnType, scope);

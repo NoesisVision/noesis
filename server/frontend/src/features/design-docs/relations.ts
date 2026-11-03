@@ -43,6 +43,8 @@ export type RelationLike = {
   from: string;
   to?: unknown;
   name?: string;
+  /** A parameter's place in its signature, as a field. */
+  position?: unknown;
 };
 
 /** Named slots are unique by their holder and name; every other relation by its ends. */
@@ -97,15 +99,28 @@ export function relationsFrom<Kind extends RelationPartKind>(
 ): PartsOf[Kind] {
   const relationKind = RELATION_KIND_OF[kind];
   const from = <Item extends RelationLike>(items: Item[] | undefined) =>
-    (items ?? []).filter(
-      (item) => item.kind === relationKind && item.from === owner,
-    );
+    (items ?? [])
+      .filter((item) => item.kind === relationKind && item.from === owner)
+      .sort((a, b) => positionOf(a) - positionOf(b));
   return {
     added: from(doc.relations?.added),
     modified: from(doc.relations?.modified),
     removed: from(doc.relations?.removed),
   } as unknown as PartsOf[Kind];
 }
+
+/**
+ * Where a parameter stands in its signature, as the design writes it; a
+ * parameter whose position the design keeps unsaid, or anything that is no
+ * parameter, keeps its place in the list.
+ */
+const positionOf = ({ position }: RelationLike): number =>
+  typeof position === 'object' &&
+  position !== null &&
+  'value' in position &&
+  typeof position.value === 'number'
+    ? position.value
+    : Number.MAX_SAFE_INTEGER;
 
 /** The relations of one kind that end at an element: what extends a block, what calls a behavior. */
 export function relationsTo<Kind extends RelationPartKind>(

@@ -63,6 +63,7 @@ const input = (
   name: 'in',
   to: agent(`building_block|${type}`),
   cardinality: agent(cardinality),
+  position: agent(1),
 });
 
 const output = (

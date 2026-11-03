@@ -25,9 +25,11 @@ const from = <K extends Relation['kind']>(
 export const stateOf = (model: Built, block: string): unknown[] =>
   from(model, 'has_state', block).map((r) => [r.name, r.to, r.cardinality]);
 
-/** The `has_input` of a behavior as `[name, to, cardinality]`, in the model's order. */
+/** The `has_input` of a behavior as `[name, to, cardinality]`, by position: as the signature reads. */
 export const inputOf = (model: Built, behavior: string): unknown[] =>
-  from(model, 'has_input', behavior).map((r) => [r.name, r.to, r.cardinality]);
+  from(model, 'has_input', behavior)
+    .sort((a, b) => a.position - b.position)
+    .map((r) => [r.name, r.to, r.cardinality]);
 
 /** The `has_output` of a behavior as `[to, cardinality]`: one or none. */
 export const outputOf = (model: Built, behavior: string): unknown[] =>

@@ -109,9 +109,10 @@ Decide what a table stands for before modelling its rows:
   object that gives a primitive its meaning (`Money`, not `decimal`) when
   the model has one.
 - An input is a `has_input` relation from the behavior: the name the
-  behavior takes it under (`reason`, not `string`), its type in `to` and
+  behavior takes it under (`reason`, not `string`), its type in `to`,
   how many it holds in `cardinality` (`1`, `0..1` when it may be left out,
-  `0..*` or `1..*` for a collection). An output is a `has_output` relation:
+  `0..*` or `1..*` for a collection) and its `position` in the signature,
+  counting from 1. An output is a `has_output` relation:
   no name, its type in `to` and its cardinality. A block's state is a
   `has_state` relation the same way. What a slot means is the definition
   of the block it points at; a relation carries no description.

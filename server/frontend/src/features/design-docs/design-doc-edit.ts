@@ -16,6 +16,7 @@ import type {
   ScenarioStep,
   Visibility,
 } from '#backend/app/system-model/system-model.ts';
+import { writtenIn } from './change-set.ts';
 import {
   type DesignDocFieldInput,
   draftOf,
@@ -41,6 +42,7 @@ import {
   type RelationPartKind,
   relationKeyOf,
   relationKeyOfPart,
+  relationsFrom,
   removalKeyOfPart,
 } from './relations.ts';
 
@@ -247,13 +249,15 @@ export function applyEdit<Doc extends DesignDocumentInput>(
 ): Doc {
   const { ref } = edit;
   switch (edit.op) {
-    case 'add':
+    case 'add': {
+      const unit = placed(doc, ref, edit.unit);
       return updateAt(doc, ref, (set) => ({
         ...set,
         added: edit.first
-          ? [edit.unit, ...(set.added ?? [])]
-          : [...(set.added ?? []), edit.unit],
+          ? [unit, ...(set.added ?? [])]
+          : [...(set.added ?? []), unit],
       }));
+    }
     case 'write':
       return written(doc, ref, edit.unit);
     case 'discard':
@@ -672,11 +676,40 @@ function relationFromDraft(
       to: id,
       cardinality: written('cardinality', 'cardinality'),
     } as Unit;
-  return {
+  const slot = {
     ...relation,
     name: id,
     to: written('ref', 'to'),
     cardinality: written('cardinality', 'cardinality'),
+  };
+  if (kind === 'property') return slot as Unit;
+  // A parameter keeps the place it has; a new one is placed when it is added.
+  return (
+    original === null
+      ? slot
+      : { ...slot, position: fieldOf(original, 'position') }
+  ) as Unit;
+}
+
+/**
+ * A parameter added takes the place after the last the design gives the
+ * behavior. The design does not see the scanned parameters, so one added
+ * to a scanned behavior may share a place with one of theirs; they then
+ * read in the order they stand.
+ */
+function placed(doc: DesignDocumentInput, ref: UnitRef, unit: Unit): Unit {
+  if (ref.kind !== 'parameter' || !('owner' in ref)) return unit;
+  if (isRelation(unit) && 'position' in unit) return unit;
+  const taken = writtenIn(relationsFrom(doc, 'parameter', ref.owner.id))
+    .map(({ position }) => valueOf(position))
+    .filter((position): position is number => typeof position === 'number');
+  return {
+    ...unit,
+    position: {
+      changed: true,
+      value: Math.max(0, ...taken) + 1,
+      author: 'human',
+    },
   } as Unit;
 }
 

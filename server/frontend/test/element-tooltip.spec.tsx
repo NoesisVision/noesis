@@ -46,6 +46,7 @@ const document = {
         name: 'amount',
         to: plain('building_block|pay.Money'),
         cardinality: plain('1'),
+        position: plain(1),
       },
       {
         kind: 'has_output',
@@ -59,6 +60,16 @@ const document = {
         name: 'reason',
         to: plain('primitive|string'),
         cardinality: plain('1'),
+        position: plain(2),
+      },
+      // Listed after the reason, yet first in the signature.
+      {
+        kind: 'has_input',
+        from: 'behavior|pay.Hold.release',
+        name: 'by',
+        to: plain('primitive|string'),
+        cardinality: plain('1'),
+        position: plain(1),
       },
       {
         kind: 'has_output',
@@ -120,7 +131,8 @@ describe('ElementTooltip', () => {
     expect(html.indexOf('>Behaviors<')).toBeLessThan(
       html.indexOf('>Properties<'),
     );
-    expect(html).toMatch(/>release\(reason: string\)</);
+    // Its parameters in the order of their positions, not of the document.
+    expect(html).toMatch(/>release\(by: string, reason: string\)</);
     expect(html).toMatch(/>balance\(\): <span[^>]*>Money<\/span>/);
     // One whose kind the design leaves as it is still listed.
     expect(html).toMatch(/>place\(amount: Money\): <span[^>]*>Hold<\/span>/);

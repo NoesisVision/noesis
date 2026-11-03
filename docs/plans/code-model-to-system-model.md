@@ -302,8 +302,10 @@ projects is one module.
   `actor` roles on the method, on the members it overrides or implements,
   and on the containing type, as names, sorted and unique.
 - **R9.6 Input.** One `has_input` relation per parameter whose type
-  resolves (section 7): `name`, `to`, and `cardinality` by R5.4, `0..1`
-  also when the parameter is `optional` (has a default). A parameter whose
+  resolves (section 7): `name`, `to`, `cardinality` by R5.4, `0..1`
+  also when the parameter is `optional` (has a default), and `position`,
+  the parameter's place among those that resolve, counting from 1 in
+  declaration order. A parameter whose
   type resolves to nothing is left out (`CancellationToken`, a `Func<…>`),
   with a debug diagnostic.
 - **R9.7 Output.** The return type resolved through R7.1 first: nothing for
@@ -456,20 +458,21 @@ into one `relations` list of the `SystemModel`, each
 `{ kind, from, to, … }` carrying only what the diagram puts on the edge.
 The rules above are edited to it; what changed, in short:
 
-| Was                                            | Is                                                                     |
-| ---------------------------------------------- | ---------------------------------------------------------------------- |
-| `ScannedBuildingBlock.implements`              | `extends` relations (R4.4)                                             |
-| `ScannedBuildingBlock.properties` (`optional`) | `has_state` relations with `name`, `to`, `cardinality` (section 5)     |
-| `ScannedBehavior.buildingBlockId`              | `exposes` relations (R9.3); the block is still in the id               |
-| `ScannedBehavior.input`, `output`              | `has_input`, `has_output` relations with `cardinality` (R9.6, R9.7)    |
-| `ScannedBehavior.invokes: BehaviorId[]`        | `invokes` relations with `order` (R11.3)                               |
-| `{ collectionOf }`                             | the element type as `to` with the cardinality `0..*` (R7.3)            |
-| nothing                                        | `contains` relations from each module to its modules and blocks (R6.2) |
+| Was                                            | Is                                                                                       |
+| ---------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `ScannedBuildingBlock.implements`              | `extends` relations (R4.4)                                                               |
+| `ScannedBuildingBlock.properties` (`optional`) | `has_state` relations with `name`, `to`, `cardinality` (section 5)                       |
+| `ScannedBehavior.buildingBlockId`              | `exposes` relations (R9.3); the block is still in the id                                 |
+| `ScannedBehavior.input`, `output`              | `has_input` with `cardinality`, `position`; `has_output` with `cardinality` (R9.6, R9.7) |
+| `ScannedBehavior.invokes: BehaviorId[]`        | `invokes` relations with `order` (R11.3)                                                 |
+| `{ collectionOf }`                             | the element type as `to` with the cardinality `0..*` (R7.3)                              |
+| nothing                                        | `contains` relations from each module to its modules and blocks (R6.2)                   |
 
 A slot's type (`to`) is a block id or a `primitive|…`, never a wrapper; its
 `cardinality` is one of `0..1`, `1`, `0..*`, `1..*`. A relation is unique by
 `(kind, from, to)`, except `has_state` and `has_input`, unique by
-`(kind, from, name)`; the list is sorted by `kind`, `from`, `to`, then `name`
-or `order`. A member's documentation (R5.6) is no longer in the model. The
+`(kind, from, name)`; the list is sorted by `kind`, `from`, `position`, `to`,
+then `name` or `order`, so a behavior's parameters keep the order they are
+declared in. A member's documentation (R5.6) is no longer in the model. The
 design document mirrors the list as one `relations` change set
 (`server/backend/src/app/design-docs/design-doc.ts`).

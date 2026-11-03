@@ -271,6 +271,7 @@ export const designDocFixture = {
         name: 'orderId',
         to: byAgent('primitive|uuid'),
         cardinality: byAgent('1'),
+        position: byAgent(1),
       },
       {
         kind: 'has_input',
@@ -278,6 +279,7 @@ export const designDocFixture = {
         name: 'lines',
         to: byAgent(REFUND_LINE),
         cardinality: byAgent('1..*'),
+        position: byAgent(2),
       },
       {
         kind: 'has_input',
@@ -285,6 +287,7 @@ export const designDocFixture = {
         name: 'reason',
         to: byHuman('primitive|string'),
         cardinality: byAgent('0..1'),
+        position: byAgent(3),
       },
       {
         kind: 'has_output',
@@ -326,6 +329,7 @@ export const designDocFixture = {
         name: 'reason',
         to: unchanged,
         cardinality: byAgent('0..1'),
+        position: unchanged,
       },
       {
         kind: 'has_output',

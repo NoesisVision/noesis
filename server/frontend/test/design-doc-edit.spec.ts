@@ -22,6 +22,7 @@ import {
   unitStateOf,
   violationsOf,
 } from '../src/features/design-docs/design-doc-edit';
+import { valueOf } from '../src/features/design-docs/design-doc-field';
 
 const agent = <const T>(value: T) => ({ value, author: 'agent' as const });
 
@@ -578,6 +579,46 @@ describe('a part', () => {
       ref: { kind: 'building_block', id: HOLD },
     });
     expect(gone.relations?.added).toEqual([]);
+  });
+
+  it('places a parameter added after the last the design gives the behavior, and keeps the place of one written', () => {
+    const owner = { kind: 'behavior', id: SETTLE } as const;
+    const parameter = (name: string) => {
+      const draft = draftOfUnit('parameter', null, 'added');
+      draft.fields.name = { written: true, value: name };
+      draft.fields.ref = { written: true, value: HOLD };
+      draft.fields.cardinality = { written: true, value: '1' };
+      return draft;
+    };
+    const added = (document: DesignDocumentInput, name: string) =>
+      applyEdit(document, {
+        op: 'add',
+        ref: { kind: 'parameter', id: name, owner },
+        unit: unitFromDraft('parameter', parameter(name), null, name, owner),
+      });
+    const next = added(added(doc(), 'hold'), 'reason');
+    const positions = (document: DesignDocumentInput) =>
+      (document.relations?.added ?? [])
+        .filter((relation) => relation.kind === 'has_input')
+        .map((relation) => [relation.name, valueOf(relation.position)]);
+    expect(positions(next)).toEqual([
+      ['hold', 1],
+      ['reason', 2],
+    ]);
+    // Written anew, the first keeps its place.
+    const ref = { kind: 'parameter', id: 'hold', owner } as const;
+    const original = unitOf(next, ref);
+    const draft = draftOfUnit('parameter', original, 'added');
+    draft.fields.cardinality = { written: true, value: '0..1' };
+    const written = applyEdit(next, {
+      op: 'write',
+      ref,
+      unit: unitFromDraft('parameter', draft, original, 'hold', owner),
+    });
+    expect(positions(written)).toEqual([
+      ['hold', 1],
+      ['reason', 2],
+    ]);
   });
 
   it('is refused a rule type outside its category, and a module a business rule', () => {
