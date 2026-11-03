@@ -12,7 +12,11 @@ the chain `handle → logTotal → total`, the `internal` package
 count for the interface's behaviors, and in the tests the Cucumber step
 definitions `OrderSteps` with the feature file
 `shop-domain/src/test/resources/features/placing-orders.feature` whose `When`
-steps bind to them (the parser reads the test sources too).
+steps bind to them (the parser reads the test sources too). `Order`'s
+`currency`, behind its getter, is a `javax.money.CurrencyUnit` of the money
+API (`javax.money:money-api`), a dependency no scan parses: the library
+manifest `.noesis/libraries/money-api.json` lists it, so the stub resolves to
+a block of the model (R14).
 
 `code-model/` is the Java parser's output over these sources and is
 committed, so the server's tests need no JDK. Regenerate it after changing

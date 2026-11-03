@@ -54,11 +54,19 @@ beforeEach(async () => {
     join(FIXTURE, '.noesis', 'settings.json'),
     t.noesis.resolve('settings.json'),
   );
+  // The money API is a dependency no scan parses, described by hand (R14).
+  await cp(
+    join(FIXTURE, '.noesis', 'libraries'),
+    t.noesis.resolve('libraries'),
+    { recursive: true },
+  );
 });
 
 afterEach(() => t.cleanup());
 
 const ids = (items: readonly { id: string }[]) => items.map((item) => item.id);
+/** The money API's currency, as .noesis/libraries/money-api.json lists it. */
+const CURRENCY = 'building_block|javax.money.Currency';
 
 describe('A Java repository scanned through its Maven plugin', () => {
   it('builds the system model of the code model the plugin wrote by the Java vocabulary', async () => {
@@ -69,9 +77,13 @@ describe('A Java repository scanned through its Maven plugin', () => {
     expect<unknown>(model.scanned_at).toBe(NOW);
 
     // com.acme is skipped by .noesis/settings.json, *.internal excluded; the
-    // infrastructure module has no blocks.
+    // infrastructure module has no blocks. The money API's package holds
+    // only a listed block, so its modules sit at the manifest (R14.2).
     const domain = 'shop-domain/src/main/java/com/acme/shop';
+    const moneyApi = { path: '.noesis/libraries/money-api.json', line: null };
     expect<unknown>(model.modules.map((m) => [m.id, m.source])).toEqual([
+      ['module|javax', moneyApi],
+      ['module|javax.money', moneyApi],
       ['module|shop', { path: `${domain}/internal/Hidden.java`, line: 1 }],
       ['module|shop.orders', { path: `${domain}/orders/Money.java`, line: 1 }],
       [
@@ -85,15 +97,39 @@ describe('A Java repository scanned through its Maven plugin', () => {
     ]);
 
     // R13: a Maven module that declares a block is a library, as none has a
-    // main class; shop-infrastructure declares none, so it is nothing.
+    // main class; shop-infrastructure declares none, so it is nothing. R14:
+    // the money API's manifest is a library too, of the block it lists.
     expect<unknown>(model.deployableUnits).toEqual([]);
-    expect<unknown>(ids(model.libraries)).toEqual(['library|shop-domain']);
-    expect<unknown>(model.libraries[0]?.source).toEqual({
-      path: 'shop-domain',
-      line: null,
+    expect<unknown>(model.libraries).toEqual([
+      {
+        id: 'library|money-api',
+        name: 'money-api',
+        description:
+          'JSR 354, the Java money API: a dependency the scan never parses.',
+        source: moneyApi,
+      },
+      {
+        id: 'library|shop-domain',
+        name: 'shop-domain',
+        description: null,
+        source: { path: 'shop-domain', line: null },
+      },
+    ]);
+    expect<unknown>(
+      model.relations.filter((r) => r.from === 'library|money-api'),
+    ).toEqual([{ kind: 'contains', from: 'library|money-api', to: CURRENCY }]);
+    expect<unknown>(
+      model.buildingBlocks.find((b) => b.id === CURRENCY),
+    ).toEqual({
+      id: CURRENCY,
+      name: 'Currency',
+      type: 'value_object',
+      description: 'A currency, by its ISO 4217 code.',
+      source: moneyApi,
     });
 
     expect<unknown>(model.buildingBlocks.map((b) => [b.id, b.type])).toEqual([
+      [CURRENCY, 'value_object'],
       ['building_block|shop.orders.Money', 'value_object'],
       ['building_block|shop.orders.Order', 'aggregate'],
       ['building_block|shop.orders.Order Repository', 'repository'],
@@ -111,7 +147,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
     const order = model.buildingBlocks.find((b) => b.name === 'Order');
     expect<unknown>(order).toMatchObject({
       description: 'An order *placed* by a customer.',
-      source: { path: `${domain}/orders/Order.java`, line: 14 },
+      source: { path: `${domain}/orders/Order.java`, line: 15 },
     });
     const state = (name: string) =>
       stateOf(model, `building_block|shop.orders.${name}`);
@@ -121,9 +157,11 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ),
     ).toEqual([]);
     // A class's private fields are no state unless a getter exposes them
-    // (R5.8), and Order has none; a record's components are (R5.7), the
-    // UUID a primitive, OrderId a block.
-    expect<unknown>(state('Order')).toEqual([]);
+    // (R5.8), and Order has one: its currency, a type of the money API the
+    // code reaches only as a stub, which the library manifest makes a block
+    // (R14). A record's components are state (R5.7), the UUID a primitive,
+    // OrderId a block.
+    expect<unknown>(state('Order')).toEqual([['currency', CURRENCY, '1']]);
     expect<unknown>(state('PlaceOrder')).toEqual([
       ['orderId', 'building_block|shop.orders.OrderId', '1'],
       ['note', 'primitive|string', '1'],
@@ -249,7 +287,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
       model.behaviors.find((b) => b.name === 'placeOrder'),
     ).toMatchObject({
       description: 'Places the order.',
-      source: { path: `${domain}/orders/Order.java`, line: 42 },
+      source: { path: `${domain}/orders/Order.java`, line: 44 },
     });
 
     // Calls, directly and through methods that are no behavior: handle →
@@ -302,6 +340,8 @@ describe('A Java repository scanned through its Maven plugin', () => {
       'module|com.acme.shop.orders',
       'module|com.acme.shop.pricing',
       'module|com.acme.shop.products',
+      'module|javax',
+      'module|javax.money',
     ]);
   });
 

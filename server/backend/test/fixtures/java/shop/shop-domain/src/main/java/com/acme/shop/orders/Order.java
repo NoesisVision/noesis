@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.money.CurrencyUnit;
 import vision.noesis.annotations.AggregateRoot;
 import vision.noesis.annotations.QueryHandler;
 import vision.noesis.annotations.Repository;
@@ -20,6 +21,7 @@ public class Order {
     private Money discount;
     private Instant placedOn;
     private OrderStatus status = OrderStatus.NEW;
+    private CurrencyUnit currency;
 
     private Order(OrderId id) {
         this.id = id;
@@ -51,6 +53,11 @@ public class Order {
         Money sum = Money.zero("EUR");
         for (OrderLine line : lines) sum = sum.add(line.price());
         return discount == null ? sum : sum.add(new Money(-discount.amount(), sum.currency()));
+    }
+
+    /** The currency the order is priced in: a type of a library no scan reads, which .noesis/libraries/money-api.json lists. */
+    public CurrencyUnit getCurrency() {
+        return currency;
     }
 
     public void persist(Repository repository) {

@@ -27,6 +27,14 @@
         "package": null
       },
       {
+        "id": "A:javax.money:money-api@1.1",
+        "kind": "library",
+        "package": {
+          "id": "javax.money:money-api",
+          "version": "1.1"
+        }
+      },
+      {
         "id": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT",
         "kind": "library",
         "package": {
@@ -138,15 +146,45 @@
     },
     {
       "kind": "field",
+      "id": "F:com.acme.shop.orders.Order.currency",
+      "name": "currency",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
+          "startLine": 24,
+          "startColumn": 5,
+          "endLine": 24,
+          "endColumn": 35
+        }
+      ],
+      "annotations": [],
+      "documentation": null,
+      "languageSpecific": {},
+      "fieldKind": "field",
+      "visibility": "private",
+      "modifiers": [],
+      "type": {
+        "kind": "named",
+        "type": "T:javax.money.CurrencyUnit",
+        "typeArguments": [],
+        "unbound": false,
+        "nullable": false
+      },
+      "passing": "value",
+      "constantValue": null
+    },
+    {
+      "kind": "field",
       "id": "F:com.acme.shop.orders.Order.discount",
       "name": "discount",
       "origin": "declared",
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 20,
+          "startLine": 21,
           "startColumn": 5,
-          "endLine": 20,
+          "endLine": 21,
           "endColumn": 28
         }
       ],
@@ -174,9 +212,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 17,
+          "startLine": 18,
           "startColumn": 5,
-          "endLine": 17,
+          "endLine": 18,
           "endColumn": 30
         }
       ],
@@ -204,9 +242,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 18,
+          "startLine": 19,
           "startColumn": 5,
-          "endLine": 18,
+          "endLine": 19,
           "endColumn": 61
         }
       ],
@@ -242,9 +280,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 21,
+          "startLine": 22,
           "startColumn": 5,
-          "endLine": 21,
+          "endLine": 22,
           "endColumn": 30
         }
       ],
@@ -272,9 +310,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 19,
+          "startLine": 20,
           "startColumn": 5,
-          "endLine": 19,
+          "endLine": 20,
           "endColumn": 72
         }
       ],
@@ -317,9 +355,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 22,
+          "startLine": 23,
           "startColumn": 5,
-          "endLine": 22,
+          "endLine": 23,
           "endColumn": 50
         }
       ],
@@ -1317,9 +1355,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 24,
+          "startLine": 26,
           "startColumn": 5,
-          "endLine": 26,
+          "endLine": 28,
           "endColumn": 6
         }
       ],
@@ -1366,9 +1404,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 37,
+          "startLine": 39,
           "startColumn": 5,
-          "endLine": 39,
+          "endLine": 41,
           "endColumn": 6
         }
       ],
@@ -1415,9 +1453,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 32,
+          "startLine": 34,
           "startColumn": 5,
-          "endLine": 35,
+          "endLine": 37,
           "endColumn": 6
         }
       ],
@@ -1478,9 +1516,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 28,
+          "startLine": 30,
           "startColumn": 5,
-          "endLine": 30,
+          "endLine": 32,
           "endColumn": 6
         }
       ],
@@ -1531,9 +1569,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 60,
+          "startLine": 67,
           "startColumn": 5,
-          "endLine": 62,
+          "endLine": 69,
           "endColumn": 6
         }
       ],
@@ -1574,15 +1612,51 @@
     },
     {
       "kind": "method",
+      "id": "M:com.acme.shop.orders.Order#getCurrency()",
+      "name": "getCurrency",
+      "origin": "declared",
+      "locations": [
+        {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
+          "startLine": 59,
+          "startColumn": 5,
+          "endLine": 61,
+          "endColumn": 6
+        }
+      ],
+      "annotations": [],
+      "documentation": "The currency the order is priced in: a type of a library no scan reads, which .noesis/libraries/money-api.json lists.",
+      "languageSpecific": {},
+      "methodKind": "method",
+      "visibility": "public",
+      "modifiers": ["virtual"],
+      "typeParameters": [],
+      "signature": {
+        "parameters": [],
+        "returnType": {
+          "kind": "named",
+          "type": "T:javax.money.CurrencyUnit",
+          "typeArguments": [],
+          "unbound": false,
+          "nullable": false
+        },
+        "returnPassing": "value",
+        "returnAnnotations": []
+      },
+      "extensionReceiver": null,
+      "bodiless": false
+    },
+    {
+      "kind": "method",
       "id": "M:com.acme.shop.orders.Order#persist(com.acme.shop.orders.Order+Repository)",
       "name": "persist",
       "origin": "declared",
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 56,
+          "startLine": 63,
           "startColumn": 5,
-          "endLine": 58,
+          "endLine": 65,
           "endColumn": 6
         }
       ],
@@ -1629,9 +1703,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 42,
+          "startLine": 44,
           "startColumn": 5,
-          "endLine": 46,
+          "endLine": 48,
           "endColumn": 6
         }
       ],
@@ -1661,9 +1735,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 64,
+          "startLine": 71,
           "startColumn": 5,
-          "endLine": 67,
+          "endLine": 74,
           "endColumn": 6
         }
       ],
@@ -1708,9 +1782,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 49,
+          "startLine": 51,
           "startColumn": 5,
-          "endLine": 54,
+          "endLine": 56,
           "endColumn": 6
         }
       ],
@@ -1755,9 +1829,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 72,
+          "startLine": 79,
           "startColumn": 9,
-          "endLine": 72,
+          "endLine": 79,
           "endColumn": 33
         }
       ],
@@ -1808,9 +1882,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 74,
+          "startLine": 81,
           "startColumn": 9,
-          "endLine": 74,
+          "endLine": 81,
           "endColumn": 32
         }
       ],
@@ -4276,9 +4350,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 14,
+          "startLine": 15,
           "startColumn": 1,
-          "endLine": 76,
+          "endLine": 83,
           "endColumn": 2
         }
       ],
@@ -4312,9 +4386,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 70,
+          "startLine": 77,
           "startColumn": 5,
-          "endLine": 75,
+          "endLine": 82,
           "endColumn": 6
         }
       ],
@@ -4699,9 +4773,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 22,
+          "startLine": 23,
           "startColumn": 34,
-          "endLine": 22,
+          "endLine": 23,
           "endColumn": 49
         },
         "viaClosure": false,
@@ -4771,9 +4845,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 25,
+          "startLine": 27,
           "startColumn": 9,
-          "endLine": 25,
+          "endLine": 27,
           "endColumn": 16
         },
         "viaClosure": false,
@@ -4789,9 +4863,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 33,
+          "startLine": 35,
           "startColumn": 9,
-          "endLine": 33,
+          "endLine": 35,
           "endColumn": 14
         },
         "viaClosure": false,
@@ -4807,9 +4881,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 34,
+          "startLine": 36,
           "startColumn": 9,
-          "endLine": 34,
+          "endLine": 36,
           "endColumn": 19
         },
         "viaClosure": false,
@@ -4825,9 +4899,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 61,
+          "startLine": 68,
           "startColumn": 28,
-          "endLine": 61,
+          "endLine": 68,
           "endColumn": 30
         },
         "viaClosure": false,
@@ -4843,9 +4917,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 61,
+          "startLine": 68,
           "startColumn": 9,
-          "endLine": 61,
+          "endLine": 68,
           "endColumn": 19
         },
         "viaClosure": false,
@@ -4855,15 +4929,33 @@
     },
     {
       "kind": "ACCESSES",
+      "from": "M:com.acme.shop.orders.Order#getCurrency()",
+      "to": "F:com.acme.shop.orders.Order.currency",
+      "access": "read",
+      "site": {
+        "location": {
+          "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
+          "startLine": 60,
+          "startColumn": 16,
+          "endLine": 60,
+          "endColumn": 24
+        },
+        "viaClosure": false,
+        "languageSpecific": {}
+      },
+      "receiver": "this"
+    },
+    {
+      "kind": "ACCESSES",
       "from": "M:com.acme.shop.orders.Order#placeOrder()",
       "to": "F:com.acme.shop.orders.Order.placedOn",
       "access": "write",
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 44,
+          "startLine": 46,
           "startColumn": 9,
-          "endLine": 44,
+          "endLine": 46,
           "endColumn": 17
         },
         "viaClosure": false,
@@ -4879,9 +4971,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 43,
+          "startLine": 45,
           "startColumn": 9,
-          "endLine": 43,
+          "endLine": 45,
           "endColumn": 15
         },
         "viaClosure": false,
@@ -4897,9 +4989,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 43,
+          "startLine": 45,
           "startColumn": 18,
-          "endLine": 43,
+          "endLine": 45,
           "endColumn": 36
         },
         "viaClosure": false,
@@ -4915,9 +5007,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 66,
+          "startLine": 73,
           "startColumn": 27,
-          "endLine": 66,
+          "endLine": 73,
           "endColumn": 29
         },
         "viaClosure": false,
@@ -4933,9 +5025,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 66,
+          "startLine": 73,
           "startColumn": 61,
-          "endLine": 66,
+          "endLine": 73,
           "endColumn": 69
         },
         "viaClosure": false,
@@ -4951,9 +5043,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 66,
+          "startLine": 73,
           "startColumn": 46,
-          "endLine": 66,
+          "endLine": 73,
           "endColumn": 52
         },
         "viaClosure": false,
@@ -4969,9 +5061,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 53,
+          "startLine": 55,
           "startColumn": 16,
-          "endLine": 53,
+          "endLine": 55,
           "endColumn": 24
         },
         "viaClosure": false,
@@ -4987,9 +5079,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 53,
+          "startLine": 55,
           "startColumn": 60,
-          "endLine": 53,
+          "endLine": 55,
           "endColumn": 68
         },
         "viaClosure": false,
@@ -5005,9 +5097,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 52,
+          "startLine": 54,
           "startColumn": 31,
-          "endLine": 52,
+          "endLine": 54,
           "endColumn": 36
         },
         "viaClosure": false,
@@ -5581,6 +5673,11 @@
     {
       "kind": "CONTAINS",
       "from": "T:com.acme.shop.orders.Order",
+      "to": "F:com.acme.shop.orders.Order.currency"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.Order",
       "to": "F:com.acme.shop.orders.Order.discount"
     },
     {
@@ -5632,6 +5729,11 @@
       "kind": "CONTAINS",
       "from": "T:com.acme.shop.orders.Order",
       "to": "M:com.acme.shop.orders.Order#debug(com.acme.shop.orders.Money)"
+    },
+    {
+      "kind": "CONTAINS",
+      "from": "T:com.acme.shop.orders.Order",
+      "to": "M:com.acme.shop.orders.Order#getCurrency()"
     },
     {
       "kind": "CONTAINS",
@@ -6210,6 +6312,25 @@
       }
     },
     {
+      "kind": "EXTENDS",
+      "from": "T:javax.money.CurrencyUnit",
+      "to": {
+        "kind": "named",
+        "type": "T:java.lang.Comparable`1",
+        "typeArguments": [
+          {
+            "kind": "named",
+            "type": "T:javax.money.CurrencyUnit",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          }
+        ],
+        "unbound": false,
+        "nullable": false
+      }
+    },
+    {
       "kind": "IMPLEMENTS",
       "from": "T:java.io.OutputStream",
       "to": {
@@ -6733,9 +6854,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 18,
+          "startLine": 19,
           "startColumn": 43,
-          "endLine": 18,
+          "endLine": 19,
           "endColumn": 60
         },
         "viaClosure": false,
@@ -6767,9 +6888,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 19,
+          "startLine": 20,
           "startColumn": 56,
-          "endLine": 19,
+          "endLine": 20,
           "endColumn": 71
         },
         "viaClosure": false,
@@ -6904,9 +7025,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 24,
+          "startLine": 26,
           "startColumn": 5,
-          "endLine": 24,
+          "endLine": 26,
           "endColumn": 5
         },
         "viaClosure": false,
@@ -6925,9 +7046,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 38,
+          "startLine": 40,
           "startColumn": 9,
-          "endLine": 38,
+          "endLine": 40,
           "endColumn": 28
         },
         "viaClosure": false,
@@ -6944,9 +7065,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 33,
+          "startLine": 35,
           "startColumn": 19,
-          "endLine": 33,
+          "endLine": 35,
           "endColumn": 51
         },
         "viaClosure": false,
@@ -6963,9 +7084,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 33,
+          "startLine": 35,
           "startColumn": 9,
-          "endLine": 33,
+          "endLine": 35,
           "endColumn": 52
         },
         "viaClosure": false,
@@ -6982,9 +7103,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 34,
+          "startLine": 36,
           "startColumn": 9,
-          "endLine": 34,
+          "endLine": 36,
           "endColumn": 58
         },
         "viaClosure": false,
@@ -7001,9 +7122,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 29,
+          "startLine": 31,
           "startColumn": 16,
-          "endLine": 29,
+          "endLine": 31,
           "endColumn": 29
         },
         "viaClosure": false,
@@ -7020,9 +7141,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 61,
+          "startLine": 68,
           "startColumn": 9,
-          "endLine": 61,
+          "endLine": 68,
           "endColumn": 46
         },
         "viaClosure": false,
@@ -7039,9 +7160,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 57,
+          "startLine": 64,
           "startColumn": 9,
-          "endLine": 57,
+          "endLine": 64,
           "endColumn": 30
         },
         "viaClosure": false,
@@ -7058,9 +7179,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 45,
+          "startLine": 47,
           "startColumn": 9,
-          "endLine": 45,
+          "endLine": 47,
           "endColumn": 23
         },
         "viaClosure": false,
@@ -7077,9 +7198,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 45,
+          "startLine": 47,
           "startColumn": 15,
-          "endLine": 45,
+          "endLine": 47,
           "endColumn": 22
         },
         "viaClosure": false,
@@ -7096,9 +7217,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 44,
+          "startLine": 46,
           "startColumn": 20,
-          "endLine": 44,
+          "endLine": 46,
           "endColumn": 33
         },
         "viaClosure": false,
@@ -7115,9 +7236,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 66,
+          "startLine": 73,
           "startColumn": 27,
-          "endLine": 66,
+          "endLine": 73,
           "endColumn": 37
         },
         "viaClosure": false,
@@ -7134,9 +7255,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 53,
+          "startLine": 55,
           "startColumn": 49,
-          "endLine": 53,
+          "endLine": 55,
           "endColumn": 94
         },
         "viaClosure": false,
@@ -7153,9 +7274,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 52,
+          "startLine": 54,
           "startColumn": 44,
-          "endLine": 52,
+          "endLine": 54,
           "endColumn": 65
         },
         "viaClosure": false,
@@ -7172,9 +7293,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 53,
+          "startLine": 55,
           "startColumn": 41,
-          "endLine": 53,
+          "endLine": 55,
           "endColumn": 95
         },
         "viaClosure": false,
@@ -7191,9 +7312,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 53,
+          "startLine": 55,
           "startColumn": 60,
-          "endLine": 53,
+          "endLine": 55,
           "endColumn": 77
         },
         "viaClosure": false,
@@ -7210,9 +7331,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 53,
+          "startLine": 55,
           "startColumn": 79,
-          "endLine": 53,
+          "endLine": 55,
           "endColumn": 93
         },
         "viaClosure": false,
@@ -7229,9 +7350,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 51,
+          "startLine": 53,
           "startColumn": 21,
-          "endLine": 51,
+          "endLine": 53,
           "endColumn": 38
         },
         "viaClosure": false,
@@ -7248,9 +7369,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/Order.java",
-          "startLine": 52,
+          "startLine": 54,
           "startColumn": 52,
-          "endLine": 52,
+          "endLine": 54,
           "endColumn": 64
         },
         "viaClosure": false,
@@ -8373,6 +8494,20 @@
       "artifact": "A:java.base@17"
     },
     {
+      "id": "N:javax",
+      "kind": "namespace",
+      "name": "javax",
+      "typeKind": null,
+      "artifact": "A:javax.money:money-api@1.1"
+    },
+    {
+      "id": "N:javax.money",
+      "kind": "namespace",
+      "name": "money",
+      "typeKind": null,
+      "artifact": "A:javax.money:money-api@1.1"
+    },
+    {
       "id": "N:vision",
       "kind": "namespace",
       "name": "vision",
@@ -8707,6 +8842,13 @@
       "name": "Supplier",
       "typeKind": "interface",
       "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:javax.money.CurrencyUnit",
+      "kind": "type",
+      "name": "CurrencyUnit",
+      "typeKind": "interface",
+      "artifact": "A:javax.money:money-api@1.1"
     },
     {
       "id": "T:vision.noesis.annotations.AggregateRoot",

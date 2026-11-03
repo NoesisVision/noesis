@@ -68,6 +68,7 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
         codeParserFor(noesis)(settings.parser),
         config,
         systemClock,
+        settings.libraries,
       );
 
       const started = performance.now();
@@ -91,6 +92,7 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
         featureFiles: await new GitSourceRepository(FIXTURE).featureFiles(),
         vocabulary: JAVA_VOCABULARY,
         config,
+        libraries: settings.libraries,
       });
 
       console.log(
@@ -110,6 +112,15 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       expect<unknown>(model.deployableUnits).toEqual(committed.deployableUnits);
       expect<unknown>(model.libraries).toEqual(committed.libraries);
       expect<unknown>(model.relations).toEqual(committed.relations);
+      // The money API is a real dependency the build resolves and no scan
+      // parses; its manifest makes the stubbed currency a block (R14).
+      expect<unknown>(model.relations).toContainEqual({
+        kind: 'has_state',
+        from: 'building_block|shop.orders.Order',
+        to: 'building_block|javax.money.Currency',
+        name: 'currency',
+        cardinality: '1',
+      });
       expect<unknown>(
         model.buildingBlocks.find(
           (b) => b.id === 'building_block|shop.orders.PlaceOrder',
