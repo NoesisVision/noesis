@@ -153,7 +153,7 @@ every command.
    until that adapter needs one.
 8. Rehydration from storage (a `restore(...)`) comes with the persistence
    adapter, not now.
-9. MUST be testable with plain JUnit: no Spring, no mocks.
+9. MUST be testable without Spring and without mocks.
 
 ```java
 /**

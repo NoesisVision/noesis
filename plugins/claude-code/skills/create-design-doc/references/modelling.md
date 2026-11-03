@@ -1,13 +1,15 @@
 # Modelling guidance
 
-How to turn source material into modules, building blocks, behaviors,
-rules and scenarios. The design document contract says how to write them
-down; this says how to choose them.
+How to turn source material into the elements of a design — modules,
+building blocks, behaviors, rules, scenarios, actors, manual processes,
+deployable units, libraries, layers and deployment containers — and the
+relations between them. The design document contract says how to write
+them down; this says how to choose them.
 
 ## Definitions
 
-A module, a building block and a behavior each have a `definition`: what
-the concept is, in the language of the domain, as an entry in the system's
+Every element but a rule and a scenario has a `definition`: what the
+concept is, in the language of the domain, as an entry in the system's
 glossary. A sentence or two a reader who knows no code understands. It
 defines the concept, never the change to it and never how it is built, so
 it stays true once the change ships.
@@ -116,7 +118,8 @@ Decide what a table stands for before modelling its rows:
 
 - Each row has behavior or invariants of its own: each row is a building
   block.
-- The rows describe one element: each row is a property of it.
+- The rows describe one element: each row is a piece of its state, a
+  `has_state` relation.
 - The rows are data the system reads or writes at run time: not building
   blocks. At most, the configuration of one building block.
 
@@ -365,6 +368,14 @@ the documents. Never force it into a kind.
   call that one behavior between them, never another one beside it.
 - Word one action the same way in every scenario that takes it ("the
   customer places the order"), so one step definition binds them all.
+- The other way round, one `when` wording calls one behavior: a step
+  definition binds a wording across the whole test suite. When scenarios
+  of rules governed by different behaviors would share a wording ("the
+  quality manager creates a QDoc" for a rule of `QDocCreationService.createQDoc`
+  and one of `Version.createFirst`), word the action of each behavior its
+  own way, naming what that behavior does: "the quality manager submits a
+  valid QDoc creation request" for the use case, "version 1 is created
+  for the request" for the entity.
 
 Example, illustrating the rule "Cancellation after the minimum period
 only", which `behavior|billing.subscriptions.Subscription.cancel` governs:

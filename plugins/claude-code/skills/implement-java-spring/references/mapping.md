@@ -226,8 +226,9 @@ behavior. So an annotated type's public methods are its behaviors and
 nothing else. What Java writes itself the scanner skips: record accessors,
 `equals`, `hashCode`, `toString`, and an enum's `values` and `valueOf`.
 
-- Accessors of an aggregate or an entity are package-private. Its tests sit
-  in the same package and read them; other code asks through a behavior.
+- Accessors of an aggregate or an entity are package-private. The steps
+  classes of its scenarios sit in the same package and read them; other
+  code asks through a behavior.
 - A helper another type calls (`pullEvents`, `newId`) is package-private,
   and its caller lives in the same package.
 - A helper that must be public to be reached from another package is a
@@ -267,13 +268,15 @@ not domain code. Leave it to the adapters and report it.
 
 - **Modified**: only the fields with `"changed": true` change. A new
   definition replaces the Javadoc; a rule or scenario is added, changed or
-  removed in the code and its tests; so is a relation — a field for a
+  removed in the code and its feature file, a rule's `Rule:` and a
+  scenario's `Scenario:` found by name; so is a relation — a field for a
   `has_state`, a constructor-injected field for a `has_collaborator`, a
   parameter for a `has_input`, a return type for a
   `has_output`, an interface for an `extends`. A changed `extends` is one
   relation removed and one added.
 - **Removed**: delete the type or the method, every use of it, and the
-  tests of its scenarios. A removed building block takes its behaviors and
+  scenarios whose `When` steps call it, with their step definitions. A removed building block takes its behaviors and
   relations with it.
 - **Renamed**: a removal and an addition. Rename the type or the method,
-  its file and its tests, and every reference to it.
+  its file and the step definitions that call it, and every reference to
+  it.
