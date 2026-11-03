@@ -8,7 +8,6 @@
       "id": "module|qdocmanagement",
       "name": "qdocmanagement",
       "description": null,
-      "rules": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/DomainException.java",
         "line": 1
@@ -18,7 +17,6 @@
       "id": "module|qdocmanagement.notifications",
       "name": "notifications",
       "description": null,
-      "rules": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/Notification.java",
         "line": 1
@@ -28,7 +26,6 @@
       "id": "module|qdocmanagement.preparation",
       "name": "preparation",
       "description": null,
-      "rules": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/Assignment.java",
         "line": 1
@@ -41,8 +38,6 @@
       "name": "Notification",
       "type": "value_object",
       "description": "A message to one user: a subject and a body, as the requesting subsystem wrote them.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/Notification.java",
         "line": 15
@@ -53,8 +48,6 @@
       "name": "NotificationSender",
       "type": "external_integration",
       "description": "Port that delivers a notification to a user.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationSender.java",
         "line": 9
@@ -65,8 +58,6 @@
       "name": "NotificationService",
       "type": "application_service",
       "description": "The service the Notifications subsystem offers every other subsystem: takes a request to tell users something and has a notification delivered to each of them.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationService.java",
         "line": 15
@@ -77,8 +68,6 @@
       "name": "NotifyUsers",
       "type": "value_object",
       "description": "Command: a request from another subsystem to tell users something, naming the recipients, a subject and a body. The requesting subsystem chooses the recipients and writes the text.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotifyUsers.java",
         "line": 17
@@ -89,8 +78,6 @@
       "name": "Recipient",
       "type": "value_object",
       "description": "A user a notification goes to, by the user's identifier in the identity provider.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/Recipient.java",
         "line": 13
@@ -101,8 +88,6 @@
       "name": "Assignment",
       "type": "value_object",
       "description": "The link between a user, a version and one role the user holds on the version.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/Assignment.java",
         "line": 14
@@ -113,8 +98,6 @@
       "name": "AssignmentRole",
       "type": "value_object",
       "description": "The role a user holds on a version: author, reviewer or approver.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/AssignmentRole.java",
         "line": 8
@@ -125,8 +108,6 @@
       "name": "ContentFile",
       "type": "entity",
       "description": "A rich-text file the authors write; the body of a QDoc version. Each version has at least one. Its editing, change history and comments belong to the Content management subsystem.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/ContentFile.java",
         "line": 12
@@ -137,8 +118,6 @@
       "name": "ContentFileId",
       "type": "value_object",
       "description": "Identity of a content file.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/ContentFileId.java",
         "line": 13
@@ -149,8 +128,6 @@
       "name": "CreateQDoc",
       "type": "value_object",
       "description": "Command: a quality manager's QDoc creation request, naming the title, the document type, at least one author and, optionally, reviewers and approvers.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/CreateQDoc.java",
         "line": 21
@@ -161,8 +138,6 @@
       "name": "DocumentNumber",
       "type": "value_object",
       "description": "The human-facing identifier a QDoc gets at creation, for searching and for referring to the QDoc. Not a security device.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentNumber.java",
         "line": 13
@@ -173,8 +148,6 @@
       "name": "DocumentNumberGenerator",
       "type": "domain_service",
       "description": "Gives a new QDoc its document number, and owns the rules by which document numbers are composed, sequenced and kept unique. The format, the sequence and the uniqueness are defined by UC-2.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentNumberGenerator.java",
         "line": 10
@@ -185,8 +158,6 @@
       "name": "DocumentType",
       "type": "value_object",
       "description": "The type of a QDoc, one of the list of document types: procedure, guideline, instruction, policy. The list may grow.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentType.java",
         "line": 14
@@ -197,8 +168,6 @@
       "name": "IdentityProvider",
       "type": "external_integration",
       "description": "Port to the Identity subsystem, or to a directory the organisation runs: answers which roles a user holds and which users hold the quality manager role.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
         "line": 13
@@ -209,8 +178,6 @@
       "name": "NewQDocNotification",
       "type": "value_object",
       "description": "The message telling the quality managers about a new QDoc: names the QDoc, its document number and its creator, and gives the subject and the body the Notifications subsystem is asked to deliver.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/NewQDocNotification.java",
         "line": 19
@@ -221,8 +188,6 @@
       "name": "PreparationEventPublisher",
       "type": "external_integration",
       "description": "Port that publishes the events of the Preparation subsystem to the other subsystems.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/PreparationEventPublisher.java",
         "line": 10
@@ -233,8 +198,6 @@
       "name": "QDoc",
       "type": "aggregate",
       "description": "A quality document: a package of files that always works as a whole. Has a title, a document type, a document number and one or more versions; is either active or archived. Invariants: A QDoc keeps at least one version: every QDoc holds at least one version at all times (FR-PRE-010); no operation leaves a QDoc with zero versions.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDoc.java",
         "line": 21
@@ -245,8 +208,6 @@
       "name": "QDocCreated",
       "type": "value_object",
       "description": "Event: a QDoc was created. Published by the Preparation subsystem for any subsystem that follows new QDocs.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreated.java",
         "line": 18
@@ -257,8 +218,6 @@
       "name": "QDocCreationService",
       "type": "application_service",
       "description": "Use cases that create QDocs in the Preparation subsystem.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreationService.java",
         "line": 15
@@ -269,8 +228,6 @@
       "name": "QDocId",
       "type": "value_object",
       "description": "Identity of a QDoc inside the QDoc System. Technical identifier, not the document number people use.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocId.java",
         "line": 14
@@ -281,8 +238,6 @@
       "name": "QDocRepository",
       "type": "repository",
       "description": "Stores and loads QDoc aggregates, whole.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocRepository.java",
         "line": 8
@@ -293,8 +248,6 @@
       "name": "QDocStatus",
       "type": "value_object",
       "description": "The status of a QDoc itself: active or archived. Workflow statuses belong to versions, not to the QDoc.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocStatus.java",
         "line": 9
@@ -305,8 +258,6 @@
       "name": "QDocTitle",
       "type": "value_object",
       "description": "The title of a QDoc.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocTitle.java",
         "line": 12
@@ -317,8 +268,6 @@
       "name": "UserId",
       "type": "value_object",
       "description": "Identity of a user, a person with an account in the identity provider. The Preparation subsystem refers to users only by this identity.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/UserId.java",
         "line": 13
@@ -329,8 +278,6 @@
       "name": "Version",
       "type": "entity",
       "description": "A complete, self-contained edition of a QDoc, numbered from 1. Carries the workflow status, the content files and the assignments of people.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/Version.java",
         "line": 13
@@ -341,8 +288,6 @@
       "name": "VersionStatus",
       "type": "value_object",
       "description": "The workflow status of a version: new, approved, published, no longer in force or archived.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/VersionStatus.java",
         "line": 9
@@ -358,8 +303,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationSender.java",
         "line": 16
@@ -373,8 +316,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationService.java",
         "line": 32
@@ -388,8 +329,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentNumberGenerator.java",
         "line": 20
@@ -403,8 +342,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
         "line": 29
@@ -418,8 +355,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
         "line": 22
@@ -433,8 +368,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/PreparationEventPublisher.java",
         "line": 17
@@ -448,8 +381,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDoc.java",
         "line": 69
@@ -463,8 +394,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreationService.java",
         "line": 50
@@ -478,8 +407,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocRepository.java",
         "line": 15
@@ -493,14 +420,14 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/Version.java",
         "line": 40
       }
     }
   ],
+  "rules": [],
+  "scenarios": [],
   "relations": [
     {
       "kind": "contains",

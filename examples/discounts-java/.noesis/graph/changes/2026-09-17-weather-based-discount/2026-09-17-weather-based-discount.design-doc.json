@@ -78,11 +78,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -99,11 +94,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ],
@@ -131,51 +121,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Weather snapshot carries precipitation in millimetres",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Structure",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The snapshot describes the current weather at the configured location; precipitation is a numeric value in millimetres exactly as reported by the provider, without rounding. Future weather parameters become further fields on this same snapshot so every weather discount reads from one object taken at one moment.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [
-                  "rain-discount",
-                  "further-weather-discounts"
-                ],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -197,16 +142,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -228,16 +163,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -259,83 +184,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Percentage discount is an offer-level discount recorded as a discount amount",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Structure",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "A percentage discount holds a percentage value and, when applied, appends exactly one DiscountAmount referencing itself to the offer-level discounts of the DiscountedOffer, leaving product-level discounts untouched. It follows the same shape as FixedDiscount; no money computation happens in this iteration.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [
-                  "rain-discount"
-                ],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "Weather discounts stack with other discounts",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Consistency",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "A weather-based discount neither excludes any other discount nor is excluded by one; a VIP user in the rain receives both the VIP fixed discount and the precipitation discount. Exclusivity is only introduced if a configurator wraps the discount in the existing ExclusiveOfferLevelDiscount.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [
-                  "rain-discount"
-                ],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -357,16 +205,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ],
@@ -385,16 +223,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -410,16 +238,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -435,16 +253,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ]
@@ -472,16 +280,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -505,103 +303,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Provider failure means unknown weather",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "State change",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Any network error, timeout, non-2xx HTTP status or unparsable response body results in an empty result, i.e. weather unknown. The adapter never propagates an exception into discount calculation; missing weather is a normal outcome, not an error.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [
-                  "pricing-without-weather"
-                ],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [
-            {
-              "name": "Weather API failure does not break discount calculation",
-              "description": {
-                "changed": true,
-                "value": "Covers HTTP 500, a timeout and malformed JSON from the weather API; each must degrade to unknown weather.",
-                "author": "agent"
-              },
-              "steps": {
-                "changed": true,
-                "value": [
-                  {
-                    "kind": "given",
-                    "text": "the weather API responds with HTTP 500, or does not respond within the request timeout, or returns a body that is not valid JSON"
-                  },
-                  {
-                    "kind": "when",
-                    "text": "the current weather is requested"
-                  },
-                  {
-                    "kind": "then",
-                    "text": "the result is empty, no exception is thrown, and a subsequent discount calculation completes with no weather discount"
-                  }
-                ],
-                "author": "agent"
-              }
-            },
-            {
-              "name": "Open-Meteo response is mapped to a weather snapshot",
-              "description": {
-                "changed": true,
-                "value": "Integration test of the adapter against a local HTTP stub standing in for Open-Meteo.",
-                "author": "agent"
-              },
-              "steps": {
-                "changed": true,
-                "value": [
-                  {
-                    "kind": "given",
-                    "text": "a local HTTP stub answering {\"current\":{\"precipitation\":0.5}} and the adapter pointed at that stub"
-                  },
-                  {
-                    "kind": "when",
-                    "text": "the current weather is requested"
-                  },
-                  {
-                    "kind": "then",
-                    "text": "the result is a Weather with precipitation 0.5"
-                  }
-                ],
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -625,16 +326,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -658,162 +349,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Precipitation above zero makes the precipitation discount applicable",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Computation",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The discount is applicable exactly when the conditions carry a known weather snapshot whose precipitation is strictly greater than 0 mm. Precipitation equal to 0 is dry weather and yields no discount. The threshold is a business constant of this discount, not of the weather provider.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [
-                  "rain-discount"
-                ],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            },
-            {
-              "name": "Unknown weather never grants a weather discount",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Computation",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "When the weather provider could not deliver a snapshot and the conditions carry no weather, every weather-based potential discount reports itself as not applicable. Missing data is treated as no rain, never as an error and never as rain.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [
-                  "pricing-without-weather"
-                ],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [
-            {
-              "name": "Rain grants the precipitation discount",
-              "description": {
-                "changed": true,
-                "value": "Happy path for a non-VIP user during rain.",
-                "author": "agent"
-              },
-              "steps": {
-                "changed": true,
-                "value": [
-                  {
-                    "kind": "given",
-                    "text": "conditions whose weather has precipitation 0.5 mm"
-                  },
-                  {
-                    "kind": "when",
-                    "text": "applicability of the precipitation discount is checked"
-                  },
-                  {
-                    "kind": "then",
-                    "text": "the discount is applicable and getDiscount returns the configured PercentageDiscount of 10 percent"
-                  }
-                ],
-                "author": "agent"
-              }
-            },
-            {
-              "name": "Dry weather grants no precipitation discount",
-              "description": {
-                "changed": true,
-                "value": "Boundary at zero precipitation.",
-                "author": "agent"
-              },
-              "steps": {
-                "changed": true,
-                "value": [
-                  {
-                    "kind": "given",
-                    "text": "conditions whose weather has precipitation 0 mm"
-                  },
-                  {
-                    "kind": "when",
-                    "text": "applicability of the precipitation discount is checked"
-                  },
-                  {
-                    "kind": "then",
-                    "text": "the discount is not applicable"
-                  }
-                ],
-                "author": "agent"
-              }
-            },
-            {
-              "name": "Unknown weather grants no precipitation discount",
-              "description": {
-                "changed": true,
-                "value": "Domain-side half of the API failure case.",
-                "author": "agent"
-              },
-              "steps": {
-                "changed": true,
-                "value": [
-                  {
-                    "kind": "given",
-                    "text": "conditions without any weather because the provider returned an empty result"
-                  },
-                  {
-                    "kind": "when",
-                    "text": "applicability of the precipitation discount is checked"
-                  },
-                  {
-                    "kind": "then",
-                    "text": "the discount is not applicable"
-                  }
-                ],
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -837,16 +372,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ],
@@ -867,75 +392,6 @@
         },
         "visibility": {
           "changed": false
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Weather is read once per policy resolution",
-              "category": {
-                "changed": true,
-                "value": "Business",
-                "author": "agent"
-              },
-              "ruleType": {
-                "changed": true,
-                "value": "Consistency",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "A single call to get(userId) queries the weather provider exactly once and places the result into Conditions, so every potential discount evaluated in that call sees the same weather snapshot taken at the same moment.",
-                "author": "agent"
-              },
-              "needs": {
-                "changed": true,
-                "value": [],
-                "author": "agent"
-              },
-              "rationale": {
-                "changed": false
-              },
-              "scenarios": {
-                "added": [],
-                "removed": [],
-                "modified": []
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [
-            {
-              "name": "VIP user during rain receives both discounts",
-              "description": {
-                "changed": true,
-                "value": "Verifies stacking of the VIP discount and the precipitation discount within one resolution.",
-                "author": "agent"
-              },
-              "steps": {
-                "changed": true,
-                "value": [
-                  {
-                    "kind": "given",
-                    "text": "a VIP user and a weather provider returning precipitation above 0"
-                  },
-                  {
-                    "kind": "when",
-                    "text": "discounts are resolved for the user"
-                  },
-                  {
-                    "kind": "then",
-                    "text": "the list contains both the VIP FixedDiscount and the PercentageDiscount"
-                  }
-                ],
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         }
       },
       {
@@ -951,19 +407,402 @@
         },
         "visibility": {
           "changed": false
-        },
-        "rules": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "scenarios": {
-          "added": [],
-          "removed": [],
-          "modified": []
         }
       }
     ]
+  },
+  "rules": {
+    "added": [
+      {
+        "id": "rule|discounts.weather.Weather snapshot carries precipitation in millimetres",
+        "name": {
+          "changed": true,
+          "value": "Weather snapshot carries precipitation in millimetres",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "The snapshot describes the current weather at the configured location; precipitation is a numeric value in millimetres exactly as reported by the provider, without rounding. Future weather parameters become further fields on this same snapshot so every weather discount reads from one object taken at one moment.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [
+            "rain-discount",
+            "further-weather-discounts"
+          ],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|discounts.calculation.Percentage discount is an offer-level discount recorded as a discount amount",
+        "name": {
+          "changed": true,
+          "value": "Percentage discount is an offer-level discount recorded as a discount amount",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A percentage discount holds a percentage value and, when applied, appends exactly one DiscountAmount referencing itself to the offer-level discounts of the DiscountedOffer, leaving product-level discounts untouched. It follows the same shape as FixedDiscount; no money computation happens in this iteration.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [
+            "rain-discount"
+          ],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|discounts.calculation.Weather discounts stack with other discounts",
+        "name": {
+          "changed": true,
+          "value": "Weather discounts stack with other discounts",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A weather-based discount neither excludes any other discount nor is excluded by one; a VIP user in the rain receives both the VIP fixed discount and the precipitation discount. Exclusivity is only introduced if a configurator wraps the discount in the existing ExclusiveOfferLevelDiscount.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [
+            "rain-discount"
+          ],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|discounts.weather.openmeteo.Provider failure means unknown weather",
+        "name": {
+          "changed": true,
+          "value": "Provider failure means unknown weather",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "state_change",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Any network error, timeout, non-2xx HTTP status or unparsable response body results in an empty result, i.e. weather unknown. The adapter never propagates an exception into discount calculation; missing weather is a normal outcome, not an error.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [
+            "pricing-without-weather"
+          ],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|discounts.calculation.Precipitation above zero makes the precipitation discount applicable",
+        "name": {
+          "changed": true,
+          "value": "Precipitation above zero makes the precipitation discount applicable",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "computation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "The discount is applicable exactly when the conditions carry a known weather snapshot whose precipitation is strictly greater than 0 mm. Precipitation equal to 0 is dry weather and yields no discount. The threshold is a business constant of this discount, not of the weather provider.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [
+            "rain-discount"
+          ],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|discounts.calculation.Unknown weather never grants a weather discount",
+        "name": {
+          "changed": true,
+          "value": "Unknown weather never grants a weather discount",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "computation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "When the weather provider could not deliver a snapshot and the conditions carry no weather, every weather-based potential discount reports itself as not applicable. Missing data is treated as no rain, never as an error and never as rain.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [
+            "pricing-without-weather"
+          ],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      },
+      {
+        "id": "rule|discounts.calculation.Weather is read once per policy resolution",
+        "name": {
+          "changed": true,
+          "value": "Weather is read once per policy resolution",
+          "author": "agent"
+        },
+        "kind": {
+          "changed": true,
+          "value": "validation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "A single call to get(userId) queries the weather provider exactly once and places the result into Conditions, so every potential discount evaluated in that call sees the same weather snapshot taken at the same moment.",
+          "author": "agent"
+        },
+        "needs": {
+          "changed": true,
+          "value": [],
+          "author": "agent"
+        },
+        "rationale": {
+          "changed": false
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "scenarios": {
+    "added": [
+      {
+        "id": "scenario|discounts.weather.openmeteo.Provider failure means unknown weather.Weather API failure does not break discount calculation",
+        "name": {
+          "changed": true,
+          "value": "Weather API failure does not break discount calculation",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Covers HTTP 500, a timeout and malformed JSON from the weather API; each must degrade to unknown weather.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "the weather API responds with HTTP 500, or does not respond within the request timeout, or returns a body that is not valid JSON"
+            },
+            {
+              "kind": "when",
+              "text": "the current weather is requested"
+            },
+            {
+              "kind": "then",
+              "text": "the result is empty, no exception is thrown, and a subsequent discount calculation completes with no weather discount"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|discounts.weather.openmeteo.Provider failure means unknown weather.Open-Meteo response is mapped to a weather snapshot",
+        "name": {
+          "changed": true,
+          "value": "Open-Meteo response is mapped to a weather snapshot",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Integration test of the adapter against a local HTTP stub standing in for Open-Meteo.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a local HTTP stub answering {\"current\":{\"precipitation\":0.5}} and the adapter pointed at that stub"
+            },
+            {
+              "kind": "when",
+              "text": "the current weather is requested"
+            },
+            {
+              "kind": "then",
+              "text": "the result is a Weather with precipitation 0.5"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|discounts.calculation.Precipitation above zero makes the precipitation discount applicable.Rain grants the precipitation discount",
+        "name": {
+          "changed": true,
+          "value": "Rain grants the precipitation discount",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Happy path for a non-VIP user during rain.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "conditions whose weather has precipitation 0.5 mm"
+            },
+            {
+              "kind": "when",
+              "text": "applicability of the precipitation discount is checked"
+            },
+            {
+              "kind": "then",
+              "text": "the discount is applicable and getDiscount returns the configured PercentageDiscount of 10 percent"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|discounts.calculation.Precipitation above zero makes the precipitation discount applicable.Dry weather grants no precipitation discount",
+        "name": {
+          "changed": true,
+          "value": "Dry weather grants no precipitation discount",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Boundary at zero precipitation.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "conditions whose weather has precipitation 0 mm"
+            },
+            {
+              "kind": "when",
+              "text": "applicability of the precipitation discount is checked"
+            },
+            {
+              "kind": "then",
+              "text": "the discount is not applicable"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|discounts.calculation.Precipitation above zero makes the precipitation discount applicable.Unknown weather grants no precipitation discount",
+        "name": {
+          "changed": true,
+          "value": "Unknown weather grants no precipitation discount",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Domain-side half of the API failure case.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "conditions without any weather because the provider returned an empty result"
+            },
+            {
+              "kind": "when",
+              "text": "applicability of the precipitation discount is checked"
+            },
+            {
+              "kind": "then",
+              "text": "the discount is not applicable"
+            }
+          ],
+          "author": "agent"
+        }
+      },
+      {
+        "id": "scenario|discounts.calculation.Weather is read once per policy resolution.VIP user during rain receives both discounts",
+        "name": {
+          "changed": true,
+          "value": "VIP user during rain receives both discounts",
+          "author": "agent"
+        },
+        "description": {
+          "changed": true,
+          "value": "Verifies stacking of the VIP discount and the precipitation discount within one resolution.",
+          "author": "agent"
+        },
+        "steps": {
+          "changed": true,
+          "value": [
+            {
+              "kind": "given",
+              "text": "a VIP user and a weather provider returning precipitation above 0"
+            },
+            {
+              "kind": "when",
+              "text": "discounts are resolved for the user"
+            },
+            {
+              "kind": "then",
+              "text": "the list contains both the VIP FixedDiscount and the PercentageDiscount"
+            }
+          ],
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
   },
   "relations": {
     "added": [
@@ -1126,6 +965,71 @@
           "value": "building_block|discounts.weather.WeatherProvider",
           "author": "agent"
         }
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
+        "to": "rule|discounts.weather.Weather snapshot carries precipitation in millimetres"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|discounts.calculation.PercentageDiscount.apply",
+        "to": "rule|discounts.calculation.Percentage discount is an offer-level discount recorded as a discount amount"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|discounts.calculation.PercentageDiscount.apply",
+        "to": "rule|discounts.calculation.Weather discounts stack with other discounts"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent",
+        "to": "rule|discounts.weather.openmeteo.Provider failure means unknown weather"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|discounts.weather.openmeteo.Provider failure means unknown weather.Weather API failure does not break discount calculation",
+        "to": "rule|discounts.weather.openmeteo.Provider failure means unknown weather"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|discounts.weather.openmeteo.Provider failure means unknown weather.Open-Meteo response is mapped to a weather snapshot",
+        "to": "rule|discounts.weather.openmeteo.Provider failure means unknown weather"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
+        "to": "rule|discounts.calculation.Precipitation above zero makes the precipitation discount applicable"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
+        "to": "rule|discounts.calculation.Unknown weather never grants a weather discount"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|discounts.calculation.Precipitation above zero makes the precipitation discount applicable.Rain grants the precipitation discount",
+        "to": "rule|discounts.calculation.Precipitation above zero makes the precipitation discount applicable"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|discounts.calculation.Precipitation above zero makes the precipitation discount applicable.Dry weather grants no precipitation discount",
+        "to": "rule|discounts.calculation.Precipitation above zero makes the precipitation discount applicable"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|discounts.calculation.Precipitation above zero makes the precipitation discount applicable.Unknown weather grants no precipitation discount",
+        "to": "rule|discounts.calculation.Precipitation above zero makes the precipitation discount applicable"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|discounts.calculation.DiscountPolicyFactory.get",
+        "to": "rule|discounts.calculation.Weather is read once per policy resolution"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|discounts.calculation.Weather is read once per policy resolution.VIP user during rain receives both discounts",
+        "to": "rule|discounts.calculation.Weather is read once per policy resolution"
       }
     ],
     "removed": [],
