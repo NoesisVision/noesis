@@ -58,11 +58,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-h2console</artifactId>
 		</dependency>
-		<!-- DDD stereotypes the Noesis scanner reads: @AggregateRoot, @DomainEntity, @ValueObject, ... -->
+		<!-- DDD stereotypes the Noesis scanner reads: @AggregateRoot, @DomainEntity, @ValueObject, ...
+		     The snapshot for @Layer, unreleased: mvn install in code-parsers/java first. -->
 		<dependency>
 			<groupId>vision.noesis</groupId>
 			<artifactId>noesis-annotations</artifactId>
-			<version>0.1.0</version>
+			<version>0.1.0-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -109,11 +110,12 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			<!-- The Noesis code model parser: ./mvnw process-classes noesis:parse writes .noesis/tmp/parser/code-model/java/. -->
+			<!-- The Noesis code model parser: ./mvnw process-test-classes noesis:parse writes .noesis/tmp/parser/code-model/java/.
+			     The snapshot, which parses the test sources (the Cucumber step definitions): mvn install in code-parsers/java first. -->
 			<plugin>
 				<groupId>vision.noesis</groupId>
 				<artifactId>noesis-parser-maven-plugin</artifactId>
-				<version>0.1.0</version>
+				<version>0.1.0-SNAPSHOT</version>
 			</plugin>
 		</plugins>
 	</build>

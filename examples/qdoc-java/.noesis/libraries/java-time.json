@@ -1,0 +1,11 @@
+{
+  "name": "java.time",
+  "description": "The JDK's date and time API: a platform package the scan never parses.",
+  "buildingBlocks": [
+    {
+      "type": "java.time.Clock",
+      "kind": "technical_service",
+      "description": "Tells the current instant; injected so tests can fix the time."
+    }
+  ]
+}
