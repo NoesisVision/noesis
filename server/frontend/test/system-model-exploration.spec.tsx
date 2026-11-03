@@ -159,21 +159,24 @@ describe('the exploration of a system model', () => {
     ]);
   });
 
-  it('finds use in property and parameter types, through collections, never of primitives', () => {
-    expect(exploration.uses).toEqual([
+  it('finds state and input in property and parameter types, never of primitives', () => {
+    expect(exploration.edges.state).toEqual([
       ['building_block|shop.orders.Order', 'building_block|shop.orders.Line'],
+    ]);
+    expect(exploration.edges.input).toEqual([
       ['behavior|shop.orders.Order.place', 'building_block|shop.orders.Line'],
     ]);
+    expect(exploration.edges.output).toEqual([]);
   });
 
   it('nests elements in their nearest shown container', () => {
-    const graph = draw(['contains', 'uses'], ['module']);
+    const graph = draw(['contains', 'state', 'input'], ['module']);
     expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
       ['building_block|shop.orders.Order', null],
       ['building_block|shop.orders.Line', null],
       ['behavior|shop.orders.Order.place', 'building_block|shop.orders.Order'],
     ]);
-    expect(graph.relations.map(({ kind }) => kind)).toEqual(['uses', 'uses']);
+    expect(graph.relations.map(({ kind }) => kind)).toEqual(['state', 'input']);
   });
 
   it('draws containment either way round as nesting, never as an edge', () => {
@@ -188,7 +191,7 @@ describe('the exploration of a system model', () => {
   });
 
   it('leaves out a relation to a hidden element rather than moving it', () => {
-    const graph = draw(['uses'], ['value_object']);
+    const graph = draw(['state', 'input'], ['value_object']);
     expect(graph.relations).toEqual([]);
   });
 
@@ -212,7 +215,7 @@ describe('the exploration of a system model', () => {
         { behaviors: [model.behaviors[0]!, check] },
       ),
     );
-    expect(calling.invokes).toEqual([
+    expect(calling.edges.invokes).toEqual([
       ['behavior|shop.orders.Order.place', 'behavior|shop.orders.Line.check'],
     ]);
     const graph = graphOf(calling, {
@@ -236,7 +239,7 @@ describe('the exploration of a system model', () => {
   });
 
   it('draws no edge between a card and the frame it is drawn inside', () => {
-    // The order's place takes an order: it uses the block it belongs to.
+    // The order's place takes an order: it takes the block it belongs to as input.
     const own = explorationOf(
       relating([
         {
@@ -249,16 +252,16 @@ describe('the exploration of a system model', () => {
       ]),
     );
     const id =
-      'uses:behavior|shop.orders.Order.place->building_block|shop.orders.Order';
+      'input:behavior|shop.orders.Order.place->building_block|shop.orders.Order';
     const nested = graphOf(own, {
       hidden: new Set(),
-      relations: new Set(['contains', 'uses']),
+      relations: new Set(['contains', 'input']),
     });
     expect(nested.relations.map(({ id }) => id)).not.toContain(id);
     // Not nested, the two are cards apart, and the edge is drawn.
     const apart = graphOf(own, {
       hidden: new Set(),
-      relations: new Set(['uses']),
+      relations: new Set(['input']),
     });
     expect(apart.relations.map(({ id }) => id)).toContain(id);
   });
@@ -288,7 +291,7 @@ it('draws what a block extends as an edge of its own, and reads it from both sid
       },
     ]),
   );
-  expect(extending.extends).toEqual([
+  expect(extending.edges.extends).toEqual([
     ['building_block|shop.orders.Order', 'building_block|shop.orders.Line'],
   ]);
   const graph = graphOf(extending, {
@@ -317,14 +320,19 @@ it('keeps the calls of a behavior in the order the scan gives them', () => {
       { behaviors: [model.behaviors[0]!, later, sooner] },
     ),
   );
-  expect(calling.invokes.map(([, to]) => to)).toEqual([sooner.id, later.id]);
+  expect(calling.edges.invokes.map(([, to]) => to)).toEqual([
+    sooner.id,
+    later.id,
+  ]);
 });
 
 it('lays out every relation and every kind in the visibility panel', () => {
   expect(RELATIONS.map(({ kind }) => kind)).toEqual([
     'contains',
     'isPartOf',
-    'uses',
+    'state',
+    'input',
+    'output',
     'extends',
     'invokes',
   ]);
@@ -342,7 +350,15 @@ it('lays out every relation and every kind in the visibility panel', () => {
   );
   expect(html).toMatch(/<h2[^>]*>Visibility<\/h2>/);
   expect(html).toContain('aria-label="Close the visibility panel"');
-  for (const label of ['Contains', 'Is part of', 'Uses', 'Extends', 'Invokes'])
+  for (const label of [
+    'Contains',
+    'Is part of',
+    'State',
+    'Input',
+    'Output',
+    'Extends',
+    'Invokes',
+  ])
     expect(html).toContain(`>${label}<`);
   expect(html).not.toContain('Not implemented');
   expect(html).toContain('Value Object');
@@ -360,7 +376,7 @@ describe('placing the exploration', () => {
     if (stubbed) Object.assign(globalThis, { document: {} });
     try {
       return await layoutExploration(
-        draw(['contains', 'uses']),
+        draw(['contains', 'state']),
         algorithm,
         direction,
       );
@@ -386,7 +402,7 @@ describe('placing the exploration', () => {
     expect(order!.width).toBeGreaterThan(behavior!.width);
   });
 
-  it('runs the uses edge down or across, as asked', async () => {
+  it('runs the state edge down or across, as asked', async () => {
     const at = (placed: Awaited<ReturnType<typeof place>>, id: string) =>
       placed.elements.find(({ element }) => element.id === id)!;
     const down = await place('vertical');
@@ -430,13 +446,13 @@ describe('a floating edge', () => {
 
 describe('the selection', () => {
   it('joins an element to what its drawn relations and its nesting join it to', () => {
-    const graph = draw(['contains', 'uses']);
+    const graph = draw(['contains', 'state', 'input']);
     const { relations, elements } = relatedTo(
       graph,
       'building_block|shop.orders.Order',
     );
     expect([...relations]).toEqual([
-      'uses:building_block|shop.orders.Order->building_block|shop.orders.Line',
+      'state:building_block|shop.orders.Order->building_block|shop.orders.Line',
     ]);
     expect([...elements].sort()).toEqual([
       'behavior|shop.orders.Order.place',
@@ -456,7 +472,7 @@ describe('the selection', () => {
   });
 
   it('draws a card as a button that says where it stands to the selection', () => {
-    const graph = draw(['uses']);
+    const graph = draw(['state']);
     const line = graph.elements.find(
       ({ id }) => id === 'building_block|shop.orders.Line',
     )!;
@@ -576,7 +592,7 @@ describe('elements put in or taken out one by one', () => {
     picks = picked(picks, 'behavior|shop.orders.Order.place', false);
     const graph = graphOf(exploration, {
       hidden: new Set(['value_object']),
-      relations: new Set(['contains', 'uses']),
+      relations: new Set(['contains', 'state']),
       picks,
     });
     const ids = graph.elements.map(({ id }) => id);
@@ -663,13 +679,13 @@ describe('the way into the picker', () => {
 describe('whom each element reaches', () => {
   const neighbours = neighboursOf(exploration);
 
-  it('reads containment and use from both sides', () => {
+  it('reads containment and state from both sides', () => {
     const order = neighbours.get('building_block|shop.orders.Order')!;
     expect(order.isPartOf).toEqual(['module|shop.orders']);
-    expect(order.uses).toContain('building_block|shop.orders.Line');
-    expect(neighbours.get('building_block|shop.orders.Line')!.usedBy).toContain(
-      'building_block|shop.orders.Order',
-    );
+    expect(order.hasState).toContain('building_block|shop.orders.Line');
+    expect(
+      neighbours.get('building_block|shop.orders.Line')!.stateOf,
+    ).toContain('building_block|shop.orders.Order');
     expect(neighbours.get('module|shop.orders')!.contains).toContain(
       'building_block|shop.orders.Order',
     );
@@ -688,7 +704,7 @@ describe('a chain followed up to the next of its type', () => {
     id: `behavior|shop.orders.${on}.${name}`,
     name,
   });
-  const uses = (block: string, used: string) => ({
+  const state = (block: string, used: string) => ({
     kind: 'has_state',
     from: `building_block|shop.orders.${block}`,
     to: `building_block|shop.orders.${used}`,
@@ -718,9 +734,9 @@ describe('a chain followed up to the next of its type', () => {
       behavior('Currency', 'scale'),
     ],
     relations: [
-      uses('Price', 'Product'),
-      uses('Product', 'Money'),
-      uses('Money', 'Currency'),
+      state('Price', 'Product'),
+      state('Product', 'Money'),
+      state('Money', 'Currency'),
       calls('Price.apply', 'Pricing.quote'),
       calls('Pricing.quote', 'Pricing.round'),
       calls('Pricing.round', 'Money.round'),
@@ -731,15 +747,15 @@ describe('a chain followed up to the next of its type', () => {
   const elements = new Map(chained.elements.map((each) => [each.id, each]));
   const follow = (
     id: string,
-    reach: 'uses' | 'invokes' | 'invokedBy',
+    reach: 'hasState' | 'invokes' | 'invokedBy',
     depth?: number,
   ) =>
     chainOf(neighbours, elements, id, reach, depth).map((each) =>
       each.replace(/^\w+\|shop\.orders\./, ''),
     );
 
-  it('follows use through other types and stops at the first of its own', () => {
-    expect(follow('building_block|shop.orders.Price', 'uses')).toEqual([
+  it('follows state through other types and stops at the first of its own', () => {
+    expect(follow('building_block|shop.orders.Price', 'hasState')).toEqual([
       'Product',
       'Money',
     ]);
@@ -761,7 +777,7 @@ describe('a chain followed up to the next of its type', () => {
       'Pricing.quote',
       'Pricing.round',
     ]);
-    expect(follow('building_block|shop.orders.Price', 'uses', 1)).toEqual([
+    expect(follow('building_block|shop.orders.Price', 'hasState', 1)).toEqual([
       'Product',
     ]);
   });
@@ -1215,7 +1231,7 @@ describe('what goes when an element is taken off', () => {
   it('takes only what was named when containment is not drawn', () => {
     const flat = graphOf(exploration, {
       hidden: new Set(),
-      relations: new Set(['uses']),
+      relations: new Set(['state']),
     });
     expect(removalOf(flat, ['module|shop.orders'])).toEqual([
       'module|shop.orders',

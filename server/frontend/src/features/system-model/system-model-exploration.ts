@@ -9,12 +9,13 @@ import type {
  * The scanned model read as a graph: its modules, building blocks and
  * behaviors, and the relations the scan holds between them. A module
  * contains the modules and building blocks its id path names; a building
- * block contains its behaviors. A building block uses the blocks its state
- * is typed with, a behavior the blocks it takes and gives back; a block
- * extends the blocks it extends or implements. "Is part of" is containment
- * read from the inside. A behavior invokes the behaviors the scan found it
- * calls, in the order of the calls — where the scanner records calls; one
- * that does not leaves the model without any.
+ * block contains its behaviors. A building block has as state the blocks
+ * its state is typed with, a behavior has as input the blocks it takes and
+ * as output those it gives back; a block extends the blocks it extends or
+ * implements. "Is part of" is containment read from the inside. A behavior
+ * invokes the behaviors the scan found it calls, in the order of the calls
+ * — where the scanner records calls; one that does not leaves the model
+ * without any.
  */
 
 type ExploredKind = 'module' | 'building_block' | 'behavior';
@@ -29,54 +30,91 @@ export interface ExploredElement {
   container: string | null;
 }
 
+/** A relation's two ends, as `[source, target]`. */
+type Pair = [string, string];
+
+/**
+ * Each relation drawn as an edge, as the view knows it: the model's relation
+ * it reads, how the filter names it, the word its edges carry, and its two
+ * ways of reaching — from the source, and read back from the target.
+ * Containment is drawn as cards inside cards, never as an edge.
+ */
+export const DRAWN_RELATIONS = [
+  {
+    kind: 'state',
+    model: 'has_state',
+    label: 'State',
+    word: 'has state',
+    reach: 'hasState',
+    back: 'stateOf',
+  },
+  {
+    kind: 'input',
+    model: 'has_input',
+    label: 'Input',
+    word: 'has input',
+    reach: 'hasInput',
+    back: 'inputOf',
+  },
+  {
+    kind: 'output',
+    model: 'has_output',
+    label: 'Output',
+    word: 'has output',
+    reach: 'hasOutput',
+    back: 'outputOf',
+  },
+  {
+    kind: 'extends',
+    model: 'extends',
+    label: 'Extends',
+    word: 'extends',
+    reach: 'extends',
+    back: 'extendedBy',
+  },
+  {
+    kind: 'invokes',
+    model: 'invokes',
+    label: 'Invokes',
+    word: 'invokes',
+    reach: 'invokes',
+    back: 'invokedBy',
+  },
+] as const;
+
+type DrawnRelationEntry = (typeof DRAWN_RELATIONS)[number];
+export type DrawnRelationKind = DrawnRelationEntry['kind'];
+
 export interface Exploration {
   elements: ExploredElement[];
-  /** Which block uses which, as `[source, target]`, each pair once. */
-  uses: [string, string][];
-  /** Which block extends which, as `[source, target]`, each pair once. */
-  extends: [string, string][];
-  /** Which behavior calls which, as `[caller, called]`, each pair once, in the order of the calls. */
-  invokes: [string, string][];
+  /**
+   * The pairs each drawn relation joins, each pair once; the calls in the
+   * order of the calls, caller by caller.
+   */
+  edges: Record<DrawnRelationKind, Pair[]>;
 }
 
-export type RelationKind =
-  | 'contains'
-  | 'isPartOf'
-  | 'uses'
-  | 'extends'
-  | 'invokes';
+export type RelationKind = 'contains' | 'isPartOf' | DrawnRelationKind;
 
 /** Every relation the view names. */
 export const RELATIONS: readonly { kind: RelationKind; label: string }[] = [
   { kind: 'contains', label: 'Contains' },
   { kind: 'isPartOf', label: 'Is part of' },
-  { kind: 'uses', label: 'Uses' },
-  { kind: 'extends', label: 'Extends' },
-  { kind: 'invokes', label: 'Invokes' },
+  ...DRAWN_RELATIONS.map(({ kind, label }) => ({ kind, label })),
 ];
 
-/**
- * The word an edge of each drawn relation carries. Containment is drawn as
- * cards inside cards, never as an edge, so only use, inheritance and calls are.
- */
-export const RELATION_WORD = {
-  uses: 'uses',
-  extends: 'extends',
-  invokes: 'invokes',
-} as const satisfies Partial<Record<RelationKind, string>>;
+/** The word an edge of each drawn relation carries. */
+export const RELATION_WORD = Object.fromEntries(
+  DRAWN_RELATIONS.map(({ kind, word }) => [kind, word]),
+) as Record<DrawnRelationKind, string>;
 
-export type DrawnRelationKind = keyof typeof RELATION_WORD;
+const DRAWN_OF_MODEL = new Map<string, DrawnRelationKind>(
+  DRAWN_RELATIONS.map(({ model, kind }) => [model, kind]),
+);
 
 const parentPath = (path: string) =>
   path.includes('.') ? path.slice(0, path.lastIndexOf('.')) : '';
 const pathOf = (id: string) => id.slice(id.indexOf('|') + 1);
-
-/** The relations of the state and signature slots, whose target may be a block. */
-const USES: ReadonlySet<string> = new Set([
-  'has_state',
-  'has_input',
-  'has_output',
-]);
 
 export function explorationOf(model: SystemModel): Exploration {
   const moduleIds = new Set<string>(model.modules.map(({ id }) => id));
@@ -114,30 +152,30 @@ export function explorationOf(model: SystemModel): Exploration {
     })),
   ];
 
+  // A slot typed by a primitive, or a relation of an element the model does
+  // not list, joins nothing drawn; a relation to oneself is no edge either.
   const behaviorIds = new Set<string>(model.behaviors.map(({ id }) => id));
   const known = (id: string) => blockIds.has(id) || behaviorIds.has(id);
-  const uses = new Map<string, [string, string]>();
-  const extended = new Map<string, [string, string]>();
+  const pairs = new Map<DrawnRelationKind, Map<string, Pair>>(
+    DRAWN_RELATIONS.map(({ kind }) => [kind, new Map()]),
+  );
   const calls: { from: string; to: string; order: number }[] = [];
   for (const relation of model.relations) {
     const { from, to } = relation;
-    if (from === to || !known(from) || !known(to)) continue;
-    if (USES.has(relation.kind) && blockIds.has(to))
-      uses.set(`${from}->${to}`, [from, to]);
-    else if (relation.kind === 'extends')
-      extended.set(`${from}->${to}`, [from, to]);
-    else if (relation.kind === 'invokes')
+    const kind = DRAWN_OF_MODEL.get(relation.kind);
+    if (kind === undefined || from === to || !known(from) || !known(to))
+      continue;
+    if (relation.kind === 'invokes')
       calls.push({ from, to, order: relation.order });
+    else pairs.get(kind)?.set(`${from}->${to}`, [from, to]);
   }
-  const invokes = calls
+  const edges = Object.fromEntries(
+    [...pairs].map(([kind, found]) => [kind, [...found.values()]]),
+  ) as Record<DrawnRelationKind, Pair[]>;
+  edges.invokes = calls
     .sort((a, b) => a.from.localeCompare(b.from) || a.order - b.order)
-    .map(({ from, to }): [string, string] => [from, to]);
-  return {
-    elements,
-    uses: [...uses.values()],
-    extends: [...extended.values()],
-    invokes,
-  };
+    .map(({ from, to }): Pair => [from, to]);
+  return { elements, edges };
 }
 
 /** What an element is filtered by: its type, or "module" for a module. */
@@ -176,27 +214,18 @@ export function elementSectionsOf(exploration: Exploration): ElementSection[] {
 export type Reach =
   | 'contains'
   | 'isPartOf'
-  | 'uses'
-  | 'usedBy'
-  | 'extends'
-  | 'extendedBy'
-  | 'invokes'
-  | 'invokedBy';
+  | DrawnRelationEntry['reach']
+  | DrawnRelationEntry['back'];
 
 export const REACHES: readonly Reach[] = [
   'contains',
   'isPartOf',
-  'uses',
-  'usedBy',
-  'extends',
-  'extendedBy',
-  'invokes',
-  'invokedBy',
+  ...DRAWN_RELATIONS.flatMap(({ reach, back }) => [reach, back]),
 ];
 
 /**
- * Whom an element is joined to, by how; "used by" is "uses" read from the
- * target, "extended by" is "extends" so, "invoked by" is "invokes" so.
+ * Whom an element is joined to, by how; "state of" is "has state" read from
+ * the target, "extended by" is "extends" so, "invoked by" is "invokes" so.
  */
 export type Neighbours = Record<Reach, string[]>;
 
@@ -207,16 +236,9 @@ export function neighboursOf(
   const map = new Map<string, Neighbours>(
     exploration.elements.map(({ id }) => [
       id,
-      {
-        contains: [],
-        isPartOf: [],
-        uses: [],
-        usedBy: [],
-        extends: [],
-        extendedBy: [],
-        invokes: [],
-        invokedBy: [],
-      },
+      Object.fromEntries(
+        REACHES.map((reach): [Reach, string[]] => [reach, []]),
+      ) as Neighbours,
     ]),
   );
   for (const { id, container } of exploration.elements) {
@@ -224,18 +246,11 @@ export function neighboursOf(
     map.get(container)?.contains.push(id);
     map.get(id)?.isPartOf.push(container);
   }
-  for (const [source, target] of exploration.uses) {
-    map.get(source)?.uses.push(target);
-    map.get(target)?.usedBy.push(source);
-  }
-  for (const [source, target] of exploration.extends) {
-    map.get(source)?.extends.push(target);
-    map.get(target)?.extendedBy.push(source);
-  }
-  for (const [caller, called] of exploration.invokes) {
-    map.get(caller)?.invokes.push(called);
-    map.get(called)?.invokedBy.push(caller);
-  }
+  for (const { kind, reach, back } of DRAWN_RELATIONS)
+    for (const [source, target] of exploration.edges[kind]) {
+      map.get(source)?.[reach].push(target);
+      map.get(target)?.[back].push(source);
+    }
   return map;
 }
 
@@ -386,33 +401,17 @@ export function graphOf(
     !nested || (!inside(one, other) && !inside(other, one));
 
   const drawn: DrawnRelation[] = [];
-  if (relations.has('uses'))
-    for (const [source, target] of exploration.uses)
+  for (const { kind } of DRAWN_RELATIONS) {
+    if (!relations.has(kind)) continue;
+    for (const [source, target] of exploration.edges[kind])
       if (isShown.has(source) && isShown.has(target) && apart(source, target))
         drawn.push({
-          id: `uses:${source}->${target}`,
-          kind: 'uses',
+          id: `${kind}:${source}->${target}`,
+          kind,
           source,
           target,
         });
-  if (relations.has('extends'))
-    for (const [source, target] of exploration.extends)
-      if (isShown.has(source) && isShown.has(target) && apart(source, target))
-        drawn.push({
-          id: `extends:${source}->${target}`,
-          kind: 'extends',
-          source,
-          target,
-        });
-  if (relations.has('invokes'))
-    for (const [source, target] of exploration.invokes)
-      if (isShown.has(source) && isShown.has(target) && apart(source, target))
-        drawn.push({
-          id: `invokes:${source}->${target}`,
-          kind: 'invokes',
-          source,
-          target,
-        });
+  }
 
   return {
     elements: shown.map((element) => ({
@@ -489,28 +488,26 @@ export function removalOf(
   return [...gone];
 }
 
-/** The ways a chain can be followed: the relations drawn as edges, either way. */
-export const CHAIN_REACHES = [
-  'uses',
-  'usedBy',
-  'extends',
-  'extendedBy',
-  'invokes',
-  'invokedBy',
-] as const satisfies readonly Reach[];
+export type ChainReach = Exclude<Reach, 'contains' | 'isPartOf'>;
 
-export type ChainReach = (typeof CHAIN_REACHES)[number];
+/** The ways a chain can be followed: the relations drawn as edges, either way. */
+export const CHAIN_REACHES: readonly ChainReach[] = DRAWN_RELATIONS.flatMap(
+  ({ reach, back }) => [reach, back],
+);
 
 /** How many steps a chain is followed at most, when the card's type is far off or never met. */
 export const CHAIN_DEPTH = 5;
 
+const RELATION_OF_REACH = new Map<ChainReach, DrawnRelationKind>(
+  DRAWN_RELATIONS.flatMap(({ kind, reach, back }) => [
+    [reach, kind],
+    [back, kind],
+  ]),
+);
+
 /** The relation a chain is drawn with. */
 export const relationOfChain = (reach: ChainReach): DrawnRelationKind =>
-  reach === 'uses' || reach === 'usedBy'
-    ? 'uses'
-    : reach === 'extends' || reach === 'extendedBy'
-      ? 'extends'
-      : 'invokes';
+  RELATION_OF_REACH.get(reach) ?? 'invokes';
 
 /**
  * Everything an element reaches one way, step after step, up to the next

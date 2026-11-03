@@ -218,18 +218,36 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * How each kind of relation is drawn on the exploration, all of it here: its
  * line (and arrow) and its word, in the light and in the dark, and its
  * dashes when the edges run — a dash and a gap in pixels of the line, and
- * the seconds they take to move one length along. What an element uses
- * reads as a dependency resting: a soft blue in short dots drifting slowly;
- * what it extends as a kinship standing: a grey in longer dashes, slower
- * still; what it invokes as a call going: violet in long dashes moving fast.
- * A quiet line may have a word of a stronger ink. Its arrow's shape is the
- * canvas's to draw (EDGE_ARROW in relation-colors.ts).
+ * the seconds they take to move one length along. What an element holds as
+ * state reads as a dependency resting: a soft blue in short dots drifting
+ * slowly; what a behavior takes as input, teal, and gives back as output,
+ * orange, in the same short dots, the two sides of a signature told apart
+ * by colour alone; what it extends as a kinship standing: a grey in longer
+ * dashes, slower still; what it invokes as a call going: violet in long
+ * dashes moving fast. A quiet line may have a word of a stronger ink. Its
+ * arrow's shape is the canvas's to draw (EDGE_ARROW in relation-colors.ts).
  */
-function relationEdges({ colors: { brand, gray, violet } }: MantineThemeOf) {
+function relationEdges({
+  colors: { brand, gray, violet, teal, orange },
+}: MantineThemeOf) {
   return {
-    uses: {
+    state: {
       line: { light: brand[4], dark: '#5a7aa3' },
       word: { light: brand[9], dark: brand[2] },
+      dash: 3,
+      gap: 4,
+      seconds: 0.7,
+    },
+    input: {
+      line: { light: teal[5], dark: teal[4] },
+      word: { light: teal[8], dark: teal[2] },
+      dash: 3,
+      gap: 4,
+      seconds: 0.7,
+    },
+    output: {
+      line: { light: orange[5], dark: orange[4] },
+      word: { light: orange[8], dark: orange[2] },
       dash: 3,
       gap: 4,
       seconds: 0.7,
