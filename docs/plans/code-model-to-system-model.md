@@ -590,3 +590,32 @@ building block becomes an element.
   building block (a test project, an artifact all of whose namespaces are
   excluded); an artifact whose name is no `ArtifactName`; the second of two
   artifacts with one id, the first in manifest order winning.
+
+**R14 Libraries described by hand.** A package the code depends on is never
+parsed: the code model holds only stubs of the types the code reaches, with
+no annotations. A library manifest, one JSON file per library under
+`.noesis/libraries/` (shape: `library-manifest.ts` in
+`app/scanners/system-model-builders/`), says which of those types are
+building blocks. The scan reads the files, by file name, at every scan, and
+refuses an invalid one.
+
+- **R14.1 A listed block** is a type the manifest names by its code-model
+  id without the `T:` (`MyCompany.Shared.Money`, `Order+Line`, `Result`1`),
+  of the manifest's `kind`. Its module is its namespace's, mapped as R6.1
+  maps a scanned block's; its `description`the manifest's; its`source`the manifest file,`line: null`. It has no behaviors, state or relations
+  of its own.
+- **R14.2 Name.** The manifest's `name`, else the type's own: nested types
+  joined by a space (R4.2), a generic's arity left out. A module that only
+  listed blocks are in has the manifest as its source.
+- **R14.3 Resolution.** A type reference no parsed artifact declares
+  resolves to the listed block of its id, wherever a block may be named: a
+  slot's type (state or collaborator by the block's kind, decision 11), a
+  parameter, a result, a supertype.
+- **R14.4 The library.** Each manifest is a library (`library|<name>`,
+  R13.3), after the scanned ones, containing its kept blocks; its `source`
+  is the manifest file.
+- **R14.5 Dropped, with a diagnostic:** a listed type a parsed artifact
+  declares (annotate it instead); one in the global namespace or one that
+  maps to no module; one listed twice (the first manifest by file name
+  wins); one whose id a block took first; a manifest none of whose blocks is
+  kept; a library whose id a scanned artifact or an earlier manifest took.

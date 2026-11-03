@@ -545,7 +545,10 @@ fixtures and the skills together, so no step leaves two shapes alive.
    and definitions are written in place, nothing adds one yet, and the
    explorer leaves them out. The committed examples were converted by
    script; a Spring Boot application with no `mainClass` in its build
-   (`qdoc-java`) is a library until its build names one.
+   (`qdoc-java`) is a library until its build names one. Added after
+   step 5 at the user's ask: a library the scan does not read is described
+   by hand in `.noesis/libraries/<file>.json` (R14), its listed types
+   becoming building blocks that stubs resolve to.
 6. **Layers and deployment containers** (decisions 14, 15): `LayerId`,
    `DeploymentContainerId`, the `layer` role, `hosts`, design-only
    containers.

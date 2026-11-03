@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
 import type { CodeParser } from '#backend/app/scanners/code-parsers/code-parser';
@@ -155,6 +155,60 @@ describe('ScannerFactory', () => {
       await configure(settings);
       await expect(factory().create()).rejects.toThrow(
         /Invalid .*\.noesis\/settings\.json[\s\S]*Unrecognized key/,
+      );
+    }
+  });
+});
+
+describe('the library manifests', () => {
+  const settings = () =>
+    new ScannerSettingsFileRepository(t.noesis).repositorySettings();
+  const manifest = async (name: string, content: unknown) => {
+    await mkdir(t.noesis.resolve('libraries'), { recursive: true });
+    await writeFile(
+      t.noesis.resolve('libraries', name),
+      typeof content === 'string' ? content : JSON.stringify(content),
+    );
+  };
+  const kernel = {
+    name: 'MyCompany.Shared.Kernel',
+    buildingBlocks: [{ type: 'MyCompany.Shared.Money', kind: 'value_object' }],
+  };
+
+  beforeEach(() =>
+    writeFile(
+      t.noesis.resolve('settings.json'),
+      JSON.stringify({ parser: { language: 'csharp' } }),
+    ),
+  );
+
+  it('reads none without .noesis/libraries/', async () => {
+    expect((await settings()).libraries).toEqual([]);
+  });
+
+  it('reads every .json there by file name, each with where it was read from', async () => {
+    await manifest('z-kernel.json', kernel);
+    await manifest('a-billing.json', { ...kernel, name: 'Billing' });
+    await manifest('notes.txt', 'not a manifest');
+
+    expect<unknown>(
+      (await settings()).libraries.map(({ name, path }) => [name, path]),
+    ).toEqual([
+      ['Billing', '.noesis/libraries/a-billing.json'],
+      ['MyCompany.Shared.Kernel', '.noesis/libraries/z-kernel.json'],
+    ]);
+  });
+
+  it('refuses a manifest that is no JSON, misses its blocks, or has a key it does not know', async () => {
+    for (const content of [
+      '{ not json',
+      { name: 'Kernel', buildingBlocks: [] },
+      { ...kernel, version: '1.0' },
+      { ...kernel, buildingBlocks: [{ type: 'X.Y', kind: 'thing' }] },
+    ]) {
+      await manifest('kernel.json', content);
+      await expect(settings()).rejects.toThrow(
+        /Invalid \.noesis\/libraries\/kernel\.json/,
       );
     }
   });

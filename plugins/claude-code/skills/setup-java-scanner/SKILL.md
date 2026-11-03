@@ -388,3 +388,42 @@ service log (`.noesis/logs/noesis.log`, under `scanner`): a rule with no
 kind tag or two, a `When` step matching no step definition or several,
 `When` steps calling no behavior or several. A rule none of whose scenarios
 binds is dropped too.
+
+## Libraries the scan does not read
+
+A package the code depends on (a Maven or Gradle dependency) is never parsed: the code model only
+names the types the code reaches in it, with no annotations, so none of them
+is a building block. When such a library holds building blocks the model
+should know — a shared kernel's value objects, a platform's services —
+describe it by hand in a manifest, one file per library under
+`.noesis/libraries/`, committed with the code:
+
+```json
+{
+  "name": "MyCompany.Shared.Kernel",
+  "description": "Value types every service shares.",
+  "buildingBlocks": [
+    { "type": "com.mycompany.shared.Money", "kind": "value_object" },
+    {
+      "type": "MyCompany.Shared.Clock",
+      "kind": "technical_service",
+      "description": "The time now."
+    }
+  ]
+}
+```
+
+- `name`: the library as its build names it (the package id); it becomes
+  `library|<name>`.
+- `type`: the type's full name as the code model spells it — namespace or
+  package, then name; a nested type after a `+` (`Money+Currency`), a generic
+  with its arity (`Result`1`).
+- `kind`: one of the building block kinds; `name` (optional) renames the
+  block, else it takes the type's own name; `description` is optional.
+
+Each listed type becomes a building block in the module its namespace maps
+to, by the same settings as the code's, and a field, parameter, result or
+base typed by it now points at that block. The library contains the blocks.
+A type the code itself declares is never listed: annotate it instead. The
+scan reads the manifests every time and refuses an invalid one, naming the
+file.

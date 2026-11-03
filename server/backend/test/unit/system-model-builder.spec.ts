@@ -24,6 +24,7 @@ import {
 } from '#backend/app/scanners/system-model-builders/build-system-model';
 import { CSHARP_VOCABULARY } from '#backend/app/scanners/system-model-builders/csharp.vocabulary';
 import { JAVA_VOCABULARY } from '#backend/app/scanners/system-model-builders/java.vocabulary';
+import type { LibraryManifest } from '#backend/app/scanners/system-model-builders/library-manifest';
 import {
   NamespaceConfig,
   type NamespaceConfigInput,
@@ -535,6 +536,7 @@ function buildFrom(
   config: NamespaceConfigInput = {},
   vocabulary: AnnotationVocabulary = CSHARP_VOCABULARY,
   featureFiles: readonly FeatureFileSource[] = [],
+  libraries: readonly LibraryManifest[] = [],
 ): BuiltSystemModel {
   const files = artifacts.map((a) => a.build());
   const manifest: ParseManifest = {
@@ -555,6 +557,7 @@ function buildFrom(
     featureFiles,
     vocabulary,
     config: NamespaceConfig.of(config),
+    libraries,
   });
   // Whatever the builder yields must be a system model.
   SystemModel.parse({
@@ -2918,6 +2921,149 @@ describe('13. deployable units and libraries (R13)', () => {
     expect<unknown>(ids(built.model.libraries)).toEqual(['library|Shop']);
     expect<unknown>(messages(built, 'info')).toContainEqual(
       'A:Shop has the id library|Shop, which came first; dropped',
+    );
+  });
+});
+
+/* ======================================== 14 library manifests (R14) */
+
+describe('14. libraries described by hand (R14)', () => {
+  const KERNEL = '.noesis/libraries/kernel.json';
+  const kernel = (
+    buildingBlocks: LibraryManifest['buildingBlocks'],
+    more: Partial<LibraryManifest> = {},
+  ): LibraryManifest => ({
+    name: 'MyCompany.Shared.Kernel',
+    buildingBlocks,
+    path: KERNEL,
+    ...more,
+  });
+  const MONEY = 'building_block|Shared.Money';
+  const CLOCK = 'building_block|Shared.Clock';
+  /** An order holding a stubbed Money and Clock. */
+  const order = () =>
+    sales()
+      .stub('T:Shared.Money')
+      .stub('T:Shared.Clock')
+      .property('P:Sales.Orders.Order.Total', named('T:Shared.Money'))
+      .property('P:Sales.Orders.Order.Clock', named('T:Shared.Clock'));
+
+  it("R14.1 makes each listed type a block of its namespace's module, which a slot typed by its stub resolves to", () => {
+    const { model } = buildFrom(
+      [order()],
+      {},
+      CSHARP_VOCABULARY,
+      [],
+      [
+        kernel([
+          {
+            type: 'Shared.Money',
+            kind: 'value_object',
+            description: 'An amount in a currency.',
+          },
+          { type: 'Shared.Clock', kind: 'technical_service' },
+        ]),
+      ],
+    );
+    expect<unknown>(
+      model.buildingBlocks.find((block) => block.id === MONEY),
+    ).toEqual({
+      id: MONEY,
+      name: 'Money',
+      type: 'value_object',
+      description: 'An amount in a currency.',
+      source: { path: KERNEL, line: null },
+    });
+    expect<unknown>(ids(model.modules)).toContain('module|Shared');
+    expect<unknown>(stateTypesOf(model, ORDER)).toEqual([['Total', MONEY]]);
+    expect<unknown>(collaboratorsOf(model, ORDER)).toEqual([['Clock', CLOCK]]);
+  });
+
+  it('R14.2 names a listed block by its "name", else by the type, nested types joined and a generic\'s arity left out', () => {
+    const { model } = buildFrom(
+      [sales()],
+      {},
+      CSHARP_VOCABULARY,
+      [],
+      [
+        kernel([
+          { type: 'Shared.Result`1', kind: 'value_object' },
+          { type: 'Shared.Money+Currency', kind: 'value_object' },
+          { type: 'Shared.Clk', kind: 'technical_service', name: 'Clock' },
+        ]),
+      ],
+    );
+    expect<unknown>(
+      ids(model.buildingBlocks).filter((id) => id.includes('Shared')),
+    ).toEqual([
+      'building_block|Shared.Clock',
+      'building_block|Shared.Money Currency',
+      'building_block|Shared.Result',
+    ]);
+  });
+
+  it('R14.3 drops a listed type the code declares, one in no module, and one listed twice, with a diagnostic each', () => {
+    const built = buildFrom(
+      [sales()],
+      {},
+      CSHARP_VOCABULARY,
+      [],
+      [
+        kernel([
+          { type: 'Sales.Orders.Order', kind: 'entity' },
+          { type: 'Money', kind: 'value_object' },
+          { type: 'Shared.Clock', kind: 'technical_service' },
+          { type: 'Shared.Clock', kind: 'domain_service' },
+        ]),
+      ],
+    );
+    expect<unknown>(
+      built.model.buildingBlocks.find((block) => block.id === ORDER)?.type,
+    ).toBe('aggregate');
+    expect<unknown>(messages(built, 'info')).toEqual([
+      `${KERNEL}: Sales.Orders.Order is declared in the scanned code; annotate it there instead; dropped`,
+      `${KERNEL}: Money is in the global namespace, which maps to no module; dropped`,
+      `${KERNEL}: Shared.Clock is listed already; dropped`,
+    ]);
+  });
+
+  it('R14.4 makes each manifest a library containing its blocks, after the scanned ones, the first of one name winning', () => {
+    const built = buildFrom(
+      [sales()],
+      {},
+      CSHARP_VOCABULARY,
+      [],
+      [
+        kernel([{ type: 'Shared.Money', kind: 'value_object' }], {
+          description: 'Shared value types.',
+        }),
+        kernel([{ type: 'Shared.Clock', kind: 'technical_service' }], {
+          name: 'Sales',
+          path: '.noesis/libraries/sales.json',
+        }),
+      ],
+    );
+    expect<unknown>(built.model.libraries).toEqual([
+      {
+        id: 'library|MyCompany.Shared.Kernel',
+        name: 'MyCompany.Shared.Kernel',
+        description: 'Shared value types.',
+        source: { path: KERNEL, line: null },
+      },
+      {
+        id: 'library|Sales',
+        name: 'Sales',
+        description: null,
+        source: { path: 'Sales', line: null },
+      },
+    ]);
+    expect<unknown>(built.model.relations).toContainEqual({
+      kind: 'contains',
+      from: 'library|MyCompany.Shared.Kernel',
+      to: MONEY,
+    });
+    expect<unknown>(messages(built, 'info')).toContain(
+      '.noesis/libraries/sales.json has the id library|Sales, which came first; dropped',
     );
   });
 });

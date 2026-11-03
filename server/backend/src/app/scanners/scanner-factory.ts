@@ -15,7 +15,7 @@ export type CreateCodeParser = (settings: CodeParserSettings) => CodeParser;
 /**
  * The only place a scanner is chosen, at every scan: the parser the
  * repository names in `.noesis/settings.json`, and a builder over its
- * namespace settings.
+ * namespace settings and library manifests.
  */
 export class ScannerFactory {
   private readonly settings: ScannerSettingsRepository;
@@ -42,7 +42,7 @@ export class ScannerFactory {
     const settings = await this.settings.repositorySettings();
     return new Scanner({
       parser: this.createParser(settings.parser),
-      builder: new SystemModelBuilder(settings.namespaces),
+      builder: new SystemModelBuilder(settings.namespaces, settings.libraries),
       repository: this.repository,
       clock: this.clock,
       log: this.log,

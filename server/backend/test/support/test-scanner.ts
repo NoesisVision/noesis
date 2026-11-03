@@ -6,6 +6,7 @@ import type { CodeParser } from '#backend/app/scanners/code-parsers/code-parser'
 import { Scanner } from '#backend/app/scanners/scanner';
 import type { ScannerFactory } from '#backend/app/scanners/scanner-factory';
 import type { CodeParserSettings } from '#backend/app/scanners/scanner-settings.repository';
+import type { LibraryManifest } from '#backend/app/scanners/system-model-builders/library-manifest';
 import type { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
 import { SystemModelBuilder } from '#backend/app/scanners/system-model-builders/system-model-builder';
 import type { SystemModel } from '#backend/app/system-model/system-model';
@@ -17,10 +18,11 @@ export function scannerOver(
   parser: CodeParser,
   namespaces: NamespaceConfig,
   clock: Clock,
+  libraries: readonly LibraryManifest[] = [],
 ): Scanner {
   return new Scanner({
     parser,
-    builder: new SystemModelBuilder(namespaces),
+    builder: new SystemModelBuilder(namespaces, libraries),
     repository: new GitSourceRepository(noesis.root),
     clock,
     log: new ServerScanLog(),
@@ -46,6 +48,7 @@ export function settingsScanner(
         parser(repository.parser),
         repository.namespaces,
         clock,
+        repository.libraries,
       ).scan();
     },
   };

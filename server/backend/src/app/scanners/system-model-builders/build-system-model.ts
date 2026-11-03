@@ -61,6 +61,7 @@ import {
   type Located,
   namespaceName,
 } from './code-model-index';
+import type { LibraryManifest } from './library-manifest';
 import type { NamespaceConfig } from './namespace-config';
 import {
   optionalOf,
@@ -85,6 +86,8 @@ export interface SystemModelBuildInput {
   readonly featureFiles: readonly FeatureFileSource[];
   readonly vocabulary: AnnotationVocabulary;
   readonly config: NamespaceConfig;
+  /** The libraries no scan reads, described by hand (R14); none by default. */
+  readonly libraries?: readonly LibraryManifest[];
 }
 
 export interface BuildDiagnostic {
@@ -133,6 +136,17 @@ interface Behavior {
   readonly overloads: readonly Located<MethodNode>[];
 }
 
+/** A block a library manifest lists (R14): a type the code reaches only as a stub. */
+interface ListedBlock {
+  readonly id: BuildingBlockId;
+  readonly modulePath: readonly string[];
+  readonly type: ScannedBuildingBlock['type'];
+  readonly name: ElementName;
+  readonly description: string | null;
+  readonly manifest: LibraryManifest;
+  readonly source: SourceLocation;
+}
+
 /** One call a behavior makes, at a site in the source, and the behaviors it reaches (R11.2). */
 interface Call {
   readonly site: SourceSpan;
@@ -156,6 +170,9 @@ class ModelAssembly {
   private readonly config: NamespaceConfig;
   private readonly index: CodeModelIndex;
   private readonly featureFiles: readonly FeatureFileSource[];
+  private readonly manifests: readonly LibraryManifest[];
+  /** R14: the blocks the library manifests list, by the code model's type id. */
+  private readonly listed = new Map<NodeId, ListedBlock>();
   private readonly diagnostics: BuildDiagnostic[] = [];
   private readonly relations: Relation[] = [];
   private readonly blocks = new Map<GlobalId, Block>();
@@ -176,24 +193,30 @@ class ModelAssembly {
     featureFiles,
     vocabulary,
     config,
+    libraries = [],
   }: SystemModelBuildInput) {
     this.vocabulary = vocabulary;
     this.config = config;
     this.index = new CodeModelIndex(manifest, files);
     this.featureFiles = featureFiles;
+    this.manifests = libraries;
   }
 
   assemble(): BuiltSystemModel {
     this.collectBlocks();
+    this.collectListedBlocks();
     this.collectBehaviors();
     this.collectInvocations();
     this.collectRules();
     const { deployableUnits, libraries } = this.artifacts();
     const model: BuiltModel = {
       modules: this.modules(),
-      buildingBlocks: [...this.blocks.values()]
-        .map((block) => this.toBuildingBlock(block))
-        .sort(byId),
+      buildingBlocks: [
+        ...[...this.blocks.values()].map((block) =>
+          this.toBuildingBlock(block),
+        ),
+        ...[...this.listed.values()].map((block) => this.toListedBlock(block)),
+      ].sort(byId),
       behaviors: [...this.behaviors.values()]
         .sort(byId)
         .map((behavior) => this.toBehavior(behavior)),
@@ -325,7 +348,8 @@ class ModelAssembly {
     typeId: NodeId,
   ): BuildingBlockId | null {
     const located = this.index.resolve(from, typeId);
-    if (located === null) return null;
+    // R14.3: a type no parsed artifact declares may be one a manifest lists.
+    if (located === null) return this.listed.get(typeId)?.id ?? null;
     return (
       this.blocks.get(globalId(located.artifact, located.node.id))?.id ?? null
     );
@@ -501,7 +525,10 @@ class ModelAssembly {
   /** Every block's kind by its id, once the blocks are known. */
   private blockTypes(): ReadonlyMap<string, Block['type']> {
     this.blockTypesById ??= new Map(
-      [...this.blocks.values()].map((block) => [block.id, block.type]),
+      [...this.blocks.values(), ...this.listed.values()].map((block) => [
+        block.id,
+        block.type,
+      ]),
     );
     return this.blockTypesById;
   }
@@ -1049,7 +1076,18 @@ class ModelAssembly {
   private modules(): ScannedDomainModule[] {
     const namespaceLocations = this.namespaceLocations();
     const modules = new Map<ModuleId, ScannedDomainModule>();
-    for (const block of this.blocks.values()) {
+    // A module only a manifest's blocks are in sits at the manifest (R14.2).
+    const holders = [
+      ...[...this.blocks.values()].map((block) => ({
+        modulePath: block.modulePath,
+        above: (levels: number) => this.directoryAbove(block, levels),
+      })),
+      ...[...this.listed.values()].map((block) => ({
+        modulePath: block.modulePath,
+        above: () => block.source,
+      })),
+    ];
+    for (const block of holders) {
       for (let depth = 1; depth <= block.modulePath.length; depth++) {
         const path = block.modulePath.slice(0, depth);
         const id = moduleIdOf(path);
@@ -1060,7 +1098,7 @@ class ModelAssembly {
           description: null,
           source:
             namespaceLocations.get(path.join('.')) ??
-            this.directoryAbove(block, block.modulePath.length - depth),
+            block.above(block.modulePath.length - depth),
         });
         const parent = ModuleId.parentOf(id);
         if (parent !== null) {
@@ -1094,6 +1132,83 @@ class ModelAssembly {
     let dir = posix.dirname(locationOf(block.node).path);
     for (let i = 0; i < levels; i++) dir = posix.dirname(dir);
     return { path: dir, line: null };
+  }
+
+  /* ----------------------------------------------- listed blocks (R14) */
+
+  /**
+   * R14.1, R14.2: each block a library manifest lists, in manifest order,
+   * by the type the code reaches as a stub; its module is its namespace's,
+   * as a scanned block's is (R6.1).
+   */
+  private collectListedBlocks(): void {
+    const taken = new Set<string>(
+      [...this.blocks.values()].map((block) => block.id),
+    );
+    for (const manifest of this.manifests) {
+      const source = { path: manifest.path, line: null };
+      for (const listed of manifest.buildingBlocks) {
+        const typeId = `T:${listed.type}` as NodeId;
+        const drop = (why: string) =>
+          this.infoAt(
+            `${manifest.path}: ${listed.type} ${why}; dropped`,
+            source,
+          );
+        if (this.listed.has(typeId)) {
+          drop('is listed already');
+          continue;
+        }
+        if (this.index.artifacts.some((a) => a.nodes.has(typeId))) {
+          drop('is declared in the scanned code; annotate it there instead');
+          continue;
+        }
+        const { namespace, codeName } = listedTypeName(listed.type);
+        const modulePath =
+          namespace === null ? null : this.config.modulePathOf(namespace);
+        if (modulePath === null) {
+          drop(
+            `is in ${namespace === null ? 'the global namespace' : `namespace ${namespace}`}, which maps to no module`,
+          );
+          continue;
+        }
+        const name = listed.name ?? ElementName.safeParse(codeName).data;
+        if (name === undefined) {
+          drop(`has no element name; give it a "name"`);
+          continue;
+        }
+        const id = BuildingBlockId.within(moduleIdOf(modulePath), name);
+        if (taken.has(id)) {
+          drop(`has the id ${id}, which came first`);
+          continue;
+        }
+        taken.add(id);
+        this.listed.set(typeId, {
+          id,
+          modulePath,
+          type: listed.kind,
+          name,
+          description: listed.description ?? null,
+          manifest,
+          source,
+        });
+      }
+    }
+  }
+
+  /** A listed block's element and its module's `contains`; it holds nothing a manifest does not say. */
+  private toListedBlock(block: ListedBlock): ScannedBuildingBlock {
+    this.relations.push({
+      kind: 'contains',
+      from: moduleIdOf(block.modulePath),
+      to: block.id,
+    });
+    return {
+      id: block.id,
+      name: block.name,
+      type: block.type,
+      description: block.description,
+      source: block.source,
+    };
   }
 
   /* --------------------------------------------------------- artifacts */
@@ -1160,6 +1275,31 @@ class ModelAssembly {
         }
       }
     }
+    // R14.4: then each manifest, a library of the blocks it kept.
+    for (const manifest of this.manifests) {
+      const source = { path: manifest.path, line: null };
+      const id = LibraryId.of(manifest.name);
+      const kept = [...this.listed.values()].filter(
+        (block) => block.manifest === manifest,
+      );
+      if (kept.length === 0) {
+        this.infoAt(
+          `${manifest.path} lists no building block the model keeps; no library`,
+          source,
+        );
+        continue;
+      }
+      if (!this.firstWith(id, libraries, manifest.path, source)) continue;
+      libraries.set(id, {
+        id,
+        name: manifest.name,
+        description: manifest.description ?? null,
+        source,
+      });
+      for (const block of kept) {
+        this.relations.push({ kind: 'contains', from: id, to: block.id });
+      }
+    }
     return {
       deployableUnits: [...deployableUnits.values()].sort(byId),
       libraries: [...libraries.values()].sort(byId),
@@ -1170,7 +1310,7 @@ class ModelAssembly {
   private firstWith(
     id: string,
     taken: ReadonlyMap<string, unknown>,
-    artifact: NodeId,
+    artifact: string,
     source: SourceLocation | null,
   ): boolean {
     if (!taken.has(id)) return true;
@@ -1250,6 +1390,26 @@ function bySite(a: Call, b: Call): number {
     a.site.startLine - b.site.startLine ||
     a.site.startColumn - b.site.startColumn
   );
+}
+
+/**
+ * A listed type's namespace and its name as the code reads it: `A.B.Order+Line`
+ * is `Order Line` in `A.B`, as a nested block is named (R4.2); a generic's
+ * arity is no part of its name.
+ */
+function listedTypeName(type: string): {
+  namespace: string | null;
+  codeName: string;
+} {
+  const [outer = type, ...nested] = type.split('+');
+  const dot = outer.lastIndexOf('.');
+  const names = [outer.slice(dot + 1), ...nested].map((part) =>
+    part.replace(/`\d+$/, ''),
+  );
+  return {
+    namespace: dot === -1 ? null : outer.slice(0, dot),
+    codeName: names.join(' '),
+  };
 }
 
 function moduleIdOf(path: readonly string[]): ModuleId {
