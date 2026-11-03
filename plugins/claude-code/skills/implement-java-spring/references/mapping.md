@@ -113,11 +113,12 @@ an application service's behaviors carry a handler annotation: never a
 method of another building block, and never a method that is not a
 behavior (package-private helpers, accessors, `equals`).
 
-### `implements`
+### `extends`
 
-A base building block that others list in `implements` is a Java interface
-carrying the base's own annotation; each implementer `implements` it. Make
-it `sealed ... permits` when all implementers live in one package.
+A base building block that others reach with an `extends` relation is a
+Java interface carrying the base's own annotation; each extender
+`implements` it. Make it `sealed ... permits` when all extenders live in one
+package.
 
 ### Javadoc
 
@@ -125,27 +126,29 @@ A type's Javadoc is its building block's definition. An aggregate's Javadoc
 adds the invariants it protects, one line per rule attached to it. Write
 them in the dominant language of the design document; do not translate.
 
-## Properties
+## State
 
-Each property is a record component or a `private final` field (a plain
-`private` field when a behavior changes it), named exactly as the property.
+Each `has_state` relation from a block is a record component or a
+`private final` field (a plain `private` field when a behavior changes it),
+named exactly as the relation's `name` and typed by its `to`.
 
-| Design document type    | Java type                                                            |
-| ----------------------- | -------------------------------------------------------------------- |
-| `primitive\|string`     | `String`                                                             |
-| `primitive\|integer`    | `int` (`long` when the definition says counts grow past two billion) |
-| `primitive\|decimal`    | `BigDecimal`, never `double`                                         |
-| `primitive\|boolean`    | `boolean`                                                            |
-| `primitive\|date`       | `LocalDate`                                                          |
-| `primitive\|datetime`   | `Instant`                                                            |
-| `primitive\|duration`   | `Duration`                                                           |
-| `primitive\|uuid`       | `UUID`                                                               |
-| `building_block\|…`     | the type of that building block                                      |
-| `{ "collectionOf": T }` | `List<T>`, held as an unmodifiable copy                              |
+| Design document `to`  | Java type                                                            |
+| --------------------- | -------------------------------------------------------------------- |
+| `primitive\|string`   | `String`                                                             |
+| `primitive\|integer`  | `int` (`long` when the definition says counts grow past two billion) |
+| `primitive\|decimal`  | `BigDecimal`, never `double`                                         |
+| `primitive\|boolean`  | `boolean`                                                            |
+| `primitive\|date`     | `LocalDate`                                                          |
+| `primitive\|datetime` | `Instant`                                                            |
+| `primitive\|duration` | `Duration`                                                           |
+| `primitive\|uuid`     | `UUID`                                                               |
+| `building_block\|…`   | the type of that building block                                      |
 
-An `optional` property may be `null` in its field or component. Every other
-one is checked with `Objects.requireNonNull` on construction. Where a class
-exposes an optional property, the accessor returns `Optional<T>`.
+The relation's `cardinality` wraps the type: `1` is the type itself,
+checked with `Objects.requireNonNull` on construction; `0..1` may be `null`
+in its field or component, and where a class exposes it the accessor
+returns `Optional<T>`; `0..*` and `1..*` are a `List<T>`, held as an
+unmodifiable copy, `1..*` checked non-empty on construction.
 
 A property typed with another aggregate breaks the aggregate rules
 ([building blocks](building-blocks.md#aggregates)): hold that aggregate's
@@ -158,16 +161,17 @@ method `create` of the type `QDoc`.
 
 - **Name**: the behavior's name, verbatim. One name, one behavior: Java
   overloads of it are the same behavior.
-- **Parameters**: the inputs, in their order, named as the inputs, typed
-  as in [Properties](#properties). An optional input that comes last is
-  left out of an overload without it; one that does not come last is a
-  parameter that may be `null`, and its Javadoc says so. Spring Boot's
-  parent POM compiles with `-parameters`, which keeps the names in the
-  bytecode the scanner reads; keep it that way.
-- **Return type**: `void` with no output; the output's type with one;
-  `Optional<T>` for an optional output, `List<T>` for a collection. Several
-  outputs need a base building block they all implement, which is then the
-  return type; without one, ask the user.
+- **Parameters**: the `has_input` relations of the behavior, named as the
+  relations, typed by their `to` and `cardinality` as in [State](#state).
+  A `0..1` input that comes last is left out of an overload without it; one
+  that does not come last is a parameter that may be `null`, and its
+  Javadoc says so. Spring Boot's parent POM compiles with `-parameters`,
+  which keeps the names in the bytecode the scanner reads; keep it that
+  way.
+- **Return type**: `void` without a `has_output`; the output's `to` with
+  one; `Optional<T>` for a `0..1` output, `List<T>` for `0..*` or `1..*`.
+  Several outputs need a base building block they all extend, which is
+  then the return type; without one, ask the user.
 - **Static or instance**: a behavior of a block whose output is that same
   block creates it, so it is a `public static` factory method
   (`Version.createFirst(...)` returns a `Version`). Every other behavior
@@ -185,8 +189,9 @@ method `create` of the type `QDoc`.
   actors for a use case, `private` for the rest) is a design notion, not a
   Java one. Every behavior is a `public` method, because the scanner sees
   only public methods. A use case's actors go in its Javadoc.
-- **Javadoc**: the behavior's definition; `@param` with each input's
-  description; `@return` with the output's; `Actors:` for a use case.
+- **Javadoc**: the behavior's definition; `@param` for each input, saying
+  what the block it is typed with is for here; `@return` with the output's;
+  `Actors:` for a use case.
 
 ### When the signature cannot be written as given
 
@@ -239,11 +244,13 @@ not domain code. Leave it to the adapters and report it.
 ## Modified and removed elements
 
 - **Modified**: only the fields with `"changed": true` change. A new
-  definition replaces the Javadoc; a property, input, output, rule or
-  scenario is added, changed or removed in the code and its tests. A
-  changed `implements` entry is one removed and one added.
+  definition replaces the Javadoc; a rule or scenario is added, changed or
+  removed in the code and its tests; so is a relation — a field for a
+  `has_state`, a parameter for a `has_input`, a return type for a
+  `has_output`, an interface for an `extends`. A changed `extends` is one
+  relation removed and one added.
 - **Removed**: delete the type or the method, every use of it, and the
-  tests of its scenarios. A removed building block takes its behaviors
-  with it.
+  tests of its scenarios. A removed building block takes its behaviors and
+  relations with it.
 - **Renamed**: a removal and an addition. Rename the type or the method,
   its file and its tests, and every reference to it.

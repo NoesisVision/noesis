@@ -87,6 +87,10 @@ const FIXES: Record<DesignDocViolation['reason'], string> = {
     'the rule\'s "ruleType" belongs to another "category"; pick a type of its category, or the category of its type',
   businessRuleOnModule:
     'a module holds only quality and constraint rules; move the business rule to the building block or behavior it governs',
+  unknownRelationEnd:
+    'neither the design nor the scanned model has this element; add it to the design, or point the relation at an element that exists',
+  containmentOutsideIdPath:
+    "what holds what is in the ids: a 'contains' or 'exposes' joins an element to the one its id path names; fix the id or drop the relation",
 };
 
 function message(error: unknown): string {

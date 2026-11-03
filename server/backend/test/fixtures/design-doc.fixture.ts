@@ -7,8 +7,8 @@ import {
  * The JSON form, with every default spelled out, so that decoding and
  * encoding it again gives back exactly this object. Keeps one of every shape
  * the specs rely on: an element added, modified and removed at every level,
- * a part of each kind, unchanged fields and changed fields of both authors,
- * every kind of type including a nested collection, a public behavior.
+ * a relation of each kind added, modified or removed, unchanged fields and
+ * changed fields of both authors, every cardinality, a public behavior.
  */
 
 const byHuman = <const T>(value: T) => ({
@@ -23,10 +23,16 @@ const byAgent = <const T>(value: T) => ({
 });
 const unchanged = { changed: false as const };
 const noChanges = { added: [], removed: [], modified: [] };
-const noAdditions = { added: [], removed: [] };
 
 const REFUND_OUTCOME =
   "a refund for that line's amount is issued and the second line stays refundable";
+
+const REFUND = 'building_block|sales.refunds.Refund';
+const REFUND_LINE = 'building_block|sales.refunds.RefundLine';
+const REFUND_ISSUED = 'building_block|sales.refunds.RefundIssued';
+const ISSUE = 'behavior|sales.refunds.Refund.issue';
+const ORDER = 'building_block|sales.orders.Order';
+const CANCEL = 'behavior|sales.orders.Order.cancel';
 
 export const designDocFixture = {
   id: '2026-01-01-partial-refunds-for-orders',
@@ -91,46 +97,11 @@ export const designDocFixture = {
   buildingBlocks: {
     added: [
       {
-        id: 'building_block|sales.refunds.Refund',
+        id: REFUND,
         name: byHuman('Refund'),
         type: byHuman('aggregate'),
         definition: byAgent('A refund of one or more lines of a single order.'),
         diagram: unchanged,
-        implements: noAdditions,
-        properties: {
-          added: [
-            {
-              name: 'orderId',
-              type: byHuman('building_block|sales.orders.OrderId'),
-              description: byAgent('The order the refunded lines belong to.'),
-              optional: byAgent(false),
-            },
-            {
-              name: 'lines',
-              type: byAgent({
-                collectionOf: 'building_block|sales.refunds.RefundLine',
-              }),
-              description: byAgent('The refunded lines.'),
-              optional: byAgent(false),
-            },
-            {
-              name: 'notes',
-              type: byAgent({
-                collectionOf: { collectionOf: 'primitive|string' },
-              }),
-              description: byAgent('Notes per line, several per line.'),
-              optional: byAgent(false),
-            },
-            {
-              name: 'issuedAt',
-              type: byAgent('primitive|datetime'),
-              description: byAgent('When the refund was issued.'),
-              optional: byAgent(true),
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
         rules: {
           added: [
             {
@@ -167,13 +138,20 @@ export const designDocFixture = {
         },
       },
       {
-        id: 'building_block|sales.refunds.RefundIssued',
+        id: REFUND_LINE,
+        name: byAgent('RefundLine'),
+        type: byAgent('entity'),
+        definition: byAgent('One refunded line of the order.'),
+        diagram: unchanged,
+        rules: noChanges,
+        scenarios: noChanges,
+      },
+      {
+        id: REFUND_ISSUED,
         name: byAgent('RefundIssued'),
         type: byAgent('value_object'),
         definition: byAgent('Tells the ledger a refund went out.'),
         diagram: unchanged,
-        implements: noAdditions,
-        properties: noChanges,
         rules: noChanges,
         scenarios: noChanges,
       },
@@ -183,11 +161,6 @@ export const designDocFixture = {
         type: byAgent('repository'),
         definition: byAgent('Stores refunds.'),
         diagram: unchanged,
-        implements: {
-          added: ['building_block|sales.shared.Repository'],
-          removed: [],
-        },
-        properties: noChanges,
         rules: noChanges,
         scenarios: noChanges,
       },
@@ -195,31 +168,11 @@ export const designDocFixture = {
     removed: ['building_block|sales.credit-notes.CreditNote'],
     modified: [
       {
-        id: 'building_block|sales.orders.Order',
+        id: ORDER,
         name: unchanged,
         type: unchanged,
         definition: unchanged,
         diagram: unchanged,
-        implements: noAdditions,
-        properties: {
-          added: [
-            {
-              name: 'refundedAmount',
-              type: byAgent('building_block|sales.shared.Money'),
-              description: byAgent('What has been refunded so far.'),
-              optional: byAgent(false),
-            },
-          ],
-          removed: ['creditNoteId'],
-          modified: [
-            {
-              name: 'status',
-              type: unchanged,
-              description: byAgent("Gains the 'partially_refunded' state."),
-              optional: unchanged,
-            },
-          ],
-        },
         rules: noChanges,
         scenarios: noChanges,
       },
@@ -228,7 +181,7 @@ export const designDocFixture = {
   behaviors: {
     added: [
       {
-        id: 'behavior|sales.refunds.Refund.issue',
+        id: ISSUE,
         name: byAgent('issue'),
         type: byHuman('Command'),
         definition: byAgent(
@@ -238,43 +191,6 @@ export const designDocFixture = {
           'sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund-->>Support agent: RefundIssued',
         ),
         visibility: byHuman({ kind: 'public', actors: ['Support agent'] }),
-        input: {
-          added: [
-            {
-              name: 'orderId',
-              type: byAgent('building_block|sales.orders.OrderId'),
-              description: byAgent('The order to refund.'),
-              optional: byAgent(false),
-            },
-            {
-              name: 'lines',
-              type: byAgent({
-                collectionOf: 'building_block|sales.refunds.RefundLine',
-              }),
-              description: byAgent('The lines to refund.'),
-              optional: byAgent(false),
-            },
-            {
-              name: 'reason',
-              type: byHuman('primitive|string'),
-              description: byAgent('Why support refunds the lines.'),
-              optional: byAgent(true),
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
-        output: {
-          added: [
-            {
-              type: 'building_block|sales.refunds.RefundIssued',
-              description: byAgent('Tells the ledger the refund went out.'),
-              optional: byAgent(false),
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
         rules: {
           added: [
             {
@@ -296,37 +212,132 @@ export const designDocFixture = {
     removed: ['behavior|sales.credit-notes.CreditNote.issue'],
     modified: [
       {
-        id: 'behavior|sales.orders.Order.cancel',
+        id: CANCEL,
         name: unchanged,
         type: unchanged,
         definition: unchanged,
         diagram: unchanged,
         visibility: byAgent({ kind: 'private' }),
-        input: {
-          added: [],
-          removed: ['force'],
-          modified: [
-            {
-              name: 'reason',
-              type: unchanged,
-              description: byAgent('Shown to the customer.'),
-              optional: unchanged,
-            },
-          ],
-        },
-        output: {
-          added: [],
-          removed: [],
-          modified: [
-            {
-              type: 'building_block|sales.orders.OrderCancelled',
-              description: byAgent('Now also names the reason.'),
-              optional: unchanged,
-            },
-          ],
-        },
         rules: noChanges,
         scenarios: noChanges,
+      },
+    ],
+  },
+  relations: {
+    added: [
+      {
+        kind: 'has_state',
+        from: REFUND,
+        name: 'orderId',
+        to: byHuman('primitive|uuid'),
+        cardinality: byAgent('1'),
+      },
+      {
+        kind: 'has_state',
+        from: REFUND,
+        name: 'lines',
+        to: byAgent(REFUND_LINE),
+        cardinality: byAgent('1..*'),
+      },
+      {
+        kind: 'has_state',
+        from: REFUND,
+        name: 'notes',
+        to: byAgent('primitive|string'),
+        cardinality: byAgent('0..*'),
+      },
+      {
+        kind: 'has_state',
+        from: REFUND,
+        name: 'issuedAt',
+        to: byAgent('primitive|datetime'),
+        cardinality: byAgent('0..1'),
+      },
+      {
+        kind: 'has_state',
+        from: REFUND_LINE,
+        name: 'amount',
+        to: byAgent('primitive|decimal'),
+        cardinality: byAgent('1'),
+      },
+      {
+        kind: 'exposes',
+        from: REFUND,
+        to: ISSUE,
+      },
+      {
+        kind: 'has_input',
+        from: ISSUE,
+        name: 'orderId',
+        to: byAgent('primitive|uuid'),
+        cardinality: byAgent('1'),
+      },
+      {
+        kind: 'has_input',
+        from: ISSUE,
+        name: 'lines',
+        to: byAgent(REFUND_LINE),
+        cardinality: byAgent('1..*'),
+      },
+      {
+        kind: 'has_input',
+        from: ISSUE,
+        name: 'reason',
+        to: byHuman('primitive|string'),
+        cardinality: byAgent('0..1'),
+      },
+      {
+        kind: 'has_output',
+        from: ISSUE,
+        to: REFUND_ISSUED,
+        cardinality: byAgent('1'),
+      },
+      {
+        kind: 'contains',
+        from: 'module|sales.refunds',
+        to: REFUND,
+      },
+    ],
+    removed: [
+      { kind: 'has_state', from: ORDER, name: 'creditNoteId' },
+      {
+        kind: 'extends',
+        from: ORDER,
+        to: 'building_block|sales.shared.Legacy',
+      },
+      { kind: 'has_input', from: CANCEL, name: 'force' },
+      {
+        kind: 'invokes',
+        from: CANCEL,
+        to: 'behavior|sales.credit-notes.CreditNote.issue',
+      },
+    ],
+    modified: [
+      {
+        kind: 'has_state',
+        from: ORDER,
+        name: 'status',
+        to: unchanged,
+        cardinality: byAgent('1'),
+      },
+      {
+        kind: 'has_input',
+        from: CANCEL,
+        name: 'reason',
+        to: unchanged,
+        cardinality: byAgent('0..1'),
+      },
+      {
+        kind: 'has_output',
+        from: CANCEL,
+        to: 'building_block|sales.orders.OrderCancelled',
+        cardinality: byAgent('1'),
+      },
+      {
+        kind: 'invokes',
+        from: CANCEL,
+        to: 'behavior|sales.orders.Order.notify',
+        order: byAgent(2),
       },
     ],
   },
@@ -338,7 +349,7 @@ export const decodedDesignDocFixture = DesignDocument.decode(designDocFixture);
 
 /*
  * What an agent may write while nothing is scanned yet: the same design with
- * every field written by the agent, adding elements only.
+ * every field written by the agent, adding elements and relations only.
  */
 const byAgentOnly = asAgent(designDocFixture) as typeof designDocFixture;
 export const greenFieldDesignDocFixture: DesignDocumentInput = {
@@ -347,6 +358,7 @@ export const greenFieldDesignDocFixture: DesignDocumentInput = {
   modules: { added: byAgentOnly.modules.added },
   buildingBlocks: { added: byAgentOnly.buildingBlocks.added },
   behaviors: { added: byAgentOnly.behaviors.added },
+  relations: { added: byAgentOnly.relations.added },
 };
 
 /*
@@ -359,6 +371,7 @@ export const humanEditedDesignDocFixture: DesignDocumentInput = {
   modules: { added: designDocFixture.modules.added },
   buildingBlocks: { added: designDocFixture.buildingBlocks.added },
   behaviors: { added: designDocFixture.behaviors.added },
+  relations: { added: designDocFixture.relations.added },
 };
 
 function asAgent(node: unknown): unknown {

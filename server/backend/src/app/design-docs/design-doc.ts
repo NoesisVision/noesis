@@ -9,13 +9,23 @@ import {
 import {
   BehaviorType,
   BuildingBlockType,
+  Cardinality,
+  ContainsRelation,
+  ExposesRelation,
+  ExtendsRelation,
+  HasInputRelation,
+  HasOutputRelation,
+  HasStateRelation,
+  InvokesRelation,
   RULE_TYPES_OF,
+  Relation,
+  type RelationKey,
   RuleCategory,
   RuleType,
-  BuildingBlockRef,
   ScenarioSteps,
   type ScannedRule,
   type SystemModel,
+  TypeRef,
   Visibility,
 } from '#backend/app/system-model/system-model';
 import { type ChangedDesignDocField, DesignDocField } from './design-doc-field';
@@ -39,31 +49,45 @@ export const DesignedScenario = z.strictObject({
 });
 export type DesignedScenario = z.infer<typeof DesignedScenario>;
 
-export const DesignedProperty = z.strictObject({
-  name: ElementName,
-  type: DesignDocField(BuildingBlockRef),
-  description: DesignDocField(z.string()),
-  optional: DesignDocField(z.boolean()),
-});
-export type DesignedProperty = z.infer<typeof DesignedProperty>;
+/*
+ * A relation as a design writes it: the scanned shape, with what is not its
+ * identity as fields, so a design may change a slot's type or cardinality,
+ * or a call's order, without removing and adding the relation. A named slot
+ * (`has_state`, `has_input`) is known by its holder and name, so its type is
+ * a field; every other relation is known by its ends.
+ */
+const designedSlot = {
+  to: DesignDocField(TypeRef),
+  cardinality: DesignDocField(Cardinality),
+};
+export const DesignedRelation = z.discriminatedUnion('kind', [
+  ContainsRelation,
+  ExtendsRelation,
+  HasStateRelation.extend(designedSlot),
+  ExposesRelation,
+  HasInputRelation.extend(designedSlot),
+  HasOutputRelation.extend({ cardinality: DesignDocField(Cardinality) }),
+  InvokesRelation.extend({
+    order: DesignDocField(InvokesRelation.shape.order),
+  }),
+]);
+export type DesignedRelation = z.infer<typeof DesignedRelation>;
 
-export const DesignedParameter = z.strictObject({
-  name: ElementName,
-  type: DesignDocField(BuildingBlockRef),
-  description: DesignDocField(z.string()),
-  optional: DesignDocField(z.boolean()),
-});
-export type DesignedParameter = z.infer<typeof DesignedParameter>;
-
-/** What a behavior gives back: it has no name, so its type is its key. */
-export const DesignedResult = z.strictObject({
-  type: BuildingBlockRef.describe(
-    'What the behavior gives back, which is also how the design names it: a changed type is one result removed and another added.',
-  ),
-  description: DesignDocField(z.string()),
-  optional: DesignDocField(z.boolean()),
-});
-export type DesignedResult = z.infer<typeof DesignedResult>;
+/** What a design removes a relation by: its kind and ends, or, for a named slot, its holder and name. */
+export const DesignedRelationKey = z
+  .discriminatedUnion('kind', [
+    ContainsRelation.pick({ kind: true, from: true, to: true }),
+    ExtendsRelation.pick({ kind: true, from: true, to: true }),
+    HasStateRelation.pick({ kind: true, from: true, name: true }),
+    ExposesRelation.pick({ kind: true, from: true, to: true }),
+    HasInputRelation.pick({ kind: true, from: true, name: true }),
+    HasOutputRelation.pick({ kind: true, from: true, to: true }),
+    InvokesRelation.pick({ kind: true, from: true, to: true }),
+  ])
+  .describe(
+    "A relation by what makes it one of a kind: its kind, `from` and `to`; for 'has_state' and 'has_input', its kind, `from` and `name`.",
+  );
+export type DesignedRelationKey = z.infer<typeof DesignedRelationKey>;
 
 export const DesignedRule = z.strictObject({
   name: ElementName,
@@ -97,8 +121,6 @@ export const DesignedBuildingBlock = z.strictObject({
   type: DesignDocField(BuildingBlockType),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
-  implements: changeSet(BuildingBlockId),
-  properties: changeSet(DesignedProperty, ElementName),
   rules: changeSet(DesignedRule, ElementName),
   scenarios: changeSet(DesignedScenario, ElementName),
 });
@@ -111,8 +133,6 @@ export const DesignedBehavior = z.strictObject({
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
   visibility: DesignDocField(Visibility),
-  input: changeSet(DesignedParameter, ElementName),
-  output: changeSet(DesignedResult, BuildingBlockRef),
   rules: changeSet(DesignedRule, ElementName),
   scenarios: changeSet(DesignedScenario, ElementName),
 });
@@ -132,6 +152,9 @@ const designDocumentSchema = z.strictObject({
   modules: changeSet(DesignedDomainModule, ModuleId),
   buildingBlocks: changeSet(DesignedBuildingBlock, BuildingBlockId),
   behaviors: changeSet(DesignedBehavior, BehaviorId),
+  relations: changeSet(DesignedRelation, DesignedRelationKey).describe(
+    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds ('has_state'), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), and what a module contains. Both ends of an added relation exist, in the design or the model; a 'contains' or 'exposes' agrees with the ids, whose paths already say what holds what.",
+  ),
   implemented: z
     .boolean()
     .default(false)
@@ -175,7 +198,9 @@ export interface DesignDocViolation {
     | 'diagramInDefinition'
     | 'unknownNeed'
     | 'ruleTypeOutsideCategory'
-    | 'businessRuleOnModule';
+    | 'businessRuleOnModule'
+    | 'unknownRelationEnd'
+    | 'containmentOutsideIdPath';
 }
 
 export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
@@ -204,9 +229,8 @@ export function implementedAtOf(
 export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
 export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;
 export type DesignedBehaviorInput = z.input<typeof DesignedBehavior>;
-export type DesignedPropertyInput = z.input<typeof DesignedProperty>;
-export type DesignedParameterInput = z.input<typeof DesignedParameter>;
-export type DesignedResultInput = z.input<typeof DesignedResult>;
+export type DesignedRelationInput = z.input<typeof DesignedRelation>;
+export type DesignedRelationKeyInput = z.input<typeof DesignedRelationKey>;
 export type DesignedRuleInput = z.input<typeof DesignedRule>;
 export type DesignedNeedInput = z.input<typeof DesignedNeed>;
 export type DesignedScenarioInput = z.input<typeof DesignedScenario>;
@@ -254,10 +278,11 @@ function changeSet(item: z.ZodType, key?: z.ZodType) {
 }
 
 /**
- * Every element or part the document modifies or removes, at any level, that
- * the system model lacks; all of them in a green field. An element's parts
- * are matched by name: a designed block's `properties` against the scanned
- * block's `properties`, and so on. Inside an added element nothing exists yet.
+ * Every element, part or relation the document modifies or removes, at any
+ * level, that the system model lacks; all of them in a green field. An
+ * element's parts are matched by name: a designed block's `rules` against
+ * the scanned block's `rules`, and so on; a relation by its key. Inside an
+ * added element nothing exists yet.
  */
 function changesMissingFrom(
   systemModel: SystemModel | undefined,
@@ -352,8 +377,60 @@ function rulesOfEveryDesign(
     ...unknownNeeds(document, rules),
     ...ruleTypesOutsideCategory(rules),
     ...businessRulesOnModules(rules),
+    ...unknownRelationEnds(document, systemModel),
+    ...containmentsOutsideIdPaths(document),
   ];
 }
+
+const ELEMENT_LISTS = ['modules', 'buildingBlocks', 'behaviors'] as const;
+
+/** Both ends of an added relation are elements the design adds or the model has; a primitive is always known. */
+function unknownRelationEnds(
+  document: DesignDocumentContent,
+  systemModel: SystemModel | undefined,
+): DesignDocViolation[] {
+  const known = new Set<string>();
+  for (const list of ELEMENT_LISTS) {
+    for (const { id } of systemModel?.[list] ?? []) known.add(id);
+    for (const { id } of document[list].added) known.add(id);
+  }
+  const unknown = (id: string | undefined) =>
+    id !== undefined && !known.has(id) && !id.startsWith('primitive|');
+  return document.relations.added.flatMap((relation) => {
+    const to = DesignDocField.is(relation.to)
+      ? relation.to.changed
+        ? relation.to.value
+        : undefined
+      : relation.to;
+    return [
+      ...(unknown(relation.from) ? ['from'] : []),
+      ...(unknown(to) ? ['to'] : []),
+    ].map((end) => ({
+      path: `relations.added[${Relation.keyOf(relation)}].${end}`,
+      reason: 'unknownRelationEnd' as const,
+    }));
+  });
+}
+
+/** What holds what is in the ids: a `contains` or `exposes` says what `to`'s path already says. */
+function containmentsOutsideIdPaths(
+  document: DesignDocumentContent,
+): DesignDocViolation[] {
+  return document.relations.added
+    .filter(
+      (relation) =>
+        (relation.kind === 'contains' || relation.kind === 'exposes') &&
+        parentPathOf(relation.to) !== pathOf(relation.from),
+    )
+    .map((relation) => ({
+      path: `relations.added[${Relation.keyOf(relation)}]`,
+      reason: 'containmentOutsideIdPath' as const,
+    }));
+}
+
+const pathOf = (id: string) => id.slice(id.indexOf('|') + 1);
+const parentPathOf = (id: string) =>
+  pathOf(id).split('.').slice(0, -1).join('.');
 
 const ELEMENT_COLLECTIONS = ['modules', 'buildingBlocks', 'behaviors'] as const;
 type ElementCollection = (typeof ELEMENT_COLLECTIONS)[number];
@@ -585,8 +662,17 @@ function* fieldsOf(
 function keyOf(item: unknown): string {
   if (typeof item !== 'object' || item === null) return String(item);
   if ('id' in item && typeof item.id === 'string') return item.id;
+  if (isRelationKey(item)) return Relation.keyOf(item);
   if ('name' in item && typeof item.name === 'string') return item.name;
-  // A behavior's result, designed or scanned, is known by its type.
-  if ('type' in item) return keyOf(item.type);
   return JSON.stringify(item);
+}
+
+/** A relation, designed or scanned, or the key one is removed by. */
+function isRelationKey(item: object): item is RelationKey {
+  return (
+    'kind' in item &&
+    typeof item.kind === 'string' &&
+    'from' in item &&
+    typeof item.from === 'string'
+  );
 }

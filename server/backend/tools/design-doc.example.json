@@ -6,45 +6,78 @@
       {
         "id": "refund-single-lines",
         "name": {
-          "value": "Refund single lines"
+          "changed": true,
+          "value": "Refund single lines",
+          "author": "agent"
         },
         "stakeholder": {
-          "value": "Support agents"
+          "changed": true,
+          "value": "Support agents",
+          "author": "agent"
         },
         "statement": {
-          "value": "Support agents need to refund one line of an order when the customer returns only part of it, without cancelling the whole order."
+          "changed": true,
+          "value": "Support agents need to refund one line of an order when the customer returns only part of it, without cancelling the whole order.",
+          "author": "agent"
         }
       }
-    ]
+    ],
+    "removed": [],
+    "modified": []
   },
   "modules": {
     "added": [
       {
         "id": "module|sales.refunds",
         "name": {
-          "value": "refunds"
+          "changed": true,
+          "value": "refunds",
+          "author": "agent"
         },
         "definition": {
-          "value": "Everything about giving money back to a customer."
+          "changed": true,
+          "value": "Everything about giving money back to a customer.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
         },
         "rules": {
           "added": [
             {
               "name": "A refund is issued within a second",
               "category": {
-                "value": "Quality"
+                "changed": true,
+                "value": "Quality",
+                "author": "agent"
               },
               "ruleType": {
-                "value": "Performance"
+                "changed": true,
+                "value": "Performance",
+                "author": "agent"
               },
               "description": {
-                "value": "Issuing a refund answers within one second for an order of up to 100 lines."
+                "changed": true,
+                "value": "Issuing a refund answers within one second for an order of up to 100 lines.",
+                "author": "agent"
               },
               "needs": {
-                "value": ["refund-single-lines"]
+                "changed": true,
+                "value": ["refund-single-lines"],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
         }
       }
     ],
@@ -52,9 +85,21 @@
     "modified": [
       {
         "id": "module|sales.orders",
+        "name": {
+          "changed": false
+        },
         "definition": {
+          "changed": true,
           "value": "Order lifecycle, now including the refundable state of each line.",
           "author": "human"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       }
     ]
@@ -64,106 +109,73 @@
       {
         "id": "building_block|sales.refunds.Refund",
         "name": {
+          "changed": true,
           "value": "Refund",
           "author": "human"
         },
         "type": {
+          "changed": true,
           "value": "aggregate",
           "author": "human"
         },
         "definition": {
-          "value": "A refund of one or more lines of a single order."
+          "changed": true,
+          "value": "A refund of one or more lines of a single order.",
+          "author": "agent"
         },
-        "properties": {
-          "added": [
-            {
-              "name": "orderId",
-              "type": {
-                "value": "building_block|sales.orders.OrderId",
-                "author": "human"
-              },
-              "description": {
-                "value": "The order the refunded lines belong to."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "lines",
-              "type": {
-                "value": {
-                  "collectionOf": "building_block|sales.refunds.RefundLine"
-                }
-              },
-              "description": {
-                "value": "The refunded lines."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "notes",
-              "type": {
-                "value": {
-                  "collectionOf": {
-                    "collectionOf": "primitive|string"
-                  }
-                }
-              },
-              "description": {
-                "value": "Notes per line, several per line."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "issuedAt",
-              "type": {
-                "value": "primitive|datetime"
-              },
-              "description": {
-                "value": "When the refund was issued."
-              },
-              "optional": {
-                "value": true
-              }
-            }
-          ]
+        "diagram": {
+          "changed": false
         },
         "rules": {
           "added": [
             {
               "name": "Refund never exceeds paid amount",
               "category": {
-                "value": "Business"
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
               },
               "ruleType": {
-                "value": "Consistency"
+                "changed": true,
+                "value": "Consistency",
+                "author": "agent"
               },
               "description": {
+                "changed": true,
                 "value": "The sum of all refunds of an order is at most what the customer paid for it.",
                 "author": "human"
               },
               "needs": {
-                "value": ["refund-single-lines"]
+                "changed": true,
+                "value": ["refund-single-lines"],
+                "author": "agent"
               },
               "rationale": {
-                "value": "Support may never pay out more than the order brought in."
+                "changed": true,
+                "value": "Support may never pay out more than the order brought in.",
+                "author": "agent"
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
         },
         "scenarios": {
           "added": [
             {
               "name": "Refunding one line of a paid order",
               "description": {
-                "value": "The happy path of a partial refund."
+                "changed": true,
+                "value": "The happy path of a partial refund.",
+                "author": "agent"
               },
               "steps": {
+                "changed": true,
                 "value": [
                   {
                     "kind": "given",
@@ -181,34 +193,71 @@
                 "author": "agent"
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "building_block|sales.refunds.RefundIssued",
         "name": {
-          "value": "RefundIssued"
+          "changed": true,
+          "value": "RefundIssued",
+          "author": "agent"
         },
         "type": {
-          "value": "value_object"
+          "changed": true,
+          "value": "value_object",
+          "author": "agent"
         },
         "definition": {
-          "value": "Tells the ledger a refund went out."
+          "changed": true,
+          "value": "Tells the ledger a refund went out.",
+          "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "building_block|sales.refunds.RefundRepository",
         "name": {
-          "value": "RefundRepository"
+          "changed": true,
+          "value": "RefundRepository",
+          "author": "agent"
         },
         "type": {
-          "value": "repository"
+          "changed": true,
+          "value": "repository",
+          "author": "agent"
         },
         "definition": {
-          "value": "Stores refunds."
+          "changed": true,
+          "value": "Stores refunds.",
+          "author": "agent"
         },
-        "implements": {
-          "added": ["building_block|sales.shared.Repository"]
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       }
     ],
@@ -216,33 +265,27 @@
     "modified": [
       {
         "id": "building_block|sales.orders.Order",
-        "properties": {
-          "added": [
-            {
-              "name": "refundedAmount",
-              "type": {
-                "value": "building_block|sales.shared.Money"
-              },
-              "description": {
-                "value": "What has been refunded so far."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ],
-          "removed": ["creditNoteId"],
-          "modified": [
-            {
-              "name": "status",
-              "type": {
-                "changed": false
-              },
-              "description": {
-                "value": "Gains the 'partially_refunded' state."
-              }
-            }
-          ]
+        "name": {
+          "changed": false
+        },
+        "type": {
+          "changed": false
+        },
+        "definition": {
+          "changed": false
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       }
     ]
@@ -252,98 +295,74 @@
       {
         "id": "behavior|sales.refunds.Refund.issue",
         "name": {
-          "value": "issue"
+          "changed": true,
+          "value": "issue",
+          "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "Command",
           "author": "human"
         },
         "definition": {
-          "value": "Issues a refund for the chosen lines of an order."
+          "changed": true,
+          "value": "Issues a refund for the chosen lines of an order.",
+          "author": "agent"
         },
         "diagram": {
-          "value": "sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund->>RefundRepository: save(refund)\n  Refund-->>Support agent: RefundIssued"
+          "changed": true,
+          "value": "sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund->>RefundRepository: save(refund)\n  Refund-->>Support agent: RefundIssued",
+          "author": "agent"
         },
         "visibility": {
+          "changed": true,
           "value": {
             "kind": "public",
             "actors": ["Support agent"]
           },
           "author": "human"
         },
-        "input": {
-          "added": [
-            {
-              "name": "orderId",
-              "type": {
-                "value": "building_block|sales.orders.OrderId"
-              },
-              "description": {
-                "value": "The order to refund."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "lines",
-              "type": {
-                "value": {
-                  "collectionOf": "building_block|sales.refunds.RefundLine"
-                }
-              },
-              "description": {
-                "value": "The lines to refund."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "reason",
-              "type": {
-                "value": "primitive|string"
-              },
-              "description": {
-                "value": "Why support refunds the lines."
-              },
-              "optional": {
-                "value": true
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|sales.refunds.RefundIssued",
-              "description": {
-                "value": "Tells the ledger the refund went out."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
         "rules": {
           "added": [
             {
               "name": "Only paid orders are refundable",
               "category": {
-                "value": "Business"
+                "changed": true,
+                "value": "Business",
+                "author": "agent"
               },
               "ruleType": {
-                "value": "State change"
+                "changed": true,
+                "value": "State change",
+                "author": "agent"
               },
               "description": {
-                "value": "An unpaid order has nothing to refund."
+                "changed": true,
+                "value": "An unpaid order has nothing to refund.",
+                "author": "agent"
               },
               "needs": {
-                "value": []
+                "changed": true,
+                "value": [],
+                "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       }
     ],
@@ -351,10 +370,193 @@
     "modified": [
       {
         "id": "behavior|sales.orders.Order.cancel",
+        "name": {
+          "changed": false
+        },
+        "type": {
+          "changed": false
+        },
+        "definition": {
+          "changed": false
+        },
+        "diagram": {
+          "changed": false
+        },
         "visibility": {
+          "changed": true,
           "value": {
             "kind": "private"
-          }
+          },
+          "author": "agent"
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
+      }
+    ]
+  },
+  "relations": {
+    "added": [
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.refunds.Refund",
+        "to": {
+          "changed": true,
+          "value": "building_block|sales.orders.OrderId",
+          "author": "human"
+        },
+        "name": "orderId",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "human"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.refunds.Refund",
+        "to": {
+          "changed": true,
+          "value": "building_block|sales.refunds.RefundLine",
+          "author": "agent"
+        },
+        "name": "lines",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.refunds.Refund",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "notes",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.refunds.Refund",
+        "to": {
+          "changed": true,
+          "value": "primitive|datetime",
+          "author": "agent"
+        },
+        "name": "issuedAt",
+        "cardinality": {
+          "changed": true,
+          "value": "0..1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|sales.refunds.RefundRepository",
+        "to": "building_block|sales.shared.Repository"
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "to": {
+          "changed": true,
+          "value": "building_block|sales.orders.OrderId",
+          "author": "agent"
+        },
+        "name": "orderId",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "to": {
+          "changed": true,
+          "value": "building_block|sales.refunds.RefundLine",
+          "author": "agent"
+        },
+        "name": "lines",
+        "cardinality": {
+          "changed": true,
+          "value": "0..*",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "to": {
+          "changed": true,
+          "value": "primitive|string",
+          "author": "agent"
+        },
+        "name": "reason",
+        "cardinality": {
+          "changed": true,
+          "value": "0..1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "to": "building_block|sales.refunds.RefundIssued",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.orders.Order",
+        "to": {
+          "changed": true,
+          "value": "building_block|sales.shared.Money",
+          "author": "agent"
+        },
+        "name": "refundedAmount",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.orders.Order",
+        "name": "creditNoteId"
+      }
+    ],
+    "modified": [
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.orders.Order",
+        "to": {
+          "changed": false
+        },
+        "name": "status",
+        "cardinality": {
+          "changed": false
         }
       }
     ]

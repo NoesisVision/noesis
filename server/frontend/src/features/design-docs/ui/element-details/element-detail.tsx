@@ -18,7 +18,7 @@ import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
 import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
-import { implementerItems, refItems } from './change-list-items.ts';
+import { extenderItems, extendsItems } from './change-list-items.ts';
 import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementColumns } from './element-columns.tsx';
@@ -60,16 +60,16 @@ export function ElementDetail({
     node.kind === 'behavior' && node.elementId
       ? valueOf(findById(doc.behaviors, node.elementId)?.visibility)
       : null;
-  // Only a building block implements anything, or is implemented.
+  // Only a building block extends anything, or is extended.
   const implemented =
     node.kind === 'building_block' && node.elementId
-      ? refItems(findById(doc.buildingBlocks, node.elementId)?.implements)
+      ? extendsItems(doc, node.elementId)
       : [];
-  // And what implements it — found in the document even when it leaves the
+  // And what extends it — found in the document even when it leaves the
   // block itself alone.
   const implementers =
     node.kind === 'building_block' && node.elementId
-      ? implementerItems(doc, node.elementId)
+      ? extenderItems(doc, node.elementId)
       : [];
   // What the element is, under its name: a module's, a block's, a behavior's.
   const designed = designedOf(doc, node);
@@ -121,8 +121,8 @@ export function ElementDetail({
       <ElementRelations
         key={`relations:${node.path}`}
         relations={[
-          { label: 'Implements', items: implemented },
-          { label: 'Implemented by', items: implementers },
+          { label: 'Extends', items: implemented },
+          { label: 'Extended by', items: implementers },
         ]}
         tree={tree}
       />

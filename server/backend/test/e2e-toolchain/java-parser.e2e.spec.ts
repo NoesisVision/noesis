@@ -99,6 +99,7 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       expect<unknown>(model.modules).toEqual(committed.modules);
       expect<unknown>(model.buildingBlocks).toEqual(committed.buildingBlocks);
       expect<unknown>(model.behaviors).toEqual(committed.behaviors);
+      expect<unknown>(model.relations).toEqual(committed.relations);
       expect<unknown>(
         model.behaviors.find((b) => b.id === 'behavior|shop.orders.Order.total')
           ?.type,

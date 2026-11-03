@@ -5,7 +5,6 @@ import type {
   ElementId,
   ModuleId,
 } from '#backend/app/element-id.ts';
-import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 
 /*
  * The one place that reads an element's id: the rule `ElementId` states on
@@ -39,14 +38,9 @@ export const addressOf = (id: string) => id.slice(id.indexOf('|') + 1);
 /** The element's own name: `PaymentHold`, never `scheduling.payments.PaymentHold`. */
 export const nameOf = (id: string) => addressOf(id).split('.').at(-1) ?? id;
 
-/** The id a type reference names, a collection by its item. */
-export const refIdOf = (ref: BuildingBlockRefInput): string =>
-  typeof ref === 'string' ? ref : refIdOf(ref.collectionOf);
-
-/** The building block a type reference names, through any collection; null for a primitive. */
-export function blockOfRef(ref: BuildingBlockRefInput): BuildingBlockId | null {
-  const id = refIdOf(ref);
-  return isBuildingBlock(id) ? id : null;
+/** The building block a type reference names; null for a primitive. */
+export function blockOfRef(ref: string): BuildingBlockId | null {
+  return isBuildingBlock(ref) ? ref : null;
 }
 
 /** What an id names. An id of no element kind is a fault in the data, and says so. */

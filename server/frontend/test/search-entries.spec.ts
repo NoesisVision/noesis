@@ -32,8 +32,6 @@ const block = (id: string, name: string, type: string) => ({
   name,
   type,
   description: null,
-  implements: [],
-  properties: [],
   rules: [],
   scenarios: [],
   source,
@@ -52,16 +50,20 @@ const systemModel = {
   behaviors: [
     {
       id: 'behavior|shop.Basket.checkOut',
-      buildingBlockId: 'building_block|shop.Basket',
       name: 'checkOut',
       type: 'Command',
       description: null,
       visibility: { kind: 'public' },
-      input: [],
-      output: [],
       rules: [],
       scenarios: [],
       source,
+    },
+  ],
+  relations: [
+    {
+      kind: 'exposes',
+      from: 'building_block|shop.Basket',
+      to: 'behavior|shop.Basket.checkOut',
     },
   ],
 } as unknown as SystemModel;

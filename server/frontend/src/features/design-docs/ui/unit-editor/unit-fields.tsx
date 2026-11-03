@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Checkbox } from '#/shared/design-system/checkbox.tsx';
 import { Chip } from '#/shared/design-system/chip.tsx';
 import type { UseFormReturnType } from '#/shared/design-system/form.ts';
 import { Group } from '#/shared/design-system/group.tsx';
@@ -15,7 +14,6 @@ import { MermaidDiagram } from '#/shared/ui/mermaid-diagram.tsx';
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BuildingBlockRefInput,
   RuleCategory,
   Visibility,
 } from '#backend/app/system-model/system-model.ts';
@@ -39,6 +37,7 @@ import {
 } from '../../design-doc-edit.ts';
 import { authorOf, fieldFrom, valueOf } from '../../design-doc-field.ts';
 import { addressOf, nameOf } from '../../element-id.ts';
+import { CARDINALITIES } from '../../relations.ts';
 import { DesignedField } from './designed-field.tsx';
 import { ScenarioStepsInput } from './scenario-fields.tsx';
 
@@ -59,7 +58,7 @@ const LABEL: Record<UnitFieldName, string> = {
   rationale: 'Rationale',
   steps: 'Steps',
   ref: 'Type',
-  optional: 'Optional',
+  cardinality: 'How many',
 };
 
 /**
@@ -146,7 +145,7 @@ export function UnitFields({
 }
 
 const labelOf = (kind: UnitKind, spec: FieldSpec): string =>
-  kind === 'implements' ? 'Implements' : LABEL[spec.name];
+  kind === 'extends' ? 'Extends' : LABEL[spec.name];
 
 function FieldInput({
   kind,
@@ -186,8 +185,7 @@ function FieldInput({
     case 'stakeholder':
       return <TextInput {...common} {...valueProps(form, path)} />;
     case 'description':
-      // A rule's or a scenario's description is markdown; a property's,
-      // an input's or an output's is plain text.
+      // A rule's or a scenario's description is markdown.
       if (kind === 'rule' || kind === 'scenario')
         return (
           <MarkdownEditor
@@ -339,30 +337,42 @@ function FieldInput({
         <RefInput
           {...common}
           value={fields.ref!.value}
-          blocksOnly={kind === 'implements'}
+          blocksOnly={kind === 'extends'}
           document={doc}
           onChange={(ref) => form.setFieldValue(path, ref)}
         />
       );
     case 'steps':
       return <ScenarioStepsInput form={form} headed={false} />;
-    case 'optional':
+    case 'cardinality':
       return (
-        <Checkbox
-          label="It may be left out"
-          disabled={disabled}
-          checked={fields.optional!.value}
-          onChange={(event) =>
-            form.setFieldValue(path, event.currentTarget.checked)
+        <Select
+          {...common}
+          allowDeselect={false}
+          data={CARDINALITIES.map((cardinality) => ({
+            value: cardinality,
+            label: CARDINALITY_LABEL[cardinality],
+          }))}
+          value={fields.cardinality!.value || null}
+          onChange={(cardinality) =>
+            form.setFieldValue(path, cardinality ?? '')
           }
         />
       );
   }
 }
 
+/** How many a slot holds, in words beside the cardinality. */
+const CARDINALITY_LABEL: Record<(typeof CARDINALITIES)[number], string> = {
+  '1': '1 — exactly one',
+  '0..1': '0..1 — one or none',
+  '0..*': '0..* — any number',
+  '1..*': '1..* — at least one',
+};
+
 /**
- * A type: a primitive or a building block the design names, and whether it
- * is a collection of it. Blocks only the scanned model knows are not offered.
+ * A type: a primitive or a building block the design names. Blocks only the
+ * scanned model knows are not offered.
  */
 function RefInput({
   value,
@@ -371,18 +381,17 @@ function RefInput({
   document: doc,
   ...common
 }: {
-  value: BuildingBlockRefInput;
-  onChange: (ref: BuildingBlockRefInput) => void;
+  value: string;
+  onChange: (ref: string) => void;
   blocksOnly: boolean;
   document: DesignDocumentInput;
   'aria-label': string;
   error: boolean;
   disabled: boolean;
 }) {
-  const collection = typeof value === 'object';
-  const item = typeof value === 'object' ? value.collectionOf : value;
+  const item = value;
   const blocks = blocksNamedIn(doc);
-  const current = typeof item === 'string' && item !== '' ? [item] : [];
+  const current = item !== '' ? [item] : [];
   const blockIds = [...new Set([...blocks, ...current])].filter((id) =>
     id.startsWith('building_block|'),
   );
@@ -400,31 +409,17 @@ function RefInput({
       items: blockIds.map((id) => ({ value: id, label: addressOf(id) })),
     },
   ];
-  const wrap = (next: BuildingBlockRefInput, asCollection: boolean) =>
-    asCollection ? { collectionOf: next } : next;
   return (
-    <Stack gap="xs">
-      <Select
-        {...common}
-        searchable
-        placeholder="Choose a type"
-        nothingFoundMessage="No such type in this design"
-        allowDeselect={false}
-        data={data}
-        value={typeof item === 'string' && item !== '' ? item : null}
-        onChange={(next) => onChange(wrap(next ?? '', collection))}
-      />
-      {!blocksOnly && (
-        <Checkbox
-          label="A collection of it"
-          disabled={common.disabled}
-          checked={collection}
-          onChange={(event) =>
-            onChange(wrap(item, event.currentTarget.checked))
-          }
-        />
-      )}
-    </Stack>
+    <Select
+      {...common}
+      searchable
+      placeholder="Choose a type"
+      nothingFoundMessage="No such type in this design"
+      allowDeselect={false}
+      data={data}
+      value={item !== '' ? item : null}
+      onChange={(next) => onChange(next ?? '')}
+    />
   );
 }
 

@@ -85,10 +85,12 @@ step 6.
 6. **Plan the revision.** Read the contracts and the modelling guidance
    now. List each edit the request asks for, then follow each one through
    the design document to everything that must change with it:
-   - **References.** The `type` of a property, an input or an output,
-     `implements`, a rule's `needs`: each names a building block this design
-     adds or modifies, one the system model has, a primitive, or a need this
-     design adds. A rename moves every reference to the old id or name.
+   - **References.** The ends of a relation (the `to` of a `has_state`,
+     `has_input` or `has_output`, both ends of an `extends` or an
+     `invokes`), a rule's `needs`: each names a building block or behavior
+     this design adds or modifies, one the system model has, a primitive,
+     or a need this design adds. A rename moves every reference to the old
+     id or name, the relations' `from` and `to` included.
    - **Ids and names.** Ids spell the path (`building_block|sales.refunds.Refund`),
      so moving or renaming a module or a building block renames every
      element beneath it, and a name is always the last segment of its id.
@@ -131,13 +133,15 @@ step 6.
      `diagram`. Changing an element that is only in `added` is editing that
      item; dropping it is deleting the item from `added`, never listing it
      under `removed`.
-   - **In the model and changed:** `modified`, with its id and only the
-     fields that change. The `description` of a property, an input, an
-     output or a scenario is a change note: `"Change note: "`, then what
-     changes and why. An element's `definition` is never one, nor is a
+   - **In the model and changed:** `modified`, with its id (a relation's
+     kind, `from` and `name` or `to`) and only the fields that change. The
+     `description` of a scenario is a change note: `"Change note: "`, then
+     what changes and why. An element's `definition` is never one, nor is a
      rule's `description`.
-   - **In the model and retired:** `removed`, by id. Remove a building
-     block's behaviors with it.
+   - **In the model and retired:** `removed`, by id (a relation by its key:
+     `{ "kind", "from", "name" }` for a `has_state` or `has_input`,
+     `{ "kind", "from", "to" }` for the rest). Remove a building block's
+     behaviors and relations with it.
    - **In the model and unchanged:** left out. A rename of an element in
      the model is a removal of the old id and an addition of the new one.
 

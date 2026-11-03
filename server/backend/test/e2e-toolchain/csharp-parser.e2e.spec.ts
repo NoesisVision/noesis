@@ -23,6 +23,7 @@ import {
   MODULES,
   UNREACHED,
 } from '../support/csharp-fixture-expectations';
+import { extendsOf, invokedTargetsOf } from '../support/relations';
 import { scannerOver } from '../support/test-scanner';
 
 const REPOSITORY = resolve(import.meta.dir, '../../../..');
@@ -183,8 +184,10 @@ describe('the fixture solution through the C# parser (e2e)', () => {
         source: { path: 'CSharpSyntax/Projection/Blocks/BlockKinds.cs' },
       });
       expect<unknown>(
-        block('building_block|Projection.Invocations.ImplementsTwoContracts')
-          ?.implements,
+        extendsOf(
+          model,
+          'building_block|Projection.Invocations.ImplementsTwoContracts',
+        ),
       ).toEqual([
         'building_block|Projection.Invocations.FirstContract',
         'building_block|Projection.Invocations.SecondContract',
@@ -196,10 +199,12 @@ describe('the fixture solution through the C# parser (e2e)', () => {
           !b.id.startsWith('behavior|Projection.Invocations.Reached.'),
       );
       expect<unknown>(
-        Object.fromEntries(invocations.map((b) => [b.id, b.invokes])),
+        Object.fromEntries(
+          invocations.map((b) => [b.id, invokedTargetsOf(model, b.id)]),
+        ),
       ).toEqual(INVOKES);
       const reachedByAnyone = new Set<string>(
-        model.behaviors.flatMap((b) => b.invokes),
+        model.relations.flatMap((r) => (r.kind === 'invokes' ? [r.to] : [])),
       );
       for (const leaf of UNREACHED)
         expect<unknown>(reachedByAnyone.has(leaf)).toBe(false);

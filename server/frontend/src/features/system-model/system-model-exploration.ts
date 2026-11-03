@@ -1,20 +1,20 @@
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type {
   BehaviorType,
-  BuildingBlockRef,
   BuildingBlockType,
   SystemModel,
 } from '#backend/app/system-model/system-model.ts';
 
 /*
  * The scanned model read as a graph: its modules, building blocks and
- * behaviors, and only the relations the scan holds. A module contains the
- * modules and building blocks its id path names; a building block contains
- * its behaviors. A building block uses the blocks its properties are typed
- * with, a behavior the blocks it takes and gives back. "Is part of" is
- * containment read from the inside. A behavior invokes the behaviors the
- * scan found it calls — where the scanner records calls; one that does not
- * leaves the model without any.
+ * behaviors, and the relations the scan holds between them. A module
+ * contains the modules and building blocks its id path names; a building
+ * block contains its behaviors. A building block uses the blocks its state
+ * is typed with, a behavior the blocks it takes and gives back; a block
+ * extends the blocks it extends or implements. "Is part of" is containment
+ * read from the inside. A behavior invokes the behaviors the scan found it
+ * calls, in the order of the calls — where the scanner records calls; one
+ * that does not leaves the model without any.
  */
 
 type ExploredKind = 'module' | 'building_block' | 'behavior';
@@ -33,26 +33,35 @@ export interface Exploration {
   elements: ExploredElement[];
   /** Which block uses which, as `[source, target]`, each pair once. */
   uses: [string, string][];
-  /** Which behavior calls which, as `[caller, called]`, each pair once. */
+  /** Which block extends which, as `[source, target]`, each pair once. */
+  extends: [string, string][];
+  /** Which behavior calls which, as `[caller, called]`, each pair once, in the order of the calls. */
   invokes: [string, string][];
 }
 
-export type RelationKind = 'contains' | 'isPartOf' | 'uses' | 'invokes';
+export type RelationKind =
+  | 'contains'
+  | 'isPartOf'
+  | 'uses'
+  | 'extends'
+  | 'invokes';
 
 /** Every relation the view names. */
 export const RELATIONS: readonly { kind: RelationKind; label: string }[] = [
   { kind: 'contains', label: 'Contains' },
   { kind: 'isPartOf', label: 'Is part of' },
   { kind: 'uses', label: 'Uses' },
+  { kind: 'extends', label: 'Extends' },
   { kind: 'invokes', label: 'Invokes' },
 ];
 
 /**
  * The word an edge of each drawn relation carries. Containment is drawn as
- * cards inside cards, never as an edge, so only use and calls are.
+ * cards inside cards, never as an edge, so only use, inheritance and calls are.
  */
 export const RELATION_WORD = {
   uses: 'uses',
+  extends: 'extends',
   invokes: 'invokes',
 } as const satisfies Partial<Record<RelationKind, string>>;
 
@@ -62,11 +71,12 @@ const parentPath = (path: string) =>
   path.includes('.') ? path.slice(0, path.lastIndexOf('.')) : '';
 const pathOf = (id: string) => id.slice(id.indexOf('|') + 1);
 
-/** The building blocks a type names, through any collection of them. */
-function blocksOf(ref: BuildingBlockRef): string[] {
-  if (typeof ref === 'object') return blocksOf(ref.collectionOf);
-  return ref.startsWith('building_block|') ? [ref] : [];
-}
+/** The relations of the state and signature slots, whose target may be a block. */
+const USES: ReadonlySet<string> = new Set([
+  'has_state',
+  'has_input',
+  'has_output',
+]);
 
 export function explorationOf(model: SystemModel): Exploration {
   const moduleIds = new Set<string>(model.modules.map(({ id }) => id));
@@ -75,6 +85,10 @@ export function explorationOf(model: SystemModel): Exploration {
     const path = parentPath(pathOf(id));
     const module = `module|${path}`;
     return path !== '' && moduleIds.has(module) ? module : null;
+  };
+  const blockOf = (id: string) => {
+    const block = `building_block|${parentPath(pathOf(id))}`;
+    return blockIds.has(block) ? block : null;
   };
   const elements: ExploredElement[] = [
     ...model.modules.map((module) => ({
@@ -96,35 +110,34 @@ export function explorationOf(model: SystemModel): Exploration {
       kind: 'behavior' as const,
       name: behavior.name,
       pattern: behavior.type,
-      container: blockIds.has(behavior.buildingBlockId)
-        ? behavior.buildingBlockId
-        : null,
+      container: blockOf(behavior.id),
     })),
   ];
 
+  const behaviorIds = new Set<string>(model.behaviors.map(({ id }) => id));
+  const known = (id: string) => blockIds.has(id) || behaviorIds.has(id);
   const uses = new Map<string, [string, string]>();
-  const use = (source: string, refs: BuildingBlockRef[]) => {
-    for (const target of refs.flatMap(blocksOf))
-      if (target !== source && blockIds.has(target))
-        uses.set(`${source}->${target}`, [source, target]);
+  const extended = new Map<string, [string, string]>();
+  const calls: { from: string; to: string; order: number }[] = [];
+  for (const relation of model.relations) {
+    const { from, to } = relation;
+    if (from === to || !known(from) || !known(to)) continue;
+    if (USES.has(relation.kind) && blockIds.has(to))
+      uses.set(`${from}->${to}`, [from, to]);
+    else if (relation.kind === 'extends')
+      extended.set(`${from}->${to}`, [from, to]);
+    else if (relation.kind === 'invokes')
+      calls.push({ from, to, order: relation.order });
+  }
+  const invokes = calls
+    .sort((a, b) => a.from.localeCompare(b.from) || a.order - b.order)
+    .map(({ from, to }): [string, string] => [from, to]);
+  return {
+    elements,
+    uses: [...uses.values()],
+    extends: [...extended.values()],
+    invokes,
   };
-  for (const block of model.buildingBlocks)
-    use(
-      block.id,
-      block.properties.map(({ type }) => type),
-    );
-  for (const behavior of model.behaviors)
-    use(behavior.id, [
-      ...behavior.input.map(({ type }) => type),
-      ...behavior.output.map(({ type }) => type),
-    ]);
-  const behaviorIds = new Set(model.behaviors.map(({ id }) => id));
-  const invokes = new Map<string, [string, string]>();
-  for (const behavior of model.behaviors)
-    for (const called of behavior.invokes)
-      if (called !== behavior.id && behaviorIds.has(called))
-        invokes.set(`${behavior.id}->${called}`, [behavior.id, called]);
-  return { elements, uses: [...uses.values()], invokes: [...invokes.values()] };
 }
 
 /** What an element is filtered by: its type, or "module" for a module. */
@@ -165,6 +178,8 @@ export type Reach =
   | 'isPartOf'
   | 'uses'
   | 'usedBy'
+  | 'extends'
+  | 'extendedBy'
   | 'invokes'
   | 'invokedBy';
 
@@ -173,13 +188,15 @@ export const REACHES: readonly Reach[] = [
   'isPartOf',
   'uses',
   'usedBy',
+  'extends',
+  'extendedBy',
   'invokes',
   'invokedBy',
 ];
 
 /**
  * Whom an element is joined to, by how; "used by" is "uses" read from the
- * target, "invoked by" is "invokes" so.
+ * target, "extended by" is "extends" so, "invoked by" is "invokes" so.
  */
 export type Neighbours = Record<Reach, string[]>;
 
@@ -195,6 +212,8 @@ export function neighboursOf(
         isPartOf: [],
         uses: [],
         usedBy: [],
+        extends: [],
+        extendedBy: [],
         invokes: [],
         invokedBy: [],
       },
@@ -208,6 +227,10 @@ export function neighboursOf(
   for (const [source, target] of exploration.uses) {
     map.get(source)?.uses.push(target);
     map.get(target)?.usedBy.push(source);
+  }
+  for (const [source, target] of exploration.extends) {
+    map.get(source)?.extends.push(target);
+    map.get(target)?.extendedBy.push(source);
   }
   for (const [caller, called] of exploration.invokes) {
     map.get(caller)?.invokes.push(called);
@@ -372,6 +395,15 @@ export function graphOf(
           source,
           target,
         });
+  if (relations.has('extends'))
+    for (const [source, target] of exploration.extends)
+      if (isShown.has(source) && isShown.has(target) && apart(source, target))
+        drawn.push({
+          id: `extends:${source}->${target}`,
+          kind: 'extends',
+          source,
+          target,
+        });
   if (relations.has('invokes'))
     for (const [source, target] of exploration.invokes)
       if (isShown.has(source) && isShown.has(target) && apart(source, target))
@@ -461,6 +493,8 @@ export function removalOf(
 export const CHAIN_REACHES = [
   'uses',
   'usedBy',
+  'extends',
+  'extendedBy',
   'invokes',
   'invokedBy',
 ] as const satisfies readonly Reach[];
@@ -472,7 +506,11 @@ export const CHAIN_DEPTH = 5;
 
 /** The relation a chain is drawn with. */
 export const relationOfChain = (reach: ChainReach): DrawnRelationKind =>
-  reach === 'uses' || reach === 'usedBy' ? 'uses' : 'invokes';
+  reach === 'uses' || reach === 'usedBy'
+    ? 'uses'
+    : reach === 'extends' || reach === 'extendedBy'
+      ? 'extends'
+      : 'invokes';
 
 /**
  * Everything an element reaches one way, step after step, up to the next

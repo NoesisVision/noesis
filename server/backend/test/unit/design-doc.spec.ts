@@ -9,12 +9,16 @@ import {
 
 /*
  * A design document is a diff against the scanned model: the modules,
- * building blocks and behaviors a change adds, modifies or removes. An agent
- * writes it; a human reviews it.
+ * building blocks and behaviors a change adds, modifies or removes, and the
+ * relations between them. An agent writes it; a human reviews it.
  */
 
 const REFUND = 'building_block|sales.refunds.Refund';
 const ISSUE = 'behavior|sales.refunds.Refund.issue';
+
+/** A design that changes relations, with the given parts. */
+const relating = (relations: object, rest: Record<string, unknown> = {}) =>
+  design({ ...rest, relations });
 
 const design = (patch: Record<string, unknown> = {}) => ({
   id: '2026-01-01-partial-refunds',
@@ -64,14 +68,11 @@ describe('A design document', () => {
     const parsed = DesignDocument.parse(addingRefund({}));
 
     expect(parsed.modules).toEqual({ added: [], removed: [], modified: [] });
-    expect(parsed.buildingBlocks.added[0]?.properties).toEqual({
+    expect(parsed.relations).toEqual({ added: [], removed: [], modified: [] });
+    expect(parsed.buildingBlocks.added[0]?.rules).toEqual({
       added: [],
       removed: [],
       modified: [],
-    });
-    expect(parsed.buildingBlocks.added[0]?.implements).toEqual({
-      added: [],
-      removed: [],
     });
   });
 
@@ -84,8 +85,17 @@ describe('A design document', () => {
     ).toBe(false);
     expect(
       isValid(
-        addingRefund({
-          properties: { added: [{ name: 'total', optionl: { value: true } }] },
+        relating({
+          added: [
+            {
+              kind: 'has_state',
+              from: REFUND,
+              name: 'total',
+              to: { value: 'primitive|decimal' },
+              cardinality: { value: '1' },
+              optional: { value: true },
+            },
+          ],
         }),
       ),
     ).toBe(false);
@@ -136,17 +146,15 @@ describe('The elements a design changes', () => {
     expect(isValid(design({ behaviors: { removed: [REFUND] } }))).toBe(false);
   });
 
-  it('removes a property, a rule or a scenario by its name', () => {
+  it('removes a rule or a scenario by its name', () => {
     const parsed = DesignDocument.parse(
       addingRefund({
-        properties: { removed: ['legacyFlag'] },
         rules: { removed: ['Refund only paid orders'] },
         scenarios: { removed: ['Refunding a whole order'] },
       }),
     );
     const block = parsed.buildingBlocks.added[0]!;
 
-    expect(block.properties.removed).toEqual(['legacyFlag']);
     expect(block.rules.removed).toEqual(['Refund only paid orders']);
     expect(block.scenarios.removed).toEqual(['Refunding a whole order']);
   });
@@ -173,81 +181,187 @@ describe('The elements a design changes', () => {
     ).toBe(true);
   });
 
-  it('adds and removes an implemented interface by its id', () => {
+  it('adds and removes a relation of every kind the model has, each by its kind and ends', () => {
+    const AUDITABLE = 'building_block|sales.shared.Auditable';
     const parsed = DesignDocument.parse(
-      design({
-        buildingBlocks: {
-          modified: [
-            {
-              id: REFUND,
-              implements: {
-                added: ['building_block|sales.shared.Auditable'],
-                removed: ['building_block|sales.shared.Legacy'],
-              },
-            },
-          ],
-        },
+      relating({
+        added: [
+          { kind: 'extends', from: REFUND, to: AUDITABLE },
+          { kind: 'contains', from: 'module|sales.refunds', to: REFUND },
+          { kind: 'exposes', from: REFUND, to: ISSUE },
+          {
+            kind: 'invokes',
+            from: ISSUE,
+            to: 'behavior|sales.ledger.Ledger.post',
+            order: { value: 1 },
+          },
+        ],
+        removed: [
+          { kind: 'extends', from: REFUND, to: 'building_block|sales.Legacy' },
+          { kind: 'invokes', from: ISSUE, to: 'behavior|sales.Old.notify' },
+        ],
       }),
     );
 
-    expect<object | undefined>(
-      parsed.buildingBlocks.modified[0]?.implements,
-    ).toEqual({
-      added: ['building_block|sales.shared.Auditable'],
-      removed: ['building_block|sales.shared.Legacy'],
-    });
-  });
-
-  it('never modifies an implemented interface: it removes one and adds another', () => {
+    expect(parsed.relations.added.map((r) => r.kind)).toEqual([
+      'extends',
+      'contains',
+      'exposes',
+      'invokes',
+    ]);
+    expect<unknown>(parsed.relations.removed).toEqual([
+      { kind: 'extends', from: REFUND, to: 'building_block|sales.Legacy' },
+      { kind: 'invokes', from: ISSUE, to: 'behavior|sales.Old.notify' },
+    ]);
+    expect(
+      isValid(relating({ added: [{ kind: 'extends', from: REFUND }] })),
+    ).toBe(false);
     expect(
       isValid(
-        design({
-          buildingBlocks: {
-            modified: [{ id: REFUND, implements: { modified: [REFUND] } }],
+        relating({ added: [{ kind: 'extends', from: REFUND, to: ISSUE }] }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(relating({ added: [{ kind: 'owns', from: REFUND, to: ISSUE }] })),
+    ).toBe(false);
+  });
+
+  it('knows a piece of state and an input by their holder and name, so their type and cardinality are fields', () => {
+    const parsed = DesignDocument.parse(
+      relating({
+        added: [
+          {
+            kind: 'has_input',
+            from: ISSUE,
+            name: 'lines',
+            to: { value: 'building_block|sales.refunds.RefundLine' },
+            cardinality: { value: '1..*' },
           },
+        ],
+        removed: [
+          { kind: 'has_state', from: REFUND, name: 'legacyFlag' },
+          { kind: 'has_input', from: ISSUE, name: 'note' },
+        ],
+        modified: [
+          {
+            kind: 'has_state',
+            from: REFUND,
+            name: 'total',
+            cardinality: { value: '0..1' },
+          },
+          {
+            kind: 'has_input',
+            from: ISSUE,
+            name: 'reason',
+            to: { value: 'primitive|string' },
+          },
+        ],
+      }),
+    );
+
+    expect<unknown>(parsed.relations.removed).toEqual([
+      { kind: 'has_state', from: REFUND, name: 'legacyFlag' },
+      { kind: 'has_input', from: ISSUE, name: 'note' },
+    ]);
+    expect(parsed.relations.modified[0]).toMatchObject({
+      name: 'total',
+      to: { changed: false },
+      cardinality: { changed: true, value: '0..1', author: 'agent' },
+    });
+    expect(parsed.relations.modified[1]).toMatchObject({
+      name: 'reason',
+      to: { changed: true, value: 'primitive|string' },
+      cardinality: { changed: false },
+    });
+    expect(
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_state',
+              from: REFUND,
+              to: { value: 'primitive|decimal' },
+              cardinality: { value: '1' },
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        relating({
+          removed: [{ kind: 'has_state', from: REFUND, to: REFUND }],
         }),
       ),
     ).toBe(false);
   });
 
-  it('knows an input by its name and an output by its type', () => {
+  it('knows an output by its type and a call by its target, so only the cardinality or the order is a field', () => {
     const parsed = DesignDocument.parse(
-      design({
-        behaviors: {
-          modified: [
-            {
-              id: ISSUE,
-              input: {
-                removed: ['note'],
-                modified: [{ name: 'reason', optional: { value: true } }],
-              },
-              output: {
-                removed: ['primitive|boolean'],
-                modified: [{ type: REFUND, description: { value: 'Issued.' } }],
-              },
-            },
-          ],
-        },
+      relating({
+        removed: [{ kind: 'has_output', from: ISSUE, to: 'primitive|boolean' }],
+        modified: [
+          {
+            kind: 'has_output',
+            from: ISSUE,
+            to: REFUND,
+            cardinality: { value: '0..1' },
+          },
+          {
+            kind: 'invokes',
+            from: ISSUE,
+            to: 'behavior|sales.ledger.Ledger.post',
+            order: { value: 2 },
+          },
+        ],
       }),
     );
-    const issue = parsed.behaviors.modified[0]!;
 
-    expect(issue.input.removed).toEqual(['note']);
-    expect(issue.input.modified[0]?.name).toBe('reason');
-    expect<unknown[]>(issue.output.removed).toEqual(['primitive|boolean']);
-    expect<unknown>(issue.output.modified[0]?.type).toBe(REFUND);
-  });
-
-  it('names every input and no output', () => {
+    expect<unknown>(parsed.relations.removed).toEqual([
+      { kind: 'has_output', from: ISSUE, to: 'primitive|boolean' },
+    ]);
+    expect<unknown>(parsed.relations.modified.map((r) => r.to)).toEqual([
+      REFUND,
+      'behavior|sales.ledger.Ledger.post',
+    ]);
     expect(
-      isValid(addingIssue({ input: { added: [{ type: { value: REFUND } }] } })),
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_output',
+              from: ISSUE,
+              to: REFUND,
+              name: 'refund',
+              cardinality: { value: '1' },
+            },
+          ],
+        }),
+      ),
     ).toBe(false);
     expect(
       isValid(
-        addingIssue({ output: { added: [{ name: 'refund', type: REFUND }] } }),
+        relating({
+          added: [
+            {
+              kind: 'has_output',
+              from: ISSUE,
+              to: { value: REFUND },
+              cardinality: { value: '1' },
+            },
+          ],
+        }),
       ),
     ).toBe(false);
-    expect(isValid(addingIssue({ input: { removed: [REFUND] } }))).toBe(false);
+    expect(
+      isValid(
+        relating({
+          added: [
+            { kind: 'invokes', from: ISSUE, to: REFUND, order: { value: 1 } },
+          ],
+        }),
+      ),
+    ).toBe(false);
   });
 
   it('classifies a building block, a behavior and a rule only by the known types', () => {
@@ -315,19 +429,24 @@ describe('A field of a design', () => {
   });
 });
 
-describe('The type of a property, an input or an output', () => {
+describe('The type of a piece of state, an input or an output', () => {
   const withType = (type: unknown) =>
-    addingRefund({
-      properties: { added: [{ name: 'amount', type: { value: type } }] },
+    relating({
+      added: [
+        {
+          kind: 'has_state',
+          from: REFUND,
+          name: 'amount',
+          to: { value: type },
+          cardinality: { value: '1' },
+        },
+      ],
     });
 
-  it('is a building block of the model, a primitive, or a collection of either', () => {
+  it('is a building block of the model or a primitive; a collection is said by the cardinality', () => {
     expect(isValid(withType('building_block|sales.shared.Money'))).toBe(true);
     expect(isValid(withType('primitive|decimal'))).toBe(true);
-    expect(isValid(withType({ collectionOf: 'primitive|string' }))).toBe(true);
-    expect(
-      isValid(withType({ collectionOf: { collectionOf: 'primitive|string' } })),
-    ).toBe(true);
+    expect(isValid(withType({ collectionOf: 'primitive|string' }))).toBe(false);
   });
 
   it('knows only its own primitives, each named as a primitive', () => {
@@ -343,31 +462,85 @@ describe('The type of a property, an input or an output', () => {
   it('types the inputs and outputs of a behavior the same way', () => {
     expect(
       isValid(
-        addingIssue({
-          input: {
-            added: [
-              {
-                name: 'lines',
-                type: { value: { collectionOf: 'building_block|sales.Line' } },
-              },
-            ],
-          },
-          output: { added: [{ type: 'primitive|uuid' }] },
+        relating({
+          added: [
+            {
+              kind: 'has_input',
+              from: ISSUE,
+              name: 'lines',
+              to: { value: 'building_block|sales.Line' },
+              cardinality: { value: '0..*' },
+            },
+            {
+              kind: 'has_output',
+              from: ISSUE,
+              to: 'primitive|uuid',
+              cardinality: { value: '1' },
+            },
+          ],
         }),
       ),
     ).toBe(true);
     expect(
       isValid(
-        addingIssue({
-          input: {
-            added: [{ name: 'total', type: { value: 'primitive|money' } }],
-          },
+        relating({
+          added: [
+            {
+              kind: 'has_input',
+              from: ISSUE,
+              name: 'total',
+              to: { value: 'primitive|money' },
+              cardinality: { value: '1' },
+            },
+          ],
         }),
       ),
     ).toBe(false);
     expect(
       isValid(
-        addingIssue({ output: { added: [{ type: 'primitive|money' }] } }),
+        relating({
+          added: [
+            {
+              kind: 'has_output',
+              from: ISSUE,
+              to: 'primitive|money',
+              cardinality: { value: '1' },
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('holds one of four cardinalities', () => {
+    for (const cardinality of ['0..1', '1', '0..*', '1..*']) {
+      expect(
+        isValid(
+          relating({
+            added: [
+              {
+                kind: 'has_output',
+                from: ISSUE,
+                to: REFUND,
+                cardinality: { value: cardinality },
+              },
+            ],
+          }),
+        ),
+      ).toBe(true);
+    }
+    expect(
+      isValid(
+        relating({
+          added: [
+            {
+              kind: 'has_output',
+              from: ISSUE,
+              to: REFUND,
+              cardinality: { value: 'many' },
+            },
+          ],
+        }),
       ),
     ).toBe(false);
   });
@@ -407,7 +580,7 @@ describe('A design document an agent wrote', () => {
   const AUDITABLE = 'building_block|sales.shared.Auditable';
 
   /**
-   * What the scanner found: the orders module; its Order, which implements
+   * What the scanner found: the orders module; its Order, which extends
    * Auditable, has a total and a rule with one scenario; and Order.cancel,
    * which takes an order and returns a boolean.
    */
@@ -416,13 +589,36 @@ describe('A design document an agent wrote', () => {
     name: 'shop',
     scanned_at: '2026-09-25T08:00:00.000Z',
     modules: [{ id: ORDERS, name: 'orders', source }],
+    relations: [
+      { kind: 'contains', from: ORDERS, to: ORDER },
+      { kind: 'extends', from: ORDER, to: AUDITABLE },
+      {
+        kind: 'has_state',
+        from: ORDER,
+        to: 'primitive|decimal',
+        name: 'total',
+        cardinality: '1',
+      },
+      { kind: 'exposes', from: ORDER, to: CANCEL },
+      {
+        kind: 'has_input',
+        from: CANCEL,
+        to: ORDER,
+        name: 'order',
+        cardinality: '1',
+      },
+      {
+        kind: 'has_output',
+        from: CANCEL,
+        to: 'primitive|boolean',
+        cardinality: '1',
+      },
+    ],
     buildingBlocks: [
       {
         id: ORDER,
         name: 'Order',
         type: 'aggregate',
-        implements: [AUDITABLE],
-        properties: [{ name: 'total', type: 'primitive|decimal' }],
         rules: [
           {
             name: 'Paid orders only',
@@ -446,12 +642,9 @@ describe('A design document an agent wrote', () => {
     behaviors: [
       {
         id: CANCEL,
-        buildingBlockId: ORDER,
         name: 'cancel',
         type: 'Command',
         visibility: { kind: 'private' },
-        input: [{ name: 'order', type: ORDER }],
-        output: [{ type: 'primitive|boolean' }],
         source,
       },
     ],
@@ -491,25 +684,100 @@ describe('A design document an agent wrote', () => {
     });
   });
 
-  describe('for a green field, inside an element it adds', () => {
+  describe('for a green field, among the relations', () => {
     it('modifies and removes nothing either', () => {
       expect(
         validate(
-          addingRefund({
-            definition: { value: 'Money back.' },
-            type: { value: 'aggregate' },
-            implements: { removed: [AUDITABLE] },
-            properties: { removed: ['legacyFlag'] },
+          relating({
+            removed: [
+              { kind: 'extends', from: ORDER, to: AUDITABLE },
+              { kind: 'has_state', from: ORDER, name: 'legacyFlag' },
+            ],
+            modified: [
+              {
+                kind: 'has_input',
+                from: CANCEL,
+                name: 'order',
+                cardinality: { value: '0..1' },
+              },
+            ],
           }),
         ),
       ).toEqual([
         {
-          path: `buildingBlocks.added[${REFUND}].implements.removed[${AUDITABLE}]`,
+          path: `relations.removed[extends|${ORDER}|${AUDITABLE}]`,
           reason: 'changedInGreenField',
         },
         {
-          path: `buildingBlocks.added[${REFUND}].properties.removed[legacyFlag]`,
+          path: `relations.removed[has_state|${ORDER}|#legacyFlag]`,
           reason: 'changedInGreenField',
+        },
+        {
+          path: `relations.modified[has_input|${CANCEL}|#order]`,
+          reason: 'changedInGreenField',
+        },
+      ]);
+    });
+
+    it('joins only elements it adds: nothing else exists yet', () => {
+      expect(
+        validate(
+          relating(
+            {
+              added: [
+                { kind: 'extends', from: REFUND, to: AUDITABLE },
+                {
+                  kind: 'has_state',
+                  from: REFUND,
+                  name: 'orderId',
+                  to: { value: 'building_block|sales.orders.OrderId' },
+                  cardinality: { value: '1' },
+                },
+                {
+                  kind: 'has_state',
+                  from: REFUND,
+                  name: 'total',
+                  to: { value: 'primitive|decimal' },
+                  cardinality: { value: '1' },
+                },
+                {
+                  kind: 'invokes',
+                  from: ISSUE,
+                  to: CANCEL,
+                  order: { value: 1 },
+                },
+              ],
+            },
+            {
+              buildingBlocks: {
+                added: [
+                  {
+                    id: REFUND,
+                    name: { value: 'Refund' },
+                    type: { value: 'aggregate' },
+                    definition: { value: 'Money back.' },
+                  },
+                ],
+              },
+            },
+          ),
+        ),
+      ).toEqual([
+        {
+          path: `relations.added[extends|${REFUND}|${AUDITABLE}].to`,
+          reason: 'unknownRelationEnd',
+        },
+        {
+          path: `relations.added[has_state|${REFUND}|#orderId].to`,
+          reason: 'unknownRelationEnd',
+        },
+        {
+          path: `relations.added[invokes|${ISSUE}|${CANCEL}].from`,
+          reason: 'unknownRelationEnd',
+        },
+        {
+          path: `relations.added[invokes|${ISSUE}|${CANCEL}].to`,
+          reason: 'unknownRelationEnd',
         },
       ]);
     });
@@ -552,20 +820,34 @@ describe('A design document an agent wrote', () => {
       ]);
     });
 
-    it('modifies and removes the parts of an element that the model has', () => {
+    it('modifies and removes the parts of an element, and the relations, that the model has', () => {
       expect(
         validate(
           design({
+            relations: {
+              removed: [
+                { kind: 'extends', from: ORDER, to: AUDITABLE },
+                { kind: 'has_input', from: CANCEL, name: 'order' },
+              ],
+              modified: [
+                {
+                  kind: 'has_state',
+                  from: ORDER,
+                  name: 'total',
+                  cardinality: { value: '0..1' },
+                },
+                {
+                  kind: 'has_output',
+                  from: CANCEL,
+                  to: 'primitive|boolean',
+                  cardinality: { value: '0..1' },
+                },
+              ],
+            },
             buildingBlocks: {
               modified: [
                 {
                   id: ORDER,
-                  implements: { removed: [AUDITABLE] },
-                  properties: {
-                    modified: [
-                      { name: 'total', description: { value: 'The sum.' } },
-                    ],
-                  },
                   rules: {
                     modified: [
                       {
@@ -577,40 +859,29 @@ describe('A design document an agent wrote', () => {
                 },
               ],
             },
-            behaviors: {
-              modified: [
-                {
-                  id: CANCEL,
-                  input: { removed: ['order'] },
-                  output: {
-                    modified: [
-                      {
-                        type: 'primitive|boolean',
-                        description: { value: 'Whether it was cancelled.' },
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
+            behaviors: { modified: [{ id: CANCEL }] },
           }),
           scanned,
         ),
       ).toEqual([]);
     });
 
-    it('never modifies or removes a part the element in the model does not have', () => {
+    it('never modifies or removes a part, or a relation, the model does not have', () => {
       expect(
         validate(
           design({
+            relations: {
+              removed: [
+                { kind: 'has_state', from: ORDER, name: 'legacyFlag' },
+                { kind: 'has_input', from: CANCEL, name: 'orders' },
+                { kind: 'has_output', from: CANCEL, to: ORDER },
+              ],
+              modified: [{ kind: 'has_state', from: ORDER, name: 'discount' }],
+            },
             buildingBlocks: {
               modified: [
                 {
                   id: ORDER,
-                  properties: {
-                    removed: ['legacyFlag'],
-                    modified: [{ name: 'discount' }],
-                  },
                   rules: {
                     removed: ['Open orders only'],
                     modified: [
@@ -623,27 +894,10 @@ describe('A design document an agent wrote', () => {
                 },
               ],
             },
-            behaviors: {
-              modified: [
-                {
-                  id: CANCEL,
-                  output: { removed: [{ collectionOf: ORDER }] },
-                  input: { removed: ['orders'] },
-                },
-              ],
-            },
           }),
           scanned,
         ),
       ).toEqual([
-        {
-          path: `buildingBlocks.modified[${ORDER}].properties.removed[legacyFlag]`,
-          reason: 'unknownElement',
-        },
-        {
-          path: `buildingBlocks.modified[${ORDER}].properties.modified[discount]`,
-          reason: 'unknownElement',
-        },
         {
           path: `buildingBlocks.modified[${ORDER}].rules.removed[Open orders only]`,
           reason: 'unknownElement',
@@ -653,12 +907,83 @@ describe('A design document an agent wrote', () => {
           reason: 'unknownElement',
         },
         {
-          path: `behaviors.modified[${CANCEL}].input.removed[orders]`,
+          path: `relations.removed[has_state|${ORDER}|#legacyFlag]`,
           reason: 'unknownElement',
         },
         {
-          path: `behaviors.modified[${CANCEL}].output.removed[{"collectionOf":"${ORDER}"}]`,
+          path: `relations.removed[has_input|${CANCEL}|#orders]`,
           reason: 'unknownElement',
+        },
+        {
+          path: `relations.removed[has_output|${CANCEL}|${ORDER}]`,
+          reason: 'unknownElement',
+        },
+        {
+          path: `relations.modified[has_state|${ORDER}|#discount]`,
+          reason: 'unknownElement',
+        },
+      ]);
+    });
+
+    it('joins elements it adds to elements the model has', () => {
+      expect(
+        validate(
+          relating(
+            {
+              added: [
+                { kind: 'extends', from: REFUND, to: ORDER },
+                {
+                  kind: 'has_state',
+                  from: ORDER,
+                  name: 'refund',
+                  to: { value: REFUND },
+                  cardinality: { value: '0..1' },
+                },
+                {
+                  kind: 'invokes',
+                  from: CANCEL,
+                  to: ISSUE,
+                  order: { value: 1 },
+                },
+                { kind: 'exposes', from: REFUND, to: ISSUE },
+                { kind: 'contains', from: ORDERS, to: REFUND },
+                { kind: 'exposes', from: ORDER, to: ISSUE },
+              ],
+            },
+            {
+              buildingBlocks: {
+                added: [
+                  {
+                    id: REFUND,
+                    name: { value: 'Refund' },
+                    type: { value: 'aggregate' },
+                    definition: { value: 'Money back.' },
+                  },
+                ],
+              },
+              behaviors: {
+                added: [
+                  {
+                    id: ISSUE,
+                    name: { value: 'issue' },
+                    type: { value: 'Command' },
+                    definition: { value: 'Issues it.' },
+                    visibility: { value: { kind: 'private' } },
+                  },
+                ],
+              },
+            },
+          ),
+          scanned,
+        ),
+      ).toEqual([
+        {
+          path: `relations.added[contains|${ORDERS}|${REFUND}]`,
+          reason: 'containmentOutsideIdPath',
+        },
+        {
+          path: `relations.added[exposes|${ORDER}|${ISSUE}]`,
+          reason: 'containmentOutsideIdPath',
         },
       ]);
     });
@@ -670,7 +995,7 @@ describe('A design document an agent wrote', () => {
         validate(
           design({
             buildingBlocks: {
-              modified: [{ id: missing, properties: { removed: ['total'] } }],
+              modified: [{ id: missing, rules: { removed: ['Paid'] } }],
             },
           }),
           scanned,
@@ -689,13 +1014,13 @@ describe('A design document an agent wrote', () => {
           addingRefund({
             definition: { value: 'Money back.' },
             type: { value: 'aggregate' },
-            properties: { removed: ['total'] },
+            rules: { removed: ['Paid orders only'] },
           }),
           scanned,
         ),
       ).toEqual([
         {
-          path: `buildingBlocks.added[${REFUND}].properties.removed[total]`,
+          path: `buildingBlocks.added[${REFUND}].rules.removed[Paid orders only]`,
           reason: 'unknownElement',
         },
       ]);
@@ -742,18 +1067,15 @@ describe('A design document an agent wrote', () => {
                   definition: { value: 'Money back.' },
                 },
               ],
-              modified: [
+              modified: [{ id: ORDER }],
+            },
+            relations: {
+              added: [
                 {
-                  id: ORDER,
-                  properties: {
-                    added: [
-                      {
-                        name: 'refundedAmount',
-                        type: { value: 'primitive|decimal' },
-                        optional: { value: false },
-                      },
-                    ],
-                  },
+                  kind: 'has_state',
+                  from: ORDER,
+                  name: 'refundedAmount',
+                  to: { value: 'primitive|decimal' },
                 },
               ],
             },
@@ -766,7 +1088,7 @@ describe('A design document an agent wrote', () => {
           reason: 'unchangedFieldInAddedItem',
         },
         {
-          path: `buildingBlocks.modified[${ORDER}].properties.added[refundedAmount].description`,
+          path: `relations.added[has_state|${ORDER}|#refundedAmount].cardinality`,
           reason: 'unchangedFieldInAddedItem',
         },
       ]);

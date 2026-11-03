@@ -49,33 +49,39 @@ interface Shape {
   behaviors?: Line[];
 }
 
-/** The address a name points at: `name: a.b.C[]` points at `a.b.C`. */
+/** The address a name points at: `name: a.b.C [0..*]` points at `a.b.C`. */
 const addressOf = (name: string) =>
   name
     .slice(name.indexOf(':') + 1)
     .trim()
-    .replace(/(\[\])+$/, '');
+    .replace(/\s*\[[^\]]*\]$/, '');
 
 /** Each line as declared, its type read short; what the design removes left out. */
 const lines = (items: ChangeListItem[]): Line[] =>
   items
     .filter(({ change }) => change !== 'removed')
-    .map(({ label, name, type }) =>
+    .map(({ label, name, type, cardinality }) =>
       name === undefined && type === undefined
         ? { key: label, name: label }
         : {
             key: label,
             name,
-            type: type === undefined ? undefined : shortName(type).type,
+            type:
+              type === undefined
+                ? undefined
+                : `${shortName(type).type}${cardinality ?? ''}`,
           },
     );
 
 /** A behavior as a signature: `place(order: Order): Receipt`, its types read short. */
-const signatureOf = (behavior: DesignedBehaviorInput): Line => {
-  const input = lines(parameterItems(behavior.input))
+const signatureOf = (
+  doc: DesignDocumentInput,
+  behavior: DesignedBehaviorInput,
+): Line => {
+  const input = lines(parameterItems(doc, behavior.id))
     .map(({ name, type }) => (type === undefined ? name : `${name}: ${type}`))
     .join(', ');
-  const output = lines(resultItems(behavior.output))
+  const output = lines(resultItems(doc, behavior.id))
     .map(({ type }) => type)
     .join(', ');
   return {
@@ -97,7 +103,7 @@ const signatureOf = (behavior: DesignedBehaviorInput): Line => {
 const behaviorsOf = (doc: DesignDocumentInput, blockId: string): Line[] =>
   writtenIn(doc.behaviors)
     .filter(({ id }) => ownerOf(id) === blockId)
-    .map(signatureOf);
+    .map((behavior) => signatureOf(doc, behavior));
 
 /** A module's building blocks the document writes, each by its name and kind. */
 const buildingBlocksOf = (doc: DesignDocumentInput, moduleId: string): Line[] =>
@@ -121,20 +127,17 @@ const isEmpty = (shape: Shape) =>
 const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
   const behavior = findById(doc.behaviors, behaviorIdAt(address));
   if (behavior) {
-    const input = lines(parameterItems(behavior.input));
-    const output = lines(resultItems(behavior.output));
+    const input = lines(parameterItems(doc, behavior.id));
+    const output = lines(resultItems(doc, behavior.id));
     return input.length + output.length > 0 ? { input, output } : null;
   }
   const blockId = blockIdAt(address);
-  const block = findById(doc.buildingBlocks, blockId);
   const shape: Shape = {
     behaviors: behaviorsOf(doc, blockId),
-    properties: block
-      ? lines(propertyItems(block.id, block.properties)).map((line) => ({
-          ...line,
-          icon: <IconBraces size={ICON_SIZE} stroke={2} aria-hidden />,
-        }))
-      : [],
+    properties: lines(propertyItems(doc, blockId)).map((line) => ({
+      ...line,
+      icon: <IconBraces size={ICON_SIZE} stroke={2} aria-hidden />,
+    })),
   };
   if (!isEmpty(shape)) return shape;
   const moduleId = moduleIdAt(address);

@@ -66,9 +66,9 @@ describe('ownerOf and parentOf', () => {
 });
 
 describe('blockOfRef', () => {
-  it('names the building block a reference holds, through a collection', () => {
-    expect(blockOfRef({ collectionOf: block }) as string | null).toBe(block);
-    expect(blockOfRef('string')).toBeNull();
+  it('names the building block a reference holds, and no primitive', () => {
+    expect(blockOfRef(block) as string | null).toBe(block);
+    expect(blockOfRef('primitive|string')).toBeNull();
   });
 });
 

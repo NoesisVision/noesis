@@ -79,10 +79,10 @@ For a new one:
 
 ### Interchangeable building blocks
 
-When a property, a collection's elements or a behavior's input or output
-can be any of two or more building blocks, model the abstraction they share
-as a base building block. Each of them lists the base in `implements`, and
-the reference names the base. The base is a real domain concept (a
+When a piece of state or a behavior's input or output can be any of two or
+more building blocks, model the abstraction they share as a base building
+block. Each of them `extends` the base (a relation from it to the base),
+and the slot's `to` names the base. The base is a real domain concept (a
 `Component` over `CompositeComponent` and `SimpleComponent`), never an
 umbrella invented to satisfy a reference.
 
@@ -108,14 +108,17 @@ Decide what a table stands for before modelling its rows:
 - Inputs and outputs are building blocks or primitives. Prefer the value
   object that gives a primitive its meaning (`Money`, not `decimal`) when
   the model has one.
-- An input has the name the behavior takes it under (`reason`, not
-  `string`), a description and whether it may be left out. An output has
-  no name: it is its type, a description and whether it may be absent.
+- An input is a `has_input` relation from the behavior: the name the
+  behavior takes it under (`reason`, not `string`), its type in `to` and
+  how many it holds in `cardinality` (`1`, `0..1` when it may be left out,
+  `0..*` or `1..*` for a collection). An output is a `has_output` relation:
+  no name, its type in `to` and its cardinality. A block's state is a
+  `has_state` relation the same way. What a slot means is the definition
+  of the block it points at; a relation carries no description.
 - A behavior's `definition` says what it does for the domain, as any
   [definition](#definitions) does. What an implementer needs beyond that has
-  a field of its own: what goes in and out in the descriptions of the input
-  and output, preconditions in rules, edge cases in scenarios, and the steps,
-  when they matter, in the diagram.
+  a field of its own: preconditions in rules, edge cases in scenarios, and
+  the steps, when they matter, in the diagram.
 - A module, a building block and a behavior each have a `diagram` field:
   the source of one Mermaid diagram, without the ` ```mermaid ` fence.
   Never put a diagram in a `definition`; the service refuses a fence there.
@@ -133,7 +136,7 @@ Decide what a table stands for before modelling its rows:
   ```
 
 - Give every aggregate an entity diagram (`erDiagram`): its root and each
-  entity and value object it holds, with their properties and the
+  entity and value object it holds, with their state and the
   cardinalities the rules set. Name it with `accTitle:` too:
 
   ```json

@@ -8,7 +8,7 @@ argument-hint: [change-id] [design-doc-id] [instructions]
 
 A design document says what a change does to the domain model: the modules,
 building blocks and behaviors it adds, modifies or removes, with their
-properties, rules and scenarios. You turn it into Java domain code that the
+rules, scenarios and the relations between them. You turn it into Java domain code that the
 Noesis Java parser reads back as the same model, and into tests that prove
 every scenario. Each module becomes a package, each building block a type
 carrying its `vision.noesis.annotations` stereotype, each behavior a public

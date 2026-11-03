@@ -4,11 +4,12 @@
  * and CSharpSyntax.OtherProject/ProjectionFromOtherProject.cs). Shared by the
  * unit test over the golden code model and the e2e test over a real scan.
  *
- * `INVOKES` is the expected `invokes` of every behavior declared under
- * CSharpSyntax/Projection/Invocations, by the rules of section 11 of
- * docs/plans/code-model-to-system-model.md as they stand today. Entries that
- * pin a known gap say so, so the test that flips when the gap is closed is
- * easy to find.
+ * `INVOKES` is the expected targets of the `invokes` relations of every
+ * behavior declared under CSharpSyntax/Projection/Invocations, sorted by id
+ * (which behaviors are reached, not in which order), by the rules of section
+ * 11 of docs/plans/code-model-to-system-model.md as they stand today. Entries
+ * that pin a known gap say so, so the test that flips when the gap is closed
+ * is easy to find.
  */
 
 const INVOCATIONS = 'Projection.Invocations';
@@ -21,7 +22,7 @@ export const behavior = (name: string): string =>
 const reached = (name: string): string => behavior(`Reached.${name}`);
 
 /**
- * Expected `invokes` by behavior id, for every behavior under
+ * Expected invoked behaviors by behavior id, sorted, for every behavior under
  * Projection.Invocations except the leaves (`Reached.*`), which invoke nothing.
  */
 export const INVOKES: Record<string, string[]> = {

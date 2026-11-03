@@ -62,6 +62,7 @@ describe('ui design-docs routes', () => {
     // Element ids travel as the strings they are written as.
     expect(detail.document.buildingBlocks.added.map((b) => b.id)).toEqual([
       'building_block|sales.refunds.Refund',
+      'building_block|sales.refunds.RefundLine',
       'building_block|sales.refunds.RefundIssued',
       'building_block|sales.refunds.RefundRepository',
     ]);

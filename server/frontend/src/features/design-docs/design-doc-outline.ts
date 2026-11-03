@@ -11,15 +11,13 @@ import type {
   DesignedBehaviorInput,
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
-  DesignedPropertyInput,
   DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { type ChangeSetInput, named } from './change-set.ts';
 import {
   type DesignDocFieldInput,
-  refLabelOf,
+  slotLabelOf,
   valueOf,
 } from './design-doc-field.ts';
 import { kindOf, nameOf, parentOf } from './element-id.ts';
@@ -40,6 +38,7 @@ export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   addModules(nodes, document.modules);
   addBuildingBlocks(nodes, document.buildingBlocks);
   addBehaviors(nodes, document.behaviors);
+  addProperties(nodes, document.relations);
   addImpliedAncestors(nodes);
   return inReadingOrder(nodes.values());
 }
@@ -61,7 +60,6 @@ function addBuildingBlocks(
 ): void {
   for (const [block, change] of named(blocks)) {
     put(nodes, element(block.id, change, valueOf(block.type), isDrawn(block)));
-    addProperties(nodes, block.id, block.properties);
     addRules(nodes, block.id, block.rules);
     addScenarios(nodes, block.id, block.scenarios);
   }
@@ -83,25 +81,32 @@ function addBehaviors(
   for (const id of behaviors?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
+/**
+ * A block's state hangs under it as its properties: the `has_state` relations
+ * from it, wherever the document writes them — under a block it names, or
+ * from one it leaves alone, which is then implied like any ancestor.
+ */
 function addProperties(
   nodes: Map<string, OutlineNode>,
-  owner: string,
-  properties: ChangeSetInput<DesignedPropertyInput, string> | undefined,
+  relations: DesignDocumentInput['relations'],
 ): void {
-  for (const [property, change] of named(properties))
+  for (const [relation, change] of named(relations)) {
+    if (relation.kind !== 'has_state') continue;
+    const type = valueOf(relation.to);
     put(
       nodes,
       part(
-        owner,
+        relation.from,
         'property',
-        property.name,
+        relation.name,
         change,
-        refLabelOrNull(valueOf(property.type)),
-        valueOf(property.description),
+        type === null ? null : slotLabelOf(type, valueOf(relation.cardinality)),
       ),
     );
-  for (const name of properties?.removed ?? [])
-    put(nodes, part(owner, 'property', name, 'removed'));
+  }
+  for (const key of relations?.removed ?? [])
+    if (key.kind === 'has_state')
+      put(nodes, part(key.from, 'property', key.name, 'removed'));
 }
 
 function addRules(
@@ -146,9 +151,6 @@ function addScenarios(
   for (const name of scenarios?.removed ?? [])
     put(nodes, part(owner, 'scenario', name, 'removed'));
 }
-
-const refLabelOrNull = (ref: BuildingBlockRefInput | null) =>
-  ref === null ? null : refLabelOf(ref);
 
 /**
  * A module the document never names still has to be there, or the element
@@ -234,7 +236,7 @@ function part(
     pattern,
     // Not written out as an element's pattern is: a property's is its type and
     // a rule's is its kind, and both are spelled by whoever wrote them —
-    // `OrderId`, `RefundLine[]`, `date`, `State change`.
+    // `OrderId`, `RefundLine [0..*]`, `date`, `State change`.
     patternLabel: pattern,
     hasDiagram: drawsDiagram(description),
   };

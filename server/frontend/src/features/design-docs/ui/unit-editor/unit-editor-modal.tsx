@@ -87,7 +87,7 @@ export function UnitEditorModal({
       return;
     }
     const id = idOfDraft(doc, placed, draft);
-    const unit = unitFromDraft(kind, draft, original, id);
+    const unit = unitFromDraft(kind, draft, original, id, ownerOf(placed));
     const edit: DesignDocEdit =
       target.mode === 'edit' && relocates
         ? {
@@ -221,7 +221,7 @@ const ICON_KIND: Record<UnitKind, OutlineKind> = {
   property: 'property',
   parameter: 'property',
   result: 'property',
-  implements: 'building_block',
+  extends: 'building_block',
 };
 
 const ownerOf = (target: UnitTarget): PartOwner | null => {

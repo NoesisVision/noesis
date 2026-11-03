@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'bun:test';
-import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BuildingBlockRefInput,
+  DesignDocumentInput,
+  DesignedRelationInput,
+} from '#backend/app/design-docs/design-doc.ts';
+import type {
   BuildingBlockType,
+  Cardinality,
 } from '#backend/app/system-model/system-model.ts';
 import type { ArchitectureCheck } from '../src/features/design-docs/architecture-outline';
 import {
@@ -26,39 +29,51 @@ import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixt
 
 const agent = <const T>(value: T) => ({ value, author: 'agent' as const });
 
-const block = (
-  address: string,
-  type: BuildingBlockType,
-  uses: string[] = [],
-) => ({
+const block = (address: string, type: BuildingBlockType) => ({
   id: `building_block|${address}`,
   type: agent(type),
-  properties: {
-    added: uses.map((used, index) => ({
-      name: `p${index}`,
-      type: agent(`building_block|${used}`),
-    })),
-  },
 });
 
 const behavior = (
   address: string,
   visibility: { kind: 'private' } | { kind: 'public'; actors: string[] },
-  io: {
-    input?: BuildingBlockRefInput[];
-    output?: BuildingBlockRefInput[];
-  } = {},
 ) => ({
   id: `behavior|${address}`,
   type: agent('Command'),
   visibility: agent<typeof visibility>(visibility),
-  input: {
-    added: (io.input ?? []).map((type, index) => ({
-      name: `in${index}`,
-      type: agent(type),
-    })),
-  },
-  output: { added: (io.output ?? []).map((type) => ({ type })) },
+});
+
+/** The state of a block: one slot per block it uses. */
+const state = (address: string, ...uses: string[]): DesignedRelationInput[] =>
+  uses.map((used, index) => ({
+    kind: 'has_state',
+    from: `building_block|${address}`,
+    name: `p${index}`,
+    to: agent(`building_block|${used}`),
+    cardinality: agent('1'),
+  }));
+
+const input = (
+  address: string,
+  type: string,
+  cardinality: Cardinality = '1',
+): DesignedRelationInput => ({
+  kind: 'has_input',
+  from: `behavior|${address}`,
+  name: 'in',
+  to: agent(`building_block|${type}`),
+  cardinality: agent(cardinality),
+});
+
+const output = (
+  address: string,
+  type: string,
+  cardinality: Cardinality = '1',
+): DesignedRelationInput => ({
+  kind: 'has_output',
+  from: `behavior|${address}`,
+  to: `building_block|${type}`,
+  cardinality: agent(cardinality),
 });
 
 const PRIVATE = { kind: 'private' } as const;
@@ -71,7 +86,7 @@ const clean = {
   buildingBlocks: {
     added: [
       block('sales.orders.OrderService', 'application_service'),
-      block('sales.orders.Order', 'aggregate', ['sales.orders.OrderLine']),
+      block('sales.orders.Order', 'aggregate'),
       block('sales.orders.OrderLine', 'value_object'),
       block('sales.orders.Orders', 'repository'),
       block('sales.billing.BillingService', 'application_service'),
@@ -80,19 +95,27 @@ const clean = {
   },
   behaviors: {
     added: [
-      behavior(
-        'sales.orders.OrderService.place',
-        { kind: 'public', actors: ['Customer'] },
-        { input: [{ collectionOf: 'building_block|sales.orders.OrderLine' }] },
-      ),
-      behavior('sales.orders.Orders.save', PRIVATE, {
-        input: ['building_block|sales.orders.Order'],
+      behavior('sales.orders.OrderService.place', {
+        kind: 'public',
+        actors: ['Customer'],
       }),
-      behavior(
-        'sales.billing.BillingService.bill',
-        { kind: 'public', actors: ['Clerk'] },
-        { output: ['building_block|sales.billing.Invoice'] },
+      behavior('sales.orders.Orders.save', PRIVATE),
+      behavior('sales.billing.BillingService.bill', {
+        kind: 'public',
+        actors: ['Clerk'],
+      }),
+    ],
+  },
+  relations: {
+    added: [
+      ...state('sales.orders.Order', 'sales.orders.OrderLine'),
+      input(
+        'sales.orders.OrderService.place',
+        'sales.orders.OrderLine',
+        '0..*',
       ),
+      input('sales.orders.Orders.save', 'sales.orders.Order'),
+      output('sales.billing.BillingService.bill', 'sales.billing.Invoice'),
     ],
   },
 } satisfies DesignDocumentInput;
@@ -135,7 +158,7 @@ describe('architectureOf', () => {
     ]);
   });
 
-  it('reads a type through a collection', () => {
+  it('reads a type through a collection: the slot holds any number of it', () => {
     expect(orders?.drivingPorts[0]?.behavior.uses).toEqual([
       blockIdAt('sales.orders.OrderLine'),
     ]);
@@ -177,9 +200,13 @@ describe('the checks', () => {
         buildingBlocks: {
           added: [
             ...clean.buildingBlocks.added,
-            block('sales.orders.Pricing', 'domain_service', [
-              'sales.orders.Orders',
-            ]),
+            block('sales.orders.Pricing', 'domain_service'),
+          ],
+        },
+        relations: {
+          added: [
+            ...clean.relations.added,
+            ...state('sales.orders.Pricing', 'sales.orders.Orders'),
           ],
         },
       },
@@ -315,10 +342,12 @@ describe('a behavior whose building block the design leaves out', () => {
     },
     behaviors: {
       added: clean.behaviors.added,
-      modified: [
-        behavior('sales.orders.Basket.applyDiscount', PRIVATE, {
-          input: ['building_block|sales.orders.Discount'],
-        }),
+      modified: [behavior('sales.orders.Basket.applyDiscount', PRIVATE)],
+    },
+    relations: {
+      added: [
+        ...clean.relations.added,
+        input('sales.orders.Basket.applyDiscount', 'sales.orders.Discount'),
       ],
     },
   });
@@ -417,9 +446,13 @@ describe('an inferred flow', () => {
       behaviors: {
         added: [
           ...clean.behaviors.added,
-          behavior('sales.orders.Order.invoice', PRIVATE, {
-            input: ['building_block|sales.billing.Invoice'],
-          }),
+          behavior('sales.orders.Order.invoice', PRIVATE),
+        ],
+      },
+      relations: {
+        added: [
+          ...clean.relations.added,
+          input('sales.orders.Order.invoice', 'sales.billing.Invoice'),
         ],
       },
     } satisfies DesignDocumentInput;
@@ -533,15 +566,17 @@ describe('a block whose behaviors share a type', () => {
       behaviors: {
         added: [
           ...clean.behaviors.added,
-          behavior('sales.orders.Orders.find', PRIVATE, {
-            output: ['building_block|sales.orders.Order'],
-          }),
-          behavior('sales.orders.Orders.all', PRIVATE, {
-            output: [{ collectionOf: 'building_block|sales.orders.Order' }],
-          }),
-          behavior('sales.orders.OrderService.ship', PRIVATE, {
-            input: ['building_block|sales.orders.Order'],
-          }),
+          behavior('sales.orders.Orders.find', PRIVATE),
+          behavior('sales.orders.Orders.all', PRIVATE),
+          behavior('sales.orders.OrderService.ship', PRIVATE),
+        ],
+      },
+      relations: {
+        added: [
+          ...clean.relations.added,
+          output('sales.orders.Orders.find', 'sales.orders.Order'),
+          output('sales.orders.Orders.all', 'sales.orders.Order', '0..*'),
+          input('sales.orders.OrderService.ship', 'sales.orders.Order'),
         ],
       },
     };

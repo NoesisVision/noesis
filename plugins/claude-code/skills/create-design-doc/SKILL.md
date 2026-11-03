@@ -8,7 +8,7 @@ argument-hint: [change-id] [number of designs] [instructions]
 
 A design document says what a change does to the implemented model: the
 modules, building blocks and behaviors it adds, modifies or removes, with
-their properties, rules and scenarios. It is a diff against the newest
+their rules and scenarios, and the relations between them. It is a diff against the newest
 system model — what the scanner found in the code — and never against an
 earlier design document. You read the change's documents and the system
 model, design the change as an experienced architect and analyst would,
@@ -74,8 +74,10 @@ rules, scenarios. Read it at step 5.
      module by a command, event or query is a public behavior. Its actors
      are the human personas that trigger it; reuse the actor names the
      system model already uses, verbatim.
-   - **Building blocks and behaviors**, with their types, properties,
-     `implements` and behavior inputs and outputs. Take ready solutions
+   - **Building blocks and behaviors**, with their types, and the
+     **relations** between them: a block's state (`has_state`), what it
+     extends (`extends`), a behavior's inputs (`has_input`) and output
+     (`has_output`), and what calls what (`invokes`). Take ready solutions
      from the sources, diagrams especially.
    - **Rules**, one per requirement statement, each with its category and
      type, the needs it answers (none for a design decision) and, when a
@@ -96,34 +98,44 @@ rules, scenarios. Read it at step 5.
    [Several designs](#several-designs) instead of step 6.
 
 6. **Diff against the baseline.** Read both contracts now. For every
-   element and every part of one (property, rule, scenario, input, output,
-   `implements` entry), ask whether the system model has it:
+   element, every part of one (rule, scenario) and every relation, ask
+   whether the system model has it:
    - **Not in the model:** `added`, with every field given a value except
      `diagram`, which only an element worth drawing has.
    - **In the model and changed:** `modified`, with its id (a part's name,
-     an output's type) and only the fields that change. The `description`
-     of a property, an input, an output or a scenario is always a change
-     note: `"Change note: "`, then what changes and why, so a reader sees
-     why the part is in the diff. An element's `definition` never is: give
-     it only when what the element is changes, and then write the whole new
-     definition. Nor is a rule's `description`: it is the requirement's
-     whole new statement. Say why a modified element or rule is in the diff
-     in the design document's `description`.
-   - **In the model and retired:** `removed`, by id (a part by name, an
-     output by type). Remove a building block's behaviors with it.
+     a relation's key) and only the fields that change. The `description`
+     of a scenario is always a change note: `"Change note: "`, then what
+     changes and why, so a reader sees why the part is in the diff. An
+     element's `definition` never is: give it only when what the element is
+     changes, and then write the whole new definition. Nor is a rule's
+     `description`: it is the requirement's whole new statement. Say why a
+     modified element, rule or relation is in the diff in the design
+     document's `description`.
+   - **In the model and retired:** `removed`, by id (a part by name, a
+     relation by its key). Remove a building block's behaviors and
+     relations with it.
    - **In the model and unchanged:** leave it out, even when the design
      refers to it. A reference resolves against the model.
 
    Nesting follows the same questions: inside an `added` element everything
-   is added; a `modified` building block lists only the properties, rules
-   and scenarios that change. A behavior's input is a part known by its
-   name, like a property; an output has no name and is known by its `type`,
-   so an output of another type is one removed and one added. `implements`
-   has no `modified`: a changed entry is removed and added. Needs are only
-   ever `added`: no scan holds one, so there is nothing to modify or
-   remove. A rename of an element in the model is a removal of the old id
-   and an addition of the new one, and every reference to the old id moves
-   to the new one.
+   is added; a `modified` building block lists only the rules and
+   scenarios that change. Relations are one list, `relations`, beside the
+   elements, each `{ "kind", "from", "to", … }`: `has_state` (a block's
+   field: `name`, `to` and `cardinality` are fields), `has_input` (a
+   behavior's parameter, the same way), `has_output` (a behavior's result:
+   `to` is its key, `cardinality` a field), `extends`, `exposes`,
+   `contains` and `invokes` (`order` a field). A `has_state` or `has_input`
+   is known by its holder and `name`, so its type may change in place; a
+   `has_output` is known by its `to`, so an output of another type is one
+   removed and one added; `extends` has nothing to modify. `cardinality`
+   is `1`, `0..1`, `0..*` or `1..*`: a collection and an optional value are
+   told apart by it, never by the type. Both ends of an added relation
+   exist, in the design or in the model; a `contains` or `exposes` only
+   says what the ids already say, so write one only when it does. Needs
+   are only ever `added`: no scan holds one, so there is nothing to modify
+   or remove. A rename of an element in the model is a removal of the old
+   id and an addition of the new one, and every reference to the old id
+   moves to the new one.
 
 7. **Find the scratch directory.** It is the absolute path named in the
    description of the `path` parameter of `create_design_doc_in_change`, of
@@ -134,13 +146,14 @@ rules, scenarios. Read it at step 5.
    change's), `description` (the overview, as the contract states it;
    read
    `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/description.md`
-   before writing it), `needs`, `modules`, `buildingBlocks` and
-   `behaviors`. No `id`, no `implemented`. Write every field as
+   before writing it), `needs`, `modules`, `buildingBlocks`, `behaviors`
+   and `relations`. No `id`, no `implemented`. Write every field as
    `{ "value": … }` and never with `author`: you are the agent. Leave out a
    change set with nothing in it.
-   Before saving, check that every reference — the `type` of a property, an
-   input or an output, `implements` — names a building block this design
-   adds or modifies, one the system model has, or a primitive, that
+   Before saving, check that every end of a relation — the `to` of a
+   `has_state`, `has_input` or `has_output`, both ends of an `extends` or
+   an `invokes` — names a building block or behavior this design adds, one
+   the system model has, or a primitive, that
    nothing refers to an id the design removes, that every rule's `needs`
    names only needs the design adds, and that every `noesis:` link in
    `description` names an element this design adds, modifies or removes,

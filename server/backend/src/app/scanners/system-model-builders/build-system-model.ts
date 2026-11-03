@@ -5,16 +5,15 @@ import {
   ElementName,
   ModuleId,
 } from '#backend/app/element-id';
-import type {
-  BehaviorType,
-  ScannedBehavior,
-  ScannedBuildingBlock,
-  ScannedDomainModule,
-  ScannedParameter,
-  ScannedProperty,
-  ScannedScenario,
-  SourceLocation,
-  SystemModel,
+import {
+  type BehaviorType,
+  Relation,
+  type ScannedBehavior,
+  type ScannedBuildingBlock,
+  type ScannedDomainModule,
+  type ScannedScenario,
+  type SourceLocation,
+  type SystemModel,
 } from '#backend/app/system-model/system-model';
 import type {
   Annotation,
@@ -39,7 +38,11 @@ import {
   namespaceName,
 } from './code-model-index';
 import type { NamespaceConfig } from './namespace-config';
-import { type ResolutionScope, resolveTypeRef } from './type-resolution';
+import {
+  optionalOf,
+  type ResolutionScope,
+  resolveTypeRef,
+} from './type-resolution';
 import type { AnnotationVocabulary } from './vocabulary';
 
 /*
@@ -65,7 +68,10 @@ export interface BuildDiagnostic {
   readonly source: SourceLocation | null;
 }
 
-type BuiltModel = Pick<SystemModel, 'modules' | 'buildingBlocks' | 'behaviors'>;
+type BuiltModel = Pick<
+  SystemModel,
+  'modules' | 'buildingBlocks' | 'behaviors' | 'relations'
+>;
 
 export interface BuiltSystemModel {
   readonly model: BuiltModel;
@@ -92,6 +98,12 @@ interface Behavior {
   readonly overloads: readonly Located<MethodNode>[];
 }
 
+/** One call a behavior makes, at a site in the source, and the behaviors it reaches (R11.2). */
+interface Call {
+  readonly site: SourceSpan;
+  readonly targets: ReadonlySet<BehaviorId>;
+}
+
 export function buildSystemModel(
   input: SystemModelBuildInput,
 ): BuiltSystemModel {
@@ -103,6 +115,7 @@ class ModelAssembly {
   private readonly config: NamespaceConfig;
   private readonly index: CodeModelIndex;
   private readonly diagnostics: BuildDiagnostic[] = [];
+  private readonly relations: Relation[] = [];
   private readonly blocks = new Map<GlobalId, Block>();
   private readonly behaviors = new Map<BehaviorId, Behavior>();
   /** Every overload's behavior, by the method's global id. */
@@ -121,17 +134,16 @@ class ModelAssembly {
   assemble(): BuiltSystemModel {
     this.collectBlocks();
     this.collectBehaviors();
-    const invokes = this.collectInvocations();
+    this.collectInvocations();
     const model: BuiltModel = {
       modules: this.modules(),
       buildingBlocks: [...this.blocks.values()]
         .map((block) => this.toBuildingBlock(block))
         .sort(byId),
       behaviors: [...this.behaviors.values()]
-        .map((behavior) =>
-          this.toBehavior(behavior, invokes.get(behavior.id) ?? new Set()),
-        )
+        .map((behavior) => this.toBehavior(behavior))
         .sort(byId),
+      relations: this.relations.sort(Relation.compare),
     };
     return { model, diagnostics: this.diagnostics };
   }
@@ -241,22 +253,30 @@ class ModelAssembly {
     );
   }
 
+  /** The block's element, and its `contains`, `extends` and `has_state` relations. */
   private toBuildingBlock(block: Block): ScannedBuildingBlock {
     const { artifact, node } = block;
+    this.relations.push({
+      kind: 'contains',
+      from: moduleIdOf(block.modulePath),
+      to: block.id,
+    });
+    // R4.4: the blocks among the direct supertypes, type arguments ignored.
+    for (const to of sortedUnique(
+      (artifact.supertypesOf.get(node.id) ?? []).flatMap((ref) => {
+        if (ref.kind !== 'named') return [];
+        const id = this.blockIdOf(artifact, ref.type);
+        return id === null || id === block.id ? [] : [id];
+      }),
+    )) {
+      this.relations.push({ kind: 'extends', from: block.id, to });
+    }
+    this.collectState(block);
     return {
       id: block.id,
       name: block.name,
       type: block.type,
       description: this.descriptionOf(node),
-      // R4.4: the blocks among the direct supertypes, type arguments ignored.
-      implements: sortedUnique(
-        (artifact.supertypesOf.get(node.id) ?? []).flatMap((ref) => {
-          if (ref.kind !== 'named') return [];
-          const id = this.blockIdOf(artifact, ref.type);
-          return id === null || id === block.id ? [] : [id];
-        }),
-      ),
-      properties: this.propertiesOf(block),
       rules: [],
       scenarios: this.scenariosOf([node]),
       source: locationOf(node),
@@ -309,10 +329,10 @@ class ModelAssembly {
     return [...scenarios.values()];
   }
 
-  /* -------------------------------------------------------- properties */
+  /* ------------------------------------------------------------- state */
 
-  /** R5.1 to R5.8: the block's public instance properties and fields, and Java's fields behind getters. */
-  private propertiesOf(block: Block): ScannedProperty[] {
+  /** R5.1 to R5.8: one `has_state` per public instance property or field, and Java's fields behind getters. */
+  private collectState(block: Block): void {
     const { artifact, node } = block;
     const getters = this.gettersOf(block);
     const candidates = artifact
@@ -335,8 +355,7 @@ class ModelAssembly {
         byName.set(key, member);
       }
     }
-    const properties: ScannedProperty[] = [];
-    for (const member of [...byName.values()].sort(byLocationThenName)) {
+    for (const member of byName.values()) {
       const resolved = resolveTypeRef(
         member.type,
         this.scopeFor(artifact, member),
@@ -350,16 +369,14 @@ class ModelAssembly {
       }
       const name = ElementName.safeParse(member.name);
       if (!name.success) continue;
-      properties.push({
+      this.relations.push({
+        kind: 'has_state',
+        from: block.id,
+        to: resolved.ref,
         name: name.data,
-        type: resolved.ref,
-        // R5.6, R5.8: the member's doc comment, else its getter's.
-        description:
-          member.documentation ?? getters.get(member.id)?.documentation ?? null,
-        optional: resolved.optional,
+        cardinality: resolved.cardinality,
       });
     }
-    return properties;
   }
 
   /**
@@ -566,35 +583,14 @@ class ModelAssembly {
     }
   }
 
-  private toBehavior(
-    behavior: Behavior,
-    invokes: Set<BehaviorId>,
-  ): ScannedBehavior {
+  /** The behavior's element, and its `exposes`, `has_input` and `has_output` relations. */
+  private toBehavior(behavior: Behavior): ScannedBehavior {
     const { chosen, block } = behavior;
     const hierarchy = this.memberHierarchy(chosen);
-    const scope = this.scopeFor(chosen.artifact, chosen.node);
-    const input: ScannedParameter[] = [];
-    for (const parameter of chosen.node.signature.parameters) {
-      const resolved = resolveTypeRef(parameter.type, scope);
-      const name = ElementName.safeParse(parameter.name);
-      if (resolved === null || !name.success) {
-        this.debug(
-          `${chosen.node.id}: parameter ${parameter.name} has no word in the system model; left out`,
-          chosen.node,
-        );
-        continue;
-      }
-      input.push({
-        name: name.data,
-        type: resolved.ref,
-        description: null,
-        optional: parameter.optional || resolved.optional,
-      });
-    }
-    const returned = resolveTypeRef(chosen.node.signature.returnType, scope);
+    this.relations.push({ kind: 'exposes', from: block.id, to: behavior.id });
+    this.collectSignature(behavior);
     return {
       id: behavior.id,
-      buildingBlockId: block.id,
       name: behavior.name,
       type: this.behaviorTypeOf(hierarchy),
       description:
@@ -607,24 +603,48 @@ class ModelAssembly {
         chosen.node.visibility === 'public'
           ? { kind: 'public', actors: this.actorsOf(hierarchy, block.node) }
           : { kind: 'private' },
-      input,
-      output:
-        returned === null
-          ? []
-          : [
-              {
-                type: returned.ref,
-                description: null,
-                optional: returned.optional,
-              },
-            ],
-      invokes: [...invokes].filter((id) => id !== behavior.id).sort(byCodeUnit),
       rules: [],
       scenarios: this.scenariosOf(
         behavior.overloads.map((overload) => overload.node),
       ),
       source: locationOf(chosen.node),
     };
+  }
+
+  /** R9.6, R9.7: one `has_input` per parameter of the chosen overload, one `has_output` for its result. */
+  private collectSignature({ id, chosen }: Behavior): void {
+    const scope = this.scopeFor(chosen.artifact, chosen.node);
+    const named = new Set<ElementName>();
+    for (const parameter of chosen.node.signature.parameters) {
+      const resolved = resolveTypeRef(parameter.type, scope);
+      const name = ElementName.safeParse(parameter.name);
+      if (resolved === null || !name.success || named.has(name.data)) {
+        this.debug(
+          `${chosen.node.id}: parameter ${parameter.name} has no word in the system model; left out`,
+          chosen.node,
+        );
+        continue;
+      }
+      named.add(name.data);
+      this.relations.push({
+        kind: 'has_input',
+        from: id,
+        to: resolved.ref,
+        name: name.data,
+        cardinality: parameter.optional
+          ? optionalOf(resolved.cardinality)
+          : resolved.cardinality,
+      });
+    }
+    const returned = resolveTypeRef(chosen.node.signature.returnType, scope);
+    if (returned !== null) {
+      this.relations.push({
+        kind: 'has_output',
+        from: id,
+        to: returned.ref,
+        cardinality: returned.cardinality,
+      });
+    }
   }
 
   /** R9.4: `TriggeredBy` of a behavior role, or the type the role itself fixes, nearest member first; a Command without one. */
@@ -678,28 +698,29 @@ class ModelAssembly {
 
   /* ------------------------------------------------------- invocations */
 
-  /** R11.1 to R11.3: which behaviors each behavior calls. */
-  private collectInvocations(): Map<BehaviorId, Set<BehaviorId>> {
-    const invokes = new Map<BehaviorId, Set<BehaviorId>>();
+  /** R11.1 to R11.3: one `invokes` per behavior a behavior calls, in the order of the calls. */
+  private collectInvocations(): void {
+    const calls = new Map<BehaviorId, Call[]>();
     for (const artifact of this.index.artifacts) {
-      for (const [from, targets] of artifact.invokedBy) {
+      for (const [from, invocations] of artifact.invokedBy) {
         const caller = artifact.nodes.get(from);
         if (caller?.kind !== 'method') continue;
         const sources = this.behaviorsOfMember({ artifact, node: caller });
         if (sources.size === 0) continue;
-        for (const to of targets) {
-          for (const target of this.callTargetsOf(artifact, to)) {
-            for (const source of sources) {
-              if (source === target) continue;
-              let set = invokes.get(source);
-              if (set === undefined) invokes.set(source, (set = new Set()));
-              set.add(target);
-            }
+        for (const { to, site } of invocations) {
+          const targets = this.callTargetsOf(artifact, to);
+          if (targets.size === 0) continue;
+          for (const source of sources) {
+            let list = calls.get(source);
+            if (list === undefined) calls.set(source, (list = []));
+            list.push({ site, targets });
           }
         }
       }
     }
-    return invokes;
+    for (const [from, made] of calls) {
+      this.relations.push(...invokesOf(from, made));
+    }
   }
 
   /** The behaviors a method stands for: its own and those of the members it overrides or implements. */
@@ -740,7 +761,7 @@ class ModelAssembly {
     if (located.node.methodKind !== 'constructor') {
       for (const next of located.artifact.invokedBy.get(located.node.id) ??
         []) {
-        for (const id of this.callTargetsOf(located.artifact, next))
+        for (const id of this.callTargetsOf(located.artifact, next.to))
           reached.add(id);
       }
     }
@@ -749,7 +770,7 @@ class ModelAssembly {
 
   /* ----------------------------------------------------------- modules */
 
-  /** R6.2 to R6.4: a module per prefix of every block's module path. */
+  /** R6.2 to R6.4: a module per prefix of every block's module path, each containing the next. */
   private modules(): ScannedDomainModule[] {
     const namespaceLocations = this.namespaceLocations();
     const modules = new Map<ModuleId, ScannedDomainModule>();
@@ -767,6 +788,10 @@ class ModelAssembly {
             namespaceLocations.get(path.join('.')) ??
             this.directoryAbove(block, block.modulePath.length - depth),
         });
+        const parent = ModuleId.parentOf(id);
+        if (parent !== null) {
+          this.relations.push({ kind: 'contains', from: parent, to: id });
+        }
       }
     }
     return [...modules.values()].sort(byId);
@@ -803,7 +828,7 @@ class ModelAssembly {
     return hasRole(annotations, 'exclude', this.vocabulary);
   }
 
-  /** Resolves `member`'s types from its artifact; what cannot be said is a debug diagnostic. */
+  /** Resolves `member`'s types from its artifact; what cannot be said is a debug diagnostic, what is flattened an info one. */
   private scopeFor(
     from: IndexedArtifact,
     member: DeclarationNode,
@@ -814,6 +839,7 @@ class ModelAssembly {
       from,
       blockOf: (artifact, typeId) => this.blockIdOf(artifact, typeId),
       unresolvable: (reason) => this.debug(`${member.id}: ${reason}`, member),
+      flattened: (reason) => this.info(`${member.id}: ${reason}`, member),
     };
   }
 
@@ -832,6 +858,35 @@ class ModelAssembly {
       source: sourceOrNull(node),
     });
   }
+}
+
+/**
+ * R11.3: the calls in the order of their sites, each target at its first
+ * call, numbered from 1; the behavior itself is never a target. Calls
+ * attributed to one behavior from several methods (overloads, implementors)
+ * are ordered together by file and position, so the result is one per input.
+ */
+function invokesOf(from: BehaviorId, calls: readonly Call[]): Relation[] {
+  const targets: BehaviorId[] = [];
+  for (const { targets: reached } of [...calls].sort(bySite)) {
+    for (const target of [...reached].sort(byCodeUnit)) {
+      if (target !== from && !targets.includes(target)) targets.push(target);
+    }
+  }
+  return targets.map((to, index) => ({
+    kind: 'invokes',
+    from,
+    to,
+    order: index + 1,
+  }));
+}
+
+function bySite(a: Call, b: Call): number {
+  return (
+    byCodeUnit(a.site.file, b.site.file) ||
+    a.site.startLine - b.site.startLine ||
+    a.site.startColumn - b.site.startColumn
+  );
 }
 
 function moduleIdOf(path: readonly string[]): ModuleId {

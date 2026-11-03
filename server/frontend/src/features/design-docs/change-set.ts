@@ -38,7 +38,7 @@ export function findById<Item extends { id: string }>(
 }
 
 export function findByName<Item extends { name: string }>(
-  set: ChangeSetInput<Item, string> | undefined,
+  set: ChangeSetInput<Item, unknown> | undefined,
   name: string,
 ): Item | null {
   const matches = (item: Item) => item.name === name;

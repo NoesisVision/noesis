@@ -220,11 +220,12 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * dashes when the edges run — a dash and a gap in pixels of the line, and
  * the seconds they take to move one length along. What an element uses
  * reads as a dependency resting: a soft blue in short dots drifting slowly;
- * what it invokes as a call going: violet in long dashes moving fast. A
- * quiet line may have a word of a stronger ink. Its arrow's shape is the
+ * what it extends as a kinship standing: a grey in longer dashes, slower
+ * still; what it invokes as a call going: violet in long dashes moving fast.
+ * A quiet line may have a word of a stronger ink. Its arrow's shape is the
  * canvas's to draw (EDGE_ARROW in relation-colors.ts).
  */
-function relationEdges({ colors: { brand, violet } }: MantineThemeOf) {
+function relationEdges({ colors: { brand, gray, violet } }: MantineThemeOf) {
   return {
     uses: {
       line: { light: brand[4], dark: '#5a7aa3' },
@@ -232,6 +233,13 @@ function relationEdges({ colors: { brand, violet } }: MantineThemeOf) {
       dash: 3,
       gap: 4,
       seconds: 0.7,
+    },
+    extends: {
+      line: { light: gray[5], dark: gray[5] },
+      word: { light: gray[7], dark: gray[4] },
+      dash: 8,
+      gap: 4,
+      seconds: 1,
     },
     invokes: {
       line: { light: violet[6], dark: violet[2] },

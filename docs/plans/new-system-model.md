@@ -1,6 +1,6 @@
 # Plan: introducing the new system model
 
-Status: proposed (November 2026).
+Status: in progress (November 2026); step 1 of section 11 is built.
 
 [`system-model-structure.md`](system-model-structure.md) describes the
 metamodel the system model moves to: its elements, relations and kinds. This
@@ -353,8 +353,11 @@ gain feature files; the service's unit tests project them.
 - `relations: changeSet(DesignedRelation, RelationKey)`, keyed as section
   3.2 says a relation is unique; `cardinality` and `order` are
   `DesignDocField`s, so a design may change a slot's cardinality or a
-  call's order without removing and re-adding the relation. A designed
-  property's `description` goes with the scanned one.
+  call's order without removing and re-adding the relation. So is the `to`
+  of a `has_state` or `has_input`, which is no part of their key: a design
+  may change a slot's type in place, and a modified slot need not repeat
+  the type it keeps (decided while building step 1). A designed property's
+  `description` goes with the scanned one.
 - The nested `properties`, `input`, `output`, `implements`, `rules`,
   `scenarios`, `type` (behavior) and `visibility` go.
 - A new writer's rule (`invalid-design-doc-error.ts`): every relation's ends
@@ -451,7 +454,13 @@ fixtures and the skills together, so no step leaves two shapes alive.
    `implements`, `properties`, `input`, `output`, `optional`, `Collection`
    and the nested `invokes`; the design document's `relations` change set
    and writer's rules; the exploration graph and the edit forms read it.
-   The biggest step, and the one every other builds on.
+   The biggest step, and the one every other builds on. _Built_: the
+   forms keep their shape (a property, an input, an output and an
+   extended type are still edited as parts of their element, written as
+   relations), with a cardinality choice where the optional and collection
+   switches were; the exploration draws `extends` as a third relation; the
+   committed example models and design documents were converted by script
+   rather than regenerated, the real regeneration staying in step 7.
 2. **Rules and scenarios** (decisions 8, 9, 16): `rules` and `scenarios`
    as elements with ids, `governs` and `illustrates`, `RuleKind`; the
    feature file reader and the step matching, the `stepDefinition` role and

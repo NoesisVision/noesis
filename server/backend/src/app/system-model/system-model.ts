@@ -92,28 +92,21 @@ export const PrimitiveId = z
   .brand<'PrimitiveId'>();
 export type PrimitiveId = z.infer<typeof PrimitiveId>;
 
-export interface Collection {
-  collectionOf: BuildingBlockRef;
-}
+/** What a slot (a piece of state, an input, an output) is typed by: a building block or a primitive, never a wrapper. */
+export const TypeRef = z
+  .union([BuildingBlockId, PrimitiveId])
+  .describe(
+    "The type of a slot: a building block's id or a primitive's. A collection is said by the relation's cardinality, never by the type.",
+  );
+export type TypeRef = z.infer<typeof TypeRef>;
 
-interface CollectionInput {
-  collectionOf: BuildingBlockRefInput;
-}
-
-export const Collection: z.ZodType<Collection, CollectionInput> =
-  z.strictObject({
-    get collectionOf() {
-      return BuildingBlockRef;
-    },
-  });
-
-export type BuildingBlockRef = BuildingBlockId | PrimitiveId | Collection;
-export type BuildingBlockRefInput = string | CollectionInput;
-
-export const BuildingBlockRef: z.ZodType<
-  BuildingBlockRef,
-  BuildingBlockRefInput
-> = z.union([BuildingBlockId, PrimitiveId, Collection]);
+/** How many values a slot holds: a collection and an optional value are told apart by it. */
+export const Cardinality = z
+  .enum(['0..1', '1', '0..*', '1..*'])
+  .describe(
+    "How many values the slot holds: '1' exactly one, '0..1' one or none, '0..*' any number, '1..*' at least one.",
+  );
+export type Cardinality = z.infer<typeof Cardinality>;
 
 export const Visibility = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('private') }),
@@ -126,26 +119,6 @@ export const SourceLocation = z.strictObject({
   line: z.int().min(1).nullable().default(null),
 });
 export type SourceLocation = z.infer<typeof SourceLocation>;
-
-export const ScannedProperty = z.strictObject({
-  name: ElementName,
-  type: BuildingBlockRef,
-  description: z.string().nullable().default(null),
-  optional: z.boolean().default(false),
-});
-export type ScannedProperty = z.infer<typeof ScannedProperty>;
-
-export const ScannedParameter = z.strictObject({
-  name: ElementName,
-  type: BuildingBlockRef,
-  description: z.string().nullable().default(null),
-  optional: z.boolean().default(false),
-});
-export type ScannedParameter = z.infer<typeof ScannedParameter>;
-
-/** What a behavior gives back: known by its type, as it has no name. */
-export const ScannedResult = ScannedParameter.omit({ name: true });
-export type ScannedResult = z.infer<typeof ScannedResult>;
 
 /** Which part of a scenario a step is: the starting state, the action, the outcome. */
 export const ScenarioStepKind = z
@@ -208,8 +181,6 @@ export const ScannedBuildingBlock = z.strictObject({
   name: ElementName,
   type: BuildingBlockType,
   description: z.string().nullable().default(null),
-  implements: z.array(BuildingBlockId).default([]),
-  properties: z.array(ScannedProperty).default([]),
   rules: z.array(ScannedRule).default([]),
   scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,
@@ -218,20 +189,132 @@ export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
 
 export const ScannedBehavior = z.strictObject({
   id: BehaviorId,
-  buildingBlockId: BuildingBlockId,
   name: ElementName,
   type: BehaviorType,
   description: z.string().nullable().default(null),
   visibility: Visibility,
-  input: z.array(ScannedParameter).default([]),
-  output: z.array(ScannedResult).default([]),
-  /** The behaviors this one calls, directly or through methods that are no behavior; never itself. */
-  invokes: z.array(BehaviorId).default([]),
   rules: z.array(ScannedRule).default([]),
   scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,
 });
 export type ScannedBehavior = z.infer<typeof ScannedBehavior>;
+
+/*
+ * The relations between elements, one list for all of them: an element
+ * carries only what is its own, and a relation carries what the diagram
+ * puts on its edge — a name, a cardinality, an order. Containment is in
+ * the id too (`building_block|sales.orders.Order` is in `module|sales.orders`)
+ * and is written as a relation as well, so the list is complete.
+ */
+
+const relation = <Kind extends string, Shape extends z.ZodRawShape>(
+  kind: Kind,
+  shape: Shape,
+) => z.strictObject({ kind: z.literal(kind), ...shape });
+
+export const RelationKind = z.enum([
+  'contains',
+  'extends',
+  'has_state',
+  'exposes',
+  'has_input',
+  'has_output',
+  'invokes',
+]);
+export type RelationKind = z.infer<typeof RelationKind>;
+
+export const ContainsRelation = relation('contains', {
+  from: ModuleId,
+  to: z.union([ModuleId, BuildingBlockId]),
+}).describe(
+  "A module holds a module or a building block; `to`'s id path is `from`'s path and its own name.",
+);
+export const ExtendsRelation = relation('extends', {
+  from: BuildingBlockId,
+  to: BuildingBlockId,
+}).describe('A building block extends or implements another.');
+export const HasStateRelation = relation('has_state', {
+  from: BuildingBlockId,
+  to: TypeRef,
+  name: ElementName,
+  cardinality: Cardinality,
+}).describe(
+  "A building block's piece of state: a field or property named `name`, typed by `to`, holding `cardinality` values.",
+);
+export const ExposesRelation = relation('exposes', {
+  from: BuildingBlockId,
+  to: BehaviorId,
+}).describe(
+  "A building block exposes a behavior; the behavior's id path is the block's path and its own name.",
+);
+export const HasInputRelation = relation('has_input', {
+  from: BehaviorId,
+  to: TypeRef,
+  name: ElementName,
+  cardinality: Cardinality,
+}).describe(
+  'A parameter of a behavior: named `name`, typed by `to`, holding `cardinality` values.',
+);
+export const HasOutputRelation = relation('has_output', {
+  from: BehaviorId,
+  to: TypeRef,
+  cardinality: Cardinality,
+}).describe(
+  'What a behavior gives back: typed by `to`, holding `cardinality` values; a behavior has at most one.',
+);
+export const InvokesRelation = relation('invokes', {
+  from: BehaviorId,
+  to: BehaviorId,
+  order: z
+    .int()
+    .min(1)
+    .describe(
+      'The position of the call within the calling behavior, counting from 1; a behavior called twice keeps its first.',
+    ),
+}).describe('A behavior calls another, as the `order`th step; never itself.');
+
+const relationSchema = z.discriminatedUnion('kind', [
+  ContainsRelation,
+  ExtendsRelation,
+  HasStateRelation,
+  ExposesRelation,
+  HasInputRelation,
+  HasOutputRelation,
+  InvokesRelation,
+]);
+export type Relation = z.infer<typeof relationSchema>;
+
+/** What makes a relation one of a kind: its ends, or, for a named slot, its holder and name; a designed slot's `to` is a field. */
+export interface RelationKey {
+  readonly kind: string;
+  readonly from: string;
+  readonly to?: unknown;
+  readonly name?: string;
+}
+
+/** Relation kinds a holder may have several of to one type: unique by name, not by `to`. */
+const NAMED_SLOTS: ReadonlySet<string> = new Set(['has_state', 'has_input']);
+
+export const Relation = Object.assign(relationSchema, {
+  /** The key a relation is unique by: `(kind, from, to)`, or `(kind, from, name)` for a named slot. */
+  keyOf: (relation: RelationKey): string =>
+    NAMED_SLOTS.has(relation.kind)
+      ? `${relation.kind}|${relation.from}|#${relation.name}`
+      : `${relation.kind}|${relation.from}|${String(relation.to)}`,
+  /** Sorted by kind, from, to, then name or order, so two builds give one file. */
+  compare: (a: Relation, b: Relation): number =>
+    byCodeUnit(a.kind, b.kind) ||
+    byCodeUnit(a.from, b.from) ||
+    byCodeUnit(a.to, b.to) ||
+    byCodeUnit(nameOf(a), nameOf(b)) ||
+    orderOf(a) - orderOf(b),
+});
+
+const nameOf = (relation: Relation) =>
+  'name' in relation ? relation.name : '';
+const orderOf = (relation: Relation) =>
+  'order' in relation ? relation.order : 0;
+const byCodeUnit = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 export const SystemModel = z
   .strictObject({
@@ -247,6 +330,7 @@ export const SystemModel = z
     modules: z.array(ScannedDomainModule).default([]),
     buildingBlocks: z.array(ScannedBuildingBlock).default([]),
     behaviors: z.array(ScannedBehavior).default([]),
+    relations: z.array(relationSchema).default([]),
   })
   .describe(
     'The implemented model as one scan found it: graph/system-models/YYYY-MM-DD_HH-MM_<commit>.json, the scan minute in UTC. Every scan is kept, except that one in the same minute on the same commit replaces the one before; the highest id is the newest.',

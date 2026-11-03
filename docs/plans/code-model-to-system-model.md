@@ -5,6 +5,7 @@ Roslyn parser for C#) writes the **code model**: declarations, edges and
 stubs, see [`docs/arch/code-model.md`](../arch/code-model.md).
 This stage reads that model and writes the **system model** the server keeps
 in `.noesis/graph/system-models/`: modules, building blocks and behaviors,
+and the relations between them (section 14),
 see `server/backend/src/app/system-model/system-model.ts`. It runs in the
 TypeScript server, once for every language, and knows a language only through
 its **annotation vocabulary**: which annotation types mean what, which
@@ -26,8 +27,8 @@ namespace-wide annotations).
 | `.noesis/settings.json`       | In the repository: `parser` (which parser reads the repository, by `language`, with its settings: the `java` parser's `command`), `engine` (the Java presets' engine), `namespacePartsToSkip`, `namespacesToExclude` |
 | Clock, repository name        | From the scanner adapter, as today                                                                                                                                                                                   |
 
-Output: the `modules`, `buildingBlocks` and `behaviors` of one
-`SystemModel`, plus diagnostics. The stage is a pure function of its inputs;
+Output: the `modules`, `buildingBlocks`, `behaviors` and `relations` of
+one `SystemModel`, plus diagnostics. The stage is a pure function of its inputs;
 the adapter around it mints the id, stamps the time, reads the files and logs
 the diagnostics.
 
@@ -124,16 +125,20 @@ attribute.
   outermost enclosing type for a nested one. Two types that resolve to one
   id keep the first in scan order (manifest order of artifacts, then node
   order) and drop the rest with a diagnostic.
-- **R4.4 `implements`.** The blocks among the types the node directly
-  `EXTENDS` or `IMPLEMENTS` (one hop, type arguments ignored:
-  `IRepository<Order>` is the block `IRepository`), sorted, unique.
+- **R4.4 `extends`.** One `extends` relation from the block to each block
+  among the types the node directly `EXTENDS` or `IMPLEMENTS` (one hop,
+  type arguments ignored: `IRepository<Order>` is the block
+  `IRepository`), each once. (Was the `implements` list; section 14.)
 - **R4.5 Description.** The `description` role's text, else the node's
   `documentation`, else null.
 - **R4.6 Source.** The node's first location: `path`, `startLine`.
 - **R4.7 `rules`**: empty; nothing in the annotation package expresses a
   rule. **`scenarios`**: one per `scenario` role on the type (section 9.9).
 
-## 5. Properties of a building block
+## 5. State of a building block
+
+Each property below is one `has_state` relation from the block: `name`,
+`to` (the resolved type) and `cardinality` (section 14).
 
 - **R5.1 Candidates.** The property and field nodes the block `CONTAINS`
   that are `public` (or, in Java, exposed by a getter, R5.8), not static,
@@ -146,12 +151,15 @@ attribute.
 - **R5.3 Type.** The member's `type` resolved by section 7. A member whose
   type resolves to nothing is left out, with a diagnostic at debug level
   (a `Data` interface, a `Func<…>`, a technical type).
-- **R5.4 `optional`.** True when the type reference is `nullable` or wraps
-  `Nullable<T>`; false otherwise.
-- **R5.5 Order.** By source location (file, line) of the member, then by
-  name; name is the key, so two members cannot share one.
-- **R5.6 `description`**: the member's `documentation`, else that of the
-  getter that exposes it (R5.8), else null.
+- **R5.4 `cardinality`.** `0..1` when the type reference is `nullable` or
+  wraps `Nullable<T>` or `Optional<T>`; `0..*` for a collection (R7.3);
+  `1` otherwise. `1..*` never comes from code.
+- **R5.5 One name, one slot.** The member found first by source location
+  (file, line), then by name, keeps the name; the relations themselves are
+  sorted as section 14 says.
+- **R5.6 No `description`.** A member's documentation is not in the
+  model: what a slot means is the description of the block or primitive it
+  points at.
 - **R5.7 Record components.** A field the parser marks
   `java.isRecordComponent` is a candidate although it is private: a Java
   record's state is its components, read through accessors the parser marks
@@ -184,7 +192,8 @@ attribute.
 - **R6.2 Which modules exist.** A module for every prefix of the module
   path of every building block: nothing for a namespace that holds no block
   directly or below. `Sales.Orders.Order` makes `module|Sales` and
-  `module|Sales.Orders`.
+  `module|Sales.Orders`, and one `contains` relation from each module to
+  each child module and to each block in it.
 - **R6.3 Name.** The last segment of the path. (Renaming a module through
   `DomainModule`/`DddBoundedContext` with `ApplyOnNamespace`, and skipping
   a level through `SkipNamespaceInDomainModulesHierarchy`, wait for
@@ -199,9 +208,8 @@ attribute.
 
 ## 7. Resolving a type reference
 
-A `TypeRef` resolves to a `BuildingBlockRef` (a block id, a `primitive|…`,
-or `{ collectionOf }`) or to nothing. The rules apply in this order; the
-first that fits decides.
+A `TypeRef` resolves to a block id or a `primitive|…` with a cardinality,
+or to nothing. The rules apply in this order; the first that fits decides.
 
 - **R7.1 Transparent wrappers.** A `named` reference to `Task<T>`,
   `ValueTask<T>` resolves as `T`; to `Nullable<T>` as `T`, marked optional.
@@ -215,21 +223,22 @@ first that fits decides.
   `NodaTime.LocalDateTime`, `NodaTime.OffsetDateTime` → datetime;
   `System.DateOnly`, `NodaTime.LocalDate` → date; `System.TimeSpan`,
   `NodaTime.Duration`, `NodaTime.Period` → duration.
-- **R7.3 Collections.** An `array` resolves to `{ collectionOf: element }`.
-  A `named` reference to a collection type of the vocabulary
+- **R7.3 Collections.** An `array` resolves to its element with the
+  cardinality `0..*`. A `named` reference to a collection type of the vocabulary
   (`IEnumerable<T>`, `ICollection<T>`, `IList<T>`, `IReadOnlyCollection<T>`,
   `IReadOnlyList<T>`, `ISet<T>`, `IReadOnlySet<T>`, `List<T>`,
   `HashSet<T>`, `SortedSet<T>`, `Queue<T>`, `Stack<T>`, `LinkedList<T>`,
   `IAsyncEnumerable<T>`, `IQueryable<T>`, `ImmutableArray<T>`,
   `ImmutableList<T>`, `IImmutableList<T>`, `ImmutableHashSet<T>`,
   `IImmutableSet<T>`, `Span<T>`, `ReadOnlySpan<T>`, `Memory<T>`,
-  `ReadOnlyMemory<T>`) resolves to a collection of its element argument. An
-  element that resolves to nothing makes the whole reference resolve to
-  nothing. A dictionary (`IDictionary<K,V>`, `IReadOnlyDictionary<K,V>`,
-  `Dictionary<K,V>`, `ImmutableDictionary<K,V>`) is a collection of
-  key-value pairs, which `BuildingBlockRef` cannot express; it resolves to
-  nothing, with a diagnostic, until the contract has a pair (section 12,
-  decision 7).
+  `ReadOnlyMemory<T>`) resolves to its element argument with the
+  cardinality `0..*`. An element that resolves to nothing makes the whole
+  reference resolve to nothing. A collection of collections is `0..*` of
+  the innermost element, with an info diagnostic. A dictionary
+  (`IDictionary<K,V>`, `IReadOnlyDictionary<K,V>`, `Dictionary<K,V>`,
+  `ImmutableDictionary<K,V>`) is a collection of key-value pairs, which the
+  model cannot express; it resolves to nothing, with a diagnostic, until
+  the contract has a pair (section 12, decision 7).
 - **R7.4 Building blocks.** A `named` reference whose `type` id, looked up
   from the referencing artifact (section 8), is a building block resolves to
   that block, whatever its type arguments (`IRepository<Order>` is
@@ -276,10 +285,11 @@ projects is one module.
   the member it `OVERRIDES` or `IMPLEMENTS_MEMBER`, nearest first (so the
   interface's `[DomainBehavior("Place order")]` names the implementation's
   behavior too), when it is an `ElementName`; else the node's `name`.
-- **R9.3 Identity.** `behavior|<block id path>.<name>`. Overloads share a
-  name and so an id: the overload with the most parameters stands for them,
-  the first in node order when several have as many (the Java parser's
-  rule: a design's optional last input becomes an overload without it).
+- **R9.3 Identity.** `behavior|<block id path>.<name>`, and one `exposes`
+  relation from the block to the behavior. Overloads share a name and so
+  an id: the overload with the most parameters stands for them, the first
+  in node order when several have as many (the Java parser's rule: a
+  design's optional last input becomes an overload without it).
 - **R9.4 Type.** The `TriggeredBy` of the `behavior` role on the method,
   or on the member it overrides or implements, when it is `Command`, `Query`
   or `Event`; else the type the role itself fixes, when the vocabulary gives
@@ -291,14 +301,14 @@ projects is one module.
   else `private` (a `behavior` role on a non-public method). Actors: the
   `actor` roles on the method, on the members it overrides or implements,
   and on the containing type, as names, sorted and unique.
-- **R9.6 Input.** One `ScannedParameter` per parameter whose type resolves
-  (section 7), in declaration order: `name`, `type`, `optional` when the
-  parameter is `optional` (has a default) or its type is nullable,
-  `description` null. A parameter whose type resolves to nothing is left out
-  (`CancellationToken`, a `Func<…>`), with a debug diagnostic.
+- **R9.6 Input.** One `has_input` relation per parameter whose type
+  resolves (section 7): `name`, `to`, and `cardinality` by R5.4, `0..1`
+  also when the parameter is `optional` (has a default). A parameter whose
+  type resolves to nothing is left out (`CancellationToken`, a `Func<…>`),
+  with a debug diagnostic.
 - **R9.7 Output.** The return type resolved through R7.1 first: nothing for
-  `void`, `Task`, `ValueTask`; else one `ScannedResult` when the type
-  resolves, with `optional` from nullability; else none.
+  `void`, `Task`, `ValueTask`; else one `has_output` relation when the type
+  resolves, with its cardinality; else none.
 - **R9.8 Description.** The `description` role on the method, else its
   `documentation`, else the first either of the other overloads has, else
   null.
@@ -316,8 +326,8 @@ projects is one module.
 ## 10. Order, determinism, diagnostics
 
 - **R10.1** `modules`, `buildingBlocks` and `behaviors` are sorted by id
-  (code unit order), `implements`, `actors` and `invokes` too; properties by
-  R5.5; input by declaration order. Two builds from one code model give one
+  (code unit order), `actors` too; `relations` by kind, `from`, `to`, then
+  `name` or `order` (section 14). Two builds from one code model give one
   output.
 - **R10.2** Every drop and every fallback above is a diagnostic: the stage
   returns them beside the model (`{ model, diagnostics }`), the adapter logs
@@ -349,8 +359,12 @@ The old scanner derived three relations between elements:
   methods with behaviors are reached. Steps may cross blocks and artifacts
   and pass through excluded types; the walk stops at stubs, at constructors
   and at methods with no outgoing calls.
-- **R11.3 Shape.** `invokes: BehaviorId[]`, sorted, unique, never the
-  behavior itself.
+- **R11.3 Shape.** One `invokes` relation per behavior reached, never the
+  behavior itself, with `order`: the calls of every method attributed to
+  the behavior (R11.1) in the order of their sites (file, line, column),
+  each target at its first call, numbered from 1; a target reached through
+  a method that is no behavior comes at the position of the call to that
+  method.
 - **R11.4 Creation.** `INVOKES` of a constructor is a use of the created
   block, not a call of a behavior; the system model has no slot for it.
 
@@ -433,3 +447,29 @@ chain without .NET. `test/e2e-toolchain/csharp-parser.e2e.spec.ts` builds the .N
 parser, scans the same fixture through `CSharpParser` and asserts the model
 and the time each stage took. The expected `invokes` of every chain in the
 fixture are in `test/support/csharp-fixture-expectations.ts`, shared by both.
+
+## 14. The relations list (November 2026)
+
+The first step of [`new-system-model.md`](new-system-model.md) moved what a
+building block or behavior held of other elements out of the elements and
+into one `relations` list of the `SystemModel`, each
+`{ kind, from, to, … }` carrying only what the diagram puts on the edge.
+The rules above are edited to it; what changed, in short:
+
+| Was                                            | Is                                                                     |
+| ---------------------------------------------- | ---------------------------------------------------------------------- |
+| `ScannedBuildingBlock.implements`              | `extends` relations (R4.4)                                             |
+| `ScannedBuildingBlock.properties` (`optional`) | `has_state` relations with `name`, `to`, `cardinality` (section 5)     |
+| `ScannedBehavior.buildingBlockId`              | `exposes` relations (R9.3); the block is still in the id               |
+| `ScannedBehavior.input`, `output`              | `has_input`, `has_output` relations with `cardinality` (R9.6, R9.7)    |
+| `ScannedBehavior.invokes: BehaviorId[]`        | `invokes` relations with `order` (R11.3)                               |
+| `{ collectionOf }`                             | the element type as `to` with the cardinality `0..*` (R7.3)            |
+| nothing                                        | `contains` relations from each module to its modules and blocks (R6.2) |
+
+A slot's type (`to`) is a block id or a `primitive|…`, never a wrapper; its
+`cardinality` is one of `0..1`, `1`, `0..*`, `1..*`. A relation is unique by
+`(kind, from, to)`, except `has_state` and `has_input`, unique by
+`(kind, from, name)`; the list is sorted by `kind`, `from`, `to`, then `name`
+or `order`. A member's documentation (R5.6) is no longer in the model. The
+design document mirrors the list as one `relations` change set
+(`server/backend/src/app/design-docs/design-doc.ts`).

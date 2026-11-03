@@ -5,6 +5,7 @@ import { JavaParser } from '#backend/adapters/out/scanners/code-parsers/java-par
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { fixedClock } from '../support/fixed-clock';
+import { invokesOf, outputOf, stateOf, inputOf } from '../support/relations';
 import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
@@ -100,57 +101,32 @@ describe('A Java repository scanned through its Maven plugin', () => {
     const order = model.buildingBlocks.find((b) => b.name === 'Order');
     expect<unknown>(order).toMatchObject({
       description: 'An order *placed* by a customer.',
-      implements: [],
       source: { path: `${domain}/orders/Order.java`, line: 14 },
     });
-    // A class's private fields are no properties unless a getter exposes
-    // them (R5.8), and Order has none; a record's components are (R5.7),
-    // the UUID a primitive, OrderId a block.
-    expect<unknown>(order?.properties).toEqual([]);
+    const state = (name: string) =>
+      stateOf(model, `building_block|shop.orders.${name}`);
     expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'PlaceOrder')?.properties,
-    ).toEqual([
-      {
-        name: 'note',
-        type: 'primitive|string',
-        description: null,
-        optional: false,
-      },
-      {
-        name: 'orderId',
-        type: 'building_block|shop.orders.OrderId',
-        description: null,
-        optional: false,
-      },
+      model.relations.filter(
+        (r) => r.kind === 'extends' && r.from === order?.id,
+      ),
+    ).toEqual([]);
+    // A class's private fields are no state unless a getter exposes them
+    // (R5.8), and Order has none; a record's components are (R5.7), the
+    // UUID a primitive, OrderId a block.
+    expect<unknown>(state('Order')).toEqual([]);
+    expect<unknown>(state('PlaceOrder')).toEqual([
+      ['orderId', 'building_block|shop.orders.OrderId', '1'],
+      ['note', 'primitive|string', '1'],
     ]);
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'OrderId')?.properties,
-    ).toEqual([
-      {
-        name: 'value',
-        type: 'primitive|uuid',
-        description: null,
-        optional: false,
-      },
+    expect<unknown>(state('OrderId')).toEqual([
+      ['value', 'primitive|uuid', '1'],
     ]);
-    // A public field is a property too, and so is a private one behind the
+    // A public field is state too, and so is a private one behind the
     // fluent getter product() (R5.8), which is then no behavior; a record's
     // accessors are not behaviors.
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'OrderLine')?.properties,
-    ).toEqual([
-      {
-        name: 'product',
-        type: 'building_block|shop.products.ProductId',
-        description: null,
-        optional: false,
-      },
-      {
-        name: 'unitPrice',
-        type: 'building_block|shop.orders.Money',
-        description: null,
-        optional: false,
-      },
+    expect<unknown>(state('OrderLine')).toEqual([
+      ['unitPrice', 'building_block|shop.orders.Money', '1'],
+      ['product', 'building_block|shop.products.ProductId', '1'],
     ]);
     expect<unknown>(ids(model.behaviors)).not.toContain(
       'behavior|shop.orders.Money.amount',
@@ -163,8 +139,8 @@ describe('A Java repository scanned through its Maven plugin', () => {
       model.behaviors.map((b) => [
         b.id,
         b.type,
-        b.input.map((i) => i.name),
-        b.output.map((o) => o.type),
+        inputOf(model, b.id).map((slot) => (slot as string[])[0]),
+        outputOf(model, b.id).map((slot) => (slot as string[])[0]),
       ]),
     ).toEqual([
       [
@@ -232,7 +208,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
         'behavior|shop.pricing.PricingService.history',
         'Command',
         ['id'],
-        [{ collectionOf: 'building_block|shop.orders.Money' }],
+        ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.pricing.PricingService.priceFor',
@@ -254,8 +230,11 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ],
     ]);
     expect<unknown>(
-      model.behaviors.find((b) => b.name === 'tryPrice')?.output[0]?.optional,
-    ).toBe(true);
+      outputOf(model, 'behavior|shop.pricing.PricingService.history'),
+    ).toEqual([['building_block|shop.orders.Money', '0..*']]);
+    expect<unknown>(
+      outputOf(model, 'behavior|shop.pricing.PricingService.tryPrice'),
+    ).toEqual([['building_block|shop.orders.Money', '0..1']]);
     expect<unknown>(
       model.behaviors.find((b) => b.name === 'placeOrder'),
     ).toMatchObject({
@@ -266,22 +245,25 @@ describe('A Java repository scanned through its Maven plugin', () => {
     // Calls, directly and through methods that are no behavior: handle →
     // logTotal → total; the SqlOrderRepository implementation's calls count
     // for the interface's behaviors.
+    // Each list in the order of the calls in the source.
     expect<unknown>(
-      Object.fromEntries(model.behaviors.map((b) => [b.name, b.invokes])),
+      Object.fromEntries(
+        model.behaviors.map((b) => [b.name, invokesOf(model, b.id)]),
+      ),
     ).toMatchObject({
       handle: [
         'behavior|shop.orders.Order Repository.getBy',
-        'behavior|shop.orders.Order Repository.save',
         'behavior|shop.orders.Order.placeOrder',
         'behavior|shop.orders.Order.total',
         'behavior|shop.pricing.PricingService.priceFor',
+        'behavior|shop.orders.Order Repository.save',
       ],
       save: ['behavior|shop.orders.Order.total'],
       getBy: ['behavior|shop.orders.Order.create'],
       placeOrder: ['behavior|shop.orders.Order.total'],
       total: [
-        'behavior|shop.orders.Money.add',
         'behavior|shop.orders.Money.zero',
+        'behavior|shop.orders.Money.add',
         'behavior|shop.orders.OrderLine.price',
       ],
       persist: ['behavior|shop.orders.Order Repository.save'],

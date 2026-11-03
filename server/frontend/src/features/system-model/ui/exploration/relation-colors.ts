@@ -15,11 +15,13 @@ const tokenOf = (kind: DrawnRelationKind, part = '') =>
 
 export const EDGE_COLOR = {
   uses: `var(--edge-uses, ${tokenOf('uses')})`,
+  extends: `var(--edge-extends, ${tokenOf('extends')})`,
   invokes: `var(--edge-invokes, ${tokenOf('invokes')})`,
 } as const satisfies Record<DrawnRelationKind, string>;
 
 export const EDGE_WORD = {
   uses: `var(--edge-uses, ${tokenOf('uses', '-word')})`,
+  extends: `var(--edge-extends, ${tokenOf('extends', '-word')})`,
   invokes: `var(--edge-invokes, ${tokenOf('invokes', '-word')})`,
 } as const satisfies Record<DrawnRelationKind, string>;
 
@@ -31,12 +33,14 @@ export const edgeDashOf = (kind: DrawnRelationKind) => ({
 });
 
 /*
- * The shape of each relation's arrow, so the two read apart without their
+ * The shape of each relation's arrow, so they read apart without their
  * colour: what an element uses, an open arrowhead, as a dependency is drawn;
- * what it invokes, a solid one, as a call is. The canvas draws it from a
- * name, not a style, so it cannot be a token.
+ * what it extends, an open one too, as inheritance is; what it invokes, a
+ * solid one, as a call is. The canvas draws it from a name, not a style, so
+ * it cannot be a token.
  */
 export const EDGE_ARROW = {
   uses: MarkerType.Arrow,
+  extends: MarkerType.Arrow,
   invokes: MarkerType.ArrowClosed,
 } as const satisfies Record<DrawnRelationKind, MarkerType>;

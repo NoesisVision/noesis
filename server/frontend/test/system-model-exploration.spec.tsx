@@ -61,21 +61,6 @@ const model = {
       name: 'Order',
       type: 'aggregate',
       description: null,
-      implements: [],
-      properties: [
-        {
-          name: 'lines',
-          type: { collectionOf: 'building_block|shop.orders.Line' },
-          description: null,
-          optional: false,
-        },
-        {
-          name: 'id',
-          type: 'primitive|uuid',
-          description: null,
-          optional: false,
-        },
-      ],
       rules: [],
       scenarios: [],
       source,
@@ -85,8 +70,6 @@ const model = {
       name: 'Line',
       type: 'value_object',
       description: null,
-      implements: [],
-      properties: [],
       rules: [],
       scenarios: [],
       source,
@@ -95,27 +78,66 @@ const model = {
   behaviors: [
     {
       id: 'behavior|shop.orders.Order.place',
-      buildingBlockId: 'building_block|shop.orders.Order',
       name: 'place',
       type: 'Command',
       description: null,
       visibility: { kind: 'private' },
-      input: [
-        {
-          name: 'line',
-          type: 'building_block|shop.orders.Line',
-          description: null,
-          optional: false,
-        },
-      ],
-      output: [],
-      invokes: [],
       rules: [],
       scenarios: [],
       source,
     },
   ],
+  relations: [
+    { kind: 'contains', from: 'module|shop', to: 'module|shop.orders' },
+    {
+      kind: 'contains',
+      from: 'module|shop.orders',
+      to: 'building_block|shop.orders.Order',
+    },
+    {
+      kind: 'contains',
+      from: 'module|shop.orders',
+      to: 'building_block|shop.orders.Line',
+    },
+    {
+      kind: 'has_state',
+      from: 'building_block|shop.orders.Order',
+      to: 'building_block|shop.orders.Line',
+      name: 'lines',
+      cardinality: '0..*',
+    },
+    {
+      kind: 'has_state',
+      from: 'building_block|shop.orders.Order',
+      to: 'primitive|uuid',
+      name: 'id',
+      cardinality: '1',
+    },
+    {
+      kind: 'exposes',
+      from: 'building_block|shop.orders.Order',
+      to: 'behavior|shop.orders.Order.place',
+    },
+    {
+      kind: 'has_input',
+      from: 'behavior|shop.orders.Order.place',
+      to: 'building_block|shop.orders.Line',
+      name: 'line',
+      cardinality: '1',
+    },
+  ],
 } as unknown as SystemModel;
+
+/** A model with more relations, as a scanner would write them. */
+const relating = (
+  relations: Record<string, unknown>[],
+  patch: { behaviors?: Record<string, unknown>[] } = {},
+) =>
+  ({
+    ...model,
+    ...patch,
+    relations: [...model.relations, ...relations],
+  }) as unknown as SystemModel;
 
 const exploration = explorationOf(model);
 const draw = (relations: RelationKind[], hidden: string[] = []) =>
@@ -175,17 +197,21 @@ describe('the exploration of a system model', () => {
     const check = {
       ...model.behaviors[0]!,
       id: 'behavior|shop.orders.Line.check',
-      buildingBlockId: 'building_block|shop.orders.Line',
       name: 'check',
-      input: [],
     };
-    const calling = explorationOf({
-      ...model,
-      behaviors: [
-        { ...model.behaviors[0]!, invokes: [check.id] },
-        { ...check, invokes: [] },
-      ],
-    } as unknown as SystemModel);
+    const calling = explorationOf(
+      relating(
+        [
+          {
+            kind: 'invokes',
+            from: 'behavior|shop.orders.Order.place',
+            to: check.id,
+            order: 1,
+          },
+        ],
+        { behaviors: [model.behaviors[0]!, check] },
+      ),
+    );
     expect(calling.invokes).toEqual([
       ['behavior|shop.orders.Order.place', 'behavior|shop.orders.Line.check'],
     ]);
@@ -211,22 +237,17 @@ describe('the exploration of a system model', () => {
 
   it('draws no edge between a card and the frame it is drawn inside', () => {
     // The order's place takes an order: it uses the block it belongs to.
-    const own = explorationOf({
-      ...model,
-      behaviors: [
+    const own = explorationOf(
+      relating([
         {
-          ...model.behaviors[0]!,
-          input: [
-            {
-              name: 'order',
-              type: 'building_block|shop.orders.Order',
-              description: null,
-              optional: false,
-            },
-          ],
+          kind: 'has_input',
+          from: 'behavior|shop.orders.Order.place',
+          to: 'building_block|shop.orders.Order',
+          name: 'order',
+          cardinality: '1',
         },
-      ],
-    } as unknown as SystemModel);
+      ]),
+    );
     const id =
       'uses:behavior|shop.orders.Order.place->building_block|shop.orders.Order';
     const nested = graphOf(own, {
@@ -257,11 +278,54 @@ describe('the exploration of a system model', () => {
   });
 });
 
+it('draws what a block extends as an edge of its own, and reads it from both sides', () => {
+  const extending = explorationOf(
+    relating([
+      {
+        kind: 'extends',
+        from: 'building_block|shop.orders.Order',
+        to: 'building_block|shop.orders.Line',
+      },
+    ]),
+  );
+  expect(extending.extends).toEqual([
+    ['building_block|shop.orders.Order', 'building_block|shop.orders.Line'],
+  ]);
+  const graph = graphOf(extending, {
+    hidden: new Set(),
+    relations: new Set(['extends']),
+  });
+  expect(graph.relations.map(({ id }) => id)).toEqual([
+    'extends:building_block|shop.orders.Order->building_block|shop.orders.Line',
+  ]);
+  const neighbours = neighboursOf(extending);
+  expect(neighbours.get('building_block|shop.orders.Line')!.extendedBy).toEqual(
+    ['building_block|shop.orders.Order'],
+  );
+});
+
+it('keeps the calls of a behavior in the order the scan gives them', () => {
+  const place = 'behavior|shop.orders.Order.place';
+  const later = { ...model.behaviors[0]!, id: 'behavior|shop.orders.Line.b' };
+  const sooner = { ...model.behaviors[0]!, id: 'behavior|shop.orders.Line.a' };
+  const calling = explorationOf(
+    relating(
+      [
+        { kind: 'invokes', from: place, to: later.id, order: 2 },
+        { kind: 'invokes', from: place, to: sooner.id, order: 1 },
+      ],
+      { behaviors: [model.behaviors[0]!, later, sooner] },
+    ),
+  );
+  expect(calling.invokes.map(([, to]) => to)).toEqual([sooner.id, later.id]);
+});
+
 it('lays out every relation and every kind in the visibility panel', () => {
   expect(RELATIONS.map(({ kind }) => kind)).toEqual([
     'contains',
     'isPartOf',
     'uses',
+    'extends',
     'invokes',
   ]);
   const html = renderToStaticMarkup(
@@ -278,7 +342,7 @@ it('lays out every relation and every kind in the visibility panel', () => {
   );
   expect(html).toMatch(/<h2[^>]*>Visibility<\/h2>/);
   expect(html).toContain('aria-label="Close the visibility panel"');
-  for (const label of ['Contains', 'Is part of', 'Uses', 'Invokes'])
+  for (const label of ['Contains', 'Is part of', 'Uses', 'Extends', 'Invokes'])
     expect(html).toContain(`>${label}<`);
   expect(html).not.toContain('Not implemented');
   expect(html).toContain('Value Object');
@@ -613,41 +677,54 @@ describe('whom each element reaches', () => {
 });
 
 describe('a chain followed up to the next of its type', () => {
-  const block = (name: string, type: string, uses: string[] = []) => ({
+  const block = (name: string, type: string) => ({
     ...model.buildingBlocks[1]!,
     id: `building_block|shop.orders.${name}`,
     name,
     type,
-    properties: uses.map((used) => ({
-      name: used,
-      type: `building_block|shop.orders.${used}`,
-      description: null,
-      optional: false,
-    })),
   });
-  const behavior = (on: string, name: string, invokes: string[] = []) => ({
+  const behavior = (on: string, name: string) => ({
     ...model.behaviors[0]!,
     id: `behavior|shop.orders.${on}.${name}`,
-    buildingBlockId: `building_block|shop.orders.${on}`,
     name,
-    input: [],
-    invokes: invokes.map((called) => `behavior|shop.orders.${called}`),
+  });
+  const uses = (block: string, used: string) => ({
+    kind: 'has_state',
+    from: `building_block|shop.orders.${block}`,
+    to: `building_block|shop.orders.${used}`,
+    name: used,
+    cardinality: '1',
+  });
+  const calls = (caller: string, called: string) => ({
+    kind: 'invokes',
+    from: `behavior|shop.orders.${caller}`,
+    to: `behavior|shop.orders.${called}`,
+    order: 1,
   });
   const chained = explorationOf({
     ...model,
     buildingBlocks: [
-      block('Price', 'value_object', ['Product']),
-      block('Product', 'entity', ['Money']),
-      block('Money', 'value_object', ['Currency']),
+      block('Price', 'value_object'),
+      block('Product', 'entity'),
+      block('Money', 'value_object'),
       block('Currency', 'value_object'),
       block('Pricing', 'domain_service'),
     ],
     behaviors: [
-      behavior('Price', 'apply', ['Pricing.quote']),
-      behavior('Pricing', 'quote', ['Pricing.round']),
-      behavior('Pricing', 'round', ['Money.round']),
-      behavior('Money', 'round', ['Currency.scale']),
+      behavior('Price', 'apply'),
+      behavior('Pricing', 'quote'),
+      behavior('Pricing', 'round'),
+      behavior('Money', 'round'),
       behavior('Currency', 'scale'),
+    ],
+    relations: [
+      uses('Price', 'Product'),
+      uses('Product', 'Money'),
+      uses('Money', 'Currency'),
+      calls('Price.apply', 'Pricing.quote'),
+      calls('Pricing.quote', 'Pricing.round'),
+      calls('Pricing.round', 'Money.round'),
+      calls('Money.round', 'Currency.scale'),
     ],
   } as unknown as SystemModel);
   const neighbours = neighboursOf(chained);

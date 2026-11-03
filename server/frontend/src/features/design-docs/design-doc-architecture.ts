@@ -10,10 +10,7 @@ import type {
   BuildingBlockId,
   ModuleId,
 } from '#backend/app/element-id.ts';
-import type {
-  BuildingBlockRefInput,
-  BuildingBlockType,
-} from '#backend/app/system-model/system-model.ts';
+import type { BuildingBlockType } from '#backend/app/system-model/system-model.ts';
 import { architectureChecks } from './architecture-checks.ts';
 import {
   type ArchitectureOutline,
@@ -39,6 +36,7 @@ import {
   nameOf,
   ownerOf,
 } from './element-id.ts';
+import { relationsFrom } from './relations.ts';
 
 /*
  * The design read on the assumption that the system it designs is built as
@@ -89,23 +87,23 @@ export function architectureOf(
     // A design may change a behavior and leave its block out: nothing says
     // what the block is, and the behavior has no block here to be read with.
     if (type === undefined) {
-      unplaced.push(behaviorElement(item, change));
+      unplaced.push(behaviorElement(document, item, change));
       continue;
     }
     if (type !== APPLICATION_SERVICE) {
       // A block whose type the design leaves alone may well be a service.
       if (visibility?.kind === 'public' && type !== null)
-        hexagonOf(owner).exposed.push(behaviorElement(item, change));
+        hexagonOf(owner).exposed.push(behaviorElement(document, item, change));
       continue;
     }
     if (visibility === null) {
-      unplaced.push(behaviorElement(item, change));
+      unplaced.push(behaviorElement(document, item, change));
       continue;
     }
     if (visibility.kind !== 'public') continue;
     ports.add(asBehavior(item.id));
     hexagonOf(owner).drivingPorts.push({
-      behavior: behaviorElement(item, change),
+      behavior: behaviorElement(document, item, change),
       service: owner,
       actors: visibility.actors,
     });
@@ -119,7 +117,7 @@ export function architectureOf(
           ownerOf(behavior.id) === item.id &&
           !ports.has(asBehavior(behavior.id)),
       );
-    const element = blockElement(item, change, own);
+    const element = blockElement(document, item, change, own);
     const ring = ringOf(element.pattern);
     if (ring === null) unplaced.push(element);
     else hexagonOf(item.id)[ring].push(element);
@@ -183,8 +181,8 @@ export function inferredFlowOf(
 ): InferredFlow[] {
   const behaviors = writtenIn(document.behaviors).map((behavior) => ({
     id: asBehavior(behavior.id),
-    inputs: blocksOf(inputTypesOf(behavior)),
-    outputs: blocksOf(outputTypesOf(behavior)),
+    inputs: blocksOf(inputTypesOf(document, behavior)),
+    outputs: blocksOf(outputTypesOf(document, behavior)),
   }));
   const isOwn = (id: string) => id === elementId || ownerOf(id) === elementId;
   const ports = new Set(
@@ -242,6 +240,7 @@ const coreRank = (pattern: BuildingBlockType | null) =>
   (DOMAIN_CORE as readonly (BuildingBlockType | null)[]).indexOf(pattern);
 
 function blockElement(
+  document: DesignDocumentInput,
   block: DesignedBuildingBlockInput,
   change: OutlineChange,
   behaviors: DesignedBehaviorInput[],
@@ -252,14 +251,17 @@ function blockElement(
     pattern: valueOf(block.type),
     change,
     uses: usesOf(block.id, [
-      ...writtenIn(block.properties).map(({ type }) => valueOf(type)),
-      ...behaviors.flatMap(typesOfBehavior),
+      ...writtenIn(relationsFrom(document, 'property', block.id)).map(
+        ({ to }) => valueOf(to),
+      ),
+      ...behaviors.flatMap((behavior) => typesOfBehavior(document, behavior)),
     ]),
     rules: [block, ...behaviors].flatMap(rulesOf),
   };
 }
 
 function behaviorElement(
+  document: DesignDocumentInput,
   behavior: DesignedBehaviorInput,
   change: OutlineChange,
 ): PlacedBehavior {
@@ -268,26 +270,34 @@ function behaviorElement(
     name: nameOf(behavior.id),
     pattern: valueOf(behavior.type),
     change,
-    uses: usesOf(behavior.id, typesOfBehavior(behavior)),
+    uses: usesOf(behavior.id, typesOfBehavior(document, behavior)),
     rules: rulesOf(behavior),
   };
 }
 
-const inputTypesOf = (behavior: DesignedBehaviorInput) =>
-  writtenIn(behavior.input).map(({ type }) => valueOf(type));
+const inputTypesOf = (
+  document: DesignDocumentInput,
+  behavior: DesignedBehaviorInput,
+) =>
+  writtenIn(relationsFrom(document, 'parameter', behavior.id)).map(({ to }) =>
+    valueOf(to),
+  );
 
-const outputTypesOf = (behavior: DesignedBehaviorInput) =>
-  writtenIn(behavior.output).map(({ type }) => type);
+const outputTypesOf = (
+  document: DesignDocumentInput,
+  behavior: DesignedBehaviorInput,
+) =>
+  writtenIn(relationsFrom(document, 'result', behavior.id)).map(({ to }) => to);
 
 const typesOfBehavior = (
+  document: DesignDocumentInput,
   behavior: DesignedBehaviorInput,
-): (BuildingBlockRefInput | null)[] => [
-  ...inputTypesOf(behavior),
-  ...outputTypesOf(behavior),
+): (string | null)[] => [
+  ...inputTypesOf(document, behavior),
+  ...outputTypesOf(document, behavior),
 ];
 
-const blocksOf = (types: (BuildingBlockRefInput | null)[]) =>
-  new Set(usesOf('', types));
+const blocksOf = (types: (string | null)[]) => new Set(usesOf('', types));
 
 function rulesOf(owner: {
   rules?: ChangeSetInput<DesignedRuleInput, string> | undefined;
@@ -301,10 +311,7 @@ function rulesOf(owner: {
 }
 
 /** The building blocks a list of types names, each once; primitives and the element itself left out. */
-function usesOf(
-  self: string,
-  types: (BuildingBlockRefInput | null)[],
-): BuildingBlockId[] {
+function usesOf(self: string, types: (string | null)[]): BuildingBlockId[] {
   const uses = new Set<BuildingBlockId>();
   for (const type of types) {
     const block = type === null ? null : blockOfRef(type);

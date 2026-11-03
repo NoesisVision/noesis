@@ -7,14 +7,17 @@
       {
         "id": "rain-discount",
         "name": {
+          "changed": true,
           "value": "Discount in bad weather",
           "author": "agent"
         },
         "stakeholder": {
+          "changed": true,
           "value": "",
           "author": "agent"
         },
         "statement": {
+          "changed": true,
           "value": "Grant a 10% offer-level discount while it is raining or snowing in Warsaw, that is while precipitation is above 0 mm.",
           "author": "agent"
         }
@@ -22,14 +25,17 @@
       {
         "id": "further-weather-discounts",
         "name": {
+          "changed": true,
           "value": "Further weather discounts",
           "author": "agent"
         },
         "stakeholder": {
+          "changed": true,
           "value": "",
           "author": "agent"
         },
         "statement": {
+          "changed": true,
           "value": "Add each further weather-based discount (temperature, wind speed, cloud cover, humidity, UV index) with one new field, one new query parameter and one new potential discount.",
           "author": "agent"
         }
@@ -37,315 +43,409 @@
       {
         "id": "pricing-without-weather",
         "name": {
+          "changed": true,
           "value": "Pricing without weather",
           "author": "agent"
         },
         "stakeholder": {
+          "changed": true,
           "value": "",
           "author": "agent"
         },
         "statement": {
+          "changed": true,
           "value": "Calculate discounts when the weather API fails: the weather is unknown, and no exception leaves the discount calculation.",
           "author": "agent"
         }
       }
-    ]
+    ],
+    "removed": [],
+    "modified": []
   },
   "modules": {
     "added": [
       {
         "id": "module|discounts.weather",
         "name": {
+          "changed": true,
           "value": "weather",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "The current weather at the shop's location, as one of the conditions a discount can depend on.",
           "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "module|discounts.weather.openmeteo",
         "name": {
+          "changed": true,
           "value": "openmeteo",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "The Open-Meteo weather service as the source of the current weather.",
           "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       }
-    ]
+    ],
+    "removed": [],
+    "modified": []
   },
   "buildingBlocks": {
     "added": [
       {
         "id": "building_block|discounts.weather.Weather",
         "name": {
+          "changed": true,
           "value": "Weather",
           "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "value_object",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "A snapshot of the current weather at the shop's location, from which every weather-based discount reads.",
           "author": "agent"
         },
-        "properties": {
-          "added": [
-            {
-              "name": "precipitation",
-              "type": {
-                "value": "primitive|decimal",
-                "author": "agent"
-              },
-              "description": {
-                "value": "Current precipitation in millimetres as reported by the weather provider (rain or snow). 0 means dry weather.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
+        "diagram": {
+          "changed": false
         },
         "rules": {
           "added": [
             {
               "name": "Weather snapshot carries precipitation in millimetres",
               "category": {
+                "changed": true,
                 "value": "Business",
                 "author": "agent"
               },
               "ruleType": {
+                "changed": true,
                 "value": "Structure",
                 "author": "agent"
               },
               "description": {
+                "changed": true,
                 "value": "The snapshot describes the current weather at the configured location; precipitation is a numeric value in millimetres exactly as reported by the provider, without rounding. Future weather parameters become further fields on this same snapshot so every weather discount reads from one object taken at one moment.",
                 "author": "agent"
               },
               "needs": {
+                "changed": true,
                 "value": [
                   "rain-discount",
                   "further-weather-discounts"
                 ],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "building_block|discounts.weather.WeatherProvider",
         "name": {
+          "changed": true,
           "value": "WeatherProvider",
           "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "external_integration",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "The source of the current weather for discount decisions: it gives a weather snapshot, or says the weather is unknown.",
           "author": "agent"
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
         "name": {
+          "changed": true,
           "value": "OpenMeteoWeatherProvider",
           "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "external_integration",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "The weather source backed by the Open-Meteo forecast service.",
           "author": "agent"
         },
-        "implements": {
-          "added": [
-            "building_block|discounts.weather.WeatherProvider"
-          ]
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "building_block|discounts.calculation.PercentageDiscount",
         "name": {
+          "changed": true,
           "value": "PercentageDiscount",
           "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "domain_service",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "A discount of a percentage of the whole offer's value.",
           "author": "agent"
         },
-        "implements": {
-          "added": [
-            "building_block|discounts.calculation.Discount"
-          ]
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "percentage",
-              "type": {
-                "value": "primitive|integer",
-                "author": "agent"
-              },
-              "description": {
-                "value": "Discount percentage of the whole offer; 10 for the precipitation discount.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
+        "diagram": {
+          "changed": false
         },
         "rules": {
           "added": [
             {
               "name": "Percentage discount is an offer-level discount recorded as a discount amount",
               "category": {
+                "changed": true,
                 "value": "Business",
                 "author": "agent"
               },
               "ruleType": {
+                "changed": true,
                 "value": "Structure",
                 "author": "agent"
               },
               "description": {
+                "changed": true,
                 "value": "A percentage discount holds a percentage value and, when applied, appends exactly one DiscountAmount referencing itself to the offer-level discounts of the DiscountedOffer, leaving product-level discounts untouched. It follows the same shape as FixedDiscount; no money computation happens in this iteration.",
                 "author": "agent"
               },
               "needs": {
+                "changed": true,
                 "value": [
                   "rain-discount"
                 ],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
               }
             },
             {
               "name": "Weather discounts stack with other discounts",
               "category": {
+                "changed": true,
                 "value": "Business",
                 "author": "agent"
               },
               "ruleType": {
+                "changed": true,
                 "value": "Consistency",
                 "author": "agent"
               },
               "description": {
+                "changed": true,
                 "value": "A weather-based discount neither excludes any other discount nor is excluded by one; a VIP user in the rain receives both the VIP fixed discount and the precipitation discount. Exclusivity is only introduced if a configurator wraps the discount in the existing ExclusiveOfferLevelDiscount.",
                 "author": "agent"
               },
               "needs": {
+                "changed": true,
                 "value": [
                   "rain-discount"
                 ],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
         "name": {
+          "changed": true,
           "value": "PotentialPrecipitationDiscount",
           "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "domain_service",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "A discount a customer can get while it is raining or snowing at the shop's location.",
           "author": "agent"
         },
-        "implements": {
-          "added": [
-            "building_block|discounts.calculation.PotentialDiscount"
-          ]
+        "diagram": {
+          "changed": false
         },
-        "properties": {
-          "added": [
-            {
-              "name": "discount",
-              "type": {
-                "value": "building_block|discounts.calculation.PercentageDiscount",
-                "author": "agent"
-              },
-              "description": {
-                "value": "The discount granted when the precipitation condition holds; configured as 10 percent.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       }
     ],
+    "removed": [],
     "modified": [
       {
         "id": "building_block|discounts.calculation.Conditions",
-        "properties": {
-          "added": [
-            {
-              "name": "weather",
-              "type": {
-                "value": "building_block|discounts.weather.Weather",
-                "author": "agent"
-              },
-              "description": {
-                "value": "Current weather snapshot, absent when the weather provider could not deliver one (Option<Weather>).",
-                "author": "agent"
-              },
-              "optional": {
-                "value": true,
-                "author": "agent"
-              }
-            }
-          ]
+        "name": {
+          "changed": false
+        },
+        "type": {
+          "changed": false
+        },
+        "definition": {
+          "changed": false
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "building_block|discounts.calculation.DiscountPolicyFactory",
-        "properties": {
-          "added": [
-            {
-              "name": "weatherProvider",
-              "type": {
-                "value": "building_block|discounts.weather.WeatherProvider",
-                "author": "agent"
-              },
-              "description": {
-                "value": "Port used to read the current weather once per policy resolution.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
+        "name": {
+          "changed": false
+        },
+        "type": {
+          "changed": false
+        },
+        "definition": {
+          "changed": false
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
-        "id": "building_block|discounts.calculation.DiscountsConfigProvider"
+        "id": "building_block|discounts.calculation.DiscountsConfigProvider",
+        "name": {
+          "changed": false
+        },
+        "type": {
+          "changed": false
+        },
+        "definition": {
+          "changed": false
+        },
+        "diagram": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
       }
     ]
   },
@@ -354,104 +454,118 @@
       {
         "id": "behavior|discounts.weather.WeatherProvider.getCurrent",
         "name": {
+          "changed": true,
           "value": "getCurrent",
           "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "Query",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "Tells the current weather at the shop's location, or that it is unknown.",
           "author": "agent"
         },
+        "diagram": {
+          "changed": false
+        },
         "visibility": {
+          "changed": true,
           "value": {
             "kind": "private"
           },
           "author": "agent"
         },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.weather.Weather",
-              "description": {
-                "value": "The current weather; absent when it cannot be determined. A failure of the source is never an exception to the caller, only an absent result, which the calculation reads as unknown weather."
-              },
-              "optional": {
-                "value": true
-              }
-            }
-          ]
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent",
         "name": {
+          "changed": true,
           "value": "getCurrent",
           "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "Query",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "Tells the current weather at the shop's location as the Open-Meteo forecast service reports it.",
           "author": "agent"
         },
+        "diagram": {
+          "changed": false
+        },
         "visibility": {
+          "changed": true,
           "value": {
             "kind": "private"
           },
           "author": "agent"
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.weather.Weather",
-              "description": {
-                "value": "The weather whose precipitation is the current.precipitation of the forecast response. Absent on a network error, a timeout, a non-2xx status, or a body that cannot be parsed or lacks current.precipitation; such a failure is not logged in a way that interrupts processing."
-              },
-              "optional": {
-                "value": true
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
             {
               "name": "Provider failure means unknown weather",
               "category": {
+                "changed": true,
                 "value": "Business",
                 "author": "agent"
               },
               "ruleType": {
+                "changed": true,
                 "value": "State change",
                 "author": "agent"
               },
               "description": {
+                "changed": true,
                 "value": "Any network error, timeout, non-2xx HTTP status or unparsable response body results in an empty result, i.e. weather unknown. The adapter never propagates an exception into discount calculation; missing weather is a normal outcome, not an error.",
                 "author": "agent"
               },
               "needs": {
+                "changed": true,
                 "value": [
                   "pricing-without-weather"
                 ],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
         },
         "scenarios": {
           "added": [
             {
               "name": "Weather API failure does not break discount calculation",
               "description": {
+                "changed": true,
                 "value": "Covers HTTP 500, a timeout and malformed JSON from the weather API; each must degrade to unknown weather.",
                 "author": "agent"
               },
               "steps": {
+                "changed": true,
                 "value": [
                   {
                     "kind": "given",
@@ -472,10 +586,12 @@
             {
               "name": "Open-Meteo response is mapped to a weather snapshot",
               "description": {
+                "changed": true,
                 "value": "Integration test of the adapter against a local HTTP stub standing in for Open-Meteo.",
                 "author": "agent"
               },
               "steps": {
+                "changed": true,
                 "value": [
                   {
                     "kind": "given",
@@ -493,150 +609,159 @@
                 "author": "agent"
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "behavior|discounts.calculation.PercentageDiscount.apply",
         "name": {
+          "changed": true,
           "value": "apply",
           "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "Command",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "Grants the percentage discount on an offer.",
           "author": "agent"
         },
+        "diagram": {
+          "changed": false
+        },
         "visibility": {
+          "changed": true,
           "value": {
             "kind": "private"
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "discountedOffer",
-              "type": {
-                "value": "building_block|discounts.calculation.DiscountedOffer"
-              },
-              "description": {
-                "value": "The offer to discount; it is not changed."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
         },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedOffer",
-              "description": {
-                "value": "A new DiscountedOffer with the same products and one more offer-level DiscountAmount for this percentage discount. Applying it twice gives two such entries."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
         "name": {
+          "changed": true,
           "value": "isApplicableFor",
           "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "Query",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "Tells whether the weather in the given conditions earns the precipitation discount: it does while it rains or snows.",
           "author": "agent"
         },
+        "diagram": {
+          "changed": false
+        },
         "visibility": {
+          "changed": true,
           "value": {
             "kind": "private"
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "conditions",
-              "type": {
-                "value": "building_block|discounts.calculation.Conditions"
-              },
-              "description": {
-                "value": "The conditions to judge. The weather is read from them alone, never from the weather provider."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
             {
               "name": "Precipitation above zero makes the precipitation discount applicable",
               "category": {
+                "changed": true,
                 "value": "Business",
                 "author": "agent"
               },
               "ruleType": {
+                "changed": true,
                 "value": "Computation",
                 "author": "agent"
               },
               "description": {
+                "changed": true,
                 "value": "The discount is applicable exactly when the conditions carry a known weather snapshot whose precipitation is strictly greater than 0 mm. Precipitation equal to 0 is dry weather and yields no discount. The threshold is a business constant of this discount, not of the weather provider.",
                 "author": "agent"
               },
               "needs": {
+                "changed": true,
                 "value": [
                   "rain-discount"
                 ],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
               }
             },
             {
               "name": "Unknown weather never grants a weather discount",
               "category": {
+                "changed": true,
                 "value": "Business",
                 "author": "agent"
               },
               "ruleType": {
+                "changed": true,
                 "value": "Computation",
                 "author": "agent"
               },
               "description": {
+                "changed": true,
                 "value": "When the weather provider could not deliver a snapshot and the conditions carry no weather, every weather-based potential discount reports itself as not applicable. Missing data is treated as no rain, never as an error and never as rain.",
                 "author": "agent"
               },
               "needs": {
+                "changed": true,
                 "value": [
                   "pricing-without-weather"
                 ],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
         },
         "scenarios": {
           "added": [
             {
               "name": "Rain grants the precipitation discount",
               "description": {
+                "changed": true,
                 "value": "Happy path for a non-VIP user during rain.",
                 "author": "agent"
               },
               "steps": {
+                "changed": true,
                 "value": [
                   {
                     "kind": "given",
@@ -657,10 +782,12 @@
             {
               "name": "Dry weather grants no precipitation discount",
               "description": {
+                "changed": true,
                 "value": "Boundary at zero precipitation.",
                 "author": "agent"
               },
               "steps": {
+                "changed": true,
                 "value": [
                   {
                     "kind": "given",
@@ -681,10 +808,12 @@
             {
               "name": "Unknown weather grants no precipitation discount",
               "description": {
+                "changed": true,
                 "value": "Domain-side half of the API failure case.",
                 "author": "agent"
               },
               "steps": {
+                "changed": true,
                 "value": [
                   {
                     "kind": "given",
@@ -702,83 +831,119 @@
                 "author": "agent"
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
         }
       },
       {
         "id": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount",
         "name": {
+          "changed": true,
           "value": "getDiscount",
           "author": "agent"
         },
         "type": {
+          "changed": true,
           "value": "Query",
           "author": "agent"
         },
         "definition": {
+          "changed": true,
           "value": "Gives the discount granted while it rains or snows.",
           "author": "agent"
         },
+        "diagram": {
+          "changed": false
+        },
         "visibility": {
+          "changed": true,
           "value": {
             "kind": "private"
           },
           "author": "agent"
         },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.PercentageDiscount",
-              "description": {
-                "value": "The configured PercentageDiscount, the same instance on every call, which DiscountConfig adds to the discounts to apply once isApplicableFor answers yes. Its percentage (10) is set where the discount is registered, in DiscountsConfigProvider."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
         }
       }
     ],
+    "removed": [],
     "modified": [
       {
         "id": "behavior|discounts.calculation.DiscountPolicyFactory.get",
+        "name": {
+          "changed": false
+        },
+        "type": {
+          "changed": false
+        },
+        "definition": {
+          "changed": false
+        },
         "diagram": {
+          "changed": true,
           "value": "sequenceDiagram\n  DiscountPolicyFactory->>UserStatusProvider: getFor(userId)\n  UserStatusProvider-->>DiscountPolicyFactory: UserStatus\n  DiscountPolicyFactory->>WeatherProvider: getCurrent()\n  WeatherProvider-->>DiscountPolicyFactory: Option<Weather>\n  DiscountPolicyFactory->>DiscountsConfigProvider: getDiscountsConfig()\n  DiscountsConfigProvider-->>DiscountPolicyFactory: DiscountConfig\n  DiscountPolicyFactory->>Conditions: build(userStatus, weather)\n  DiscountPolicyFactory->>DiscountConfig: getDiscountsForConditions(conditions)\n  DiscountConfig->>PotentialPrecipitationDiscount: isApplicableFor(conditions)\n  DiscountConfig-->>DiscountPolicyFactory: List<Discount>",
           "author": "agent"
+        },
+        "visibility": {
+          "changed": false
         },
         "rules": {
           "added": [
             {
               "name": "Weather is read once per policy resolution",
               "category": {
+                "changed": true,
                 "value": "Business",
                 "author": "agent"
               },
               "ruleType": {
+                "changed": true,
                 "value": "Consistency",
                 "author": "agent"
               },
               "description": {
+                "changed": true,
                 "value": "A single call to get(userId) queries the weather provider exactly once and places the result into Conditions, so every potential discount evaluated in that call sees the same weather snapshot taken at the same moment.",
                 "author": "agent"
               },
               "needs": {
+                "changed": true,
                 "value": [],
                 "author": "agent"
+              },
+              "rationale": {
+                "changed": false
+              },
+              "scenarios": {
+                "added": [],
+                "removed": [],
+                "modified": []
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
         },
         "scenarios": {
           "added": [
             {
               "name": "VIP user during rain receives both discounts",
               "description": {
+                "changed": true,
                 "value": "Verifies stacking of the VIP discount and the precipitation discount within one resolution.",
                 "author": "agent"
               },
               "steps": {
+                "changed": true,
                 "value": [
                   {
                     "kind": "given",
@@ -796,13 +961,207 @@
                 "author": "agent"
               }
             }
-          ]
+          ],
+          "removed": [],
+          "modified": []
         }
       },
       {
-        "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig"
+        "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
+        "name": {
+          "changed": false
+        },
+        "type": {
+          "changed": false
+        },
+        "definition": {
+          "changed": false
+        },
+        "diagram": {
+          "changed": false
+        },
+        "visibility": {
+          "changed": false
+        },
+        "rules": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        },
+        "scenarios": {
+          "added": [],
+          "removed": [],
+          "modified": []
+        }
       }
     ]
   },
-  "implemented": false
+  "relations": {
+    "added": [
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.weather.Weather",
+        "to": {
+          "changed": true,
+          "value": "primitive|decimal",
+          "author": "agent"
+        },
+        "name": "precipitation",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
+        "to": "building_block|discounts.weather.WeatherProvider"
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|discounts.calculation.PercentageDiscount",
+        "to": "building_block|discounts.calculation.Discount"
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.PercentageDiscount",
+        "to": {
+          "changed": true,
+          "value": "primitive|integer",
+          "author": "agent"
+        },
+        "name": "percentage",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+        "to": "building_block|discounts.calculation.PotentialDiscount"
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.PercentageDiscount",
+          "author": "agent"
+        },
+        "name": "discount",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.weather.WeatherProvider.getCurrent",
+        "to": "building_block|discounts.weather.Weather",
+        "cardinality": {
+          "changed": true,
+          "value": "0..1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent",
+        "to": "building_block|discounts.weather.Weather",
+        "cardinality": {
+          "changed": true,
+          "value": "0..1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.PercentageDiscount.apply",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedOffer",
+          "author": "agent"
+        },
+        "name": "discountedOffer",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.PercentageDiscount.apply",
+        "to": "building_block|discounts.calculation.DiscountedOffer",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.Conditions",
+          "author": "agent"
+        },
+        "name": "conditions",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount",
+        "to": "building_block|discounts.calculation.PercentageDiscount",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.Conditions",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.weather.Weather",
+          "author": "agent"
+        },
+        "name": "weather",
+        "cardinality": {
+          "changed": true,
+          "value": "0..1",
+          "author": "agent"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.weather.WeatherProvider",
+          "author": "agent"
+        },
+        "name": "weatherProvider",
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "implemented": false,
+  "implementedAt": null
 }
