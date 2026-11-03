@@ -5,7 +5,9 @@ import {
   BehaviorId,
   BuildingBlockId,
   DeployableUnitId,
+  DeploymentContainerId,
   ElementName,
+  LayerId,
   LibraryId,
   ManualProcessId,
   ModuleId,
@@ -235,6 +237,33 @@ export const ScannedLibrary = z.strictObject({
 });
 export type ScannedLibrary = z.infer<typeof ScannedLibrary>;
 
+/**
+ * A horizontal slice of the code (domain, application, infrastructure, …):
+ * named by a layer annotation on a package or namespace, found on the first
+ * package by path that names it; it contains building blocks.
+ */
+export const ScannedLayer = z.strictObject({
+  id: LayerId,
+  name: ElementName,
+  description: z.string().nullable().default(null),
+  source: SourceLocation.nullable().default(null),
+});
+export type ScannedLayer = z.infer<typeof ScannedLayer>;
+
+/**
+ * Where deployable units run: a cluster, a server, a serverless platform.
+ * No scan finds one: a design document authors it.
+ */
+export const ScannedDeploymentContainer = z.strictObject({
+  id: DeploymentContainerId,
+  name: ElementName,
+  description: z.string().nullable().default(null),
+  source: SourceLocation.nullable().default(null),
+});
+export type ScannedDeploymentContainer = z.infer<
+  typeof ScannedDeploymentContainer
+>;
+
 /*
  * The relations between elements, one list for all of them: an element
  * carries only what is its own, and a relation carries what the diagram
@@ -260,14 +289,15 @@ export const RelationKind = z.enum([
   'governs',
   'illustrates',
   'performs',
+  'hosts',
 ]);
 export type RelationKind = z.infer<typeof RelationKind>;
 
 export const ContainsRelation = relation('contains', {
-  from: z.union([ModuleId, DeployableUnitId, LibraryId]),
+  from: z.union([ModuleId, DeployableUnitId, LibraryId, LayerId]),
   to: z.union([ModuleId, BuildingBlockId]),
 }).describe(
-  "A module holds a module or a building block, `to`'s id path being `from`'s path and its own name; a deployable unit holds a module; a library holds a building block.",
+  "A module holds a module or a building block, `to`'s id path being `from`'s path and its own name; a deployable unit holds a module; a library or a layer holds a building block.",
 );
 export const ExtendsRelation = relation('extends', {
   from: BuildingBlockId,
@@ -345,6 +375,11 @@ export const PerformsRelation = relation('performs', {
   to: ManualProcessId,
 }).describe('An actor carries out a manual process.');
 
+export const HostsRelation = relation('hosts', {
+  from: DeploymentContainerId,
+  to: DeployableUnitId,
+}).describe('A deployment container runs a deployable unit.');
+
 const relationSchema = z.discriminatedUnion('kind', [
   ContainsRelation,
   ExtendsRelation,
@@ -357,6 +392,7 @@ const relationSchema = z.discriminatedUnion('kind', [
   GovernsRelation,
   IllustratesRelation,
   PerformsRelation,
+  HostsRelation,
 ]);
 export type Relation = z.infer<typeof relationSchema>;
 
@@ -419,6 +455,8 @@ export const SystemModel = z
     manualProcesses: z.array(ScannedManualProcess).default([]),
     deployableUnits: z.array(ScannedDeployableUnit).default([]),
     libraries: z.array(ScannedLibrary).default([]),
+    layers: z.array(ScannedLayer).default([]),
+    deploymentContainers: z.array(ScannedDeploymentContainer).default([]),
     relations: z.array(relationSchema).default([]),
   })
   .describe(

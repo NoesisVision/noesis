@@ -319,12 +319,41 @@
     "removed": [],
     "modified": []
   },
+  "deploymentContainers": {
+    "added": [
+      {
+        "id": "deployment_container|Shop cluster",
+        "name": {
+          "changed": true,
+          "value": "Shop cluster",
+          "author": "human"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The Kubernetes cluster the shop's services run in.",
+          "author": "human"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
   "relations": {
     "added": [
       {
         "kind": "contains",
         "from": "deployable_unit|shop-api",
         "to": "module|sales.refunds"
+      },
+      {
+        "kind": "hosts",
+        "from": "deployment_container|Shop cluster",
+        "to": "deployable_unit|shop-api"
+      },
+      {
+        "kind": "contains",
+        "from": "layer|domain",
+        "to": "building_block|sales.refunds.Refund"
       },
       {
         "kind": "performs",

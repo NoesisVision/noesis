@@ -822,6 +822,107 @@ describe('Deployable units and libraries', () => {
   });
 });
 
+describe('Layers and deployment containers', () => {
+  const DOMAIN = 'layer|domain';
+  const CLUSTER = 'deployment_container|Refunds cluster';
+  const API = 'deployable_unit|refunds-api';
+  const REFUNDS = 'module|sales.refunds';
+  const placing = (relations: object[]) =>
+    DesignDocument.validateAgentGenerated(
+      DesignDocument.parse(
+        design({
+          modules: {
+            added: [
+              {
+                id: REFUNDS,
+                name: { value: 'refunds' },
+                definition: { value: 'Refunds.' },
+              },
+            ],
+          },
+          buildingBlocks: {
+            added: [
+              {
+                id: REFUND,
+                name: { value: 'Refund' },
+                type: { value: 'aggregate' },
+                definition: { value: 'Money back.' },
+              },
+            ],
+          },
+          deployableUnits: {
+            added: [
+              {
+                id: API,
+                name: { value: 'refunds-api' },
+                definition: { value: 'Issues refunds.' },
+              },
+            ],
+          },
+          layers: {
+            added: [
+              {
+                id: DOMAIN,
+                name: { value: 'domain' },
+                definition: { value: 'The business rules.' },
+              },
+            ],
+          },
+          deploymentContainers: {
+            added: [
+              {
+                id: CLUSTER,
+                name: { value: 'Refunds cluster' },
+                definition: { value: 'Where refunds run.' },
+              },
+            ],
+          },
+          relations: { added: relations },
+        }),
+      ),
+    );
+
+  it('lets a layer contain a building block and a container host a deployable unit', () => {
+    expect(
+      placing([
+        { kind: 'contains', from: DOMAIN, to: REFUND },
+        { kind: 'hosts', from: CLUSTER, to: API },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('refuses a layer containing a module', () => {
+    expect(placing([{ kind: 'contains', from: DOMAIN, to: REFUNDS }])).toEqual([
+      {
+        path: `relations.added[contains|${DOMAIN}|${REFUNDS}].to`,
+        reason: 'containmentOutsideKinds',
+      },
+    ]);
+  });
+
+  it('refuses a container hosting anything but a deployable unit', () => {
+    expect(
+      isValid(
+        design({
+          relations: { added: [{ kind: 'hosts', from: CLUSTER, to: REFUNDS }] },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('refuses a hosts whose ends neither the design nor the model has', () => {
+    expect(
+      DesignDocument.validateAgentGenerated(
+        DesignDocument.parse(
+          design({
+            relations: { added: [{ kind: 'hosts', from: CLUSTER, to: API }] },
+          }),
+        ),
+      ).map((violation) => violation.reason),
+    ).toEqual(['unknownRelationEnd', 'unknownRelationEnd']);
+  });
+});
+
 describe('A design document an agent wrote', () => {
   const ORDERS = 'module|sales.orders';
   const ORDER = 'building_block|sales.orders.Order';

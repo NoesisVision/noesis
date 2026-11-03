@@ -226,6 +226,26 @@ executable assembly) is a deployable unit, any other a library.
 { "kind": "contains", "from": "library|MyCompany.Sales", "to": "building_block|sales.refunds.Refund" }
 ```
 
+## Layers and deployment containers
+
+How the code is sliced, and where it runs.
+
+- A layer (`layer|domain`, `layer|application`) is named by a `@Layer`
+  annotation on a package's `package-info.java`; a block is in the layer of
+  the nearest annotated package above it. A layer `contains` building blocks
+  only. Reuse the layer names the system model has, verbatim; add a layer,
+  or a `contains` from one, only when the design changes the layering. A
+  codebase without the annotation has no layers: leave them out.
+- A deployment container (`deployment_container|Shop cluster`) is where
+  deployable units run: a cluster, a server, a serverless platform. No scan
+  finds one; author it when the design says where a unit runs, with a
+  `hosts` relation to each unit it runs.
+
+```json
+{ "kind": "contains", "from": "layer|domain", "to": "building_block|sales.refunds.Refund" },
+{ "kind": "hosts", "from": "deployment_container|Shop cluster", "to": "deployable_unit|shop-api" }
+```
+
 ## Rules
 
 A rule states one requirement a behavior follows. It is an element of its

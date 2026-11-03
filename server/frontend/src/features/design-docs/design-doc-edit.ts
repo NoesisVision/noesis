@@ -5,7 +5,9 @@ import type {
   DesignedBehaviorInput,
   DesignedBuildingBlockInput,
   DesignedDeployableUnitInput,
+  DesignedDeploymentContainerInput,
   DesignedDomainModuleInput,
+  DesignedLayerInput,
   DesignedLibraryInput,
   DesignedManualProcessInput,
   DesignedNeedInput,
@@ -65,8 +67,14 @@ import { rulesUnder } from './rules.ts';
  */
 
 export type ElementKind = 'module' | 'building_block' | 'behavior';
-/** Elements of no module: who drives the system, the work they do, what the code ships as. */
-type TopLevelKind = 'actor' | 'manual_process' | 'deployable_unit' | 'library';
+/** Elements of no module: who drives the system, the work they do, what the code ships as, how it is sliced and where it runs. */
+type TopLevelKind =
+  | 'actor'
+  | 'manual_process'
+  | 'deployable_unit'
+  | 'library'
+  | 'layer'
+  | 'deployment_container';
 type OwnedPartKind = 'rule' | 'scenario';
 type PartKind = OwnedPartKind | RelationPartKind;
 export type UnitKind = 'need' | ElementKind | TopLevelKind | PartKind;
@@ -98,6 +106,8 @@ interface UnitOf {
   actor: DesignedActorInput;
   manual_process: DesignedManualProcessInput;
   deployable_unit: DesignedDeployableUnitInput;
+  layer: DesignedLayerInput;
+  deployment_container: DesignedDeploymentContainerInput;
   library: DesignedLibraryInput;
   rule: DesignedRuleInput;
   scenario: DesignedScenarioInput;
@@ -118,6 +128,8 @@ export const UNIT_LABEL: Record<UnitKind, string> = {
   manual_process: 'manual process',
   deployable_unit: 'deployable unit',
   library: 'library',
+  layer: 'layer',
+  deployment_container: 'deployment container',
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',
@@ -136,6 +148,8 @@ const COLLECTION_OF = {
   manual_process: 'manualProcesses',
   deployable_unit: 'deployableUnits',
   library: 'libraries',
+  layer: 'layers',
+  deployment_container: 'deploymentContainers',
 } as const satisfies Record<
   'need' | ElementKind | TopLevelKind,
   keyof DesignDocumentInput
@@ -277,6 +291,8 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
     case 'manual_process':
     case 'deployable_unit':
     case 'library':
+    case 'layer':
+    case 'deployment_container':
     case 'extends':
     case 'result':
       return nameOf(ref.id);
@@ -534,6 +550,8 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
   actor: [field('name'), field('definition')],
   manual_process: [field('name'), field('definition')],
   deployable_unit: [field('name'), field('definition')],
+  layer: [field('name'), field('definition')],
+  deployment_container: [field('name'), field('definition')],
   library: [field('name'), field('definition')],
   rule: [
     field('name'),
@@ -978,7 +996,7 @@ const VIOLATION_MESSAGE: Record<DesignDocViolation['reason'], string> = {
   containmentOutsideIdPath:
     "What holds what is in the ids: a module's 'contains', an 'exposes' or an 'illustrates' joins an element to the one its id names.",
   containmentOutsideKinds:
-    'A deployable unit contains modules, a library building blocks.',
+    'A deployable unit contains modules, a library or a layer building blocks.',
   slotOutsideTypeKind:
     'A value of the domain is held as state, any other block as a collaborator.',
 };

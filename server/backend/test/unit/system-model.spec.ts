@@ -86,6 +86,8 @@ describe('A system model', () => {
     expect<unknown>(parsed.manualProcesses).toEqual([]);
     expect<unknown>(parsed.deployableUnits).toEqual([]);
     expect<unknown>(parsed.libraries).toEqual([]);
+    expect<unknown>(parsed.layers).toEqual([]);
+    expect<unknown>(parsed.deploymentContainers).toEqual([]);
     expect(parsed.relations).toEqual([]);
   });
 
@@ -295,6 +297,58 @@ describe('A deployable unit and a library', () => {
     expect(
       isValid(
         model({ relations: [{ kind: 'contains', from: unit.id, to: PLACE }] }),
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('A layer and a deployment container', () => {
+  const layer = { id: 'layer|domain', name: 'domain' };
+  const container = {
+    id: 'deployment_container|Orders cluster',
+    name: 'Orders cluster',
+  };
+  const unit = { id: 'deployable_unit|shop-api', name: 'shop-api' };
+
+  it('are elements of their own, named by one name', () => {
+    const parsed = SystemModel.parse(
+      model({ layers: [layer], deploymentContainers: [container] }),
+    );
+    expect<unknown>(parsed.layers).toEqual([
+      { ...layer, description: null, source: null },
+    ]);
+    expect<unknown>(parsed.deploymentContainers).toEqual([
+      { ...container, description: null, source: null },
+    ]);
+    expect(
+      isValid(model({ layers: [{ ...layer, id: 'layer|shop.domain' }] })),
+    ).toBe(false);
+  });
+
+  it('let a layer contain building blocks and a container host deployable units', () => {
+    expect(
+      isValid(
+        model({
+          layers: [layer],
+          deploymentContainers: [container],
+          deployableUnits: [unit],
+          relations: [
+            { kind: 'contains', from: layer.id, to: ORDER },
+            { kind: 'hosts', from: container.id, to: unit.id },
+          ],
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isValid(
+        model({
+          relations: [{ kind: 'hosts', from: container.id, to: ORDERS }],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        model({ relations: [{ kind: 'hosts', from: layer.id, to: unit.id }] }),
       ),
     ).toBe(false);
   });

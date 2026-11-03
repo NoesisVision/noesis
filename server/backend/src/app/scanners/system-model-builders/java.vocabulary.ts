@@ -54,7 +54,9 @@ const ROLES = new Map<string, AnnotationRole>([
   [`${ANNOTATIONS}.EventHandler`, { role: 'behavior' }],
   // Cucumber's: the step definitions a feature file's `When` steps bind to.
   ['T:io.cucumber.java.en.When', { role: 'stepDefinition' }],
-  // `Module` is a package annotation: no namespace-wide annotations yet (section 12).
+  // A package annotation, on `package-info.java`; in the annotation library, unreleased until `java-v*` after 0.1.0.
+  [`${ANNOTATIONS}.Layer`, { role: 'layer' }],
+  // `Module` is a package annotation too, not read yet (section 12).
 ]);
 
 const LANG = 'T:java.lang';
@@ -150,6 +152,7 @@ export const JAVA_VOCABULARY: AnnotationVocabulary = {
     // A single-element annotation's argument is `value`, however it is spelled.
     direction: 'value',
     expression: 'value',
+    layer: 'value',
   },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,

@@ -20,7 +20,9 @@ export type ElementRef =
         | 'actors'
         | 'manualProcesses'
         | 'deployableUnits'
-        | 'libraries';
+        | 'libraries'
+        | 'layers'
+        | 'deploymentContainers';
       id: string;
     }
   | {

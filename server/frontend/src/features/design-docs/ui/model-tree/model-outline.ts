@@ -20,6 +20,9 @@ const OUTLINE_KINDS = [
   // What the code is built and shipped as.
   'deployable_unit',
   'library',
+  // How the code is sliced, and where it runs.
+  'layer',
+  'deployment_container',
   'building_block',
   'behavior',
   'property',
@@ -104,7 +107,7 @@ const BUILDING_BLOCK_READING_ORDER = [
 /**
  * Submodules above the blocks they hold; rules and scenarios last of all. At
  * the top, the modules, then who drives them and the work they do, then
- * what the code ships as.
+ * what the code ships as, how it is sliced and where it runs.
  */
 const KIND_ORDER: readonly OutlineKind[] = [
   'module',
@@ -112,6 +115,8 @@ const KIND_ORDER: readonly OutlineKind[] = [
   'manual_process',
   'deployable_unit',
   'library',
+  'layer',
+  'deployment_container',
   'building_block',
   'behavior',
   'property',

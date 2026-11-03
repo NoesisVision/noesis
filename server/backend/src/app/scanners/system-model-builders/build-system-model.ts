@@ -6,6 +6,7 @@ import {
   BuildingBlockId,
   DeployableUnitId,
   ElementName,
+  LayerId,
   LibraryId,
   ModuleId,
   RuleId,
@@ -19,6 +20,7 @@ import {
   type ScannedBuildingBlock,
   type ScannedDeployableUnit,
   type ScannedDomainModule,
+  type ScannedLayer,
   type ScannedLibrary,
   type ScannedRule,
   type ScannedScenario,
@@ -31,6 +33,7 @@ import type {
   DeclarationNode,
   FieldNode,
   MethodNode,
+  NamespaceNode,
   NodeId,
   PropertyNode,
   ParseManifest,
@@ -108,6 +111,8 @@ type BuiltModel = Pick<
   | 'manualProcesses'
   | 'deployableUnits'
   | 'libraries'
+  | 'layers'
+  | 'deploymentContainers'
   | 'relations'
 >;
 
@@ -228,6 +233,9 @@ class ModelAssembly {
       manualProcesses: [],
       deployableUnits,
       libraries,
+      layers: this.layers(),
+      // Never scanned: a design document authors them.
+      deploymentContainers: [],
       relations: this.relations.sort(Relation.compare),
     };
     return { model, diagnostics: this.diagnostics };
@@ -1306,6 +1314,99 @@ class ModelAssembly {
     };
   }
 
+  /* ------------------------------------------------------------ layers */
+
+  /**
+   * R15: one layer per name the layer annotations on packages and
+   * namespaces give, and one `contains` to each block from the layer of the
+   * nearest annotated namespace at or above the block's. A layer no block
+   * is in is no element.
+   */
+  private layers(): ScannedLayer[] {
+    const layerOf = new Map<string, LayerId>();
+    const layers = new Map<LayerId, ScannedLayer>();
+    for (const { namespace, node } of this.annotatedNamespaces()) {
+      const roles = rolesOf(node.annotations, 'layer', this.vocabulary);
+      const [first, ...more] = roles;
+      if (first === undefined) continue;
+      if (more.length > 0) {
+        this.info(
+          `namespace ${namespace} carries ${roles.length} layer annotations; the first wins`,
+          node,
+        );
+      }
+      const name = stringArgument(
+        first.annotation,
+        this.vocabulary.arguments.layer,
+      );
+      const parsed = ElementName.safeParse(name);
+      if (!parsed.success) {
+        this.info(
+          `namespace ${namespace}: the layer name "${name ?? ''}" is no element name; dropped`,
+          node,
+        );
+        continue;
+      }
+      const id = LayerId.of(parsed.data);
+      const taken = layerOf.get(namespace);
+      if (taken !== undefined) {
+        if (taken !== id) {
+          this.info(
+            `namespace ${namespace} is in ${taken} by an annotation that came first; ${id} dropped`,
+            node,
+          );
+        }
+        continue;
+      }
+      layerOf.set(namespace, id);
+      if (!layers.has(id)) {
+        layers.set(id, {
+          id,
+          name: parsed.data,
+          description: null,
+          source: layerSourceOf(node),
+        });
+      }
+    }
+    const inLayer = new Set<LayerId>();
+    for (const block of this.blocks.values()) {
+      const { namespace } = block.artifact.enclosing(block.node.id);
+      const id = namespace === null ? null : nearestLayer(namespace, layerOf);
+      if (id === null) continue;
+      inLayer.add(id);
+      this.relations.push({ kind: 'contains', from: id, to: block.id });
+    }
+    for (const layer of layers.values()) {
+      if (inLayer.has(layer.id)) continue;
+      this.infoAt(`${layer.id} holds no building block; dropped`, layer.source);
+      layers.delete(layer.id);
+    }
+    return [...layers.values()].sort(byId);
+  }
+
+  /** Every named namespace of every artifact not excluded, by namespace then artifact, so the first annotation wins alike in every build. */
+  private annotatedNamespaces(): {
+    namespace: string;
+    artifact: IndexedArtifact;
+    node: NamespaceNode;
+  }[] {
+    return this.index.artifacts
+      .filter((artifact) => !this.excluded(artifact.file.artifact.annotations))
+      .flatMap((artifact) =>
+        artifact.file.nodes.flatMap((node) => {
+          if (node.kind !== 'namespace' || node.annotations.length === 0)
+            return [];
+          const namespace = namespaceName(node.id);
+          return namespace === null ? [] : [{ namespace, artifact, node }];
+        }),
+      )
+      .sort(
+        (a, b) =>
+          byCodeUnit(a.namespace, b.namespace) ||
+          byCodeUnit(a.artifact.id, b.artifact.id),
+      );
+  }
+
   /** Whether no artifact before took `id`; a diagnostic when one did. */
   private firstWith(
     id: string,
@@ -1456,6 +1557,33 @@ function typeKey(ref: TypeRef): string {
       Object.entries(value).sort(([x], [y]) => byCodeUnit(x, y)),
     );
   });
+}
+
+/** The namespace at or nearest above `namespace` that is in a layer, that layer; null when none is. */
+function nearestLayer(
+  namespace: string,
+  layerOf: ReadonlyMap<string, LayerId>,
+): LayerId | null {
+  const segments = namespace.split('.');
+  for (let length = segments.length; length > 0; length--) {
+    const id = layerOf.get(segments.slice(0, length).join('.'));
+    if (id !== undefined) return id;
+  }
+  return null;
+}
+
+/**
+ * Where a layer is named: Java writes a package annotation in the package's
+ * `package-info.java`, so that location when the namespace has one, else its
+ * first.
+ */
+function layerSourceOf(node: NamespaceNode): SourceLocation | null {
+  const declared = node.locations.find((span) =>
+    span.file.endsWith('package-info.java'),
+  );
+  return declared === undefined
+    ? sourceOrNull(node)
+    : toSourceLocation(declared);
 }
 
 /** R4.6, R9.10: the node's first location; a node without one has no path. */

@@ -6,8 +6,10 @@ import {
   BehaviorId,
   BuildingBlockId,
   DeployableUnitId,
+  DeploymentContainerId,
   ElementId,
   ElementName,
+  LayerId,
   LibraryId,
   ManualProcessId,
   ModuleId,
@@ -25,6 +27,7 @@ import {
   HasInputRelation,
   HasOutputRelation,
   HasStateRelation,
+  HostsRelation,
   IllustratesRelation,
   InvokesRelation,
   PerformsRelation,
@@ -91,6 +94,7 @@ export const DesignedRelation = z.discriminatedUnion('kind', [
   GovernsRelation,
   IllustratesRelation,
   PerformsRelation,
+  HostsRelation,
 ]);
 export type DesignedRelation = z.infer<typeof DesignedRelation>;
 
@@ -108,6 +112,7 @@ export const DesignedRelationKey = z
     GovernsRelation.pick({ kind: true, from: true, to: true }),
     IllustratesRelation.pick({ kind: true, from: true, to: true }),
     PerformsRelation.pick({ kind: true, from: true, to: true }),
+    HostsRelation.pick({ kind: true, from: true, to: true }),
   ])
   .describe(
     "A relation by what makes it one of a kind: its kind, `from` and `to`; for 'has_state', 'has_collaborator' and 'has_input', its kind, `from` and `name`.",
@@ -203,6 +208,30 @@ export const DesignedLibrary = z
   );
 export type DesignedLibrary = z.infer<typeof DesignedLibrary>;
 
+export const DesignedLayer = z
+  .strictObject({
+    id: LayerId,
+    name: DesignDocField(ElementName),
+    definition: DesignDocField(z.string()),
+  })
+  .describe(
+    "A horizontal slice of the code (domain, application, infrastructure, …): its 'contains' relations name the building blocks in it. Scanned from the layer annotations on packages and namespaces (Java's on package-info.java).",
+  );
+export type DesignedLayer = z.infer<typeof DesignedLayer>;
+
+export const DesignedDeploymentContainer = z
+  .strictObject({
+    id: DeploymentContainerId,
+    name: DesignDocField(ElementName),
+    definition: DesignDocField(z.string()),
+  })
+  .describe(
+    "Where deployable units run (a cluster, a server, a serverless platform): its 'hosts' relations name the units it runs. Never scanned.",
+  );
+export type DesignedDeploymentContainer = z.infer<
+  typeof DesignedDeploymentContainer
+>;
+
 const designDocumentSchema = z.strictObject({
   id: DesignDocId.describe(
     "The design document id: its creation date, then its name as lower-case kebab-case, e.g. '2026-09-24-partial-refunds'; unique within the change. Minted by the server when the design document is created and never changed, even when the name is.",
@@ -223,8 +252,13 @@ const designDocumentSchema = z.strictObject({
   manualProcesses: changeSet(DesignedManualProcess, ManualProcessId),
   deployableUnits: changeSet(DesignedDeployableUnit, DeployableUnitId),
   libraries: changeSet(DesignedLibrary, LibraryId),
+  layers: changeSet(DesignedLayer, LayerId),
+  deploymentContainers: changeSet(
+    DesignedDeploymentContainer,
+    DeploymentContainerId,
+  ),
   relations: changeSet(DesignedRelation, DesignedRelationKey).describe(
-    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), what a module, a deployable unit (modules) or a library (building blocks) contains, which rules a behavior follows ('governs'), which scenarios illustrate a rule ('illustrates'), which manual processes an actor performs ('performs') and which behaviors a manual process calls, in order ('invokes'). Both ends of an added relation exist, in the design or the model; a module's 'contains', an 'exposes' or an 'illustrates' agrees with the ids, whose paths already say what holds what; a deployable unit contains only modules, a library only building blocks; an added rule is governed by a behavior.",
+    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), what a module, a deployable unit (modules), a library or a layer (building blocks) contains, which deployable units a deployment container hosts ('hosts'), which rules a behavior follows ('governs'), which scenarios illustrate a rule ('illustrates'), which manual processes an actor performs ('performs') and which behaviors a manual process calls, in order ('invokes'). Both ends of an added relation exist, in the design or the model; a module's 'contains', an 'exposes' or an 'illustrates' agrees with the ids, whose paths already say what holds what; a deployable unit contains only modules, a library or a layer only building blocks; an added rule is governed by a behavior.",
   ),
   implemented: z
     .boolean()
@@ -307,6 +341,10 @@ export type DesignedDeployableUnitInput = z.input<
   typeof DesignedDeployableUnit
 >;
 export type DesignedLibraryInput = z.input<typeof DesignedLibrary>;
+export type DesignedLayerInput = z.input<typeof DesignedLayer>;
+export type DesignedDeploymentContainerInput = z.input<
+  typeof DesignedDeploymentContainer
+>;
 export type DesignedRelationInput = z.input<typeof DesignedRelation>;
 export type DesignedRelationKeyInput = z.input<typeof DesignedRelationKey>;
 export type DesignedRuleInput = z.input<typeof DesignedRule>;
@@ -469,6 +507,8 @@ const ELEMENT_LISTS = [
   'manualProcesses',
   'deployableUnits',
   'libraries',
+  'layers',
+  'deploymentContainers',
 ] as const;
 
 /** Both ends of an added relation are elements the design adds or the model has; a primitive is always known. */
@@ -522,7 +562,7 @@ function containmentsOutsideIdPaths(
     }));
 }
 
-/** A deployable unit contains modules, a library building blocks. */
+/** A deployable unit contains modules, a library or a layer building blocks. */
 function containmentsOutsideKinds(
   document: DesignDocumentContent,
 ): DesignDocViolation[] {
@@ -532,7 +572,8 @@ function containmentsOutsideKinds(
         relation.kind === 'contains' &&
         ((ElementId.isDeployableUnit(relation.from) &&
           !ElementId.isModule(relation.to)) ||
-          (ElementId.isLibrary(relation.from) &&
+          ((ElementId.isLibrary(relation.from) ||
+            ElementId.isLayer(relation.from)) &&
             !ElementId.isBuildingBlock(relation.to))),
     )
     .map((relation) => ({

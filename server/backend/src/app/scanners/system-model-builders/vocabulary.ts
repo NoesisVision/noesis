@@ -43,6 +43,11 @@ export type AnnotationRole =
    * to, by the `expression` argument (R12).
    */
   | { readonly role: 'stepDefinition' }
+  /**
+   * The package or namespace, and every one below it no nearer annotation
+   * claims, is in the layer the `layer` argument names (R15).
+   */
+  | { readonly role: 'layer' }
   /** The element is not in the system model. */
   | { readonly role: 'exclude' };
 
@@ -54,6 +59,8 @@ interface RoleArguments {
   readonly direction: string;
   /** The step definition's Cucumber expression or regular expression. */
   readonly expression: string;
+  /** The layer's name, on a layer annotation. */
+  readonly layer: string;
 }
 
 export interface AnnotationVocabulary {

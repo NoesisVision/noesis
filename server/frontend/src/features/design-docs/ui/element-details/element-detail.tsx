@@ -22,6 +22,8 @@ import {
   containedItems,
   extenderItems,
   extendsItems,
+  hostedByItems,
+  hostsItems,
   invokerItems,
   packagedInItems,
   performedItems,
@@ -181,7 +183,9 @@ function elementRefOf(node: OutlineNode): UnitRef | null {
     node.kind === 'actor' ||
     node.kind === 'manual_process' ||
     node.kind === 'deployable_unit' ||
-    node.kind === 'library'
+    node.kind === 'library' ||
+    node.kind === 'layer' ||
+    node.kind === 'deployment_container'
     ? { kind: node.kind, id: node.elementId }
     : null;
 }
@@ -202,18 +206,33 @@ function peopleRelationsOf(doc: DesignDocumentInput, node: OutlineNode) {
   }
 }
 
-/** The rows of what the code ships as the element is one end of. */
+/** The rows of what the code ships as, how it is sliced and where it runs, the element is one end of. */
 function packagingRelationsOf(doc: DesignDocumentInput, node: OutlineNode) {
   const id = node.elementId;
   if (id === null) return [];
   switch (node.kind) {
     case 'deployable_unit':
+      return [
+        { label: 'Contains', items: containedItems(doc, id) },
+        { label: 'Hosted by', items: hostedByItems(doc, id) },
+      ];
     case 'library':
+    case 'layer':
       return [{ label: 'Contains', items: containedItems(doc, id) }];
+    case 'deployment_container':
+      return [{ label: 'Hosts', items: hostsItems(doc, id) }];
     case 'module':
-      return [{ label: 'Deployed in', items: packagedInItems(doc, id) }];
+      return [
+        {
+          label: 'Deployed in',
+          items: packagedInItems(doc, id, 'deployable_unit|'),
+        },
+      ];
     case 'building_block':
-      return [{ label: 'In library', items: packagedInItems(doc, id) }];
+      return [
+        { label: 'In library', items: packagedInItems(doc, id, 'library|') },
+        { label: 'In layer', items: packagedInItems(doc, id, 'layer|') },
+      ];
     default:
       return [];
   }
@@ -261,7 +280,11 @@ function designedOf(doc: DesignDocumentInput, node: OutlineNode) {
                 ? doc.deployableUnits
                 : node.kind === 'library'
                   ? doc.libraries
-                  : undefined;
+                  : node.kind === 'layer'
+                    ? doc.layers
+                    : node.kind === 'deployment_container'
+                      ? doc.deploymentContainers
+                      : undefined;
   return collection === undefined
     ? undefined
     : (findById(collection, node.elementId) ?? null);
@@ -273,7 +296,9 @@ function ownerOfScenarios(node: OutlineNode): PartOwner | undefined {
     ref.kind === 'actor' ||
     ref.kind === 'manual_process' ||
     ref.kind === 'deployable_unit' ||
-    ref.kind === 'library'
+    ref.kind === 'library' ||
+    ref.kind === 'layer' ||
+    ref.kind === 'deployment_container'
     ? undefined
     : { kind: ref.kind as PartOwner['kind'], id: ref.id };
 }

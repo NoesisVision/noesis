@@ -65,6 +65,8 @@ const systemModel = {
   manualProcesses: [],
   deployableUnits: [],
   libraries: [],
+  layers: [],
+  deploymentContainers: [],
   relations: [
     {
       kind: 'governs',

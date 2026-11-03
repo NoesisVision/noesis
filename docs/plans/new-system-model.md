@@ -1,6 +1,6 @@
 # Plan: introducing the new system model
 
-Status: in progress (November 2026); steps 1, 2, 3, 4 and 5 of section 11
+Status: in progress (November 2026); steps 1, 2, 3, 4, 5 and 6 of section 11
 are built, step 3 before step 2: the two share files but neither needs the
 other.
 
@@ -125,8 +125,10 @@ yes.
     Both are named by the artifact's name. _(proposed)_
 14. **Layers come from an annotation on a package or namespace** (`@Layer`,
     `[Layer]`), new in both annotation libraries; a codebase without it has
-    no layers. A building block is in the layer of the nearest annotated
-    package above it. _(proposed)_
+    no layers. In Java the annotation goes on the package's
+    `package-info.java`, as `@Module` does; the Java parser already carries
+    those annotations on the package's `NamespaceNode`. A building block is
+    in the layer of the nearest annotated package above it.
 15. **Deployment containers and manual processes are never scanned.** They
     are authored in design documents. Actors are scanned where an annotation
     names one (`[Actor]` today; `@Actor` is new in the Java library), and
@@ -280,8 +282,8 @@ are not in code at all: they are in the feature files the scan reads beside
 the code model. The code model does not change.
 
 **Java** (`code-parsers/java/annotations`, released with the parser): add
-`@TechnicalService` (type), `@Layer(String)` (package) and `@Actor(String)`
-(method, repeatable). `@Adapter(Direction)` and
+`@TechnicalService` (type), `@Layer(String)` (package: `@Target(PACKAGE)`,
+written on `package-info.java`) and `@Actor(String)` (method, repeatable). `@Adapter(Direction)` and
 `@ExternalIntegration(Direction)` stay; the builder reads the direction.
 Nothing for scenarios: the step definitions are Cucumber's.
 
@@ -551,9 +553,28 @@ fixtures and the skills together, so no step leaves two shapes alive.
    becoming building blocks that stubs resolve to.
 6. **Layers and deployment containers** (decisions 14, 15): `LayerId`,
    `DeploymentContainerId`, the `layer` role, `hosts`, design-only
-   containers.
-7. **Annotation libraries and examples**: `@TechnicalService`, `@Layer`,
-   `@Actor` in `code-parsers/java/annotations`, released as `java-v*`; the
+   containers. The builder reads the `layer` role from a namespace's
+   annotations (in Java, the `package-info.java` ones), the first
+   namespace-wide role the vocabularies have. _Built_: R15 of
+   `code-model-to-system-model.md` (section 14). Beyond the plan: a layer
+   no block is in is no element, with a diagnostic; annotated namespaces
+   are read by name then artifact id, the first annotation of one
+   winning; a layer's source is its `package-info.java`. `@Layer` is in
+   `code-parsers/java/annotations`, unreleased until step 7; the Java shop
+   fixture annotates its `package-info.java` files, so the toolchain e2e
+   reads a layer through the real parser. C# has no layer role. The design document's `layers` and `deploymentContainers`
+   are change sets keyed by id with `name` and `definition`; the writer's
+   rule `containmentOutsideKinds` keeps a layer to building blocks, and
+   the schema keeps `hosts` to a container and a unit. The SPA shows each
+   layer and container as a row at the top of the model tree after the
+   libraries; a layer's panel lists what it Contains, a block's which
+   layer it is In, a container's what it Hosts, a unit's where it is
+   Hosted by; names and definitions are written in place, nothing adds
+   one yet, and the explorer leaves them out. No example changed: no
+   model has a layer until step 7 annotates the examples.
+7. **Annotation libraries and examples**: `@TechnicalService` and
+   `@Actor` in `code-parsers/java/annotations` beside step 6's `@Layer`,
+   released as `java-v*`; the
    NuGet package's release when it is there; the examples annotated, their
    rules and scenarios moved into feature files with Cucumber or Reqnroll
    step definitions, and their system models regenerated; the setup skills'

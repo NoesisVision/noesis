@@ -307,22 +307,35 @@ export const stepItems = (
     };
   });
 
-/** The `contains` relations of a design that start at a deployable unit or a library. */
+/** What holds blocks or modules outside the module tree: a deployable unit, a library, a layer. */
+type Holder = 'deployable_unit|' | 'library|' | 'layer|';
+const HOLDERS: readonly Holder[] = ['deployable_unit|', 'library|', 'layer|'];
+
+/** The `contains` relations of a design that start at a deployable unit, a library or a layer. */
 const packagingRelations = (
   doc: DesignDocumentInput,
 ): [{ from: string; to: string }, OutlineChange][] =>
   [...changed(doc.relations)].flatMap(([relation, change]) =>
     relation.kind === 'contains' &&
-    (relation.from.startsWith('deployable_unit|') ||
-      relation.from.startsWith('library|'))
+    HOLDERS.some((holder) => relation.from.startsWith(holder))
+      ? [[relation, change] as [{ from: string; to: string }, OutlineChange]]
+      : [],
+  );
+
+/** The `hosts` relations of a design: a deployment container running a deployable unit. */
+const hostsRelations = (
+  doc: DesignDocumentInput,
+): [{ from: string; to: string }, OutlineChange][] =>
+  [...changed(doc.relations)].flatMap(([relation, change]) =>
+    relation.kind === 'hosts'
       ? [[relation, change] as [{ from: string; to: string }, OutlineChange]]
       : [],
   );
 
 /**
- * What a deployable unit or a library contains, each opening its row: a
- * unit's modules by their path, a library's blocks by name, their module
- * under them.
+ * What a deployable unit, a library or a layer contains, each opening its
+ * row: a unit's modules by their path, the blocks of a library or a layer
+ * by name, their module under them.
  */
 export const containedItems = (
   doc: DesignDocumentInput,
@@ -343,13 +356,43 @@ export const containedItems = (
     ];
   });
 
-/** The deployable units a module ships in, or the libraries a block is in, each opening its row. */
+/** The deployable units a module ships in, or the libraries or layers a block is in, each opening its row. */
 export const packagedInItems = (
   doc: DesignDocumentInput,
   elementId: string,
+  holder: Holder,
 ): ChangeListItem[] =>
   packagingRelations(doc).flatMap(([relation, change]) =>
-    relation.to === elementId
+    relation.to === elementId && relation.from.startsWith(holder)
+      ? [
+          {
+            change,
+            label: nameOf(relation.from),
+            path: relation.from,
+            whole: true,
+          },
+        ]
+      : [],
+  );
+
+/** The deployable units a deployment container runs, each opening its row. */
+export const hostsItems = (
+  doc: DesignDocumentInput,
+  containerId: string,
+): ChangeListItem[] =>
+  hostsRelations(doc).flatMap(([relation, change]) =>
+    relation.from === containerId
+      ? [{ change, label: nameOf(relation.to), path: relation.to, whole: true }]
+      : [],
+  );
+
+/** The deployment containers a deployable unit runs in, each opening its row. */
+export const hostedByItems = (
+  doc: DesignDocumentInput,
+  unitId: string,
+): ChangeListItem[] =>
+  hostsRelations(doc).flatMap(([relation, change]) =>
+    relation.to === unitId
       ? [
           {
             change,

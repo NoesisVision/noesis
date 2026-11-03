@@ -41,6 +41,8 @@ const SUPPORT_AGENT = 'actor|Support agent';
 const REFUND_A_RETURN = 'manual_process|Refund a returned order';
 const REFUNDS_API = 'deployable_unit|refunds-api';
 const SALES_LIBRARY = 'library|MyCompany.Sales';
+const DOMAIN_LAYER = 'layer|domain';
+const REFUNDS_CLUSTER = 'deployment_container|Refunds cluster';
 
 export const designDocFixture = {
   id: '2026-01-01-partial-refunds-for-orders',
@@ -248,10 +250,33 @@ export const designDocFixture = {
     removed: [],
     modified: [],
   },
+  layers: {
+    added: [
+      {
+        id: DOMAIN_LAYER,
+        name: byAgent('domain'),
+        definition: byAgent('The rules of the business, free of technology.'),
+      },
+    ],
+    removed: [],
+    modified: [],
+  },
+  deploymentContainers: {
+    added: [
+      {
+        id: REFUNDS_CLUSTER,
+        name: byAgent('Refunds cluster'),
+        definition: byAgent('The Kubernetes cluster the refunds run in.'),
+      },
+    ],
+    removed: [],
+    modified: [],
+  },
   relations: {
     added: [
       { kind: 'performs', from: SUPPORT_AGENT, to: REFUND_A_RETURN },
       { kind: 'contains', from: REFUNDS_API, to: 'module|sales.refunds' },
+      { kind: 'hosts', from: REFUNDS_CLUSTER, to: REFUNDS_API },
       {
         kind: 'invokes',
         from: REFUND_A_RETURN,
@@ -409,6 +434,8 @@ export const greenFieldDesignDocFixture: DesignDocumentInput = {
   manualProcesses: { added: byAgentOnly.manualProcesses.added },
   deployableUnits: { added: byAgentOnly.deployableUnits.added },
   libraries: { added: byAgentOnly.libraries.added },
+  layers: { added: byAgentOnly.layers.added },
+  deploymentContainers: { added: byAgentOnly.deploymentContainers.added },
   relations: { added: byAgentOnly.relations.added },
 };
 
@@ -428,6 +455,8 @@ export const humanEditedDesignDocFixture: DesignDocumentInput = {
   manualProcesses: { added: designDocFixture.manualProcesses.added },
   deployableUnits: { added: designDocFixture.deployableUnits.added },
   libraries: { added: designDocFixture.libraries.added },
+  layers: { added: designDocFixture.layers.added },
+  deploymentContainers: { added: designDocFixture.deploymentContainers.added },
   relations: { added: designDocFixture.relations.added },
 };
 

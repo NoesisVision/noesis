@@ -157,6 +157,18 @@ const javaAnnotation = (short: string): Annotation => ({
   arguments: [],
 });
 
+/** Java's `@Layer("<name>")`, written on a `package-info.java`: one string argument, named `value`. */
+const javaLayer = (name: string): Annotation => ({
+  type: named('T:vision.noesis.annotations.Layer'),
+  arguments: [
+    {
+      name: 'value',
+      positional: true,
+      value: { kind: 'literal', text: JSON.stringify(name) },
+    },
+  ],
+});
+
 /** Java's `@Adapter(Direction.<direction>)`: one enum argument, named `value`. */
 const javaAdapter = (direction: string): Annotation => ({
   type: named('T:vision.noesis.annotations.Adapter'),
@@ -275,8 +287,12 @@ class ArtifactBuilder {
     this.edges.push({ kind: 'CONTAINS', from: parent, to: child });
   }
 
-  /** `N:A.B.C`, with every level above it. */
-  namespace(dotted: string, file?: string): this {
+  /** `N:A.B.C`, with every level above it; `annotations` go on `N:A.B.C` itself. */
+  namespace(
+    dotted: string,
+    file?: string,
+    annotations: readonly Annotation[] = [],
+  ): this {
     const parts = dotted.split('.');
     for (let depth = 1; depth <= parts.length; depth++) {
       const id = `N:${parts.slice(0, depth).join('.')}`;
@@ -296,6 +312,9 @@ class ArtifactBuilder {
         languageSpecific: {},
       });
     }
+    this.nodes
+      .find((node) => node.id === `N:${dotted}`)!
+      .annotations.push(...annotations);
     return this;
   }
 
@@ -3065,5 +3084,180 @@ describe('14. libraries described by hand (R14)', () => {
     expect<unknown>(messages(built, 'info')).toContain(
       '.noesis/libraries/sales.json has the id library|Sales, which came first; dropped',
     );
+  });
+});
+
+/* =================================================== 15 layers (R15) */
+
+describe('15. layers (R15)', () => {
+  const layersOf = (model: BuiltSystemModel['model']) => ({
+    layers: model.layers,
+    contains: model.relations.filter(
+      (relation) =>
+        relation.kind === 'contains' && relation.from.startsWith('layer|'),
+    ),
+  });
+  const shop = () =>
+    artifact('shop')
+      .type('T:com.shop.domain.Order', {
+        annotations: [javaAnnotation('AggregateRoot')],
+      })
+      .type('T:com.shop.domain.pricing.Quote', {
+        annotations: [javaAnnotation('ValueObject')],
+      })
+      .type('T:com.shop.app.PlaceOrder', {
+        annotations: [javaAnnotation('ApplicationService')],
+      })
+      .type('T:com.shop.app.web.OrdersController', {
+        annotations: [javaAdapter('PRIMARY')],
+      })
+      .type('T:com.shop.Main', {
+        annotations: [javaAnnotation('TechnicalService')],
+      });
+  const PACKAGE_INFO = 'shop/src/main/java/com/shop/domain/package-info.java';
+
+  it('R15.1 makes a layer of each name a package annotation gives, found in its package-info.java, containing the blocks under the package', () => {
+    const { model } = buildFrom(
+      [
+        shop()
+          .namespace('com.shop.domain', PACKAGE_INFO, [javaLayer('domain')])
+          .namespace('com.shop.app', undefined, [javaLayer('application')]),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    expect<unknown>(layersOf(model)).toEqual({
+      layers: [
+        {
+          id: 'layer|application',
+          name: 'application',
+          description: null,
+          source: expect.objectContaining({ path: expect.any(String) }),
+        },
+        {
+          id: 'layer|domain',
+          name: 'domain',
+          description: null,
+          source: { path: PACKAGE_INFO, line: expect.any(Number) },
+        },
+      ],
+      contains: [
+        {
+          kind: 'contains',
+          from: 'layer|application',
+          to: 'building_block|com.shop.app.PlaceOrder',
+        },
+        {
+          kind: 'contains',
+          from: 'layer|application',
+          to: 'building_block|com.shop.app.web.OrdersController',
+        },
+        {
+          kind: 'contains',
+          from: 'layer|domain',
+          to: 'building_block|com.shop.domain.Order',
+        },
+        {
+          kind: 'contains',
+          from: 'layer|domain',
+          to: 'building_block|com.shop.domain.pricing.Quote',
+        },
+      ],
+    });
+  });
+
+  it('R15.2 puts a block in the layer of the nearest annotated package above it, and one under none in no layer', () => {
+    const { model } = buildFrom(
+      [
+        shop()
+          .namespace('com.shop', undefined, [javaLayer('application')])
+          .namespace('com.shop.domain', undefined, [javaLayer('domain')]),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    expect<unknown>(
+      layersOf(model).contains.map((relation) => [relation.from, relation.to]),
+    ).toEqual([
+      ['layer|application', 'building_block|com.shop.Main'],
+      ['layer|application', 'building_block|com.shop.app.PlaceOrder'],
+      ['layer|application', 'building_block|com.shop.app.web.OrdersController'],
+      ['layer|domain', 'building_block|com.shop.domain.Order'],
+      ['layer|domain', 'building_block|com.shop.domain.pricing.Quote'],
+    ]);
+    const none = buildFrom([shop()], {}, JAVA_VOCABULARY);
+    expect<unknown>(layersOf(none.model)).toEqual({ layers: [], contains: [] });
+  });
+
+  it('R15.3 gathers the packages of one layer name into one layer', () => {
+    const { model } = buildFrom(
+      [
+        shop()
+          .namespace('com.shop.domain', undefined, [javaLayer('core')])
+          .namespace('com.shop.app', undefined, [javaLayer('core')]),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    expect<unknown>(model.layers.map((layer) => layer.id)).toEqual([
+      'layer|core',
+    ]);
+    expect(layersOf(model).contains).toHaveLength(4);
+  });
+
+  it('R15.4 drops a layer no block is in, a name that is no element name, and a second annotation, with a diagnostic each', () => {
+    const built = buildFrom(
+      [
+        shop()
+          .namespace('com.shop.domain', undefined, [
+            javaLayer('domain'),
+            javaLayer('core'),
+          ])
+          .namespace('com.shop.app', undefined, [javaLayer('app.layer')])
+          .namespace('com.shop.infra', undefined, [
+            javaLayer('infrastructure'),
+          ]),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    expect<unknown>(built.model.layers.map((layer) => layer.id)).toEqual([
+      'layer|domain',
+    ]);
+    expect<unknown>(messages(built, 'info')).toEqual(
+      expect.arrayContaining([
+        'namespace com.shop.domain carries 2 layer annotations; the first wins',
+        'namespace com.shop.app: the layer name "app.layer" is no element name; dropped',
+        'layer|infrastructure holds no building block; dropped',
+      ]),
+    );
+  });
+
+  it('R15.5 lets the first artifact by id win a package two artifacts annotate apart', () => {
+    const built = buildFrom(
+      [
+        shop().namespace('com.shop.domain', undefined, [javaLayer('domain')]),
+        artifact('tests').namespace('com.shop.domain', undefined, [
+          javaLayer('test'),
+        ]),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    expect<unknown>(built.model.layers.map((layer) => layer.id)).toEqual([
+      'layer|domain',
+    ]);
+    expect<unknown>(messages(built, 'info')).toContain(
+      'namespace com.shop.domain is in layer|domain by an annotation that came first; layer|test dropped',
+    );
+  });
+
+  it('R15.6 reads no layer from C#, whose annotation package has none yet', () => {
+    const built = buildFrom([
+      sales().namespace('Sales', undefined, [
+        attr('LayerAttribute', { name: 'domain' }),
+      ]),
+    ]);
+    expect<unknown>(built.model.layers).toEqual([]);
   });
 });

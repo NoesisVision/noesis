@@ -137,6 +137,42 @@ export const ManualProcessId = Object.assign(manualProcessIdSchema, {
 });
 export type ManualProcessId = z.infer<typeof manualProcessIdSchema>;
 
+const LAYER_KIND = 'layer';
+const layerIdSchema = z
+  .string()
+  .regex(topLevelIdPattern(LAYER_KIND), 'Invalid LayerId')
+  .describe(
+    "A layer's id: 'layer|', then its name, e.g. 'layer|domain'; layers belong to no module.",
+  )
+  .brand<'LayerId'>();
+export const LayerId = Object.assign(layerIdSchema, {
+  of: (name: string) =>
+    layerIdSchema.parse(`${LAYER_KIND}|${ElementName.parse(name)}`),
+});
+export type LayerId = z.infer<typeof layerIdSchema>;
+
+const DEPLOYMENT_CONTAINER_KIND = 'deployment_container';
+const deploymentContainerIdSchema = z
+  .string()
+  .regex(
+    topLevelIdPattern(DEPLOYMENT_CONTAINER_KIND),
+    'Invalid DeploymentContainerId',
+  )
+  .describe(
+    "A deployment container's id: 'deployment_container|', then its name, e.g. 'deployment_container|Orders cluster'; deployment containers belong to no module.",
+  )
+  .brand<'DeploymentContainerId'>();
+export const DeploymentContainerId = Object.assign(
+  deploymentContainerIdSchema,
+  {
+    of: (name: string) =>
+      deploymentContainerIdSchema.parse(
+        `${DEPLOYMENT_CONTAINER_KIND}|${ElementName.parse(name)}`,
+      ),
+  },
+);
+export type DeploymentContainerId = z.infer<typeof deploymentContainerIdSchema>;
+
 /*
  * A deployable unit or a library is a build artifact, named as the build
  * names it: `MyCompany.Sales.Api` is one name, so its dots are part of it.
@@ -195,6 +231,8 @@ const elementIdSchema = z.union([
   manualProcessIdSchema,
   deployableUnitIdSchema,
   libraryIdSchema,
+  layerIdSchema,
+  deploymentContainerIdSchema,
 ]);
 export const ElementId = Object.assign(elementIdSchema, {
   /** The element's own name: the last segment of its path, or a whole artifact name. */
@@ -217,6 +255,9 @@ export const ElementId = Object.assign(elementIdSchema, {
     id.startsWith(`${DEPLOYABLE_UNIT_KIND}|`),
   isLibrary: (id: ElementId): id is LibraryId =>
     id.startsWith(`${LIBRARY_KIND}|`),
+  isLayer: (id: ElementId): id is LayerId => id.startsWith(`${LAYER_KIND}|`),
+  isDeploymentContainer: (id: ElementId): id is DeploymentContainerId =>
+    id.startsWith(`${DEPLOYMENT_CONTAINER_KIND}|`),
   match: <R>(id: ElementId, on: ElementIdHandlers<R>): R => {
     if (ElementId.isModule(id)) return on.module(id);
     if (ElementId.isBuildingBlock(id)) return on.buildingBlock(id);
@@ -226,6 +267,8 @@ export const ElementId = Object.assign(elementIdSchema, {
     if (ElementId.isManualProcess(id)) return on.manualProcess(id);
     if (ElementId.isDeployableUnit(id)) return on.deployableUnit(id);
     if (ElementId.isLibrary(id)) return on.library(id);
+    if (ElementId.isLayer(id)) return on.layer(id);
+    if (ElementId.isDeploymentContainer(id)) return on.deploymentContainer(id);
     return on.behavior(id);
   },
 });
@@ -241,6 +284,8 @@ type ElementIdHandlers<R> = {
   manualProcess: (id: ManualProcessId) => R;
   deployableUnit: (id: DeployableUnitId) => R;
   library: (id: LibraryId) => R;
+  layer: (id: LayerId) => R;
+  deploymentContainer: (id: DeploymentContainerId) => R;
 };
 
 function pathOf(id: ElementId): string {

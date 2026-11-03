@@ -5,8 +5,10 @@ import {
   BehaviorId,
   BuildingBlockId,
   DeployableUnitId,
+  DeploymentContainerId,
   ElementId,
   ElementName,
+  LayerId,
   LibraryId,
   ManualProcessId,
   ModuleId,
@@ -200,6 +202,8 @@ describe('ElementId', () => {
       'manual_process|Refund a return',
       'deployable_unit|shop-api',
       'library|MyCompany.Sales.DeepModel',
+      'layer|domain',
+      'deployment_container|Orders cluster',
     ].map((v) => ElementId.parse(v));
     const only = (index: number) => ids.map((_, i) => i === index);
     expect(ids.map(ElementId.isModule)).toEqual(only(0));
@@ -211,6 +215,8 @@ describe('ElementId', () => {
     expect(ids.map(ElementId.isManualProcess)).toEqual(only(6));
     expect(ids.map(ElementId.isDeployableUnit)).toEqual(only(7));
     expect(ids.map(ElementId.isLibrary)).toEqual(only(8));
+    expect(ids.map(ElementId.isLayer)).toEqual(only(9));
+    expect(ids.map(ElementId.isDeploymentContainer)).toEqual(only(10));
     expect(
       ids.map((id) =>
         ElementId.match(id, {
@@ -223,6 +229,8 @@ describe('ElementId', () => {
           manualProcess: () => 'manual process',
           deployableUnit: () => 'deployable unit',
           library: () => 'library',
+          layer: () => 'layer',
+          deploymentContainer: () => 'deployment container',
         }),
       ),
     ).toEqual([
@@ -235,7 +243,21 @@ describe('ElementId', () => {
       'manual process',
       'deployable unit',
       'library',
+      'layer',
+      'deployment container',
     ]);
+  });
+
+  it('names a layer and a deployment container by their name alone', () => {
+    expect<string>(LayerId.of('domain')).toBe('layer|domain');
+    expect<string>(DeploymentContainerId.of('Orders cluster')).toBe(
+      'deployment_container|Orders cluster',
+    );
+    expect(() => LayerId.of('shop.domain')).toThrow();
+    expect(LayerId.safeParse('layer|a.b').success).toBe(false);
+    expect(
+      DeploymentContainerId.safeParse('deployment_container|a.b').success,
+    ).toBe(false);
   });
 
   it('names an actor and a manual process by their name alone', () => {

@@ -143,6 +143,20 @@ export function designOf(model: SystemModel): DesignDocument {
         definition: optional(library.description),
       })),
     ),
+    layers: added(
+      model.layers.map((layer) => ({
+        id: layer.id,
+        name: field(layer.name),
+        definition: optional(layer.description),
+      })),
+    ),
+    deploymentContainers: added(
+      model.deploymentContainers.map((container) => ({
+        id: container.id,
+        name: field(container.name),
+        definition: optional(container.description),
+      })),
+    ),
     relations: added(model.relations.map(designedRelation)),
     implemented: true,
     implementedAt: model.scanned_at,

@@ -619,3 +619,32 @@ refuses an invalid one.
   maps to no module; one listed twice (the first manifest by file name
   wins); one whose id a block took first; a manifest none of whose blocks is
   kept; a library whose id a scanned artifact or an earlier manifest took.
+
+The layers and deployment containers step of the plan (step 6) changed, in
+short:
+
+| Was                                           | Is                                                                                                  |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| nothing                                       | a `layers` list, one element per layer name (R15), and a `deploymentContainers` list, never scanned |
+| `contains` from a module, a unit or a library | the same, and from a layer to a block                                                               |
+| nothing                                       | `hosts`, from a deployment container to a deployable unit, authored in designs only                 |
+
+**R15 Layers from package and namespace annotations.** A layer annotation
+(the `layer` role: Java's `@Layer("<name>")`, written on the package's
+`package-info.java`; none in C# until the annotation package has one) on a
+namespace node of an artifact that is not excluded names a layer.
+
+- **R15.1 A layer** is one element per distinct name, `layer|<name>`; its
+  `source` is the annotated package's `package-info.java` when the
+  namespace has a location there, else its first location; `description`
+  is null.
+- **R15.2 Containment.** A building block is in the layer of the nearest
+  annotated namespace at or above its own: one `contains` from that layer
+  to the block. A block under no annotated namespace is in no layer, and a
+  codebase without the annotation has no layers.
+- **R15.3 One namespace, one layer.** Annotated namespaces are read by
+  dotted name, then by artifact id; the first annotation of a namespace
+  wins, so a package two artifacts annotate apart takes the first.
+- **R15.4 Dropped, with a diagnostic:** a second layer annotation on one
+  namespace; a name that is no `ElementName`; a later artifact's different
+  layer for a namespace already in one; a layer no block is in.

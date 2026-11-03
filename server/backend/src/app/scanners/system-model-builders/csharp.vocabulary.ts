@@ -145,6 +145,8 @@ export const CSHARP_VOCABULARY: AnnotationVocabulary = {
     // No C# annotation reads a direction until the package has adapters.
     direction: 'Direction',
     expression: 'expression',
+    // No C# attribute names a layer until the package has one.
+    layer: 'name',
   },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,

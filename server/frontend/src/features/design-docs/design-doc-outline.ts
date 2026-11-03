@@ -53,6 +53,8 @@ export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   addManualProcesses(nodes, document);
   addTopLevel(nodes, document.deployableUnits);
   addTopLevel(nodes, document.libraries);
+  addTopLevel(nodes, document.layers);
+  addTopLevel(nodes, document.deploymentContainers);
   addProperties(nodes, document.relations);
   addImpliedAncestors(nodes);
   return inReadingOrder(nodes.values());

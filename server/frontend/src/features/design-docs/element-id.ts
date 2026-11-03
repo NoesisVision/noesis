@@ -4,7 +4,9 @@ import type {
   BehaviorId,
   BuildingBlockId,
   DeployableUnitId,
+  DeploymentContainerId,
   ElementId,
+  LayerId,
   LibraryId,
   ManualProcessId,
   ModuleId,
@@ -20,7 +22,8 @@ import type {
  * a root module under nothing — and a rule under the module of the behavior
  * that governs it, a scenario under its rule. An actor and a manual process
  * hang under nothing: their address is their name. So do a deployable unit
- * and a library, whose name is the build's, dots and all.
+ * and a library, whose name is the build's, dots and all, and a layer and a
+ * deployment container.
  *
  * The ids are the server's own value objects, imported as types only: the
  * page may not run backend code, so an id is told by its prefix here, the
@@ -38,6 +41,8 @@ const ACTOR = 'actor|';
 const MANUAL_PROCESS = 'manual_process|';
 const DEPLOYABLE_UNIT = 'deployable_unit|';
 const LIBRARY = 'library|';
+const LAYER = 'layer|';
+const DEPLOYMENT_CONTAINER = 'deployment_container|';
 
 /**
  * A wire string, or an id already known to be `Expected`: an id branded as
@@ -76,6 +81,8 @@ export function kindOf(
   | 'manual_process'
   | 'deployable_unit'
   | 'library'
+  | 'layer'
+  | 'deployment_container'
 > {
   if (isBehavior(id)) return 'behavior';
   if (isBuildingBlock(id)) return 'building_block';
@@ -86,6 +93,8 @@ export function kindOf(
   if (isManualProcess(id)) return 'manual_process';
   if (isDeployableUnit(id)) return 'deployable_unit';
   if (isLibrary(id)) return 'library';
+  if (isLayer(id)) return 'layer';
+  if (isDeploymentContainer(id)) return 'deployment_container';
   throw new Error(`Not an element id: ${id}`);
 }
 
@@ -143,11 +152,17 @@ export const isElementId = (value: string): boolean =>
   isScenario(value) ||
   isActor(value) ||
   isManualProcess(value) ||
-  isArtifact(value);
+  isArtifact(value) ||
+  isLayer(value) ||
+  isDeploymentContainer(value);
 
-/** Whether an element hangs under nothing whatever its name: an actor, a manual process, a unit, a library. */
+/** Whether an element hangs under nothing whatever its name: an actor, a manual process, a unit, a library, a layer, a container. */
 const isTopLevel = (id: string): boolean =>
-  isActor(id) || isManualProcess(id) || isArtifact(id);
+  isActor(id) ||
+  isManualProcess(id) ||
+  isArtifact(id) ||
+  isLayer(id) ||
+  isDeploymentContainer(id);
 
 const PREFIX_OF = {
   module: MODULE,
@@ -159,6 +174,8 @@ const PREFIX_OF = {
   manual_process: MANUAL_PROCESS,
   deployable_unit: DEPLOYABLE_UNIT,
   library: LIBRARY,
+  layer: LAYER,
+  deployment_container: DEPLOYMENT_CONTAINER,
 } as const;
 
 /**
@@ -226,6 +243,14 @@ function isDeployableUnit(id: string): id is DeployableUnitId {
 
 function isLibrary(id: string): id is LibraryId {
   return id.startsWith(LIBRARY);
+}
+
+function isLayer(id: string): id is LayerId {
+  return id.startsWith(LAYER);
+}
+
+function isDeploymentContainer(id: string): id is DeploymentContainerId {
+  return id.startsWith(DEPLOYMENT_CONTAINER);
 }
 
 /** A build artifact: a deployable unit or a library. */

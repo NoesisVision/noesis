@@ -84,6 +84,12 @@ rules, scenarios. Read it at step 5.
      blocks). Each is named as the build names it, dots and all; reuse the
      names the system model already has, verbatim. A new module or block in
      an existing unit or library gets a `contains` from it.
+   - **Layers and deployment containers**, only when the design changes
+     how the code is sliced or where it runs: a layer (`layers`, `contains`
+     its building blocks) or a deployment container (`deploymentContainers`,
+     `hosts` its deployable units). Reuse the layer names the system model
+     already has, verbatim; no scan finds a deployment container, so the
+     design authors every one.
    - **Building blocks and behaviors**, with their types, and the
      **relations** between them: a block's state (`has_state`), what it
      works with (`has_collaborator`), what it extends (`extends`), a behavior's inputs (`has_input`) and output
@@ -143,9 +149,10 @@ rules, scenarios. Read it at step 5.
    `to` is its key, `cardinality` a field), `extends`, `exposes`,
    `contains`, `invokes` (from a behavior or a manual process; `order` a
    field), `governs` (from a behavior to a rule it follows),
-   `illustrates` (from a scenario to its rule) and `performs` (from an
-   actor to a manual process). A `contains` joins a module to a module or
-   a block, a deployable unit to a module, or a library to a block. The
+   `illustrates` (from a scenario to its rule), `performs` (from an
+   actor to a manual process) and `hosts` (from a deployment container to a
+   deployable unit). A `contains` joins a module to a module or a block, a
+   deployable unit to a module, or a library or a layer to a block. The
    kind of the block a
    slot points at picks the relation: a primitive or a value of the domain
    (`aggregate`, `entity`, `value_object`, `command`, `query`, `event`) is
@@ -158,8 +165,8 @@ rules, scenarios. Read it at step 5.
    told apart by it, never by the type. Both ends of an added relation
    exist, in the design or in the model; a module's `contains`, an
    `exposes` or an `illustrates` only says what the ids already say, so
-   write one only when it does; a unit's or a library's `contains` names
-   what the build puts in it. Every added rule has an added `governs` to it. Needs
+   write one only when it does; a unit's, a library's or a layer's
+   `contains` names what the build or the layering puts in it. Every added rule has an added `governs` to it. Needs
    are only ever `added`: no scan holds one, so there is nothing to modify
    or remove; nor are manual processes, which no scan finds. A rename of an element in the model is a removal of the old
    id and an addition of the new one, and every reference to the old id
@@ -176,7 +183,7 @@ rules, scenarios. Read it at step 5.
    `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/description.md`
    before writing it), `needs`, `modules`, `buildingBlocks`, `behaviors`,
    `rules`, `scenarios`, `actors`, `manualProcesses`, `deployableUnits`,
-   `libraries` and `relations`. No `id`, no `implemented`. Write every field as
+   `libraries`, `layers`, `deploymentContainers` and `relations`. No `id`, no `implemented`. Write every field as
    `{ "value": … }` and never with `author`: you are the agent. Leave out a
    change set with nothing in it.
    Before saving, check that every end of a relation — the `to` of a
