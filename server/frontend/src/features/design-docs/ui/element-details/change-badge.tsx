@@ -3,6 +3,7 @@ import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-o
 import { CHANGE_COLOUR } from '#/features/design-docs/ui/model-tree/outline-change.ts';
 import { Badge, type BadgeProps } from '#/shared/design-system/badge.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
+import { useChangeMarks } from './change-marks-context.ts';
 
 interface ChangeBadge {
   change: OutlineChange;
@@ -19,8 +20,9 @@ export function ChangeBadge({
   size = 'xs',
   inline,
 }: ChangeBadge) {
+  const marked = useChangeMarks();
   const colour = CHANGE_COLOUR[change];
-  if (colour === null) return null;
+  if (!marked || colour === null) return null;
   return (
     <Badge
       component={inline ? 'span' : 'div'}
