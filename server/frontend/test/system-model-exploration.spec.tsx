@@ -75,7 +75,7 @@ function contained<
     buildingBlocks: model.buildingBlocks.map((block) => ({
       ...block,
       relations: [
-        ...under(behaviorIds, block.id, 'contains_behavior'),
+        ...under(behaviorIds, block.id, 'exposes'),
         ...('relations' in block && Array.isArray(block.relations)
           ? block.relations
           : []),

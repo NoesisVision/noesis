@@ -91,7 +91,7 @@ step 6.
      design adds. A rename moves every reference to the old id or name.
    - **Containment.** An element added under another is among that one's
      `relations` (`contains_module`, `contains_building_block`,
-     `contains_behavior`), added by the parent; a removed element's relation
+     `exposes`), added by the parent; a removed element's relation
      is removed by its parent; a moved element leaves the one and joins the
      other.
    - **Ids and names.** Ids spell the path (`building_block|sales.refunds.Refund`),

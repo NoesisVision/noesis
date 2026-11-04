@@ -115,7 +115,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|sales.refunds.Refund",
               "to": "behavior|sales.refunds.Refund.issue"
             }
@@ -257,7 +257,7 @@
         "relations": {
           "added": [
             {
-              "kind": "implements",
+              "kind": "extends",
               "from": "building_block|sales.refunds.RefundRepository",
               "to": "building_block|sales.shared.Repository"
             }

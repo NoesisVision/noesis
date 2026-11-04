@@ -546,7 +546,7 @@ describe('a part', () => {
     );
     expect(moved.buildingBlocks?.added?.[0]?.relations?.added).toEqual([
       {
-        kind: 'contains_behavior',
+        kind: 'exposes',
         from: HOLD,
         to: 'behavior|pay.Hold.release',
       },
@@ -556,34 +556,34 @@ describe('a part', () => {
         ?.added,
     ).toEqual([
       {
-        kind: 'contains_behavior',
+        kind: 'exposes',
         from: LEDGER,
         to: 'behavior|pay.Ledger.settle',
       },
     ]);
   });
 
-  it('may be an implemented type: a relation from its owner, keyed by its target', () => {
+  it('may be an extended type: a relation from its owner, keyed by its target', () => {
     const ref = {
-      kind: 'implements',
+      kind: 'extends',
       id: 'building_block|pay.Lockable',
       owner: { kind: 'building_block', id: HOLD },
     } as const;
-    const draft = draftOfUnit('implements', null, 'added');
+    const draft = draftOfUnit('extends', null, 'added');
     draft.fields.ref = { written: true, value: ref.id };
     const target = {
       mode: 'add',
-      kind: 'implements',
+      kind: 'extends',
       owner: ref.owner,
     } as const;
     const id = idOfDraft(doc(), target, draft);
     const next = applyEdit(doc(), {
       op: 'add',
       ref,
-      unit: unitFromDraft('implements', draft, null, id, ref.owner),
+      unit: unitFromDraft('extends', draft, null, id, ref.owner),
     });
     expect(next.buildingBlocks?.added?.[0]?.relations?.added).toEqual([
-      { kind: 'implements', from: HOLD, to: ref.id },
+      { kind: 'extends', from: HOLD, to: ref.id },
     ]);
     expect(unitNameOf(next, ref)).toBe('Lockable');
   });

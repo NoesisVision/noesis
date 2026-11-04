@@ -184,7 +184,7 @@ describe('the fixture solution through the C# parser (e2e)', () => {
       });
       expect<unknown>(
         block('building_block|Projection.Invocations.ImplementsTwoContracts')
-          ?.relations.filter(({ kind }) => kind === 'implements')
+          ?.relations.filter(({ kind }) => kind === 'extends')
           .map(({ to }) => to),
       ).toEqual([
         'building_block|Projection.Invocations.FirstContract',

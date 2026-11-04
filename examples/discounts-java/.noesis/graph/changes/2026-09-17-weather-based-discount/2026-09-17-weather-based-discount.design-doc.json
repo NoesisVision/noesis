@@ -215,7 +215,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|discounts.weather.WeatherProvider",
               "to": "behavior|discounts.weather.WeatherProvider.getCurrent"
             }
@@ -239,12 +239,12 @@
         "relations": {
           "added": [
             {
-              "kind": "implements",
+              "kind": "extends",
               "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
               "to": "building_block|discounts.weather.WeatherProvider"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
               "to": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent"
             }
@@ -268,12 +268,12 @@
         "relations": {
           "added": [
             {
-              "kind": "implements",
+              "kind": "extends",
               "from": "building_block|discounts.calculation.PercentageDiscount",
               "to": "building_block|discounts.calculation.Discount"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|discounts.calculation.PercentageDiscount",
               "to": "behavior|discounts.calculation.PercentageDiscount.apply"
             }
@@ -362,17 +362,17 @@
         "relations": {
           "added": [
             {
-              "kind": "implements",
+              "kind": "extends",
               "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
               "to": "building_block|discounts.calculation.PotentialDiscount"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
               "to": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
               "to": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount"
             }

@@ -714,12 +714,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Clients.ClientId",
               "to": "behavior|Sales.Clients.ClientId.New"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Clients.ClientId",
               "to": "behavior|Sales.Clients.ClientId.From"
             }
@@ -765,7 +765,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Clients.ClientRepository",
               "to": "behavior|Sales.Clients.ClientRepository.GetStatusFor"
             }
@@ -891,17 +891,17 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Commons.Money",
               "to": "behavior|Sales.Commons.Money.Zero"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Commons.Money",
               "to": "behavior|Sales.Commons.Money.Of"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Commons.Money",
               "to": "behavior|Sales.Commons.Money.Max"
             }
@@ -947,7 +947,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Commons.Percentage",
               "to": "behavior|Sales.Commons.Percentage.Of"
             }
@@ -1033,12 +1033,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.ExchangeRates.ExchangeRate",
               "to": "behavior|Sales.ExchangeRates.ExchangeRate.Of"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.ExchangeRates.ExchangeRate",
               "to": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn"
             }
@@ -1124,17 +1124,17 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.Factory",
               "to": "behavior|Sales.Orders.Factory.NewWithMaxTotalCostFor"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.Factory",
               "to": "behavior|Sales.Orders.Factory.NewWith"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.Factory",
               "to": "behavior|Sales.Orders.Factory.ImmediatelyPlacedBasedOn"
             }
@@ -1180,27 +1180,27 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.PriceAgreement",
               "to": "behavior|Sales.Orders.PriceAgreement.Non"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.PriceAgreement",
               "to": "behavior|Sales.Orders.PriceAgreement.Temporary"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.PriceAgreement",
               "to": "behavior|Sales.Orders.PriceAgreement.Final"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.PriceAgreement",
               "to": "behavior|Sales.Orders.PriceAgreement.CanChangePrice"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.PriceAgreement",
               "to": "behavior|Sales.Orders.PriceAgreement.IsValidOn"
             }
@@ -1246,12 +1246,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.Repository",
               "to": "behavior|Sales.Orders.Repository.GetBy"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.Repository",
               "to": "behavior|Sales.Orders.Repository.Save"
             }
@@ -1297,22 +1297,22 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.Order",
               "to": "behavior|Sales.Orders.Order.Add"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.Order",
               "to": "behavior|Sales.Orders.Order.ConfirmPrices"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.Order",
               "to": "behavior|Sales.Orders.Order.Place"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.Order",
               "to": "behavior|Sales.Orders.Order.HasSameDataAs"
             }
@@ -1438,7 +1438,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges",
               "to": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices"
             }
@@ -1484,7 +1484,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower",
               "to": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices"
             }
@@ -1530,7 +1530,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies",
               "to": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor"
             }
@@ -1576,7 +1576,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy",
               "to": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices"
             }
@@ -1622,7 +1622,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.CalculatePrices",
               "to": "behavior|Sales.Pricing.CalculatePrices.For"
             }
@@ -1668,7 +1668,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
               "to": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn"
             }
@@ -1714,17 +1714,17 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.Discount",
               "to": "behavior|Sales.Pricing.Discounts.Discount.Percentage"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.Discount",
               "to": "behavior|Sales.Pricing.Discounts.Discount.Value"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.Discount",
               "to": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn"
             }
@@ -1770,7 +1770,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.DiscountsRepository",
               "to": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor"
             }
@@ -1816,12 +1816,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
               "to": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
               "to": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn"
             }
@@ -1867,7 +1867,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.ProductDiscount",
               "to": "behavior|Sales.Pricing.Discounts.ProductDiscount.Of"
             }
@@ -1913,12 +1913,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
               "to": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.Of"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
               "to": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn"
             }
@@ -1964,12 +1964,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.ValueDiscount",
               "to": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Discounts.ValueDiscount",
               "to": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn"
             }
@@ -2015,7 +2015,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.IndividualSalesConditions",
               "to": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn"
             }
@@ -2061,12 +2061,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Offer",
               "to": "behavior|Sales.Pricing.Offer.FromQuotes"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Offer",
               "to": "behavior|Sales.Pricing.Offer.Compare"
             }
@@ -2112,7 +2112,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.OfferModifier",
               "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn"
             }
@@ -2158,7 +2158,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.OfferModifiers",
               "to": "behavior|Sales.Pricing.OfferModifiers.ChooseFor"
             }
@@ -2204,7 +2204,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.OfferRequest",
               "to": "behavior|Sales.Pricing.OfferRequest.For"
             }
@@ -2250,7 +2250,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.PriceLists.BasePrice",
               "to": "behavior|Sales.Pricing.PriceLists.BasePrice.Of"
             }
@@ -2296,12 +2296,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.PriceLists.BasePrices",
               "to": "behavior|Sales.Pricing.PriceLists.BasePrices.Of"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.PriceLists.BasePrices",
               "to": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor"
             }
@@ -2347,12 +2347,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
               "to": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePriceFor"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
               "to": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor"
             }
@@ -2398,12 +2398,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Quote",
               "to": "behavior|Sales.Pricing.Quote.For"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.Quote",
               "to": "behavior|Sales.Pricing.Quote.ChangePrice"
             }
@@ -2449,7 +2449,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.QuoteModifier",
               "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
             }
@@ -2495,12 +2495,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
               "to": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
               "to": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn"
             }
@@ -2546,7 +2546,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer",
               "to": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
             }
@@ -2592,12 +2592,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
               "to": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
               "to": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn"
             }
@@ -2643,7 +2643,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Products.Amount",
               "to": "behavior|Sales.Products.Amount.Of"
             }
@@ -2729,7 +2729,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Products.ProductAmount",
               "to": "behavior|Sales.Products.ProductAmount.Of"
             }
@@ -2775,12 +2775,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Products.ProductId",
               "to": "behavior|Sales.Products.ProductId.New"
             },
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Products.ProductId",
               "to": "behavior|Sales.Products.ProductId.From"
             }
@@ -2826,7 +2826,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_behavior",
+              "kind": "exposes",
               "from": "building_block|Sales.Products.ProductUnit",
               "to": "behavior|Sales.Products.ProductUnit.Of"
             }

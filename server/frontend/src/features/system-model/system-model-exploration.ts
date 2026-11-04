@@ -70,7 +70,7 @@ export function explorationOf(model: SystemModel): Exploration {
   const containerOf = new Map<string, string>();
   for (const element of [...model.modules, ...model.buildingBlocks])
     for (const relation of element.relations)
-      if (relation.kind !== 'implements')
+      if (relation.kind !== 'extends')
         containerOf.set(relation.to, relation.from);
   const container = (id: string) => containerOf.get(id) ?? null;
   const elements: ExploredElement[] = [

@@ -175,7 +175,7 @@ describe('A scanned module', () => {
       ),
     ).toBe(false);
     expect(
-      isValid(withModule({ relations: [contains('implements', ORDER)] })),
+      isValid(withModule({ relations: [contains('extends', ORDER)] })),
     ).toBe(false);
   });
 });
@@ -186,37 +186,37 @@ describe('A scanned building block', () => {
     expect(isValid(withBlock({ type: 'controller' }))).toBe(false);
   });
 
-  it('lists the building blocks it implements and its properties', () => {
-    const implemented = {
-      kind: 'implements',
+  it('lists the building blocks it extends and its properties', () => {
+    const extended = {
+      kind: 'extends',
       from: ORDER,
       to: 'building_block|sales.shared.Auditable',
     };
     const parsed = SystemModel.parse(
       withBlock({
-        relations: [implemented],
+        relations: [extended],
         properties: [{ name: 'total', type: 'primitive|decimal' }],
       }),
     );
     const scanned = parsed.buildingBlocks[0]!;
 
-    expect<unknown>(scanned.relations).toEqual([implemented]);
+    expect<unknown>(scanned.relations).toEqual([extended]);
     expect(scanned.properties.map((p) => p.name)).toEqual(['total']);
     expect(SystemModel.parse(model()).buildingBlocks[0]?.relations).toEqual([]);
   });
 
-  it('contains behaviors and implements building blocks, nothing else', () => {
+  it('exposes behaviors and extends building blocks, nothing else', () => {
     expect(
       isValid(
         withBlock({
-          relations: [{ kind: 'contains_behavior', from: ORDER, to: PLACE }],
+          relations: [{ kind: 'exposes', from: ORDER, to: PLACE }],
         }),
       ),
     ).toBe(true);
     expect(
       isValid(
         withBlock({
-          relations: [{ kind: 'implements', from: ORDER, to: PLACE }],
+          relations: [{ kind: 'extends', from: ORDER, to: PLACE }],
         }),
       ),
     ).toBe(false);
@@ -255,7 +255,7 @@ describe('A scanned behavior', () => {
     expect(
       isValid(
         withBehavior({
-          relations: [{ kind: 'contains_behavior', from: ORDER, to: PLACE }],
+          relations: [{ kind: 'exposes', from: ORDER, to: PLACE }],
         }),
       ),
     ).toBe(false);

@@ -68,14 +68,14 @@ const declared = (name: string, type: BuildingBlockRefInput) => ({
   ...(isReference(type) ? { typePath: refIdOf(type) } : {}),
 });
 
-/** What a block implements, by the targets of its `implements` relations, each opening its row. */
-export const implementedItems = (
+/** What a block extends, by the targets of its `extends` relations, each opening its row. */
+export const extendedItems = (
   set:
     | ChangeSetInput<BuildingBlockRelationInput, BuildingBlockRelationInput>
     | undefined,
 ): ChangeListItem[] =>
   [...changed(set)]
-    .filter(([{ kind }]) => kind === 'implements')
+    .filter(([{ kind }]) => kind === 'extends')
     .map(([{ to }, change]) => ({
       change,
       label: refAddressOf(to),
@@ -83,17 +83,17 @@ export const implementedItems = (
     }));
 
 /**
- * The building blocks the document says implement a type, each by its
- * address and opening its row; one the design stops implementing it is
+ * The building blocks the document says extend a type, each by its
+ * address and opening its row; one the design stops extending it is
  * listed as removed.
  */
-export const implementerItems = (
+export const extenderItems = (
   doc: DesignDocumentInput,
   id: string,
 ): ChangeListItem[] =>
   writtenIn(doc.buildingBlocks).flatMap((block) =>
     [...changed(block.relations)]
-      .filter(([{ kind, to }]) => kind === 'implements' && to === id)
+      .filter(([{ kind, to }]) => kind === 'extends' && to === id)
       .map(([, change]) => ({
         change,
         label: refAddressOf(block.id),

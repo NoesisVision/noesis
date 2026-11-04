@@ -28,21 +28,21 @@ export type ContainsBuildingBlockRelation = z.infer<
   typeof ContainsBuildingBlockRelation
 >;
 
-/** A building block contains a behavior: one of its own. */
-const ContainsBehaviorRelation = z.strictObject({
-  kind: z.literal('contains_behavior'),
+/** A building block exposes a behavior: one of its own public methods. */
+const ExposesRelation = z.strictObject({
+  kind: z.literal('exposes'),
   from: BuildingBlockId,
   to: BehaviorId,
 });
-export type ContainsBehaviorRelation = z.infer<typeof ContainsBehaviorRelation>;
+export type ExposesRelation = z.infer<typeof ExposesRelation>;
 
-/** A building block implements another: that one is among its direct supertypes (R4.4). */
-export const ImplementsRelation = z.strictObject({
-  kind: z.literal('implements'),
+/** A building block extends another: that one is among its direct supertypes (R4.4). */
+export const ExtendsRelation = z.strictObject({
+  kind: z.literal('extends'),
   from: BuildingBlockId,
   to: BuildingBlockId,
 });
-export type ImplementsRelation = z.infer<typeof ImplementsRelation>;
+export type ExtendsRelation = z.infer<typeof ExtendsRelation>;
 
 /** A behavior invokes another, directly or through methods that are no behavior; never itself. */
 const InvokesRelation = z.strictObject({
@@ -63,12 +63,10 @@ export type ModuleRelation =
 
 /** The relations a building block is the source of. */
 export const BuildingBlockRelation = z.discriminatedUnion('kind', [
-  ContainsBehaviorRelation,
-  ImplementsRelation,
+  ExposesRelation,
+  ExtendsRelation,
 ]);
-export type BuildingBlockRelation =
-  | ContainsBehaviorRelation
-  | ImplementsRelation;
+export type BuildingBlockRelation = ExposesRelation | ExtendsRelation;
 
 /** The relations a behavior is the source of. */
 export const BehaviorRelation = z.discriminatedUnion('kind', [InvokesRelation]);
@@ -78,14 +76,20 @@ export type BehaviorRelation = InvokesRelation;
 export const Relation = z.discriminatedUnion('kind', [
   ContainsModuleRelation,
   ContainsBuildingBlockRelation,
-  ContainsBehaviorRelation,
-  ImplementsRelation,
+  ExposesRelation,
+  ExtendsRelation,
   InvokesRelation,
 ]);
 export type Relation =
   | ModuleRelation
   | BuildingBlockRelation
   | BehaviorRelation;
+
+/** Whether a relation places its target under its source: the tree of modules, blocks and behaviors. */
+export const isContainment = (relation: Relation): boolean =>
+  relation.kind === 'contains_module' ||
+  relation.kind === 'contains_building_block' ||
+  relation.kind === 'exposes';
 
 /** The relations an element is the source of: by kind in the order above, then by target; unique. */
 export const relationsOf = <Schema extends z.ZodType<Relation>>(

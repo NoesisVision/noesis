@@ -122,9 +122,10 @@ rules, scenarios. Read it at step 5.
    carries `relations`, the ties it is the source of, each as
    `{ "kind": …, "from": <its own id>, "to": <the other element's id> }`:
    a module `contains_module` and `contains_building_block`, a building
-   block `contains_behavior` and `implements`, a behavior `invokes`. An
+   block `exposes` and `extends`, a behavior `invokes`. An
    element the design adds under another is listed by that one: the parent,
-   `added` or `modified` for it, adds the `contains_…` relation to it, and
+   `added` or `modified` for it, adds the relation that contains it
+   (`contains_module`, `contains_building_block` or `exposes`), and
    the parent of a removed element removes that relation. `relations` have
    no `modified`: a changed relation is removed and added. Needs are only
    ever `added`: no scan holds one, so there is nothing to modify or

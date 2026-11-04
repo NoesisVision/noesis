@@ -10,7 +10,8 @@ import {
 import {
   BehaviorRelation,
   BuildingBlockRelation,
-  ImplementsRelation,
+  ExtendsRelation,
+  isContainment,
   ModuleRelation,
   type Relation,
 } from '#backend/app/system-model/relation';
@@ -224,7 +225,7 @@ export type DesignedScenarioInput = z.input<typeof DesignedScenario>;
 export type ModuleRelationInput = z.input<typeof ModuleRelation>;
 export type BuildingBlockRelationInput = z.input<typeof BuildingBlockRelation>;
 export type BehaviorRelationInput = z.input<typeof BehaviorRelation>;
-export type ImplementsRelationInput = z.input<typeof ImplementsRelation>;
+export type ExtendsRelationInput = z.input<typeof ExtendsRelation>;
 
 type ChangeSet<
   Item extends z.ZodType,
@@ -389,7 +390,7 @@ function uncontainedElements(
         document[collection][kind];
       for (const element of elements)
         for (const relation of element.relations.added)
-          if (relation.kind.startsWith('contains_')) contained.add(relation.to);
+          if (isContainment(relation)) contained.add(relation.to);
     }
   }
   return ELEMENT_COLLECTIONS.flatMap((collection) =>

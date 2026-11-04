@@ -622,7 +622,7 @@ describe('3. scope', () => {
     ]);
     expect<unknown>(
       model.buildingBlocks[0]?.relations
-        .filter(({ kind }) => kind === 'implements')
+        .filter(({ kind }) => kind === 'extends')
         .map(({ to }) => to),
     ).toEqual([]);
     expect<unknown>(
@@ -716,7 +716,7 @@ describe('3. scope', () => {
     ]);
     expect<unknown>(
       model.buildingBlocks[0]?.relations
-        .filter(({ kind }) => kind === 'implements')
+        .filter(({ kind }) => kind === 'extends')
         .map(({ to }) => to),
     ).toEqual([]);
     expect<unknown>(model.buildingBlocks[1]?.properties).toEqual([]);
@@ -847,7 +847,7 @@ describe('4. building blocks', () => {
     expect<unknown>(
       model.buildingBlocks
         .find((b) => b.name === 'OrderRepository')
-        ?.relations.filter(({ kind }) => kind === 'implements')
+        ?.relations.filter(({ kind }) => kind === 'extends')
         .map(({ to }) => to),
     ).toEqual(['building_block|Sales.IRepository', 'building_block|Sales.Zed']);
   });

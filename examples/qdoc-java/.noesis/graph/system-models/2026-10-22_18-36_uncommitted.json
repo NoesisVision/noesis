@@ -221,7 +221,7 @@
       "description": "Port that delivers a notification to a user.",
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|qdocmanagement.notifications.NotificationSender",
           "to": "behavior|qdocmanagement.notifications.NotificationSender.send"
         }
@@ -241,7 +241,7 @@
       "description": "The service the Notifications subsystem offers every other subsystem: takes a request to tell users something and has a notification delivered to each of them.",
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|qdocmanagement.notifications.NotificationService",
           "to": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers"
         }
@@ -471,7 +471,7 @@
       "description": "Gives a new QDoc its document number, and owns the rules by which document numbers are composed, sequenced and kept unique. The format, the sequence and the uniqueness are defined by UC-2.",
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|qdocmanagement.preparation.DocumentNumberGenerator",
           "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next"
         }
@@ -512,12 +512,12 @@
       "description": "Port to the Identity subsystem, or to a directory the organisation runs: answers which roles a user holds and which users hold the quality manager role.",
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|qdocmanagement.preparation.IdentityProvider",
           "to": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers"
         },
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|qdocmanagement.preparation.IdentityProvider",
           "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager"
         }
@@ -570,7 +570,7 @@
       "description": "Port that publishes the events of the Preparation subsystem to the other subsystems.",
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|qdocmanagement.preparation.PreparationEventPublisher",
           "to": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish"
         }
@@ -590,7 +590,7 @@
       "description": "A quality document: a package of files that always works as a whole. Has a title, a document type, a document number and one or more versions; is either active or archived. Invariants: A QDoc keeps at least one version: every QDoc holds at least one version at all times (FR-PRE-010); no operation leaves a QDoc with zero versions.",
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|qdocmanagement.preparation.QDoc",
           "to": "behavior|qdocmanagement.preparation.QDoc.create"
         }
@@ -655,7 +655,7 @@
       "description": "Use cases that create QDocs in the Preparation subsystem.",
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|qdocmanagement.preparation.QDocCreationService",
           "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc"
         }
@@ -696,7 +696,7 @@
       "description": "Stores and loads QDoc aggregates, whole.",
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|qdocmanagement.preparation.QDocRepository",
           "to": "behavior|qdocmanagement.preparation.QDocRepository.save"
         }
@@ -772,7 +772,7 @@
       "description": "A complete, self-contained edition of a QDoc, numbered from 1. Carries the workflow status, the content files and the assignments of people.",
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|qdocmanagement.preparation.Version",
           "to": "behavior|qdocmanagement.preparation.Version.createFirst"
         }

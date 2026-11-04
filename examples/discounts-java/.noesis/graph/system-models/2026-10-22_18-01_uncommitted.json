@@ -191,7 +191,7 @@
       "description": null,
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.calculation.Discount",
           "to": "behavior|discounts.calculation.Discount.apply"
         }
@@ -232,7 +232,7 @@
       "description": null,
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.calculation.DiscountCalculation",
           "to": "behavior|discounts.calculation.DiscountCalculation.calculate"
         }
@@ -337,7 +337,7 @@
       "description": null,
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.calculation.DiscountsConfigProvider",
           "to": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig"
         }
@@ -357,12 +357,12 @@
       "description": null,
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
           "to": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply"
         },
         {
-          "kind": "implements",
+          "kind": "extends",
           "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
           "to": "building_block|discounts.calculation.Discount"
         }
@@ -389,12 +389,12 @@
       "description": null,
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.calculation.FixedDiscount",
           "to": "behavior|discounts.calculation.FixedDiscount.apply"
         },
         {
-          "kind": "implements",
+          "kind": "extends",
           "from": "building_block|discounts.calculation.FixedDiscount",
           "to": "building_block|discounts.calculation.Discount"
         }
@@ -421,12 +421,12 @@
       "description": null,
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.calculation.PotentialDiscount",
           "to": "behavior|discounts.calculation.PotentialDiscount.getDiscount"
         },
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.calculation.PotentialDiscount",
           "to": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor"
         }
@@ -446,17 +446,17 @@
       "description": null,
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
           "to": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount"
         },
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
           "to": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor"
         },
         {
-          "kind": "implements",
+          "kind": "extends",
           "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
           "to": "building_block|discounts.calculation.PotentialDiscount"
         }
@@ -476,12 +476,12 @@
       "description": null,
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.calculation.ProductDiscount",
           "to": "behavior|discounts.calculation.ProductDiscount.apply"
         },
         {
-          "kind": "implements",
+          "kind": "extends",
           "from": "building_block|discounts.calculation.ProductDiscount",
           "to": "building_block|discounts.calculation.Discount"
         }
@@ -578,7 +578,7 @@
       "description": null,
       "relations": [
         {
-          "kind": "contains_behavior",
+          "kind": "exposes",
           "from": "building_block|discounts.users.UserStatusProvider",
           "to": "behavior|discounts.users.UserStatusProvider.getFor"
         }

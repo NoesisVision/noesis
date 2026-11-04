@@ -58,14 +58,14 @@ const document = {
         relations: {
           added: [
             {
-              kind: 'implements',
+              kind: 'extends',
               from: 'building_block|pay.Hold',
               to: 'building_block|pay.Settleable',
             },
           ],
           removed: [
             {
-              kind: 'implements',
+              kind: 'extends',
               from: 'building_block|pay.Hold',
               to: 'building_block|pay.Lockable',
             },
@@ -299,9 +299,9 @@ describe('ElementDetail', () => {
     expect(show('building_block|pay.Hold')).toMatch(/<h2[^>]*>Hold<\/h2>/);
   });
 
-  it('says what a block implements over its definition, flat', () => {
+  it('says what a block extends over its definition, flat', () => {
     const html = show('building_block|pay.Hold');
-    expect(html).toMatch(/<dt[^>]*>(<[^>]+>)*Implements<\/span> <span[^>]*>2</);
+    expect(html).toMatch(/<dt[^>]*>(<[^>]+>)*Extends<\/span> <span[^>]*>2</);
     expect(html).toMatch(/>Lockable<[\s\S]*>Settleable</);
     // Not beside the name any more: the name's line holds only its badges.
     const heading = html.slice(html.indexOf('<h2'), html.indexOf('</header>'));
@@ -312,7 +312,7 @@ describe('ElementDetail', () => {
     expect(html).not.toContain('Group by type');
   });
 
-  it('says what implements a type', () => {
+  it('says what extends a type', () => {
     const type = (name: string) =>
       node({
         path: `building_block|pay.${name}`,
@@ -327,10 +327,10 @@ describe('ElementDetail', () => {
     );
     // Found in the document even for a type the design leaves alone.
     expect(show('building_block|pay.Settleable', withTypes)).toMatch(
-      /Implemented by[\s\S]*<button[^>]*>(<[^>]+>)*Hold</,
+      /Extended by[\s\S]*<button[^>]*>(<[^>]+>)*Hold</,
     );
-    // Nothing implements Hold itself, so it has no such relation.
-    expect(show('building_block|pay.Hold')).not.toContain('Implemented by');
+    // Nothing extends Hold itself, so it has no such relation.
+    expect(show('building_block|pay.Hold')).not.toContain('Extended by');
   });
 
   const block = (name: string, pattern: string) =>
@@ -359,8 +359,8 @@ describe('ElementDetail', () => {
         >
           <ElementRelations
             relations={[
-              { label: 'Implements', items },
-              { label: 'Implemented by', items: [] },
+              { label: 'Extends', items },
+              { label: 'Extended by', items: [] },
             ]}
             tree={tree}
           />

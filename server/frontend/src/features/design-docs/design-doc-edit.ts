@@ -10,7 +10,7 @@ import type {
   DesignedResultInput,
   DesignedRuleInput,
   DesignedScenarioInput,
-  ImplementsRelationInput,
+  ExtendsRelationInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BehaviorType,
@@ -57,7 +57,7 @@ type PartKind =
   | 'property'
   | 'parameter'
   | 'result'
-  | 'implements';
+  | 'extends';
 export type UnitKind = 'need' | ElementKind | PartKind;
 
 /** The element a part is written under, and the rule for a rule's own scenario. */
@@ -69,7 +69,7 @@ export interface PartOwner {
 
 /**
  * A unit by what it is and where it is. A part's `id` is the key its change
- * set knows it by: a name, a result's type, an implemented type's id.
+ * set knows it by: a name, a result's type, an extended type's id.
  */
 export type UnitRef =
   | { kind: 'need' | ElementKind; id: string }
@@ -88,7 +88,7 @@ interface UnitOf {
   property: DesignedPropertyInput;
   parameter: DesignedParameterInput;
   result: DesignedResultInput;
-  implements: ImplementsRelationInput;
+  extends: ExtendsRelationInput;
 }
 export type Unit = UnitOf[UnitKind];
 
@@ -102,7 +102,7 @@ export const UNIT_LABEL: Record<UnitKind, string> = {
   property: 'property',
   parameter: 'input',
   result: 'output',
-  implements: 'implemented type',
+  extends: 'extended type',
 };
 
 const COLLECTION_OF = {
@@ -118,7 +118,7 @@ const PART_SET: Record<PartKind, string> = {
   property: 'properties',
   parameter: 'input',
   result: 'output',
-  implements: 'relations',
+  extends: 'relations',
 };
 
 const ELEMENT_KINDS = ['module', 'building_block', 'behavior'] as const;
@@ -216,7 +216,7 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
     case 'module':
     case 'building_block':
     case 'behavior':
-    case 'implements':
+    case 'extends':
       return nameOf(ref.id);
     case 'result':
       return refLabelOf(refOfKey(ref.id));
@@ -225,13 +225,13 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
   }
 }
 
-/** What a building block implements, as its change set carries it: a relation from the block to the type. */
-function implementsRelation(
+/** What a building block extends, as its change set carries it: a relation from the block to the type. */
+function extendsRelation(
   owner: PartOwner | null,
   to: string,
-): ImplementsRelationInput {
-  if (owner === null) throw new Error('an implemented type has an owner');
-  return { kind: 'implements', from: owner.id, to };
+): ExtendsRelationInput {
+  if (owner === null) throw new Error('an extended type has an owner');
+  return { kind: 'extends', from: owner.id, to };
 }
 
 /** The key a change set knows a result by: its type, as the server reads it. */
@@ -271,8 +271,8 @@ export function applyEdit<Doc extends DesignDocumentInput>(
             ...(set.removed ?? []),
             ref.kind === 'result'
               ? refOfKey(ref.id)
-              : ref.kind === 'implements'
-                ? implementsRelation(ref.owner, ref.id)
+              : ref.kind === 'extends'
+                ? extendsRelation(ref.owner, ref.id)
                 : ref.id,
           ],
         }),
@@ -313,7 +313,7 @@ const isElement = (kind: UnitKind): kind is ElementKind =>
 const CONTAINS = {
   module: 'contains_module',
   building_block: 'contains_building_block',
-  behavior: 'contains_behavior',
+  behavior: 'exposes',
 } as const;
 
 const containsRelation = (parent: string, id: string) => ({
@@ -503,7 +503,7 @@ interface UnitFieldValues {
   rationale: string;
   /** A scenario's steps, in the order they are read. */
   steps: ScenarioStep[];
-  /** A type reference: a property's, an input's, an output's, a block implemented. */
+  /** A type reference: a property's, an input's, an output's, a block extended. */
   ref: BuildingBlockRefInput;
   optional: boolean;
 }
@@ -565,7 +565,7 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
   property: TYPED_PART,
   parameter: TYPED_PART,
   result: [key('ref', 'type'), field('description'), field('optional')],
-  implements: [key('ref', 'to')],
+  extends: [key('ref', 'to')],
 };
 
 /** The types an element may be, as the model spells them. */
@@ -680,7 +680,7 @@ export function idOfDraft(
   const kind = kindOfTarget(target);
   const { name, ref } = draft.fields;
   if (isPart(kind)) {
-    if (kind === 'result' || kind === 'implements')
+    if (kind === 'result' || kind === 'extends')
       return refKeyOf(ref?.value ?? '');
     return name?.value.trim() ?? '';
   }
@@ -706,7 +706,7 @@ export function unitFromDraft(
   id: string,
   owner: PartOwner | null = null,
 ): Unit {
-  if (kind === 'implements') return implementsRelation(owner, id);
+  if (kind === 'extends') return extendsRelation(owner, id);
   const fields = Object.fromEntries(
     UNIT_FIELDS[kind].map((spec) => {
       const fieldDraft = trimmed<unknown>(draft.fields[spec.name]!);

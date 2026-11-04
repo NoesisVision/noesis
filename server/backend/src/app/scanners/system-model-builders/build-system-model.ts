@@ -253,7 +253,7 @@ class ModelAssembly {
           .filter((id) => BuildingBlockId.containing(id) === block.id)
           .sort(byCodeUnit)
           .map((to) => ({
-            kind: 'contains_behavior' as const,
+            kind: 'exposes' as const,
             from: block.id,
             to,
           })),
@@ -264,7 +264,7 @@ class ModelAssembly {
             const id = this.blockIdOf(artifact, ref.type);
             return id === null || id === block.id ? [] : [id];
           }),
-        ).map((to) => ({ kind: 'implements' as const, from: block.id, to })),
+        ).map((to) => ({ kind: 'extends' as const, from: block.id, to })),
       ],
       properties: this.propertiesOf(block),
       rules: [],

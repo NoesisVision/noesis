@@ -145,11 +145,7 @@ export const designDocFixture = {
         diagram: unchanged,
         relations: {
           added: [
-            contains(
-              'contains_behavior',
-              REFUND,
-              'behavior|sales.refunds.Refund.issue',
-            ),
+            contains('exposes', REFUND, 'behavior|sales.refunds.Refund.issue'),
           ],
           removed: [],
         },
@@ -242,7 +238,7 @@ export const designDocFixture = {
         relations: {
           added: [
             {
-              kind: 'implements',
+              kind: 'extends',
               from: REFUND_REPOSITORY,
               to: 'building_block|sales.shared.Repository',
             },

@@ -69,7 +69,7 @@ const addingIssue = (behavior: object) =>
           type: { value: 'aggregate' },
           definition: { value: 'Money back for an order.' },
           relations: {
-            added: [{ kind: 'contains_behavior', from: REFUND, to: ISSUE }],
+            added: [{ kind: 'exposes', from: REFUND, to: ISSUE }],
           },
         },
       ],
@@ -227,14 +227,14 @@ describe('The elements a design changes', () => {
               relations: {
                 added: [
                   {
-                    kind: 'implements',
+                    kind: 'extends',
                     from: REFUND,
                     to: 'building_block|sales.shared.Auditable',
                   },
                 ],
                 removed: [
                   {
-                    kind: 'implements',
+                    kind: 'extends',
                     from: REFUND,
                     to: 'building_block|sales.shared.Legacy',
                   },
@@ -251,14 +251,14 @@ describe('The elements a design changes', () => {
     ).toEqual({
       added: [
         {
-          kind: 'implements',
+          kind: 'extends',
           from: REFUND,
           to: 'building_block|sales.shared.Auditable',
         },
       ],
       removed: [
         {
-          kind: 'implements',
+          kind: 'extends',
           from: REFUND,
           to: 'building_block|sales.shared.Legacy',
         },
@@ -275,7 +275,7 @@ describe('The elements a design changes', () => {
               {
                 id: REFUND,
                 relations: {
-                  modified: [{ kind: 'implements', from: REFUND, to: REFUND }],
+                  modified: [{ kind: 'extends', from: REFUND, to: REFUND }],
                 },
               },
             ],
@@ -496,7 +496,7 @@ describe('A design document an agent wrote', () => {
         id: ORDER,
         name: 'Order',
         type: 'aggregate',
-        relations: [{ kind: 'implements', from: ORDER, to: AUDITABLE }],
+        relations: [{ kind: 'extends', from: ORDER, to: AUDITABLE }],
         properties: [{ name: 'total', type: 'primitive|decimal' }],
         rules: [
           {
@@ -573,7 +573,7 @@ describe('A design document an agent wrote', () => {
             definition: { value: 'Money back.' },
             type: { value: 'aggregate' },
             relations: {
-              removed: [{ kind: 'implements', from: REFUND, to: AUDITABLE }],
+              removed: [{ kind: 'extends', from: REFUND, to: AUDITABLE }],
             },
             properties: { removed: ['legacyFlag'] },
           }),
@@ -637,9 +637,7 @@ describe('A design document an agent wrote', () => {
                 {
                   id: ORDER,
                   relations: {
-                    removed: [
-                      { kind: 'implements', from: ORDER, to: AUDITABLE },
-                    ],
+                    removed: [{ kind: 'extends', from: ORDER, to: AUDITABLE }],
                   },
                   properties: {
                     modified: [

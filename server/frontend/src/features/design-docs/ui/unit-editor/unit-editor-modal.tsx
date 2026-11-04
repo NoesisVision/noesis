@@ -221,7 +221,7 @@ const ICON_KIND: Record<UnitKind, OutlineKind> = {
   property: 'property',
   parameter: 'property',
   result: 'property',
-  implements: 'building_block',
+  extends: 'building_block',
 };
 
 const ownerOf = (target: UnitTarget): PartOwner | null => {
