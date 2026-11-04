@@ -805,6 +805,11 @@
           "changed": true,
           "value": "building_block|discounts.calculation.Discount",
           "author": "agent"
+        },
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
         }
       },
       {
@@ -814,6 +819,11 @@
         "to": {
           "changed": true,
           "value": "building_block|discounts.calculation.DiscountPolicyFactory",
+          "author": "agent"
+        },
+        "cardinality": {
+          "changed": true,
+          "value": "1",
           "author": "agent"
         }
       },
@@ -825,6 +835,11 @@
           "changed": true,
           "value": "building_block|discounts.calculation.PotentialDiscount",
           "author": "agent"
+        },
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
         }
       },
       {
@@ -835,6 +850,11 @@
           "changed": true,
           "value": "building_block|discounts.calculation.DiscountsConfigProvider",
           "author": "agent"
+        },
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
         }
       },
       {
@@ -844,6 +864,11 @@
         "to": {
           "changed": true,
           "value": "building_block|discounts.users.UserStatusProvider",
+          "author": "agent"
+        },
+        "cardinality": {
+          "changed": true,
+          "value": "1",
           "author": "agent"
         }
       },
@@ -905,6 +930,11 @@
           "changed": true,
           "value": "building_block|discounts.calculation.Discount",
           "author": "agent"
+        },
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
         }
       },
       {
@@ -939,6 +969,11 @@
         "to": {
           "changed": true,
           "value": "building_block|discounts.calculation.FixedDiscount",
+          "author": "agent"
+        },
+        "cardinality": {
+          "changed": true,
+          "value": "1",
           "author": "agent"
         }
       },
@@ -1015,7 +1050,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.Discount.apply",
-        "to": "building_block|discounts.calculation.DiscountedOffer",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedOffer",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1065,7 +1105,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
-        "to": "building_block|discounts.calculation.DiscountedOffer",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedOffer",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1095,7 +1140,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions",
-        "to": "building_block|discounts.calculation.Discount",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.Discount",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "0..*",
@@ -1125,7 +1175,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.DiscountPolicyFactory.get",
-        "to": "building_block|discounts.calculation.Discount",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.Discount",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "0..*",
@@ -1155,7 +1210,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.DiscountedOffer.applyDiscount",
-        "to": "building_block|discounts.calculation.DiscountedOffer",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedOffer",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1185,7 +1245,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.DiscountedOffer.createFrom",
-        "to": "building_block|discounts.calculation.DiscountedOffer",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedOffer",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1215,7 +1280,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.DiscountedProduct.applyDiscount",
-        "to": "building_block|discounts.calculation.DiscountedProduct",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedProduct",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1245,7 +1315,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.DiscountedProduct.from",
-        "to": "building_block|discounts.calculation.DiscountedProduct",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedProduct",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1255,7 +1330,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
-        "to": "building_block|discounts.calculation.DiscountConfig",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountConfig",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1285,7 +1365,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
-        "to": "building_block|discounts.calculation.DiscountedOffer",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedOffer",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1315,7 +1400,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.FixedDiscount.apply",
-        "to": "building_block|discounts.calculation.DiscountedOffer",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedOffer",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1325,7 +1415,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.PotentialDiscount.getDiscount",
-        "to": "building_block|discounts.calculation.Discount",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.Discount",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1355,7 +1450,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
-        "to": "primitive|boolean",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "primitive|boolean",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1365,7 +1465,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount",
-        "to": "building_block|discounts.calculation.Discount",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.Discount",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1395,7 +1500,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
-        "to": "primitive|boolean",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "primitive|boolean",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1425,7 +1535,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.ProductDiscount.apply",
-        "to": "building_block|discounts.calculation.DiscountedOffer",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedOffer",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1455,7 +1570,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.users.UserStatusProvider.getFor",
-        "to": "building_block|discounts.users.UserStatus",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.users.UserStatus",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",

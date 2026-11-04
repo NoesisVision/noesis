@@ -85,7 +85,8 @@ const output = (
 ): DesignedRelationInput => ({
   kind: 'has_output',
   from: `behavior|${address}`,
-  to: `building_block|${type}`,
+  name: 'result',
+  to: agent(`building_block|${type}`),
   cardinality: agent(cardinality),
 });
 

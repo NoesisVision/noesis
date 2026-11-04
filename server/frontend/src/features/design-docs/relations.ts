@@ -3,6 +3,11 @@ import type {
   DesignedRelationInput,
   DesignedRelationKeyInput,
 } from '#backend/app/design-docs/design-doc.ts';
+import {
+  NAMED_SLOT_KINDS,
+  type RelationKey,
+  relationKeyOf,
+} from '#backend/app/design-docs/relation-key.ts';
 import type { Cardinality } from '#backend/app/system-model/system-model.ts';
 import type { ChangeSetInput } from './change-set.ts';
 
@@ -39,32 +44,14 @@ export type DesignedInputInput = RelationOf<'has_input'>;
 export type DesignedOutputInput = RelationOf<'has_output'>;
 export type DesignedExtendsInput = RelationOf<'extends'>;
 
-/** A relation as the document writes it, or the key it removes one by. */
-export type RelationLike = {
-  kind: string;
-  from: string;
-  to?: unknown;
-  name?: string;
-  /** A parameter's place in its signature, as a field. */
-  position?: unknown;
-};
+/** A relation as the document writes it, or the key it removes one by; a parameter's place in its signature is a field. */
+export type RelationLike = RelationKey & { position?: unknown };
 
-/** Named slots are unique by their holder and name; every other relation by its ends. */
-const NAMED_SLOTS: ReadonlySet<string> = new Set([
-  'has_state',
-  'has_collaborator',
-  'has_input',
-]);
+export { relationKeyOf };
 
-/** The parts known by their name rather than by what they point at. */
-const isNamedPart = (kind: RelationPartKind) =>
-  NAMED_SLOTS.has(RELATION_KIND_OF[kind]);
-
-/** The key the server knows a relation by: `kind|from|#name` for a named slot, `kind|from|to` otherwise. */
-export const relationKeyOf = (relation: RelationLike): string =>
-  NAMED_SLOTS.has(relation.kind)
-    ? `${relation.kind}|${relation.from}|#${relation.name}`
-    : `${relation.kind}|${relation.from}|${String(relation.to)}`;
+/** The parts known by their name rather than by what they point at: the model's named slots. */
+export const isNamedPart = (kind: RelationPartKind) =>
+  NAMED_SLOT_KINDS.has(RELATION_KIND_OF[kind]);
 
 /** The key a part of an element has as a relation: a named slot by its name, the rest by their target. */
 export const relationKeyOfPart = (
@@ -78,19 +65,22 @@ export const relationKeyOfPart = (
       : { kind: RELATION_KIND_OF[kind], from: owner, to: id },
   );
 
-/** The key a relation part is removed by. */
+/** The key a relation part is removed by: a named slot carries its type too, as the model has it. */
 export const removalKeyOfPart = (
   kind: RelationPartKind,
   owner: string,
   id: string,
+  to: string,
 ): DesignedRelationKeyInput =>
   isNamedPart(kind)
-    ? ({ kind: RELATION_KIND_OF[kind], from: owner, name: id } as KeyOf<
-        'has_state' | 'has_collaborator' | 'has_input'
+    ? ({ kind: RELATION_KIND_OF[kind], from: owner, to, name: id } as KeyOf<
+        'has_state' | 'has_collaborator' | 'has_input' | 'has_output'
       >)
-    : ({ kind: RELATION_KIND_OF[kind], from: owner, to: id } as KeyOf<
-        'has_output' | 'extends'
-      >);
+    : ({
+        kind: RELATION_KIND_OF[kind],
+        from: owner,
+        to: id,
+      } as KeyOf<'extends'>);
 
 type PartsOf = {
   property: ChangeSetInput<DesignedStateInput, KeyOf<'has_state'>>;
@@ -147,7 +137,8 @@ export function relationsTo<Kind extends RelationPartKind>(
   const relationKind = RELATION_KIND_OF[kind];
   const to = <Item extends RelationLike>(items: Item[] | undefined) =>
     (items ?? []).filter(
-      (item) => item.kind === relationKind && item.to === target,
+      (item) =>
+        item.kind === relationKind && 'to' in item && item.to === target,
     );
   return {
     added: to(doc.relations?.added),

@@ -122,15 +122,18 @@ type DrawnRelationEntry = (typeof DRAWN_RELATIONS)[number];
 export type DrawnRelationKind = DrawnRelationEntry['kind'];
 
 /**
- * How one element holds another: a module contains it, a unit ships it, a
- * library provides it, a layer places it, a container hosts it.
+ * How one element holds another: the model's containments, and `exposes`,
+ * by which a block holds its behaviors. Module and block holdings are read
+ * off the ids as well, so a model without the relations still nests.
  */
 export const HOLDING_KINDS = [
-  'contains',
-  'ships',
-  'provides',
-  'places',
-  'hosts',
+  'module_contains_module',
+  'module_contains_block',
+  'exposes',
+  'unit_contains_module',
+  'library_contains_block',
+  'layer_contains_block',
+  'container_contains_unit',
 ] as const;
 type HoldingKind = (typeof HOLDING_KINDS)[number];
 const isHolding = (kind: string): kind is HoldingKind =>
@@ -169,11 +172,13 @@ export const RELATION_WORD = {
   ...(Object.fromEntries(
     DRAWN_RELATIONS.map(({ kind, word }) => [kind, word]),
   ) as Record<DrawnRelationKind, string>),
-  contains: 'contains',
-  ships: 'ships',
-  provides: 'provides',
-  places: 'places',
-  hosts: 'hosts',
+  module_contains_module: 'contains',
+  module_contains_block: 'contains',
+  exposes: 'exposes',
+  unit_contains_module: 'contains',
+  library_contains_block: 'contains',
+  layer_contains_block: 'contains',
+  container_contains_unit: 'contains',
 } as const satisfies Record<EdgeKind, string>;
 
 const DRAWN_OF_MODEL = new Map<string, DrawnRelationKind>(
@@ -263,9 +268,11 @@ export function explorationOf(model: SystemModel): Exploration {
     if (from !== null && from !== to && listed.has(from) && listed.has(to))
       holdings.set(`${from}->${to}`, { kind, from, to });
   };
-  for (const { id } of [...model.modules, ...model.buildingBlocks])
-    hold('contains', moduleOf(id), id);
-  for (const { id } of model.behaviors) hold('contains', blockOf(id), id);
+  for (const { id } of model.modules)
+    hold('module_contains_module', moduleOf(id), id);
+  for (const { id } of model.buildingBlocks)
+    hold('module_contains_block', moduleOf(id), id);
+  for (const { id } of model.behaviors) hold('exposes', blockOf(id), id);
   for (const relation of model.relations)
     if (isHolding(relation.kind))
       hold(relation.kind, relation.from, relation.to);

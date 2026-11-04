@@ -336,7 +336,9 @@ const outputTypesOf = (
   document: DesignDocumentInput,
   behavior: DesignedBehaviorInput,
 ) =>
-  writtenIn(relationsFrom(document, 'result', behavior.id)).map(({ to }) => to);
+  writtenIn(relationsFrom(document, 'result', behavior.id)).map(({ to }) =>
+    valueOf(to),
+  );
 
 const typesOfBehavior = (
   document: DesignDocumentInput,

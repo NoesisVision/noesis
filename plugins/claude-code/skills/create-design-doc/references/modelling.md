@@ -97,7 +97,8 @@ block it points at, never by how the code spells it:
   with a `cardinality`.
 - `has_collaborator`: a block it works with — any other kind: a
   repository, a service, a factory, an integration, an adapter — by the
-  name it holds it under, with no cardinality. A service's collaborators
+  name it holds it under, and how many it holds in `cardinality`, `1` as a
+  rule. A service's collaborators
   are usually what its constructor is handed.
 
 The service refuses a `has_state` to a collaborator kind and a
@@ -142,8 +143,9 @@ Decide what a table stands for before modelling its rows:
   behavior takes it under (`reason`, not `string`), its type in `to`,
   how many it holds in `cardinality` (`1`, `0..1` when it may be left out,
   `0..*` or `1..*` for a collection) and its `position` in the signature,
-  counting from 1. An output is a `has_output` relation:
-  no name, its type in `to` and its cardinality. A block's state is a
+  counting from 1. An output is a `has_output` relation the same way,
+  named `result` (a return value has no name of its own), with its type in
+  `to` and its cardinality. A block's state is a
   `has_state` relation the same way. What a slot means is the definition
   of the block it points at; a relation carries no description.
 - A behavior's `definition` says what it does for the domain, as any
@@ -218,15 +220,15 @@ executable assembly) is a deployable unit, any other a library.
 - Each is named as the build names it, dots and all: `deployable_unit|shop-api`,
   `library|MyCompany.Sales.DeepModel`. Reuse the names in the system model
   verbatim.
-- A deployable unit `contains` modules; a library `contains` building
-  blocks. The service refuses any other pair (`containmentOutsideKinds`).
+- A deployable unit holds modules (`unit_contains_module`); a library holds
+  building blocks (`library_contains_block`). The schema takes no other pair.
 - Add one only when the design changes what ships: a new service or a new
   shared package. A new module or block that ships in an existing unit or
-  library gets a `contains` from it; otherwise leave packaging alone.
+  library gets that relation from it; otherwise leave packaging alone.
 
 ```json
-{ "kind": "contains", "from": "deployable_unit|shop-api", "to": "module|sales.refunds" },
-{ "kind": "contains", "from": "library|MyCompany.Sales", "to": "building_block|sales.refunds.Refund" }
+{ "kind": "unit_contains_module", "from": "deployable_unit|shop-api", "to": "module|sales.refunds" },
+{ "kind": "library_contains_block", "from": "library|MyCompany.Sales", "to": "building_block|sales.refunds.Refund" }
 ```
 
 ## Layers and deployment containers
@@ -235,18 +237,19 @@ How the code is sliced, and where it runs.
 
 - A layer (`layer|domain`, `layer|application`) is named by a `@Layer`
   annotation on a package's `package-info.java`; a block is in the layer of
-  the nearest annotated package above it. A layer `contains` building blocks
-  only. Reuse the layer names the system model has, verbatim; add a layer,
-  or a `contains` from one, only when the design changes the layering. A
+  the nearest annotated package above it. A layer holds building blocks only
+  (`layer_contains_block`). Reuse the layer names the system model has,
+  verbatim; add a layer, or a containment from one, only when the design
+  changes the layering. A
   codebase without the annotation has no layers: leave them out.
 - A deployment container (`deployment_container|Shop cluster`) is where
   deployable units run: a cluster, a server, a serverless platform. No scan
   finds one; author it when the design says where a unit runs, with a
-  `hosts` relation to each unit it runs.
+  `container_contains_unit` relation to each unit it runs.
 
 ```json
-{ "kind": "contains", "from": "layer|domain", "to": "building_block|sales.refunds.Refund" },
-{ "kind": "hosts", "from": "deployment_container|Shop cluster", "to": "deployable_unit|shop-api" }
+{ "kind": "layer_contains_block", "from": "layer|domain", "to": "building_block|sales.refunds.Refund" },
+{ "kind": "container_contains_unit", "from": "deployment_container|Shop cluster", "to": "deployable_unit|shop-api" }
 ```
 
 ## Rules

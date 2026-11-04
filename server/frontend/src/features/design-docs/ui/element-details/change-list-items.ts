@@ -1,7 +1,7 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type { ChangeSetInput } from '../../change-set.ts';
-import { valueOf } from '../../design-doc-field.ts';
+import { type DesignDocFieldInput, valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
 import { needNamesOf } from '../../design-doc-requirements.ts';
 import { addressOf, blockOfRef, nameOf } from '../../element-id.ts';
@@ -106,16 +106,22 @@ export const extenderItems = (
     path: relation.from,
   }));
 
+/** A removed slot's key names its type outright; a designed slot's is a field. */
+type SlotKey = { name: string; to?: string };
+
+/** The type a slot points at: as its key says, as the design writes it, or null where the design leaves it. */
+const typeOf = (
+  to: string | DesignDocFieldInput<string> | undefined,
+): string | null => (typeof to === 'string' ? to : valueOf(to));
+
 /** A named slot — a property, an input — as it would be declared, or by name when the type is kept. */
 function slotItem(
-  slot: DesignedStateInput | DesignedInputInput | { name: string },
+  slot: DesignedStateInput | DesignedInputInput | SlotKey,
   change: OutlineChange,
   path: string | null,
 ): ChangeListItem {
-  if (!('to' in slot))
-    return { change, key: slot.name, label: slot.name, path, name: slot.name };
-  const type = valueOf(slot.to);
-  const cardinality = valueOf(slot.cardinality);
+  const type = typeOf(slot.to);
+  const cardinality = 'cardinality' in slot ? valueOf(slot.cardinality) : null;
   return {
     change,
     key: slot.name,
@@ -139,22 +145,24 @@ export const parameterItems = (
     ([parameter, change]) => slotItem(parameter, change, null),
   );
 
-/** A behavior's results, each by its type, which it opens. */
+/** A behavior's result, keyed by its one name and shown by its type, which it opens; by its name alone when the type is kept. */
 export const resultItems = (
   doc: DesignDocumentInput,
   behaviorId: string,
 ): ChangeListItem[] =>
   [...changed(relationsFrom(doc, 'result', behaviorId))].map(
     ([result, change]) => {
+      const type = typeOf(result.to);
       const cardinality =
         'cardinality' in result ? valueOf(result.cardinality) : null;
-      const type = refAddressOf(result.to);
+      if (type === null)
+        return { change, key: result.name, label: result.name, path: null };
       return {
         change,
-        key: result.to,
-        label: `${type}${cardinalitySuffixOf(cardinality)}`,
-        path: result.to,
-        type,
+        key: result.name,
+        label: `${refAddressOf(type)}${cardinalitySuffixOf(cardinality)}`,
+        path: type,
+        type: refAddressOf(type),
         ...withCardinality(cardinality),
       };
     },
@@ -189,20 +197,22 @@ export const collaboratorItems = (
   );
 
 function collaboratorItem(
-  collaborator: DesignedCollaboratorInput | { name: string },
+  collaborator: DesignedCollaboratorInput | SlotKey,
   change: OutlineChange,
   path: string,
 ): ChangeListItem {
-  const type = 'to' in collaborator ? valueOf(collaborator.to) : null;
+  const type = typeOf(collaborator.to);
+  const cardinality =
+    'cardinality' in collaborator ? valueOf(collaborator.cardinality) : null;
   const { name } = collaborator;
   return type === null
     ? { change, key: name, label: name, path, name }
     : {
         change,
         key: name,
-        label: `${name}: ${refAddressOf(type)}`,
+        label: `${name}: ${refAddressOf(type)}${cardinalitySuffixOf(cardinality)}`,
         path,
-        ...declared(name, type, null),
+        ...declared(name, type, cardinality),
       };
 }
 
@@ -315,19 +325,19 @@ const packagingRelations = (
   doc: DesignDocumentInput,
 ): [{ from: string; to: string }, OutlineChange][] =>
   [...changed(doc.relations)].flatMap(([relation, change]) =>
-    relation.kind === 'ships' ||
-    relation.kind === 'provides' ||
-    relation.kind === 'places'
+    relation.kind === 'unit_contains_module' ||
+    relation.kind === 'library_contains_block' ||
+    relation.kind === 'layer_contains_block'
       ? [[relation, change] as [{ from: string; to: string }, OutlineChange]]
       : [],
   );
 
-/** The `hosts` relations of a design: a deployment container running a deployable unit. */
+/** The `container_contains_unit` relations of a design: a deployment container running a deployable unit. */
 const hostsRelations = (
   doc: DesignDocumentInput,
 ): [{ from: string; to: string }, OutlineChange][] =>
   [...changed(doc.relations)].flatMap(([relation, change]) =>
-    relation.kind === 'hosts'
+    relation.kind === 'container_contains_unit'
       ? [[relation, change] as [{ from: string; to: string }, OutlineChange]]
       : [],
   );

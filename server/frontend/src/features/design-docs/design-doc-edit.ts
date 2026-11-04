@@ -14,10 +14,11 @@ import type {
   DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import type {
-  BuildingBlockKind,
-  RuleKind,
-  ScenarioStep,
+import {
+  type BuildingBlockKind,
+  OUTPUT_NAME,
+  type RuleKind,
+  type ScenarioStep,
 } from '#backend/app/system-model/system-model.ts';
 import { writtenIn } from './change-set.ts';
 import {
@@ -46,6 +47,7 @@ import {
   type RelationLike,
   type RelationPartKind,
   relationKeyOf,
+  isNamedPart,
   relationKeyOfPart,
   relationsFrom,
   removalKeyOfPart,
@@ -88,8 +90,8 @@ export interface PartOwner {
 
 /**
  * A unit by what it is and where it is. A part's `id` is the key its change
- * set knows it by: a rule's or a scenario's id, a name, a result's type, an
- * extended block's id.
+ * set knows it by: a rule's or a scenario's id, a name (a result's is always
+ * 'result'), an extended block's id.
  */
 export type UnitRef =
   | { kind: 'need' | ElementKind | TopLevelKind; id: string }
@@ -222,7 +224,8 @@ export type DesignDocEdit =
   | { op: 'add'; ref: UnitRef; unit: Unit; first?: boolean }
   /** `unit` may carry another key than `ref`: an added unit renamed moves, an element with what is under it. */
   | { op: 'write'; ref: UnitRef; unit: Unit }
-  | { op: Removal; ref: UnitRef }
+  /** `to`: what a named slot removed from the system points at, where the design does not say. */
+  | { op: Removal; ref: UnitRef; to?: string }
   /** An element the design adds, under another parent — or, a module, at the top. */
   | { op: 'move'; ref: UnitRef; to: string | null }
   /** A part the design adds, written into another owner — a scenario into another rule. */
@@ -323,15 +326,17 @@ export function applyEdit<Doc extends DesignDocumentInput>(
       return written(doc, ref, edit.unit);
     case 'discard':
       return discarded(doc, ref);
-    case 'removeFromSystem':
+    case 'removeFromSystem': {
+      const key = removalKeyOf(doc, ref, edit.to);
       return updateAt(
         withoutWithin(discarded(doc, ref), ref.id),
         ref,
         (set) => ({
           ...set,
-          removed: [...(set.removed ?? []), removalKeyOf(ref)],
+          removed: [...(set.removed ?? []), key],
         }),
       );
+    }
     case 'move':
       return renamed(doc, ref.id, movedIdOf(ref, edit.to));
     case 'relocate':
@@ -350,11 +355,52 @@ export function applyEdit<Doc extends DesignDocumentInput>(
   }
 }
 
-/** What a removal writes into the change set: a relation's key, anything else's id or name. */
-const removalKeyOf = (ref: UnitRef): unknown =>
-  isRelationPart(ref.kind) && 'owner' in ref
-    ? removalKeyOfPart(ref.kind, ref.owner.id, ref.id)
-    : ref.id;
+/**
+ * What a removal writes into the change set: a relation's key, anything
+ * else's id or name. A named slot's key carries its type: what the design
+ * writes for it, or, where the design leaves the type alone, what the model
+ * has, given as `to`.
+ */
+function removalKeyOf(
+  doc: DesignDocumentInput,
+  ref: UnitRef,
+  to: string | undefined,
+): unknown {
+  if (!isRelationPart(ref.kind) || !('owner' in ref)) return ref.id;
+  const type = designedTypeOf(doc, ref) ?? to;
+  if (type === undefined)
+    throw new Error(
+      `The type of ${UNIT_LABEL[ref.kind]} ${ref.id} is not known.`,
+    );
+  return removalKeyOfPart(ref.kind, ref.owner.id, ref.id, type);
+}
+
+/** The type the design writes for a relation part; null where it writes none, or leaves it as the model has it. */
+function designedTypeOf(doc: DesignDocumentInput, ref: UnitRef): string | null {
+  const unit = unitOf(doc, ref);
+  if (unit === null || !('to' in unit)) return null;
+  const { to } = unit;
+  if (typeof to === 'string') return to;
+  const value = valueOf(to as DesignDocFieldInput<unknown>);
+  return typeof value === 'string' ? value : null;
+}
+
+/**
+ * The key of the scanned relation an edit needs the type of: a named slot
+ * removed from the system whose type the design leaves as the model has it.
+ * Null for every other edit.
+ */
+export function scannedTypeNeededBy(
+  doc: DesignDocumentInput,
+  edit: DesignDocEdit,
+): string | null {
+  if (edit.op !== 'removeFromSystem' || edit.to !== undefined) return null;
+  const { ref } = edit;
+  if (!isRelationPart(ref.kind) || !('owner' in ref) || !isNamedPart(ref.kind))
+    return null;
+  if (designedTypeOf(doc, ref) !== null) return null;
+  return relationKeyOfPart(ref.kind, ref.owner.id, ref.id);
+}
 
 /**
  * A rule or a scenario added is joined to what it is shown under: a rule
@@ -562,9 +608,9 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
   ],
   scenario: [field('name'), field('description'), field('steps')],
   property: NAMED_SLOT,
-  collaborator: [key('name'), field('ref', 'to')],
+  collaborator: NAMED_SLOT,
   parameter: NAMED_SLOT,
-  result: [key('ref', 'to'), field('cardinality')],
+  result: [field('ref', 'to'), field('cardinality')],
   extends: [key('ref', 'to')],
 };
 
@@ -669,7 +715,7 @@ export function draftOfUnit(
   return { id: kind === 'need' ? (keyOf(unit) ?? '') : '', fields };
 }
 
-/** The id the draft gives its unit: an added element's moves with its name, a part's is its key. */
+/** The id the draft gives its unit: an added element's moves with its name, a part's is its key; a result has the one name. */
 export function idOfDraft(
   doc: DesignDocumentInput,
   target: UnitTarget,
@@ -679,7 +725,8 @@ export function idOfDraft(
   const { name, ref } = draft.fields;
   if (isOwnedPart(kind)) return ownedIdOf(doc, target, kind, name);
   if (isPart(kind)) {
-    if (kind === 'result' || kind === 'extends') return ref?.value ?? '';
+    if (kind === 'extends') return ref?.value ?? '';
+    if (kind === 'result') return OUTPUT_NAME;
     return name?.value.trim() ?? '';
   }
   if (kind === 'need')
@@ -775,21 +822,13 @@ function relationFromDraft(
       trimmed<unknown>(draft.fields[name]!),
       original === null ? undefined : fieldOf(original, prop),
     );
-  if (kind === 'result')
-    return {
-      ...relation,
-      to: id,
-      cardinality: written('cardinality', 'cardinality'),
-    } as Unit;
-  if (kind === 'collaborator')
-    return { ...relation, name: id, to: written('ref', 'to') } as Unit;
   const slot = {
     ...relation,
     name: id,
     to: written('ref', 'to'),
     cardinality: written('cardinality', 'cardinality'),
   };
-  if (kind === 'property') return slot as Unit;
+  if (kind !== 'parameter') return slot as Unit;
   // A parameter keeps the place it has; a new one is placed when it is added.
   return (
     original === null
@@ -994,7 +1033,7 @@ const VIOLATION_MESSAGE: Record<DesignDocViolation['reason'], string> = {
   unknownRelationEnd:
     'Neither this design nor the scanned model has this element.',
   containmentOutsideIdPath:
-    "What holds what is in the ids: a 'contains', an 'exposes' or an 'illustrates' joins an element to the one its id names.",
+    "What holds what is in the ids: a 'module_contains_module', a 'module_contains_block', an 'exposes' or an 'illustrates' joins an element to the one its id names.",
   slotOutsideTypeKind:
     'A value of the domain is held as state, any other block as a collaborator.',
 };
@@ -1262,7 +1301,11 @@ function withoutWithin<Doc extends DesignDocumentInput>(
   const apart = (item: unknown) =>
     !isRelation(item) ||
     (!isWithin(item.from, ancestor) &&
-      !(typeof item.to === 'string' && isWithin(item.to, ancestor)));
+      !(
+        'to' in item &&
+        typeof item.to === 'string' &&
+        isWithin(item.to, ancestor)
+      ));
   const relations = (doc.relations ?? {}) as LooseSet;
   const kept = {
     ...doc,
@@ -1293,7 +1336,9 @@ function withoutUngoverned<Doc extends DesignDocumentInput>(doc: Doc): Doc {
     ((doc.relations ?? {}) as LooseSet).added
       ?.filter(isRelation)
       .flatMap((relation) =>
-        relation.kind === 'governs' && typeof relation.to === 'string'
+        relation.kind === 'governs' &&
+        'to' in relation &&
+        typeof relation.to === 'string'
           ? [relation.to]
           : [],
       ),

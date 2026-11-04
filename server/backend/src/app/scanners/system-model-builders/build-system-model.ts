@@ -13,7 +13,8 @@ import {
   ScenarioId,
 } from '#backend/app/element-id';
 import {
-  Relation,
+  OUTPUT_NAME,
+  type Relation,
   type ScannedActor,
   type ScannedBehavior,
   type ScannedBuildingBlock,
@@ -66,6 +67,7 @@ import {
 } from './code-model-index';
 import type { LibraryManifest } from './library-manifest';
 import type { NamespaceConfig } from './namespace-config';
+import { byRelation } from './relation-order';
 import {
   optionalOf,
   type ResolutionScope,
@@ -236,7 +238,7 @@ class ModelAssembly {
       layers: this.layers(),
       // Never scanned: a design document authors them.
       deploymentContainers: [],
-      relations: this.relations.sort(Relation.compare),
+      relations: this.relations.sort(byRelation),
     };
     return { model, diagnostics: this.diagnostics };
   }
@@ -363,11 +365,11 @@ class ModelAssembly {
     );
   }
 
-  /** The block's element, and its `contains`, `extends`, `has_state` and `has_collaborator` relations. */
+  /** The block's element, and its `module_contains_block`, `extends`, `has_state` and `has_collaborator` relations. */
   private toBuildingBlock(block: Block): ScannedBuildingBlock {
     const { artifact, node } = block;
     this.relations.push({
-      kind: 'contains',
+      kind: 'module_contains_block',
       from: moduleIdOf(block.modulePath),
       to: block.id,
     });
@@ -470,6 +472,7 @@ class ModelAssembly {
               from: block.id,
               to: collaborator,
               name: name.data,
+              cardinality: resolved.cardinality,
             },
       );
     }
@@ -506,8 +509,8 @@ class ModelAssembly {
         const name = ElementName.safeParse(parameter.name);
         if (!name.success || named.has(name.data)) continue;
         const resolved = resolveTypeRef(parameter.type, scope);
-        const collaborator =
-          resolved === null ? null : this.collaboratorOf(resolved.ref);
+        if (resolved === null) continue;
+        const collaborator = this.collaboratorOf(resolved.ref);
         if (collaborator === null) continue;
         named.add(name.data);
         this.relations.push({
@@ -515,6 +518,7 @@ class ModelAssembly {
           from: block.id,
           to: collaborator,
           name: name.data,
+          cardinality: resolved.cardinality,
         });
       }
     }
@@ -799,6 +803,7 @@ class ModelAssembly {
         kind: 'has_output',
         from: id,
         to: returned.ref,
+        name: OUTPUT_NAME,
         cardinality: returned.cardinality,
       });
     }
@@ -1113,7 +1118,11 @@ class ModelAssembly {
         });
         const parent = ModuleId.parentOf(id);
         if (parent !== null) {
-          this.relations.push({ kind: 'contains', from: parent, to: id });
+          this.relations.push({
+            kind: 'module_contains_module',
+            from: parent,
+            to: id,
+          });
         }
       }
     }
@@ -1206,10 +1215,10 @@ class ModelAssembly {
     }
   }
 
-  /** A listed block's element and its module's `contains`; it holds nothing a manifest does not say. */
+  /** A listed block's element and its module's `module_contains_block`; it holds nothing a manifest does not say. */
   private toListedBlock(block: ListedBlock): ScannedBuildingBlock {
     this.relations.push({
-      kind: 'contains',
+      kind: 'module_contains_block',
       from: moduleIdOf(block.modulePath),
       to: block.id,
     });
@@ -1275,7 +1284,11 @@ class ModelAssembly {
           for (const module of sortedUnique(
             declared.map((block) => moduleIdOf(block.modulePath)),
           )) {
-            this.relations.push({ kind: 'ships', from: id, to: module });
+            this.relations.push({
+              kind: 'unit_contains_module',
+              from: id,
+              to: module,
+            });
           }
         }
       } else {
@@ -1283,7 +1296,11 @@ class ModelAssembly {
         if (this.firstWith(id, libraries, artifact.id, source)) {
           libraries.set(id, { id, ...element });
           for (const block of declared) {
-            this.relations.push({ kind: 'provides', from: id, to: block.id });
+            this.relations.push({
+              kind: 'library_contains_block',
+              from: id,
+              to: block.id,
+            });
           }
         }
       }
@@ -1310,7 +1327,11 @@ class ModelAssembly {
         source,
       });
       for (const block of kept) {
-        this.relations.push({ kind: 'provides', from: id, to: block.id });
+        this.relations.push({
+          kind: 'library_contains_block',
+          from: id,
+          to: block.id,
+        });
       }
     }
     return {
@@ -1323,7 +1344,7 @@ class ModelAssembly {
 
   /**
    * R15: one layer per name the layer annotations on packages and
-   * namespaces give, and one `places` to each block from the layer of the
+   * namespaces give, and one `layer_contains_block` to each block from the layer of the
    * nearest annotated namespace at or above the block's. A layer no block
    * is in is no element.
    */
@@ -1379,7 +1400,11 @@ class ModelAssembly {
       const id = namespace === null ? null : nearestLayer(namespace, layerOf);
       if (id === null) continue;
       inLayer.add(id);
-      this.relations.push({ kind: 'places', from: id, to: block.id });
+      this.relations.push({
+        kind: 'layer_contains_block',
+        from: id,
+        to: block.id,
+      });
     }
     for (const layer of layers.values()) {
       if (inLayer.has(layer.id)) continue;

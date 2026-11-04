@@ -2965,7 +2965,12 @@
       {
         "kind": "has_output",
         "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
-        "to": "building_block|qdocmanagement.preparation.QDocId",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDocId",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -3015,7 +3020,12 @@
       {
         "kind": "has_output",
         "from": "behavior|qdocmanagement.preparation.QDoc.create",
-        "to": "building_block|qdocmanagement.preparation.QDocCreated",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.QDocCreated",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -3085,7 +3095,12 @@
       {
         "kind": "has_output",
         "from": "behavior|qdocmanagement.preparation.Version.createFirst",
-        "to": "building_block|qdocmanagement.preparation.Version",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.Version",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -3135,7 +3150,12 @@
       {
         "kind": "has_output",
         "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
-        "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.DocumentNumber",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -3165,7 +3185,12 @@
       {
         "kind": "has_output",
         "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
-        "to": "primitive|boolean",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "primitive|boolean",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -3215,7 +3240,12 @@
       {
         "kind": "has_output",
         "from": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers",
-        "to": "building_block|qdocmanagement.preparation.UserId",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|qdocmanagement.preparation.UserId",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "0..*",

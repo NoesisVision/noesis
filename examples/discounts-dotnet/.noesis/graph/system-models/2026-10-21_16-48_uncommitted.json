@@ -1304,592 +1304,592 @@
   ],
   "relations": [
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Clients.ClientId"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Clients.ClientRepository"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Clients.ClientStatus"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Commons.Currency"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Commons.Money"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Commons.Percentage"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Commons.TaxId"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.ExchangeRates.ExchangeRate"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.ExchangeRates.ExchangeRateProvider"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.AllOrderDetails"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.InvoicingDetails"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.Order"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.Order CreatedFromOffer"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.Order Factory"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.Order Placed"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.Order PriceAgreement"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.Order PricesConfirmed"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.Order ProductAmountAdded"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.Order Repository"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.OrderItemDetails"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.PriceAgreementType"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.CalculatePrices"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.Discounts.Discount"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.Discounts.DiscountsRepository"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.Discounts.PercentageDiscount"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.Discounts.ProductDiscount"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.Discounts.ValueDiscount"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.IndividualSalesConditions"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.Offer"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.OfferModifier"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.OfferModifiers"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.OfferRequest"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.PriceLists.BasePrice"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.PriceLists.BasePrices"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.PriceLists.PriceListRepository"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.Quote"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.QuoteModifier"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Products.Amount"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Products.AmountUnit"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Products.ProductAmount"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Products.ProductId"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Products.ProductUnit"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.SalesChannels.SalesChannel"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|MyCompany.ECommerce.Sales.DeepModel",
       "to": "building_block|Sales.Time.Clock"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales",
       "to": "module|Sales.Clients"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales",
       "to": "module|Sales.Commons"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales",
       "to": "module|Sales.ExchangeRates"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales",
       "to": "module|Sales.Orders"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales",
       "to": "module|Sales.Pricing"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales",
       "to": "module|Sales.Products"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales",
       "to": "module|Sales.SalesChannels"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales",
       "to": "module|Sales.Time"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Clients",
       "to": "building_block|Sales.Clients.ClientId"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Clients",
       "to": "building_block|Sales.Clients.ClientRepository"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Clients",
       "to": "building_block|Sales.Clients.ClientStatus"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Commons",
       "to": "building_block|Sales.Commons.Currency"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Commons",
       "to": "building_block|Sales.Commons.Money"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Commons",
       "to": "building_block|Sales.Commons.Percentage"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Commons",
       "to": "building_block|Sales.Commons.TaxId"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.ExchangeRates",
       "to": "building_block|Sales.ExchangeRates.ExchangeRate"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.ExchangeRates",
       "to": "building_block|Sales.ExchangeRates.ExchangeRateProvider"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.AllOrderDetails"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.InvoicingDetails"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.Order"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.Order CreatedFromOffer"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.Order Factory"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.Order Placed"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.Order PriceAgreement"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.Order PricesConfirmed"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.Order ProductAmountAdded"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.Order Repository"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.OrderItemDetails"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders",
       "to": "building_block|Sales.Orders.PriceAgreementType"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales.Orders",
       "to": "module|Sales.Orders.PriceChanges"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders.PriceChanges",
       "to": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders.PriceChanges",
       "to": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders.PriceChanges",
       "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Orders.PriceChanges",
       "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing",
       "to": "building_block|Sales.Pricing.CalculatePrices"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing",
       "to": "building_block|Sales.Pricing.IndividualSalesConditions"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing",
       "to": "building_block|Sales.Pricing.Offer"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing",
       "to": "building_block|Sales.Pricing.OfferModifier"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing",
       "to": "building_block|Sales.Pricing.OfferModifiers"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing",
       "to": "building_block|Sales.Pricing.OfferRequest"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing",
       "to": "building_block|Sales.Pricing.Quote"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing",
       "to": "building_block|Sales.Pricing.QuoteModifier"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales.Pricing",
       "to": "module|Sales.Pricing.Discounts"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales.Pricing",
       "to": "module|Sales.Pricing.PriceLists"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|Sales.Pricing",
       "to": "module|Sales.Pricing.SpecialOffers"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.Discounts",
       "to": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.Discounts",
       "to": "building_block|Sales.Pricing.Discounts.Discount"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.Discounts",
       "to": "building_block|Sales.Pricing.Discounts.DiscountsRepository"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.Discounts",
       "to": "building_block|Sales.Pricing.Discounts.PercentageDiscount"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.Discounts",
       "to": "building_block|Sales.Pricing.Discounts.ProductDiscount"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.Discounts",
       "to": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.Discounts",
       "to": "building_block|Sales.Pricing.Discounts.ValueDiscount"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.PriceLists",
       "to": "building_block|Sales.Pricing.PriceLists.BasePrice"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.PriceLists",
       "to": "building_block|Sales.Pricing.PriceLists.BasePrices"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.PriceLists",
       "to": "building_block|Sales.Pricing.PriceLists.PriceListRepository"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.SpecialOffers",
       "to": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.SpecialOffers",
       "to": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Pricing.SpecialOffers",
       "to": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Products",
       "to": "building_block|Sales.Products.Amount"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Products",
       "to": "building_block|Sales.Products.AmountUnit"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Products",
       "to": "building_block|Sales.Products.ProductAmount"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Products",
       "to": "building_block|Sales.Products.ProductId"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Products",
       "to": "building_block|Sales.Products.ProductUnit"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.SalesChannels",
       "to": "building_block|Sales.SalesChannels.SalesChannel"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|Sales.Time",
       "to": "building_block|Sales.Time.Clock"
     },
@@ -3014,372 +3014,434 @@
       "kind": "has_output",
       "from": "behavior|Sales.Clients.ClientId.From",
       "to": "building_block|Sales.Clients.ClientId",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Clients.ClientId.New",
       "to": "building_block|Sales.Clients.ClientId",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Clients.ClientRepository.GetStatusFor",
       "to": "building_block|Sales.Clients.ClientStatus",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Commons.Money.Max",
       "to": "building_block|Sales.Commons.Money",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Commons.Money.Of",
       "to": "building_block|Sales.Commons.Money",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Commons.Money.Zero",
       "to": "building_block|Sales.Commons.Money",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Commons.Percentage.Of",
       "to": "building_block|Sales.Commons.Percentage",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn",
       "to": "building_block|Sales.Commons.Money",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.ExchangeRates.ExchangeRate.Of",
       "to": "building_block|Sales.ExchangeRates.ExchangeRate",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor",
       "to": "building_block|Sales.ExchangeRates.ExchangeRate",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order Factory.ImmediatelyPlacedBasedOn",
       "to": "building_block|Sales.Orders.Order",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order Factory.NewWith",
       "to": "building_block|Sales.Orders.Order",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order Factory.NewWithMaxTotalCostFor",
       "to": "building_block|Sales.Orders.Order",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order PriceAgreement.CanChangePrice",
       "to": "primitive|boolean",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order PriceAgreement.Final",
       "to": "building_block|Sales.Orders.Order PriceAgreement",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order PriceAgreement.IsValidOn",
       "to": "primitive|boolean",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order PriceAgreement.Non",
       "to": "building_block|Sales.Orders.Order PriceAgreement",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order PriceAgreement.Temporary",
       "to": "building_block|Sales.Orders.Order PriceAgreement",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order Repository.GetBy",
       "to": "building_block|Sales.Orders.Order",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order.HasSameDataAs",
       "to": "primitive|boolean",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.Order.RestoreFrom",
       "to": "building_block|Sales.Orders.Order",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices",
       "to": "primitive|boolean",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices",
       "to": "primitive|boolean",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor",
       "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
       "to": "primitive|boolean",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.CalculatePrices.For",
       "to": "building_block|Sales.Pricing.Quote",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
       "to": "building_block|Sales.Pricing.Offer",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
       "to": "building_block|Sales.Commons.Money",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
       "to": "building_block|Sales.Pricing.Discounts.Discount",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.Discount.Value",
       "to": "building_block|Sales.Pricing.Discounts.Discount",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor",
       "to": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
       "to": "building_block|Sales.Commons.Money",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of",
       "to": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.ProductDiscount.Of",
       "to": "building_block|Sales.Pricing.Discounts.ProductDiscount",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
       "to": "building_block|Sales.Pricing.Offer",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.Of",
       "to": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
       "to": "building_block|Sales.Commons.Money",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of",
       "to": "building_block|Sales.Pricing.Discounts.ValueDiscount",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
       "to": "building_block|Sales.Pricing.Offer",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Offer.Compare",
       "to": "primitive|boolean",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Offer.FromQuotes",
       "to": "building_block|Sales.Pricing.Offer",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
       "to": "building_block|Sales.Pricing.Offer",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
       "to": "building_block|Sales.Pricing.OfferModifier",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.OfferRequest.For",
       "to": "building_block|Sales.Pricing.OfferRequest",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.PriceLists.BasePrice.Of",
       "to": "building_block|Sales.Pricing.PriceLists.BasePrice",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor",
       "to": "building_block|Sales.Commons.Money",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.PriceLists.BasePrices.Of",
       "to": "building_block|Sales.Pricing.PriceLists.BasePrices",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePriceFor",
       "to": "building_block|Sales.Commons.Money",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor",
       "to": "building_block|Sales.Pricing.PriceLists.BasePrices",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Quote.ChangePrice",
       "to": "building_block|Sales.Pricing.Quote",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.Quote.For",
       "to": "building_block|Sales.Pricing.Quote",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
       "to": "building_block|Sales.Pricing.Quote",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn",
       "to": "building_block|Sales.Pricing.Offer",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or",
       "to": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
       "to": "building_block|Sales.Pricing.Offer",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn",
       "to": "building_block|Sales.Pricing.Offer",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or",
       "to": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Products.Amount.Of",
       "to": "building_block|Sales.Products.Amount",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Products.ProductAmount.Of",
       "to": "building_block|Sales.Products.ProductAmount",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Products.ProductId.From",
       "to": "building_block|Sales.Products.ProductId",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Products.ProductId.New",
       "to": "building_block|Sales.Products.ProductId",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|Sales.Products.ProductUnit.Of",
       "to": "building_block|Sales.Products.ProductUnit",
+      "name": "result",
       "cardinality": "1"
     },
     {

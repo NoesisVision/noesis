@@ -341,17 +341,17 @@
   "relations": {
     "added": [
       {
-        "kind": "ships",
+        "kind": "unit_contains_module",
         "from": "deployable_unit|shop-api",
         "to": "module|sales.refunds"
       },
       {
-        "kind": "hosts",
+        "kind": "container_contains_unit",
         "from": "deployment_container|Shop cluster",
         "to": "deployable_unit|shop-api"
       },
       {
-        "kind": "places",
+        "kind": "layer_contains_block",
         "from": "layer|domain",
         "to": "building_block|sales.refunds.Refund"
       },
@@ -498,7 +498,12 @@
       {
         "kind": "has_output",
         "from": "behavior|sales.refunds.Refund.issue",
-        "to": "building_block|sales.refunds.RefundIssued",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|sales.refunds.RefundIssued",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -540,6 +545,7 @@
       {
         "kind": "has_state",
         "from": "building_block|sales.orders.Order",
+        "to": "primitive|uuid",
         "name": "creditNoteId"
       }
     ],

@@ -64,7 +64,11 @@ function designedRelation(relation: Relation): DesignedRelation {
         cardinality: field(relation.cardinality),
       };
     case 'has_collaborator':
-      return { ...relation, to: field(relation.to) };
+      return {
+        ...relation,
+        to: field(relation.to),
+        cardinality: field(relation.cardinality),
+      };
     case 'has_input':
       return {
         ...relation,
@@ -73,7 +77,11 @@ function designedRelation(relation: Relation): DesignedRelation {
         position: field(relation.position),
       };
     case 'has_output':
-      return { ...relation, cardinality: field(relation.cardinality) };
+      return {
+        ...relation,
+        to: field(relation.to),
+        cardinality: field(relation.cardinality),
+      };
     case 'invokes':
       return { ...relation, order: field(relation.order) };
     default:

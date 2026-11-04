@@ -155,10 +155,10 @@ step 6.
      `description` of a scenario is a change note: `"Change note: "`, then
      what changes and why. An element's `definition` is never one, nor is a
      rule's `description`.
-   - **In the model and retired:** `removed`, by id (a relation by its key:
-     `{ "kind", "from", "name" }` for a `has_state`, `has_collaborator` or
-     `has_input`,
-     `{ "kind", "from", "to" }` for the rest). Remove a building block's
+   - **In the model and retired:** `removed`, by id (a relation by its key,
+     as the model has it: `{ "kind", "from", "to", "name" }` for a `has_state`,
+     `has_collaborator`, `has_input` or `has_output`, `{ "kind", "from", "to" }`
+     for the rest). Remove a building block's
      behaviors and relations with it, and a rule's scenarios and relations
      with the rule.
    - **In the model and unchanged:** left out. A rename of an element in
@@ -215,12 +215,12 @@ step 6.
   - _neither the design nor the scanned model has this element_: an end of
     the relation names an id that is misspelt, not added yet, or renamed
     by this revision. Point it at the element as it is now.
-  - _what holds what is in the ids_: a `contains`, `exposes` or
+  - _what holds what is in the ids_: a module's containment, an `exposes` or an
     `illustrates` disagrees with an id's path. A scenario's id is its
     rule's path and its own name, a behavior's its block's: fix the id, or
     drop the relation.
   - _a deployable unit contains only modules, and a library or a layer
-    only building blocks_: point the `contains` at an element of that kind,
+    only building blocks_: point the containment at an element of that kind,
     or drop it.
   - _the kind of the block a slot points at says which slot it is_: a
     `has_state` points at a block of a collaborator kind, or a

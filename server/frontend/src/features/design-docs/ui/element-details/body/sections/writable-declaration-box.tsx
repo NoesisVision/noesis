@@ -16,8 +16,8 @@ import classes from './declaration-box.module.css';
 /**
  * A declaration — a property, an input, an output — with what may be written
  * of it written in place: its name while the design adds it, as the model
- * knows one it has by its name. An output has no name. Where the design may
- * not be written, the box only reads.
+ * knows one it has by its name. An output's name is always 'result', so it
+ * is not shown. Where the design may not be written, the box only reads.
  */
 export function WritableDeclarationBox({
   item,

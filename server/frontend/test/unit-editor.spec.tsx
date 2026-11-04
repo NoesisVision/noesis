@@ -173,11 +173,11 @@ describe('the fields of a part', () => {
     expect(html).not.toContain('A collection of it');
   });
 
-  it('name a collaborator and the block it works with, with no count', () => {
+  it('name a collaborator, the block it works with and how many of it', () => {
     const html = render(<Fields kind="collaborator" id={null} />);
     expect(html).toMatch(/aria-label="Name"/);
     expect(html).toMatch(/aria-label="Has collaborator"/);
-    expect(html).not.toMatch(/aria-label="How many"/);
+    expect(html).toMatch(/aria-label="How many"/);
   });
 
   it('starts a new scenario at given, when and then, each a step to switch, remove or add one after', () => {

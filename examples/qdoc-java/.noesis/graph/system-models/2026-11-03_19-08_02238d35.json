@@ -1249,417 +1249,417 @@
   "deploymentContainers": [],
   "relations": [
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.Assignment"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.AssignmentRole"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.ContentFile"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.ContentFileId"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.CreateQDoc"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.DocumentNumber"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.DocumentType"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.IdentityProvider"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.QDoc"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.QDocCreated"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.QDocCreationService"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.QDocId"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.QDocRepository"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.QDocStatus"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.QDocTitle"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.UserId"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.Version"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|business",
       "to": "building_block|qdocmanagement.preparation.VersionStatus"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|platform",
       "to": "building_block|qdocmanagement.notifications.Notification"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|platform",
       "to": "building_block|qdocmanagement.notifications.NotificationSender"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|platform",
       "to": "building_block|qdocmanagement.notifications.NotificationService"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|platform",
       "to": "building_block|qdocmanagement.notifications.NotifyUsers"
     },
     {
-      "kind": "places",
+      "kind": "layer_contains_block",
       "from": "layer|platform",
       "to": "building_block|qdocmanagement.notifications.Recipient"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|java.time",
       "to": "building_block|java.time.Clock"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.notifications.Notification"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.notifications.NotificationSender"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.notifications.NotificationService"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.notifications.NotifyUsers"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.notifications.Recipient"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.Assignment"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.AssignmentRole"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.ContentFile"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.ContentFileId"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.CreateQDoc"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.DocumentNumber"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.DocumentType"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.IdentityProvider"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDoc"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocCreated"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocCreationService"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocId"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocRepository"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocStatus"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocTitle"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.UserId"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.Version"
     },
     {
-      "kind": "provides",
+      "kind": "library_contains_block",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.VersionStatus"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|java",
       "to": "module|java.time"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|java.time",
       "to": "building_block|java.time.Clock"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|qdocmanagement",
       "to": "module|qdocmanagement.notifications"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_module",
       "from": "module|qdocmanagement",
       "to": "module|qdocmanagement.preparation"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.notifications",
       "to": "building_block|qdocmanagement.notifications.Notification"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.notifications",
       "to": "building_block|qdocmanagement.notifications.NotificationSender"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.notifications",
       "to": "building_block|qdocmanagement.notifications.NotificationService"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.notifications",
       "to": "building_block|qdocmanagement.notifications.NotifyUsers"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.notifications",
       "to": "building_block|qdocmanagement.notifications.Recipient"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.Assignment"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.AssignmentRole"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.ContentFile"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.ContentFileId"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.CreateQDoc"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.DocumentNumber"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.DocumentType"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.IdentityProvider"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.QDoc"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.QDocCreated"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.QDocCreationService"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.QDocId"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.QDocRepository"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.QDocStatus"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.QDocTitle"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.UserId"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.Version"
     },
     {
-      "kind": "contains",
+      "kind": "module_contains_block",
       "from": "module|qdocmanagement.preparation",
       "to": "building_block|qdocmanagement.preparation.VersionStatus"
     },
@@ -1797,43 +1797,50 @@
       "kind": "has_collaborator",
       "from": "building_block|qdocmanagement.notifications.NotificationService",
       "to": "building_block|qdocmanagement.notifications.NotificationSender",
-      "name": "sender"
+      "name": "sender",
+      "cardinality": "1"
     },
     {
       "kind": "has_collaborator",
       "from": "building_block|qdocmanagement.preparation.QDocCreationService",
       "to": "building_block|java.time.Clock",
-      "name": "clock"
+      "name": "clock",
+      "cardinality": "1"
     },
     {
       "kind": "has_collaborator",
       "from": "building_block|qdocmanagement.preparation.QDocCreationService",
       "to": "building_block|qdocmanagement.notifications.NotificationService",
-      "name": "notifications"
+      "name": "notifications",
+      "cardinality": "1"
     },
     {
       "kind": "has_collaborator",
       "from": "building_block|qdocmanagement.preparation.QDocCreationService",
       "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator",
-      "name": "documentNumbers"
+      "name": "documentNumbers",
+      "cardinality": "1"
     },
     {
       "kind": "has_collaborator",
       "from": "building_block|qdocmanagement.preparation.QDocCreationService",
       "to": "building_block|qdocmanagement.preparation.IdentityProvider",
-      "name": "identities"
+      "name": "identities",
+      "cardinality": "1"
     },
     {
       "kind": "has_collaborator",
       "from": "building_block|qdocmanagement.preparation.QDocCreationService",
       "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher",
-      "name": "events"
+      "name": "events",
+      "cardinality": "1"
     },
     {
       "kind": "has_collaborator",
       "from": "building_block|qdocmanagement.preparation.QDocCreationService",
       "to": "building_block|qdocmanagement.preparation.QDocRepository",
-      "name": "qdocs"
+      "name": "qdocs",
+      "cardinality": "1"
     },
     {
       "kind": "has_input",
@@ -1943,36 +1950,42 @@
       "kind": "has_output",
       "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
       "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers",
       "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "result",
       "cardinality": "0..*"
     },
     {
       "kind": "has_output",
       "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
       "to": "primitive|boolean",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|qdocmanagement.preparation.QDoc.create",
       "to": "building_block|qdocmanagement.preparation.QDoc",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
       "to": "building_block|qdocmanagement.preparation.QDocId",
+      "name": "result",
       "cardinality": "1"
     },
     {
       "kind": "has_output",
       "from": "behavior|qdocmanagement.preparation.Version.createFirst",
       "to": "building_block|qdocmanagement.preparation.Version",
+      "name": "result",
       "cardinality": "1"
     },
     {

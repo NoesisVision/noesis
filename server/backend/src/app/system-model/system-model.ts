@@ -59,12 +59,15 @@ const ScannedRelation = z.strictObject({
   to: z.string(),
 });
 
+/** What a behavior's output is named: the code gives a return value no name of its own. */
+export const OUTPUT_NAME = 'result';
+
 /* The elements, in the order the model lists them. */
 
 export const ScannedDomainModule = ScannedElement.extend({
   id: ModuleId,
 }).describe(
-  "A module: a package or namespace of the code that groups building blocks and other modules; 'contains' relations name what is in it.",
+  "A module: a package or namespace of the code that groups building blocks and other modules; 'module_contains_module' relations name the modules in it, 'module_contains_block' relations the blocks.",
 );
 export type ScannedDomainModule = z.infer<typeof ScannedDomainModule>;
 
@@ -172,7 +175,7 @@ export const ScannedDeployableUnit = ScannedElement.extend({
   id: DeployableUnitId,
   name: ArtifactName,
 }).describe(
-  "Something built and shipped as one piece: an executable artifact of the build (a service, a runnable JAR, an executable assembly), named as the build names it; its 'ships' relations name the modules in it.",
+  "Something built and shipped as one piece: an executable artifact of the build (a service, a runnable JAR, an executable assembly), named as the build names it; its 'unit_contains_module' relations name the modules in it.",
 );
 export type ScannedDeployableUnit = z.infer<typeof ScannedDeployableUnit>;
 
@@ -180,19 +183,19 @@ export const ScannedLibrary = ScannedElement.extend({
   id: LibraryId,
   name: ArtifactName,
 }).describe(
-  "A reusable package of building blocks: an artifact of the build that is no executable, named as the build names it; its 'provides' relations name the blocks in it.",
+  "A reusable package of building blocks: an artifact of the build that is no executable, named as the build names it; its 'library_contains_block' relations name the blocks in it.",
 );
 export type ScannedLibrary = z.infer<typeof ScannedLibrary>;
 
 export const ScannedLayer = ScannedElement.extend({ id: LayerId }).describe(
-  "A horizontal slice of the code (domain, application, infrastructure, …): named by a layer annotation on a package or namespace, found on the first package by path that names it; its 'places' relations name the blocks in it.",
+  "A horizontal slice of the code (domain, application, infrastructure, …): named by a layer annotation on a package or namespace, found on the first package by path that names it; its 'layer_contains_block' relations name the blocks in it.",
 );
 export type ScannedLayer = z.infer<typeof ScannedLayer>;
 
 export const ScannedDeploymentContainer = ScannedElement.extend({
   id: DeploymentContainerId,
 }).describe(
-  "Where deployable units run: a cluster, a server, a serverless platform; 'hosts' relations name the units on it; found in the infrastructure-as-code file that declares it.",
+  "Where deployable units run: a cluster, a server, a serverless platform; 'container_contains_unit' relations name the units on it; found in the infrastructure-as-code file that declares it.",
 );
 
 /* What types a slot — a piece of state, an input, an output — and how many values it holds. */
@@ -236,32 +239,51 @@ export const Cardinality = z
   );
 export type Cardinality = z.infer<typeof Cardinality>;
 
+/**
+ * A named slot: a relation its holder may have several of to one type, so
+ * it is one of a kind by its holder and `name`, never by `to`, and holds
+ * `cardinality` of what it points at. A design may then change what it
+ * points at, and how many, in place.
+ */
+const NamedSlotRelation = ScannedRelation.extend({
+  name: ElementName,
+  cardinality: Cardinality,
+});
+
 /* The relations, one schema a kind, then their union. */
 
-export const ContainsRelation = ScannedRelation.extend({
-  kind: z.literal('contains'),
+export const ModuleContainsModuleRelation = ScannedRelation.extend({
+  kind: z.literal('module_contains_module'),
   from: ModuleId,
-  to: z.union([ModuleId, BuildingBlockId]),
+  to: ModuleId,
 }).describe(
-  "A module holds a module or a building block, `to`'s id path being `from`'s path and its own name.",
+  "A module holds a module, `to`'s id path being `from`'s path and its own name.",
 );
 
-export const ShipsRelation = ScannedRelation.extend({
-  kind: z.literal('ships'),
+export const ModuleContainsBlockRelation = ScannedRelation.extend({
+  kind: z.literal('module_contains_block'),
+  from: ModuleId,
+  to: BuildingBlockId,
+}).describe(
+  "A module declares a building block, `to`'s id path being `from`'s path and its own name.",
+);
+
+export const UnitContainsModuleRelation = ScannedRelation.extend({
+  kind: z.literal('unit_contains_module'),
   from: DeployableUnitId,
   to: ModuleId,
 }).describe('A deployable unit ships a module: the module is built into it.');
 
-export const ProvidesRelation = ScannedRelation.extend({
-  kind: z.literal('provides'),
+export const LibraryContainsBlockRelation = ScannedRelation.extend({
+  kind: z.literal('library_contains_block'),
   from: LibraryId,
   to: BuildingBlockId,
 }).describe(
   'A library provides a building block: the block is packaged in it.',
 );
 
-export const PlacesRelation = ScannedRelation.extend({
-  kind: z.literal('places'),
+export const LayerContainsBlockRelation = ScannedRelation.extend({
+  kind: z.literal('layer_contains_block'),
   from: LayerId,
   to: BuildingBlockId,
 }).describe(
@@ -274,23 +296,20 @@ export const ExtendsRelation = ScannedRelation.extend({
   to: BuildingBlockId,
 }).describe('A building block extends or implements another.');
 
-export const HasStateRelation = ScannedRelation.extend({
+export const HasStateRelation = NamedSlotRelation.extend({
   kind: z.literal('has_state'),
   from: BuildingBlockId,
   to: TypeId,
-  name: ElementName,
-  cardinality: Cardinality,
 }).describe(
   "A building block's piece of state: a field or property named `name`, typed by `to` (a primitive, or a block whose kind is a value of the domain), holding `cardinality` values.",
 );
 
-export const HasCollaboratorRelation = ScannedRelation.extend({
+export const HasCollaboratorRelation = NamedSlotRelation.extend({
   kind: z.literal('has_collaborator'),
   from: BuildingBlockId,
   to: BuildingBlockId,
-  name: ElementName,
 }).describe(
-  'A building block works with another it holds, named `name`: a repository, a service, an integration or an adapter, by the kind of `to`. A value of the domain it holds is its state (`has_state`) instead.',
+  'A building block works with another it holds, named `name` and holding `cardinality` of it: a repository, a service, an integration or an adapter, by the kind of `to`. A value of the domain it holds is its state (`has_state`) instead.',
 );
 
 export const ExposesRelation = ScannedRelation.extend({
@@ -301,12 +320,10 @@ export const ExposesRelation = ScannedRelation.extend({
   "A building block exposes a behavior; the behavior's id path is the block's path and its own name.",
 );
 
-export const HasInputRelation = ScannedRelation.extend({
+export const HasInputRelation = NamedSlotRelation.extend({
   kind: z.literal('has_input'),
   from: BehaviorId,
   to: TypeId,
-  name: ElementName,
-  cardinality: Cardinality,
   position: z
     .int()
     .min(1)
@@ -317,13 +334,17 @@ export const HasInputRelation = ScannedRelation.extend({
   'A parameter of a behavior: named `name`, typed by `to`, holding `cardinality` values, the `position`th of its signature.',
 );
 
-export const HasOutputRelation = ScannedRelation.extend({
+export const HasOutputRelation = NamedSlotRelation.extend({
   kind: z.literal('has_output'),
   from: BehaviorId,
   to: TypeId,
-  cardinality: Cardinality,
+  name: z
+    .literal(OUTPUT_NAME)
+    .describe(
+      "Always 'result': a return value has no name of its own, and the slot is known by it so its type may change in place.",
+    ),
 }).describe(
-  'What a behavior gives back: typed by `to`, holding `cardinality` values; a behavior has at most one.',
+  "What a behavior gives back: the slot named 'result', typed by `to`, holding `cardinality` values; a behavior has at most one.",
 );
 
 export const InvokesRelation = ScannedRelation.extend({
@@ -362,17 +383,18 @@ export const PerformsRelation = ScannedRelation.extend({
   to: ManualProcessId,
 }).describe('An actor carries out a manual process.');
 
-export const HostsRelation = ScannedRelation.extend({
-  kind: z.literal('hosts'),
+export const ContainerContainsUnitRelation = ScannedRelation.extend({
+  kind: z.literal('container_contains_unit'),
   from: DeploymentContainerId,
   to: DeployableUnitId,
 }).describe('A deployment container runs a deployable unit.');
 
-const relationSchema = z.discriminatedUnion('kind', [
-  ContainsRelation,
-  ShipsRelation,
-  ProvidesRelation,
-  PlacesRelation,
+export const Relation = z.discriminatedUnion('kind', [
+  ModuleContainsModuleRelation,
+  ModuleContainsBlockRelation,
+  UnitContainsModuleRelation,
+  LibraryContainsBlockRelation,
+  LayerContainsBlockRelation,
   ExtendsRelation,
   HasStateRelation,
   HasCollaboratorRelation,
@@ -383,52 +405,10 @@ const relationSchema = z.discriminatedUnion('kind', [
   GovernsRelation,
   IllustratesRelation,
   PerformsRelation,
-  HostsRelation,
+  ContainerContainsUnitRelation,
 ]);
 
-export type Relation = z.infer<typeof relationSchema>;
-
-/** What makes a relation one of a kind: its ends, or, for a named slot, its holder and name; a designed slot's `to` is a field. */
-export interface RelationKey {
-  readonly kind: string;
-  readonly from: string;
-  readonly to?: unknown;
-  readonly name?: string;
-}
-
-/** Relation kinds a holder may have several of to one type: unique by name, not by `to`. */
-const NAMED_SLOTS: ReadonlySet<string> = new Set([
-  'has_state',
-  'has_collaborator',
-  'has_input',
-]);
-
-export const Relation = Object.assign(relationSchema, {
-  /** The key a relation is unique by: `(kind, from, to)`, or `(kind, from, name)` for a named slot. */
-  keyOf: (relation: RelationKey): string =>
-    NAMED_SLOTS.has(relation.kind)
-      ? `${relation.kind}|${relation.from}|#${relation.name}`
-      : `${relation.kind}|${relation.from}|${String(relation.to)}`,
-  /** Sorted by kind, from, position, to, then name or order, so two builds give one file and a signature reads in its order. */
-  compare: (a: Relation, b: Relation): number =>
-    byCodeUnit(a.kind, b.kind) ||
-    byCodeUnit(a.from, b.from) ||
-    positionOf(a) - positionOf(b) ||
-    byCodeUnit(a.to, b.to) ||
-    byCodeUnit(nameOf(a), nameOf(b)) ||
-    orderOf(a) - orderOf(b),
-});
-
-const nameOf = (relation: Relation) =>
-  'name' in relation ? relation.name : '';
-
-const orderOf = (relation: Relation) =>
-  'order' in relation ? relation.order : 0;
-
-const positionOf = (relation: Relation) =>
-  'position' in relation ? relation.position : 0;
-
-const byCodeUnit = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
+export type Relation = z.infer<typeof Relation>;
 
 export const SystemModel = z
   .strictObject({
@@ -454,7 +434,7 @@ export const SystemModel = z
     libraries: z.array(ScannedLibrary).default([]),
     layers: z.array(ScannedLayer).default([]),
     deploymentContainers: z.array(ScannedDeploymentContainer).default([]),
-    relations: z.array(relationSchema).default([]),
+    relations: z.array(Relation).default([]),
   })
   .describe(
     'The implemented model as one scan found it: graph/system-models/YYYY-MM-DD_HH-MM_<commit>.json, the scan minute in UTC. Every scan is kept, except that one in the same minute on the same commit replaces the one before; the highest id is the newest.',

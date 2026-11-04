@@ -2,8 +2,6 @@ import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import {
   PrimitiveId,
-  Relation,
-  type RelationKey,
   ScannedScenario,
   SystemModel,
   TypeId,
@@ -271,15 +269,19 @@ describe('A deployable unit and a library', () => {
           deployableUnits: [unit],
           libraries: [library],
           relations: [
-            { kind: 'ships', from: unit.id, to: ORDERS },
-            { kind: 'provides', from: library.id, to: ORDER },
+            { kind: 'unit_contains_module', from: unit.id, to: ORDERS },
+            { kind: 'library_contains_block', from: library.id, to: ORDER },
           ],
         }),
       ),
     ).toBe(true);
     expect(
       isValid(
-        model({ relations: [{ kind: 'ships', from: unit.id, to: PLACE }] }),
+        model({
+          relations: [
+            { kind: 'unit_contains_module', from: unit.id, to: PLACE },
+          ],
+        }),
       ),
     ).toBe(false);
   });
@@ -323,8 +325,12 @@ describe('A layer and a deployment container', () => {
           deploymentContainers: [container],
           deployableUnits: [unit],
           relations: [
-            { kind: 'places', from: layer.id, to: ORDER },
-            { kind: 'hosts', from: container.id, to: unit.id },
+            { kind: 'layer_contains_block', from: layer.id, to: ORDER },
+            {
+              kind: 'container_contains_unit',
+              from: container.id,
+              to: unit.id,
+            },
           ],
         }),
       ),
@@ -332,20 +338,31 @@ describe('A layer and a deployment container', () => {
     expect(
       isValid(
         model({
-          relations: [{ kind: 'hosts', from: container.id, to: ORDERS }],
+          relations: [
+            { kind: 'container_contains_unit', from: container.id, to: ORDERS },
+          ],
         }),
       ),
     ).toBe(false);
     expect(
       isValid(
-        model({ relations: [{ kind: 'hosts', from: layer.id, to: unit.id }] }),
+        model({
+          relations: [
+            { kind: 'container_contains_unit', from: layer.id, to: unit.id },
+          ],
+        }),
       ),
     ).toBe(false);
   });
 });
 
 describe('A relation', () => {
-  const contains = { kind: 'contains', from: ORDERS, to: ORDER };
+  const contains = {
+    kind: 'module_contains_module',
+    from: 'module|sales',
+    to: ORDERS,
+  };
+  const declares = { kind: 'module_contains_block', from: ORDERS, to: ORDER };
   const state = {
     kind: 'has_state',
     from: ORDER,
@@ -365,6 +382,7 @@ describe('A relation', () => {
     kind: 'has_output',
     from: PLACE,
     to: ORDER,
+    name: 'result',
     cardinality: '1',
   };
   const invokes = { kind: 'invokes', from: CANCEL, to: PLACE, order: 1 };
@@ -373,6 +391,7 @@ describe('A relation', () => {
     from: ORDER,
     to: 'building_block|sales.orders.Orders',
     name: 'orders',
+    cardinality: '1',
   };
 
   it('is one of the known kinds, between elements of the kinds it allows', () => {
@@ -380,7 +399,7 @@ describe('A relation', () => {
       isValid(
         withRelations([
           contains,
-          { kind: 'contains', from: 'module|sales', to: ORDERS },
+          declares,
           { kind: 'extends', from: ORDER, to: 'building_block|sales.Base' },
           state,
           collaborator,
@@ -429,13 +448,17 @@ describe('A relation', () => {
       false,
     );
     expect(isValid(withRelations([{ ...contains, name: 'x' }]))).toBe(false);
-    expect(isValid(withRelations([{ ...output, name: 'result' }]))).toBe(false);
+    expect(isValid(withRelations([{ ...output, name: 'value' }]))).toBe(false);
+    expect(isValid(withRelations([{ ...output, name: undefined }]))).toBe(
+      false,
+    );
     expect(isValid(withRelations([{ ...invokes, cardinality: '1' }]))).toBe(
       false,
     );
     expect(
-      isValid(withRelations([{ ...collaborator, cardinality: '1' }])),
+      isValid(withRelations([{ ...collaborator, cardinality: undefined }])),
     ).toBe(false);
+    expect(isValid(withRelations([{ ...collaborator, order: 1 }]))).toBe(false);
   });
 
   it('types a slot by a building block or a primitive, never by a wrapper', () => {
@@ -481,60 +504,6 @@ describe('A relation', () => {
     expect(isValid(withRelations([{ ...invokes, order: undefined }]))).toBe(
       false,
     );
-  });
-
-  it('is unique by its kind and ends, or, for a named slot, by its holder and name', () => {
-    expect(Relation.keyOf(contains)).toBe(Relation.keyOf({ ...contains }));
-    expect(Relation.keyOf(state)).toBe(
-      Relation.keyOf({ ...state, to: 'primitive|integer' }),
-    );
-    expect(Relation.keyOf(collaborator)).toBe(
-      Relation.keyOf({ ...collaborator, to: 'building_block|sales.Archive' }),
-    );
-    expect(Relation.keyOf(state)).not.toBe(
-      Relation.keyOf({ ...state, name: 'count' }),
-    );
-    expect(Relation.keyOf(input)).toBe(
-      Relation.keyOf({
-        ...input,
-        cardinality: '0..1',
-      } as object as RelationKey),
-    );
-    expect(Relation.keyOf(output)).not.toBe(
-      Relation.keyOf({ ...output, to: 'primitive|boolean' }),
-    );
-    expect(Relation.keyOf(invokes)).toBe(
-      Relation.keyOf({ ...invokes, order: 3 } as object as RelationKey),
-    );
-    expect(Relation.keyOf({ ...state, kind: 'has_input' })).not.toBe(
-      Relation.keyOf(state),
-    );
-  });
-
-  it('sorts by kind, holder, target, then name or order, so two builds give one file', () => {
-    const parsed = SystemModel.parse(
-      withRelations([
-        { ...invokes, to: 'behavior|sales.orders.Order.ship', order: 2 },
-        invokes,
-        { ...state, name: 'count', to: 'primitive|integer' },
-        { ...state, name: 'weight', to: 'primitive|decimal' },
-        state,
-        contains,
-      ]),
-    );
-
-    expect(
-      [...parsed.relations]
-        .sort(Relation.compare)
-        .map((r) => [r.kind, r.to, 'name' in r ? r.name : '']),
-    ).toEqual([
-      ['contains', ORDER, ''],
-      ['has_state', 'primitive|decimal', 'total'],
-      ['has_state', 'primitive|decimal', 'weight'],
-      ['has_state', 'primitive|integer', 'count'],
-      ['invokes', PLACE, ''],
-      ['invokes', 'behavior|sales.orders.Order.ship', ''],
-    ]);
   });
 });
 

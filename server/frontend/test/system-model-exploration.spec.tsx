@@ -87,14 +87,18 @@ const model = {
     },
   ],
   relations: [
-    { kind: 'contains', from: 'module|shop', to: 'module|shop.orders' },
     {
-      kind: 'contains',
+      kind: 'module_contains_module',
+      from: 'module|shop',
+      to: 'module|shop.orders',
+    },
+    {
+      kind: 'module_contains_block',
       from: 'module|shop.orders',
       to: 'building_block|shop.orders.Order',
     },
     {
-      kind: 'contains',
+      kind: 'module_contains_block',
       from: 'module|shop.orders',
       to: 'building_block|shop.orders.Line',
     },
@@ -336,7 +340,7 @@ describe('layers, libraries, units and containers', () => {
   });
   const holds = (from: string, ...blocks: string[]) =>
     blocks.map((name) => ({
-      kind: 'places',
+      kind: 'layer_contains_block',
       from,
       to: `building_block|shop.${name}`,
     }));
@@ -378,11 +382,15 @@ describe('layers, libraries, units and containers', () => {
     const found = relating(
       [
         {
-          kind: 'hosts',
+          kind: 'container_contains_unit',
           from: 'deployment_container|k8s',
           to: 'deployable_unit|app',
         },
-        { kind: 'ships', from: 'deployable_unit|app', to: 'module|shop' },
+        {
+          kind: 'unit_contains_module',
+          from: 'deployable_unit|app',
+          to: 'module|shop',
+        },
       ],
       {
         deploymentContainers: [
@@ -427,9 +435,13 @@ describe('layers, libraries, units and containers', () => {
   it('draws what holds an element it is not drawn round as an edge, with containment shown', () => {
     const found = relating(
       [
-        { kind: 'contains', from: 'module|shop', to: 'module|shop.billing' },
         {
-          kind: 'contains',
+          kind: 'module_contains_module',
+          from: 'module|shop',
+          to: 'module|shop.billing',
+        },
+        {
+          kind: 'module_contains_block',
           from: 'module|shop.billing',
           to: 'building_block|shop.billing.Invoice',
         },
@@ -474,7 +486,7 @@ describe('layers, libraries, units and containers', () => {
         relations: new Set(relations),
       }).relations.map(({ id }) => id);
     expect(shown(['contains'])).toEqual([
-      'places:layer|domain->building_block|shop.orders.Order',
+      'layer_contains_block:layer|domain->building_block|shop.orders.Order',
     ]);
     expect(shown([])).toEqual([]);
     // The layer's card offers every block it holds, drawn round it or not.

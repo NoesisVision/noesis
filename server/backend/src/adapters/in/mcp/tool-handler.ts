@@ -88,7 +88,7 @@ const FIXES: Record<DesignDocViolation['reason'], string> = {
   unknownRelationEnd:
     'neither the design nor the scanned model has this element; add it to the design, or point the relation at an element that exists',
   containmentOutsideIdPath:
-    "what holds what is in the ids: a 'contains', an 'exposes' or an 'illustrates' joins an element to the one its id path names; fix the id or drop the relation",
+    "what holds what is in the ids: a 'module_contains_module', a 'module_contains_block', an 'exposes' or an 'illustrates' joins an element to the one its id path names; fix the id or drop the relation",
   slotOutsideTypeKind:
     "the kind of the block a slot points at says which slot it is: a primitive or a value of the domain (aggregate, entity, value object, event, command, query) is 'has_state', any other block 'has_collaborator'; change the relation's kind",
 };

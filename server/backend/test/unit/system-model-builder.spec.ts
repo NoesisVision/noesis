@@ -1088,8 +1088,6 @@ describe('5. state', () => {
         .property('P:Sales.Orders.Order.Total', prim('decimal')),
     ]);
     expect<unknown>(model.relations).toEqual([
-      { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Orders' },
-      { kind: 'contains', from: 'module|Sales.Orders', to: ORDER },
       {
         kind: 'has_state',
         from: ORDER,
@@ -1097,7 +1095,13 @@ describe('5. state', () => {
         name: 'Total',
         cardinality: '1',
       },
-      { kind: 'provides', from: 'library|Sales', to: ORDER },
+      { kind: 'library_contains_block', from: 'library|Sales', to: ORDER },
+      { kind: 'module_contains_block', from: 'module|Sales.Orders', to: ORDER },
+      {
+        kind: 'module_contains_module',
+        from: 'module|Sales',
+        to: 'module|Sales.Orders',
+      },
     ]);
   });
 
@@ -1499,9 +1503,13 @@ describe('6. modules', () => {
       'module|Sales.Orders',
     ]);
     expect<unknown>(model.relations).toEqual([
-      { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Orders' },
-      { kind: 'contains', from: 'module|Sales.Orders', to: ORDER },
-      { kind: 'provides', from: 'library|Sales', to: ORDER },
+      { kind: 'library_contains_block', from: 'library|Sales', to: ORDER },
+      { kind: 'module_contains_block', from: 'module|Sales.Orders', to: ORDER },
+      {
+        kind: 'module_contains_module',
+        from: 'module|Sales',
+        to: 'module|Sales.Orders',
+      },
     ]);
   });
 
@@ -2157,16 +2165,6 @@ describe('10. order and determinism', () => {
     ]);
     expect<unknown>(first.model.relations).toEqual([
       {
-        kind: 'contains',
-        from: 'module|Sales',
-        to: 'building_block|Sales.Alpha',
-      },
-      {
-        kind: 'contains',
-        from: 'module|Sales',
-        to: 'building_block|Sales.Zed',
-      },
-      {
         kind: 'exposes',
         from: 'building_block|Sales.Alpha',
         to: 'behavior|Sales.Alpha.Act',
@@ -2194,13 +2192,23 @@ describe('10. order and determinism', () => {
         order: 2,
       },
       {
-        kind: 'provides',
+        kind: 'library_contains_block',
         from: 'library|Sales',
         to: 'building_block|Sales.Alpha',
       },
       {
-        kind: 'provides',
+        kind: 'library_contains_block',
         from: 'library|Sales',
+        to: 'building_block|Sales.Zed',
+      },
+      {
+        kind: 'module_contains_block',
+        from: 'module|Sales',
+        to: 'building_block|Sales.Alpha',
+      },
+      {
+        kind: 'module_contains_block',
+        from: 'module|Sales',
         to: 'building_block|Sales.Zed',
       },
     ]);
@@ -2394,30 +2402,38 @@ describe('12. relations', () => {
     expect<unknown>(
       model.relations.filter((r) => r.kind !== 'has_state'),
     ).toEqual([
-      { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Orders' },
-      { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Pricing' },
+      { kind: 'exposes', from: ORDER, to: 'behavior|Sales.Orders.Order.Place' },
       {
-        kind: 'contains',
+        kind: 'library_contains_block',
+        from: 'library|Sales',
+        to: 'building_block|Sales.Orders.Line',
+      },
+      { kind: 'library_contains_block', from: 'library|Sales', to: ORDER },
+      {
+        kind: 'library_contains_block',
+        from: 'library|Sales',
+        to: 'building_block|Sales.Pricing.Quote',
+      },
+      {
+        kind: 'module_contains_block',
         from: 'module|Sales.Orders',
         to: 'building_block|Sales.Orders.Line',
       },
-      { kind: 'contains', from: 'module|Sales.Orders', to: ORDER },
+      { kind: 'module_contains_block', from: 'module|Sales.Orders', to: ORDER },
       {
-        kind: 'contains',
+        kind: 'module_contains_block',
         from: 'module|Sales.Pricing',
         to: 'building_block|Sales.Pricing.Quote',
       },
-      { kind: 'exposes', from: ORDER, to: 'behavior|Sales.Orders.Order.Place' },
       {
-        kind: 'provides',
-        from: 'library|Sales',
-        to: 'building_block|Sales.Orders.Line',
+        kind: 'module_contains_module',
+        from: 'module|Sales',
+        to: 'module|Sales.Orders',
       },
-      { kind: 'provides', from: 'library|Sales', to: ORDER },
       {
-        kind: 'provides',
-        from: 'library|Sales',
-        to: 'building_block|Sales.Pricing.Quote',
+        kind: 'module_contains_module',
+        from: 'module|Sales',
+        to: 'module|Sales.Pricing',
       },
     ]);
   });
@@ -2933,7 +2949,9 @@ describe('13. deployable units and libraries (R13)', () => {
     deployableUnits: model.deployableUnits,
     libraries: model.libraries,
     contains: model.relations.filter(
-      (relation) => relation.kind === 'ships' || relation.kind === 'provides',
+      (relation) =>
+        relation.kind === 'unit_contains_module' ||
+        relation.kind === 'library_contains_block',
     ),
   });
 
@@ -2956,12 +2974,12 @@ describe('13. deployable units and libraries (R13)', () => {
       libraries: [],
       contains: [
         {
-          kind: 'ships',
+          kind: 'unit_contains_module',
           from: 'deployable_unit|MyCompany.Shop.Api',
           to: 'module|Sales.Orders',
         },
         {
-          kind: 'ships',
+          kind: 'unit_contains_module',
           from: 'deployable_unit|MyCompany.Shop.Api',
           to: 'module|Sales.Pricing',
         },
@@ -2985,11 +3003,11 @@ describe('13. deployable units and libraries (R13)', () => {
       ],
       contains: [
         {
-          kind: 'provides',
+          kind: 'library_contains_block',
           from: 'library|Sales',
           to: 'building_block|Sales.Orders.Line',
         },
-        { kind: 'provides', from: 'library|Sales', to: ORDER },
+        { kind: 'library_contains_block', from: 'library|Sales', to: ORDER },
       ],
     });
   });
@@ -3159,7 +3177,7 @@ describe('14. libraries described by hand (R14)', () => {
       },
     ]);
     expect<unknown>(built.model.relations).toContainEqual({
-      kind: 'provides',
+      kind: 'library_contains_block',
       from: 'library|MyCompany.Shared.Kernel',
       to: MONEY,
     });
@@ -3174,7 +3192,9 @@ describe('14. libraries described by hand (R14)', () => {
 describe('15. layers (R15)', () => {
   const layersOf = (model: BuiltSystemModel['model']) => ({
     layers: model.layers,
-    contains: model.relations.filter((relation) => relation.kind === 'places'),
+    contains: model.relations.filter(
+      (relation) => relation.kind === 'layer_contains_block',
+    ),
   });
   const shop = () =>
     artifact('shop')
@@ -3222,22 +3242,22 @@ describe('15. layers (R15)', () => {
       ],
       contains: [
         {
-          kind: 'places',
+          kind: 'layer_contains_block',
           from: 'layer|application',
           to: 'building_block|com.shop.app.PlaceOrder',
         },
         {
-          kind: 'places',
+          kind: 'layer_contains_block',
           from: 'layer|application',
           to: 'building_block|com.shop.app.web.OrdersController',
         },
         {
-          kind: 'places',
+          kind: 'layer_contains_block',
           from: 'layer|domain',
           to: 'building_block|com.shop.domain.Order',
         },
         {
-          kind: 'places',
+          kind: 'layer_contains_block',
           from: 'layer|domain',
           to: 'building_block|com.shop.domain.pricing.Quote',
         },

@@ -3,10 +3,19 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
+import { newestSystemModel } from '#/features/system-model/system-model.api.ts';
 import { ApiError, api } from '#/shared/api/client.ts';
-import type { DesignDocViolation } from '#backend/app/design-docs/design-doc.ts';
-import { applyEdit, type DesignDocEdit } from './design-doc-edit.ts';
+import type {
+  DesignDocumentInput,
+  DesignDocViolation,
+} from '#backend/app/design-docs/design-doc.ts';
+import {
+  applyEdit,
+  type DesignDocEdit,
+  scannedTypeNeededBy,
+} from './design-doc-edit.ts';
 import { outlineOf } from './design-doc-outline.ts';
+import { relationKeyOf } from './relations.ts';
 
 export const designDocsList = (change: string | null) =>
   queryOptions({
@@ -54,6 +63,22 @@ export type DesignDocDetail = Awaited<
  */
 export function useDesignDocEdit(change: string, id: string) {
   const queryClient = useQueryClient();
+  /**
+   * A named slot removed from the system is written with its type. Where the
+   * design leaves the type as the model has it, the newest scan is asked.
+   */
+  const withScannedType = async (
+    edit: DesignDocEdit,
+    document: DesignDocumentInput,
+  ): Promise<DesignDocEdit> => {
+    const key = scannedTypeNeededBy(document, edit);
+    if (key === null || edit.op !== 'removeFromSystem') return edit;
+    const model = await queryClient.fetchQuery(newestSystemModel);
+    const relation = model?.relations.find(
+      (candidate) => relationKeyOf(candidate) === key,
+    );
+    return relation === undefined ? edit : { ...edit, to: relation.to };
+  };
   return useMutation({
     mutationFn: async (edit: DesignDocEdit) => {
       const { document } = await queryClient.fetchQuery({
@@ -64,7 +89,7 @@ export function useDesignDocEdit(change: string, id: string) {
         id: _id,
         implementedAt: _implementedAt,
         ...content
-      } = applyEdit(document, edit);
+      } = applyEdit(document, await withScannedType(edit, document));
       return api.changes[':change']['design-docs'][':id'].$put({
         param: { change, id },
         json: content,

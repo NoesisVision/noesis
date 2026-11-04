@@ -1169,7 +1169,12 @@
       {
         "kind": "has_output",
         "from": "behavior|Sales.Pricing.Discounts.ThresholdDiscount.ApplyOn",
-        "to": "building_block|Sales.Commons.Money",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|Sales.Commons.Money",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1219,7 +1224,12 @@
       {
         "kind": "has_output",
         "from": "behavior|Sales.Pricing.Discounts.Discount.Threshold",
-        "to": "building_block|Sales.Pricing.Discounts.Discount",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|Sales.Pricing.Discounts.Discount",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1294,7 +1304,12 @@
       {
         "kind": "has_output",
         "from": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
-        "to": "building_block|Sales.Commons.Money",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|Sales.Commons.Money",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1324,7 +1339,12 @@
       {
         "kind": "has_output",
         "from": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
-        "to": "building_block|Sales.Commons.Money",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|Sales.Commons.Money",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1354,7 +1374,12 @@
       {
         "kind": "has_output",
         "from": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
-        "to": "building_block|Sales.Pricing.Discounts.Discount",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|Sales.Pricing.Discounts.Discount",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1384,7 +1409,12 @@
       {
         "kind": "has_output",
         "from": "behavior|Sales.Pricing.Discounts.Discount.Value",
-        "to": "building_block|Sales.Pricing.Discounts.Discount",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|Sales.Pricing.Discounts.Discount",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -1414,7 +1444,12 @@
       {
         "kind": "has_output",
         "from": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
-        "to": "building_block|Sales.Commons.Money",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|Sales.Commons.Money",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",

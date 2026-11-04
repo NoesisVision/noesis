@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
-import { DesignDocument } from '#backend/app/design-docs/design-doc';
+import {
+  DesignDocument,
+  DesignedRelationKey,
+} from '#backend/app/design-docs/design-doc';
+import { NAMED_SLOT_KINDS } from '#backend/app/design-docs/relation-key';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import {
   designDocFixture,
@@ -199,7 +203,11 @@ describe('The elements a design changes', () => {
       relating({
         added: [
           { kind: 'extends', from: REFUND, to: AUDITABLE },
-          { kind: 'contains', from: 'module|sales.refunds', to: REFUND },
+          {
+            kind: 'module_contains_block',
+            from: 'module|sales.refunds',
+            to: REFUND,
+          },
           { kind: 'exposes', from: REFUND, to: ISSUE },
           {
             kind: 'invokes',
@@ -223,7 +231,7 @@ describe('The elements a design changes', () => {
 
     expect(parsed.relations.added.map((r) => r.kind)).toEqual([
       'extends',
-      'contains',
+      'module_contains_block',
       'exposes',
       'invokes',
       'governs',
@@ -260,8 +268,18 @@ describe('The elements a design changes', () => {
           },
         ],
         removed: [
-          { kind: 'has_state', from: REFUND, name: 'legacyFlag' },
-          { kind: 'has_input', from: ISSUE, name: 'note' },
+          {
+            kind: 'has_state',
+            from: REFUND,
+            to: 'primitive|boolean',
+            name: 'legacyFlag',
+          },
+          {
+            kind: 'has_input',
+            from: ISSUE,
+            to: 'primitive|string',
+            name: 'note',
+          },
         ],
         modified: [
           {
@@ -281,8 +299,13 @@ describe('The elements a design changes', () => {
     );
 
     expect<unknown>(parsed.relations.removed).toEqual([
-      { kind: 'has_state', from: REFUND, name: 'legacyFlag' },
-      { kind: 'has_input', from: ISSUE, name: 'note' },
+      {
+        kind: 'has_state',
+        from: REFUND,
+        to: 'primitive|boolean',
+        name: 'legacyFlag',
+      },
+      { kind: 'has_input', from: ISSUE, to: 'primitive|string', name: 'note' },
     ]);
     expect(parsed.relations.modified[0]).toMatchObject({
       name: 'total',
@@ -317,7 +340,7 @@ describe('The elements a design changes', () => {
     ).toBe(false);
   });
 
-  it('knows a collaborator by its holder and name, so the block it is is a field, and it has no cardinality', () => {
+  it('knows a collaborator by its holder and name, so the block it is and how many it holds are fields', () => {
     const LEDGER = 'building_block|sales.ledger.Ledger';
     const parsed = DesignDocument.parse(
       relating({
@@ -327,9 +350,17 @@ describe('The elements a design changes', () => {
             from: REFUND,
             name: 'ledger',
             to: { value: LEDGER },
+            cardinality: { value: '1' },
           },
         ],
-        removed: [{ kind: 'has_collaborator', from: REFUND, name: 'mailer' }],
+        removed: [
+          {
+            kind: 'has_collaborator',
+            from: REFUND,
+            to: 'building_block|sales.mail.Mailer',
+            name: 'mailer',
+          },
+        ],
         modified: [
           {
             kind: 'has_collaborator',
@@ -342,11 +373,17 @@ describe('The elements a design changes', () => {
     );
 
     expect<unknown>(parsed.relations.removed).toEqual([
-      { kind: 'has_collaborator', from: REFUND, name: 'mailer' },
+      {
+        kind: 'has_collaborator',
+        from: REFUND,
+        to: 'building_block|sales.mail.Mailer',
+        name: 'mailer',
+      },
     ]);
     expect(parsed.relations.modified[0]).toMatchObject({
       name: 'orders',
       to: { changed: true, value: 'building_block|sales.orders.OrderArchive' },
+      cardinality: { changed: false },
     });
     expect(
       isValid(
@@ -357,7 +394,7 @@ describe('The elements a design changes', () => {
               from: REFUND,
               name: 'ledger',
               to: { value: LEDGER },
-              cardinality: { value: '1' },
+              cardinality: { value: 'many' },
             },
           ],
         }),
@@ -379,15 +416,23 @@ describe('The elements a design changes', () => {
     ).toBe(false);
   });
 
-  it('knows an output by its type and a call by its target, so only the cardinality or the order is a field', () => {
+  it("knows an output by its holder, under the one name 'result', so its type and cardinality are fields; a call by its target, so only the order is", () => {
     const parsed = DesignDocument.parse(
       relating({
-        removed: [{ kind: 'has_output', from: ISSUE, to: 'primitive|boolean' }],
+        removed: [
+          {
+            kind: 'has_output',
+            from: ISSUE,
+            to: 'primitive|boolean',
+            name: 'result',
+          },
+        ],
         modified: [
           {
             kind: 'has_output',
             from: ISSUE,
-            to: REFUND,
+            name: 'result',
+            to: { value: REFUND },
             cardinality: { value: '0..1' },
           },
           {
@@ -401,10 +446,15 @@ describe('The elements a design changes', () => {
     );
 
     expect<unknown>(parsed.relations.removed).toEqual([
-      { kind: 'has_output', from: ISSUE, to: 'primitive|boolean' },
+      {
+        kind: 'has_output',
+        from: ISSUE,
+        to: 'primitive|boolean',
+        name: 'result',
+      },
     ]);
     expect<unknown>(parsed.relations.modified.map((r) => r.to)).toEqual([
-      REFUND,
+      { changed: true, value: REFUND, author: 'agent' },
       'behavior|sales.ledger.Ledger.post',
     ]);
     expect(
@@ -414,7 +464,7 @@ describe('The elements a design changes', () => {
             {
               kind: 'has_output',
               from: ISSUE,
-              to: REFUND,
+              to: { value: REFUND },
               name: 'refund',
               cardinality: { value: '1' },
             },
@@ -429,10 +479,25 @@ describe('The elements a design changes', () => {
             {
               kind: 'has_output',
               from: ISSUE,
-              to: { value: REFUND },
+              name: 'result',
+              to: REFUND,
               cardinality: { value: '1' },
             },
           ],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        relating({
+          removed: [{ kind: 'has_output', from: ISSUE, to: REFUND }],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        relating({
+          removed: [{ kind: 'has_output', from: ISSUE, name: 'result' }],
         }),
       ),
     ).toBe(false);
@@ -457,6 +522,19 @@ describe('The elements a design changes', () => {
     );
     // A behavior has no type: what kind of message it handles is not its own.
     expect(isValid(addingIssue({ type: { value: 'Command' } }))).toBe(false);
+  });
+});
+
+describe('The key a design removes a relation by', () => {
+  it('names every relation by its ends, and a named slot of the model by its name too', () => {
+    for (const option of DesignedRelationKey.options) {
+      const kind = option.shape.kind.value;
+      expect([kind, 'to' in option.shape, 'name' in option.shape]).toEqual([
+        kind,
+        true,
+        NAMED_SLOT_KINDS.has(kind),
+      ]);
+    }
   });
 });
 
@@ -552,7 +630,8 @@ describe('The type of a piece of state, an input or an output', () => {
             {
               kind: 'has_output',
               from: ISSUE,
-              to: 'primitive|uuid',
+              name: 'result',
+              to: { value: 'primitive|uuid' },
               cardinality: { value: '1' },
             },
           ],
@@ -582,7 +661,8 @@ describe('The type of a piece of state, an input or an output', () => {
             {
               kind: 'has_output',
               from: ISSUE,
-              to: 'primitive|money',
+              name: 'result',
+              to: { value: 'primitive|money' },
               cardinality: { value: '1' },
             },
           ],
@@ -600,7 +680,8 @@ describe('The type of a piece of state, an input or an output', () => {
               {
                 kind: 'has_output',
                 from: ISSUE,
-                to: REFUND,
+                name: 'result',
+                to: { value: REFUND },
                 cardinality: { value: cardinality },
               },
             ],
@@ -615,7 +696,8 @@ describe('The type of a piece of state, an input or an output', () => {
             {
               kind: 'has_output',
               from: ISSUE,
-              to: REFUND,
+              name: 'result',
+              to: { value: REFUND },
               cardinality: { value: 'many' },
             },
           ],
@@ -783,18 +865,18 @@ describe('Deployable units and libraries', () => {
   it('lets a deployable unit contain a module and a library a building block, whatever their paths', () => {
     expect(
       packaging([
-        { kind: 'ships', from: API, to: REFUNDS },
-        { kind: 'provides', from: SALES, to: REFUND },
+        { kind: 'unit_contains_module', from: API, to: REFUNDS },
+        { kind: 'library_contains_block', from: SALES, to: REFUND },
       ]),
     ).toEqual([]);
   });
 
   it('refuses a deployable unit containing a block, or a library a module', () => {
     expect(() =>
-      packaging([{ kind: 'ships', from: API, to: REFUND }]),
+      packaging([{ kind: 'unit_contains_module', from: API, to: REFUND }]),
     ).toThrow();
     expect(() =>
-      packaging([{ kind: 'provides', from: SALES, to: REFUNDS }]),
+      packaging([{ kind: 'library_contains_block', from: SALES, to: REFUNDS }]),
     ).toThrow();
   });
 
@@ -876,15 +958,15 @@ describe('Layers and deployment containers', () => {
   it('lets a layer contain a building block and a container host a deployable unit', () => {
     expect(
       placing([
-        { kind: 'places', from: DOMAIN, to: REFUND },
-        { kind: 'hosts', from: CLUSTER, to: API },
+        { kind: 'layer_contains_block', from: DOMAIN, to: REFUND },
+        { kind: 'container_contains_unit', from: CLUSTER, to: API },
       ]),
     ).toEqual([]);
   });
 
   it('refuses a layer containing a module', () => {
     expect(() =>
-      placing([{ kind: 'places', from: DOMAIN, to: REFUNDS }]),
+      placing([{ kind: 'layer_contains_block', from: DOMAIN, to: REFUNDS }]),
     ).toThrow();
   });
 
@@ -892,7 +974,11 @@ describe('Layers and deployment containers', () => {
     expect(
       isValid(
         design({
-          relations: { added: [{ kind: 'hosts', from: CLUSTER, to: REFUNDS }] },
+          relations: {
+            added: [
+              { kind: 'container_contains_unit', from: CLUSTER, to: REFUNDS },
+            ],
+          },
         }),
       ),
     ).toBe(false);
@@ -903,7 +989,11 @@ describe('Layers and deployment containers', () => {
       DesignDocument.validateAgentGenerated(
         DesignDocument.parse(
           design({
-            relations: { added: [{ kind: 'hosts', from: CLUSTER, to: API }] },
+            relations: {
+              added: [
+                { kind: 'container_contains_unit', from: CLUSTER, to: API },
+              ],
+            },
           }),
         ),
       ).map((violation) => violation.reason),
@@ -932,7 +1022,7 @@ describe('A design document an agent wrote', () => {
     scanned_at: '2026-09-25T08:00:00.000Z',
     modules: [{ id: ORDERS, name: 'orders', source }],
     relations: [
-      { kind: 'contains', from: ORDERS, to: ORDER },
+      { kind: 'module_contains_block', from: ORDERS, to: ORDER },
       { kind: 'extends', from: ORDER, to: AUDITABLE },
       {
         kind: 'has_state',
@@ -954,6 +1044,7 @@ describe('A design document an agent wrote', () => {
         kind: 'has_output',
         from: CANCEL,
         to: 'primitive|boolean',
+        name: 'result',
         cardinality: '1',
       },
       { kind: 'governs', from: CANCEL, to: PAID_ONLY },
@@ -1031,7 +1122,12 @@ describe('A design document an agent wrote', () => {
           relating({
             removed: [
               { kind: 'extends', from: ORDER, to: AUDITABLE },
-              { kind: 'has_state', from: ORDER, name: 'legacyFlag' },
+              {
+                kind: 'has_state',
+                from: ORDER,
+                to: 'primitive|boolean',
+                name: 'legacyFlag',
+              },
             ],
             modified: [
               {
@@ -1167,7 +1263,7 @@ describe('A design document an agent wrote', () => {
             relations: {
               removed: [
                 { kind: 'extends', from: ORDER, to: AUDITABLE },
-                { kind: 'has_input', from: CANCEL, name: 'order' },
+                { kind: 'has_input', from: CANCEL, to: ORDER, name: 'order' },
               ],
               modified: [
                 {
@@ -1179,7 +1275,8 @@ describe('A design document an agent wrote', () => {
                 {
                   kind: 'has_output',
                   from: CANCEL,
-                  to: 'primitive|boolean',
+                  name: 'result',
+                  to: { value: 'primitive|boolean' },
                   cardinality: { value: '0..1' },
                 },
               ],
@@ -1202,9 +1299,24 @@ describe('A design document an agent wrote', () => {
           design({
             relations: {
               removed: [
-                { kind: 'has_state', from: ORDER, name: 'legacyFlag' },
-                { kind: 'has_input', from: CANCEL, name: 'orders' },
-                { kind: 'has_output', from: CANCEL, to: ORDER },
+                {
+                  kind: 'has_state',
+                  from: ORDER,
+                  to: 'primitive|boolean',
+                  name: 'legacyFlag',
+                },
+                {
+                  kind: 'has_input',
+                  from: CANCEL,
+                  to: 'building_block|sales.orders.Orders',
+                  name: 'orders',
+                },
+                {
+                  kind: 'has_output',
+                  from: 'behavior|sales.orders.Order.ship',
+                  to: ORDER,
+                  name: 'result',
+                },
               ],
               modified: [{ kind: 'has_state', from: ORDER, name: 'discount' }],
             },
@@ -1235,7 +1347,7 @@ describe('A design document an agent wrote', () => {
           reason: 'unknownElement',
         },
         {
-          path: `relations.removed[has_output|${CANCEL}|${ORDER}]`,
+          path: 'relations.removed[has_output|behavior|sales.orders.Order.ship|#result]',
           reason: 'unknownElement',
         },
         {
@@ -1266,7 +1378,7 @@ describe('A design document an agent wrote', () => {
                   order: { value: 1 },
                 },
                 { kind: 'exposes', from: REFUND, to: ISSUE },
-                { kind: 'contains', from: ORDERS, to: REFUND },
+                { kind: 'module_contains_block', from: ORDERS, to: REFUND },
                 { kind: 'exposes', from: ORDER, to: ISSUE },
               ],
             },
@@ -1296,7 +1408,7 @@ describe('A design document an agent wrote', () => {
         ),
       ).toEqual([
         {
-          path: `relations.added[contains|${ORDERS}|${REFUND}]`,
+          path: `relations.added[module_contains_block|${ORDERS}|${REFUND}]`,
           reason: 'containmentOutsideIdPath',
         },
         {
@@ -1325,6 +1437,7 @@ describe('A design document an agent wrote', () => {
                   from: ORDER,
                   name: 'auditable',
                   to: { value: AUDITABLE },
+                  cardinality: { value: '1' },
                 },
                 {
                   kind: 'has_state',
@@ -1338,6 +1451,7 @@ describe('A design document an agent wrote', () => {
                   from: ORDER,
                   name: 'archive',
                   to: { value: 'building_block|sales.orders.Archive' },
+                  cardinality: { value: '1' },
                 },
               ],
             },

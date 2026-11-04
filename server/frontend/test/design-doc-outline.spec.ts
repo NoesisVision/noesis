@@ -185,6 +185,7 @@ describe('outlineOf', () => {
           {
             kind: 'has_collaborator',
             from: 'building_block|sales.refunds.Refund',
+            to: 'building_block|sales.mail.Mailer',
             name: 'mailer',
           },
         ],

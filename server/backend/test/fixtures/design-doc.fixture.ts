@@ -275,8 +275,16 @@ export const designDocFixture = {
   relations: {
     added: [
       { kind: 'performs', from: SUPPORT_AGENT, to: REFUND_A_RETURN },
-      { kind: 'ships', from: REFUNDS_API, to: 'module|sales.refunds' },
-      { kind: 'hosts', from: REFUNDS_CLUSTER, to: REFUNDS_API },
+      {
+        kind: 'unit_contains_module',
+        from: REFUNDS_API,
+        to: 'module|sales.refunds',
+      },
+      {
+        kind: 'container_contains_unit',
+        from: REFUNDS_CLUSTER,
+        to: REFUNDS_API,
+      },
       {
         kind: 'invokes',
         from: REFUND_A_RETURN,
@@ -353,17 +361,23 @@ export const designDocFixture = {
       {
         kind: 'has_output',
         from: ISSUE,
-        to: REFUND_ISSUED,
+        name: 'result',
+        to: byAgent(REFUND_ISSUED),
         cardinality: byAgent('1'),
       },
       {
-        kind: 'contains',
+        kind: 'module_contains_block',
         from: 'module|sales.refunds',
         to: REFUND,
       },
     ],
     removed: [
-      { kind: 'has_state', from: ORDER, name: 'creditNoteId' },
+      {
+        kind: 'has_state',
+        from: ORDER,
+        to: 'primitive|uuid',
+        name: 'creditNoteId',
+      },
       {
         kind: 'governs',
         from: 'behavior|sales.credit-notes.CreditNote.issue',
@@ -374,7 +388,12 @@ export const designDocFixture = {
         from: ORDER,
         to: 'building_block|sales.shared.Legacy',
       },
-      { kind: 'has_input', from: CANCEL, name: 'force' },
+      {
+        kind: 'has_input',
+        from: CANCEL,
+        to: 'primitive|boolean',
+        name: 'force',
+      },
       {
         kind: 'invokes',
         from: CANCEL,
@@ -400,7 +419,8 @@ export const designDocFixture = {
       {
         kind: 'has_output',
         from: CANCEL,
-        to: 'building_block|sales.orders.OrderCancelled',
+        name: 'result',
+        to: byAgent('building_block|sales.orders.OrderCancelled'),
         cardinality: byAgent('1'),
       },
       {

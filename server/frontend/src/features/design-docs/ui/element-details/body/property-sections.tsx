@@ -33,5 +33,5 @@ export const collaboratorSections = (
     element: { owner, part: 'collaborators', name: collaborator.name },
     name: collaborator.name,
     type: collaborator.to,
-    cardinality: { changed: false },
+    cardinality: collaborator.cardinality,
   });

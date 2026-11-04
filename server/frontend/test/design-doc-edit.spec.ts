@@ -83,7 +83,13 @@ const doc = (): DesignDocumentInput => ({
   },
   relations: {
     added: [
-      { kind: 'has_output', from: SETTLE, to: HOLD, cardinality: agent('1') },
+      {
+        kind: 'has_output',
+        from: SETTLE,
+        name: 'result',
+        to: agent(HOLD),
+        cardinality: agent('1'),
+      },
       { kind: 'governs', from: SETTLE, to: HELD_ONCE },
     ],
   },
@@ -201,7 +207,7 @@ describe('an edit', () => {
     expect(next.behaviors?.added?.[0]?.id).toBe('behavior|pay.CardHold.settle');
     expect(next.relations?.added?.[0]).toMatchObject({
       from: 'behavior|pay.CardHold.settle',
-      to: id,
+      to: { value: id },
     });
   });
 });
@@ -505,15 +511,20 @@ describe('a part', () => {
     });
   });
 
-  it('is removed from the system by its relation key, a result by its type', () => {
+  it("is removed from the system by its relation key, a result by its one name 'result'", () => {
     const ref = {
       kind: 'result',
-      id: HOLD,
+      id: 'result',
       owner: { kind: 'behavior', id: 'behavior|pay.Ledger.book' },
     } as const;
-    const removed = applyEdit(doc(), { op: 'removeFromSystem', ref });
+    const removed = applyEdit(doc(), { op: 'removeFromSystem', ref, to: HOLD });
     expect(removed.relations?.removed).toEqual([
-      { kind: 'has_output', from: 'behavior|pay.Ledger.book', to: HOLD },
+      {
+        kind: 'has_output',
+        from: 'behavior|pay.Ledger.book',
+        to: HOLD,
+        name: 'result',
+      },
     ]);
     expect(unitStateOf(removed, ref)).toBe('removed');
     expect(
@@ -527,10 +538,22 @@ describe('a part', () => {
       id: 'total',
       owner: { kind: 'building_block', id: LEDGER },
     } as const;
-    const removed = applyEdit(doc(), { op: 'removeFromSystem', ref });
+    const removed = applyEdit(doc(), {
+      op: 'removeFromSystem',
+      ref,
+      to: 'primitive|decimal',
+    });
     expect(removed.relations?.removed).toEqual([
-      { kind: 'has_state', from: LEDGER, name: 'total' },
+      {
+        kind: 'has_state',
+        from: LEDGER,
+        to: 'primitive|decimal',
+        name: 'total',
+      },
     ]);
+    expect(() => applyEdit(doc(), { op: 'removeFromSystem', ref })).toThrow(
+      'The type of property total is not known.',
+    );
     expect(unitStateOf(removed, ref)).toBe('removed');
     expect(
       unitStateOf(removed, {
@@ -703,7 +726,7 @@ describe('moving an element', () => {
     expect(next.behaviors?.added?.[0]?.id).toBe('behavior|refunds.Hold.settle');
     expect(next.relations?.added?.[0]).toMatchObject({
       from: 'behavior|refunds.Hold.settle',
-      to: moved,
+      to: { value: moved },
     });
   });
 

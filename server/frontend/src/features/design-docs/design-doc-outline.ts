@@ -155,7 +155,9 @@ function addProperties(
           'collaborator',
           relation.name,
           change,
-          type === null ? null : slotLabelOf(type, null),
+          type === null
+            ? null
+            : slotLabelOf(type, valueOf(relation.cardinality)),
         ),
       );
     }

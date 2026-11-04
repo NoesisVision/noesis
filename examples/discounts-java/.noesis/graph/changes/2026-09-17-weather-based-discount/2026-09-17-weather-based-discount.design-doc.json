@@ -828,12 +828,22 @@
           "changed": true,
           "value": "building_block|discounts.calculation.PercentageDiscount",
           "author": "agent"
+        },
+        "cardinality": {
+          "changed": true,
+          "value": "1",
+          "author": "agent"
         }
       },
       {
         "kind": "has_output",
         "from": "behavior|discounts.weather.WeatherProvider.getCurrent",
-        "to": "building_block|discounts.weather.Weather",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.weather.Weather",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "0..1",
@@ -843,7 +853,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent",
-        "to": "building_block|discounts.weather.Weather",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.weather.Weather",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "0..1",
@@ -873,7 +888,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.PercentageDiscount.apply",
-        "to": "building_block|discounts.calculation.DiscountedOffer",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.DiscountedOffer",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -903,7 +923,12 @@
       {
         "kind": "has_output",
         "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount",
-        "to": "building_block|discounts.calculation.PercentageDiscount",
+        "name": "result",
+        "to": {
+          "changed": true,
+          "value": "building_block|discounts.calculation.PercentageDiscount",
+          "author": "agent"
+        },
         "cardinality": {
           "changed": true,
           "value": "1",
@@ -932,6 +957,11 @@
         "to": {
           "changed": true,
           "value": "building_block|discounts.weather.WeatherProvider",
+          "author": "agent"
+        },
+        "cardinality": {
+          "changed": true,
+          "value": "1",
           "author": "agent"
         }
       },

@@ -62,10 +62,10 @@ const document = {
   },
   relations: {
     added: [
-      { kind: 'ships', from: API, to: REFUNDS },
-      { kind: 'provides', from: SALES, to: REFUND },
-      { kind: 'places', from: DOMAIN, to: REFUND },
-      { kind: 'hosts', from: CLUSTER, to: API },
+      { kind: 'unit_contains_module', from: API, to: REFUNDS },
+      { kind: 'library_contains_block', from: SALES, to: REFUND },
+      { kind: 'layer_contains_block', from: DOMAIN, to: REFUND },
+      { kind: 'container_contains_unit', from: CLUSTER, to: API },
     ],
   },
 } satisfies DesignDocumentInput;

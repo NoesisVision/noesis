@@ -165,7 +165,7 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
         },
       ]);
       expect<unknown>(model.relations).toContainEqual({
-        kind: 'places',
+        kind: 'layer_contains_block',
         from: 'layer|domain',
         to: 'building_block|shop.orders.Order',
       });
@@ -323,10 +323,22 @@ describe('test/fixtures/java/billing over a library no scan parses (e2e)', () =>
       expect<unknown>(
         model.relations.filter((r) => listed.has(r.from) || listed.has(r.to)),
       ).toEqual([
-        { kind: 'provides', from: 'library|shared-kernel', to: EXCHANGE_RATES },
-        { kind: 'provides', from: 'library|shared-kernel', to: MONEY },
-        { kind: 'contains', from: 'module|kernel', to: EXCHANGE_RATES },
-        { kind: 'contains', from: 'module|kernel', to: MONEY },
+        {
+          kind: 'library_contains_block',
+          from: 'library|shared-kernel',
+          to: EXCHANGE_RATES,
+        },
+        {
+          kind: 'library_contains_block',
+          from: 'library|shared-kernel',
+          to: MONEY,
+        },
+        {
+          kind: 'module_contains_block',
+          from: 'module|kernel',
+          to: EXCHANGE_RATES,
+        },
+        { kind: 'module_contains_block', from: 'module|kernel', to: MONEY },
         {
           kind: 'extends',
           from: 'building_block|billing.rates.FixedExchangeRates',
@@ -337,6 +349,7 @@ describe('test/fixtures/java/billing over a library no scan parses (e2e)', () =>
           from: 'building_block|billing.invoices.InvoicePricing',
           to: EXCHANGE_RATES,
           name: 'rates',
+          cardinality: '1',
         },
         {
           kind: 'has_input',
@@ -358,18 +371,21 @@ describe('test/fixtures/java/billing over a library no scan parses (e2e)', () =>
           kind: 'has_output',
           from: 'behavior|billing.invoices.Invoice.totalIn',
           to: MONEY,
+          name: 'result',
           cardinality: '1',
         },
         {
           kind: 'has_output',
           from: 'behavior|billing.invoices.InvoicePricing.priceIn',
           to: MONEY,
+          name: 'result',
           cardinality: '1',
         },
         {
           kind: 'has_output',
           from: 'behavior|billing.rates.FixedExchangeRates.convert',
           to: MONEY,
+          name: 'result',
           cardinality: '1',
         },
         {

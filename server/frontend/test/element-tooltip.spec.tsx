@@ -57,7 +57,8 @@ const document = {
       {
         kind: 'has_output',
         from: 'behavior|pay.Hold.place',
-        to: 'building_block|pay.Hold',
+        name: 'result',
+        to: plain('building_block|pay.Hold'),
         cardinality: plain('1'),
       },
       {
@@ -80,12 +81,18 @@ const document = {
       {
         kind: 'has_output',
         from: 'behavior|pay.Hold.balance',
-        to: 'building_block|pay.Money',
+        name: 'result',
+        to: plain('building_block|pay.Money'),
         cardinality: plain('1'),
       },
     ],
     removed: [
-      { kind: 'has_state', from: 'building_block|pay.Hold', name: 'legacyId' },
+      {
+        kind: 'has_state',
+        from: 'building_block|pay.Hold',
+        to: 'primitive|uuid',
+        name: 'legacyId',
+      },
     ],
   },
   implemented: false,

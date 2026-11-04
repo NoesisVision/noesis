@@ -173,6 +173,7 @@ export const changedEverywhereFixture = {
       {
         kind: 'has_state',
         from: 'building_block|sales.orders.Order',
+        to: 'primitive|uuid',
         name: 'creditNoteId',
       },
     ],

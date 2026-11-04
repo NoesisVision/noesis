@@ -82,15 +82,15 @@ containers, rules, scenarios. Read it at step 5.
      behaviors a process invokes are behaviors of application services or
      in adapters.
    - **Deployable units and libraries**, only when the design changes what
-     the code ships as: a new service (`deployableUnits`, `contains` its
-     modules) or a new shared package (`libraries`, `contains` its building
-     blocks). Each is named as the build names it, dots and all; reuse the
+     the code ships as: a new service (`deployableUnits`, `unit_contains_module`
+     to its modules) or a new shared package (`libraries`,
+     `library_contains_block` to its building blocks). Each is named as the build names it, dots and all; reuse the
      names the system model already has, verbatim. A new module or block in
-     an existing unit or library gets a `contains` from it.
+     an existing unit or library gets that relation from it.
    - **Layers and deployment containers**, only when the design changes
-     how the code is sliced or where it runs: a layer (`layers`, `contains`
-     its building blocks) or a deployment container (`deploymentContainers`,
-     `hosts` its deployable units). Reuse the layer names the system model
+     how the code is sliced or where it runs: a layer (`layers`,
+     `layer_contains_block` to its building blocks) or a deployment container
+     (`deploymentContainers`, `container_contains_unit` to its deployable units). Reuse the layer names the system model
      already has, verbatim; no scan finds a deployment container, so the
      design authors every one.
    - **Building blocks and behaviors**, with their types, and the
@@ -146,31 +146,33 @@ containers, rules, scenarios. Read it at step 5.
    Relations are one list, `relations`, beside the elements, each
    `{ "kind", "from", "to", … }`: `has_state` (a block's
    field: `name`, `to` and `cardinality` are fields), `has_collaborator`
-   (a block it works with: `name`, and `to` a field; no cardinality),
+   (a block it works with: the same way, `to` a block that is no value of the domain),
    `has_input` (a
    behavior's parameter, the same way, plus `position`, a field: where it
    stands in the signature, counting from 1), `has_output` (a behavior's result:
-   `to` is its key, `cardinality` a field), `extends`, `exposes`,
-   `contains`, `invokes` (from a behavior or a manual process; `order` a
+   its `name` is always `result`; `to` and `cardinality` are fields), `extends`, `exposes`,
+   the containments, `invokes` (from a behavior or a manual process; `order` a
    field), `governs` (from a behavior to a rule it follows),
    `illustrates` (from a scenario to its rule), `performs` (from an
-   actor to a manual process) and `hosts` (from a deployment container to a
-   deployable unit). A `contains` joins a module to a module or a block, a
-   deployable unit to a module, or a library or a layer to a block. The
+   actor to a manual process). The containments are named by both ends:
+   `module_contains_module`, `module_contains_block`, `unit_contains_module`
+   (a deployable unit holds a module), `library_contains_block`,
+   `layer_contains_block` and `container_contains_unit` (a deployment
+   container runs a deployable unit). The
    kind of the block a
    slot points at picks the relation: a primitive or a value of the domain
    (`aggregate`, `entity`, `value_object`, `command`, `query`, `event`) is
    `has_state`, any other block `has_collaborator`. A `has_state`,
-   `has_collaborator` or `has_input` is known by its holder and `name`, so its type may change in place; a
-   `has_output` is known by its `to`, so an output of another type is one
-   removed and one added; `contains`, `extends`, `exposes`, `governs`,
-   `illustrates`, `performs` and `hosts` have nothing to modify. `cardinality`
+   `has_collaborator`, `has_input` or `has_output` is known by its holder and `name`
+   (an output's is always `result`), so its type may change in place;
+   the containments, `extends`, `exposes`, `governs`,
+   `illustrates` and `performs` have nothing to modify. `cardinality`
    is `1`, `0..1`, `0..*` or `1..*`: a collection and an optional value are
    told apart by it, never by the type. Both ends of an added relation
-   exist, in the design or in the model; a module's `contains`, an
+   exist, in the design or in the model; a module's containment, an
    `exposes` or an `illustrates` only says what the ids already say, so
    write one only when it does; a unit's, a library's or a layer's
-   `contains` names what the build or the layering puts in it. Every added rule has an added `governs` to it. Needs
+   containment names what the build or the layering puts in it. Every added rule has an added `governs` to it. Needs
    are only ever `added`: no scan holds one, so there is nothing to modify
    or remove; nor are manual processes, which no scan finds. A rename of an element in the model is a removal of the old
    id and an addition of the new one, and every reference to the old id
@@ -288,12 +290,12 @@ results.
   - _neither the design nor the scanned model has this element_: an end of
     the relation names an id that is misspelt or not added yet. Add the
     element, or point the relation at one that exists.
-  - _what holds what is in the ids_: a `contains`, `exposes` or
+  - _what holds what is in the ids_: a module's containment, an `exposes` or an
     `illustrates` disagrees with an id's path. A scenario's id is its
     rule's path and its own name, a behavior's its block's: fix the id, or
     drop the relation.
   - _a deployable unit contains only modules, and a library or a layer
-    only building blocks_: point the `contains` at an element of that kind,
+    only building blocks_: point the containment at an element of that kind,
     or drop it.
   - _the kind of the block a slot points at says which slot it is_: a
     `has_state` points at a block of a collaborator kind, or a

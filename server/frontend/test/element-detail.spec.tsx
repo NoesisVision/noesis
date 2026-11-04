@@ -147,7 +147,8 @@ const document = {
       {
         kind: 'has_output',
         from: 'behavior|pay.Hold.place',
-        to: 'building_block|pay.Hold',
+        name: 'result',
+        to: plain('building_block|pay.Hold'),
         cardinality: plain('1'),
       },
     ],
