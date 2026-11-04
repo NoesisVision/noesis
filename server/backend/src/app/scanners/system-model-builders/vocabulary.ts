@@ -1,4 +1,4 @@
-import type { BuildingBlockType } from '#backend/app/system-model/system-model';
+import type { BuildingBlockKind } from '#backend/app/system-model/system-model';
 import type { Language, NodeId } from '../code-parsers/code-model';
 import type { StepExpressionDialect } from '../feature-files/step-expression';
 
@@ -30,8 +30,8 @@ export type AnnotationRole =
    */
   | {
       readonly role: 'buildingBlock';
-      readonly type: BuildingBlockType;
-      readonly byDirection?: Readonly<Record<string, BuildingBlockType>>;
+      readonly type: BuildingBlockKind;
+      readonly byDirection?: Readonly<Record<string, BuildingBlockKind>>;
     }
   /** The method is a behavior; `name` overrides its name. */
   | { readonly role: 'behavior' }

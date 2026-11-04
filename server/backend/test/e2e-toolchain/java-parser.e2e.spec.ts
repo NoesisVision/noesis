@@ -165,7 +165,7 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
         },
       ]);
       expect<unknown>(model.relations).toContainEqual({
-        kind: 'contains',
+        kind: 'places',
         from: 'layer|domain',
         to: 'building_block|shop.orders.Order',
       });
@@ -323,8 +323,8 @@ describe('test/fixtures/java/billing over a library no scan parses (e2e)', () =>
       expect<unknown>(
         model.relations.filter((r) => listed.has(r.from) || listed.has(r.to)),
       ).toEqual([
-        { kind: 'contains', from: 'library|shared-kernel', to: EXCHANGE_RATES },
-        { kind: 'contains', from: 'library|shared-kernel', to: MONEY },
+        { kind: 'provides', from: 'library|shared-kernel', to: EXCHANGE_RATES },
+        { kind: 'provides', from: 'library|shared-kernel', to: MONEY },
         { kind: 'contains', from: 'module|kernel', to: EXCHANGE_RATES },
         { kind: 'contains', from: 'module|kernel', to: MONEY },
         {

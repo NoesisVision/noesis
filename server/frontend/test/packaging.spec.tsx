@@ -62,9 +62,9 @@ const document = {
   },
   relations: {
     added: [
-      { kind: 'contains', from: API, to: REFUNDS },
-      { kind: 'contains', from: SALES, to: REFUND },
-      { kind: 'contains', from: DOMAIN, to: REFUND },
+      { kind: 'ships', from: API, to: REFUNDS },
+      { kind: 'provides', from: SALES, to: REFUND },
+      { kind: 'places', from: DOMAIN, to: REFUND },
       { kind: 'hosts', from: CLUSTER, to: API },
     ],
   },

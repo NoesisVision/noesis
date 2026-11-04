@@ -9,7 +9,7 @@ import type {
   BuildingBlockId,
   ModuleId,
 } from '#backend/app/element-id.ts';
-import type { BuildingBlockType } from '#backend/app/system-model/system-model.ts';
+import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 import { architectureChecks } from './architecture-checks.ts';
 import {
   type ArchitectureOutline,
@@ -57,14 +57,14 @@ const DOMAIN_CORE = [
   'command',
   'query',
   'event',
-] as const satisfies readonly BuildingBlockType[];
+] as const satisfies readonly BuildingBlockKind[];
 /** The blocks that drive a hexagon: their behaviors are its ports. */
 const DRIVING = [
   'application_service',
   'in_adapter',
-] as const satisfies readonly BuildingBlockType[];
-const isDriving = (type: BuildingBlockType | null) =>
-  (DRIVING as readonly (BuildingBlockType | null)[]).includes(type);
+] as const satisfies readonly BuildingBlockKind[];
+const isDriving = (type: BuildingBlockKind | null) =>
+  (DRIVING as readonly (BuildingBlockKind | null)[]).includes(type);
 
 export function architectureOf(
   document: DesignDocumentInput,
@@ -147,7 +147,7 @@ export function architectureOf(
  */
 function callersOf(
   document: DesignDocumentInput,
-  typeOf: ReadonlyMap<string, BuildingBlockType | null>,
+  typeOf: ReadonlyMap<string, BuildingBlockKind | null>,
 ) {
   const invokers = new Map<string, string[]>();
   const performers = new Map<string, string[]>();
@@ -274,16 +274,16 @@ export function inferredFlowOf(
 
 type Ring = 'applicationServices' | 'domainCore' | 'drivenPorts';
 
-function ringOf(pattern: BuildingBlockType | null): Ring | null {
+function ringOf(pattern: BuildingBlockKind | null): Ring | null {
   if (isDriving(pattern)) return 'applicationServices';
   if (isDrivenPort(pattern)) return 'drivenPorts';
-  if ((DOMAIN_CORE as readonly (BuildingBlockType | null)[]).includes(pattern))
+  if ((DOMAIN_CORE as readonly (BuildingBlockKind | null)[]).includes(pattern))
     return 'domainCore';
   return null;
 }
 
-const coreRank = (pattern: BuildingBlockType | null) =>
-  (DOMAIN_CORE as readonly (BuildingBlockType | null)[]).indexOf(pattern);
+const coreRank = (pattern: BuildingBlockKind | null) =>
+  (DOMAIN_CORE as readonly (BuildingBlockKind | null)[]).indexOf(pattern);
 
 function blockElement(
   document: DesignDocumentInput,

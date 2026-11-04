@@ -18,6 +18,7 @@ import type {
 } from '#backend/app/scanners/code-parsers/code-model';
 import type { FeatureFileSource } from '#backend/app/scanners/feature-files/feature-file';
 import { unquote } from '#backend/app/scanners/system-model-builders/annotations';
+import { isCollaboratorKind } from '#backend/app/scanners/system-model-builders/block-kinds';
 import {
   type BuiltSystemModel,
   buildSystemModel,
@@ -30,7 +31,10 @@ import {
   type NamespaceConfigInput,
 } from '#backend/app/scanners/system-model-builders/namespace-config';
 import type { AnnotationVocabulary } from '#backend/app/scanners/system-model-builders/vocabulary';
-import { SystemModel } from '#backend/app/system-model/system-model';
+import {
+  BuildingBlockKind,
+  SystemModel,
+} from '#backend/app/system-model/system-model';
 import {
   extendsOf,
   inputOf,
@@ -1009,6 +1013,35 @@ describe('4. building blocks', () => {
 /* ======================================================= 5 properties */
 
 describe('5. state', () => {
+  it('holds a block kind as state when it is a value of the domain, as a collaborator otherwise', () => {
+    const state = [
+      'aggregate',
+      'entity',
+      'value_object',
+      'event',
+      'command',
+      'query',
+    ];
+    const collaborators = BuildingBlockKind.options.filter(
+      (type) => !state.includes(type),
+    );
+
+    for (const type of state)
+      expect(isCollaboratorKind(type as BuildingBlockKind)).toBe(false);
+    expect(collaborators).toEqual([
+      'domain_service',
+      'application_service',
+      'repository',
+      'factory',
+      'external_integration',
+      'in_adapter',
+      'out_adapter',
+      'technical_service',
+    ]);
+    for (const type of collaborators)
+      expect(isCollaboratorKind(type)).toBe(true);
+  });
+
   it('R5.1 takes public instance properties and fields as state; not static, event, indexer, enum member or constant ones', () => {
     const { model } = buildFrom([
       sales()
@@ -1055,7 +1088,6 @@ describe('5. state', () => {
         .property('P:Sales.Orders.Order.Total', prim('decimal')),
     ]);
     expect<unknown>(model.relations).toEqual([
-      { kind: 'contains', from: 'library|Sales', to: ORDER },
       { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Orders' },
       { kind: 'contains', from: 'module|Sales.Orders', to: ORDER },
       {
@@ -1065,6 +1097,7 @@ describe('5. state', () => {
         name: 'Total',
         cardinality: '1',
       },
+      { kind: 'provides', from: 'library|Sales', to: ORDER },
     ]);
   });
 
@@ -1335,13 +1368,9 @@ describe('5. state', () => {
         documentation: 'What is owed.',
       }),
     ]);
-    expect<unknown>(Object.keys(model.relations.at(-1) ?? {})).toEqual([
-      'kind',
-      'from',
-      'to',
-      'name',
-      'cardinality',
-    ]);
+    expect<unknown>(
+      Object.keys(model.relations.find((r) => r.kind === 'has_state') ?? {}),
+    ).toEqual(['kind', 'from', 'to', 'name', 'cardinality']);
   });
 
   it('R5.9 holds a member typed by a block that is no value of the domain as a collaborator, without a cardinality', () => {
@@ -1470,9 +1499,9 @@ describe('6. modules', () => {
       'module|Sales.Orders',
     ]);
     expect<unknown>(model.relations).toEqual([
-      { kind: 'contains', from: 'library|Sales', to: ORDER },
       { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Orders' },
       { kind: 'contains', from: 'module|Sales.Orders', to: ORDER },
+      { kind: 'provides', from: 'library|Sales', to: ORDER },
     ]);
   });
 
@@ -2129,16 +2158,6 @@ describe('10. order and determinism', () => {
     expect<unknown>(first.model.relations).toEqual([
       {
         kind: 'contains',
-        from: 'library|Sales',
-        to: 'building_block|Sales.Alpha',
-      },
-      {
-        kind: 'contains',
-        from: 'library|Sales',
-        to: 'building_block|Sales.Zed',
-      },
-      {
-        kind: 'contains',
         from: 'module|Sales',
         to: 'building_block|Sales.Alpha',
       },
@@ -2173,6 +2192,16 @@ describe('10. order and determinism', () => {
         from: 'behavior|Sales.Alpha.Zip',
         to: 'behavior|Sales.Zed.Make',
         order: 2,
+      },
+      {
+        kind: 'provides',
+        from: 'library|Sales',
+        to: 'building_block|Sales.Alpha',
+      },
+      {
+        kind: 'provides',
+        from: 'library|Sales',
+        to: 'building_block|Sales.Zed',
       },
     ]);
   });
@@ -2365,17 +2394,6 @@ describe('12. relations', () => {
     expect<unknown>(
       model.relations.filter((r) => r.kind !== 'has_state'),
     ).toEqual([
-      {
-        kind: 'contains',
-        from: 'library|Sales',
-        to: 'building_block|Sales.Orders.Line',
-      },
-      { kind: 'contains', from: 'library|Sales', to: ORDER },
-      {
-        kind: 'contains',
-        from: 'library|Sales',
-        to: 'building_block|Sales.Pricing.Quote',
-      },
       { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Orders' },
       { kind: 'contains', from: 'module|Sales', to: 'module|Sales.Pricing' },
       {
@@ -2390,6 +2408,17 @@ describe('12. relations', () => {
         to: 'building_block|Sales.Pricing.Quote',
       },
       { kind: 'exposes', from: ORDER, to: 'behavior|Sales.Orders.Order.Place' },
+      {
+        kind: 'provides',
+        from: 'library|Sales',
+        to: 'building_block|Sales.Orders.Line',
+      },
+      { kind: 'provides', from: 'library|Sales', to: ORDER },
+      {
+        kind: 'provides',
+        from: 'library|Sales',
+        to: 'building_block|Sales.Pricing.Quote',
+      },
     ]);
   });
 
@@ -2904,10 +2933,7 @@ describe('13. deployable units and libraries (R13)', () => {
     deployableUnits: model.deployableUnits,
     libraries: model.libraries,
     contains: model.relations.filter(
-      (relation) =>
-        relation.kind === 'contains' &&
-        (relation.from.startsWith('deployable_unit|') ||
-          relation.from.startsWith('library|')),
+      (relation) => relation.kind === 'ships' || relation.kind === 'provides',
     ),
   });
 
@@ -2930,12 +2956,12 @@ describe('13. deployable units and libraries (R13)', () => {
       libraries: [],
       contains: [
         {
-          kind: 'contains',
+          kind: 'ships',
           from: 'deployable_unit|MyCompany.Shop.Api',
           to: 'module|Sales.Orders',
         },
         {
-          kind: 'contains',
+          kind: 'ships',
           from: 'deployable_unit|MyCompany.Shop.Api',
           to: 'module|Sales.Pricing',
         },
@@ -2959,11 +2985,11 @@ describe('13. deployable units and libraries (R13)', () => {
       ],
       contains: [
         {
-          kind: 'contains',
+          kind: 'provides',
           from: 'library|Sales',
           to: 'building_block|Sales.Orders.Line',
         },
-        { kind: 'contains', from: 'library|Sales', to: ORDER },
+        { kind: 'provides', from: 'library|Sales', to: ORDER },
       ],
     });
   });
@@ -3133,7 +3159,7 @@ describe('14. libraries described by hand (R14)', () => {
       },
     ]);
     expect<unknown>(built.model.relations).toContainEqual({
-      kind: 'contains',
+      kind: 'provides',
       from: 'library|MyCompany.Shared.Kernel',
       to: MONEY,
     });
@@ -3148,10 +3174,7 @@ describe('14. libraries described by hand (R14)', () => {
 describe('15. layers (R15)', () => {
   const layersOf = (model: BuiltSystemModel['model']) => ({
     layers: model.layers,
-    contains: model.relations.filter(
-      (relation) =>
-        relation.kind === 'contains' && relation.from.startsWith('layer|'),
-    ),
+    contains: model.relations.filter((relation) => relation.kind === 'places'),
   });
   const shop = () =>
     artifact('shop')
@@ -3199,22 +3222,22 @@ describe('15. layers (R15)', () => {
       ],
       contains: [
         {
-          kind: 'contains',
+          kind: 'places',
           from: 'layer|application',
           to: 'building_block|com.shop.app.PlaceOrder',
         },
         {
-          kind: 'contains',
+          kind: 'places',
           from: 'layer|application',
           to: 'building_block|com.shop.app.web.OrdersController',
         },
         {
-          kind: 'contains',
+          kind: 'places',
           from: 'layer|domain',
           to: 'building_block|com.shop.domain.Order',
         },
         {
-          kind: 'contains',
+          kind: 'places',
           from: 'layer|domain',
           to: 'building_block|com.shop.domain.pricing.Quote',
         },

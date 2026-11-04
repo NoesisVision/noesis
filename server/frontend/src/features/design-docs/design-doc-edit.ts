@@ -15,7 +15,7 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BuildingBlockType,
+  BuildingBlockKind,
   RuleKind,
   ScenarioStep,
 } from '#backend/app/system-model/system-model.ts';
@@ -585,7 +585,7 @@ export const TYPES_OF: Partial<Record<UnitKind, readonly string[]>> = {
     'event',
     'command',
     'query',
-  ] satisfies BuildingBlockType[],
+  ] satisfies BuildingBlockKind[],
 };
 
 /** The kinds a rule may be, as the model spells them. */
@@ -994,9 +994,7 @@ const VIOLATION_MESSAGE: Record<DesignDocViolation['reason'], string> = {
   unknownRelationEnd:
     'Neither this design nor the scanned model has this element.',
   containmentOutsideIdPath:
-    "What holds what is in the ids: a module's 'contains', an 'exposes' or an 'illustrates' joins an element to the one its id names.",
-  containmentOutsideKinds:
-    'A deployable unit contains modules, a library or a layer building blocks.',
+    "What holds what is in the ids: a 'contains', an 'exposes' or an 'illustrates' joins an element to the one its id names.",
   slotOutsideTypeKind:
     'A value of the domain is held as state, any other block as a collaborator.',
 };

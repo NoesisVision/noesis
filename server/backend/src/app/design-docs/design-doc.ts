@@ -7,7 +7,6 @@ import {
   BuildingBlockId,
   DeployableUnitId,
   DeploymentContainerId,
-  ElementId,
   ElementName,
   LayerId,
   LibraryId,
@@ -16,8 +15,9 @@ import {
   RuleId,
   ScenarioId,
 } from '#backend/app/element-id';
+import { isCollaboratorKind } from '#backend/app/scanners/system-model-builders/block-kinds';
 import {
-  BuildingBlockType,
+  BuildingBlockKind,
   Cardinality,
   ContainsRelation,
   ExposesRelation,
@@ -31,11 +31,13 @@ import {
   IllustratesRelation,
   InvokesRelation,
   PerformsRelation,
+  PlacesRelation,
+  ProvidesRelation,
   Relation,
   type RelationKey,
+  ShipsRelation,
   RuleKind,
   ScenarioSteps,
-  isCollaboratorType,
   type SystemModel,
   TypeId,
 } from '#backend/app/system-model/system-model';
@@ -79,6 +81,9 @@ const designedSlot = {
 };
 export const DesignedRelation = z.discriminatedUnion('kind', [
   ContainsRelation,
+  ShipsRelation,
+  ProvidesRelation,
+  PlacesRelation,
   ExtendsRelation,
   HasStateRelation.extend(designedSlot),
   HasCollaboratorRelation.extend({ to: DesignDocField(BuildingBlockId) }),
@@ -102,6 +107,9 @@ export type DesignedRelation = z.infer<typeof DesignedRelation>;
 export const DesignedRelationKey = z
   .discriminatedUnion('kind', [
     ContainsRelation.pick({ kind: true, from: true, to: true }),
+    ShipsRelation.pick({ kind: true, from: true, to: true }),
+    ProvidesRelation.pick({ kind: true, from: true, to: true }),
+    PlacesRelation.pick({ kind: true, from: true, to: true }),
     ExtendsRelation.pick({ kind: true, from: true, to: true }),
     HasStateRelation.pick({ kind: true, from: true, name: true }),
     HasCollaboratorRelation.pick({ kind: true, from: true, name: true }),
@@ -150,7 +158,7 @@ export type DesignedDomainModule = z.infer<typeof DesignedDomainModule>;
 export const DesignedBuildingBlock = z.strictObject({
   id: BuildingBlockId,
   name: DesignDocField(ElementName),
-  type: DesignDocField(BuildingBlockType),
+  type: DesignDocField(BuildingBlockKind),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
 });
@@ -193,7 +201,7 @@ export const DesignedDeployableUnit = z
     definition: DesignDocField(z.string()),
   })
   .describe(
-    "Something built and shipped as one piece (a service, a runnable JAR, an executable assembly): its 'contains' relations name the modules in it. Scanned from the build's executable artifacts, named as the build names them.",
+    "Something built and shipped as one piece (a service, a runnable JAR, an executable assembly): its 'ships' relations name the modules in it. Scanned from the build's executable artifacts, named as the build names them.",
   );
 export type DesignedDeployableUnit = z.infer<typeof DesignedDeployableUnit>;
 
@@ -204,7 +212,7 @@ export const DesignedLibrary = z
     definition: DesignDocField(z.string()),
   })
   .describe(
-    "A reusable package of building blocks: its 'contains' relations name the blocks in it. Scanned from the build's artifacts that are no executable, named as the build names them.",
+    "A reusable package of building blocks: its 'provides' relations name the blocks in it. Scanned from the build's artifacts that are no executable, named as the build names them.",
   );
 export type DesignedLibrary = z.infer<typeof DesignedLibrary>;
 
@@ -215,7 +223,7 @@ export const DesignedLayer = z
     definition: DesignDocField(z.string()),
   })
   .describe(
-    "A horizontal slice of the code (domain, application, infrastructure, …): its 'contains' relations name the building blocks in it. Scanned from the layer annotations on packages and namespaces (Java's on package-info.java).",
+    "A horizontal slice of the code (domain, application, infrastructure, …): its 'places' relations name the building blocks in it. Scanned from the layer annotations on packages and namespaces (Java's on package-info.java).",
   );
 export type DesignedLayer = z.infer<typeof DesignedLayer>;
 
@@ -258,7 +266,7 @@ const designDocumentSchema = z.strictObject({
     DeploymentContainerId,
   ),
   relations: changeSet(DesignedRelation, DesignedRelationKey).describe(
-    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), what a module, a deployable unit (modules), a library or a layer (building blocks) contains, which deployable units a deployment container hosts ('hosts'), which rules a behavior follows ('governs'), which scenarios illustrate a rule ('illustrates'), which manual processes an actor performs ('performs') and which behaviors a manual process calls, in order ('invokes'). Both ends of an added relation exist, in the design or the model; a module's 'contains', an 'exposes' or an 'illustrates' agrees with the ids, whose paths already say what holds what; a deployable unit contains only modules, a library or a layer only building blocks; an added rule is governed by a behavior.",
+    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), what a module contains ('contains'), which modules a deployable unit ships ('ships'), which building blocks a library provides ('provides') or a layer places ('places'), which deployable units a deployment container hosts ('hosts'), which rules a behavior follows ('governs'), which scenarios illustrate a rule ('illustrates'), which manual processes an actor performs ('performs') and which behaviors a manual process calls, in order ('invokes'). Both ends of an added relation exist, in the design or the model; a 'contains', an 'exposes' or an 'illustrates' agrees with the ids, whose paths already say what holds what; an added rule is governed by a behavior.",
   ),
   implemented: z
     .boolean()
@@ -305,7 +313,6 @@ export interface DesignDocViolation {
     | 'ungovernedRule'
     | 'unknownRelationEnd'
     | 'containmentOutsideIdPath'
-    | 'containmentOutsideKinds'
     | 'slotOutsideTypeKind';
 }
 
@@ -492,7 +499,6 @@ function rulesOfEveryDesign(
     ...ungovernedRules(document),
     ...unknownRelationEnds(document, systemModel),
     ...containmentsOutsideIdPaths(document),
-    ...containmentsOutsideKinds(document),
     ...slotsOutsideTypeKinds(document, systemModel),
   ];
 }
@@ -540,16 +546,14 @@ function unknownRelationEnds(
 }
 
 /**
- * What holds what is in the ids: a module's `contains` or an `exposes` says
- * what `to`'s path already says, an `illustrates` what `from`'s does.
+ * What holds what is in the ids: a `contains` or an `exposes` says what
+ * `to`'s path already says, an `illustrates` what `from`'s does.
  */
 function containmentsOutsideIdPaths(
   document: DesignDocumentContent,
 ): DesignDocViolation[] {
   return document.relations.added
     .filter((relation) => {
-      if (relation.kind === 'contains' && !ElementId.isModule(relation.from))
-        return false;
       if (relation.kind === 'contains' || relation.kind === 'exposes')
         return parentPathOf(relation.to) !== pathOf(relation.from);
       if (relation.kind === 'illustrates')
@@ -562,26 +566,6 @@ function containmentsOutsideIdPaths(
     }));
 }
 
-/** A deployable unit contains modules, a library or a layer building blocks. */
-function containmentsOutsideKinds(
-  document: DesignDocumentContent,
-): DesignDocViolation[] {
-  return document.relations.added
-    .filter(
-      (relation) =>
-        relation.kind === 'contains' &&
-        ((ElementId.isDeployableUnit(relation.from) &&
-          !ElementId.isModule(relation.to)) ||
-          ((ElementId.isLibrary(relation.from) ||
-            ElementId.isLayer(relation.from)) &&
-            !ElementId.isBuildingBlock(relation.to))),
-    )
-    .map((relation) => ({
-      path: `relations.added[${Relation.keyOf(relation)}].to`,
-      reason: 'containmentOutsideKinds' as const,
-    }));
-}
-
 /**
  * The kind of the block a slot points at says which slot it is: a value of
  * the domain or a primitive is state, any other block a collaborator. A type
@@ -591,7 +575,7 @@ function slotsOutsideTypeKinds(
   document: DesignDocumentContent,
   systemModel: SystemModel | undefined,
 ): DesignDocViolation[] {
-  const kinds = new Map<string, BuildingBlockType>();
+  const kinds = new Map<string, BuildingBlockKind>();
   for (const { id, type } of systemModel?.buildingBlocks ?? [])
     kinds.set(id, type);
   for (const kind of ['added', 'modified'] as const)
@@ -615,7 +599,7 @@ function slotsOutsideTypeKinds(
         ? false
         : kind === undefined
           ? null
-          : isCollaboratorType(kind);
+          : isCollaboratorKind(kind);
       if (collaborator === null) return [];
       return collaborator === (relation.kind === 'has_collaborator')
         ? []

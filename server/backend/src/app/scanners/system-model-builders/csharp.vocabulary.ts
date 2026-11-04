@@ -1,4 +1,4 @@
-import type { BuildingBlockType } from '#backend/app/system-model/system-model';
+import type { BuildingBlockKind } from '#backend/app/system-model/system-model';
 import type {
   AnnotationRole,
   AnnotationVocabulary,
@@ -16,7 +16,7 @@ const ANNOTATIONS = 'T:NoesisVision.Annotations';
 const DOMAIN = `${ANNOTATIONS}.Domain`;
 const DDD = `${DOMAIN}.DDD`;
 
-const BUILDING_BLOCKS: Record<string, BuildingBlockType> = {
+const BUILDING_BLOCKS: Record<string, BuildingBlockKind> = {
   [`${DDD}.DddAggregateAttribute`]: 'aggregate',
   [`${DDD}.DddEntityAttribute`]: 'entity',
   [`${DDD}.DddValueObjectAttribute`]: 'value_object',

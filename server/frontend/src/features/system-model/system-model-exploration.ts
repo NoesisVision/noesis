@@ -1,6 +1,6 @@
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type {
-  BuildingBlockType,
+  BuildingBlockKind,
   SystemModel,
 } from '#backend/app/system-model/system-model.ts';
 
@@ -19,8 +19,8 @@ import type {
  * manual processes, and a manual process invokes behaviors in order, as a
  * behavior does; neither is contained by anything.
  *
- * Deployment containers host deployable units, a unit contains modules, and
- * a library or a layer contains building blocks, so a block can be held by
+ * Deployment containers host deployable units, a unit ships modules, a
+ * library provides and a layer places building blocks, so a block can be held by
  * its module, its layer and its library at once. A card is drawn inside one
  * frame only: a container outermost, a unit or a library inside it, and a
  * layer or a module inside the smallest of the others that holds every
@@ -45,7 +45,7 @@ export interface ExploredElement {
   kind: ExploredKind;
   name: string;
   /** The building block's type; null for any other element. */
-  pattern: BuildingBlockType | null;
+  pattern: BuildingBlockKind | null;
   /** The frame it is drawn inside, if the model holds one. */
   container: string | null;
 }
@@ -121,8 +121,20 @@ export const DRAWN_RELATIONS = [
 type DrawnRelationEntry = (typeof DRAWN_RELATIONS)[number];
 export type DrawnRelationKind = DrawnRelationEntry['kind'];
 
-/** How one element holds another: contains it, or — a container — hosts it. */
-type HoldingKind = 'contains' | 'hosts';
+/**
+ * How one element holds another: a module contains it, a unit ships it, a
+ * library provides it, a layer places it, a container hosts it.
+ */
+export const HOLDING_KINDS = [
+  'contains',
+  'ships',
+  'provides',
+  'places',
+  'hosts',
+] as const;
+type HoldingKind = (typeof HOLDING_KINDS)[number];
+const isHolding = (kind: string): kind is HoldingKind =>
+  (HOLDING_KINDS as readonly string[]).includes(kind);
 
 interface Holding {
   kind: HoldingKind;
@@ -158,6 +170,9 @@ export const RELATION_WORD = {
     DRAWN_RELATIONS.map(({ kind, word }) => [kind, word]),
   ) as Record<DrawnRelationKind, string>),
   contains: 'contains',
+  ships: 'ships',
+  provides: 'provides',
+  places: 'places',
   hosts: 'hosts',
 } as const satisfies Record<EdgeKind, string>;
 
@@ -252,7 +267,7 @@ export function explorationOf(model: SystemModel): Exploration {
     hold('contains', moduleOf(id), id);
   for (const { id } of model.behaviors) hold('contains', blockOf(id), id);
   for (const relation of model.relations)
-    if (relation.kind === 'contains' || relation.kind === 'hosts')
+    if (isHolding(relation.kind))
       hold(relation.kind, relation.from, relation.to);
 
   const frames = framesOf(elements, [...holdings.values()]);

@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import {
-  BuildingBlockType,
-  isCollaboratorType,
   PrimitiveId,
   Relation,
   type RelationKey,
@@ -184,37 +182,6 @@ describe('A scanned building block', () => {
   });
 });
 
-describe('A building block kind', () => {
-  it('is held as state when it is a value of the domain, as a collaborator otherwise', () => {
-    const state = [
-      'aggregate',
-      'entity',
-      'value_object',
-      'event',
-      'command',
-      'query',
-    ];
-    const collaborators = BuildingBlockType.options.filter(
-      (type) => !state.includes(type),
-    );
-
-    for (const type of state)
-      expect(isCollaboratorType(type as BuildingBlockType)).toBe(false);
-    expect(collaborators).toEqual([
-      'domain_service',
-      'application_service',
-      'repository',
-      'factory',
-      'external_integration',
-      'in_adapter',
-      'out_adapter',
-      'technical_service',
-    ]);
-    for (const type of collaborators)
-      expect(isCollaboratorType(type)).toBe(true);
-  });
-});
-
 describe('A scanned behavior', () => {
   it('has no type: what kind of message it handles is not its own', () => {
     expect(isValid(withBehavior({ type: 'Command' }))).toBe(false);
@@ -233,7 +200,11 @@ describe('An actor and a manual process', () => {
     name: 'Customer',
     source: { path: 'src/sales/orders/order.ts', line: 29 },
   };
-  const process = { id: RETURN_GOODS, name: 'Return goods' };
+  const process = {
+    id: RETURN_GOODS,
+    name: 'Return goods',
+    source: { path: 'test/sales/returns/return-goods.spec.ts', line: 12 },
+  };
 
   it('are elements of their own, named by their name alone', () => {
     const parsed = SystemModel.parse(
@@ -241,8 +212,15 @@ describe('An actor and a manual process', () => {
     );
     expect<unknown>(parsed.actors).toEqual([{ ...actor, description: null }]);
     expect<unknown>(parsed.manualProcesses).toEqual([
-      { ...process, description: null, source: null },
+      { ...process, description: null },
     ]);
+    expect(
+      isValid(
+        model({
+          manualProcesses: [{ id: RETURN_GOODS, name: 'Return goods' }],
+        }),
+      ),
+    ).toBe(false);
     expect(
       isValid(model({ actors: [{ ...actor, id: 'actor|sales.Customer' }] })),
     ).toBe(false);
@@ -264,6 +242,7 @@ describe('A deployable unit and a library', () => {
   const library = {
     id: 'library|MyCompany.Sales',
     name: 'MyCompany.Sales',
+    source: { path: 'src/MyCompany.Sales' },
   };
 
   it('are elements of their own, named as the build names them, dots and all', () => {
@@ -274,7 +253,11 @@ describe('A deployable unit and a library', () => {
       { ...unit, description: null, source: { path: 'shop-api', line: null } },
     ]);
     expect<unknown>(parsed.libraries).toEqual([
-      { ...library, description: null, source: null },
+      {
+        ...library,
+        description: null,
+        source: { path: 'src/MyCompany.Sales', line: null },
+      },
     ]);
     expect(
       isValid(model({ libraries: [{ ...library, id: 'library|a|b' }] })),
@@ -288,37 +271,44 @@ describe('A deployable unit and a library', () => {
           deployableUnits: [unit],
           libraries: [library],
           relations: [
-            { kind: 'contains', from: unit.id, to: ORDERS },
-            { kind: 'contains', from: library.id, to: ORDER },
+            { kind: 'ships', from: unit.id, to: ORDERS },
+            { kind: 'provides', from: library.id, to: ORDER },
           ],
         }),
       ),
     ).toBe(true);
     expect(
       isValid(
-        model({ relations: [{ kind: 'contains', from: unit.id, to: PLACE }] }),
+        model({ relations: [{ kind: 'ships', from: unit.id, to: PLACE }] }),
       ),
     ).toBe(false);
   });
 });
 
 describe('A layer and a deployment container', () => {
-  const layer = { id: 'layer|domain', name: 'domain' };
+  const layer = {
+    id: 'layer|domain',
+    name: 'domain',
+    source: { path: 'src/sales/domain/package-info.java', line: 1 },
+  };
   const container = {
     id: 'deployment_container|Orders cluster',
     name: 'Orders cluster',
+    source: { path: 'infra/orders-cluster.tf', line: 3 },
   };
-  const unit = { id: 'deployable_unit|shop-api', name: 'shop-api' };
+  const unit = {
+    id: 'deployable_unit|shop-api',
+    name: 'shop-api',
+    source: { path: 'shop-api', line: null },
+  };
 
   it('are elements of their own, named by one name', () => {
     const parsed = SystemModel.parse(
       model({ layers: [layer], deploymentContainers: [container] }),
     );
-    expect<unknown>(parsed.layers).toEqual([
-      { ...layer, description: null, source: null },
-    ]);
+    expect<unknown>(parsed.layers).toEqual([{ ...layer, description: null }]);
     expect<unknown>(parsed.deploymentContainers).toEqual([
-      { ...container, description: null, source: null },
+      { ...container, description: null },
     ]);
     expect(
       isValid(model({ layers: [{ ...layer, id: 'layer|shop.domain' }] })),
@@ -333,7 +323,7 @@ describe('A layer and a deployment container', () => {
           deploymentContainers: [container],
           deployableUnits: [unit],
           relations: [
-            { kind: 'contains', from: layer.id, to: ORDER },
+            { kind: 'places', from: layer.id, to: ORDER },
             { kind: 'hosts', from: container.id, to: unit.id },
           ],
         }),

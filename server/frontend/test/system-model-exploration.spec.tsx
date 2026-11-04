@@ -253,7 +253,7 @@ describe('the exploration of a system model', () => {
               id: PROCESS,
               name: 'Place an order',
               description: null,
-              source: null,
+              source,
             },
           ],
         },
@@ -336,7 +336,7 @@ describe('layers, libraries, units and containers', () => {
   });
   const holds = (from: string, ...blocks: string[]) =>
     blocks.map((name) => ({
-      kind: 'contains',
+      kind: 'places',
       from,
       to: `building_block|shop.${name}`,
     }));
@@ -382,7 +382,7 @@ describe('layers, libraries, units and containers', () => {
           from: 'deployment_container|k8s',
           to: 'deployable_unit|app',
         },
-        { kind: 'contains', from: 'deployable_unit|app', to: 'module|shop' },
+        { kind: 'ships', from: 'deployable_unit|app', to: 'module|shop' },
       ],
       {
         deploymentContainers: [
@@ -474,7 +474,7 @@ describe('layers, libraries, units and containers', () => {
         relations: new Set(relations),
       }).relations.map(({ id }) => id);
     expect(shown(['contains'])).toEqual([
-      'contains:layer|domain->building_block|shop.orders.Order',
+      'places:layer|domain->building_block|shop.orders.Order',
     ]);
     expect(shown([])).toEqual([]);
     // The layer's card offers every block it holds, drawn round it or not.

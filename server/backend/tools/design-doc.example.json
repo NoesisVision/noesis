@@ -341,7 +341,7 @@
   "relations": {
     "added": [
       {
-        "kind": "contains",
+        "kind": "ships",
         "from": "deployable_unit|shop-api",
         "to": "module|sales.refunds"
       },
@@ -351,7 +351,7 @@
         "to": "deployable_unit|shop-api"
       },
       {
-        "kind": "contains",
+        "kind": "places",
         "from": "layer|domain",
         "to": "building_block|sales.refunds.Refund"
       },

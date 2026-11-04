@@ -275,7 +275,7 @@ export const designDocFixture = {
   relations: {
     added: [
       { kind: 'performs', from: SUPPORT_AGENT, to: REFUND_A_RETURN },
-      { kind: 'contains', from: REFUNDS_API, to: 'module|sales.refunds' },
+      { kind: 'ships', from: REFUNDS_API, to: 'module|sales.refunds' },
       { kind: 'hosts', from: REFUNDS_CLUSTER, to: REFUNDS_API },
       {
         kind: 'invokes',

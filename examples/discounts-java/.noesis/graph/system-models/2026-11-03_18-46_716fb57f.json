@@ -364,17 +364,17 @@
   "deploymentContainers": [],
   "relations": [
     {
-      "kind": "contains",
+      "kind": "ships",
       "from": "deployable_unit|app",
       "to": "module|discounts.calculation"
     },
     {
-      "kind": "contains",
+      "kind": "ships",
       "from": "deployable_unit|app",
       "to": "module|discounts.offers"
     },
     {
-      "kind": "contains",
+      "kind": "ships",
       "from": "deployable_unit|app",
       "to": "module|discounts.users"
     },

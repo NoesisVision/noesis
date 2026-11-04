@@ -601,26 +601,26 @@ builder beside the code model (`app/scanners/feature-files/`).
 The deployable units and libraries step of the plan (step 5) changed, in
 short:
 
-| Was                      | Is                                                                                  |
-| ------------------------ | ----------------------------------------------------------------------------------- |
-| nothing                  | a `deployableUnits` and a `libraries` list, one element per artifact (R13)          |
-| `contains` from a module | `contains` from a module, a deployable unit (to a module) or a library (to a block) |
+| Was                      | Is                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------ |
+| nothing                  | a `deployableUnits` and a `libraries` list, one element per artifact (R13)                 |
+| `contains` from a module | the same, `ships` from a deployable unit to a module, `provides` from a library to a block |
 
 **R13 Deployable units and libraries from the artifacts.** Every artifact
 of the manifest that is not excluded (R3.1) and declares at least one
 building block becomes an element.
 
 - **R13.1 A deployable unit** is an artifact with `executable: true`. It
-  `contains` each module that directly holds one of its blocks — not the
+  `ships` each module that directly holds one of its blocks — not the
   modules above them, which every artifact's namespaces declare.
-- **R13.2 A library** is any other artifact. It `contains` each of its
+- **R13.2 A library** is any other artifact. It `provides` each of its
   blocks.
 - **R13.3 Name and id.** The artifact's `name`, whole: a C# project's
   `MyCompany.Sales.DeepModel` is one name, so the ids
   `deployable_unit|<name>` and `library|<name>` take dots as part of it
   (`ArtifactName`, never empty, padded or with `|`). Its `source` is the
   artifact's `rootDirectory`, `line: null`; the repository root is `.`; no
-  root directory, no source. `description` is null.
+  root directory, an empty path, as R4.6 has it. `description` is null.
 - **R13.4 Dropped, with a diagnostic:** an artifact that declares no
   building block (a test project, an artifact all of whose namespaces are
   excluded); an artifact whose name is no `ArtifactName`; the second of two
@@ -659,11 +659,11 @@ refuses an invalid one.
 The layers and deployment containers step of the plan (step 6) changed, in
 short:
 
-| Was                                           | Is                                                                                                  |
-| --------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| nothing                                       | a `layers` list, one element per layer name (R15), and a `deploymentContainers` list, never scanned |
-| `contains` from a module, a unit or a library | the same, and from a layer to a block                                                               |
-| nothing                                       | `hosts`, from a deployment container to a deployable unit, authored in designs only                 |
+| Was                             | Is                                                                                                  |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- |
+| nothing                         | a `layers` list, one element per layer name (R15), and a `deploymentContainers` list, never scanned |
+| `contains`, `ships`, `provides` | the same, and `places` from a layer to a block                                                      |
+| nothing                         | `hosts`, from a deployment container to a deployable unit, authored in designs only                 |
 
 **R15 Layers from package and namespace annotations.** A layer annotation
 (the `layer` role: Java's `@Layer("<name>")`, written on the package's
@@ -675,7 +675,7 @@ namespace node of an artifact that is not excluded names a layer.
   namespace has a location there, else its first location; `description`
   is null.
 - **R15.2 Containment.** A building block is in the layer of the nearest
-  annotated namespace at or above its own: one `contains` from that layer
+  annotated namespace at or above its own: one `places` from that layer
   to the block. A block under no annotated namespace is in no layer, and a
   codebase without the annotation has no layers.
 - **R15.3 One namespace, one layer.** Annotated namespaces are read by

@@ -2,6 +2,7 @@ import { MarkerType } from '@xyflow/react';
 import {
   DRAWN_RELATIONS,
   type EdgeKind,
+  HOLDING_KINDS,
 } from '../../system-model-exploration.ts';
 
 /*
@@ -12,10 +13,11 @@ import {
  * tokens; this only names them. A diagram theme may set its own colours
  * (`--edge-state`, `--edge-invokes`, as themes.ts says). A relation drawn
  * as an edge from here on needs its entry there and in DRAWN_RELATIONS.
- * What holds an element it is not drawn round is an edge too, `contains`
- * or `hosts`, both in the one `contains` look.
+ * What holds an element it is not drawn round is an edge too — a holding
+ * of any kind — all in the one `contains` look.
  */
-const lookOf = (kind: EdgeKind) => (kind === 'hosts' ? 'contains' : kind);
+const lookOf = (kind: EdgeKind) =>
+  (HOLDING_KINDS as readonly string[]).includes(kind) ? 'contains' : kind;
 
 const tokenOf = (kind: EdgeKind, part = '') =>
   `var(--noesis-diagram-edge-${lookOf(kind)}${part})`;
@@ -26,8 +28,7 @@ const themedOf = (kind: EdgeKind, part = '') =>
 
 const EDGE_KINDS: readonly EdgeKind[] = [
   ...DRAWN_RELATIONS.map(({ kind }) => kind),
-  'contains',
-  'hosts',
+  ...HOLDING_KINDS,
 ];
 
 const forEachKind = <T>(valueOf: (kind: EdgeKind) => T) =>
@@ -64,5 +65,8 @@ export const EDGE_ARROW = {
   invokes: MarkerType.ArrowClosed,
   performs: MarkerType.ArrowClosed,
   contains: MarkerType.Arrow,
+  ships: MarkerType.Arrow,
+  provides: MarkerType.Arrow,
+  places: MarkerType.Arrow,
   hosts: MarkerType.Arrow,
 } as const satisfies Record<EdgeKind, MarkerType>;

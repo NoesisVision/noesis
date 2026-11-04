@@ -13,7 +13,6 @@ import {
   ScenarioId,
 } from '#backend/app/element-id';
 import {
-  isCollaboratorType,
   Relation,
   type ScannedActor,
   type ScannedBehavior,
@@ -56,6 +55,7 @@ import {
   stringArgument,
   withRepeated,
 } from './annotations';
+import { isCollaboratorKind } from './block-kinds';
 import {
   CodeModelIndex,
   type GlobalId,
@@ -523,7 +523,7 @@ class ModelAssembly {
   /** The block `ref` names when its kind makes it a collaborator (decision 11); null for state. */
   private collaboratorOf(ref: string): BuildingBlockId | null {
     const type = this.blockTypes().get(ref);
-    return type !== undefined && isCollaboratorType(type)
+    return type !== undefined && isCollaboratorKind(type)
       ? (ref as BuildingBlockId)
       : null;
   }
@@ -1240,11 +1240,13 @@ class ModelAssembly {
     for (const artifact of this.index.artifacts) {
       const node = artifact.file.artifact;
       if (this.excluded(node.annotations)) continue;
-      // The repository root itself is '.', as a module's directory is (R6.4).
-      const source =
-        node.rootDirectory === null
-          ? null
-          : { path: node.rootDirectory || '.', line: null };
+      // The repository root itself is '.', as a module's directory is (R6.4);
+      // an artifact without a root directory has no path, as a node without
+      // a location has none (R4.6).
+      const source = {
+        path: node.rootDirectory === null ? '' : node.rootDirectory || '.',
+        line: null,
+      };
       const declared = blocks.filter((block) => block.artifact === artifact);
       if (declared.length === 0) {
         this.infoAt(
@@ -1273,7 +1275,7 @@ class ModelAssembly {
           for (const module of sortedUnique(
             declared.map((block) => moduleIdOf(block.modulePath)),
           )) {
-            this.relations.push({ kind: 'contains', from: id, to: module });
+            this.relations.push({ kind: 'ships', from: id, to: module });
           }
         }
       } else {
@@ -1281,7 +1283,7 @@ class ModelAssembly {
         if (this.firstWith(id, libraries, artifact.id, source)) {
           libraries.set(id, { id, ...element });
           for (const block of declared) {
-            this.relations.push({ kind: 'contains', from: id, to: block.id });
+            this.relations.push({ kind: 'provides', from: id, to: block.id });
           }
         }
       }
@@ -1308,7 +1310,7 @@ class ModelAssembly {
         source,
       });
       for (const block of kept) {
-        this.relations.push({ kind: 'contains', from: id, to: block.id });
+        this.relations.push({ kind: 'provides', from: id, to: block.id });
       }
     }
     return {
@@ -1321,7 +1323,7 @@ class ModelAssembly {
 
   /**
    * R15: one layer per name the layer annotations on packages and
-   * namespaces give, and one `contains` to each block from the layer of the
+   * namespaces give, and one `places` to each block from the layer of the
    * nearest annotated namespace at or above the block's. A layer no block
    * is in is no element.
    */
@@ -1377,7 +1379,7 @@ class ModelAssembly {
       const id = namespace === null ? null : nearestLayer(namespace, layerOf);
       if (id === null) continue;
       inLayer.add(id);
-      this.relations.push({ kind: 'contains', from: id, to: block.id });
+      this.relations.push({ kind: 'places', from: id, to: block.id });
     }
     for (const layer of layers.values()) {
       if (inLayer.has(layer.id)) continue;
@@ -1580,13 +1582,11 @@ function nearestLayer(
  * `package-info.java`, so that location when the namespace has one, else its
  * first.
  */
-function layerSourceOf(node: NamespaceNode): SourceLocation | null {
+function layerSourceOf(node: NamespaceNode): SourceLocation {
   const declared = node.locations.find((span) =>
     span.file.endsWith('package-info.java'),
   );
-  return declared === undefined
-    ? sourceOrNull(node)
-    : toSourceLocation(declared);
+  return declared === undefined ? locationOf(node) : toSourceLocation(declared);
 }
 
 /** R4.6, R9.10: the node's first location; a node without one has no path. */

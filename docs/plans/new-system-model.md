@@ -121,8 +121,8 @@ yes.
     counting from 1. Today's sorted, unique list loses its sorting.
 13. **Deployable units and libraries come from the code model's artifacts**:
     an artifact with `executable: true` is a deployable unit, any other a
-    library; a deployable unit `contains` the modules its namespaces declare,
-    a library `contains` the building blocks in them, as the structure says.
+    library; a deployable unit `ships` the modules its namespaces declare,
+    a library `provides` the building blocks in them, as the structure says.
     Both are named by the artifact's name. _(proposed)_
 14. **Layers come from an annotation on a package or namespace** (`@Layer`,
     `[Layer]`), new in both annotation libraries; a codebase without it has
@@ -168,7 +168,7 @@ BuildingBlockType = 'aggregate' | 'entity' | 'value_object' | 'domain_service'
 RuleKind = 'validation' | 'state_change' | 'post' | 'computation' | 'coordination' | 'configuration'
 PrimitiveId = as today: `primitive|${'string' | 'integer' | 'decimal' | 'boolean' | 'date' | 'datetime' | 'duration' | 'uuid'}`
 
-ScannedElement = { id, name, description, source }            // the common part; source nullable where a scan never finds one
+ScannedElement = { id, name, description, source }            // the common part; every element has a source
 ScannedModule              = ScannedElement
 ScannedLayer               = ScannedElement
 ScannedLibrary             = ScannedElement
@@ -194,8 +194,10 @@ TypeId = BuildingBlockId | PrimitiveId
 
 Relation = discriminated on `kind`:
   { kind: 'hosts',            from: DeploymentContainerId, to: DeployableUnitId }
-  { kind: 'contains',         from: DeployableUnitId | ModuleId, to: ModuleId }
-  { kind: 'contains',         from: ModuleId | LayerId | LibraryId, to: BuildingBlockId }
+  { kind: 'contains',         from: ModuleId, to: ModuleId | BuildingBlockId }
+  { kind: 'ships',            from: DeployableUnitId, to: ModuleId }
+  { kind: 'provides',         from: LibraryId, to: BuildingBlockId }
+  { kind: 'places',           from: LayerId, to: BuildingBlockId }
   { kind: 'extends',          from: BuildingBlockId, to: BuildingBlockId }
   { kind: 'has_state',        from: BuildingBlockId, to: TypeId, name, cardinality }
   { kind: 'has_collaborator', from: BuildingBlockId, to: BuildingBlockId, name }
@@ -260,8 +262,8 @@ elements and relations instead of nested objects; the sections of
 | New: R12 feature files   | —                                                                 | Every `Rule:` of every feature file is a rule (name, description, kind by decision 9), every `Scenario:` under it a scenario with its steps. Each step of the `When` section is matched against the `stepDefinition` roles' expressions (cucumber expressions and regular expressions, as Cucumber matches them); the `INVOKES` of the matched methods must reach exactly one behavior, directly or through methods that are no behavior (as R11.1): it governs the rule, the scenario illustrates it. Sorted by feature file path, then position |
 | R10.1 order              | lists sorted by id                                                | Elements by id; relations by section 3.2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | R11.3 invokes            | sorted, unique                                                    | One `invokes` relation per target, `order` by `site.location` within the caller; a target called twice keeps its first order; calls reached through a non-behavior method come at that call's position                                                                                                                                                                                                                                                                                                                                            |
-| New: artifacts           | —                                                                 | One `deployableUnits` element per `executable` artifact, one `libraries` element per other; `contains` to the modules of the namespaces the artifact's file declares (unit) or to the blocks in them (library); `source`: the artifact's `rootDirectory`                                                                                                                                                                                                                                                                                          |
-| New: layers              | —                                                                 | One `layers` element per distinct `@Layer`/`[Layer]` name; `contains` to the blocks under the annotated packages, nearest annotation wins                                                                                                                                                                                                                                                                                                                                                                                                         |
+| New: artifacts           | —                                                                 | One `deployableUnits` element per `executable` artifact, one `libraries` element per other; `ships` to the modules of the namespaces the artifact's file declares (unit) or `provides` to the blocks in them (library); `source`: the artifact's `rootDirectory`                                                                                                                                                                                                                                                                                  |
+| New: layers              | —                                                                 | One `layers` element per distinct `@Layer`/`[Layer]` name; `places` to the blocks under the annotated packages, nearest annotation wins                                                                                                                                                                                                                                                                                                                                                                                                           |
 | New: actors              | —                                                                 | One `actors` element per distinct actor name among the actor roles                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | New: kinds               | messages and adapters are `value_object` / `external_integration` | `@Command` → `command`, `@Query` → `query`, `@Event`, `[DddDomainEvent]` → `event`, `@Adapter(PRIMARY)` → `in_adapter`, `@Adapter(SECONDARY)` → `out_adapter`, `@TechnicalService` → `technical_service`; `[ReadModel]` stays `value_object`                                                                                                                                                                                                                                                                                                      |
 
@@ -540,8 +542,10 @@ fixtures and the skills together, so no step leaves two shapes alive.
    above its own; an artifact that declares no block (a test project) is
    no element, with a diagnostic; the repository root is the source `.`.
    The design document's `deployableUnits` and `libraries` are change
-   sets keyed by id with `name` and `definition`, and a writer's rule
-   `containmentOutsideKinds` (a unit contains modules, a library blocks).
+   sets keyed by id with `name` and `definition`, and the schema keeps a
+   unit to modules (`ships`) and a library to blocks (`provides`): each
+   holder has a relation kind of its own, so a pair no holder has is no
+   relation at all.
    The SPA shows each unit and library as a row at the top of the model
    tree after the actors; its panel lists what it Contains, a module's
    says where it is Deployed in, a block's which library it is In; names
@@ -564,9 +568,9 @@ fixtures and the skills together, so no step leaves two shapes alive.
    `code-parsers/java/annotations`, unreleased until step 7; the Java shop
    fixture annotates its `package-info.java` files, so the toolchain e2e
    reads a layer through the real parser. C# has no layer role. The design document's `layers` and `deploymentContainers`
-   are change sets keyed by id with `name` and `definition`; the writer's
-   rule `containmentOutsideKinds` keeps a layer to building blocks, and
-   the schema keeps `hosts` to a container and a unit. The SPA shows each
+   are change sets keyed by id with `name` and `definition`; the schema
+   keeps a layer to building blocks (`places`) and `hosts` to a container
+   and a unit. The SPA shows each
    layer and container as a row at the top of the model tree after the
    libraries; a layer's panel lists what it Contains, a block's which
    layer it is In, a container's what it Hosts, a unit's where it is

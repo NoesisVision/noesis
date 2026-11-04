@@ -4,7 +4,7 @@ import type {
   DesignedRelationInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BuildingBlockType,
+  BuildingBlockKind,
   Cardinality,
 } from '#backend/app/system-model/system-model.ts';
 import type { ArchitectureCheck } from '../src/features/design-docs/architecture-outline';
@@ -29,7 +29,7 @@ import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixt
 
 const agent = <const T>(value: T) => ({ value, author: 'agent' as const });
 
-const block = (address: string, type: BuildingBlockType) => ({
+const block = (address: string, type: BuildingBlockKind) => ({
   id: `building_block|${address}`,
   type: agent(type),
 });

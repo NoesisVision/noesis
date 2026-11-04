@@ -788,7 +788,10 @@
       "id": "manual_process|Create a QDoc",
       "name": "Create a QDoc",
       "description": "The quality manager starts a new QDoc, and its readers are told of it.",
-      "source": null
+      "source": {
+        "path": "",
+        "line": null
+      }
     }
   ],
   "deployableUnits": [],
@@ -805,132 +808,132 @@
   ],
   "relations": [
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.notifications.Notification"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.notifications.NotificationSender"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.notifications.NotificationService"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.notifications.NotifyUsers"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.notifications.Recipient"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.Assignment"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.AssignmentRole"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.ContentFile"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.ContentFileId"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.CreateQDoc"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.DocumentNumber"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.DocumentType"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.IdentityProvider"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDoc"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocCreated"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocCreationService"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocId"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocRepository"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocStatus"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.QDocTitle"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.UserId"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.Version"
     },
     {
-      "kind": "contains",
+      "kind": "provides",
       "from": "library|qdoc",
       "to": "building_block|qdocmanagement.preparation.VersionStatus"
     },

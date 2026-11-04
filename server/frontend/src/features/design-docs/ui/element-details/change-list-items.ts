@@ -309,15 +309,15 @@ export const stepItems = (
 
 /** What holds blocks or modules outside the module tree: a deployable unit, a library, a layer. */
 type Holder = 'deployable_unit|' | 'library|' | 'layer|';
-const HOLDERS: readonly Holder[] = ['deployable_unit|', 'library|', 'layer|'];
 
-/** The `contains` relations of a design that start at a deployable unit, a library or a layer. */
+/** The relations of a design by which a deployable unit ships, a library provides or a layer places. */
 const packagingRelations = (
   doc: DesignDocumentInput,
 ): [{ from: string; to: string }, OutlineChange][] =>
   [...changed(doc.relations)].flatMap(([relation, change]) =>
-    relation.kind === 'contains' &&
-    HOLDERS.some((holder) => relation.from.startsWith(holder))
+    relation.kind === 'ships' ||
+    relation.kind === 'provides' ||
+    relation.kind === 'places'
       ? [[relation, change] as [{ from: string; to: string }, OutlineChange]]
       : [],
   );

@@ -7,7 +7,7 @@ import type {
   ModuleId,
 } from '#backend/app/element-id.ts';
 import type {
-  BuildingBlockType,
+  BuildingBlockKind,
   RuleKind,
 } from '#backend/app/system-model/system-model.ts';
 import type { kindOf } from './element-id.ts';
@@ -51,7 +51,7 @@ export interface PlacedElement<
   id: Id;
   name: string;
   /** The building block type; a behavior has none. */
-  pattern: BuildingBlockType | null;
+  pattern: BuildingBlockKind | null;
   change: OutlineChange;
   /** The building blocks its properties, collaborators, inputs and outputs use, collections unwrapped; itself left out. */
   uses: BuildingBlockId[];
@@ -96,7 +96,7 @@ const DRIVEN_PORTS = [
   'external_integration',
   'out_adapter',
   'technical_service',
-] as const satisfies readonly BuildingBlockType[];
+] as const satisfies readonly BuildingBlockKind[];
 
 /** Every element in a hexagon, in the order the rings are drawn. */
 export const elementsOf = (hexagon: Hexagon): PlacedElement[] => [
@@ -124,8 +124,8 @@ export const placedById = (
     ].map((element) => [element.id, element]),
   );
 
-export const isDrivenPort = (pattern: BuildingBlockType | null): boolean =>
-  (DRIVEN_PORTS as readonly (BuildingBlockType | null)[]).includes(pattern);
+export const isDrivenPort = (pattern: BuildingBlockKind | null): boolean =>
+  (DRIVEN_PORTS as readonly (BuildingBlockKind | null)[]).includes(pattern);
 
 /*
  * What the hexagons draw, by kind: the frames (a module's hexagon, the domain

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ArtifactName, ElementName } from '#backend/app/element-id';
-import { BuildingBlockType } from '#backend/app/system-model/system-model';
+import { BuildingBlockKind } from '#backend/app/system-model/system-model';
 
 /*
  * A library the scan does not read, described by hand: one file under
@@ -22,7 +22,7 @@ const TypeName = z
 
 const LibraryManifestBlock = z.strictObject({
   type: TypeName,
-  kind: BuildingBlockType,
+  kind: BuildingBlockKind,
   name: ElementName.optional().describe(
     "The block's name in the model; the type's own name by default.",
   ),

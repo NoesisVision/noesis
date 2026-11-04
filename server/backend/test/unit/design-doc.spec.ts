@@ -783,28 +783,19 @@ describe('Deployable units and libraries', () => {
   it('lets a deployable unit contain a module and a library a building block, whatever their paths', () => {
     expect(
       packaging([
-        { kind: 'contains', from: API, to: REFUNDS },
-        { kind: 'contains', from: SALES, to: REFUND },
+        { kind: 'ships', from: API, to: REFUNDS },
+        { kind: 'provides', from: SALES, to: REFUND },
       ]),
     ).toEqual([]);
   });
 
   it('refuses a deployable unit containing a block, or a library a module', () => {
-    expect(
-      packaging([
-        { kind: 'contains', from: API, to: REFUND },
-        { kind: 'contains', from: SALES, to: REFUNDS },
-      ]),
-    ).toEqual([
-      {
-        path: `relations.added[contains|${API}|${REFUND}].to`,
-        reason: 'containmentOutsideKinds',
-      },
-      {
-        path: `relations.added[contains|${SALES}|${REFUNDS}].to`,
-        reason: 'containmentOutsideKinds',
-      },
-    ]);
+    expect(() =>
+      packaging([{ kind: 'ships', from: API, to: REFUND }]),
+    ).toThrow();
+    expect(() =>
+      packaging([{ kind: 'provides', from: SALES, to: REFUNDS }]),
+    ).toThrow();
   });
 
   it("names a unit or a library by the build's name, dots and all, never with a module path", () => {
@@ -885,19 +876,16 @@ describe('Layers and deployment containers', () => {
   it('lets a layer contain a building block and a container host a deployable unit', () => {
     expect(
       placing([
-        { kind: 'contains', from: DOMAIN, to: REFUND },
+        { kind: 'places', from: DOMAIN, to: REFUND },
         { kind: 'hosts', from: CLUSTER, to: API },
       ]),
     ).toEqual([]);
   });
 
   it('refuses a layer containing a module', () => {
-    expect(placing([{ kind: 'contains', from: DOMAIN, to: REFUNDS }])).toEqual([
-      {
-        path: `relations.added[contains|${DOMAIN}|${REFUNDS}].to`,
-        reason: 'containmentOutsideKinds',
-      },
-    ]);
+    expect(() =>
+      placing([{ kind: 'places', from: DOMAIN, to: REFUNDS }]),
+    ).toThrow();
   });
 
   it('refuses a container hosting anything but a deployable unit', () => {

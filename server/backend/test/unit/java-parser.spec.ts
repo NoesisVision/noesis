@@ -117,7 +117,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
     ]);
     expect<unknown>(
       model.relations.filter((r) => r.from === 'library|money-api'),
-    ).toEqual([{ kind: 'contains', from: 'library|money-api', to: CURRENCY }]);
+    ).toEqual([{ kind: 'provides', from: 'library|money-api', to: CURRENCY }]);
 
     // R15: `@Layer("domain")` on com.acme.shop's package-info.java puts every
     // block of the packages below it in the domain layer; the infrastructure
@@ -132,7 +132,10 @@ describe('A Java repository scanned through its Maven plugin', () => {
     ]);
     const inLayer = (from: string) =>
       model.relations
-        .filter((r) => r.kind === 'contains' && r.from === from)
+        .filter(
+          (r) =>
+            (r.kind === 'places' || r.kind === 'provides') && r.from === from,
+        )
         .map((r) => r.to);
     expect<unknown>(inLayer('layer|domain')).toEqual(
       inLayer('library|shop-domain'),
