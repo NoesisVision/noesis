@@ -84,12 +84,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|qdocmanagement",
               "to": "module|qdocmanagement.preparation"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|qdocmanagement",
               "to": "module|qdocmanagement.notifications"
             }
@@ -119,107 +119,107 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.QDocId"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.UserId"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.QDocTitle"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.DocumentType"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.DocumentNumber"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.QDocStatus"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.VersionStatus"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.AssignmentRole"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.Assignment"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.ContentFileId"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.CreateQDoc"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.QDocCreated"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.ContentFile"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.Version"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.QDoc"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.QDocRepository"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.IdentityProvider"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.QDocCreationService"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.preparation",
               "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
             }
@@ -249,27 +249,27 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.notifications",
               "to": "building_block|qdocmanagement.notifications.Recipient"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.notifications",
               "to": "building_block|qdocmanagement.notifications.NotifyUsers"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.notifications",
               "to": "building_block|qdocmanagement.notifications.Notification"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.notifications",
               "to": "building_block|qdocmanagement.notifications.NotificationSender"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|qdocmanagement.notifications",
               "to": "building_block|qdocmanagement.notifications.NotificationService"
             }
@@ -1698,7 +1698,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|qdocmanagement.preparation.Version",
               "to": "behavior|qdocmanagement.preparation.Version.createFirst"
             }
@@ -1823,7 +1823,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|qdocmanagement.preparation.QDoc",
               "to": "behavior|qdocmanagement.preparation.QDoc.create"
             }
@@ -2079,7 +2079,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|qdocmanagement.preparation.QDocRepository",
               "to": "behavior|qdocmanagement.preparation.QDocRepository.save"
             }
@@ -2125,7 +2125,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|qdocmanagement.preparation.DocumentNumberGenerator",
               "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next"
             }
@@ -2171,12 +2171,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|qdocmanagement.preparation.IdentityProvider",
               "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|qdocmanagement.preparation.IdentityProvider",
               "to": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers"
             }
@@ -2222,7 +2222,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|qdocmanagement.preparation.PreparationEventPublisher",
               "to": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish"
             }
@@ -2268,7 +2268,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|qdocmanagement.preparation.QDocCreationService",
               "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc"
             }
@@ -2660,7 +2660,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|qdocmanagement.notifications.NotificationSender",
               "to": "behavior|qdocmanagement.notifications.NotificationSender.send"
             }
@@ -2706,7 +2706,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|qdocmanagement.notifications.NotificationService",
               "to": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers"
             }

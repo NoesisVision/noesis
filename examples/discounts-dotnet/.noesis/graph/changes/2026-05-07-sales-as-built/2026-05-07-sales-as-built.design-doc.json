@@ -27,47 +27,47 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales",
               "to": "module|Sales.Clients"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales",
               "to": "module|Sales.Commons"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales",
               "to": "module|Sales.ExchangeRates"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales",
               "to": "module|Sales.Integrations"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales",
               "to": "module|Sales.Orders"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales",
               "to": "module|Sales.Pricing"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales",
               "to": "module|Sales.Products"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales",
               "to": "module|Sales.SalesChannels"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales",
               "to": "module|Sales.Time"
             }
@@ -97,17 +97,17 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Clients",
               "to": "building_block|Sales.Clients.ClientId"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Clients",
               "to": "building_block|Sales.Clients.ClientRepository"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Clients",
               "to": "building_block|Sales.Clients.ClientStatus"
             }
@@ -137,22 +137,22 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Commons",
               "to": "building_block|Sales.Commons.Currency"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Commons",
               "to": "building_block|Sales.Commons.Money"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Commons",
               "to": "building_block|Sales.Commons.Percentage"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Commons",
               "to": "building_block|Sales.Commons.TaxId"
             }
@@ -182,7 +182,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.ExchangeRates",
               "to": "building_block|Sales.ExchangeRates.ExchangeRate"
             }
@@ -212,7 +212,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales.Integrations",
               "to": "module|Sales.Integrations.RiskManagement"
             }
@@ -263,42 +263,42 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales.Orders",
               "to": "module|Sales.Orders.PriceChanges"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders",
               "to": "building_block|Sales.Orders.InvoicingDetails"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders",
               "to": "building_block|Sales.Orders.Factory"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders",
               "to": "building_block|Sales.Orders.PriceAgreement"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders",
               "to": "building_block|Sales.Orders.Repository"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders",
               "to": "building_block|Sales.Orders.Order"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders",
               "to": "building_block|Sales.Orders.OrderItemDetails"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders",
               "to": "building_block|Sales.Orders.PriceAgreementType"
             }
@@ -328,22 +328,22 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders.PriceChanges",
               "to": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders.PriceChanges",
               "to": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders.PriceChanges",
               "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Orders.PriceChanges",
               "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
             }
@@ -373,57 +373,57 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales.Pricing",
               "to": "module|Sales.Pricing.Discounts"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales.Pricing",
               "to": "module|Sales.Pricing.PriceLists"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|Sales.Pricing",
               "to": "module|Sales.Pricing.SpecialOffers"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing",
               "to": "building_block|Sales.Pricing.CalculatePrices"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing",
               "to": "building_block|Sales.Pricing.IndividualSalesConditions"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing",
               "to": "building_block|Sales.Pricing.Offer"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing",
               "to": "building_block|Sales.Pricing.OfferModifier"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing",
               "to": "building_block|Sales.Pricing.OfferModifiers"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing",
               "to": "building_block|Sales.Pricing.OfferRequest"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing",
               "to": "building_block|Sales.Pricing.Quote"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing",
               "to": "building_block|Sales.Pricing.QuoteModifier"
             }
@@ -453,37 +453,37 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.Discounts",
               "to": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.Discounts",
               "to": "building_block|Sales.Pricing.Discounts.Discount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.Discounts",
               "to": "building_block|Sales.Pricing.Discounts.DiscountsRepository"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.Discounts",
               "to": "building_block|Sales.Pricing.Discounts.PercentageDiscount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.Discounts",
               "to": "building_block|Sales.Pricing.Discounts.ProductDiscount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.Discounts",
               "to": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.Discounts",
               "to": "building_block|Sales.Pricing.Discounts.ValueDiscount"
             }
@@ -513,17 +513,17 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.PriceLists",
               "to": "building_block|Sales.Pricing.PriceLists.BasePrice"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.PriceLists",
               "to": "building_block|Sales.Pricing.PriceLists.BasePrices"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.PriceLists",
               "to": "building_block|Sales.Pricing.PriceLists.PriceListRepository"
             }
@@ -553,17 +553,17 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.SpecialOffers",
               "to": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.SpecialOffers",
               "to": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Pricing.SpecialOffers",
               "to": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo"
             }
@@ -593,27 +593,27 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Products",
               "to": "building_block|Sales.Products.Amount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Products",
               "to": "building_block|Sales.Products.AmountUnit"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Products",
               "to": "building_block|Sales.Products.ProductAmount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Products",
               "to": "building_block|Sales.Products.ProductId"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Products",
               "to": "building_block|Sales.Products.ProductUnit"
             }
@@ -643,7 +643,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.SalesChannels",
               "to": "building_block|Sales.SalesChannels.SalesChannel"
             }
@@ -673,7 +673,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|Sales.Time",
               "to": "building_block|Sales.Time.Clock"
             }
@@ -714,12 +714,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Clients.ClientId",
               "to": "behavior|Sales.Clients.ClientId.New"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Clients.ClientId",
               "to": "behavior|Sales.Clients.ClientId.From"
             }
@@ -765,7 +765,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Clients.ClientRepository",
               "to": "behavior|Sales.Clients.ClientRepository.GetStatusFor"
             }
@@ -891,17 +891,17 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Commons.Money",
               "to": "behavior|Sales.Commons.Money.Zero"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Commons.Money",
               "to": "behavior|Sales.Commons.Money.Of"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Commons.Money",
               "to": "behavior|Sales.Commons.Money.Max"
             }
@@ -947,7 +947,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Commons.Percentage",
               "to": "behavior|Sales.Commons.Percentage.Of"
             }
@@ -1033,12 +1033,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.ExchangeRates.ExchangeRate",
               "to": "behavior|Sales.ExchangeRates.ExchangeRate.Of"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.ExchangeRates.ExchangeRate",
               "to": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn"
             }
@@ -1124,17 +1124,17 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.Factory",
               "to": "behavior|Sales.Orders.Factory.NewWithMaxTotalCostFor"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.Factory",
               "to": "behavior|Sales.Orders.Factory.NewWith"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.Factory",
               "to": "behavior|Sales.Orders.Factory.ImmediatelyPlacedBasedOn"
             }
@@ -1180,27 +1180,27 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.PriceAgreement",
               "to": "behavior|Sales.Orders.PriceAgreement.Non"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.PriceAgreement",
               "to": "behavior|Sales.Orders.PriceAgreement.Temporary"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.PriceAgreement",
               "to": "behavior|Sales.Orders.PriceAgreement.Final"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.PriceAgreement",
               "to": "behavior|Sales.Orders.PriceAgreement.CanChangePrice"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.PriceAgreement",
               "to": "behavior|Sales.Orders.PriceAgreement.IsValidOn"
             }
@@ -1246,12 +1246,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.Repository",
               "to": "behavior|Sales.Orders.Repository.GetBy"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.Repository",
               "to": "behavior|Sales.Orders.Repository.Save"
             }
@@ -1297,22 +1297,22 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.Order",
               "to": "behavior|Sales.Orders.Order.Add"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.Order",
               "to": "behavior|Sales.Orders.Order.ConfirmPrices"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.Order",
               "to": "behavior|Sales.Orders.Order.Place"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.Order",
               "to": "behavior|Sales.Orders.Order.HasSameDataAs"
             }
@@ -1438,7 +1438,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges",
               "to": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices"
             }
@@ -1484,7 +1484,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower",
               "to": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices"
             }
@@ -1530,7 +1530,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies",
               "to": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor"
             }
@@ -1576,7 +1576,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy",
               "to": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices"
             }
@@ -1622,7 +1622,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.CalculatePrices",
               "to": "behavior|Sales.Pricing.CalculatePrices.For"
             }
@@ -1668,7 +1668,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
               "to": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn"
             }
@@ -1714,17 +1714,17 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.Discount",
               "to": "behavior|Sales.Pricing.Discounts.Discount.Percentage"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.Discount",
               "to": "behavior|Sales.Pricing.Discounts.Discount.Value"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.Discount",
               "to": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn"
             }
@@ -1770,7 +1770,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.DiscountsRepository",
               "to": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor"
             }
@@ -1816,12 +1816,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
               "to": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
               "to": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn"
             }
@@ -1867,7 +1867,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.ProductDiscount",
               "to": "behavior|Sales.Pricing.Discounts.ProductDiscount.Of"
             }
@@ -1913,12 +1913,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
               "to": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.Of"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
               "to": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn"
             }
@@ -1964,12 +1964,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.ValueDiscount",
               "to": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Discounts.ValueDiscount",
               "to": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn"
             }
@@ -2015,7 +2015,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.IndividualSalesConditions",
               "to": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn"
             }
@@ -2061,12 +2061,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Offer",
               "to": "behavior|Sales.Pricing.Offer.FromQuotes"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Offer",
               "to": "behavior|Sales.Pricing.Offer.Compare"
             }
@@ -2112,7 +2112,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.OfferModifier",
               "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn"
             }
@@ -2158,7 +2158,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.OfferModifiers",
               "to": "behavior|Sales.Pricing.OfferModifiers.ChooseFor"
             }
@@ -2204,7 +2204,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.OfferRequest",
               "to": "behavior|Sales.Pricing.OfferRequest.For"
             }
@@ -2250,7 +2250,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.PriceLists.BasePrice",
               "to": "behavior|Sales.Pricing.PriceLists.BasePrice.Of"
             }
@@ -2296,12 +2296,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.PriceLists.BasePrices",
               "to": "behavior|Sales.Pricing.PriceLists.BasePrices.Of"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.PriceLists.BasePrices",
               "to": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor"
             }
@@ -2347,12 +2347,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
               "to": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePriceFor"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
               "to": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor"
             }
@@ -2398,12 +2398,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Quote",
               "to": "behavior|Sales.Pricing.Quote.For"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.Quote",
               "to": "behavior|Sales.Pricing.Quote.ChangePrice"
             }
@@ -2449,7 +2449,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.QuoteModifier",
               "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
             }
@@ -2495,12 +2495,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
               "to": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
               "to": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn"
             }
@@ -2546,7 +2546,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer",
               "to": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
             }
@@ -2592,12 +2592,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
               "to": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
               "to": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn"
             }
@@ -2643,7 +2643,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Products.Amount",
               "to": "behavior|Sales.Products.Amount.Of"
             }
@@ -2729,7 +2729,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Products.ProductAmount",
               "to": "behavior|Sales.Products.ProductAmount.Of"
             }
@@ -2775,12 +2775,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Products.ProductId",
               "to": "behavior|Sales.Products.ProductId.New"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Products.ProductId",
               "to": "behavior|Sales.Products.ProductId.From"
             }
@@ -2826,7 +2826,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|Sales.Products.ProductUnit",
               "to": "behavior|Sales.Products.ProductUnit.Of"
             }

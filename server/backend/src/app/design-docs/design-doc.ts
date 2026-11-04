@@ -10,7 +10,7 @@ import {
 import {
   BehaviorRelation,
   BuildingBlockRelation,
-  ExtendsRelation,
+  BuildingBlockExtendsBuildingBlockRelation,
   isContainment,
   ModuleRelation,
   type Relation,
@@ -225,7 +225,9 @@ export type DesignedScenarioInput = z.input<typeof DesignedScenario>;
 export type ModuleRelationInput = z.input<typeof ModuleRelation>;
 export type BuildingBlockRelationInput = z.input<typeof BuildingBlockRelation>;
 export type BehaviorRelationInput = z.input<typeof BehaviorRelation>;
-export type ExtendsRelationInput = z.input<typeof ExtendsRelation>;
+export type BuildingBlockExtendsBuildingBlockRelationInput = z.input<
+  typeof BuildingBlockExtendsBuildingBlockRelation
+>;
 
 type ChangeSet<
   Item extends z.ZodType,

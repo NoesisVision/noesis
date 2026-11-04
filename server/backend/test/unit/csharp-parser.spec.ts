@@ -220,7 +220,9 @@ describe('Scanning through the C# parser', () => {
     expect<unknown>(
       model.buildingBlocks
         .find((b) => b.id === block('ImplementsBlocksAndOthers'))
-        ?.relations.filter(({ kind }) => kind === 'extends')
+        ?.relations.filter(
+          ({ kind }) => kind === 'building_block_extends_building_block',
+        )
         .map(({ to }) => to),
     ).toEqual([block('AbstractBlock'), block('ExternalIntegrationBlock')]);
 

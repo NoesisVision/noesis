@@ -58,14 +58,14 @@ const document = {
         relations: {
           added: [
             {
-              kind: 'extends',
+              kind: 'building_block_extends_building_block',
               from: 'building_block|pay.Hold',
               to: 'building_block|pay.Settleable',
             },
           ],
           removed: [
             {
-              kind: 'extends',
+              kind: 'building_block_extends_building_block',
               from: 'building_block|pay.Hold',
               to: 'building_block|pay.Lockable',
             },

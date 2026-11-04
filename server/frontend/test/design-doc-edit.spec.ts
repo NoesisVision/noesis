@@ -508,7 +508,7 @@ describe('a part', () => {
       id: 'building_block|pay.Fee',
     } as const;
     const relation = {
-      kind: 'contains_building_block' as const,
+      kind: 'module_contains_building_block' as const,
       from: MODULE,
       to: ref.id,
     };
@@ -546,7 +546,7 @@ describe('a part', () => {
     );
     expect(moved.buildingBlocks?.added?.[0]?.relations?.added).toEqual([
       {
-        kind: 'exposes',
+        kind: 'building_block_exposes_behavior',
         from: HOLD,
         to: 'behavior|pay.Hold.release',
       },
@@ -556,7 +556,7 @@ describe('a part', () => {
         ?.added,
     ).toEqual([
       {
-        kind: 'exposes',
+        kind: 'building_block_exposes_behavior',
         from: LEDGER,
         to: 'behavior|pay.Ledger.settle',
       },
@@ -583,7 +583,7 @@ describe('a part', () => {
       unit: unitFromDraft('extends', draft, null, id, ref.owner),
     });
     expect(next.buildingBlocks?.added?.[0]?.relations?.added).toEqual([
-      { kind: 'extends', from: HOLD, to: ref.id },
+      { kind: 'building_block_extends_building_block', from: HOLD, to: ref.id },
     ]);
     expect(unitNameOf(next, ref)).toBe('Lockable');
   });

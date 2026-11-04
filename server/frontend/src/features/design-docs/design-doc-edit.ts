@@ -10,7 +10,7 @@ import type {
   DesignedResultInput,
   DesignedRuleInput,
   DesignedScenarioInput,
-  ExtendsRelationInput,
+  BuildingBlockExtendsBuildingBlockRelationInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BehaviorType,
@@ -88,7 +88,7 @@ interface UnitOf {
   property: DesignedPropertyInput;
   parameter: DesignedParameterInput;
   result: DesignedResultInput;
-  extends: ExtendsRelationInput;
+  extends: BuildingBlockExtendsBuildingBlockRelationInput;
 }
 export type Unit = UnitOf[UnitKind];
 
@@ -229,9 +229,9 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
 function extendsRelation(
   owner: PartOwner | null,
   to: string,
-): ExtendsRelationInput {
+): BuildingBlockExtendsBuildingBlockRelationInput {
   if (owner === null) throw new Error('an extended type has an owner');
-  return { kind: 'extends', from: owner.id, to };
+  return { kind: 'building_block_extends_building_block', from: owner.id, to };
 }
 
 /** The key a change set knows a result by: its type, as the server reads it. */
@@ -311,9 +311,9 @@ const isElement = (kind: UnitKind): kind is ElementKind =>
 
 /** The relation by which an element's parent contains it, by the element's kind. */
 const CONTAINS = {
-  module: 'contains_module',
-  building_block: 'contains_building_block',
-  behavior: 'exposes',
+  module: 'module_contains_module',
+  building_block: 'module_contains_building_block',
+  behavior: 'building_block_exposes_behavior',
 } as const;
 
 const containsRelation = (parent: string, id: string) => ({

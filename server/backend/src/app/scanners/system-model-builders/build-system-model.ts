@@ -253,7 +253,7 @@ class ModelAssembly {
           .filter((id) => BuildingBlockId.containing(id) === block.id)
           .sort(byCodeUnit)
           .map((to) => ({
-            kind: 'exposes' as const,
+            kind: 'building_block_exposes_behavior' as const,
             from: block.id,
             to,
           })),
@@ -264,7 +264,11 @@ class ModelAssembly {
             const id = this.blockIdOf(artifact, ref.type);
             return id === null || id === block.id ? [] : [id];
           }),
-        ).map((to) => ({ kind: 'extends' as const, from: block.id, to })),
+        ).map((to) => ({
+          kind: 'building_block_extends_building_block' as const,
+          from: block.id,
+          to,
+        })),
       ],
       properties: this.propertiesOf(block),
       rules: [],
@@ -630,7 +634,11 @@ class ModelAssembly {
       relations: [...invokes]
         .filter((id) => id !== behavior.id)
         .sort(byCodeUnit)
-        .map((to) => ({ kind: 'invokes', from: behavior.id, to })),
+        .map((to) => ({
+          kind: 'behavior_invokes_behavior',
+          from: behavior.id,
+          to,
+        })),
       rules: [],
       scenarios: this.scenariosOf(
         behavior.overloads.map((overload) => overload.node),
@@ -789,7 +797,7 @@ class ModelAssembly {
           .filter((id) => ModuleId.parentOf(id) === module.id)
           .sort(byCodeUnit)
           .map((to) => ({
-            kind: 'contains_module' as const,
+            kind: 'module_contains_module' as const,
             from: module.id,
             to,
           })),
@@ -797,7 +805,7 @@ class ModelAssembly {
           .filter((id) => ModuleId.containing(id) === module.id)
           .sort(byCodeUnit)
           .map((to) => ({
-            kind: 'contains_building_block' as const,
+            kind: 'module_contains_building_block' as const,
             from: module.id,
             to,
           })),

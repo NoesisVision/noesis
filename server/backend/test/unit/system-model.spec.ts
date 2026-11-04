@@ -160,22 +160,30 @@ describe('A scanned module', () => {
       isValid(
         withModule({
           relations: [
-            contains('contains_module', 'module|sales.orders.returns'),
-            contains('contains_building_block', ORDER),
+            contains('module_contains_module', 'module|sales.orders.returns'),
+            contains('module_contains_building_block', ORDER),
           ],
         }),
       ),
     ).toBe(true);
     expect(
-      isValid(withModule({ relations: [contains('contains_module', ORDER)] })),
-    ).toBe(false);
-    expect(
       isValid(
-        withModule({ relations: [contains('contains_building_block', PLACE)] }),
+        withModule({ relations: [contains('module_contains_module', ORDER)] }),
       ),
     ).toBe(false);
     expect(
-      isValid(withModule({ relations: [contains('extends', ORDER)] })),
+      isValid(
+        withModule({
+          relations: [contains('module_contains_building_block', PLACE)],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        withModule({
+          relations: [contains('building_block_extends_building_block', ORDER)],
+        }),
+      ),
     ).toBe(false);
   });
 });
@@ -188,7 +196,7 @@ describe('A scanned building block', () => {
 
   it('lists the building blocks it extends and its properties', () => {
     const extended = {
-      kind: 'extends',
+      kind: 'building_block_extends_building_block',
       from: ORDER,
       to: 'building_block|sales.shared.Auditable',
     };
@@ -209,21 +217,31 @@ describe('A scanned building block', () => {
     expect(
       isValid(
         withBlock({
-          relations: [{ kind: 'exposes', from: ORDER, to: PLACE }],
+          relations: [
+            { kind: 'building_block_exposes_behavior', from: ORDER, to: PLACE },
+          ],
         }),
       ),
     ).toBe(true);
     expect(
       isValid(
         withBlock({
-          relations: [{ kind: 'extends', from: ORDER, to: PLACE }],
+          relations: [
+            {
+              kind: 'building_block_extends_building_block',
+              from: ORDER,
+              to: PLACE,
+            },
+          ],
         }),
       ),
     ).toBe(false);
     expect(
       isValid(
         withBlock({
-          relations: [{ kind: 'invokes', from: PLACE, to: PLACE }],
+          relations: [
+            { kind: 'behavior_invokes_behavior', from: PLACE, to: PLACE },
+          ],
         }),
       ),
     ).toBe(false);
@@ -250,12 +268,18 @@ describe('A scanned property', () => {
 
 describe('A scanned behavior', () => {
   it('relates to behaviors only: those it invokes', () => {
-    const invokes = { kind: 'invokes', from: PLACE, to: CANCEL };
+    const invokes = {
+      kind: 'behavior_invokes_behavior',
+      from: PLACE,
+      to: CANCEL,
+    };
     expect(isValid(withBehavior({ relations: [invokes] }))).toBe(true);
     expect(
       isValid(
         withBehavior({
-          relations: [{ kind: 'exposes', from: ORDER, to: PLACE }],
+          relations: [
+            { kind: 'building_block_exposes_behavior', from: ORDER, to: PLACE },
+          ],
         }),
       ),
     ).toBe(false);
@@ -507,7 +531,9 @@ describe('A scanned behavior', () => {
             ...behavior,
             id: CANCEL,
             name: 'cancel',
-            relations: [{ kind: 'invokes', from: CANCEL, to: PLACE }],
+            relations: [
+              { kind: 'behavior_invokes_behavior', from: CANCEL, to: PLACE },
+            ],
           },
         ],
       }),
@@ -515,10 +541,12 @@ describe('A scanned behavior', () => {
 
     expect(parsed.behaviors[0]?.relations).toEqual([]);
     expect<unknown>(parsed.behaviors[1]?.relations).toEqual([
-      { kind: 'invokes', from: CANCEL, to: PLACE },
+      { kind: 'behavior_invokes_behavior', from: CANCEL, to: PLACE },
     ]);
     const invokes = (from: string, to: string) =>
-      withBehavior({ relations: [{ kind: 'invokes', from, to }] });
+      withBehavior({
+        relations: [{ kind: 'behavior_invokes_behavior', from, to }],
+      });
     expect(isValid(invokes(PLACE, ORDER))).toBe(false);
   });
 });

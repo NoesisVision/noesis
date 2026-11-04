@@ -66,17 +66,17 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|discounts.weather",
               "to": "module|discounts.weather.openmeteo"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.weather",
               "to": "building_block|discounts.weather.Weather"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.weather",
               "to": "building_block|discounts.weather.WeatherProvider"
             }
@@ -96,7 +96,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.weather.openmeteo",
               "to": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider"
             }
@@ -110,7 +110,7 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|discounts",
               "to": "module|discounts.weather"
             }
@@ -122,12 +122,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.PercentageDiscount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.PotentialPrecipitationDiscount"
             }
@@ -215,7 +215,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.weather.WeatherProvider",
               "to": "behavior|discounts.weather.WeatherProvider.getCurrent"
             }
@@ -239,12 +239,12 @@
         "relations": {
           "added": [
             {
-              "kind": "extends",
+              "kind": "building_block_extends_building_block",
               "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
               "to": "building_block|discounts.weather.WeatherProvider"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
               "to": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent"
             }
@@ -268,12 +268,12 @@
         "relations": {
           "added": [
             {
-              "kind": "extends",
+              "kind": "building_block_extends_building_block",
               "from": "building_block|discounts.calculation.PercentageDiscount",
               "to": "building_block|discounts.calculation.Discount"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.PercentageDiscount",
               "to": "behavior|discounts.calculation.PercentageDiscount.apply"
             }
@@ -362,17 +362,17 @@
         "relations": {
           "added": [
             {
-              "kind": "extends",
+              "kind": "building_block_extends_building_block",
               "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
               "to": "building_block|discounts.calculation.PotentialDiscount"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
               "to": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
               "to": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount"
             }

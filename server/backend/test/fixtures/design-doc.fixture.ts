@@ -39,9 +39,9 @@ const contains = <const Kind extends string>(
 ) => ({ kind, from, to });
 const refundsContains = {
   added: [
-    contains('contains_building_block', REFUNDS, REFUND),
-    contains('contains_building_block', REFUNDS, REFUND_ISSUED),
-    contains('contains_building_block', REFUNDS, REFUND_REPOSITORY),
+    contains('module_contains_building_block', REFUNDS, REFUND),
+    contains('module_contains_building_block', REFUNDS, REFUND_ISSUED),
+    contains('module_contains_building_block', REFUNDS, REFUND_REPOSITORY),
   ],
   removed: [],
 };
@@ -53,7 +53,7 @@ const salesRoot = {
   definition: byAgent('Selling to customers.'),
   diagram: unchanged,
   relations: {
-    added: [contains('contains_module', SALES, REFUNDS)],
+    added: [contains('module_contains_module', SALES, REFUNDS)],
     removed: [],
   },
   rules: noChanges,
@@ -118,8 +118,8 @@ export const designDocFixture = {
         definition: unchanged,
         diagram: unchanged,
         relations: {
-          added: [contains('contains_module', SALES, REFUNDS)],
-          removed: [contains('contains_module', SALES, CREDIT_NOTES)],
+          added: [contains('module_contains_module', SALES, REFUNDS)],
+          removed: [contains('module_contains_module', SALES, CREDIT_NOTES)],
         },
         rules: noChanges,
       },
@@ -145,7 +145,11 @@ export const designDocFixture = {
         diagram: unchanged,
         relations: {
           added: [
-            contains('exposes', REFUND, 'behavior|sales.refunds.Refund.issue'),
+            contains(
+              'building_block_exposes_behavior',
+              REFUND,
+              'behavior|sales.refunds.Refund.issue',
+            ),
           ],
           removed: [],
         },
@@ -238,7 +242,7 @@ export const designDocFixture = {
         relations: {
           added: [
             {
-              kind: 'extends',
+              kind: 'building_block_extends_building_block',
               from: REFUND_REPOSITORY,
               to: 'building_block|sales.shared.Repository',
             },

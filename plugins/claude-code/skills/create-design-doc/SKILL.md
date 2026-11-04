@@ -121,11 +121,13 @@ rules, scenarios. Read it at step 5.
    so an output of another type is one removed and one added. Every element
    carries `relations`, the ties it is the source of, each as
    `{ "kind": …, "from": <its own id>, "to": <the other element's id> }`:
-   a module `contains_module` and `contains_building_block`, a building
-   block `exposes` and `extends`, a behavior `invokes`. An
+   `module_contains_module`, `module_contains_building_block`,
+   `building_block_exposes_behavior`, `building_block_extends_building_block`
+   and `behavior_invokes_behavior`. An
    element the design adds under another is listed by that one: the parent,
    `added` or `modified` for it, adds the relation that contains it
-   (`contains_module`, `contains_building_block` or `exposes`), and
+   (`module_contains_module`, `module_contains_building_block` or
+   `building_block_exposes_behavior`), and
    the parent of a removed element removes that relation. `relations` have
    no `modified`: a changed relation is removed and added. Needs are only
    ever `added`: no scan holds one, so there is nothing to modify or

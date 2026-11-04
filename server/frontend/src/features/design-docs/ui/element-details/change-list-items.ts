@@ -75,7 +75,7 @@ export const extendedItems = (
     | undefined,
 ): ChangeListItem[] =>
   [...changed(set)]
-    .filter(([{ kind }]) => kind === 'extends')
+    .filter(([{ kind }]) => kind === 'building_block_extends_building_block')
     .map(([{ to }, change]) => ({
       change,
       label: refAddressOf(to),
@@ -93,7 +93,10 @@ export const extenderItems = (
 ): ChangeListItem[] =>
   writtenIn(doc.buildingBlocks).flatMap((block) =>
     [...changed(block.relations)]
-      .filter(([{ kind, to }]) => kind === 'extends' && to === id)
+      .filter(
+        ([{ kind, to }]) =>
+          kind === 'building_block_extends_building_block' && to === id,
+      )
       .map(([, change]) => ({
         change,
         label: refAddressOf(block.id),

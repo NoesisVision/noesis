@@ -27,17 +27,17 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|discounts",
               "to": "module|discounts.calculation"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|discounts",
               "to": "module|discounts.offers"
             },
             {
-              "kind": "contains_module",
+              "kind": "module_contains_module",
               "from": "module|discounts",
               "to": "module|discounts.users"
             }
@@ -67,72 +67,72 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.Conditions"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.Discount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.DiscountAmount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.DiscountCalculation"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.DiscountConfig"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.DiscountPolicyFactory"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.DiscountedOffer"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.DiscountedProduct"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.DiscountsConfigProvider"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.FixedDiscount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.PotentialDiscount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.PotentialVipUserDiscount"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.calculation",
               "to": "building_block|discounts.calculation.ProductDiscount"
             }
@@ -162,12 +162,12 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.offers",
               "to": "building_block|discounts.offers.Offer"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.offers",
               "to": "building_block|discounts.offers.Product"
             }
@@ -197,17 +197,17 @@
         "relations": {
           "added": [
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.users",
               "to": "building_block|discounts.users.UserId"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.users",
               "to": "building_block|discounts.users.UserStatus"
             },
             {
-              "kind": "contains_building_block",
+              "kind": "module_contains_building_block",
               "from": "module|discounts.users",
               "to": "building_block|discounts.users.UserStatusProvider"
             }
@@ -307,7 +307,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.Discount",
               "to": "behavior|discounts.calculation.Discount.apply"
             }
@@ -412,7 +412,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.DiscountCalculation",
               "to": "behavior|discounts.calculation.DiscountCalculation.calculate"
             }
@@ -477,7 +477,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.DiscountConfig",
               "to": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions"
             }
@@ -544,7 +544,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.DiscountPolicyFactory",
               "to": "behavior|discounts.calculation.DiscountPolicyFactory.get"
             }
@@ -627,12 +627,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.DiscountedOffer",
               "to": "behavior|discounts.calculation.DiscountedOffer.applyDiscount"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.DiscountedOffer",
               "to": "behavior|discounts.calculation.DiscountedOffer.createFrom"
             }
@@ -719,12 +719,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.DiscountedProduct",
               "to": "behavior|discounts.calculation.DiscountedProduct.applyDiscount"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.DiscountedProduct",
               "to": "behavior|discounts.calculation.DiscountedProduct.from"
             }
@@ -791,7 +791,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.DiscountsConfigProvider",
               "to": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig"
             }
@@ -837,12 +837,12 @@
         "relations": {
           "added": [
             {
-              "kind": "extends",
+              "kind": "building_block_extends_building_block",
               "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
               "to": "building_block|discounts.calculation.Discount"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
               "to": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply"
             }
@@ -907,12 +907,12 @@
         "relations": {
           "added": [
             {
-              "kind": "extends",
+              "kind": "building_block_extends_building_block",
               "from": "building_block|discounts.calculation.FixedDiscount",
               "to": "building_block|discounts.calculation.Discount"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.FixedDiscount",
               "to": "behavior|discounts.calculation.FixedDiscount.apply"
             }
@@ -977,12 +977,12 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.PotentialDiscount",
               "to": "behavior|discounts.calculation.PotentialDiscount.getDiscount"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.PotentialDiscount",
               "to": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor"
             }
@@ -1028,17 +1028,17 @@
         "relations": {
           "added": [
             {
-              "kind": "extends",
+              "kind": "building_block_extends_building_block",
               "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
               "to": "building_block|discounts.calculation.PotentialDiscount"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
               "to": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
               "to": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor"
             }
@@ -1103,12 +1103,12 @@
         "relations": {
           "added": [
             {
-              "kind": "extends",
+              "kind": "building_block_extends_building_block",
               "from": "building_block|discounts.calculation.ProductDiscount",
               "to": "building_block|discounts.calculation.Discount"
             },
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.calculation.ProductDiscount",
               "to": "behavior|discounts.calculation.ProductDiscount.apply"
             }
@@ -1373,7 +1373,7 @@
         "relations": {
           "added": [
             {
-              "kind": "exposes",
+              "kind": "building_block_exposes_behavior",
               "from": "building_block|discounts.users.UserStatusProvider",
               "to": "behavior|discounts.users.UserStatusProvider.getFor"
             }

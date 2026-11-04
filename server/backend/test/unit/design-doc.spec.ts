@@ -34,7 +34,7 @@ const refundModules = {
       name: { value: 'sales' },
       definition: { value: 'Selling to customers.' },
       relations: {
-        added: [{ kind: 'contains_module', from: SALES, to: REFUNDS }],
+        added: [{ kind: 'module_contains_module', from: SALES, to: REFUNDS }],
       },
     },
     {
@@ -42,7 +42,9 @@ const refundModules = {
       name: { value: 'refunds' },
       definition: { value: 'Money back.' },
       relations: {
-        added: [{ kind: 'contains_building_block', from: REFUNDS, to: REFUND }],
+        added: [
+          { kind: 'module_contains_building_block', from: REFUNDS, to: REFUND },
+        ],
       },
     },
   ],
@@ -69,7 +71,13 @@ const addingIssue = (behavior: object) =>
           type: { value: 'aggregate' },
           definition: { value: 'Money back for an order.' },
           relations: {
-            added: [{ kind: 'exposes', from: REFUND, to: ISSUE }],
+            added: [
+              {
+                kind: 'building_block_exposes_behavior',
+                from: REFUND,
+                to: ISSUE,
+              },
+            ],
           },
         },
       ],
@@ -227,14 +235,14 @@ describe('The elements a design changes', () => {
               relations: {
                 added: [
                   {
-                    kind: 'extends',
+                    kind: 'building_block_extends_building_block',
                     from: REFUND,
                     to: 'building_block|sales.shared.Auditable',
                   },
                 ],
                 removed: [
                   {
-                    kind: 'extends',
+                    kind: 'building_block_extends_building_block',
                     from: REFUND,
                     to: 'building_block|sales.shared.Legacy',
                   },
@@ -251,14 +259,14 @@ describe('The elements a design changes', () => {
     ).toEqual({
       added: [
         {
-          kind: 'extends',
+          kind: 'building_block_extends_building_block',
           from: REFUND,
           to: 'building_block|sales.shared.Auditable',
         },
       ],
       removed: [
         {
-          kind: 'extends',
+          kind: 'building_block_extends_building_block',
           from: REFUND,
           to: 'building_block|sales.shared.Legacy',
         },
@@ -275,7 +283,13 @@ describe('The elements a design changes', () => {
               {
                 id: REFUND,
                 relations: {
-                  modified: [{ kind: 'extends', from: REFUND, to: REFUND }],
+                  modified: [
+                    {
+                      kind: 'building_block_extends_building_block',
+                      from: REFUND,
+                      to: REFUND,
+                    },
+                  ],
                 },
               },
             ],
@@ -496,7 +510,13 @@ describe('A design document an agent wrote', () => {
         id: ORDER,
         name: 'Order',
         type: 'aggregate',
-        relations: [{ kind: 'extends', from: ORDER, to: AUDITABLE }],
+        relations: [
+          {
+            kind: 'building_block_extends_building_block',
+            from: ORDER,
+            to: AUDITABLE,
+          },
+        ],
         properties: [{ name: 'total', type: 'primitive|decimal' }],
         rules: [
           {
@@ -573,7 +593,13 @@ describe('A design document an agent wrote', () => {
             definition: { value: 'Money back.' },
             type: { value: 'aggregate' },
             relations: {
-              removed: [{ kind: 'extends', from: REFUND, to: AUDITABLE }],
+              removed: [
+                {
+                  kind: 'building_block_extends_building_block',
+                  from: REFUND,
+                  to: AUDITABLE,
+                },
+              ],
             },
             properties: { removed: ['legacyFlag'] },
           }),
@@ -637,7 +663,13 @@ describe('A design document an agent wrote', () => {
                 {
                   id: ORDER,
                   relations: {
-                    removed: [{ kind: 'extends', from: ORDER, to: AUDITABLE }],
+                    removed: [
+                      {
+                        kind: 'building_block_extends_building_block',
+                        from: ORDER,
+                        to: AUDITABLE,
+                      },
+                    ],
                   },
                   properties: {
                     modified: [
@@ -1094,7 +1126,7 @@ describe('A rule of a design', () => {
             relations: {
               added: [
                 {
-                  kind: 'contains_building_block',
+                  kind: 'module_contains_building_block',
                   from: 'module|billing',
                   to: 'building_block|billing.Invoice',
                 },

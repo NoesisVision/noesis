@@ -622,7 +622,7 @@ describe('3. scope', () => {
     ]);
     expect<unknown>(
       model.buildingBlocks[0]?.relations
-        .filter(({ kind }) => kind === 'extends')
+        .filter(({ kind }) => kind === 'building_block_extends_building_block')
         .map(({ to }) => to),
     ).toEqual([]);
     expect<unknown>(
@@ -716,7 +716,7 @@ describe('3. scope', () => {
     ]);
     expect<unknown>(
       model.buildingBlocks[0]?.relations
-        .filter(({ kind }) => kind === 'extends')
+        .filter(({ kind }) => kind === 'building_block_extends_building_block')
         .map(({ to }) => to),
     ).toEqual([]);
     expect<unknown>(model.buildingBlocks[1]?.properties).toEqual([]);
@@ -847,7 +847,9 @@ describe('4. building blocks', () => {
     expect<unknown>(
       model.buildingBlocks
         .find((b) => b.name === 'OrderRepository')
-        ?.relations.filter(({ kind }) => kind === 'extends')
+        ?.relations.filter(
+          ({ kind }) => kind === 'building_block_extends_building_block',
+        )
         .map(({ to }) => to),
     ).toEqual(['building_block|Sales.IRepository', 'building_block|Sales.Zed']);
   });
@@ -1924,12 +1926,12 @@ describe('10. order and determinism', () => {
       visibility: { kind: 'public', actors: ['Adam', 'Zoe'] },
       relations: [
         {
-          kind: 'invokes',
+          kind: 'behavior_invokes_behavior',
           from: 'behavior|Sales.Alpha.Zip',
           to: 'behavior|Sales.Alpha.Act',
         },
         {
-          kind: 'invokes',
+          kind: 'behavior_invokes_behavior',
           from: 'behavior|Sales.Alpha.Zip',
           to: 'behavior|Sales.Zed.Make',
         },

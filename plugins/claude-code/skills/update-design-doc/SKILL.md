@@ -90,8 +90,8 @@ step 6.
      adds or modifies, one the system model has, a primitive, or a need this
      design adds. A rename moves every reference to the old id or name.
    - **Containment.** An element added under another is among that one's
-     `relations` (`contains_module`, `contains_building_block`,
-     `exposes`), added by the parent; a removed element's relation
+     `relations` (`module_contains_module`, `module_contains_building_block`,
+     `building_block_exposes_behavior`), added by the parent; a removed element's relation
      is removed by its parent; a moved element leaves the one and joins the
      other.
    - **Ids and names.** Ids spell the path (`building_block|sales.refunds.Refund`),

@@ -68,14 +68,14 @@ function contained<
     modules: model.modules.map((module) => ({
       ...module,
       relations: [
-        ...under(moduleIds, module.id, 'contains_module'),
-        ...under(blockIds, module.id, 'contains_building_block'),
+        ...under(moduleIds, module.id, 'module_contains_module'),
+        ...under(blockIds, module.id, 'module_contains_building_block'),
       ],
     })),
     buildingBlocks: model.buildingBlocks.map((block) => ({
       ...block,
       relations: [
-        ...under(behaviorIds, block.id, 'exposes'),
+        ...under(behaviorIds, block.id, 'building_block_exposes_behavior'),
         ...('relations' in block && Array.isArray(block.relations)
           ? block.relations
           : []),
@@ -226,7 +226,11 @@ describe('the exploration of a system model', () => {
         {
           ...model.behaviors[0]!,
           relations: [
-            { kind: 'invokes', from: model.behaviors[0]!.id, to: check.id },
+            {
+              kind: 'behavior_invokes_behavior',
+              from: model.behaviors[0]!.id,
+              to: check.id,
+            },
           ],
         },
         { ...check, relations: [] },
@@ -677,7 +681,7 @@ describe('a chain followed up to the next of its type', () => {
     name,
     input: [],
     relations: invokes.map((called) => ({
-      kind: 'invokes',
+      kind: 'behavior_invokes_behavior',
       from: `behavior|shop.orders.${on}.${name}`,
       to: `behavior|shop.orders.${called}`,
     })),
