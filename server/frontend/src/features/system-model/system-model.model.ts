@@ -64,6 +64,7 @@ export function designOf(model: SystemModel): DesignDocument {
         name: field(module.name),
         definition: optional(module.description),
         diagram: UNSET,
+        relations: { added: module.relations, removed: [] },
         rules: rules(module.rules),
       })),
     ),
@@ -74,7 +75,7 @@ export function designOf(model: SystemModel): DesignDocument {
         type: field(block.type),
         definition: optional(block.description),
         diagram: UNSET,
-        implements: { added: block.implements, removed: [] },
+        relations: { added: block.relations, removed: [] },
         properties: added(
           block.properties.map((property) => ({
             name: property.name,
@@ -95,6 +96,7 @@ export function designOf(model: SystemModel): DesignDocument {
         definition: optional(behavior.description),
         diagram: UNSET,
         visibility: field(behavior.visibility),
+        relations: { added: behavior.relations, removed: [] },
         input: added(
           behavior.input.map((parameter) => ({
             name: parameter.name,

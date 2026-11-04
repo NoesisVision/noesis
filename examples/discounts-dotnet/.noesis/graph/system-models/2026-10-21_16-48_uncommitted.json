@@ -7,6 +7,48 @@
       "id": "module|Sales",
       "name": "Sales",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_module",
+          "from": "module|Sales",
+          "to": "module|Sales.Clients"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|Sales",
+          "to": "module|Sales.Commons"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|Sales",
+          "to": "module|Sales.ExchangeRates"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|Sales",
+          "to": "module|Sales.Orders"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|Sales",
+          "to": "module|Sales.Pricing"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|Sales",
+          "to": "module|Sales.Products"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|Sales",
+          "to": "module|Sales.SalesChannels"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|Sales",
+          "to": "module|Sales.Time"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
@@ -17,6 +59,23 @@
       "id": "module|Sales.Clients",
       "name": "Clients",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Clients",
+          "to": "building_block|Sales.Clients.ClientId"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Clients",
+          "to": "building_block|Sales.Clients.ClientRepository"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Clients",
+          "to": "building_block|Sales.Clients.ClientStatus"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
@@ -27,6 +86,28 @@
       "id": "module|Sales.Commons",
       "name": "Commons",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Commons",
+          "to": "building_block|Sales.Commons.Currency"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Commons",
+          "to": "building_block|Sales.Commons.Money"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Commons",
+          "to": "building_block|Sales.Commons.Percentage"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Commons",
+          "to": "building_block|Sales.Commons.TaxId"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Currency.cs",
@@ -37,6 +118,18 @@
       "id": "module|Sales.ExchangeRates",
       "name": "ExchangeRates",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.ExchangeRates",
+          "to": "building_block|Sales.ExchangeRates.ExchangeRate"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.ExchangeRates",
+          "to": "building_block|Sales.ExchangeRates.ExchangeRateProvider"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
@@ -47,6 +140,73 @@
       "id": "module|Sales.Orders",
       "name": "Orders",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_module",
+          "from": "module|Sales.Orders",
+          "to": "module|Sales.Orders.PriceChanges"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.AllOrderDetails"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.InvoicingDetails"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.Order"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.Order CreatedFromOffer"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.Order Factory"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.Order Placed"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.Order PriceAgreement"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.Order PricesConfirmed"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.Order ProductAmountAdded"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.Order Repository"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.OrderItemDetails"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders",
+          "to": "building_block|Sales.Orders.PriceAgreementType"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/AllOrderDetails.cs",
@@ -57,6 +217,28 @@
       "id": "module|Sales.Orders.PriceChanges",
       "name": "PriceChanges",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders.PriceChanges",
+          "to": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders.PriceChanges",
+          "to": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders.PriceChanges",
+          "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Orders.PriceChanges",
+          "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowAnyPriceChanges.cs",
@@ -67,6 +249,63 @@
       "id": "module|Sales.Pricing",
       "name": "Pricing",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_module",
+          "from": "module|Sales.Pricing",
+          "to": "module|Sales.Pricing.Discounts"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|Sales.Pricing",
+          "to": "module|Sales.Pricing.PriceLists"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|Sales.Pricing",
+          "to": "module|Sales.Pricing.SpecialOffers"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing",
+          "to": "building_block|Sales.Pricing.CalculatePrices"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing",
+          "to": "building_block|Sales.Pricing.IndividualSalesConditions"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing",
+          "to": "building_block|Sales.Pricing.Offer"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing",
+          "to": "building_block|Sales.Pricing.OfferModifier"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing",
+          "to": "building_block|Sales.Pricing.OfferModifiers"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing",
+          "to": "building_block|Sales.Pricing.OfferRequest"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing",
+          "to": "building_block|Sales.Pricing.Quote"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing",
+          "to": "building_block|Sales.Pricing.QuoteModifier"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/CalculatePrices.cs",
@@ -77,6 +316,43 @@
       "id": "module|Sales.Pricing.Discounts",
       "name": "Discounts",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.Discounts",
+          "to": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.Discounts",
+          "to": "building_block|Sales.Pricing.Discounts.Discount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.Discounts",
+          "to": "building_block|Sales.Pricing.Discounts.DiscountsRepository"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.Discounts",
+          "to": "building_block|Sales.Pricing.Discounts.PercentageDiscount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.Discounts",
+          "to": "building_block|Sales.Pricing.Discounts.ProductDiscount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.Discounts",
+          "to": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.Discounts",
+          "to": "building_block|Sales.Pricing.Discounts.ValueDiscount"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ClientLevelDiscounts.cs",
@@ -87,6 +363,23 @@
       "id": "module|Sales.Pricing.PriceLists",
       "name": "PriceLists",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.PriceLists",
+          "to": "building_block|Sales.Pricing.PriceLists.BasePrice"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.PriceLists",
+          "to": "building_block|Sales.Pricing.PriceLists.BasePrices"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.PriceLists",
+          "to": "building_block|Sales.Pricing.PriceLists.PriceListRepository"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrice.cs",
@@ -97,6 +390,23 @@
       "id": "module|Sales.Pricing.SpecialOffers",
       "name": "SpecialOffers",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.SpecialOffers",
+          "to": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.SpecialOffers",
+          "to": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Pricing.SpecialOffers",
+          "to": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
@@ -107,6 +417,33 @@
       "id": "module|Sales.Products",
       "name": "Products",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Products",
+          "to": "building_block|Sales.Products.Amount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Products",
+          "to": "building_block|Sales.Products.AmountUnit"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Products",
+          "to": "building_block|Sales.Products.ProductAmount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Products",
+          "to": "building_block|Sales.Products.ProductId"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Products",
+          "to": "building_block|Sales.Products.ProductUnit"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/Amount.cs",
@@ -117,6 +454,13 @@
       "id": "module|Sales.SalesChannels",
       "name": "SalesChannels",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.SalesChannels",
+          "to": "building_block|Sales.SalesChannels.SalesChannel"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/SalesChannels/SalesChannel.cs",
@@ -127,6 +471,13 @@
       "id": "module|Sales.Time",
       "name": "Time",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|Sales.Time",
+          "to": "building_block|Sales.Time.Clock"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Time/Clock.cs",
@@ -140,7 +491,18 @@
       "name": "ClientId",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Clients.ClientId",
+          "to": "behavior|Sales.Clients.ClientId.From"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Clients.ClientId",
+          "to": "behavior|Sales.Clients.ClientId.New"
+        }
+      ],
       "properties": [
         {
           "name": "Value",
@@ -161,7 +523,13 @@
       "name": "ClientRepository",
       "type": "repository",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Clients.ClientRepository",
+          "to": "behavior|Sales.Clients.ClientRepository.GetStatusFor"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -175,7 +543,7 @@
       "name": "ClientStatus",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -189,7 +557,7 @@
       "name": "Currency",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -203,7 +571,23 @@
       "name": "Money",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Commons.Money",
+          "to": "behavior|Sales.Commons.Money.Max"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Commons.Money",
+          "to": "behavior|Sales.Commons.Money.Of"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Commons.Money",
+          "to": "behavior|Sales.Commons.Money.Zero"
+        }
+      ],
       "properties": [
         {
           "name": "Currency",
@@ -230,7 +614,13 @@
       "name": "Percentage",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Commons.Percentage",
+          "to": "behavior|Sales.Commons.Percentage.Of"
+        }
+      ],
       "properties": [
         {
           "name": "Value",
@@ -257,7 +647,7 @@
       "name": "TaxId",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [
         {
           "name": "Value",
@@ -278,7 +668,18 @@
       "name": "ExchangeRate",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.ExchangeRates.ExchangeRate",
+          "to": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.ExchangeRates.ExchangeRate",
+          "to": "behavior|Sales.ExchangeRates.ExchangeRate.Of"
+        }
+      ],
       "properties": [
         {
           "name": "Currency",
@@ -305,7 +706,13 @@
       "name": "ExchangeRateProvider",
       "type": "external_integration",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.ExchangeRates.ExchangeRateProvider",
+          "to": "behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -319,7 +726,7 @@
       "name": "AllOrderDetails",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [
         {
           "name": "ClientId",
@@ -354,7 +761,7 @@
       "name": "InvoicingDetails",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [
         {
           "name": "TaxId",
@@ -381,7 +788,33 @@
       "name": "Order",
       "type": "aggregate",
       "description": "*An order is a request for products.* It is placed by a customer and contains a list of products with their amounts. The order is placed when the customer confirms the prices of the products.",
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order",
+          "to": "behavior|Sales.Orders.Order.Add"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order",
+          "to": "behavior|Sales.Orders.Order.ConfirmPrices"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order",
+          "to": "behavior|Sales.Orders.Order.HasSameDataAs"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order",
+          "to": "behavior|Sales.Orders.Order.Place"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order",
+          "to": "behavior|Sales.Orders.Order.RestoreFrom"
+        }
+      ],
       "properties": [
         {
           "name": "ProductAmounts",
@@ -404,7 +837,13 @@
       "name": "Order CreatedFromOffer",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order CreatedFromOffer",
+          "to": "behavior|Sales.Orders.Order CreatedFromOffer.Apply"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -418,7 +857,23 @@
       "name": "Order Factory",
       "type": "factory",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order Factory",
+          "to": "behavior|Sales.Orders.Order Factory.ImmediatelyPlacedBasedOn"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order Factory",
+          "to": "behavior|Sales.Orders.Order Factory.NewWith"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order Factory",
+          "to": "behavior|Sales.Orders.Order Factory.NewWithMaxTotalCostFor"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -432,7 +887,13 @@
       "name": "Order Placed",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order Placed",
+          "to": "behavior|Sales.Orders.Order Placed.Apply"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -446,7 +907,33 @@
       "name": "Order PriceAgreement",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order PriceAgreement",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.CanChangePrice"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order PriceAgreement",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.Final"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order PriceAgreement",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.IsValidOn"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order PriceAgreement",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.Non"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order PriceAgreement",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.Temporary"
+        }
+      ],
       "properties": [
         {
           "name": "Type",
@@ -479,7 +966,13 @@
       "name": "Order PricesConfirmed",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order PricesConfirmed",
+          "to": "behavior|Sales.Orders.Order PricesConfirmed.Apply"
+        }
+      ],
       "properties": [
         {
           "name": "Quotes",
@@ -514,7 +1007,13 @@
       "name": "Order ProductAmountAdded",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order ProductAmountAdded",
+          "to": "behavior|Sales.Orders.Order ProductAmountAdded.Apply"
+        }
+      ],
       "properties": [
         {
           "name": "ProductAmount",
@@ -535,7 +1034,18 @@
       "name": "Order Repository",
       "type": "repository",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order Repository",
+          "to": "behavior|Sales.Orders.Order Repository.GetBy"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.Order Repository",
+          "to": "behavior|Sales.Orders.Order Repository.Save"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -549,7 +1059,7 @@
       "name": "OrderItemDetails",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [
         {
           "name": "ProductId",
@@ -588,7 +1098,7 @@
       "name": "PriceAgreementType",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -602,8 +1112,17 @@
       "name": "AllowAnyPriceChanges",
       "type": "domain_service",
       "description": null,
-      "implements": [
-        "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges",
+          "to": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges",
+          "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
+        }
       ],
       "properties": [],
       "rules": [],
@@ -618,8 +1137,17 @@
       "name": "AllowPriceChangesIfTotalPriceIsLower",
       "type": "domain_service",
       "description": null,
-      "implements": [
-        "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower",
+          "to": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower",
+          "to": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy"
+        }
       ],
       "properties": [],
       "rules": [],
@@ -634,7 +1162,13 @@
       "name": "PriceChangesPolicies",
       "type": "factory",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies",
+          "to": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -648,7 +1182,13 @@
       "name": "PriceChangesPolicy",
       "type": "domain_service",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy",
+          "to": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -662,7 +1202,13 @@
       "name": "CalculatePrices",
       "type": "domain_service",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.CalculatePrices",
+          "to": "behavior|Sales.Pricing.CalculatePrices.For"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -676,9 +1222,22 @@
       "name": "ClientLevelDiscounts",
       "type": "domain_service",
       "description": null,
-      "implements": [
-        "building_block|Sales.Pricing.OfferModifier",
-        "building_block|Sales.Pricing.QuoteModifier"
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
+          "to": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
+          "to": "building_block|Sales.Pricing.OfferModifier"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
+          "to": "building_block|Sales.Pricing.QuoteModifier"
+        }
       ],
       "properties": [],
       "rules": [],
@@ -693,7 +1252,23 @@
       "name": "Discount",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.Discount",
+          "to": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.Discount",
+          "to": "behavior|Sales.Pricing.Discounts.Discount.Percentage"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.Discount",
+          "to": "behavior|Sales.Pricing.Discounts.Discount.Value"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -707,7 +1282,13 @@
       "name": "DiscountsRepository",
       "type": "repository",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.DiscountsRepository",
+          "to": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -721,7 +1302,18 @@
       "name": "PercentageDiscount",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
+          "to": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
+          "to": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -735,7 +1327,13 @@
       "name": "ProductDiscount",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.ProductDiscount",
+          "to": "behavior|Sales.Pricing.Discounts.ProductDiscount.Of"
+        }
+      ],
       "properties": [
         {
           "name": "ProductUnit",
@@ -762,9 +1360,27 @@
       "name": "ProductLevelDiscounts",
       "type": "domain_service",
       "description": null,
-      "implements": [
-        "building_block|Sales.Pricing.OfferModifier",
-        "building_block|Sales.Pricing.QuoteModifier"
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
+          "to": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
+          "to": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.Of"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
+          "to": "building_block|Sales.Pricing.OfferModifier"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
+          "to": "building_block|Sales.Pricing.QuoteModifier"
+        }
       ],
       "properties": [],
       "rules": [],
@@ -779,7 +1395,18 @@
       "name": "ValueDiscount",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.ValueDiscount",
+          "to": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Discounts.ValueDiscount",
+          "to": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -793,9 +1420,22 @@
       "name": "IndividualSalesConditions",
       "type": "domain_service",
       "description": null,
-      "implements": [
-        "building_block|Sales.Pricing.OfferModifier",
-        "building_block|Sales.Pricing.QuoteModifier"
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.IndividualSalesConditions",
+          "to": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Pricing.IndividualSalesConditions",
+          "to": "building_block|Sales.Pricing.OfferModifier"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Pricing.IndividualSalesConditions",
+          "to": "building_block|Sales.Pricing.QuoteModifier"
+        }
       ],
       "properties": [],
       "rules": [],
@@ -810,7 +1450,18 @@
       "name": "Offer",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Offer",
+          "to": "behavior|Sales.Pricing.Offer.Compare"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Offer",
+          "to": "behavior|Sales.Pricing.Offer.FromQuotes"
+        }
+      ],
       "properties": [
         {
           "name": "Currency",
@@ -859,7 +1510,13 @@
       "name": "OfferModifier",
       "type": "domain_service",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.OfferModifier",
+          "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -873,7 +1530,13 @@
       "name": "OfferModifiers",
       "type": "factory",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.OfferModifiers",
+          "to": "behavior|Sales.Pricing.OfferModifiers.ChooseFor"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -887,7 +1550,13 @@
       "name": "OfferRequest",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.OfferRequest",
+          "to": "behavior|Sales.Pricing.OfferRequest.For"
+        }
+      ],
       "properties": [
         {
           "name": "ClientId",
@@ -922,7 +1591,13 @@
       "name": "BasePrice",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.PriceLists.BasePrice",
+          "to": "behavior|Sales.Pricing.PriceLists.BasePrice.Of"
+        }
+      ],
       "properties": [
         {
           "name": "ProductUnit",
@@ -949,7 +1624,18 @@
       "name": "BasePrices",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.PriceLists.BasePrices",
+          "to": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.PriceLists.BasePrices",
+          "to": "behavior|Sales.Pricing.PriceLists.BasePrices.Of"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -963,7 +1649,18 @@
       "name": "PriceListRepository",
       "type": "repository",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
+          "to": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePriceFor"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
+          "to": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -977,7 +1674,18 @@
       "name": "Quote",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Quote",
+          "to": "behavior|Sales.Pricing.Quote.ChangePrice"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.Quote",
+          "to": "behavior|Sales.Pricing.Quote.For"
+        }
+      ],
       "properties": [
         {
           "name": "ProductAmount",
@@ -1004,7 +1712,13 @@
       "name": "QuoteModifier",
       "type": "domain_service",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.QuoteModifier",
+          "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -1018,8 +1732,22 @@
       "name": "EverySecondBoxForHalfPrice",
       "type": "domain_service",
       "description": null,
-      "implements": [
-        "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
+          "to": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
+          "to": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
+          "to": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
+        }
       ],
       "properties": [],
       "rules": [],
@@ -1034,8 +1762,17 @@
       "name": "SpecialOffer",
       "type": "domain_service",
       "description": null,
-      "implements": [
-        "building_block|Sales.Pricing.OfferModifier"
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer",
+          "to": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer",
+          "to": "building_block|Sales.Pricing.OfferModifier"
+        }
       ],
       "properties": [],
       "rules": [],
@@ -1050,8 +1787,22 @@
       "name": "ThreeForTwo",
       "type": "domain_service",
       "description": null,
-      "implements": [
-        "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
+          "to": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
+          "to": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
+          "to": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer"
+        }
       ],
       "properties": [],
       "rules": [],
@@ -1066,7 +1817,13 @@
       "name": "Amount",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Products.Amount",
+          "to": "behavior|Sales.Products.Amount.Of"
+        }
+      ],
       "properties": [
         {
           "name": "Unit",
@@ -1093,7 +1850,7 @@
       "name": "AmountUnit",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -1107,7 +1864,13 @@
       "name": "ProductAmount",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Products.ProductAmount",
+          "to": "behavior|Sales.Products.ProductAmount.Of"
+        }
+      ],
       "properties": [
         {
           "name": "Amount",
@@ -1140,7 +1903,18 @@
       "name": "ProductId",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Products.ProductId",
+          "to": "behavior|Sales.Products.ProductId.From"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Products.ProductId",
+          "to": "behavior|Sales.Products.ProductId.New"
+        }
+      ],
       "properties": [
         {
           "name": "Value",
@@ -1161,7 +1935,13 @@
       "name": "ProductUnit",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|Sales.Products.ProductUnit",
+          "to": "behavior|Sales.Products.ProductUnit.Of"
+        }
+      ],
       "properties": [
         {
           "name": "ProductId",
@@ -1188,7 +1968,7 @@
       "name": "SalesChannel",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -1202,7 +1982,7 @@
       "name": "Clock",
       "type": "domain_service",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [
         {
           "name": "Now",
@@ -1222,7 +2002,6 @@
   "behaviors": [
     {
       "id": "behavior|Sales.Clients.ClientId.From",
-      "buildingBlockId": "building_block|Sales.Clients.ClientId",
       "name": "From",
       "type": "Command",
       "description": null,
@@ -1245,7 +2024,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1255,7 +2034,6 @@
     },
     {
       "id": "behavior|Sales.Clients.ClientId.New",
-      "buildingBlockId": "building_block|Sales.Clients.ClientId",
       "name": "New",
       "type": "Command",
       "description": null,
@@ -1271,7 +2049,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1281,7 +2059,6 @@
     },
     {
       "id": "behavior|Sales.Clients.ClientRepository.GetStatusFor",
-      "buildingBlockId": "building_block|Sales.Clients.ClientRepository",
       "name": "GetStatusFor",
       "type": "Command",
       "description": null,
@@ -1304,7 +2081,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1314,7 +2091,6 @@
     },
     {
       "id": "behavior|Sales.Commons.Money.Max",
-      "buildingBlockId": "building_block|Sales.Commons.Money",
       "name": "Max",
       "type": "Command",
       "description": null,
@@ -1343,7 +2119,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1353,7 +2129,6 @@
     },
     {
       "id": "behavior|Sales.Commons.Money.Of",
-      "buildingBlockId": "building_block|Sales.Commons.Money",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -1382,7 +2157,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1392,7 +2167,6 @@
     },
     {
       "id": "behavior|Sales.Commons.Money.Zero",
-      "buildingBlockId": "building_block|Sales.Commons.Money",
       "name": "Zero",
       "type": "Command",
       "description": null,
@@ -1415,7 +2189,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1425,7 +2199,6 @@
     },
     {
       "id": "behavior|Sales.Commons.Percentage.Of",
-      "buildingBlockId": "building_block|Sales.Commons.Percentage",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -1448,7 +2221,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1458,7 +2231,6 @@
     },
     {
       "id": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn",
-      "buildingBlockId": "building_block|Sales.ExchangeRates.ExchangeRate",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -1481,8 +2253,12 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Commons.Money.Of"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn",
+          "to": "behavior|Sales.Commons.Money.Of"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -1493,7 +2269,6 @@
     },
     {
       "id": "behavior|Sales.ExchangeRates.ExchangeRate.Of",
-      "buildingBlockId": "building_block|Sales.ExchangeRates.ExchangeRate",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -1522,7 +2297,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1532,7 +2307,6 @@
     },
     {
       "id": "behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor",
-      "buildingBlockId": "building_block|Sales.ExchangeRates.ExchangeRateProvider",
       "name": "GetFor",
       "type": "Command",
       "description": null,
@@ -1555,7 +2329,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1565,7 +2339,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order CreatedFromOffer.Apply",
-      "buildingBlockId": "building_block|Sales.Orders.Order CreatedFromOffer",
       "name": "Apply",
       "type": "Command",
       "description": null,
@@ -1582,7 +2355,7 @@
         }
       ],
       "output": [],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1592,7 +2365,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order Factory.ImmediatelyPlacedBasedOn",
-      "buildingBlockId": "building_block|Sales.Orders.Order Factory",
       "name": "ImmediatelyPlacedBasedOn",
       "type": "Command",
       "description": null,
@@ -1615,9 +2387,17 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Orders.Order PriceAgreement.Final",
-        "behavior|Sales.Orders.Order PriceAgreement.Non"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.Order Factory.ImmediatelyPlacedBasedOn",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.Final"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.Order Factory.ImmediatelyPlacedBasedOn",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.Non"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -1628,7 +2408,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order Factory.NewWith",
-      "buildingBlockId": "building_block|Sales.Orders.Order Factory",
       "name": "NewWith",
       "type": "Command",
       "description": null,
@@ -1651,7 +2430,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1661,7 +2440,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order Factory.NewWithMaxTotalCostFor",
-      "buildingBlockId": "building_block|Sales.Orders.Order Factory",
       "name": "NewWithMaxTotalCostFor",
       "type": "Command",
       "description": null,
@@ -1684,8 +2462,12 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Orders.Order Factory.NewWith"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.Order Factory.NewWithMaxTotalCostFor",
+          "to": "behavior|Sales.Orders.Order Factory.NewWith"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -1696,7 +2478,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order Placed.Apply",
-      "buildingBlockId": "building_block|Sales.Orders.Order Placed",
       "name": "Apply",
       "type": "Command",
       "description": null,
@@ -1713,7 +2494,7 @@
         }
       ],
       "output": [],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1723,7 +2504,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order PriceAgreement.CanChangePrice",
-      "buildingBlockId": "building_block|Sales.Orders.Order PriceAgreement",
       "name": "CanChangePrice",
       "type": "Command",
       "description": null,
@@ -1739,7 +2519,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1749,7 +2529,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order PriceAgreement.Final",
-      "buildingBlockId": "building_block|Sales.Orders.Order PriceAgreement",
       "name": "Final",
       "type": "Command",
       "description": null,
@@ -1772,7 +2551,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1782,7 +2561,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order PriceAgreement.IsValidOn",
-      "buildingBlockId": "building_block|Sales.Orders.Order PriceAgreement",
       "name": "IsValidOn",
       "type": "Command",
       "description": null,
@@ -1805,7 +2583,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1815,7 +2593,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order PriceAgreement.Non",
-      "buildingBlockId": "building_block|Sales.Orders.Order PriceAgreement",
       "name": "Non",
       "type": "Command",
       "description": null,
@@ -1831,7 +2608,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1841,7 +2618,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order PriceAgreement.Temporary",
-      "buildingBlockId": "building_block|Sales.Orders.Order PriceAgreement",
       "name": "Temporary",
       "type": "Command",
       "description": null,
@@ -1870,7 +2646,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1880,7 +2656,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order PricesConfirmed.Apply",
-      "buildingBlockId": "building_block|Sales.Orders.Order PricesConfirmed",
       "name": "Apply",
       "type": "Command",
       "description": null,
@@ -1897,9 +2672,17 @@
         }
       ],
       "output": [],
-      "invokes": [
-        "behavior|Sales.Orders.Order PriceAgreement.Final",
-        "behavior|Sales.Orders.Order PriceAgreement.Temporary"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.Order PricesConfirmed.Apply",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.Final"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.Order PricesConfirmed.Apply",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.Temporary"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -1910,7 +2693,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order ProductAmountAdded.Apply",
-      "buildingBlockId": "building_block|Sales.Orders.Order ProductAmountAdded",
       "name": "Apply",
       "type": "Command",
       "description": null,
@@ -1927,8 +2709,12 @@
         }
       ],
       "output": [],
-      "invokes": [
-        "behavior|Sales.Orders.Order PriceAgreement.Non"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.Order ProductAmountAdded.Apply",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.Non"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -1939,7 +2725,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order Repository.GetBy",
-      "buildingBlockId": "building_block|Sales.Orders.Order Repository",
       "name": "GetBy",
       "type": "Command",
       "description": null,
@@ -1955,7 +2740,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1965,7 +2750,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order Repository.Save",
-      "buildingBlockId": "building_block|Sales.Orders.Order Repository",
       "name": "Save",
       "type": "Command",
       "description": null,
@@ -1982,7 +2766,7 @@
         }
       ],
       "output": [],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -1992,7 +2776,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order.Add",
-      "buildingBlockId": "building_block|Sales.Orders.Order",
       "name": "Add",
       "type": "Command",
       "description": null,
@@ -2009,7 +2792,7 @@
         }
       ],
       "output": [],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2019,7 +2802,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order.ConfirmPrices",
-      "buildingBlockId": "building_block|Sales.Orders.Order",
       "name": "ConfirmPrices",
       "type": "Command",
       "description": null,
@@ -2048,10 +2830,22 @@
         }
       ],
       "output": [],
-      "invokes": [
-        "behavior|Sales.Orders.Order PriceAgreement.CanChangePrice",
-        "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
-        "behavior|Sales.Pricing.Quote.For"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.Order.ConfirmPrices",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.CanChangePrice"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.Order.ConfirmPrices",
+          "to": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.Order.ConfirmPrices",
+          "to": "behavior|Sales.Pricing.Quote.For"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2062,7 +2856,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order.HasSameDataAs",
-      "buildingBlockId": "building_block|Sales.Orders.Order",
       "name": "HasSameDataAs",
       "type": "Command",
       "description": null,
@@ -2085,7 +2878,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2095,7 +2888,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order.Place",
-      "buildingBlockId": "building_block|Sales.Orders.Order",
       "name": "Place",
       "type": "Command",
       "description": null,
@@ -2112,8 +2904,12 @@
         }
       ],
       "output": [],
-      "invokes": [
-        "behavior|Sales.Orders.Order PriceAgreement.IsValidOn"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.Order.Place",
+          "to": "behavior|Sales.Orders.Order PriceAgreement.IsValidOn"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2124,7 +2920,6 @@
     },
     {
       "id": "behavior|Sales.Orders.Order.RestoreFrom",
-      "buildingBlockId": "building_block|Sales.Orders.Order",
       "name": "RestoreFrom",
       "type": "Command",
       "description": null,
@@ -2140,7 +2935,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2150,7 +2945,6 @@
     },
     {
       "id": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices",
-      "buildingBlockId": "building_block|Sales.Orders.PriceChanges.AllowAnyPriceChanges",
       "name": "CanChangePrices",
       "type": "Command",
       "description": null,
@@ -2183,7 +2977,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2193,7 +2987,6 @@
     },
     {
       "id": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices",
-      "buildingBlockId": "building_block|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower",
       "name": "CanChangePrices",
       "type": "Command",
       "description": null,
@@ -2226,7 +3019,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2236,7 +3029,6 @@
     },
     {
       "id": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor",
-      "buildingBlockId": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicies",
       "name": "ChooseFor",
       "type": "Command",
       "description": null,
@@ -2259,8 +3051,12 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Clients.ClientRepository.GetStatusFor"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor",
+          "to": "behavior|Sales.Clients.ClientRepository.GetStatusFor"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2271,7 +3067,6 @@
     },
     {
       "id": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
-      "buildingBlockId": "building_block|Sales.Orders.PriceChanges.PriceChangesPolicy",
       "name": "CanChangePrices",
       "type": "Command",
       "description": null,
@@ -2304,7 +3099,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2314,7 +3109,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.CalculatePrices.For",
-      "buildingBlockId": "building_block|Sales.Pricing.CalculatePrices",
       "name": "For",
       "type": "Command",
       "description": null,
@@ -2355,15 +3149,47 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor",
-        "behavior|Sales.Pricing.Offer.FromQuotes",
-        "behavior|Sales.Pricing.OfferModifier.ApplyOn",
-        "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
-        "behavior|Sales.Pricing.OfferRequest.For",
-        "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor",
-        "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor",
-        "behavior|Sales.Pricing.Quote.For"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.CalculatePrices.For",
+          "to": "behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.CalculatePrices.For",
+          "to": "behavior|Sales.Pricing.Offer.FromQuotes"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.CalculatePrices.For",
+          "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.CalculatePrices.For",
+          "to": "behavior|Sales.Pricing.OfferModifiers.ChooseFor"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.CalculatePrices.For",
+          "to": "behavior|Sales.Pricing.OfferRequest.For"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.CalculatePrices.For",
+          "to": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.CalculatePrices.For",
+          "to": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.CalculatePrices.For",
+          "to": "behavior|Sales.Pricing.Quote.For"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2374,7 +3200,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ClientLevelDiscounts",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -2397,9 +3222,17 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.Offer.FromQuotes",
-        "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
+          "to": "behavior|Sales.Pricing.Offer.FromQuotes"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
+          "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2410,7 +3243,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.Discount",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -2433,9 +3265,17 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
-        "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
+          "to": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
+          "to": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2446,7 +3286,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.Discount",
       "name": "Percentage",
       "type": "Command",
       "description": null,
@@ -2469,8 +3308,12 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
+          "to": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2481,7 +3324,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.Discount.Value",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.Discount",
       "name": "Value",
       "type": "Command",
       "description": null,
@@ -2504,8 +3346,12 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.Discounts.ValueDiscount.Of"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.Discounts.Discount.Value",
+          "to": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2516,7 +3362,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.DiscountsRepository",
       "name": "GetFor",
       "type": "Command",
       "description": null,
@@ -2539,7 +3384,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2549,7 +3394,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -2572,7 +3416,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2582,7 +3426,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -2605,7 +3448,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2615,7 +3458,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.ProductDiscount.Of",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ProductDiscount",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -2644,7 +3486,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2654,7 +3496,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -2677,9 +3518,17 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.Offer.FromQuotes",
-        "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
+          "to": "behavior|Sales.Pricing.Offer.FromQuotes"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
+          "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2690,7 +3539,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.Of",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ProductLevelDiscounts",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -2715,7 +3563,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2725,7 +3573,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ValueDiscount",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -2748,9 +3595,17 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Commons.Money.Max",
-        "behavior|Sales.Commons.Money.Zero"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
+          "to": "behavior|Sales.Commons.Money.Max"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
+          "to": "behavior|Sales.Commons.Money.Zero"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2761,7 +3616,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of",
-      "buildingBlockId": "building_block|Sales.Pricing.Discounts.ValueDiscount",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -2784,7 +3638,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2794,7 +3648,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.IndividualSalesConditions",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -2817,11 +3670,27 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
-        "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
-        "behavior|Sales.Pricing.Offer.FromQuotes",
-        "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
+          "to": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
+          "to": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
+          "to": "behavior|Sales.Pricing.Offer.FromQuotes"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
+          "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2832,7 +3701,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Offer.Compare",
-      "buildingBlockId": "building_block|Sales.Pricing.Offer",
       "name": "Compare",
       "type": "Command",
       "description": null,
@@ -2861,7 +3729,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2871,7 +3739,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Offer.FromQuotes",
-      "buildingBlockId": "building_block|Sales.Pricing.Offer",
       "name": "FromQuotes",
       "type": "Command",
       "description": null,
@@ -2902,7 +3769,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -2912,7 +3779,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.OfferModifier",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -2935,10 +3801,22 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.Offer.FromQuotes",
-        "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
-        "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
+          "to": "behavior|Sales.Pricing.Offer.FromQuotes"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
+          "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
+          "to": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2949,7 +3827,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
-      "buildingBlockId": "building_block|Sales.Pricing.OfferModifiers",
       "name": "ChooseFor",
       "type": "Command",
       "description": null,
@@ -2972,10 +3849,22 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor",
-        "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or",
-        "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
+          "to": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
+          "to": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
+          "to": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -2986,7 +3875,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.OfferRequest.For",
-      "buildingBlockId": "building_block|Sales.Pricing.OfferRequest",
       "name": "For",
       "type": "Command",
       "description": null,
@@ -3023,7 +3911,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3033,7 +3921,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.PriceLists.BasePrice.Of",
-      "buildingBlockId": "building_block|Sales.Pricing.PriceLists.BasePrice",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -3062,7 +3949,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3072,7 +3959,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor",
-      "buildingBlockId": "building_block|Sales.Pricing.PriceLists.BasePrices",
       "name": "GetFor",
       "type": "Command",
       "description": null,
@@ -3095,7 +3981,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3105,7 +3991,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.PriceLists.BasePrices.Of",
-      "buildingBlockId": "building_block|Sales.Pricing.PriceLists.BasePrices",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -3130,7 +4015,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3140,7 +4025,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePriceFor",
-      "buildingBlockId": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
       "name": "GetBasePriceFor",
       "type": "Command",
       "description": null,
@@ -3169,7 +4053,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3179,7 +4063,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor",
-      "buildingBlockId": "building_block|Sales.Pricing.PriceLists.PriceListRepository",
       "name": "GetBasePricesFor",
       "type": "Command",
       "description": null,
@@ -3210,7 +4093,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3220,7 +4103,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Quote.ChangePrice",
-      "buildingBlockId": "building_block|Sales.Pricing.Quote",
       "name": "ChangePrice",
       "type": "Command",
       "description": null,
@@ -3243,7 +4125,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3253,7 +4135,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.Quote.For",
-      "buildingBlockId": "building_block|Sales.Pricing.Quote",
       "name": "For",
       "type": "Command",
       "description": null,
@@ -3282,7 +4163,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3292,7 +4173,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.QuoteModifier",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -3315,9 +4195,17 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
-        "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
+          "to": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
+          "to": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -3328,7 +4216,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -3351,9 +4238,17 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.OfferModifier.ApplyOn",
-        "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn",
+          "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn",
+          "to": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -3364,7 +4259,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or",
-      "buildingBlockId": "building_block|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice",
       "name": "Or",
       "type": "Command",
       "description": null,
@@ -3387,7 +4281,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3397,7 +4291,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.SpecialOffers.SpecialOffer",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -3420,8 +4313,12 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.OfferModifier.ApplyOn"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
+          "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -3432,7 +4329,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn",
-      "buildingBlockId": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
       "name": "ApplyOn",
       "type": "Command",
       "description": null,
@@ -3455,9 +4351,17 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Pricing.OfferModifier.ApplyOn",
-        "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn",
+          "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn"
+        },
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn",
+          "to": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -3468,7 +4372,6 @@
     },
     {
       "id": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or",
-      "buildingBlockId": "building_block|Sales.Pricing.SpecialOffers.ThreeForTwo",
       "name": "Or",
       "type": "Command",
       "description": null,
@@ -3491,7 +4394,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3501,7 +4404,6 @@
     },
     {
       "id": "behavior|Sales.Products.Amount.Of",
-      "buildingBlockId": "building_block|Sales.Products.Amount",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -3530,7 +4432,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3540,7 +4442,6 @@
     },
     {
       "id": "behavior|Sales.Products.ProductAmount.Of",
-      "buildingBlockId": "building_block|Sales.Products.ProductAmount",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -3575,8 +4476,12 @@
           "optional": false
         }
       ],
-      "invokes": [
-        "behavior|Sales.Products.Amount.Of"
+      "relations": [
+        {
+          "kind": "invokes",
+          "from": "behavior|Sales.Products.ProductAmount.Of",
+          "to": "behavior|Sales.Products.Amount.Of"
+        }
       ],
       "rules": [],
       "scenarios": [],
@@ -3587,7 +4492,6 @@
     },
     {
       "id": "behavior|Sales.Products.ProductId.From",
-      "buildingBlockId": "building_block|Sales.Products.ProductId",
       "name": "From",
       "type": "Command",
       "description": null,
@@ -3610,7 +4514,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3620,7 +4524,6 @@
     },
     {
       "id": "behavior|Sales.Products.ProductId.New",
-      "buildingBlockId": "building_block|Sales.Products.ProductId",
       "name": "New",
       "type": "Command",
       "description": null,
@@ -3636,7 +4539,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
@@ -3646,7 +4549,6 @@
     },
     {
       "id": "behavior|Sales.Products.ProductUnit.Of",
-      "buildingBlockId": "building_block|Sales.Products.ProductUnit",
       "name": "Of",
       "type": "Command",
       "description": null,
@@ -3675,7 +4577,7 @@
           "optional": false
         }
       ],
-      "invokes": [],
+      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {

@@ -8,7 +8,7 @@ type WireChangeSet = NonNullable<DesignDocumentInput['buildingBlocks']>;
  * What a design does to one collection, as the JSON form spells it: the
  * server's change set, its parts kept as the contract has them and filled
  * with the given items and keys. A set with no `modified` part, such as a
- * building block's `implements`, fits too.
+ * building block's `relations`, fits too.
  */
 export type ChangeSetInput<Item, Key> = {
   [Part in keyof WireChangeSet]: Part extends 'removed'

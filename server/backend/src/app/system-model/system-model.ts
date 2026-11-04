@@ -5,6 +5,12 @@ import {
   ElementName,
   ModuleId,
 } from '#backend/app/element-id';
+import {
+  BehaviorRelation,
+  BuildingBlockRelation,
+  ModuleRelation,
+  relationsOf,
+} from './relation';
 import { SystemModelId } from './system-model-id';
 
 export const BuildingBlockType = z.enum([
@@ -198,6 +204,7 @@ export const ScannedDomainModule = z.strictObject({
   id: ModuleId,
   name: ElementName,
   description: z.string().nullable().default(null),
+  relations: relationsOf(ModuleRelation),
   rules: z.array(ScannedRule).default([]),
   source: SourceLocation,
 });
@@ -208,7 +215,7 @@ export const ScannedBuildingBlock = z.strictObject({
   name: ElementName,
   type: BuildingBlockType,
   description: z.string().nullable().default(null),
-  implements: z.array(BuildingBlockId).default([]),
+  relations: relationsOf(BuildingBlockRelation),
   properties: z.array(ScannedProperty).default([]),
   rules: z.array(ScannedRule).default([]),
   scenarios: z.array(ScannedScenario).default([]),
@@ -218,15 +225,13 @@ export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
 
 export const ScannedBehavior = z.strictObject({
   id: BehaviorId,
-  buildingBlockId: BuildingBlockId,
   name: ElementName,
   type: BehaviorType,
   description: z.string().nullable().default(null),
   visibility: Visibility,
   input: z.array(ScannedParameter).default([]),
   output: z.array(ScannedResult).default([]),
-  /** The behaviors this one calls, directly or through methods that are no behavior; never itself. */
-  invokes: z.array(BehaviorId).default([]),
+  relations: relationsOf(BehaviorRelation),
   rules: z.array(ScannedRule).default([]),
   scenarios: z.array(ScannedScenario).default([]),
   source: SourceLocation,

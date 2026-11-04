@@ -248,14 +248,24 @@ class ModelAssembly {
       name: block.name,
       type: block.type,
       description: this.descriptionOf(node),
-      // R4.4: the blocks among the direct supertypes, type arguments ignored.
-      implements: sortedUnique(
-        (artifact.supertypesOf.get(node.id) ?? []).flatMap((ref) => {
-          if (ref.kind !== 'named') return [];
-          const id = this.blockIdOf(artifact, ref.type);
-          return id === null || id === block.id ? [] : [id];
-        }),
-      ),
+      relations: [
+        ...[...this.behaviors.keys()]
+          .filter((id) => BuildingBlockId.containing(id) === block.id)
+          .sort(byCodeUnit)
+          .map((to) => ({
+            kind: 'contains_behavior' as const,
+            from: block.id,
+            to,
+          })),
+        // R4.4: the blocks among the direct supertypes, type arguments ignored.
+        ...sortedUnique(
+          (artifact.supertypesOf.get(node.id) ?? []).flatMap((ref) => {
+            if (ref.kind !== 'named') return [];
+            const id = this.blockIdOf(artifact, ref.type);
+            return id === null || id === block.id ? [] : [id];
+          }),
+        ).map((to) => ({ kind: 'implements' as const, from: block.id, to })),
+      ],
       properties: this.propertiesOf(block),
       rules: [],
       scenarios: this.scenariosOf([node]),
@@ -594,7 +604,6 @@ class ModelAssembly {
     const returned = resolveTypeRef(chosen.node.signature.returnType, scope);
     return {
       id: behavior.id,
-      buildingBlockId: block.id,
       name: behavior.name,
       type: this.behaviorTypeOf(hierarchy),
       description:
@@ -618,7 +627,10 @@ class ModelAssembly {
                 optional: returned.optional,
               },
             ],
-      invokes: [...invokes].filter((id) => id !== behavior.id).sort(byCodeUnit),
+      relations: [...invokes]
+        .filter((id) => id !== behavior.id)
+        .sort(byCodeUnit)
+        .map((to) => ({ kind: 'invokes', from: behavior.id, to })),
       rules: [],
       scenarios: this.scenariosOf(
         behavior.overloads.map((overload) => overload.node),
@@ -762,12 +774,34 @@ class ModelAssembly {
           id,
           name: ElementName.parse(path.at(-1)),
           description: null,
+          relations: [],
           rules: [],
           source:
             namespaceLocations.get(path.join('.')) ??
             this.directoryAbove(block, block.modulePath.length - depth),
         });
       }
+    }
+    const blockIds = [...this.blocks.values()].map(({ id }) => id);
+    for (const module of modules.values()) {
+      module.relations = [
+        ...[...modules.keys()]
+          .filter((id) => ModuleId.parentOf(id) === module.id)
+          .sort(byCodeUnit)
+          .map((to) => ({
+            kind: 'contains_module' as const,
+            from: module.id,
+            to,
+          })),
+        ...blockIds
+          .filter((id) => ModuleId.containing(id) === module.id)
+          .sort(byCodeUnit)
+          .map((to) => ({
+            kind: 'contains_building_block' as const,
+            from: module.id,
+            to,
+          })),
+      ];
     }
     return [...modules.values()].sort(byId);
   }

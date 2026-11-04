@@ -81,7 +81,8 @@ For a new one:
 
 When a property, a collection's elements or a behavior's input or output
 can be any of two or more building blocks, model the abstraction they share
-as a base building block. Each of them lists the base in `implements`, and
+as a base building block. Each of them carries an `implements` relation to
+the base among its `relations`, and
 the reference names the base. The base is a real domain concept (a
 `Component` over `CompositeComponent` and `SimpleComponent`), never an
 umbrella invented to satisfy a reference.

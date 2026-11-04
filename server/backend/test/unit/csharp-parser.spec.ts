@@ -164,7 +164,6 @@ describe('Scanning through the C# parser', () => {
     );
     expect<unknown>(aggregate).toMatchObject({
       description: 'An aggregate with a *short* description.',
-      implements: [],
       scenarios: [{ name: 'Aggregate scenario', description: null, steps: [] }],
       source: { path: `${SOURCES}/Blocks/BlockKinds.cs`, line: 10 },
     });
@@ -219,9 +218,10 @@ describe('Scanning through the C# parser', () => {
     ).toEqual([]);
     // Direct supertypes that are blocks only (R4.4).
     expect<unknown>(
-      model.buildingBlocks.find(
-        (b) => b.id === block('ImplementsBlocksAndOthers'),
-      )?.implements,
+      model.buildingBlocks
+        .find((b) => b.id === block('ImplementsBlocksAndOthers'))
+        ?.relations.filter(({ kind }) => kind === 'implements')
+        .map(({ to }) => to),
     ).toEqual([block('AbstractBlock'), block('ExternalIntegrationBlock')]);
 
     // Public methods become behaviors: static ones too; not the excluded,
@@ -368,7 +368,9 @@ describe('Scanning through the C# parser', () => {
         !b.id.startsWith('behavior|Projection.Invocations.Reached.'),
     );
     expect<unknown>(
-      Object.fromEntries(invocations.map((b) => [b.id, b.invokes])),
+      Object.fromEntries(
+        invocations.map((b) => [b.id, b.relations.map(({ to }) => to)]),
+      ),
     ).toEqual(INVOKES);
 
     // The leaves invoke nothing, and some of them nothing reaches.
@@ -376,9 +378,9 @@ describe('Scanning through the C# parser', () => {
       b.id.startsWith('behavior|Projection.Invocations.Reached.'),
     );
     expect<unknown>(leaves.length).toBeGreaterThan(40);
-    expect<unknown>(leaves.every((b) => b.invokes.length === 0)).toBe(true);
+    expect<unknown>(leaves.every((b) => b.relations.length === 0)).toBe(true);
     const reachedByAnyone = new Set<string>(
-      model.behaviors.flatMap((b) => b.invokes),
+      model.behaviors.flatMap((b) => b.relations.map(({ to }) => to)),
     );
     for (const leaf of UNREACHED) {
       expect<unknown>(ids(leaves)).toContain(leaf);

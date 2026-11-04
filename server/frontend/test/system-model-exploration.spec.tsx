@@ -41,7 +41,50 @@ import { VisibilityPanel } from '../src/features/system-model/ui/exploration/vis
 import { MantineProvider } from '../src/shared/design-system/provider';
 
 const source = { path: 'X.java', line: null };
-const model = {
+
+/** The model with each module and block containing what its id says it does, as a scan writes it. */
+function contained<
+  Model extends {
+    modules: { id: string }[];
+    buildingBlocks: { id: string }[];
+    behaviors: { id: string }[];
+  },
+>(model: Model): Model {
+  const under = (ids: string[], parent: string, kind: string) =>
+    ids
+      .filter((id) => {
+        const path = id.slice(id.indexOf('|') + 1);
+        return (
+          path.slice(0, path.lastIndexOf('.')) ===
+          parent.slice(parent.indexOf('|') + 1)
+        );
+      })
+      .map((to) => ({ kind, from: parent, to }));
+  const moduleIds = model.modules.map(({ id }) => id);
+  const blockIds = model.buildingBlocks.map(({ id }) => id);
+  const behaviorIds = model.behaviors.map(({ id }) => id);
+  return {
+    ...model,
+    modules: model.modules.map((module) => ({
+      ...module,
+      relations: [
+        ...under(moduleIds, module.id, 'contains_module'),
+        ...under(blockIds, module.id, 'contains_building_block'),
+      ],
+    })),
+    buildingBlocks: model.buildingBlocks.map((block) => ({
+      ...block,
+      relations: [
+        ...under(behaviorIds, block.id, 'contains_behavior'),
+        ...('relations' in block && Array.isArray(block.relations)
+          ? block.relations
+          : []),
+      ],
+    })),
+  };
+}
+
+const model = contained({
   id: '01a15509-0909-725f-8ab8-25ab23fc10d3',
   name: 'shop',
   scanned_at: '2026-10-19T10:00:00Z',
@@ -61,7 +104,7 @@ const model = {
       name: 'Order',
       type: 'aggregate',
       description: null,
-      implements: [],
+      relations: [],
       properties: [
         {
           name: 'lines',
@@ -85,7 +128,7 @@ const model = {
       name: 'Line',
       type: 'value_object',
       description: null,
-      implements: [],
+      relations: [],
       properties: [],
       rules: [],
       scenarios: [],
@@ -95,7 +138,6 @@ const model = {
   behaviors: [
     {
       id: 'behavior|shop.orders.Order.place',
-      buildingBlockId: 'building_block|shop.orders.Order',
       name: 'place',
       type: 'Command',
       description: null,
@@ -109,13 +151,13 @@ const model = {
         },
       ],
       output: [],
-      invokes: [],
+      relations: [],
       rules: [],
       scenarios: [],
       source,
     },
   ],
-} as unknown as SystemModel;
+}) as unknown as SystemModel;
 
 const exploration = explorationOf(model);
 const draw = (relations: RelationKind[], hidden: string[] = []) =>
@@ -175,15 +217,19 @@ describe('the exploration of a system model', () => {
     const check = {
       ...model.behaviors[0]!,
       id: 'behavior|shop.orders.Line.check',
-      buildingBlockId: 'building_block|shop.orders.Line',
       name: 'check',
       input: [],
     };
     const calling = explorationOf({
       ...model,
       behaviors: [
-        { ...model.behaviors[0]!, invokes: [check.id] },
-        { ...check, invokes: [] },
+        {
+          ...model.behaviors[0]!,
+          relations: [
+            { kind: 'invokes', from: model.behaviors[0]!.id, to: check.id },
+          ],
+        },
+        { ...check, relations: [] },
       ],
     } as unknown as SystemModel);
     expect(calling.invokes).toEqual([
@@ -628,28 +674,33 @@ describe('a chain followed up to the next of its type', () => {
   const behavior = (on: string, name: string, invokes: string[] = []) => ({
     ...model.behaviors[0]!,
     id: `behavior|shop.orders.${on}.${name}`,
-    buildingBlockId: `building_block|shop.orders.${on}`,
     name,
     input: [],
-    invokes: invokes.map((called) => `behavior|shop.orders.${called}`),
+    relations: invokes.map((called) => ({
+      kind: 'invokes',
+      from: `behavior|shop.orders.${on}.${name}`,
+      to: `behavior|shop.orders.${called}`,
+    })),
   });
-  const chained = explorationOf({
-    ...model,
-    buildingBlocks: [
-      block('Price', 'value_object', ['Product']),
-      block('Product', 'entity', ['Money']),
-      block('Money', 'value_object', ['Currency']),
-      block('Currency', 'value_object'),
-      block('Pricing', 'domain_service'),
-    ],
-    behaviors: [
-      behavior('Price', 'apply', ['Pricing.quote']),
-      behavior('Pricing', 'quote', ['Pricing.round']),
-      behavior('Pricing', 'round', ['Money.round']),
-      behavior('Money', 'round', ['Currency.scale']),
-      behavior('Currency', 'scale'),
-    ],
-  } as unknown as SystemModel);
+  const chained = explorationOf(
+    contained({
+      ...model,
+      buildingBlocks: [
+        block('Price', 'value_object', ['Product']),
+        block('Product', 'entity', ['Money']),
+        block('Money', 'value_object', ['Currency']),
+        block('Currency', 'value_object'),
+        block('Pricing', 'domain_service'),
+      ],
+      behaviors: [
+        behavior('Price', 'apply', ['Pricing.quote']),
+        behavior('Pricing', 'quote', ['Pricing.round']),
+        behavior('Pricing', 'round', ['Money.round']),
+        behavior('Money', 'round', ['Currency.scale']),
+        behavior('Currency', 'scale'),
+      ],
+    }) as unknown as SystemModel,
+  );
   const neighbours = neighboursOf(chained);
   const elements = new Map(chained.elements.map((each) => [each.id, each]));
   const follow = (

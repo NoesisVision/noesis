@@ -3,9 +3,17 @@ import type { Clock } from '#backend/app/clock';
 import {
   BehaviorId,
   BuildingBlockId,
+  ElementId,
   ElementName,
   ModuleId,
 } from '#backend/app/element-id';
+import {
+  BehaviorRelation,
+  BuildingBlockRelation,
+  ImplementsRelation,
+  ModuleRelation,
+  type Relation,
+} from '#backend/app/system-model/relation';
 import {
   BehaviorType,
   BuildingBlockType,
@@ -87,6 +95,7 @@ export const DesignedDomainModule = z.strictObject({
   name: DesignDocField(ElementName),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
+  relations: changeSet(ModuleRelation),
   rules: changeSet(DesignedRule, ElementName),
 });
 export type DesignedDomainModule = z.infer<typeof DesignedDomainModule>;
@@ -97,7 +106,7 @@ export const DesignedBuildingBlock = z.strictObject({
   type: DesignDocField(BuildingBlockType),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
-  implements: changeSet(BuildingBlockId),
+  relations: changeSet(BuildingBlockRelation),
   properties: changeSet(DesignedProperty, ElementName),
   rules: changeSet(DesignedRule, ElementName),
   scenarios: changeSet(DesignedScenario, ElementName),
@@ -111,6 +120,7 @@ export const DesignedBehavior = z.strictObject({
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
   visibility: DesignDocField(Visibility),
+  relations: changeSet(BehaviorRelation),
   input: changeSet(DesignedParameter, ElementName),
   output: changeSet(DesignedResult, BuildingBlockRef),
   rules: changeSet(DesignedRule, ElementName),
@@ -175,7 +185,8 @@ export interface DesignDocViolation {
     | 'diagramInDefinition'
     | 'unknownNeed'
     | 'ruleTypeOutsideCategory'
-    | 'businessRuleOnModule';
+    | 'businessRuleOnModule'
+    | 'uncontained';
 }
 
 export type DesignDocumentInput = z.input<typeof designDocumentSchema>;
@@ -210,6 +221,10 @@ export type DesignedResultInput = z.input<typeof DesignedResult>;
 export type DesignedRuleInput = z.input<typeof DesignedRule>;
 export type DesignedNeedInput = z.input<typeof DesignedNeed>;
 export type DesignedScenarioInput = z.input<typeof DesignedScenario>;
+export type ModuleRelationInput = z.input<typeof ModuleRelation>;
+export type BuildingBlockRelationInput = z.input<typeof BuildingBlockRelation>;
+export type BehaviorRelationInput = z.input<typeof BehaviorRelation>;
+export type ImplementsRelationInput = z.input<typeof ImplementsRelation>;
 
 type ChangeSet<
   Item extends z.ZodType,
@@ -348,6 +363,7 @@ function rulesOfEveryDesign(
   const rules = [...rulesIn(document, systemModel)];
   return [
     ...changesMissingFrom(systemModel, document),
+    ...uncontainedElements(document),
     ...unchangedFieldsInAddedItems(document),
     ...unknownNeeds(document, rules),
     ...ruleTypesOutsideCategory(rules),
@@ -357,6 +373,42 @@ function rulesOfEveryDesign(
 
 const ELEMENT_COLLECTIONS = ['modules', 'buildingBlocks', 'behaviors'] as const;
 type ElementCollection = (typeof ELEMENT_COLLECTIONS)[number];
+
+/**
+ * An element the design adds under another is among that one's relations:
+ * the parent, added or modified, adds the relation that contains it. A root
+ * module is under nothing.
+ */
+function uncontainedElements(
+  document: DesignDocumentContent,
+): DesignDocViolation[] {
+  const contained = new Set<string>();
+  for (const collection of ['modules', 'buildingBlocks'] as const) {
+    for (const kind of ['added', 'modified'] as const) {
+      const elements: readonly { relations: { added: Relation[] } }[] =
+        document[collection][kind];
+      for (const element of elements)
+        for (const relation of element.relations.added)
+          if (relation.kind.startsWith('contains_')) contained.add(relation.to);
+    }
+  }
+  return ELEMENT_COLLECTIONS.flatMap((collection) =>
+    document[collection].added
+      .filter(({ id }) => parentOf(id) !== null && !contained.has(id))
+      .map(({ id }) => ({
+        path: `${collection}.added[${id}]`,
+        reason: 'uncontained' as const,
+      })),
+  );
+}
+
+/** The element an element is under by its id; null for a root module. */
+const parentOf = (id: ElementId): ElementId | null =>
+  ElementId.match<ElementId | null>(id, {
+    module: (module) => ModuleId.parentOf(module),
+    buildingBlock: (block) => ModuleId.containing(block),
+    behavior: (behavior) => BuildingBlockId.containing(behavior),
+  });
 
 interface DesignedElementWithRules {
   id: string;
@@ -586,6 +638,8 @@ function keyOf(item: unknown): string {
   if (typeof item !== 'object' || item === null) return String(item);
   if ('id' in item && typeof item.id === 'string') return item.id;
   if ('name' in item && typeof item.name === 'string') return item.name;
+  // A relation is known by its target: its source is the element that carries it.
+  if ('to' in item && typeof item.to === 'string') return item.to;
   // A behavior's result, designed or scanned, is known by its type.
   if ('type' in item) return keyOf(item.type);
   return JSON.stringify(item);

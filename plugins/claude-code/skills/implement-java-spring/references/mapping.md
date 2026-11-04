@@ -113,9 +113,9 @@ an application service's behaviors carry a handler annotation: never a
 method of another building block, and never a method that is not a
 behavior (package-private helpers, accessors, `equals`).
 
-### `implements`
+### `implements` relations
 
-A base building block that others list in `implements` is a Java interface
+A base building block that others reach by an `implements` relation is a Java interface
 carrying the base's own annotation; each implementer `implements` it. Make
 it `sealed ... permits` when all implementers live in one package.
 
@@ -241,7 +241,7 @@ not domain code. Leave it to the adapters and report it.
 - **Modified**: only the fields with `"changed": true` change. A new
   definition replaces the Javadoc; a property, input, output, rule or
   scenario is added, changed or removed in the code and its tests. A
-  changed `implements` entry is one removed and one added.
+  changed `implements` relation is one removed and one added.
 - **Removed**: delete the type or the method, every use of it, and the
   tests of its scenarios. A removed building block takes its behaviors
   with it.

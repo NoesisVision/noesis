@@ -184,7 +184,8 @@ describe('the fixture solution through the C# parser (e2e)', () => {
       });
       expect<unknown>(
         block('building_block|Projection.Invocations.ImplementsTwoContracts')
-          ?.implements,
+          ?.relations.filter(({ kind }) => kind === 'implements')
+          .map(({ to }) => to),
       ).toEqual([
         'building_block|Projection.Invocations.FirstContract',
         'building_block|Projection.Invocations.SecondContract',
@@ -196,10 +197,12 @@ describe('the fixture solution through the C# parser (e2e)', () => {
           !b.id.startsWith('behavior|Projection.Invocations.Reached.'),
       );
       expect<unknown>(
-        Object.fromEntries(invocations.map((b) => [b.id, b.invokes])),
+        Object.fromEntries(
+          invocations.map((b) => [b.id, b.relations.map(({ to }) => to)]),
+        ),
       ).toEqual(INVOKES);
       const reachedByAnyone = new Set<string>(
-        model.behaviors.flatMap((b) => b.invokes),
+        model.behaviors.flatMap((b) => b.relations.map(({ to }) => to)),
       );
       for (const leaf of UNREACHED)
         expect<unknown>(reachedByAnyone.has(leaf)).toBe(false);

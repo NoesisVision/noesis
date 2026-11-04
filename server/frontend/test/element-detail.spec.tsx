@@ -55,9 +55,21 @@ const document = {
         type: plain('aggregate'),
         definition: human(DIAGRAM),
         diagram: plain('stateDiagram-v2\n  Held --> Settled'),
-        implements: {
-          added: ['building_block|pay.Settleable'],
-          removed: ['building_block|pay.Lockable'],
+        relations: {
+          added: [
+            {
+              kind: 'implements',
+              from: 'building_block|pay.Hold',
+              to: 'building_block|pay.Settleable',
+            },
+          ],
+          removed: [
+            {
+              kind: 'implements',
+              from: 'building_block|pay.Hold',
+              to: 'building_block|pay.Lockable',
+            },
+          ],
         },
         properties: {
           added: [

@@ -87,6 +87,15 @@
         "definition": {
           "value": "The discounts a single product's price can be given — a percentage off, a fixed amount off, or a percentage off above a threshold — and the one `Discount` that stands for any of them.",
           "author": "agent"
+        },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_building_block",
+              "from": "module|Sales.Pricing.Discounts",
+              "to": "building_block|Sales.Pricing.Discounts.ThresholdDiscount"
+            }
+          ]
         }
       }
     ]
@@ -106,6 +115,15 @@
         "definition": {
           "value": "A discount that reduces a price by a percentage, but only when the price is strictly above a set threshold.",
           "author": "agent"
+        },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|Sales.Pricing.Discounts.ThresholdDiscount",
+              "to": "behavior|Sales.Pricing.Discounts.ThresholdDiscount.ApplyOn"
+            }
+          ]
         },
         "properties": {
           "added": [
@@ -437,6 +455,15 @@
         "definition": {
           "value": "Any one discount — a percentage, a fixed amount or a threshold discount — held as a single value, so a caller can apply a discount without knowing which kind it is.",
           "author": "agent"
+        },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|Sales.Pricing.Discounts.Discount",
+              "to": "behavior|Sales.Pricing.Discounts.Discount.Threshold"
+            }
+          ]
         },
         "properties": {
           "added": [

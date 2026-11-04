@@ -24,6 +24,25 @@
         "diagram": {
           "changed": false
         },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_module",
+              "from": "module|discounts",
+              "to": "module|discounts.calculation"
+            },
+            {
+              "kind": "contains_module",
+              "from": "module|discounts",
+              "to": "module|discounts.offers"
+            },
+            {
+              "kind": "contains_module",
+              "from": "module|discounts",
+              "to": "module|discounts.users"
+            }
+          ]
+        },
         "rules": {
           "added": [],
           "removed": [],
@@ -44,6 +63,80 @@
         },
         "diagram": {
           "changed": false
+        },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.Conditions"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.Discount"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.DiscountAmount"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.DiscountCalculation"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.DiscountConfig"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.DiscountPolicyFactory"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.DiscountedOffer"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.DiscountedProduct"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.DiscountsConfigProvider"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.FixedDiscount"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.PotentialDiscount"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.PotentialVipUserDiscount"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.ProductDiscount"
+            }
+          ]
         },
         "rules": {
           "added": [],
@@ -66,6 +159,20 @@
         "diagram": {
           "changed": false
         },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.offers",
+              "to": "building_block|discounts.offers.Offer"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.offers",
+              "to": "building_block|discounts.offers.Product"
+            }
+          ]
+        },
         "rules": {
           "added": [],
           "removed": [],
@@ -86,6 +193,25 @@
         },
         "diagram": {
           "changed": false
+        },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.users",
+              "to": "building_block|discounts.users.UserId"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.users",
+              "to": "building_block|discounts.users.UserStatus"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.users",
+              "to": "building_block|discounts.users.UserStatusProvider"
+            }
+          ]
         },
         "rules": {
           "added": [],
@@ -119,7 +245,7 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
+        "relations": {
           "added": [],
           "removed": []
         },
@@ -178,8 +304,14 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
-          "added": [],
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.Discount",
+              "to": "behavior|discounts.calculation.Discount.apply"
+            }
+          ],
           "removed": []
         },
         "properties": {
@@ -218,7 +350,7 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
+        "relations": {
           "added": [],
           "removed": []
         },
@@ -277,8 +409,14 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
-          "added": [],
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.DiscountCalculation",
+              "to": "behavior|discounts.calculation.DiscountCalculation.calculate"
+            }
+          ],
           "removed": []
         },
         "properties": {
@@ -336,8 +474,14 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
-          "added": [],
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.DiscountConfig",
+              "to": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions"
+            }
+          ],
           "removed": []
         },
         "properties": {
@@ -397,8 +541,14 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
-          "added": [],
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+              "to": "behavior|discounts.calculation.DiscountPolicyFactory.get"
+            }
+          ],
           "removed": []
         },
         "properties": {
@@ -474,8 +624,19 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
-          "added": [],
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.DiscountedOffer",
+              "to": "behavior|discounts.calculation.DiscountedOffer.applyDiscount"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.DiscountedOffer",
+              "to": "behavior|discounts.calculation.DiscountedOffer.createFrom"
+            }
+          ],
           "removed": []
         },
         "properties": {
@@ -555,8 +716,19 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
-          "added": [],
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.DiscountedProduct",
+              "to": "behavior|discounts.calculation.DiscountedProduct.applyDiscount"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.DiscountedProduct",
+              "to": "behavior|discounts.calculation.DiscountedProduct.from"
+            }
+          ],
           "removed": []
         },
         "properties": {
@@ -616,8 +788,14 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
-          "added": [],
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.DiscountsConfigProvider",
+              "to": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig"
+            }
+          ],
           "removed": []
         },
         "properties": {
@@ -656,9 +834,18 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
+        "relations": {
           "added": [
-            "building_block|discounts.calculation.Discount"
+            {
+              "kind": "implements",
+              "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+              "to": "building_block|discounts.calculation.Discount"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+              "to": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply"
+            }
           ],
           "removed": []
         },
@@ -717,9 +904,18 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
+        "relations": {
           "added": [
-            "building_block|discounts.calculation.Discount"
+            {
+              "kind": "implements",
+              "from": "building_block|discounts.calculation.FixedDiscount",
+              "to": "building_block|discounts.calculation.Discount"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.FixedDiscount",
+              "to": "behavior|discounts.calculation.FixedDiscount.apply"
+            }
           ],
           "removed": []
         },
@@ -778,8 +974,19 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
-          "added": [],
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.PotentialDiscount",
+              "to": "behavior|discounts.calculation.PotentialDiscount.getDiscount"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.PotentialDiscount",
+              "to": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor"
+            }
+          ],
           "removed": []
         },
         "properties": {
@@ -818,9 +1025,23 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
+        "relations": {
           "added": [
-            "building_block|discounts.calculation.PotentialDiscount"
+            {
+              "kind": "implements",
+              "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+              "to": "building_block|discounts.calculation.PotentialDiscount"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+              "to": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+              "to": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor"
+            }
           ],
           "removed": []
         },
@@ -879,9 +1100,18 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
+        "relations": {
           "added": [
-            "building_block|discounts.calculation.Discount"
+            {
+              "kind": "implements",
+              "from": "building_block|discounts.calculation.ProductDiscount",
+              "to": "building_block|discounts.calculation.Discount"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.ProductDiscount",
+              "to": "behavior|discounts.calculation.ProductDiscount.apply"
+            }
           ],
           "removed": []
         },
@@ -921,7 +1151,7 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
+        "relations": {
           "added": [],
           "removed": []
         },
@@ -982,7 +1212,7 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
+        "relations": {
           "added": [],
           "removed": []
         },
@@ -1022,7 +1252,7 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
+        "relations": {
           "added": [],
           "removed": []
         },
@@ -1081,7 +1311,7 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
+        "relations": {
           "added": [],
           "removed": []
         },
@@ -1140,8 +1370,14 @@
         "diagram": {
           "changed": false
         },
-        "implements": {
-          "added": [],
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.users.UserStatusProvider",
+              "to": "behavior|discounts.users.UserStatusProvider.getFor"
+            }
+          ],
           "removed": []
         },
         "properties": {

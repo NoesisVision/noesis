@@ -16,6 +16,7 @@ import {
 
 const ORDER = 'building_block|sales.orders.Order';
 const PLACE = 'behavior|sales.orders.Order.place';
+const CANCEL = 'behavior|sales.orders.Order.cancel';
 
 const module = {
   id: 'module|sales.orders',
@@ -30,7 +31,6 @@ const block = {
 };
 const behavior = {
   id: PLACE,
-  buildingBlockId: ORDER,
   name: 'place',
   type: 'Command',
   visibility: { kind: 'public', actors: ['Customer'] },
@@ -47,6 +47,8 @@ const model = (patch: Record<string, unknown> = {}) => ({
   ...patch,
 });
 
+const withModule = (patch: Record<string, unknown>) =>
+  model({ modules: [{ ...module, ...patch }] });
 const withBlock = (patch: Record<string, unknown>) =>
   model({ buildingBlocks: [{ ...block, ...patch }] });
 const withBehavior = (patch: Record<string, unknown>) =>
@@ -106,6 +108,7 @@ describe('A system model', () => {
     expect(written.modules?.[0]).toEqual({
       ...module,
       description: null,
+      relations: [],
       rules: [],
       source: { path: 'src/sales/orders', line: null },
     });
@@ -146,6 +149,37 @@ describe('A scanned element', () => {
   });
 });
 
+describe('A scanned module', () => {
+  it('contains modules and building blocks, and relates to nothing else', () => {
+    const contains = (kind: string, to: string) => ({
+      kind,
+      from: module.id,
+      to,
+    });
+    expect(
+      isValid(
+        withModule({
+          relations: [
+            contains('contains_module', 'module|sales.orders.returns'),
+            contains('contains_building_block', ORDER),
+          ],
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isValid(withModule({ relations: [contains('contains_module', ORDER)] })),
+    ).toBe(false);
+    expect(
+      isValid(
+        withModule({ relations: [contains('contains_building_block', PLACE)] }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(withModule({ relations: [contains('implements', ORDER)] })),
+    ).toBe(false);
+  });
+});
+
 describe('A scanned building block', () => {
   it('is always classified, by one of the known types', () => {
     expect(isValid(withBlock({ type: undefined }))).toBe(false);
@@ -153,21 +187,46 @@ describe('A scanned building block', () => {
   });
 
   it('lists the building blocks it implements and its properties', () => {
+    const implemented = {
+      kind: 'implements',
+      from: ORDER,
+      to: 'building_block|sales.shared.Auditable',
+    };
     const parsed = SystemModel.parse(
       withBlock({
-        implements: ['building_block|sales.shared.Auditable'],
+        relations: [implemented],
         properties: [{ name: 'total', type: 'primitive|decimal' }],
       }),
     );
     const scanned = parsed.buildingBlocks[0]!;
 
-    expect<string[]>(scanned.implements).toEqual([
-      'building_block|sales.shared.Auditable',
-    ]);
+    expect<unknown>(scanned.relations).toEqual([implemented]);
     expect(scanned.properties.map((p) => p.name)).toEqual(['total']);
-    expect(SystemModel.parse(model()).buildingBlocks[0]?.implements).toEqual(
-      [],
-    );
+    expect(SystemModel.parse(model()).buildingBlocks[0]?.relations).toEqual([]);
+  });
+
+  it('contains behaviors and implements building blocks, nothing else', () => {
+    expect(
+      isValid(
+        withBlock({
+          relations: [{ kind: 'contains_behavior', from: ORDER, to: PLACE }],
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isValid(
+        withBlock({
+          relations: [{ kind: 'implements', from: ORDER, to: PLACE }],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(
+        withBlock({
+          relations: [{ kind: 'invokes', from: PLACE, to: PLACE }],
+        }),
+      ),
+    ).toBe(false);
   });
 });
 
@@ -190,9 +249,16 @@ describe('A scanned property', () => {
 });
 
 describe('A scanned behavior', () => {
-  it('belongs to a building block', () => {
-    expect(isValid(withBehavior({ buildingBlockId: undefined }))).toBe(false);
-    expect(isValid(withBehavior({ buildingBlockId: PLACE }))).toBe(false);
+  it('relates to behaviors only: those it invokes', () => {
+    const invokes = { kind: 'invokes', from: PLACE, to: CANCEL };
+    expect(isValid(withBehavior({ relations: [invokes] }))).toBe(true);
+    expect(
+      isValid(
+        withBehavior({
+          relations: [{ kind: 'contains_behavior', from: ORDER, to: PLACE }],
+        }),
+      ),
+    ).toBe(false);
   });
 
   it('is always classified as a command, an event or a query', () => {
@@ -439,20 +505,20 @@ describe('A scanned behavior', () => {
           behavior,
           {
             ...behavior,
-            id: `${ORDER}.cancel`.replace('building_block|', 'behavior|'),
+            id: CANCEL,
             name: 'cancel',
-            invokes: [PLACE],
+            relations: [{ kind: 'invokes', from: CANCEL, to: PLACE }],
           },
         ],
       }),
     );
 
-    expect(parsed.behaviors[0]?.invokes).toEqual([]);
-    expect<unknown>(parsed.behaviors[1]?.invokes).toEqual([PLACE]);
-    expect(
-      SystemModel.safeParse(
-        model({ behaviors: [{ ...behavior, invokes: [ORDER] }] }),
-      ).success,
-    ).toBe(false);
+    expect(parsed.behaviors[0]?.relations).toEqual([]);
+    expect<unknown>(parsed.behaviors[1]?.relations).toEqual([
+      { kind: 'invokes', from: CANCEL, to: PLACE },
+    ]);
+    const invokes = (from: string, to: string) =>
+      withBehavior({ relations: [{ kind: 'invokes', from, to }] });
+    expect(isValid(invokes(PLACE, ORDER))).toBe(false);
   });
 });

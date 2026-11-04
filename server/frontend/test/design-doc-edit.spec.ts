@@ -502,7 +502,68 @@ describe('a part', () => {
     ).toEqual([]);
   });
 
-  it('may be an implemented type, which is all key', () => {
+  it('keeps the parent containing what the design adds, discards and moves', () => {
+    const ref = {
+      kind: 'building_block',
+      id: 'building_block|pay.Fee',
+    } as const;
+    const relation = {
+      kind: 'contains_building_block' as const,
+      from: MODULE,
+      to: ref.id,
+    };
+    const added = applyEdit(doc(), {
+      op: 'add',
+      ref,
+      unit: {
+        id: ref.id,
+        name: agent('Fee'),
+        type: agent('value_object'),
+        definition: agent('A fee.'),
+      },
+    });
+    expect(added.modules?.added?.[0]?.relations?.added).toEqual([relation]);
+    expect(
+      applyEdit(added, { op: 'discard', ref }).modules?.added?.[0]?.relations
+        ?.added,
+    ).toEqual([]);
+
+    // A behavior moved to another block leaves the one and is listed by the other, modified for it.
+    const settle = { kind: 'behavior', id: SETTLE } as const;
+    const moved = applyEdit(
+      applyEdit(doc(), {
+        op: 'add',
+        ref: { kind: 'behavior', id: 'behavior|pay.Hold.release' },
+        unit: {
+          id: 'behavior|pay.Hold.release',
+          name: agent('release'),
+          type: agent('Command'),
+          definition: agent('Releases.'),
+          visibility: agent({ kind: 'private' }),
+        },
+      }),
+      { op: 'move', ref: settle, to: LEDGER },
+    );
+    expect(moved.buildingBlocks?.added?.[0]?.relations?.added).toEqual([
+      {
+        kind: 'contains_behavior',
+        from: HOLD,
+        to: 'behavior|pay.Hold.release',
+      },
+    ]);
+    expect(
+      moved.buildingBlocks?.modified?.find(({ id }) => id === LEDGER)?.relations
+        ?.added,
+    ).toEqual([
+      {
+        kind: 'contains_behavior',
+        from: LEDGER,
+        to: 'behavior|pay.Ledger.settle',
+      },
+    ]);
+  });
+
+  it('may be an implemented type: a relation from its owner, keyed by its target', () => {
     const ref = {
       kind: 'implements',
       id: 'building_block|pay.Lockable',
@@ -519,10 +580,10 @@ describe('a part', () => {
     const next = applyEdit(doc(), {
       op: 'add',
       ref,
-      unit: unitFromDraft('implements', draft, null, id),
+      unit: unitFromDraft('implements', draft, null, id, ref.owner),
     });
-    expect(next.buildingBlocks?.added?.[0]?.implements?.added).toEqual([
-      ref.id,
+    expect(next.buildingBlocks?.added?.[0]?.relations?.added).toEqual([
+      { kind: 'implements', from: HOLD, to: ref.id },
     ]);
     expect(unitNameOf(next, ref)).toBe('Lockable');
   });

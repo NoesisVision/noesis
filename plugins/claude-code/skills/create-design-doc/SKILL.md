@@ -75,7 +75,7 @@ rules, scenarios. Read it at step 5.
      are the human personas that trigger it; reuse the actor names the
      system model already uses, verbatim.
    - **Building blocks and behaviors**, with their types, properties,
-     `implements` and behavior inputs and outputs. Take ready solutions
+     relations and behavior inputs and outputs. Take ready solutions
      from the sources, diagrams especially.
    - **Rules**, one per requirement statement, each with its category and
      type, the needs it answers (none for a design decision) and, when a
@@ -97,7 +97,7 @@ rules, scenarios. Read it at step 5.
 
 6. **Diff against the baseline.** Read both contracts now. For every
    element and every part of one (property, rule, scenario, input, output,
-   `implements` entry), ask whether the system model has it:
+   relation), ask whether the system model has it:
    - **Not in the model:** `added`, with every field given a value except
      `diagram`, which only an element worth drawing has.
    - **In the model and changed:** `modified`, with its id (a part's name,
@@ -118,8 +118,15 @@ rules, scenarios. Read it at step 5.
    is added; a `modified` building block lists only the properties, rules
    and scenarios that change. A behavior's input is a part known by its
    name, like a property; an output has no name and is known by its `type`,
-   so an output of another type is one removed and one added. `implements`
-   has no `modified`: a changed entry is removed and added. Needs are only
+   so an output of another type is one removed and one added. Every element
+   carries `relations`, the ties it is the source of, each as
+   `{ "kind": …, "from": <its own id>, "to": <the other element's id> }`:
+   a module `contains_module` and `contains_building_block`, a building
+   block `contains_behavior` and `implements`, a behavior `invokes`. An
+   element the design adds under another is listed by that one: the parent,
+   `added` or `modified` for it, adds the `contains_…` relation to it, and
+   the parent of a removed element removes that relation. `relations` have
+   no `modified`: a changed relation is removed and added. Needs are only
    ever `added`: no scan holds one, so there is nothing to modify or
    remove. A rename of an element in the model is a removal of the old id
    and an addition of the new one, and every reference to the old id moves
@@ -139,7 +146,7 @@ rules, scenarios. Read it at step 5.
    `{ "value": … }` and never with `author`: you are the agent. Leave out a
    change set with nothing in it.
    Before saving, check that every reference — the `type` of a property, an
-   input or an output, `implements` — names a building block this design
+   input or an output, a relation's `to` — names a building block this design
    adds or modifies, one the system model has, or a primitive, that
    nothing refers to an id the design removes, that every rule's `needs`
    names only needs the design adds, and that every `noesis:` link in

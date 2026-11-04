@@ -10,6 +10,7 @@ import type {
   DesignedResultInput,
   DesignedRuleInput,
   DesignedScenarioInput,
+  ImplementsRelationInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BehaviorType,
@@ -33,6 +34,7 @@ import {
   childIdOf,
   isElementId,
   isWithin,
+  kindOf,
   nameOf,
   parentOf,
 } from './element-id.ts';
@@ -67,7 +69,7 @@ export interface PartOwner {
 
 /**
  * A unit by what it is and where it is. A part's `id` is the key its change
- * set knows it by: a name, a result's type, an implemented block's id.
+ * set knows it by: a name, a result's type, an implemented type's id.
  */
 export type UnitRef =
   | { kind: 'need' | ElementKind; id: string }
@@ -86,7 +88,7 @@ interface UnitOf {
   property: DesignedPropertyInput;
   parameter: DesignedParameterInput;
   result: DesignedResultInput;
-  implements: string;
+  implements: ImplementsRelationInput;
 }
 export type Unit = UnitOf[UnitKind];
 
@@ -116,7 +118,7 @@ const PART_SET: Record<PartKind, string> = {
   property: 'properties',
   parameter: 'input',
   result: 'output',
-  implements: 'implements',
+  implements: 'relations',
 };
 
 const ELEMENT_KINDS = ['module', 'building_block', 'behavior'] as const;
@@ -223,6 +225,15 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
   }
 }
 
+/** What a building block implements, as its change set carries it: a relation from the block to the type. */
+function implementsRelation(
+  owner: PartOwner | null,
+  to: string,
+): ImplementsRelationInput {
+  if (owner === null) throw new Error('an implemented type has an owner');
+  return { kind: 'implements', from: owner.id, to };
+}
+
 /** The key a change set knows a result by: its type, as the server reads it. */
 export const refKeyOf = (ref: BuildingBlockRefInput): string =>
   typeof ref === 'string' ? ref : JSON.stringify(ref);
@@ -237,43 +248,124 @@ export function applyEdit<Doc extends DesignDocumentInput>(
 ): Doc {
   const { ref } = edit;
   switch (edit.op) {
-    case 'add':
-      return updateAt(doc, ref, (set) => ({
+    case 'add': {
+      const added = updateAt(doc, ref, (set) => ({
         ...set,
         added: edit.first
           ? [edit.unit, ...(set.added ?? [])]
           : [...(set.added ?? []), edit.unit],
       }));
+      return isElement(ref.kind) ? contained(added, ref.id, 'added') : added;
+    }
     case 'write':
       return written(doc, ref, edit.unit);
     case 'discard':
       return discarded(doc, ref);
-    case 'removeFromSystem':
-      return updateAt(
+    case 'removeFromSystem': {
+      const removed = updateAt(
         withoutWithin(discarded(doc, ref), ref.id),
         ref,
         (set) => ({
           ...set,
           removed: [
             ...(set.removed ?? []),
-            ref.kind === 'result' ? refOfKey(ref.id) : ref.id,
+            ref.kind === 'result'
+              ? refOfKey(ref.id)
+              : ref.kind === 'implements'
+                ? implementsRelation(ref.owner, ref.id)
+                : ref.id,
           ],
         }),
       );
-    case 'move':
-      return renamed(doc, ref.id, movedIdOf(ref, edit.to));
+      return isElement(ref.kind)
+        ? contained(removed, ref.id, 'removed')
+        : removed;
+    }
+    case 'move': {
+      const to = movedIdOf(ref, edit.to);
+      return contained(
+        renamed(uncontained(doc, ref.id, 'added'), ref.id, to),
+        to,
+        'added',
+      );
+    }
     case 'relocate':
       return updateAt(discarded(doc, edit.from), ref, (set) => ({
         ...set,
         added: [...(set.added ?? []), edit.unit],
       }));
-    case 'restore':
-      return updateAt(doc, ref, (set) => ({
+    case 'restore': {
+      const restored = updateAt(doc, ref, (set) => ({
         ...set,
         removed: set.removed?.filter((key) => keyOf(key) !== ref.id),
       }));
+      return isElement(ref.kind)
+        ? uncontained(restored, ref.id, 'removed')
+        : restored;
+    }
   }
 }
+
+const isElement = (kind: UnitKind): kind is ElementKind =>
+  kind === 'module' || kind === 'building_block' || kind === 'behavior';
+
+/** The relation by which an element's parent contains it, by the element's kind. */
+const CONTAINS = {
+  module: 'contains_module',
+  building_block: 'contains_building_block',
+  behavior: 'contains_behavior',
+} as const;
+
+const containsRelation = (parent: string, id: string) => ({
+  kind: CONTAINS[kindOf(id)],
+  from: parent,
+  to: id,
+});
+
+/**
+ * The document with the parent's relations changed. A root module has no
+ * parent, and a parent the design removes carries nothing: what is under
+ * it goes with it.
+ */
+function relationsOfParent<Doc extends DesignDocumentInput>(
+  doc: Doc,
+  id: string,
+  change: (set: LooseSet, parent: string) => LooseSet,
+): Doc {
+  const parent = parentOf(id);
+  if (parent === null) return doc;
+  const kind = kindOf(parent);
+  if (topSetOf(doc, kind).removed?.some((key) => keyOf(key) === parent))
+    return doc;
+  return updateIn(
+    doc as Container,
+    [COLLECTION_OF[kind], 'relations'],
+    [parent],
+    (set) => change(set, parent),
+  ) as Doc;
+}
+
+/** The parent's relations with the one that contains `id`, among those added or removed. */
+const contained = <Doc extends DesignDocumentInput>(
+  doc: Doc,
+  id: string,
+  part: 'added' | 'removed',
+): Doc =>
+  relationsOfParent(doc, id, (set, parent) => ({
+    ...set,
+    [part]: [...(set[part] ?? []), containsRelation(parent, id)],
+  }));
+
+/** The parent's relations without the one that contains `id`. */
+const uncontained = <Doc extends DesignDocumentInput>(
+  doc: Doc,
+  id: string,
+  part: 'added' | 'removed',
+): Doc =>
+  relationsOfParent(doc, id, (set) => ({
+    ...set,
+    [part]: set[part]?.filter((item) => keyOf(item) !== id),
+  }));
 
 /** The names of the rules that answer a need, which lose it when it goes. */
 export function rulesTracing(
@@ -473,7 +565,7 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
   property: TYPED_PART,
   parameter: TYPED_PART,
   result: [key('ref', 'type'), field('description'), field('optional')],
-  implements: [key('ref', '')],
+  implements: [key('ref', 'to')],
 };
 
 /** The types an element may be, as the model spells them. */
@@ -612,8 +704,9 @@ export function unitFromDraft(
   draft: UnitDraft,
   original: Unit | null,
   id: string,
+  owner: PartOwner | null = null,
 ): Unit {
-  if (kind === 'implements') return id;
+  if (kind === 'implements') return implementsRelation(owner, id);
   const fields = Object.fromEntries(
     UNIT_FIELDS[kind].map((spec) => {
       const fieldDraft = trimmed<unknown>(draft.fields[spec.name]!);
@@ -804,7 +897,13 @@ export function inlineEditOf(
     edit: {
       op: 'write',
       ref,
-      unit: unitFromDraft(ref.kind, draft, original, id),
+      unit: unitFromDraft(
+        ref.kind,
+        draft,
+        original,
+        id,
+        'owner' in ref ? ref.owner : null,
+      ),
     },
     id,
   };
@@ -833,6 +932,8 @@ const VIOLATION_MESSAGE: Record<DesignDocViolation['reason'], string> = {
   unknownNeed: 'It answers a need this design does not state.',
   ruleTypeOutsideCategory: 'This rule type is not one of its category.',
   businessRuleOnModule: 'A module holds no business rules.',
+  uncontained:
+    'The element this one is under does not list it among its relations.',
 };
 
 export const violationsInWords = (
@@ -910,6 +1011,7 @@ function keyOf(item: unknown): string {
   if (typeof item === 'object' && item !== null) {
     if ('id' in item && typeof item.id === 'string') return item.id;
     if ('name' in item && typeof item.name === 'string') return item.name;
+    if ('to' in item && typeof item.to === 'string') return item.to;
     if ('type' in item) return keyOf(item.type);
   }
   return JSON.stringify(item);
@@ -1086,7 +1188,8 @@ function discarded<Doc extends DesignDocumentInput>(
   if (state !== 'added') return dropped;
   // Nothing the design added can stand under one it no longer adds, and no rule answers a need it no longer states.
   if (ref.kind === 'need') return untraced(dropped, ref.id);
-  return isPart(ref.kind) ? dropped : withoutWithin(dropped, ref.id);
+  if (isPart(ref.kind)) return dropped;
+  return uncontained(withoutWithin(dropped, ref.id), ref.id, 'added');
 }
 
 /** The document without the elements under `ancestor`, in any part of their change sets. */
@@ -1166,7 +1269,7 @@ function elementsWithRules(doc: DesignDocumentInput): ElementWithRules[] {
 
 /**
  * The document with an element's id moved, and every id under it: wherever
- * the document names one — a key, an `implements`, a property's type.
+ * the document names one — a key, a relation's target, a property's type.
  */
 function renamed<Node>(node: Node, from: string, to: string): Node {
   if (typeof node === 'string') {

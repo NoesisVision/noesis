@@ -58,10 +58,6 @@ export const RELATION_WORD = {
 
 export type DrawnRelationKind = keyof typeof RELATION_WORD;
 
-const parentPath = (path: string) =>
-  path.includes('.') ? path.slice(0, path.lastIndexOf('.')) : '';
-const pathOf = (id: string) => id.slice(id.indexOf('|') + 1);
-
 /** The building blocks a type names, through any collection of them. */
 function blocksOf(ref: BuildingBlockRef): string[] {
   if (typeof ref === 'object') return blocksOf(ref.collectionOf);
@@ -69,36 +65,35 @@ function blocksOf(ref: BuildingBlockRef): string[] {
 }
 
 export function explorationOf(model: SystemModel): Exploration {
-  const moduleIds = new Set<string>(model.modules.map(({ id }) => id));
   const blockIds = new Set<string>(model.buildingBlocks.map(({ id }) => id));
-  const moduleOf = (id: string) => {
-    const path = parentPath(pathOf(id));
-    const module = `module|${path}`;
-    return path !== '' && moduleIds.has(module) ? module : null;
-  };
+  // What contains each element, as the elements' relations say.
+  const containerOf = new Map<string, string>();
+  for (const element of [...model.modules, ...model.buildingBlocks])
+    for (const relation of element.relations)
+      if (relation.kind !== 'implements')
+        containerOf.set(relation.to, relation.from);
+  const container = (id: string) => containerOf.get(id) ?? null;
   const elements: ExploredElement[] = [
     ...model.modules.map((module) => ({
       id: module.id,
       kind: 'module' as const,
       name: module.name,
       pattern: null,
-      container: moduleOf(module.id),
+      container: container(module.id),
     })),
     ...model.buildingBlocks.map((block) => ({
       id: block.id,
       kind: 'building_block' as const,
       name: block.name,
       pattern: block.type,
-      container: moduleOf(block.id),
+      container: container(block.id),
     })),
     ...model.behaviors.map((behavior) => ({
       id: behavior.id,
       kind: 'behavior' as const,
       name: behavior.name,
       pattern: behavior.type,
-      container: blockIds.has(behavior.buildingBlockId)
-        ? behavior.buildingBlockId
-        : null,
+      container: container(behavior.id),
     })),
   ];
 
@@ -121,7 +116,7 @@ export function explorationOf(model: SystemModel): Exploration {
   const behaviorIds = new Set(model.behaviors.map(({ id }) => id));
   const invokes = new Map<string, [string, string]>();
   for (const behavior of model.behaviors)
-    for (const called of behavior.invokes)
+    for (const { to: called } of behavior.relations)
       if (called !== behavior.id && behaviorIds.has(called))
         invokes.set(`${behavior.id}->${called}`, [behavior.id, called]);
   return { elements, uses: [...uses.values()], invokes: [...invokes.values()] };

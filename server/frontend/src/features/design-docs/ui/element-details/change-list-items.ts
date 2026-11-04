@@ -5,6 +5,7 @@ import type {
   DesignedPropertyInput,
   DesignedResultInput,
   DesignedRuleInput,
+  BuildingBlockRelationInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { type ChangeSetInput, writtenIn } from '../../change-set.ts';
@@ -67,15 +68,19 @@ const declared = (name: string, type: BuildingBlockRefInput) => ({
   ...(isReference(type) ? { typePath: refIdOf(type) } : {}),
 });
 
-/** Type references — what a block implements, what a behavior takes and gives. */
-export const refItems = (
-  set: ChangeSetInput<BuildingBlockRefInput, BuildingBlockRefInput> | undefined,
+/** What a block implements, by the targets of its `implements` relations, each opening its row. */
+export const implementedItems = (
+  set:
+    | ChangeSetInput<BuildingBlockRelationInput, BuildingBlockRelationInput>
+    | undefined,
 ): ChangeListItem[] =>
-  [...changed(set)].map(([ref, change]) => ({
-    change,
-    label: refAddressOf(ref),
-    path: refIdOf(ref),
-  }));
+  [...changed(set)]
+    .filter(([{ kind }]) => kind === 'implements')
+    .map(([{ to }, change]) => ({
+      change,
+      label: refAddressOf(to),
+      path: refIdOf(to),
+    }));
 
 /**
  * The building blocks the document says implement a type, each by its
@@ -87,8 +92,8 @@ export const implementerItems = (
   id: string,
 ): ChangeListItem[] =>
   writtenIn(doc.buildingBlocks).flatMap((block) =>
-    [...changed(block.implements)]
-      .filter(([ref]) => ref === id)
+    [...changed(block.relations)]
+      .filter(([{ kind, to }]) => kind === 'implements' && to === id)
       .map(([, change]) => ({
         change,
         label: refAddressOf(block.id),

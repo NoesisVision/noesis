@@ -6,6 +6,7 @@ import {
   DesignDocumentContent,
   type DesignDocumentInput,
   type DesignDocViolation,
+  type DesignedDomainModuleInput,
 } from '#backend/app/design-docs/design-doc';
 import { DesignDocId } from '#backend/app/design-docs/design-doc-id';
 import { InvalidDesignDocError } from '#backend/app/design-docs/invalid-design-doc-error';
@@ -42,6 +43,12 @@ const removing = contentOf({
     removed: [CREDIT_NOTE],
   },
 });
+
+/** The root module and the refunds module under it, as the green field adds them. */
+const [salesRoot, refunds] = greenFieldDesignDocFixture.modules!.added! as [
+  DesignedDomainModuleInput,
+  DesignedDomainModuleInput,
+];
 
 const OLDER_SCAN = '01a0d22d-7f47-76b9-abd4-bd21d66a1d17';
 const NEWER_SCAN = '01a0d22e-0000-7000-8000-000000000000';
@@ -247,10 +254,12 @@ describe('Creating a design document', () => {
       ...greenFieldDesignDocFixture,
       modules: {
         added: [
+          salesRoot,
           {
             id: 'module|sales.refunds',
             name: { value: 'refunds' },
             definition: { value: 'Money back.', author: 'human' },
+            relations: refunds.relations!,
           },
         ],
       },
@@ -273,7 +282,14 @@ describe('Creating a design document', () => {
     const incomplete = contentOf({
       ...greenFieldDesignDocFixture,
       modules: {
-        added: [{ id: 'module|sales.refunds', name: { value: 'refunds' } }],
+        added: [
+          salesRoot,
+          {
+            id: 'module|sales.refunds',
+            name: { value: 'refunds' },
+            relations: refunds.relations!,
+          },
+        ],
       },
     });
 

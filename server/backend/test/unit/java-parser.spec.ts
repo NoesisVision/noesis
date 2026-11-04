@@ -100,7 +100,6 @@ describe('A Java repository scanned through its Maven plugin', () => {
     const order = model.buildingBlocks.find((b) => b.name === 'Order');
     expect<unknown>(order).toMatchObject({
       description: 'An order *placed* by a customer.',
-      implements: [],
       source: { path: `${domain}/orders/Order.java`, line: 14 },
     });
     // A class's private fields are no properties unless a getter exposes
@@ -267,7 +266,9 @@ describe('A Java repository scanned through its Maven plugin', () => {
     // logTotal → total; the SqlOrderRepository implementation's calls count
     // for the interface's behaviors.
     expect<unknown>(
-      Object.fromEntries(model.behaviors.map((b) => [b.name, b.invokes])),
+      Object.fromEntries(
+        model.behaviors.map((b) => [b.name, b.relations.map(({ to }) => to)]),
+      ),
     ).toMatchObject({
       handle: [
         'behavior|shop.orders.Order Repository.getBy',

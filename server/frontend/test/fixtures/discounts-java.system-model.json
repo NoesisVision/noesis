@@ -7,6 +7,23 @@
       "id": "module|discounts",
       "name": "discounts",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_module",
+          "from": "module|discounts",
+          "to": "module|discounts.calculation"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|discounts",
+          "to": "module|discounts.offers"
+        },
+        {
+          "kind": "contains_module",
+          "from": "module|discounts",
+          "to": "module|discounts.users"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts",
@@ -17,6 +34,78 @@
       "id": "module|discounts.calculation",
       "name": "calculation",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.Conditions"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.Discount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.DiscountAmount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.DiscountCalculation"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.DiscountConfig"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.DiscountPolicyFactory"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.DiscountedProduct"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.DiscountsConfigProvider"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.FixedDiscount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.PotentialDiscount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.PotentialVipUserDiscount"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.calculation",
+          "to": "building_block|discounts.calculation.ProductDiscount"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation",
@@ -27,6 +116,18 @@
       "id": "module|discounts.offers",
       "name": "offers",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.offers",
+          "to": "building_block|discounts.offers.Offer"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.offers",
+          "to": "building_block|discounts.offers.Product"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/offers",
@@ -37,6 +138,23 @@
       "id": "module|discounts.users",
       "name": "users",
       "description": null,
+      "relations": [
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.users",
+          "to": "building_block|discounts.users.UserId"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.users",
+          "to": "building_block|discounts.users.UserStatus"
+        },
+        {
+          "kind": "contains_building_block",
+          "from": "module|discounts.users",
+          "to": "building_block|discounts.users.UserStatusProvider"
+        }
+      ],
       "rules": [],
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users",
@@ -50,7 +168,7 @@
       "name": "Conditions",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [
         {
           "name": "userStatus",
@@ -71,7 +189,13 @@
       "name": "Discount",
       "type": "domain_service",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.Discount",
+          "to": "behavior|discounts.calculation.Discount.apply"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -85,7 +209,7 @@
       "name": "DiscountAmount",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [
         {
           "name": "appliedDiscount",
@@ -106,7 +230,13 @@
       "name": "DiscountCalculation",
       "type": "application_service",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.DiscountCalculation",
+          "to": "behavior|discounts.calculation.DiscountCalculation.calculate"
+        }
+      ],
       "properties": [
         {
           "name": "discountsFactory",
@@ -127,7 +257,13 @@
       "name": "DiscountConfig",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.DiscountConfig",
+          "to": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions"
+        }
+      ],
       "properties": [
         {
           "name": "potentialDiscounts",
@@ -150,7 +286,13 @@
       "name": "DiscountPolicyFactory",
       "type": "factory",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+          "to": "behavior|discounts.calculation.DiscountPolicyFactory.get"
+        }
+      ],
       "properties": [
         {
           "name": "discountsConfigProvider",
@@ -177,7 +319,18 @@
       "name": "DiscountedOffer",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.DiscountedOffer",
+          "to": "behavior|discounts.calculation.DiscountedOffer.applyDiscount"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.DiscountedOffer",
+          "to": "behavior|discounts.calculation.DiscountedOffer.createFrom"
+        }
+      ],
       "properties": [
         {
           "name": "products",
@@ -208,7 +361,18 @@
       "name": "DiscountedProduct",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.DiscountedProduct",
+          "to": "behavior|discounts.calculation.DiscountedProduct.applyDiscount"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.DiscountedProduct",
+          "to": "behavior|discounts.calculation.DiscountedProduct.from"
+        }
+      ],
       "properties": [
         {
           "name": "discountAmounts",
@@ -231,7 +395,13 @@
       "name": "DiscountsConfigProvider",
       "type": "repository",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.DiscountsConfigProvider",
+          "to": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -245,7 +415,18 @@
       "name": "ExclusiveOfferLevelDiscount",
       "type": "domain_service",
       "description": null,
-      "implements": ["building_block|discounts.calculation.Discount"],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+          "to": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+          "to": "building_block|discounts.calculation.Discount"
+        }
+      ],
       "properties": [
         {
           "name": "discountToApply",
@@ -266,7 +447,18 @@
       "name": "FixedDiscount",
       "type": "domain_service",
       "description": null,
-      "implements": ["building_block|discounts.calculation.Discount"],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.FixedDiscount",
+          "to": "behavior|discounts.calculation.FixedDiscount.apply"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|discounts.calculation.FixedDiscount",
+          "to": "building_block|discounts.calculation.Discount"
+        }
+      ],
       "properties": [
         {
           "name": "fixedDiscountAmount",
@@ -287,7 +479,18 @@
       "name": "PotentialDiscount",
       "type": "domain_service",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.PotentialDiscount",
+          "to": "behavior|discounts.calculation.PotentialDiscount.getDiscount"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.PotentialDiscount",
+          "to": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -301,7 +504,23 @@
       "name": "PotentialVipUserDiscount",
       "type": "domain_service",
       "description": null,
-      "implements": ["building_block|discounts.calculation.PotentialDiscount"],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+          "to": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount"
+        },
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+          "to": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+          "to": "building_block|discounts.calculation.PotentialDiscount"
+        }
+      ],
       "properties": [
         {
           "name": "fixedDiscount",
@@ -322,7 +541,18 @@
       "name": "ProductDiscount",
       "type": "domain_service",
       "description": null,
-      "implements": ["building_block|discounts.calculation.Discount"],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.calculation.ProductDiscount",
+          "to": "behavior|discounts.calculation.ProductDiscount.apply"
+        },
+        {
+          "kind": "implements",
+          "from": "building_block|discounts.calculation.ProductDiscount",
+          "to": "building_block|discounts.calculation.Discount"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -336,7 +566,7 @@
       "name": "Offer",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [
         {
           "name": "products",
@@ -359,7 +589,7 @@
       "name": "Product",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -373,7 +603,7 @@
       "name": "UserId",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [
         {
           "name": "id",
@@ -394,7 +624,7 @@
       "name": "UserStatus",
       "type": "value_object",
       "description": null,
-      "implements": [],
+      "relations": [],
       "properties": [
         {
           "name": "vip",
@@ -415,7 +645,13 @@
       "name": "UserStatusProvider",
       "type": "external_integration",
       "description": null,
-      "implements": [],
+      "relations": [
+        {
+          "kind": "contains_behavior",
+          "from": "building_block|discounts.users.UserStatusProvider",
+          "to": "behavior|discounts.users.UserStatusProvider.getFor"
+        }
+      ],
       "properties": [],
       "rules": [],
       "scenarios": [],
@@ -428,10 +664,10 @@
   "behaviors": [
     {
       "id": "behavior|discounts.calculation.Discount.apply",
-      "buildingBlockId": "building_block|discounts.calculation.Discount",
       "name": "apply",
       "type": "Command",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []
@@ -460,10 +696,10 @@
     },
     {
       "id": "behavior|discounts.calculation.DiscountCalculation.calculate",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountCalculation",
       "name": "calculate",
       "type": "Command",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []
@@ -498,10 +734,10 @@
     },
     {
       "id": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountConfig",
       "name": "getDiscountsForConditions",
       "type": "Query",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "private"
       },
@@ -531,10 +767,10 @@
     },
     {
       "id": "behavior|discounts.calculation.DiscountPolicyFactory.get",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountPolicyFactory",
       "name": "get",
       "type": "Query",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "private"
       },
@@ -564,10 +800,10 @@
     },
     {
       "id": "behavior|discounts.calculation.DiscountedOffer.applyDiscount",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountedOffer",
       "name": "applyDiscount",
       "type": "Command",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "private"
       },
@@ -595,10 +831,10 @@
     },
     {
       "id": "behavior|discounts.calculation.DiscountedOffer.createFrom",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountedOffer",
       "name": "createFrom",
       "type": "Command",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "private"
       },
@@ -626,10 +862,10 @@
     },
     {
       "id": "behavior|discounts.calculation.DiscountedProduct.applyDiscount",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountedProduct",
       "name": "applyDiscount",
       "type": "Command",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "private"
       },
@@ -657,10 +893,10 @@
     },
     {
       "id": "behavior|discounts.calculation.DiscountedProduct.from",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountedProduct",
       "name": "from",
       "type": "Command",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "private"
       },
@@ -688,10 +924,10 @@
     },
     {
       "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
-      "buildingBlockId": "building_block|discounts.calculation.DiscountsConfigProvider",
       "name": "getDiscountsConfig",
       "type": "Query",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []
@@ -713,10 +949,10 @@
     },
     {
       "id": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
-      "buildingBlockId": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
       "name": "apply",
       "type": "Command",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []
@@ -745,10 +981,10 @@
     },
     {
       "id": "behavior|discounts.calculation.FixedDiscount.apply",
-      "buildingBlockId": "building_block|discounts.calculation.FixedDiscount",
       "name": "apply",
       "type": "Command",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []
@@ -777,10 +1013,10 @@
     },
     {
       "id": "behavior|discounts.calculation.PotentialDiscount.getDiscount",
-      "buildingBlockId": "building_block|discounts.calculation.PotentialDiscount",
       "name": "getDiscount",
       "type": "Query",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []
@@ -802,10 +1038,10 @@
     },
     {
       "id": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
-      "buildingBlockId": "building_block|discounts.calculation.PotentialDiscount",
       "name": "isApplicableFor",
       "type": "Query",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []
@@ -834,10 +1070,10 @@
     },
     {
       "id": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount",
-      "buildingBlockId": "building_block|discounts.calculation.PotentialVipUserDiscount",
       "name": "getDiscount",
       "type": "Query",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []
@@ -859,10 +1095,10 @@
     },
     {
       "id": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
-      "buildingBlockId": "building_block|discounts.calculation.PotentialVipUserDiscount",
       "name": "isApplicableFor",
       "type": "Query",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []
@@ -891,10 +1127,10 @@
     },
     {
       "id": "behavior|discounts.calculation.ProductDiscount.apply",
-      "buildingBlockId": "building_block|discounts.calculation.ProductDiscount",
       "name": "apply",
       "type": "Command",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []
@@ -923,10 +1159,10 @@
     },
     {
       "id": "behavior|discounts.users.UserStatusProvider.getFor",
-      "buildingBlockId": "building_block|discounts.users.UserStatusProvider",
       "name": "getFor",
       "type": "Query",
       "description": null,
+      "relations": [],
       "visibility": {
         "kind": "public",
         "actors": []

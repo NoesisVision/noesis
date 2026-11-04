@@ -32,7 +32,7 @@ const block = (id: string, name: string, type: string) => ({
   name,
   type,
   description: null,
-  implements: [],
+  relations: [],
   properties: [],
   rules: [],
   scenarios: [],
@@ -43,7 +43,14 @@ const systemModel = {
   name: 'shop',
   scanned_at: '2026-10-19T10:00:00Z',
   modules: [
-    { id: 'module|shop', name: 'shop', description: null, rules: [], source },
+    {
+      id: 'module|shop',
+      name: 'shop',
+      description: null,
+      relations: [],
+      rules: [],
+      source,
+    },
   ],
   buildingBlocks: [
     block('building_block|shop.Basket', 'Basket', 'aggregate'),
@@ -52,7 +59,6 @@ const systemModel = {
   behaviors: [
     {
       id: 'behavior|shop.Basket.checkOut',
-      buildingBlockId: 'building_block|shop.Basket',
       name: 'checkOut',
       type: 'Command',
       description: null,

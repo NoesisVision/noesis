@@ -62,6 +62,25 @@
         "definition": {
           "value": "The current weather at the shop's location, as one of the conditions a discount can depend on.",
           "author": "agent"
+        },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_module",
+              "from": "module|discounts.weather",
+              "to": "module|discounts.weather.openmeteo"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.weather",
+              "to": "building_block|discounts.weather.Weather"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.weather",
+              "to": "building_block|discounts.weather.WeatherProvider"
+            }
+          ]
         }
       },
       {
@@ -73,6 +92,46 @@
         "definition": {
           "value": "The Open-Meteo weather service as the source of the current weather.",
           "author": "agent"
+        },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.weather.openmeteo",
+              "to": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider"
+            }
+          ]
+        }
+      }
+    ],
+    "modified": [
+      {
+        "id": "module|discounts",
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_module",
+              "from": "module|discounts",
+              "to": "module|discounts.weather"
+            }
+          ]
+        }
+      },
+      {
+        "id": "module|discounts.calculation",
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.PercentageDiscount"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|discounts.calculation",
+              "to": "building_block|discounts.calculation.PotentialPrecipitationDiscount"
+            }
+          ]
         }
       }
     ]
@@ -152,6 +211,15 @@
         "definition": {
           "value": "The source of the current weather for discount decisions: it gives a weather snapshot, or says the weather is unknown.",
           "author": "agent"
+        },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.weather.WeatherProvider",
+              "to": "behavior|discounts.weather.WeatherProvider.getCurrent"
+            }
+          ]
         }
       },
       {
@@ -168,9 +236,18 @@
           "value": "The weather source backed by the Open-Meteo forecast service.",
           "author": "agent"
         },
-        "implements": {
+        "relations": {
           "added": [
-            "building_block|discounts.weather.WeatherProvider"
+            {
+              "kind": "implements",
+              "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
+              "to": "building_block|discounts.weather.WeatherProvider"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
+              "to": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent"
+            }
           ]
         }
       },
@@ -188,9 +265,18 @@
           "value": "A discount of a percentage of the whole offer's value.",
           "author": "agent"
         },
-        "implements": {
+        "relations": {
           "added": [
-            "building_block|discounts.calculation.Discount"
+            {
+              "kind": "implements",
+              "from": "building_block|discounts.calculation.PercentageDiscount",
+              "to": "building_block|discounts.calculation.Discount"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.PercentageDiscount",
+              "to": "behavior|discounts.calculation.PercentageDiscount.apply"
+            }
           ]
         },
         "properties": {
@@ -273,9 +359,23 @@
           "value": "A discount a customer can get while it is raining or snowing at the shop's location.",
           "author": "agent"
         },
-        "implements": {
+        "relations": {
           "added": [
-            "building_block|discounts.calculation.PotentialDiscount"
+            {
+              "kind": "implements",
+              "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+              "to": "building_block|discounts.calculation.PotentialDiscount"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+              "to": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor"
+            },
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+              "to": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount"
+            }
           ]
         },
         "properties": {

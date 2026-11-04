@@ -18,7 +18,7 @@ import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
 import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
-import { implementerItems, refItems } from './change-list-items.ts';
+import { implementedItems, implementerItems } from './change-list-items.ts';
 import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementColumns } from './element-columns.tsx';
@@ -63,7 +63,9 @@ export function ElementDetail({
   // Only a building block implements anything, or is implemented.
   const implemented =
     node.kind === 'building_block' && node.elementId
-      ? refItems(findById(doc.buildingBlocks, node.elementId)?.implements)
+      ? implementedItems(
+          findById(doc.buildingBlocks, node.elementId)?.relations,
+        )
       : [];
   // And what implements it — found in the document even when it leaves the
   // block itself alone.
@@ -200,17 +202,16 @@ function NodeName({
 /** What the design writes for the element a node shows; none for anything else. */
 function designedOf(doc: DesignDocumentInput, node: OutlineNode) {
   if (!node.elementId) return undefined;
-  const collection =
-    node.kind === 'module'
-      ? doc.modules
-      : node.kind === 'building_block'
-        ? doc.buildingBlocks
-        : node.kind === 'behavior'
-          ? doc.behaviors
-          : undefined;
-  return collection === undefined
-    ? undefined
-    : (findById(collection, node.elementId) ?? null);
+  switch (node.kind) {
+    case 'module':
+      return findById(doc.modules, node.elementId) ?? null;
+    case 'building_block':
+      return findById(doc.buildingBlocks, node.elementId) ?? null;
+    case 'behavior':
+      return findById(doc.behaviors, node.elementId) ?? null;
+    default:
+      return undefined;
+  }
 }
 
 function ownerOfScenarios(node: OutlineNode): PartOwner | undefined {

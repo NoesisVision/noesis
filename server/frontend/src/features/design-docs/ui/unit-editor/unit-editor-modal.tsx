@@ -87,7 +87,7 @@ export function UnitEditorModal({
       return;
     }
     const id = idOfDraft(doc, placed, draft);
-    const unit = unitFromDraft(kind, draft, original, id);
+    const unit = unitFromDraft(kind, draft, original, id, ownerOf(target));
     const edit: DesignDocEdit =
       target.mode === 'edit' && relocates
         ? {

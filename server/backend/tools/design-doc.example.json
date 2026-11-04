@@ -27,6 +27,25 @@
         "definition": {
           "value": "Everything about giving money back to a customer."
         },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_building_block",
+              "from": "module|sales.refunds",
+              "to": "building_block|sales.refunds.Refund"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|sales.refunds",
+              "to": "building_block|sales.refunds.RefundIssued"
+            },
+            {
+              "kind": "contains_building_block",
+              "from": "module|sales.refunds",
+              "to": "building_block|sales.refunds.RefundRepository"
+            }
+          ]
+        },
         "rules": {
           "added": [
             {
@@ -56,6 +75,25 @@
           "value": "Order lifecycle, now including the refundable state of each line.",
           "author": "human"
         }
+      },
+      {
+        "id": "module|sales",
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_module",
+              "from": "module|sales",
+              "to": "module|sales.refunds"
+            }
+          ],
+          "removed": [
+            {
+              "kind": "contains_module",
+              "from": "module|sales",
+              "to": "module|sales.credit-notes"
+            }
+          ]
+        }
       }
     ]
   },
@@ -73,6 +111,15 @@
         },
         "definition": {
           "value": "A refund of one or more lines of a single order."
+        },
+        "relations": {
+          "added": [
+            {
+              "kind": "contains_behavior",
+              "from": "building_block|sales.refunds.Refund",
+              "to": "behavior|sales.refunds.Refund.issue"
+            }
+          ]
         },
         "properties": {
           "added": [
@@ -207,8 +254,14 @@
         "definition": {
           "value": "Stores refunds."
         },
-        "implements": {
-          "added": ["building_block|sales.shared.Repository"]
+        "relations": {
+          "added": [
+            {
+              "kind": "implements",
+              "from": "building_block|sales.refunds.RefundRepository",
+              "to": "building_block|sales.shared.Repository"
+            }
+          ]
         }
       }
     ],

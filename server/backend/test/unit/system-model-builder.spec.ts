@@ -620,9 +620,15 @@ describe('3. scope', () => {
     expect<unknown>(ids(model.buildingBlocks)).toEqual([
       'building_block|Sales.Order',
     ]);
-    expect<unknown>(model.buildingBlocks[0]?.implements).toEqual([]);
     expect<unknown>(
-      model.behaviors.find((b) => b.name === 'Place')?.invokes,
+      model.buildingBlocks[0]?.relations
+        .filter(({ kind }) => kind === 'implements')
+        .map(({ to }) => to),
+    ).toEqual([]);
+    expect<unknown>(
+      model.behaviors
+        .find((b) => b.name === 'Place')
+        ?.relations.map(({ to }) => to),
     ).toEqual(['behavior|Sales.Order.Total']);
   });
 
@@ -708,7 +714,11 @@ describe('3. scope', () => {
       'building_block|Sales.Orders.Line',
       ORDER,
     ]);
-    expect<unknown>(model.buildingBlocks[0]?.implements).toEqual([]);
+    expect<unknown>(
+      model.buildingBlocks[0]?.relations
+        .filter(({ kind }) => kind === 'implements')
+        .map(({ to }) => to),
+    ).toEqual([]);
     expect<unknown>(model.buildingBlocks[1]?.properties).toEqual([]);
   });
 });
@@ -835,8 +845,10 @@ describe('4. building blocks', () => {
         }),
     ]);
     expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'OrderRepository')
-        ?.implements,
+      model.buildingBlocks
+        .find((b) => b.name === 'OrderRepository')
+        ?.relations.filter(({ kind }) => kind === 'implements')
+        .map(({ to }) => to),
     ).toEqual(['building_block|Sales.IRepository', 'building_block|Sales.Zed']);
   });
 
@@ -1910,7 +1922,18 @@ describe('10. order and determinism', () => {
     ]);
     expect<unknown>(first.model.behaviors[1]).toMatchObject({
       visibility: { kind: 'public', actors: ['Adam', 'Zoe'] },
-      invokes: ['behavior|Sales.Alpha.Act', 'behavior|Sales.Zed.Make'],
+      relations: [
+        {
+          kind: 'invokes',
+          from: 'behavior|Sales.Alpha.Zip',
+          to: 'behavior|Sales.Alpha.Act',
+        },
+        {
+          kind: 'invokes',
+          from: 'behavior|Sales.Alpha.Zip',
+          to: 'behavior|Sales.Zed.Make',
+        },
+      ],
     });
   });
 });
@@ -1946,7 +1969,9 @@ describe('11. relations derived from invocations', () => {
           invokes: ['M:Sales.Order#Total()'],
         }),
     ]);
-    expect<unknown>(model.behaviors.map((b) => [b.id, b.invokes])).toEqual([
+    expect<unknown>(
+      model.behaviors.map((b) => [b.id, b.relations.map(({ to }) => to)]),
+    ).toEqual([
       ['behavior|Sales.IOrderRepository.Save', ['behavior|Sales.Order.Total']],
       [
         'behavior|Sales.Order.Place',
@@ -1991,7 +2016,9 @@ describe('11. relations derived from invocations', () => {
       });
     const { model } = buildFrom([technical, sales]);
     expect<unknown>(
-      model.behaviors.find((b) => b.name === 'Place')?.invokes,
+      model.behaviors
+        .find((b) => b.name === 'Place')
+        ?.relations.map(({ to }) => to),
     ).toEqual(['behavior|Sales.Order.Total']);
   });
 
@@ -2015,7 +2042,9 @@ describe('11. relations derived from invocations', () => {
         }),
     ]);
     expect<unknown>(
-      model.behaviors.find((b) => b.name === 'Persist')?.invokes,
+      model.behaviors
+        .find((b) => b.name === 'Persist')
+        ?.relations.map(({ to }) => to),
     ).toEqual(['behavior|Sales.IOrderRepository.Save']);
   });
 
@@ -2035,7 +2064,9 @@ describe('11. relations derived from invocations', () => {
         .method('M:Sales.Order#Audit()'),
     ]);
     expect<unknown>(
-      model.behaviors.find((b) => b.name === 'Place')?.invokes,
+      model.behaviors
+        .find((b) => b.name === 'Place')
+        ?.relations.map(({ to }) => to),
     ).toEqual(['behavior|Sales.Order.Audit', 'behavior|Sales.Order.Total']);
   });
 });

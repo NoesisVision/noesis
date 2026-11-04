@@ -25,6 +25,40 @@ const unchanged = { changed: false as const };
 const noChanges = { added: [], removed: [], modified: [] };
 const noAdditions = { added: [], removed: [] };
 
+const SALES = 'module|sales';
+const REFUNDS = 'module|sales.refunds';
+const CREDIT_NOTES = 'module|sales.credit-notes';
+const REFUND = 'building_block|sales.refunds.Refund';
+const REFUND_ISSUED = 'building_block|sales.refunds.RefundIssued';
+const REFUND_REPOSITORY = 'building_block|sales.refunds.RefundRepository';
+
+const contains = <const Kind extends string>(
+  kind: Kind,
+  from: string,
+  to: string,
+) => ({ kind, from, to });
+const refundsContains = {
+  added: [
+    contains('contains_building_block', REFUNDS, REFUND),
+    contains('contains_building_block', REFUNDS, REFUND_ISSUED),
+    contains('contains_building_block', REFUNDS, REFUND_REPOSITORY),
+  ],
+  removed: [],
+};
+
+/** The root module, which gains the refunds module: added in a green field, modified once scanned. */
+const salesRoot = {
+  id: SALES,
+  name: byAgent('sales'),
+  definition: byAgent('Selling to customers.'),
+  diagram: unchanged,
+  relations: {
+    added: [contains('contains_module', SALES, REFUNDS)],
+    removed: [],
+  },
+  rules: noChanges,
+};
+
 const REFUND_OUTCOME =
   "a refund for that line's amount is issued and the second line stays refundable";
 
@@ -50,12 +84,13 @@ export const designDocFixture = {
   modules: {
     added: [
       {
-        id: 'module|sales.refunds',
+        id: REFUNDS,
         name: byAgent('refunds'),
         definition: byAgent(
           'Everything about giving money back to a customer.',
         ),
         diagram: unchanged,
+        relations: refundsContains,
         rules: {
           added: [
             {
@@ -75,8 +110,19 @@ export const designDocFixture = {
         },
       },
     ],
-    removed: ['module|sales.credit-notes'],
+    removed: [CREDIT_NOTES],
     modified: [
+      {
+        id: SALES,
+        name: unchanged,
+        definition: unchanged,
+        diagram: unchanged,
+        relations: {
+          added: [contains('contains_module', SALES, REFUNDS)],
+          removed: [contains('contains_module', SALES, CREDIT_NOTES)],
+        },
+        rules: noChanges,
+      },
       {
         id: 'module|sales.orders',
         name: unchanged,
@@ -84,6 +130,7 @@ export const designDocFixture = {
           'Order lifecycle, now including the refundable state of each line.',
         ),
         diagram: unchanged,
+        relations: noAdditions,
         rules: noChanges,
       },
     ],
@@ -91,12 +138,21 @@ export const designDocFixture = {
   buildingBlocks: {
     added: [
       {
-        id: 'building_block|sales.refunds.Refund',
+        id: REFUND,
         name: byHuman('Refund'),
         type: byHuman('aggregate'),
         definition: byAgent('A refund of one or more lines of a single order.'),
         diagram: unchanged,
-        implements: noAdditions,
+        relations: {
+          added: [
+            contains(
+              'contains_behavior',
+              REFUND,
+              'behavior|sales.refunds.Refund.issue',
+            ),
+          ],
+          removed: [],
+        },
         properties: {
           added: [
             {
@@ -167,24 +223,30 @@ export const designDocFixture = {
         },
       },
       {
-        id: 'building_block|sales.refunds.RefundIssued',
+        id: REFUND_ISSUED,
         name: byAgent('RefundIssued'),
         type: byAgent('value_object'),
         definition: byAgent('Tells the ledger a refund went out.'),
         diagram: unchanged,
-        implements: noAdditions,
+        relations: noAdditions,
         properties: noChanges,
         rules: noChanges,
         scenarios: noChanges,
       },
       {
-        id: 'building_block|sales.refunds.RefundRepository',
+        id: REFUND_REPOSITORY,
         name: byAgent('RefundRepository'),
         type: byAgent('repository'),
         definition: byAgent('Stores refunds.'),
         diagram: unchanged,
-        implements: {
-          added: ['building_block|sales.shared.Repository'],
+        relations: {
+          added: [
+            {
+              kind: 'implements',
+              from: REFUND_REPOSITORY,
+              to: 'building_block|sales.shared.Repository',
+            },
+          ],
           removed: [],
         },
         properties: noChanges,
@@ -200,7 +262,7 @@ export const designDocFixture = {
         type: unchanged,
         definition: unchanged,
         diagram: unchanged,
-        implements: noAdditions,
+        relations: noAdditions,
         properties: {
           added: [
             {
@@ -238,6 +300,7 @@ export const designDocFixture = {
           'sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund-->>Support agent: RefundIssued',
         ),
         visibility: byHuman({ kind: 'public', actors: ['Support agent'] }),
+        relations: noAdditions,
         input: {
           added: [
             {
@@ -302,6 +365,7 @@ export const designDocFixture = {
         definition: unchanged,
         diagram: unchanged,
         visibility: byAgent({ kind: 'private' }),
+        relations: noAdditions,
         input: {
           added: [],
           removed: ['force'],
@@ -344,7 +408,7 @@ const byAgentOnly = asAgent(designDocFixture) as typeof designDocFixture;
 export const greenFieldDesignDocFixture: DesignDocumentInput = {
   ...byAgentOnly,
   needs: { added: byAgentOnly.needs.added },
-  modules: { added: byAgentOnly.modules.added },
+  modules: { added: [salesRoot, ...byAgentOnly.modules.added] },
   buildingBlocks: { added: byAgentOnly.buildingBlocks.added },
   behaviors: { added: byAgentOnly.behaviors.added },
 };
@@ -356,7 +420,7 @@ export const greenFieldDesignDocFixture: DesignDocumentInput = {
 export const humanEditedDesignDocFixture: DesignDocumentInput = {
   ...designDocFixture,
   needs: { added: designDocFixture.needs.added },
-  modules: { added: designDocFixture.modules.added },
+  modules: { added: [salesRoot, ...designDocFixture.modules.added] },
   buildingBlocks: { added: designDocFixture.buildingBlocks.added },
   behaviors: { added: designDocFixture.behaviors.added },
 };

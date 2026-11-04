@@ -23,17 +23,57 @@ const design = (patch: Record<string, unknown> = {}) => ({
   ...patch,
 });
 
+const SALES = 'module|sales';
+const REFUNDS = 'module|sales.refunds';
+
+/** The modules the refund lives in, each containing the next. */
+const refundModules = {
+  added: [
+    {
+      id: SALES,
+      name: { value: 'sales' },
+      definition: { value: 'Selling to customers.' },
+      relations: {
+        added: [{ kind: 'contains_module', from: SALES, to: REFUNDS }],
+      },
+    },
+    {
+      id: REFUNDS,
+      name: { value: 'refunds' },
+      definition: { value: 'Money back.' },
+      relations: {
+        added: [{ kind: 'contains_building_block', from: REFUNDS, to: REFUND }],
+      },
+    },
+  ],
+};
+
 /** A design that adds one building block, with the given fields. */
 const addingRefund = (block: object) =>
   design({
+    modules: refundModules,
     buildingBlocks: {
       added: [{ id: REFUND, name: { value: 'Refund' }, ...block }],
     },
   });
 
-/** A design that adds one behavior, with the given fields. */
+/** A design that adds one behavior, with the given fields, on a refund it adds too. */
 const addingIssue = (behavior: object) =>
   design({
+    modules: refundModules,
+    buildingBlocks: {
+      added: [
+        {
+          id: REFUND,
+          name: { value: 'Refund' },
+          type: { value: 'aggregate' },
+          definition: { value: 'Money back for an order.' },
+          relations: {
+            added: [{ kind: 'contains_behavior', from: REFUND, to: ISSUE }],
+          },
+        },
+      ],
+    },
     behaviors: {
       added: [{ id: ISSUE, name: { value: 'issue' }, ...behavior }],
     },
@@ -63,13 +103,17 @@ describe('A design document', () => {
   it('changes nothing in a part it leaves out', () => {
     const parsed = DesignDocument.parse(addingRefund({}));
 
-    expect(parsed.modules).toEqual({ added: [], removed: [], modified: [] });
+    expect(parsed.behaviors).toEqual({ added: [], removed: [], modified: [] });
+    expect(parsed.buildingBlocks.added[0]?.relations).toEqual({
+      added: [],
+      removed: [],
+    });
     expect(parsed.buildingBlocks.added[0]?.properties).toEqual({
       added: [],
       removed: [],
       modified: [],
     });
-    expect(parsed.buildingBlocks.added[0]?.implements).toEqual({
+    expect(parsed.buildingBlocks.added[0]?.relations).toEqual({
       added: [],
       removed: [],
     });
@@ -180,9 +224,21 @@ describe('The elements a design changes', () => {
           modified: [
             {
               id: REFUND,
-              implements: {
-                added: ['building_block|sales.shared.Auditable'],
-                removed: ['building_block|sales.shared.Legacy'],
+              relations: {
+                added: [
+                  {
+                    kind: 'implements',
+                    from: REFUND,
+                    to: 'building_block|sales.shared.Auditable',
+                  },
+                ],
+                removed: [
+                  {
+                    kind: 'implements',
+                    from: REFUND,
+                    to: 'building_block|sales.shared.Legacy',
+                  },
+                ],
               },
             },
           ],
@@ -191,19 +247,38 @@ describe('The elements a design changes', () => {
     );
 
     expect<object | undefined>(
-      parsed.buildingBlocks.modified[0]?.implements,
+      parsed.buildingBlocks.modified[0]?.relations,
     ).toEqual({
-      added: ['building_block|sales.shared.Auditable'],
-      removed: ['building_block|sales.shared.Legacy'],
+      added: [
+        {
+          kind: 'implements',
+          from: REFUND,
+          to: 'building_block|sales.shared.Auditable',
+        },
+      ],
+      removed: [
+        {
+          kind: 'implements',
+          from: REFUND,
+          to: 'building_block|sales.shared.Legacy',
+        },
+      ],
     });
   });
 
-  it('never modifies an implemented interface: it removes one and adds another', () => {
+  it('never modifies a relation: it removes one and adds another', () => {
     expect(
       isValid(
         design({
           buildingBlocks: {
-            modified: [{ id: REFUND, implements: { modified: [REFUND] } }],
+            modified: [
+              {
+                id: REFUND,
+                relations: {
+                  modified: [{ kind: 'implements', from: REFUND, to: REFUND }],
+                },
+              },
+            ],
           },
         }),
       ),
@@ -421,7 +496,7 @@ describe('A design document an agent wrote', () => {
         id: ORDER,
         name: 'Order',
         type: 'aggregate',
-        implements: [AUDITABLE],
+        relations: [{ kind: 'implements', from: ORDER, to: AUDITABLE }],
         properties: [{ name: 'total', type: 'primitive|decimal' }],
         rules: [
           {
@@ -446,7 +521,6 @@ describe('A design document an agent wrote', () => {
     behaviors: [
       {
         id: CANCEL,
-        buildingBlockId: ORDER,
         name: 'cancel',
         type: 'Command',
         visibility: { kind: 'private' },
@@ -498,13 +572,15 @@ describe('A design document an agent wrote', () => {
           addingRefund({
             definition: { value: 'Money back.' },
             type: { value: 'aggregate' },
-            implements: { removed: [AUDITABLE] },
+            relations: {
+              removed: [{ kind: 'implements', from: REFUND, to: AUDITABLE }],
+            },
             properties: { removed: ['legacyFlag'] },
           }),
         ),
       ).toEqual([
         {
-          path: `buildingBlocks.added[${REFUND}].implements.removed[${AUDITABLE}]`,
+          path: `buildingBlocks.added[${REFUND}].relations.removed[${AUDITABLE}]`,
           reason: 'changedInGreenField',
         },
         {
@@ -560,7 +636,11 @@ describe('A design document an agent wrote', () => {
               modified: [
                 {
                   id: ORDER,
-                  implements: { removed: [AUDITABLE] },
+                  relations: {
+                    removed: [
+                      { kind: 'implements', from: ORDER, to: AUDITABLE },
+                    ],
+                  },
                   properties: {
                     modified: [
                       { name: 'total', description: { value: 'The sum.' } },
@@ -734,6 +814,7 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           design({
+            modules: refundModules,
             buildingBlocks: {
               added: [
                 {
@@ -779,6 +860,26 @@ describe('A design document an agent wrote', () => {
             type: { value: 'Command' },
             definition: { value: 'Issues a refund.' },
             visibility: { value: { kind: 'private' } },
+          }),
+        ),
+      ).toEqual([]);
+    });
+
+    it('is contained by the element its id places it under', () => {
+      const refund = {
+        id: REFUND,
+        name: { value: 'Refund' },
+        type: { value: 'aggregate' },
+        definition: { value: 'Money back.' },
+      };
+      expect(validate(design({ buildingBlocks: { added: [refund] } }))).toEqual(
+        [{ path: `buildingBlocks.added[${REFUND}]`, reason: 'uncontained' }],
+      );
+      expect(
+        validate(
+          design({
+            modules: refundModules,
+            buildingBlocks: { added: [refund] },
           }),
         ),
       ).toEqual([]);
@@ -838,7 +939,7 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           design({
-            modules: { removed: [ORDERS] },
+            modules: { ...refundModules, removed: [ORDERS] },
             buildingBlocks: {
               added: [
                 {
@@ -992,6 +1093,15 @@ describe('A rule of a design', () => {
             id: 'module|billing',
             name: { value: 'billing' },
             definition: { value: 'Charging customers.' },
+            relations: {
+              added: [
+                {
+                  kind: 'contains_building_block',
+                  from: 'module|billing',
+                  to: 'building_block|billing.Invoice',
+                },
+              ],
+            },
             rules: { added: rules.module ?? [] },
           },
         ],
