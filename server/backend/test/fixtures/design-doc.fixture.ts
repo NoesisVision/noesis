@@ -306,14 +306,14 @@ export const designDocFixture = {
         from: REFUND,
         name: 'lines',
         to: byAgent(REFUND_LINE),
-        cardinality: byAgent('1..*'),
+        cardinality: byAgent('*'),
       },
       {
         kind: 'has_state',
         from: REFUND,
         name: 'notes',
         to: byAgent('primitive|string'),
-        cardinality: byAgent('0..*'),
+        cardinality: byAgent('*'),
       },
       {
         kind: 'has_state',
@@ -347,7 +347,7 @@ export const designDocFixture = {
         from: ISSUE,
         name: 'lines',
         to: byAgent(REFUND_LINE),
-        cardinality: byAgent('1..*'),
+        cardinality: byAgent('*'),
         position: byAgent(2),
       },
       {

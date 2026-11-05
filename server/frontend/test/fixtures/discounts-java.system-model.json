@@ -823,14 +823,14 @@
       "from": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions",
       "to": "building_block|discounts.calculation.Discount",
       "name": "result",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_output",
       "from": "behavior|discounts.calculation.DiscountPolicyFactory.get",
       "to": "building_block|discounts.calculation.Discount",
       "name": "result",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_output",
@@ -935,21 +935,21 @@
       "from": "building_block|discounts.calculation.DiscountedOffer",
       "to": "building_block|discounts.calculation.DiscountAmount",
       "name": "offerLevelDiscounts",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
       "from": "building_block|discounts.calculation.DiscountedOffer",
       "to": "building_block|discounts.calculation.DiscountedProduct",
       "name": "products",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
       "from": "building_block|discounts.calculation.DiscountedProduct",
       "to": "building_block|discounts.calculation.DiscountAmount",
       "name": "discountAmounts",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
@@ -963,7 +963,7 @@
       "from": "building_block|discounts.offers.Offer",
       "to": "building_block|discounts.offers.Product",
       "name": "products",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",

@@ -81,7 +81,7 @@ export function authorOf(
 /**
  * A slot's type in words — a building block by its own name, a primitive by
  * the primitive — with how many it holds after it when not exactly one:
- * `RefundLine [0..*]`.
+ * `RefundLine [*]`.
  */
 export const slotLabelOf = (ref: string, cardinality: string | null): string =>
   `${nameOf(ref)}${cardinalitySuffixOf(cardinality)}`;

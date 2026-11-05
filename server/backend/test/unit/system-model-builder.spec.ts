@@ -1118,7 +1118,7 @@ describe('5. state', () => {
     ]);
   });
 
-  it('R5.4 gives a nullable or Nullable<T> member the cardinality 0..1, a collection 0..*, anything else 1', () => {
+  it('R5.4 gives a nullable or Nullable<T> member the cardinality 0..1, a collection *, anything else 1', () => {
     const { model } = buildFrom([
       sales()
         .property('P:Sales.Orders.Order.A', nullable(prim('string')))
@@ -1143,8 +1143,8 @@ describe('5. state', () => {
       ['C', '0..1'],
       ['B', '0..1'],
       ['D', '1'],
-      ['E', '0..*'],
-      ['F', '0..*'],
+      ['E', '*'],
+      ['F', '*'],
       ['A', '0..1'],
     ]);
   });
@@ -1404,7 +1404,7 @@ describe('5. state', () => {
       ['Policies', 'building_block|Sales.Orders.Pricing'],
     ]);
     expect<unknown>(stateOf(model, ORDER)).toEqual([
-      ['Lines', 'building_block|Sales.Orders.Line', '0..*'],
+      ['Lines', 'building_block|Sales.Orders.Line', '*'],
     ]);
   });
 
@@ -1628,18 +1628,18 @@ describe('7. resolving a type reference', () => {
     });
   });
 
-  it('R7.3 makes arrays and the collection types 0..* of their element; a collection of collections too, with a diagnostic; a dictionary is nothing, with a diagnostic', () => {
+  it('R7.3 makes arrays and the collection types * of their element; a collection of collections too, with a diagnostic; a dictionary is nothing, with a diagnostic', () => {
     expect<unknown>(resolved(arr(prim('int')))).toEqual({
       type: 'primitive|integer',
-      cardinality: '0..*',
+      cardinality: '*',
     });
     expect<unknown>(resolved(named(SYS.list, named('T:Sales.Order')))).toEqual({
       type: 'building_block|Sales.Order',
-      cardinality: '0..*',
+      cardinality: '*',
     });
     expect<unknown>(resolved(named(SYS.list, nullable(prim('int'))))).toEqual({
       type: 'primitive|integer',
-      cardinality: '0..*',
+      cardinality: '*',
     });
     const nested = buildFrom([
       artifact('Sales')
@@ -1651,7 +1651,7 @@ describe('7. resolving a type reference', () => {
     ]);
     expect<unknown>(
       stateOf(nested.model, 'building_block|Sales.Order'),
-    ).toEqual([['Notes', 'primitive|string', '0..*']]);
+    ).toEqual([['Notes', 'primitive|string', '*']]);
     expect<unknown>(messages(nested, 'info')).toEqual([
       expect.stringContaining(
         'P:Sales.Order.Notes: a collection of collections is read as one collection of primitive|string',

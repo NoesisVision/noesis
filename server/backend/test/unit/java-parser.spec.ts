@@ -341,7 +341,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
     ]);
     expect<unknown>(
       outputOf(model, 'behavior|shop.pricing.PricingService.history'),
-    ).toEqual([['building_block|shop.orders.Money', '0..*']]);
+    ).toEqual([['building_block|shop.orders.Money', '*']]);
     expect<unknown>(
       outputOf(model, 'behavior|shop.pricing.PricingService.tryPrice'),
     ).toEqual([['building_block|shop.orders.Money', '0..1']]);

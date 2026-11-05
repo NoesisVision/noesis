@@ -321,8 +321,7 @@ function FieldInput({
 const CARDINALITY_LABEL: Record<(typeof CARDINALITIES)[number], string> = {
   '1': '1 — exactly one',
   '0..1': '0..1 — one or none',
-  '0..*': '0..* — any number',
-  '1..*': '1..* — at least one',
+  '*': '* — any number',
 };
 
 /**

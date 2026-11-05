@@ -125,11 +125,7 @@ const clean = {
         'sales.billing.BillingService.bill',
       ),
       ...state('sales.orders.Order', 'sales.orders.OrderLine'),
-      input(
-        'sales.orders.OrderService.place',
-        'sales.orders.OrderLine',
-        '0..*',
-      ),
+      input('sales.orders.OrderService.place', 'sales.orders.OrderLine', '*'),
       input('sales.orders.Orders.save', 'sales.orders.Order'),
       output('sales.billing.BillingService.bill', 'sales.billing.Invoice'),
     ],
@@ -670,7 +666,7 @@ describe('a block whose behaviors share a type', () => {
         added: [
           ...clean.relations.added,
           output('sales.orders.Orders.find', 'sales.orders.Order'),
-          output('sales.orders.Orders.all', 'sales.orders.Order', '0..*'),
+          output('sales.orders.Orders.all', 'sales.orders.Order', '*'),
           input('sales.orders.OrderService.ship', 'sales.orders.Order'),
         ],
       },

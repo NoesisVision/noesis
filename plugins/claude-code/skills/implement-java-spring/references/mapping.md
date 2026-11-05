@@ -160,8 +160,7 @@ of that name.
 The relation's `cardinality` wraps the type: `1` is the type itself,
 checked with `Objects.requireNonNull` on construction; `0..1` may be `null`
 in its field or component, and where a class exposes it the accessor
-returns `Optional<T>`; `0..*` and `1..*` are a `List<T>`, held as an
-unmodifiable copy, `1..*` checked non-empty on construction.
+returns `Optional<T>`; `*` is a `List<T>`, held as an unmodifiable copy.
 
 A property typed with another aggregate breaks the aggregate rules
 ([building blocks](building-blocks.md#aggregates)): hold that aggregate's
@@ -183,7 +182,7 @@ method `create` of the type `QDoc`.
   which keeps the names in the bytecode the scanner reads; keep it that
   way.
 - **Return type**: `void` without a `has_output`; the output's `to` with
-  one; `Optional<T>` for a `0..1` output, `List<T>` for `0..*` or `1..*`.
+  one; `Optional<T>` for a `0..1` output, `List<T>` for `*`.
   Several outputs need a base building block they all extend, which is
   then the return type; without one, ask the user.
 - **Static or instance**: a behavior of a block whose output is that same

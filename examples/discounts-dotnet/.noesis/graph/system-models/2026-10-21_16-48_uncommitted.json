@@ -2543,7 +2543,7 @@
       "from": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices",
       "to": "building_block|Sales.Pricing.Quote",
       "name": "newQuotes",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 1
     },
     {
@@ -2551,7 +2551,7 @@
       "from": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices",
       "to": "building_block|Sales.Pricing.Quote",
       "name": "oldQuotes",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 2
     },
     {
@@ -2559,7 +2559,7 @@
       "from": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices",
       "to": "building_block|Sales.Pricing.Quote",
       "name": "newQuotes",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 1
     },
     {
@@ -2567,7 +2567,7 @@
       "from": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices",
       "to": "building_block|Sales.Pricing.Quote",
       "name": "oldQuotes",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 2
     },
     {
@@ -2583,7 +2583,7 @@
       "from": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
       "to": "building_block|Sales.Pricing.Quote",
       "name": "newQuotes",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 1
     },
     {
@@ -2591,7 +2591,7 @@
       "from": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
       "to": "building_block|Sales.Pricing.Quote",
       "name": "oldQuotes",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 2
     },
     {
@@ -2711,7 +2711,7 @@
       "from": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.Of",
       "to": "building_block|Sales.Pricing.Discounts.ProductDiscount",
       "name": "discounts",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 1
     },
     {
@@ -2767,7 +2767,7 @@
       "from": "behavior|Sales.Pricing.Offer.FromQuotes",
       "to": "building_block|Sales.Pricing.Quote",
       "name": "quotes",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 2
     },
     {
@@ -2799,7 +2799,7 @@
       "from": "behavior|Sales.Pricing.OfferRequest.For",
       "to": "building_block|Sales.Products.ProductAmount",
       "name": "productAmounts",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 2
     },
     {
@@ -2839,7 +2839,7 @@
       "from": "behavior|Sales.Pricing.PriceLists.BasePrices.Of",
       "to": "building_block|Sales.Pricing.PriceLists.BasePrice",
       "name": "prices",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 1
     },
     {
@@ -2871,7 +2871,7 @@
       "from": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor",
       "to": "building_block|Sales.Products.ProductAmount",
       "name": "productAmounts",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 2
     },
     {
@@ -3505,7 +3505,7 @@
       "from": "building_block|Sales.Orders.AllOrderDetails",
       "to": "building_block|Sales.Orders.OrderItemDetails",
       "name": "Items",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
@@ -3540,7 +3540,7 @@
       "from": "building_block|Sales.Orders.Order",
       "to": "building_block|Sales.Products.ProductAmount",
       "name": "ProductAmounts",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
@@ -3575,7 +3575,7 @@
       "from": "building_block|Sales.Orders.Order PricesConfirmed",
       "to": "building_block|Sales.Pricing.Quote",
       "name": "Quotes",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
@@ -3652,14 +3652,14 @@
       "from": "building_block|Sales.Pricing.Offer",
       "to": "building_block|Sales.Pricing.Quote",
       "name": "Quotes",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
       "from": "building_block|Sales.Pricing.Offer",
       "to": "building_block|Sales.Products.ProductAmount",
       "name": "ProductAmounts",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
@@ -3680,7 +3680,7 @@
       "from": "building_block|Sales.Pricing.OfferRequest",
       "to": "building_block|Sales.Products.ProductAmount",
       "name": "ProductAmounts",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",

@@ -271,7 +271,7 @@ describe('The elements a design changes', () => {
             from: ISSUE,
             name: 'lines',
             to: { value: 'building_block|sales.refunds.RefundLine' },
-            cardinality: { value: '1..*' },
+            cardinality: { value: '*' },
             position: { value: 1 },
           },
         ],
@@ -637,7 +637,7 @@ describe('The type of a piece of state, an input or an output', () => {
               from: ISSUE,
               name: 'lines',
               to: { value: 'building_block|sales.Line' },
-              cardinality: { value: '0..*' },
+              cardinality: { value: '*' },
               position: { value: 1 },
             },
             {
@@ -685,7 +685,7 @@ describe('The type of a piece of state, an input or an output', () => {
   });
 
   it('holds one of four cardinalities', () => {
-    for (const cardinality of ['0..1', '1', '0..*', '1..*']) {
+    for (const cardinality of ['0..1', '1', '*']) {
       expect(
         isValid(
           relating({

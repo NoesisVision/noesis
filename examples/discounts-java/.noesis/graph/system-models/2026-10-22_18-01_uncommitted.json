@@ -747,7 +747,7 @@
       "from": "building_block|discounts.calculation.DiscountedProduct",
       "to": "building_block|discounts.calculation.DiscountAmount",
       "name": "discountAmounts",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",

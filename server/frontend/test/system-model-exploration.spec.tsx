@@ -107,7 +107,7 @@ const model = {
       from: 'building_block|shop.orders.Order',
       to: 'building_block|shop.orders.Line',
       name: 'lines',
-      cardinality: '0..*',
+      cardinality: '*',
     },
     {
       kind: 'has_state',

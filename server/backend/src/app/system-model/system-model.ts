@@ -231,9 +231,9 @@ export const TypeId = z
 export type TypeId = z.infer<typeof TypeId>;
 
 export const Cardinality = z
-  .enum(['0..1', '1', '0..*', '1..*'])
+  .enum(['0..1', '1', '*'])
   .describe(
-    "How many values the slot holds: '1' exactly one, '0..1' one or none, '0..*' any number, '1..*' at least one.",
+    "How many values the slot holds: '1' exactly one, '0..1' one or none, '*' any number. A collection is '*' whether or not it may be empty: the code does not say.",
   );
 export type Cardinality = z.infer<typeof Cardinality>;
 

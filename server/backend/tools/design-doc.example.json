@@ -396,7 +396,7 @@
         "name": "lines",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         }
       },
@@ -411,7 +411,7 @@
         "name": "notes",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         }
       },
@@ -466,7 +466,7 @@
         "name": "lines",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         },
         "position": {

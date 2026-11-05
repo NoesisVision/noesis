@@ -152,7 +152,7 @@ export const changedEverywhereFixture = {
         from: 'building_block|sales.refunds.Refund',
         name: 'lines',
         to: agent('building_block|sales.refunds.RefundLine'),
-        cardinality: agent('0..*'),
+        cardinality: agent('*'),
       },
       {
         kind: 'has_state',

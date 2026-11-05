@@ -178,7 +178,7 @@ describe('Scanning through the C# parser', () => {
     // Public instance members only; the dictionary and the unannotated
     // interface have no word in the model; the excluded property is dropped.
     expect<unknown>(stateOf(model, block('AggregateBlock'))).toEqual([
-      ['Entities', block('EntityBlock'), '0..*'],
+      ['Entities', block('EntityBlock'), '*'],
       ['Enum', block('EnumBlock'), '1'],
       ['OptionalValueObject', block('ValueObjectBlock'), '0..1'],
       ['OptionalPrimitive', 'primitive|datetime', '0..1'],
@@ -202,8 +202,8 @@ describe('Scanning through the C# parser', () => {
         .filter((b) => b.id.startsWith('behavior|Projection.Behaviors.'))
         .map((b) => [b.id, inputOf(model, b.id), outputOf(model, b.id)]),
     ).toEqual([
-      [form('ArrayOutput'), [], [[block('ValueObjectBlock'), '0..*']]],
-      [form('CollectionOutput'), [], [[block('ValueObjectBlock'), '0..*']]],
+      [form('ArrayOutput'), [], [[block('ValueObjectBlock'), '*']]],
+      [form('CollectionOutput'), [], [[block('ValueObjectBlock'), '*']]],
       [form('EntryPointCommand'), [], []],
       [form('EntryPointQuery'), [], [[block('ValueObjectBlock'), '1']]],
       [form('InputWithoutWord'), [], []],

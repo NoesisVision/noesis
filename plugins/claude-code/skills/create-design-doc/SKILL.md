@@ -168,7 +168,7 @@ containers, rules, scenarios. Read it at step 5.
    (an output's is always `result`), so its type may change in place;
    the containments, `extends`, `exposes`, `governs`,
    `illustrates` and `performs` have nothing to modify. `cardinality`
-   is `1`, `0..1`, `0..*` or `1..*`: a collection and an optional value are
+   is `1`, `0..1` or `*`: a collection and an optional value are
    told apart by it, never by the type. Both ends of an added relation
    exist, in the design or in the model; a module's containment, an
    `exposes` or an `illustrates` only says what the ids already say, so

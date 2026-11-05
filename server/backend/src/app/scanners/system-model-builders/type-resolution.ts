@@ -65,7 +65,7 @@ export function optionalOf(cardinality: Cardinality): Cardinality {
 
 /** A collection, however nested, holds any number; a nullable value one or none; else exactly one. */
 function cardinalityOf({ optional, collections }: Resolved): Cardinality {
-  if (collections > 0) return '0..*';
+  if (collections > 0) return '*';
   return optional ? '0..1' : '1';
 }
 

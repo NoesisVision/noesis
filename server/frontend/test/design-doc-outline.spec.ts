@@ -146,7 +146,7 @@ describe('outlineOf', () => {
   it('names a property type by its item, with how many it holds when not one', () => {
     expect(
       at('building_block|sales.refunds.Refund#property:lines').pattern,
-    ).toBe('RefundLine [0..*]');
+    ).toBe('RefundLine [*]');
     expect(
       at('building_block|sales.refunds.Refund#property:issuedAt').pattern,
     ).toBe('date');
@@ -242,7 +242,7 @@ describe('outlineOf', () => {
     // beside a `RefundLine[]` that kept its own spelling, and `date` — a
     // primitive the model does spell in lower case — would read `Date`.
     expect(labelAt(`${refund}#property:orderId`)).toBe('OrderId');
-    expect(labelAt(`${refund}#property:lines`)).toBe('RefundLine [0..*]');
+    expect(labelAt(`${refund}#property:lines`)).toBe('RefundLine [*]');
     expect(labelAt(`${refund}#property:issuedAt`)).toBe('date');
     // A rule's is its kind, written out.
     expect(labelAt(`${ISSUE}#rule:${PAID_ONLY}`)).toBe('State change');

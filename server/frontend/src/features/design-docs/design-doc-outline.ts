@@ -311,7 +311,7 @@ function part(
     change,
     pattern,
     // A property's pattern is its type, spelled by whoever wrote it —
-    // `OrderId`, `RefundLine [0..*]`, `date`; a rule's is its kind.
+    // `OrderId`, `RefundLine [*]`, `date`; a rule's is its kind.
     patternLabel: kind === 'rule' ? ruleKindLabelOf(pattern) : pattern,
     hasDiagram: drawsDiagram(description),
   };

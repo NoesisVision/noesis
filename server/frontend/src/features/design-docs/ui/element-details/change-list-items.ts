@@ -38,7 +38,7 @@ export interface ChangeListItem {
   name?: string;
   /** The type it is declared with, by address. */
   type?: string;
-  /** How many of the type it holds, as read after the type: ` [0..*]`; nothing for exactly one. */
+  /** How many of the type it holds, as read after the type: ` [*]`; nothing for exactly one. */
   cardinality?: string;
   /** The row that type has in the tree, when it is a building block. */
   typePath?: string;

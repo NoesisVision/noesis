@@ -168,7 +168,7 @@ describe('ElementTooltip', () => {
   });
 
   it('reads a slot by its type, however many it holds', () => {
-    expect(render('pay.Hold [0..*]')).toMatch(/>amount: <span[^>]*>Money/);
+    expect(render('pay.Hold [*]')).toMatch(/>amount: <span[^>]*>Money/);
   });
 
   it('never shows a definition or a description', () => {

@@ -51,7 +51,7 @@ interface Shape {
   behaviors?: Line[];
 }
 
-/** The address a name points at: `name: a.b.C [0..*]` points at `a.b.C`. */
+/** The address a name points at: `name: a.b.C [*]` points at `a.b.C`. */
 const addressOf = (name: string) =>
   name
     .slice(name.indexOf(':') + 1)

@@ -150,10 +150,9 @@ export function relationsTo<Kind extends RelationPartKind>(
 export const CARDINALITIES = [
   '1',
   '0..1',
-  '0..*',
-  '1..*',
+  '*',
 ] as const satisfies readonly Cardinality[];
 
-/** How a cardinality reads after a type: nothing for exactly one, `[0..*]` otherwise. */
+/** How a cardinality reads after a type: nothing for exactly one, `[*]` otherwise. */
 export const cardinalitySuffixOf = (cardinality: string | null): string =>
   cardinality === null || cardinality === '1' ? '' : ` [${cardinality}]`;

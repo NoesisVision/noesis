@@ -499,15 +499,14 @@ describe('A relation', () => {
     expect(isValid(withRelations([{ ...input, to: ORDERS }]))).toBe(false);
   });
 
-  it('says how many values a slot holds, by one of four cardinalities', () => {
-    for (const cardinality of ['0..1', '1', '0..*', '1..*']) {
+  it('says how many values a slot holds, by one of three cardinalities', () => {
+    for (const cardinality of ['0..1', '1', '*']) {
       expect(isValid(withRelations([{ ...state, cardinality }]))).toBe(true);
       expect(isValid(withRelations([{ ...input, cardinality }]))).toBe(true);
       expect(isValid(withRelations([{ ...output, cardinality }]))).toBe(true);
     }
-    expect(isValid(withRelations([{ ...state, cardinality: '*' }]))).toBe(
-      false,
-    );
+    for (const cardinality of ['0..*', '1..*'])
+      expect(isValid(withRelations([{ ...state, cardinality }]))).toBe(false);
     expect(isValid(withRelations([{ ...state, cardinality: undefined }]))).toBe(
       false,
     );

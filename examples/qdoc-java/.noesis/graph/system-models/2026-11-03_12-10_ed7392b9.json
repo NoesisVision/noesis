@@ -1299,7 +1299,7 @@
       "from": "behavior|qdocmanagement.preparation.Version.createFirst",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "authors",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 1
     },
     {
@@ -1307,7 +1307,7 @@
       "from": "behavior|qdocmanagement.preparation.Version.createFirst",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "reviewers",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 2
     },
     {
@@ -1315,7 +1315,7 @@
       "from": "behavior|qdocmanagement.preparation.Version.createFirst",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "approvers",
-      "cardinality": "0..*",
+      "cardinality": "*",
       "position": 3
     },
     {
@@ -1330,7 +1330,7 @@
       "from": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "result",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_output",
@@ -1386,7 +1386,7 @@
       "from": "building_block|qdocmanagement.notifications.NotifyUsers",
       "to": "building_block|qdocmanagement.notifications.Recipient",
       "name": "recipients",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
@@ -1449,14 +1449,14 @@
       "from": "building_block|qdocmanagement.preparation.CreateQDoc",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "approvers",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
       "from": "building_block|qdocmanagement.preparation.CreateQDoc",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "authors",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",
@@ -1470,7 +1470,7 @@
       "from": "building_block|qdocmanagement.preparation.CreateQDoc",
       "to": "building_block|qdocmanagement.preparation.UserId",
       "name": "reviewers",
-      "cardinality": "0..*"
+      "cardinality": "*"
     },
     {
       "kind": "has_state",

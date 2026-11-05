@@ -2473,7 +2473,7 @@
         "name": "authors",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         }
       },
@@ -2488,7 +2488,7 @@
         "name": "reviewers",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         }
       },
@@ -2503,7 +2503,7 @@
         "name": "approvers",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         }
       },
@@ -2653,7 +2653,7 @@
         "name": "contentFiles",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         }
       },
@@ -2668,7 +2668,7 @@
         "name": "assignments",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         }
       },
@@ -2758,7 +2758,7 @@
         "name": "versions",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         }
       },
@@ -2863,7 +2863,7 @@
         "name": "recipients",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         }
       },
@@ -3043,7 +3043,7 @@
         "name": "authors",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         },
         "position": {
@@ -3063,7 +3063,7 @@
         "name": "reviewers",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         },
         "position": {
@@ -3083,7 +3083,7 @@
         "name": "approvers",
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         },
         "position": {
@@ -3248,7 +3248,7 @@
         },
         "cardinality": {
           "changed": true,
-          "value": "0..*",
+          "value": "*",
           "author": "agent"
         }
       },
