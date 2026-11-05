@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
+import { updateDesignDocPrompt } from '#/features/agent/agent.model.ts';
 import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
 import type { DescriptionTarget } from '../design-doc-description.ts';
 import { designDocById } from '../design-docs.api.ts';
 import type { DesignDocViewName } from '../design-docs.model.ts';
 import { ArchitectureView } from './architecture/architecture-view.tsx';
+import { AskAgentButton } from './ask-agent-button.tsx';
 import { DesignDocOverview } from './design-doc-overview.tsx';
 import { DesignDocSurface } from './design-doc-surface.tsx';
 import { DesignDocWorkbench } from './design-doc-workbench.tsx';
@@ -50,7 +52,14 @@ export function DesignDocDetail({
   return (
     <DesignDocSurface
       document={document.data.document}
-      switcher={<ViewSwitch view={view} onView={onView} />}
+      switcher={
+        <>
+          <AskAgentButton prompt={updateDesignDocPrompt(changeId, id)}>
+            Revise with the agent
+          </AskAgentButton>
+          <ViewSwitch view={view} onView={onView} />
+        </>
+      }
       centred={view === 'overview'}
     >
       <UnitEditor

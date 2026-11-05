@@ -26,6 +26,10 @@ import { getNewestSystemModelTool } from './tools/get-newest-system-model.tool';
 import { listChangesTool } from './tools/list-changes.tool';
 import { listDesignDocsInChangeTool } from './tools/list-design-docs-in-change.tool';
 import { listDocumentsInChangeTool } from './tools/list-documents-in-change.tool';
+import {
+  type PageReplies,
+  replyToNoesisPageTool,
+} from './tools/reply-to-noesis-page.tool';
 import { scanSystemModelTool } from './tools/scan-system-model.tool';
 import { updateChangeTool } from './tools/update-change.tool';
 import { updateDesignDocInChangeTool } from './tools/update-design-doc-in-change.tool';
@@ -49,6 +53,8 @@ export interface McpServerDeps {
   findDesignDoc: FindDesignDocHandler;
   scanSystemModel: ScanSystemModelHandler;
   findNewestSystemModel: FindNewestSystemModelHandler;
+  /** Where the page's replies land, when the page attaches to this session; none otherwise. */
+  replies?: PageReplies | null;
 }
 
 /**
@@ -62,7 +68,13 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
       // `false` is the truth: the tool list is fixed for the connection's
       // life, so no `notifications/tools/list_changed` ever follows. Left
       // unsaid, the SDK advertises `listChanged: true` for us.
-      capabilities: { tools: { listChanged: false } },
+      capabilities: {
+        tools: { listChanged: false },
+        // The page speaks into the session as channel events, when the host
+        // loaded this server as a channel; without the capability the host
+        // never listens.
+        ...(deps.replies ? { experimental: { 'claude/channel': {} } } : {}),
+      },
       instructions: instructions(deps),
     },
   );
@@ -92,6 +104,7 @@ function tools(deps: McpServerDeps): ToolRegistration[] {
     getDesignDocInChangeTool(deps.findDesignDoc, deps.sessionFiles),
     scanSystemModelTool(deps.scanSystemModel),
     getNewestSystemModelTool(deps.findNewestSystemModel),
+    ...(deps.replies ? [replyToNoesisPageTool(deps.replies)] : []),
   ];
 }
 

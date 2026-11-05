@@ -205,6 +205,7 @@ test('the shipped service boots from the tarball, lists tools and serves the pag
       'list_changes',
       'list_design_docs_in_change',
       'list_documents_in_change',
+      'reply_to_noesis_page',
       'scan_system_model',
       'update_change',
       'update_design_doc_in_change',

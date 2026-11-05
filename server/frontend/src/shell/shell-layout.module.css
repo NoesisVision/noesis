@@ -25,11 +25,14 @@
     position: fixed;
     top: var(--app-shell-header-offset, 0rem);
     left: var(--app-shell-navbar-offset, 0rem);
-    right: 0;
+    right: var(--app-shell-aside-offset, 0rem);
     bottom: 0;
     border-top-left-radius: 16px;
-    /* Following the rail as it folds and opens. */
-    transition: left 200ms ease;
+    border-top-right-radius: 16px;
+    /* Following the rail as it folds and opens, and the agent as it comes and goes. */
+    transition:
+      left 200ms ease,
+      right 200ms ease;
   }
 
   .main::after {
@@ -51,6 +54,7 @@
     z-index: 3;
     border-top: 1px solid var(--noesis-rail-border);
     border-left: 1px solid var(--noesis-rail-border);
+    border-right: 1px solid var(--noesis-rail-border);
     box-shadow: 0 0 0 16px var(--noesis-rail-background);
     pointer-events: none;
   }

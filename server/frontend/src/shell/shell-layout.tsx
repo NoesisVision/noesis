@@ -1,5 +1,10 @@
 import { Outlet } from '@tanstack/react-router';
 import { useMemo } from 'react';
+import {
+  AgentPanelProvider,
+  useAgentPanel,
+} from '#/features/agent/agent-panel-context.tsx';
+import { AgentPanel } from '#/features/agent/ui/agent-panel.tsx';
 import { AppShell } from '#/shared/design-system/app-shell';
 import {
   useDisclosure,
@@ -16,7 +21,17 @@ import { TopBar } from './top-bar';
 import classes from './shell-layout.module.css';
 
 export function ShellLayout() {
+  return (
+    <AgentPanelProvider>
+      <ShellFrame />
+    </AgentPanelProvider>
+  );
+}
+
+/** The bar, the rail, the page and, when open, the agent beside it. */
+function ShellFrame() {
   const [navbarOpened, navbar] = useDisclosure(false);
+  const agentPanel = useAgentPanel();
   // Folded to icons, as the reader last left it.
   const [railCollapsed, setRailCollapsed] = useLocalStorage<boolean>({
     key: 'noesis.rail-collapsed',
@@ -49,6 +64,13 @@ export function ShellLayout() {
         breakpoint: 'md',
         collapsed: { mobile: !navbarOpened },
       }}
+      // The agent down the right, as wide as a conversation reads well at,
+      // only while open: shut, it takes no room and nothing is drawn.
+      aside={{
+        width: 420,
+        breakpoint: 'md',
+        collapsed: { desktop: !agentPanel.opened, mobile: !agentPanel.opened },
+      }}
       padding="lg"
     >
       <AppShell.Header withBorder={false}>
@@ -63,6 +85,9 @@ export function ShellLayout() {
           onNavigate={navbar.close}
         />
       </AppShell.Navbar>
+      <AppShell.Aside withBorder={false}>
+        {agentPanel.opened && <AgentPanel />}
+      </AppShell.Aside>
       <AppShell.Main
         ref={ref}
         className={classes.main}

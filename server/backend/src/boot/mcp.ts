@@ -1,7 +1,9 @@
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
+import type { ChannelLink } from '#backend/adapters/in/mcp/channel-link';
 import { createMcpServer } from '#backend/adapters/in/mcp/mcp-server';
 import { ServingTransport } from '#backend/adapters/in/mcp/serving-transport';
 import type { SessionFiles } from '#backend/adapters/in/mcp/session-files';
+import type { PageReplies } from '#backend/adapters/in/mcp/tools/reply-to-noesis-page.tool';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { serverLogger } from '#backend/platform/logging/logging';
 import type { Services } from './services';
@@ -13,6 +15,9 @@ export interface McpOptions {
   noesis: NoesisDir;
   sessionFiles: SessionFiles;
   services: Services;
+  /** The page's way into the session that started this process, when one did. */
+  channel: ChannelLink | null;
+  replies: PageReplies | null;
   /** The first message proving this process serves a session, not the era probe. */
   onServing: () => void;
   /** The host closed stdin: the session is over. */
@@ -35,9 +40,19 @@ export interface McpHandle {
  * not `server/discover` can start the ui.
  */
 export function serveMcp(options: McpOptions): McpHandle {
-  const { version, noesis, sessionFiles, services } = options;
+  const { version, noesis, sessionFiles, services, channel, replies } = options;
   const handle = serveStdio(
-    () => createMcpServer({ ...services, version, noesis, sessionFiles }),
+    () => {
+      const server = createMcpServer({
+        ...services,
+        version,
+        noesis,
+        sessionFiles,
+        replies,
+      });
+      channel?.attach(server);
+      return server;
+    },
     {
       transport: new ServingTransport(options.onServing),
       onerror: (error) => {

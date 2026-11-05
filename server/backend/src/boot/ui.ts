@@ -64,6 +64,10 @@ export class UiHost {
     const server = Bun.serve({
       port: config.port,
       hostname: '127.0.0.1',
+      // The agent's event stream stays open for as long as the page does;
+      // Bun's default drops a request quiet for 10 seconds. The stream beats
+      // every 20, so this only has to outlast a beat.
+      idleTimeout: 60,
       routes: {
         '/ui/*': app.fetch,
         '/internal/*': app.fetch,

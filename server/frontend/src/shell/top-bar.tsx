@@ -10,6 +10,8 @@ import {
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { use } from 'react';
+import { useAgentPanel } from '#/features/agent/agent-panel-context.tsx';
+import { AgentIcon } from '#/features/agent/agent.model.ts';
 import { currentProject } from '#/features/project/project.api.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon';
 import { Box } from '#/shared/design-system/box';
@@ -71,6 +73,7 @@ export function TopBar({ navbarOpened, onToggleNavbar }: TopBarProps) {
       <Brand />
       <SearchTool />
       <Group gap={2} wrap="nowrap">
+        <AgentTool />
         <FullscreenTool />
         <DevToolsTool />
         <SettingsTool />
@@ -139,6 +142,31 @@ function SearchTool() {
       </UnstyledButton>
       <SearchDialog opened={opened} onClose={dialog.close} />
     </Box>
+  );
+}
+
+/**
+ * The agent's panel, opened and shut from the bar, and with ⌘. (Ctrl . off a
+ * Mac) from anywhere.
+ */
+function AgentTool() {
+  const { opened, toggle } = useAgentPanel();
+  const mac = ['macos', 'ios'].includes(useOs());
+  useHotkeys([['mod+.', toggle]], []);
+  return (
+    <Tooltip label={`Agent panel (${mac ? '⌘.' : 'Ctrl .'})`}>
+      <ActionIcon
+        variant={opened ? 'light' : 'subtle'}
+        color={opened ? undefined : 'gray'}
+        size={34}
+        aria-label="Agent panel"
+        aria-pressed={opened}
+        aria-keyshortcuts="Meta+. Control+."
+        onClick={toggle}
+      >
+        <AgentIcon size={18} stroke={1.7} aria-hidden />
+      </ActionIcon>
+    </Tooltip>
   );
 }
 

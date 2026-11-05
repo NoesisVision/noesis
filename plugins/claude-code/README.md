@@ -61,12 +61,13 @@ browser UI once at start on an ephemeral port. Set `NOESIS_OPEN_BROWSER=0`
 in the environment to keep it closed. The UI lives as long as the session:
 when Claude Code exits, the service exits with it.
 
-The service exposes fourteen MCP tools: `create_change`, `update_change`,
+The service exposes fifteen MCP tools: `create_change`, `update_change`,
 `delete_change`, `list_changes`, `create_document_in_change`, `update_document_in_change`,
 `list_documents_in_change`, `get_document_in_change`,
 `create_design_doc_in_change`, `update_design_doc_in_change`,
 `list_design_docs_in_change`, `get_design_doc_in_change`,
-`scan_system_model` and `get_newest_system_model`. Tools never
+`scan_system_model` and `get_newest_system_model`, plus `reply_to_noesis_page`,
+through which the session answers a message sent from the Noesis page. Tools never
 take content inline: `get_design_doc_in_change`, asked for a working file,
 writes the design document into the scratch directory and answers with its
 path. The agent writes

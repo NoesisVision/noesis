@@ -1,0 +1,99 @@
+/*
+ * The agent's panel down the right, as the rail is down the left: the same
+ * tinted ground, with the conversation raised on it as one card.
+ */
+.aside {
+  height: 100%;
+  padding: 0 12px 14px 0;
+  background-color: var(--noesis-rail-background);
+
+  @media (max-width: 61.99em) {
+    padding: 0;
+  }
+}
+
+.card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 18px;
+  background-color: var(--noesis-rail-surface);
+  box-shadow: 0 0 0 1px var(--noesis-rail-border);
+  overflow: hidden;
+
+  @media (max-width: 61.99em) {
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+.header {
+  flex: none;
+  padding: 12px 10px 12px 16px;
+  border-bottom: 1px solid var(--noesis-rail-border);
+}
+
+.title.title {
+  margin: 0;
+  font-size: var(--mantine-font-size-md);
+  font-weight: 600;
+}
+
+/* The transcript takes what the header and the composer leave. */
+.transcript {
+  flex: 1;
+  min-height: 0;
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+/* The composer: pinned under the transcript, on a faint ground of its own. */
+.composer {
+  flex: none;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--noesis-rail-border);
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-8)
+  );
+}
+
+/* The field and its buttons as one rounded box. */
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 8px 6px 12px;
+  border-radius: 14px;
+  background-color: var(--noesis-rail-surface);
+  box-shadow: 0 0 0 1px var(--noesis-rail-border);
+
+  &:focus-within {
+    box-shadow: 0 0 0 2px var(--mantine-color-brand-5);
+  }
+}
+
+/* The textarea keeps nothing of its own: the box is its frame. */
+.field.field {
+  border: 0;
+  padding: 2px 0;
+  background: transparent;
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.5;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.hint.hint {
+  padding: 6px 4px 0;
+  font-size: 11px;
+  color: var(--noesis-secondary-text);
+}
