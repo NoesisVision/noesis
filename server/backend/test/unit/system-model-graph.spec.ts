@@ -54,6 +54,7 @@ const model = SystemModel.parse({
       id: 'behavior|sales.Order.place',
       name: 'place',
       type: 'Command',
+      visibility: { kind: 'public', actors: ['Clerk'] },
       input: [{ name: 'amount', type: 'building_block|sales.Money' }],
       output: [],
       relations: [
