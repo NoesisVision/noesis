@@ -78,10 +78,30 @@ const document = {
   relations: {
     added: [
       { kind: 'performs', from: AGENT, to: REFUND },
-      { kind: 'invokes', from: REFUND, to: MARK, order: plain(2) },
-      { kind: 'invokes', from: REFUND, to: ISSUE, order: plain(1) },
-      { kind: 'invokes', from: CLOSE, to: POST, order: plain(1) },
-      { kind: 'invokes', from: POST, to: ISSUE, order: plain(1) },
+      {
+        kind: 'process_invokes_behavior',
+        from: REFUND,
+        to: MARK,
+        order: plain(2),
+      },
+      {
+        kind: 'process_invokes_behavior',
+        from: REFUND,
+        to: ISSUE,
+        order: plain(1),
+      },
+      {
+        kind: 'process_invokes_behavior',
+        from: CLOSE,
+        to: POST,
+        order: plain(1),
+      },
+      {
+        kind: 'behavior_invokes_behavior',
+        from: POST,
+        to: ISSUE,
+        order: plain(1),
+      },
     ],
     removed: [{ kind: 'performs', from: CLERK, to: REFUND }],
   },

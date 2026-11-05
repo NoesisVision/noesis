@@ -364,7 +364,9 @@ describe('Scanning through the C# parser', () => {
       leaves.every((b) => invokedTargetsOf(model, b.id).length === 0),
     ).toBe(true);
     const reachedByAnyone = new Set<string>(
-      model.relations.flatMap((r) => (r.kind === 'invokes' ? [r.to] : [])),
+      model.relations.flatMap((r) =>
+        r.kind === 'behavior_invokes_behavior' ? [r.to] : [],
+      ),
     );
     for (const leaf of UNREACHED) {
       expect<unknown>(ids(leaves)).toContain(leaf);

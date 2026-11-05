@@ -214,7 +214,9 @@ describe('the fixture solution through the C# parser (e2e)', () => {
         ),
       ).toEqual(INVOKES);
       const reachedByAnyone = new Set<string>(
-        model.relations.flatMap((r) => (r.kind === 'invokes' ? [r.to] : [])),
+        model.relations.flatMap((r) =>
+          r.kind === 'behavior_invokes_behavior' ? [r.to] : [],
+        ),
       );
       for (const leaf of UNREACHED)
         expect<unknown>(reachedByAnyone.has(leaf)).toBe(false);

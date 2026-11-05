@@ -134,8 +134,8 @@ Decide what a table stands for before modelling its rows:
   Group cohesive use cases as the behaviors of one `application_service`
   (or of an `in_adapter`, when the design shows the edge that receives
   them); do not give every use case a service of its own.
-- A behavior says nothing of who may call it: the `invokes` relations that
-  end at it do.
+- A behavior says nothing of who may call it: the `behavior_invokes_behavior`
+  and `process_invokes_behavior` relations that end at it do.
 - Inputs and outputs are building blocks or primitives. Prefer the value
   object that gives a primitive its meaning (`Money`, not `decimal`) when
   the model has one.
@@ -196,7 +196,7 @@ hand — a manual process — and that work calls the system's behaviors.
 - Reuse the actor names the system model already uses, verbatim. Introduce
   a new name only when no existing persona fits.
 - A manual process is one goal an actor reaches, named as the work:
-  `manual_process|Refund a returned order`. Its `invokes` relations are the
+  `manual_process|Refund a returned order`. Its `process_invokes_behavior` relations are the
   behaviors it calls, `order` counting from 1 in the order the actor calls
   them; a `performs` relation joins each actor who does it. A process that
   calls a single behavior is fine.
@@ -208,7 +208,7 @@ hand — a manual process — and that work calls the system's behaviors.
 
 ```json
 { "kind": "performs", "from": "actor|Support agent", "to": "manual_process|Refund a returned order" },
-{ "kind": "invokes", "from": "manual_process|Refund a returned order", "to": "behavior|sales.refunds.RefundService.issue", "order": { "value": 1 } }
+{ "kind": "process_invokes_behavior", "from": "manual_process|Refund a returned order", "to": "behavior|sales.refunds.RefundService.issue", "order": { "value": 1 } }
 ```
 
 ## Deployable units and libraries

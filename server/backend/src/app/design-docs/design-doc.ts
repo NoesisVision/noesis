@@ -30,7 +30,8 @@ import {
   HasStateRelation,
   ContainerContainsUnitRelation,
   IllustratesRelation,
-  InvokesRelation,
+  BehaviorInvokesBehaviorRelation,
+  ProcessInvokesBehaviorRelation,
   PerformsRelation,
   LayerContainsBlockRelation,
   LibraryContainsBlockRelation,
@@ -95,8 +96,11 @@ export const DesignedRelation = z.discriminatedUnion('kind', [
     position: DesignDocField(HasInputRelation.shape.position),
   }),
   HasOutputRelation.extend(designedSlot(TypeId)),
-  InvokesRelation.extend({
-    order: DesignDocField(InvokesRelation.shape.order),
+  BehaviorInvokesBehaviorRelation.extend({
+    order: DesignDocField(BehaviorInvokesBehaviorRelation.shape.order),
+  }),
+  ProcessInvokesBehaviorRelation.extend({
+    order: DesignDocField(ProcessInvokesBehaviorRelation.shape.order),
   }),
   GovernsRelation,
   IllustratesRelation,
@@ -124,7 +128,8 @@ export const DesignedRelationKey = z
     ExposesRelation.pick({ kind: true, from: true, to: true }),
     HasInputRelation.pick({ kind: true, from: true, to: true, name: true }),
     HasOutputRelation.pick({ kind: true, from: true, to: true, name: true }),
-    InvokesRelation.pick({ kind: true, from: true, to: true }),
+    BehaviorInvokesBehaviorRelation.pick({ kind: true, from: true, to: true }),
+    ProcessInvokesBehaviorRelation.pick({ kind: true, from: true, to: true }),
     GovernsRelation.pick({ kind: true, from: true, to: true }),
     IllustratesRelation.pick({ kind: true, from: true, to: true }),
     PerformsRelation.pick({ kind: true, from: true, to: true }),
@@ -198,7 +203,7 @@ export const DesignedManualProcess = z
     definition: DesignDocField(z.string()),
   })
   .describe(
-    "Work an actor does by hand, outside the code: its 'invokes' relations are the behaviors it calls, in order, and a 'performs' relation names who does it. Never scanned.",
+    "Work an actor does by hand, outside the code: its 'process_invokes_behavior' relations are the behaviors it calls, in order, and a 'performs' relation names who does it. Never scanned.",
   );
 export type DesignedManualProcess = z.infer<typeof DesignedManualProcess>;
 
@@ -274,7 +279,7 @@ const designDocumentSchema = z.strictObject({
     DeploymentContainerId,
   ),
   relations: changeSet(DesignedRelation, DesignedRelationKey).describe(
-    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('invokes'), which modules a module contains ('module_contains_module') and which building blocks it declares ('module_contains_block'), which modules a deployable unit ships ('unit_contains_module'), which building blocks a library provides ('library_contains_block') or a layer places ('layer_contains_block'), which deployable units a deployment container hosts ('container_contains_unit'), which rules a behavior follows ('governs'), which scenarios illustrate a rule ('illustrates'), which manual processes an actor performs ('performs') and which behaviors a manual process calls, in order ('invokes'). Both ends of an added relation exist, in the design or the model; a 'module_contains_module', a 'module_contains_block', an 'exposes' or an 'illustrates' agrees with the ids, whose paths already say what holds what; an added rule is governed by a behavior.",
+    "The relations the design adds, removes or changes between elements of the design or the model: what a block holds as state ('has_state') or works with ('has_collaborator', a block that is no value of the domain), extends or exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('behavior_invokes_behavior'), which modules a module contains ('module_contains_module') and which building blocks it declares ('module_contains_block'), which modules a deployable unit ships ('unit_contains_module'), which building blocks a library provides ('library_contains_block') or a layer places ('layer_contains_block'), which deployable units a deployment container hosts ('container_contains_unit'), which rules a behavior follows ('governs'), which scenarios illustrate a rule ('illustrates'), which manual processes an actor performs ('performs') and which behaviors a manual process calls, in order ('process_invokes_behavior'). Both ends of an added relation exist, in the design or the model; a 'module_contains_module', a 'module_contains_block', an 'exposes' or an 'illustrates' agrees with the ids, whose paths already say what holds what; an added rule is governed by a behavior.",
   ),
   implemented: z
     .boolean()

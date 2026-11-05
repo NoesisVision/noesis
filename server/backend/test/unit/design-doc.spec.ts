@@ -210,7 +210,7 @@ describe('The elements a design changes', () => {
           },
           { kind: 'exposes', from: REFUND, to: ISSUE },
           {
-            kind: 'invokes',
+            kind: 'behavior_invokes_behavior',
             from: ISSUE,
             to: 'behavior|sales.ledger.Ledger.post',
             order: { value: 1 },
@@ -224,7 +224,11 @@ describe('The elements a design changes', () => {
         ],
         removed: [
           { kind: 'extends', from: REFUND, to: 'building_block|sales.Legacy' },
-          { kind: 'invokes', from: ISSUE, to: 'behavior|sales.Old.notify' },
+          {
+            kind: 'behavior_invokes_behavior',
+            from: ISSUE,
+            to: 'behavior|sales.Old.notify',
+          },
         ],
       }),
     );
@@ -233,13 +237,17 @@ describe('The elements a design changes', () => {
       'extends',
       'module_contains_block',
       'exposes',
-      'invokes',
+      'behavior_invokes_behavior',
       'governs',
       'illustrates',
     ]);
     expect<unknown>(parsed.relations.removed).toEqual([
       { kind: 'extends', from: REFUND, to: 'building_block|sales.Legacy' },
-      { kind: 'invokes', from: ISSUE, to: 'behavior|sales.Old.notify' },
+      {
+        kind: 'behavior_invokes_behavior',
+        from: ISSUE,
+        to: 'behavior|sales.Old.notify',
+      },
     ]);
     expect(
       isValid(relating({ added: [{ kind: 'extends', from: REFUND }] })),
@@ -436,7 +444,7 @@ describe('The elements a design changes', () => {
             cardinality: { value: '0..1' },
           },
           {
-            kind: 'invokes',
+            kind: 'behavior_invokes_behavior',
             from: ISSUE,
             to: 'behavior|sales.ledger.Ledger.post',
             order: { value: 2 },
@@ -505,7 +513,12 @@ describe('The elements a design changes', () => {
       isValid(
         relating({
           added: [
-            { kind: 'invokes', from: ISSUE, to: REFUND, order: { value: 1 } },
+            {
+              kind: 'behavior_invokes_behavior',
+              from: ISSUE,
+              to: REFUND,
+              order: { value: 1 },
+            },
           ],
         }),
       ),
@@ -739,7 +752,7 @@ describe('Actors and manual processes', () => {
         people([
           { kind: 'performs', from: CLERK, to: REFUND_A_RETURN },
           {
-            kind: 'invokes',
+            kind: 'process_invokes_behavior',
             from: REFUND_A_RETURN,
             to: ISSUE,
             order: { value: 1 },
@@ -777,7 +790,12 @@ describe('Actors and manual processes', () => {
     expect(
       isValid(
         people([
-          { kind: 'invokes', from: CLERK, to: ISSUE, order: { value: 1 } },
+          {
+            kind: 'process_invokes_behavior',
+            from: CLERK,
+            to: ISSUE,
+            order: { value: 1 },
+          },
         ]),
       ),
     ).toBe(false);
@@ -1177,7 +1195,7 @@ describe('A design document an agent wrote', () => {
                   cardinality: { value: '1' },
                 },
                 {
-                  kind: 'invokes',
+                  kind: 'behavior_invokes_behavior',
                   from: ISSUE,
                   to: CANCEL,
                   order: { value: 1 },
@@ -1208,11 +1226,11 @@ describe('A design document an agent wrote', () => {
           reason: 'unknownRelationEnd',
         },
         {
-          path: `relations.added[invokes|${ISSUE}|${CANCEL}].from`,
+          path: `relations.added[behavior_invokes_behavior|${ISSUE}|${CANCEL}].from`,
           reason: 'unknownRelationEnd',
         },
         {
-          path: `relations.added[invokes|${ISSUE}|${CANCEL}].to`,
+          path: `relations.added[behavior_invokes_behavior|${ISSUE}|${CANCEL}].to`,
           reason: 'unknownRelationEnd',
         },
       ]);
@@ -1372,7 +1390,7 @@ describe('A design document an agent wrote', () => {
                   cardinality: { value: '0..1' },
                 },
                 {
-                  kind: 'invokes',
+                  kind: 'behavior_invokes_behavior',
                   from: CANCEL,
                   to: ISSUE,
                   order: { value: 1 },

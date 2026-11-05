@@ -88,7 +88,7 @@ step 6.
    the design document to everything that must change with it:
    - **References.** The ends of a relation (the `to` of a `has_state`,
      `has_collaborator`, `has_input` or `has_output`, both ends of an
-     `extends`, an `invokes`, a `governs`, an `illustrates` or a
+     `extends`, a `behavior_invokes_behavior`, a `process_invokes_behavior`, a `governs`, an `illustrates` or a
      `performs`), a rule's
      `needs`: each names an element this design adds or modifies, one the
      system model has, a primitive, or a need this design adds. A rename

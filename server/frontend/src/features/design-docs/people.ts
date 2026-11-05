@@ -38,9 +38,7 @@ export function invokersOf(
 ): string[] {
   return byName(
     pointing(doc).flatMap((relation) =>
-      relation.kind === 'invokes' &&
-      relation.to === behaviorId &&
-      relation.from.startsWith('manual_process|')
+      relation.kind === 'process_invokes_behavior' && relation.to === behaviorId
         ? [relation.from]
         : [],
     ),
@@ -62,14 +60,17 @@ export function stepsOf(
 ): ProcessStep[] {
   const steps: ProcessStep[] = [];
   for (const [relation, change] of named(doc.relations))
-    if (relation.kind === 'invokes' && relation.from === processId)
+    if (
+      relation.kind === 'process_invokes_behavior' &&
+      relation.from === processId
+    )
       steps.push({
         behavior: relation.to,
         order: valueOf(relation.order),
         change,
       });
   for (const key of doc.relations?.removed ?? [])
-    if (key.kind === 'invokes' && key.from === processId)
+    if (key.kind === 'process_invokes_behavior' && key.from === processId)
       steps.push({ behavior: key.to, order: null, change: 'removed' });
   return steps.sort(
     (a, b) =>

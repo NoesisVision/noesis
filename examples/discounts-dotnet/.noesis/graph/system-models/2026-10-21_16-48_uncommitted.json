@@ -3781,289 +3781,289 @@
       "cardinality": "1"
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn",
       "to": "behavior|Sales.Commons.Money.Of",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.Order Factory.ImmediatelyPlacedBasedOn",
       "to": "behavior|Sales.Orders.Order PriceAgreement.Final",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.Order Factory.ImmediatelyPlacedBasedOn",
       "to": "behavior|Sales.Orders.Order PriceAgreement.Non",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.Order Factory.NewWithMaxTotalCostFor",
       "to": "behavior|Sales.Orders.Order Factory.NewWith",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.Order PricesConfirmed.Apply",
       "to": "behavior|Sales.Orders.Order PriceAgreement.Final",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.Order PricesConfirmed.Apply",
       "to": "behavior|Sales.Orders.Order PriceAgreement.Temporary",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.Order ProductAmountAdded.Apply",
       "to": "behavior|Sales.Orders.Order PriceAgreement.Non",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.Order.ConfirmPrices",
       "to": "behavior|Sales.Orders.Order PriceAgreement.CanChangePrice",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.Order.ConfirmPrices",
       "to": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.Order.ConfirmPrices",
       "to": "behavior|Sales.Pricing.Quote.For",
       "order": 3
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.Order.Place",
       "to": "behavior|Sales.Orders.Order PriceAgreement.IsValidOn",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor",
       "to": "behavior|Sales.Clients.ClientRepository.GetStatusFor",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.CalculatePrices.For",
       "to": "behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.CalculatePrices.For",
       "to": "behavior|Sales.Pricing.Offer.FromQuotes",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.CalculatePrices.For",
       "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
       "order": 3
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.CalculatePrices.For",
       "to": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
       "order": 4
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.CalculatePrices.For",
       "to": "behavior|Sales.Pricing.OfferRequest.For",
       "order": 5
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.CalculatePrices.For",
       "to": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor",
       "order": 6
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.CalculatePrices.For",
       "to": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor",
       "order": 7
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.CalculatePrices.For",
       "to": "behavior|Sales.Pricing.Quote.For",
       "order": 8
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
       "to": "behavior|Sales.Pricing.Offer.FromQuotes",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
       "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
       "to": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
       "to": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
       "to": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.Discounts.Discount.Value",
       "to": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
       "to": "behavior|Sales.Pricing.Offer.FromQuotes",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
       "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
       "to": "behavior|Sales.Commons.Money.Max",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
       "to": "behavior|Sales.Commons.Money.Zero",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
       "to": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
       "to": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
       "to": "behavior|Sales.Pricing.Offer.FromQuotes",
       "order": 3
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
       "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
       "order": 4
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
       "to": "behavior|Sales.Pricing.Offer.FromQuotes",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
       "to": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
       "to": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
       "order": 3
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
       "to": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
       "to": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
       "to": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or",
       "order": 3
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
       "to": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
       "to": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn",
       "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn",
       "to": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
       "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn",
       "to": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn",
       "to": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|Sales.Products.ProductAmount.Of",
       "to": "behavior|Sales.Products.Amount.Of",
       "order": 1

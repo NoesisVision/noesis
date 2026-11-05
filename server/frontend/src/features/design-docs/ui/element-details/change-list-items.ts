@@ -249,10 +249,12 @@ export const ruleItems = (
     };
   });
 
-/** The `performs` and `invokes` relations of a design, each with what the design does to it. */
+/** The `performs` and `process_invokes_behavior` relations of a design, each with what the design does to it. */
 const peopleRelations = (doc: DesignDocumentInput) =>
   [...changed(doc.relations)].filter(
-    ([relation]) => relation.kind === 'performs' || relation.kind === 'invokes',
+    ([relation]) =>
+      relation.kind === 'performs' ||
+      relation.kind === 'process_invokes_behavior',
   );
 
 /** The manual processes an actor performs, each opening its row under the actor. */
@@ -289,9 +291,7 @@ export const invokerItems = (
   behaviorId: string,
 ): ChangeListItem[] =>
   peopleRelations(doc).flatMap(([relation, change]) =>
-    relation.kind === 'invokes' &&
-    relation.to === behaviorId &&
-    relation.from.startsWith('manual_process|')
+    relation.kind === 'process_invokes_behavior' && relation.to === behaviorId
       ? [
           {
             change,

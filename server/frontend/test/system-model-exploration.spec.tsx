@@ -208,7 +208,7 @@ describe('the exploration of a system model', () => {
       relating(
         [
           {
-            kind: 'invokes',
+            kind: 'behavior_invokes_behavior',
             from: 'behavior|shop.orders.Order.place',
             to: check.id,
             order: 1,
@@ -248,7 +248,12 @@ describe('the exploration of a system model', () => {
       relating(
         [
           { kind: 'performs', from: ACTOR, to: PROCESS },
-          { kind: 'invokes', from: PROCESS, to: PLACE, order: 1 },
+          {
+            kind: 'process_invokes_behavior',
+            from: PROCESS,
+            to: PLACE,
+            order: 1,
+          },
         ],
         {
           actors: [{ id: ACTOR, name: 'Customer', description: null, source }],
@@ -553,8 +558,18 @@ it('keeps the calls of a behavior in the order the scan gives them', () => {
   const calling = explorationOf(
     relating(
       [
-        { kind: 'invokes', from: place, to: later.id, order: 2 },
-        { kind: 'invokes', from: place, to: sooner.id, order: 1 },
+        {
+          kind: 'behavior_invokes_behavior',
+          from: place,
+          to: later.id,
+          order: 2,
+        },
+        {
+          kind: 'behavior_invokes_behavior',
+          from: place,
+          to: sooner.id,
+          order: 1,
+        },
       ],
       { behaviors: [model.behaviors[0]!, later, sooner] },
     ),
@@ -991,7 +1006,7 @@ describe('a chain followed up to the next of its type', () => {
     cardinality: '1',
   });
   const calls = (caller: string, called: string) => ({
-    kind: 'invokes',
+    kind: 'behavior_invokes_behavior',
     from: `behavior|shop.orders.${caller}`,
     to: `behavior|shop.orders.${called}`,
     order: 1,

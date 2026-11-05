@@ -818,25 +818,25 @@
       "cardinality": "1"
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "to": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "to": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "to": "behavior|discounts.users.UserStatusProvider.getFor",
       "order": 3
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
       "to": "behavior|discounts.calculation.Discount.apply",
       "order": 1

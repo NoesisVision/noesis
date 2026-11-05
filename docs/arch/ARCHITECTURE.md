@@ -122,7 +122,7 @@ Both land on the same service layer. Neither bypasses it.
   System model page. A system model is a set of element lists, one per kind — modules,
   building blocks, behaviors, rules, scenarios, actors, manual processes, deployable units,
   libraries, layers, deployment containers — and one list of relations between them
-  (`contains`, `has_state`, `invokes`, `governs`, …), each element carrying only what is its
+  (`module_contains_block`, `has_state`, `behavior_invokes_behavior`, `governs`, …), each element carrying only what is its
   own. At every scan `ScannerFactory` picks the parser the repository names in
   `.noesis/settings.json` (`"parser": { "language": … }`) and builds a `SystemModelBuilder` over
   its namespace settings and the library manifests in `.noesis/libraries/`, both read through

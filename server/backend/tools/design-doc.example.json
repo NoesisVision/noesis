@@ -361,7 +361,7 @@
         "to": "manual_process|Refund a returned order"
       },
       {
-        "kind": "invokes",
+        "kind": "process_invokes_behavior",
         "from": "manual_process|Refund a returned order",
         "to": "behavior|sales.refunds.Refund.issue",
         "order": {

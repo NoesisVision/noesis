@@ -154,7 +154,11 @@ function callersOf(
   const add = (map: Map<string, string[]>, key: string, value: string) =>
     map.set(key, [...(map.get(key) ?? []), value]);
   for (const relation of writtenIn(document.relations))
-    if (relation.kind === 'invokes') add(invokers, relation.to, relation.from);
+    if (
+      relation.kind === 'behavior_invokes_behavior' ||
+      relation.kind === 'process_invokes_behavior'
+    )
+      add(invokers, relation.to, relation.from);
     else if (relation.kind === 'performs')
       add(performers, relation.to, nameOf(relation.from));
   const isProcess = (id: string) => id.startsWith('manual_process|');

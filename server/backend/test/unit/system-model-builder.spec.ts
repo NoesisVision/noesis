@@ -2165,6 +2165,18 @@ describe('10. order and determinism', () => {
     ]);
     expect<unknown>(first.model.relations).toEqual([
       {
+        kind: 'behavior_invokes_behavior',
+        from: 'behavior|Sales.Alpha.Zip',
+        to: 'behavior|Sales.Alpha.Act',
+        order: 1,
+      },
+      {
+        kind: 'behavior_invokes_behavior',
+        from: 'behavior|Sales.Alpha.Zip',
+        to: 'behavior|Sales.Zed.Make',
+        order: 2,
+      },
+      {
         kind: 'exposes',
         from: 'building_block|Sales.Alpha',
         to: 'behavior|Sales.Alpha.Act',
@@ -2178,18 +2190,6 @@ describe('10. order and determinism', () => {
         kind: 'exposes',
         from: 'building_block|Sales.Zed',
         to: 'behavior|Sales.Zed.Make',
-      },
-      {
-        kind: 'invokes',
-        from: 'behavior|Sales.Alpha.Zip',
-        to: 'behavior|Sales.Alpha.Act',
-        order: 1,
-      },
-      {
-        kind: 'invokes',
-        from: 'behavior|Sales.Alpha.Zip',
-        to: 'behavior|Sales.Zed.Make',
-        order: 2,
       },
       {
         kind: 'library_contains_block',
@@ -2339,22 +2339,22 @@ describe('11. relations derived from invocations', () => {
         .method('M:Sales.Order#Ship()'),
     ]);
     expect<unknown>(
-      model.relations.filter((r) => r.kind === 'invokes'),
+      model.relations.filter((r) => r.kind === 'behavior_invokes_behavior'),
     ).toEqual([
       {
-        kind: 'invokes',
+        kind: 'behavior_invokes_behavior',
         from: 'behavior|Sales.Order.Place',
         to: 'behavior|Sales.Order.Audit',
         order: 2,
       },
       {
-        kind: 'invokes',
+        kind: 'behavior_invokes_behavior',
         from: 'behavior|Sales.Order.Place',
         to: 'behavior|Sales.Order.Ship',
         order: 3,
       },
       {
-        kind: 'invokes',
+        kind: 'behavior_invokes_behavior',
         from: 'behavior|Sales.Order.Place',
         to: 'behavior|Sales.Order.Total',
         order: 1,

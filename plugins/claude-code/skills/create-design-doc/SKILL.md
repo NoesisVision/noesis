@@ -76,7 +76,7 @@ containers, rules, scenarios. Read it at step 5.
      to it in meaning. A new root module needs the user's approval, always.
    - **Actors and manual processes.** Every goal a person reaches by
      driving the system is a manual process (`manualProcesses`): the work
-     they do by hand, whose `invokes` relations call the system's
+     they do by hand, whose `process_invokes_behavior` relations call the system's
      behaviors in order. The actor who does it (`actors`) `performs` it;
      reuse the actor names the system model already uses, verbatim. The
      behaviors a process invokes are behaviors of application services or
@@ -96,8 +96,8 @@ containers, rules, scenarios. Read it at step 5.
    - **Building blocks and behaviors**, with their types, and the
      **relations** between them: a block's state (`has_state`), what it
      works with (`has_collaborator`), what it extends (`extends`), a behavior's inputs (`has_input`) and output
-     (`has_output`), and what calls what (`invokes`, from a behavior or a
-     manual process). Take ready solutions
+     (`has_output`), and what calls what (`behavior_invokes_behavior` from a
+     behavior, `process_invokes_behavior` from a manual process). Take ready solutions
      from the sources, diagrams especially.
    - **Rules**, one per requirement statement, each with its kind, the
      needs it answers (none for a design decision) and, when a source gives
@@ -151,8 +151,9 @@ containers, rules, scenarios. Read it at step 5.
    behavior's parameter, the same way, plus `position`, a field: where it
    stands in the signature, counting from 1), `has_output` (a behavior's result:
    its `name` is always `result`; `to` and `cardinality` are fields), `extends`, `exposes`,
-   the containments, `invokes` (from a behavior or a manual process; `order` a
-   field), `governs` (from a behavior to a rule it follows),
+   the containments, `behavior_invokes_behavior` (from a behavior to a
+   behavior it calls) and `process_invokes_behavior` (from a manual process to
+   a behavior it calls; for both, `order` is a field), `governs` (from a behavior to a rule it follows),
    `illustrates` (from a scenario to its rule), `performs` (from an
    actor to a manual process). The containments are named by both ends:
    `module_contains_module`, `module_contains_block`, `unit_contains_module`
@@ -194,7 +195,7 @@ containers, rules, scenarios. Read it at step 5.
    change set with nothing in it.
    Before saving, check that every end of a relation — the `to` of a
    `has_state`, `has_collaborator`, `has_input` or `has_output`, both ends of an `extends`,
-   an `invokes`, a `governs`, an `illustrates` or a `performs` — names an
+   a `behavior_invokes_behavior`, a `process_invokes_behavior`, a `governs`, an `illustrates` or a `performs` — names an
    element this
    design adds, one the system model has, or a primitive, that
    nothing refers to an id the design removes, that every added rule has a

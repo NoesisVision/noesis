@@ -2317,37 +2317,37 @@
       "to": "rule|qdocmanagement.preparation.Version 1 starts with the status new"
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
       "to": "behavior|qdocmanagement.notifications.NotificationSender.send",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|qdocmanagement.preparation.QDoc.create",
       "to": "behavior|qdocmanagement.preparation.Version.createFirst",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
       "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
       "order": 3
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
       "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
       "order": 1
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
       "to": "behavior|qdocmanagement.preparation.QDoc.create",
       "order": 2
     },
     {
-      "kind": "invokes",
+      "kind": "behavior_invokes_behavior",
       "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
       "to": "behavior|qdocmanagement.preparation.QDocRepository.save",
       "order": 4

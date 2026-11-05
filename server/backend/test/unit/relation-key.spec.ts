@@ -36,7 +36,12 @@ const output = {
   name: 'result',
   cardinality: '1',
 } as const;
-const invokes = { kind: 'invokes', from: CANCEL, to: PLACE, order: 1 } as const;
+const invokes = {
+  kind: 'behavior_invokes_behavior',
+  from: CANCEL,
+  to: PLACE,
+  order: 1,
+} as const;
 const collaborator = {
   kind: 'has_collaborator',
   from: ORDER,

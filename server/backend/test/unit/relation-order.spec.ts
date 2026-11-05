@@ -19,7 +19,12 @@ const state = {
   name: 'total',
   cardinality: '1',
 } as const;
-const invokes = { kind: 'invokes', from: CANCEL, to: PLACE, order: 1 } as const;
+const invokes = {
+  kind: 'behavior_invokes_behavior',
+  from: CANCEL,
+  to: PLACE,
+  order: 1,
+} as const;
 
 describe('The order of the relations of a model', () => {
   it('is by kind, holder, target, then name or order, so two builds give one file', () => {
@@ -60,11 +65,11 @@ describe('The order of the relations of a model', () => {
         .sort(byRelation)
         .map((r) => [r.kind, r.to, 'name' in r ? r.name : '']),
     ).toEqual([
+      ['behavior_invokes_behavior', PLACE, ''],
+      ['behavior_invokes_behavior', 'behavior|sales.orders.Order.ship', ''],
       ['has_state', 'primitive|decimal', 'total'],
       ['has_state', 'primitive|decimal', 'weight'],
       ['has_state', 'primitive|integer', 'count'],
-      ['invokes', PLACE, ''],
-      ['invokes', 'behavior|sales.orders.Order.ship', ''],
       ['module_contains_block', ORDER, ''],
     ]);
   });

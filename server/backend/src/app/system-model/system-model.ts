@@ -104,7 +104,7 @@ export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
 export const ScannedBehavior = ScannedElement.extend({
   id: BehaviorId,
 }).describe(
-  "A behavior: a public method of a building block, named by the block's id path and its own name; its inputs, output, the behaviors it invokes and the rules it governs are relations.",
+  "A behavior: a public method of a building block, named by the block's id path and its own name; its inputs, output, the behaviors it invokes ('behavior_invokes_behavior') and the rules it governs are relations.",
 );
 export type ScannedBehavior = z.infer<typeof ScannedBehavior>;
 
@@ -168,7 +168,7 @@ export type ScannedActor = z.infer<typeof ScannedActor>;
 export const ScannedManualProcess = ScannedElement.extend({
   id: ManualProcessId,
 }).describe(
-  "Work an actor performs that is not automated, calling behaviors in order through 'invokes' relations; found in the test that encodes it.",
+  "Work an actor performs that is not automated, calling behaviors in order through 'process_invokes_behavior' relations; found in the test that encodes it.",
 );
 
 export const ScannedDeployableUnit = ScannedElement.extend({
@@ -345,19 +345,31 @@ export const HasOutputRelation = NamedSlotRelation.extend({
   "What a behavior gives back: the slot named 'result', typed by `to`, holding `cardinality` values; a behavior has at most one.",
 );
 
-export const InvokesRelation = ScannedRelation.extend({
-  kind: z.literal('invokes'),
-  from: z.union([BehaviorId, ManualProcessId]),
+export const BehaviorInvokesBehaviorRelation = ScannedRelation.extend({
+  kind: z.literal('behavior_invokes_behavior'),
+  from: BehaviorId,
   to: BehaviorId,
   order: z
     .int()
     .min(1)
     .describe(
-      'The position of the call within the calling behavior or manual process, counting from 1; a behavior called twice keeps its first.',
+      'The position of the call within the calling behavior, counting from 1; a behavior called twice keeps its first.',
     ),
 }).describe(
-  'A behavior or a manual process calls a behavior, as its `order`th step; a behavior never calls itself.',
+  'A behavior calls another behavior, as its `order`th call; a behavior never calls itself.',
 );
+
+export const ProcessInvokesBehaviorRelation = ScannedRelation.extend({
+  kind: z.literal('process_invokes_behavior'),
+  from: ManualProcessId,
+  to: BehaviorId,
+  order: z
+    .int()
+    .min(1)
+    .describe(
+      'The position of the step within the manual process, counting from 1.',
+    ),
+}).describe('A manual process calls a behavior, as its `order`th step.');
 
 export const GovernsRelation = ScannedRelation.extend({
   kind: z.literal('governs'),
@@ -399,7 +411,8 @@ export const Relation = z.discriminatedUnion('kind', [
   ExposesRelation,
   HasInputRelation,
   HasOutputRelation,
-  InvokesRelation,
+  BehaviorInvokesBehaviorRelation,
+  ProcessInvokesBehaviorRelation,
   GovernsRelation,
   IllustratesRelation,
   PerformsRelation,

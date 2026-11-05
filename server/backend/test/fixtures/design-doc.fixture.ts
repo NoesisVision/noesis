@@ -286,7 +286,7 @@ export const designDocFixture = {
         to: REFUNDS_API,
       },
       {
-        kind: 'invokes',
+        kind: 'process_invokes_behavior',
         from: REFUND_A_RETURN,
         to: ISSUE,
         order: byAgent(1),
@@ -395,7 +395,7 @@ export const designDocFixture = {
         name: 'force',
       },
       {
-        kind: 'invokes',
+        kind: 'behavior_invokes_behavior',
         from: CANCEL,
         to: 'behavior|sales.credit-notes.CreditNote.issue',
       },
@@ -424,7 +424,7 @@ export const designDocFixture = {
         cardinality: byAgent('1'),
       },
       {
-        kind: 'invokes',
+        kind: 'behavior_invokes_behavior',
         from: CANCEL,
         to: 'behavior|sales.orders.Order.notify',
         order: byAgent(2),

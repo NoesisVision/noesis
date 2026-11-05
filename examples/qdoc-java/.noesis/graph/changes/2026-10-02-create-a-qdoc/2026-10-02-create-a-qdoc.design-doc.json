@@ -2275,7 +2275,7 @@
         "to": "manual_process|Create a QDoc"
       },
       {
-        "kind": "invokes",
+        "kind": "process_invokes_behavior",
         "from": "manual_process|Create a QDoc",
         "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
         "order": {

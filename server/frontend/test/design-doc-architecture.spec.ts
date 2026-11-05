@@ -48,7 +48,7 @@ const performing = (
     to: `manual_process|${process}`,
   },
   ...addresses.map((address, index): DesignedRelationInput => ({
-    kind: 'invokes',
+    kind: 'process_invokes_behavior',
     from: `manual_process|${process}`,
     to: `behavior|${address}`,
     order: agent(index + 1),
@@ -317,7 +317,7 @@ describe('the checks', () => {
           added: [
             ...clean.relations.added,
             {
-              kind: 'invokes',
+              kind: 'behavior_invokes_behavior',
               from: 'behavior|sales.billing.BillingService.bill',
               to: 'behavior|sales.orders.Order.cancel',
               order: agent(1),

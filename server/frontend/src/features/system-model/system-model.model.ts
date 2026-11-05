@@ -82,7 +82,8 @@ function designedRelation(relation: Relation): DesignedRelation {
         to: field(relation.to),
         cardinality: field(relation.cardinality),
       };
-    case 'invokes':
+    case 'behavior_invokes_behavior':
+    case 'process_invokes_behavior':
       return { ...relation, order: field(relation.order) };
     default:
       return relation;

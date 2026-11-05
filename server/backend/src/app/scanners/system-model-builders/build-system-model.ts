@@ -851,7 +851,7 @@ class ModelAssembly {
 
   /* ------------------------------------------------------- invocations */
 
-  /** R11.1 to R11.3: one `invokes` per behavior a behavior calls, in the order of the calls. */
+  /** R11.1 to R11.3: one `behavior_invokes_behavior` per behavior a behavior calls, in the order of the calls. */
   private collectInvocations(): void {
     const calls = new Map<BehaviorId, Call[]>();
     for (const artifact of this.index.artifacts) {
@@ -1508,7 +1508,7 @@ function invokesOf(from: BehaviorId, calls: readonly Call[]): Relation[] {
     }
   }
   return targets.map((to, index) => ({
-    kind: 'invokes',
+    kind: 'behavior_invokes_behavior',
     from,
     to,
     order: index + 1,

@@ -54,7 +54,7 @@ export interface ExploredElement {
 type Pair = [string, string];
 
 /**
- * Each relation drawn as an edge, as the view knows it: the model's relation
+ * Each relation drawn as an edge, as the view knows it: the model's relations
  * it reads, how the filter names it, the word its edges carry, and its two
  * ways of reaching — from the source, and read back from the target.
  * Containment is drawn as cards inside cards, never as an edge.
@@ -62,7 +62,7 @@ type Pair = [string, string];
 export const DRAWN_RELATIONS = [
   {
     kind: 'state',
-    model: 'has_state',
+    models: ['has_state'],
     label: 'State',
     word: 'has state',
     reach: 'hasState',
@@ -70,7 +70,7 @@ export const DRAWN_RELATIONS = [
   },
   {
     kind: 'collaborator',
-    model: 'has_collaborator',
+    models: ['has_collaborator'],
     label: 'Collaborators',
     word: 'has collaborator',
     reach: 'hasCollaborator',
@@ -78,7 +78,7 @@ export const DRAWN_RELATIONS = [
   },
   {
     kind: 'input',
-    model: 'has_input',
+    models: ['has_input'],
     label: 'Input',
     word: 'has input',
     reach: 'hasInput',
@@ -86,7 +86,7 @@ export const DRAWN_RELATIONS = [
   },
   {
     kind: 'output',
-    model: 'has_output',
+    models: ['has_output'],
     label: 'Output',
     word: 'has output',
     reach: 'hasOutput',
@@ -94,7 +94,7 @@ export const DRAWN_RELATIONS = [
   },
   {
     kind: 'extends',
-    model: 'extends',
+    models: ['extends'],
     label: 'Extends',
     word: 'extends',
     reach: 'extends',
@@ -102,7 +102,7 @@ export const DRAWN_RELATIONS = [
   },
   {
     kind: 'invokes',
-    model: 'invokes',
+    models: ['behavior_invokes_behavior', 'process_invokes_behavior'],
     label: 'Invokes',
     word: 'invokes',
     reach: 'invokes',
@@ -110,7 +110,7 @@ export const DRAWN_RELATIONS = [
   },
   {
     kind: 'performs',
-    model: 'performs',
+    models: ['performs'],
     label: 'Performs',
     word: 'performs',
     reach: 'performs',
@@ -182,7 +182,9 @@ export const RELATION_WORD = {
 } as const satisfies Record<EdgeKind, string>;
 
 const DRAWN_OF_MODEL = new Map<string, DrawnRelationKind>(
-  DRAWN_RELATIONS.map(({ model, kind }) => [model, kind]),
+  DRAWN_RELATIONS.flatMap(({ models, kind }) =>
+    models.map((model) => [model, kind] as const),
+  ),
 );
 
 const parentPath = (path: string) =>
@@ -304,7 +306,10 @@ export function explorationOf(model: SystemModel): Exploration {
     const kind = DRAWN_OF_MODEL.get(relation.kind);
     if (kind === undefined || from === to || !known(from) || !known(to))
       continue;
-    if (relation.kind === 'invokes')
+    if (
+      relation.kind === 'behavior_invokes_behavior' ||
+      relation.kind === 'process_invokes_behavior'
+    )
       calls.push({ from, to, order: relation.order });
     else pairs.get(kind)?.set(`${from}->${to}`, [from, to]);
   }

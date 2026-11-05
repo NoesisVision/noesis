@@ -385,7 +385,12 @@ describe('A relation', () => {
     name: 'result',
     cardinality: '1',
   };
-  const invokes = { kind: 'invokes', from: CANCEL, to: PLACE, order: 1 };
+  const invokes = {
+    kind: 'behavior_invokes_behavior',
+    from: CANCEL,
+    to: PLACE,
+    order: 1,
+  };
   const collaborator = {
     kind: 'has_collaborator',
     from: ORDER,
@@ -407,7 +412,12 @@ describe('A relation', () => {
           input,
           output,
           invokes,
-          { kind: 'invokes', from: RETURN_GOODS, to: PLACE, order: 1 },
+          {
+            kind: 'process_invokes_behavior',
+            from: RETURN_GOODS,
+            to: PLACE,
+            order: 1,
+          },
           { kind: 'performs', from: CUSTOMER, to: RETURN_GOODS },
         ]),
       ),
@@ -415,6 +425,21 @@ describe('A relation', () => {
     expect(isValid(withRelations([{ ...invokes, from: CUSTOMER }]))).toBe(
       false,
     );
+    expect(isValid(withRelations([{ ...invokes, from: RETURN_GOODS }]))).toBe(
+      false,
+    );
+    expect(
+      isValid(
+        withRelations([
+          {
+            kind: 'process_invokes_behavior',
+            from: CANCEL,
+            to: PLACE,
+            order: 1,
+          },
+        ]),
+      ),
+    ).toBe(false);
     expect(
       isValid(withRelations([{ kind: 'performs', from: CUSTOMER, to: PLACE }])),
     ).toBe(false);

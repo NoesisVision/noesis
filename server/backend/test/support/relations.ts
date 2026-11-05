@@ -41,13 +41,13 @@ export const extendsOf = (model: Built, block: string): string[] =>
 
 /** The behaviors a behavior invokes, in call order. */
 export const invokesOf = (model: Built, behavior: string): string[] =>
-  from(model, 'invokes', behavior)
+  from(model, 'behavior_invokes_behavior', behavior)
     .sort((a, b) => a.order - b.order)
     .map((r) => r.to);
 
 /** The behaviors a behavior invokes, sorted by id: which, not in which order. */
 export const invokedTargetsOf = (model: Built, behavior: string): string[] =>
-  from(model, 'invokes', behavior)
+  from(model, 'behavior_invokes_behavior', behavior)
     .map((r) => r.to)
     .sort(byCodeUnit);
 
