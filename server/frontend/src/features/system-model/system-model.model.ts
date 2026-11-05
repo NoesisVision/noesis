@@ -1,6 +1,10 @@
 import type { DesignDocId } from '#backend/app/design-docs/design-doc-id.ts';
-import type { DesignDocument } from '#backend/app/design-docs/design-doc.ts';
 import type {
+  DesignDocument,
+  DesignedRelation,
+} from '#backend/app/design-docs/design-doc.ts';
+import type {
+  Relation,
   ScannedRule,
   ScannedScenario,
   SystemModel,
@@ -51,6 +55,30 @@ function rules(found: ScannedRule[]) {
   );
 }
 
+/** A relation as a design document holds one: what may change in place as a field. */
+function relation(found: Relation): DesignedRelation {
+  switch (found.kind) {
+    case 'has_state':
+    case 'has_output':
+      return {
+        ...found,
+        to: field(found.to),
+        cardinality: field(found.cardinality),
+      };
+    case 'has_input':
+      return {
+        ...found,
+        to: field(found.to),
+        cardinality: field(found.cardinality),
+        position: field(found.position),
+      };
+    case 'behavior_invokes_behavior':
+      return { ...found, order: field(found.order) };
+    default:
+      return found;
+  }
+}
+
 export function designOf(model: SystemModel): DesignDocument {
   return {
     // Not a document the graph holds: the id only keys what the reader keeps.
@@ -64,7 +92,6 @@ export function designOf(model: SystemModel): DesignDocument {
         name: field(module.name),
         definition: optional(module.description),
         diagram: UNSET,
-        relations: { added: module.relations, removed: [] },
         rules: rules(module.rules),
       })),
     ),
@@ -75,15 +102,6 @@ export function designOf(model: SystemModel): DesignDocument {
         type: field(block.type),
         definition: optional(block.description),
         diagram: UNSET,
-        relations: { added: block.relations, removed: [] },
-        properties: added(
-          block.properties.map((property) => ({
-            name: property.name,
-            type: field(property.type),
-            description: optional(property.description),
-            optional: field(property.optional),
-          })),
-        ),
         rules: rules(block.rules),
         scenarios: scenarios(block.scenarios),
       })),
@@ -96,26 +114,11 @@ export function designOf(model: SystemModel): DesignDocument {
         definition: optional(behavior.description),
         diagram: UNSET,
         visibility: field(behavior.visibility),
-        relations: { added: behavior.relations, removed: [] },
-        input: added(
-          behavior.input.map((parameter) => ({
-            name: parameter.name,
-            type: field(parameter.type),
-            description: optional(parameter.description),
-            optional: field(parameter.optional),
-          })),
-        ),
-        output: added(
-          behavior.output.map((result) => ({
-            type: result.type,
-            description: optional(result.description),
-            optional: field(result.optional),
-          })),
-        ),
         rules: rules(behavior.rules),
         scenarios: scenarios(behavior.scenarios),
       })),
     ),
+    relations: added(model.relations.map(relation)),
     implemented: true,
     implementedAt: model.scanned_at,
   };

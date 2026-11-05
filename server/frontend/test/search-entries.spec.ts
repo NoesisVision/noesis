@@ -26,14 +26,12 @@ const weather = change('2026-09-17-weather', 'Weather-based discount', [
 ] as unknown as ChangeWithEntries['entries']);
 const loyalty = change('2026-10-01-loyalty', 'Loyalty points expiry');
 
-const source = { path: 'X.java', line: null };
+const source = { path: 'X.java', startLine: null, endLine: null };
 const block = (id: string, name: string, type: string) => ({
   id,
   name,
   type,
   description: null,
-  relations: [],
-  properties: [],
   rules: [],
   scenarios: [],
   source,
@@ -47,7 +45,6 @@ const systemModel = {
       id: 'module|shop',
       name: 'shop',
       description: null,
-      relations: [],
       rules: [],
       source,
     },
@@ -62,12 +59,27 @@ const systemModel = {
       name: 'checkOut',
       type: 'Command',
       description: null,
-      visibility: { kind: 'public' },
-      input: [],
-      output: [],
+      visibility: { kind: 'public', actors: [] },
       rules: [],
       scenarios: [],
       source,
+    },
+  ],
+  relations: [
+    {
+      kind: 'module_contains_block',
+      from: 'module|shop',
+      to: 'building_block|shop.Basket',
+    },
+    {
+      kind: 'module_contains_block',
+      from: 'module|shop',
+      to: 'building_block|shop.Price',
+    },
+    {
+      kind: 'exposes',
+      from: 'building_block|shop.Basket',
+      to: 'behavior|shop.Basket.checkOut',
     },
   ],
 } as unknown as SystemModel;

@@ -22,8 +22,8 @@ export const behaviorSections = (
   return [
     ...section(InputOutputSection, 'input-output', {
       element,
-      input: parameterItems(behavior.input),
-      output: resultItems(behavior.output),
+      input: parameterItems(doc, behavior.id),
+      output: resultItems(doc, behavior.id),
     }),
     ...section(ChangeListSection, 'rules', {
       element,

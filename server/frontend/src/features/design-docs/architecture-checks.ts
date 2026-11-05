@@ -10,9 +10,10 @@ import { nameOf } from './element-id.ts';
 
 /*
  * What a hexagonal architecture asks of a design, checked against what the
- * document holds: building block types, visibility, and the types properties,
- * inputs and outputs use. The document has no calls, so nothing here says
- * which service uses which port — only what the types already give away.
+ * document holds: building block types, visibility, and the types its
+ * `has_state`, `has_input` and `has_output` relations name. No check reads
+ * the calls, so nothing here says which service uses which port — only what
+ * the types already give away.
  *
  * Each check names the elements it concerns, or, when it passes, the ones it
  * looked at, so a reviewer can see what a pass covers.

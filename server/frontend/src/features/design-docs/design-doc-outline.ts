@@ -11,25 +11,22 @@ import type {
   DesignedBehaviorInput,
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
-  DesignedPropertyInput,
   DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
 import { type ChangeSetInput, named } from './change-set.ts';
-import {
-  type DesignDocFieldInput,
-  refLabelOf,
-  valueOf,
-} from './design-doc-field.ts';
+import { type DesignDocFieldInput, valueOf } from './design-doc-field.ts';
 import { kindOf, nameOf, parentOf } from './element-id.ts';
+import { slotLabelOf } from './relations.ts';
 
 /*
  * The other half of the design document's own sentence: the hierarchy is
- * rebuilt from the ids when a reader wants it. The document says what changes
- * and nothing about what contains what, so every relation here is read back
- * out of the ids, and an ancestor the document never mentions is conjured
- * unchanged rather than left as a hole under one of its descendants.
+ * rebuilt from the ids when a reader wants it. What contains what is in the
+ * ids — the containment relations the document writes agree with them — so
+ * the hierarchy is read back out of the ids, and an ancestor the document
+ * never mentions is conjured unchanged rather than left as a hole under one
+ * of its descendants. A block's state hangs under it, read from the
+ * relations.
  *
  * The document is read as the wire carries it — ids are plain strings, and a
  * field the writer left out is absent rather than defaulted.
@@ -40,6 +37,7 @@ export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   addModules(nodes, document.modules);
   addBuildingBlocks(nodes, document.buildingBlocks);
   addBehaviors(nodes, document.behaviors);
+  addProperties(nodes, document.relations);
   addImpliedAncestors(nodes);
   return inReadingOrder(nodes.values());
 }
@@ -61,7 +59,6 @@ function addBuildingBlocks(
 ): void {
   for (const [block, change] of named(blocks)) {
     put(nodes, element(block.id, change, valueOf(block.type), isDrawn(block)));
-    addProperties(nodes, block.id, block.properties);
     addRules(nodes, block.id, block.rules);
     addScenarios(nodes, block.id, block.scenarios);
   }
@@ -83,25 +80,32 @@ function addBehaviors(
   for (const id of behaviors?.removed ?? []) put(nodes, element(id, 'removed'));
 }
 
+/**
+ * A block's state hangs under it as its properties: the `has_state` relations
+ * from it, wherever the document writes them — from a block it names, or from
+ * one it leaves alone, which is then implied like any ancestor.
+ */
 function addProperties(
   nodes: Map<string, OutlineNode>,
-  owner: string,
-  properties: ChangeSetInput<DesignedPropertyInput, string> | undefined,
+  relations: DesignDocumentInput['relations'],
 ): void {
-  for (const [property, change] of named(properties))
+  for (const [relation, change] of named(relations)) {
+    if (relation.kind !== 'has_state') continue;
+    const type = valueOf(relation.to);
     put(
       nodes,
       part(
-        owner,
+        relation.from,
         'property',
-        property.name,
+        relation.name,
         change,
-        refLabelOrNull(valueOf(property.type)),
-        valueOf(property.description),
+        type === null ? null : slotLabelOf(type, valueOf(relation.cardinality)),
       ),
     );
-  for (const name of properties?.removed ?? [])
-    put(nodes, part(owner, 'property', name, 'removed'));
+  }
+  for (const key of relations?.removed ?? [])
+    if (key.kind === 'has_state')
+      put(nodes, part(key.from, 'property', key.name, 'removed'));
 }
 
 function addRules(
@@ -146,9 +150,6 @@ function addScenarios(
   for (const name of scenarios?.removed ?? [])
     put(nodes, part(owner, 'scenario', name, 'removed'));
 }
-
-const refLabelOrNull = (ref: BuildingBlockRefInput | null) =>
-  ref === null ? null : refLabelOf(ref);
 
 /**
  * A module the document never names still has to be there, or the element
@@ -234,7 +235,7 @@ function part(
     pattern,
     // Not written out as an element's pattern is: a property's is its type and
     // a rule's is its kind, and both are spelled by whoever wrote them —
-    // `OrderId`, `RefundLine[]`, `date`, `State change`.
+    // `OrderId`, `RefundLine [*]`, `date [0..1]`, `State change`.
     patternLabel: pattern,
     hasDiagram: drawsDiagram(description),
   };

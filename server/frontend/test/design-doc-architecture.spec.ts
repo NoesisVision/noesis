@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'bun:test';
-import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BuildingBlockRefInput,
+  DesignDocumentInput,
+  DesignedRelationInput,
+} from '#backend/app/design-docs/design-doc.ts';
+import type {
   BuildingBlockType,
+  Cardinality,
 } from '#backend/app/system-model/system-model.ts';
 import type { ArchitectureCheck } from '../src/features/design-docs/architecture-outline';
 import {
@@ -12,8 +15,8 @@ import {
   needAtPortsPath,
 } from '../src/features/design-docs/architecture-tree';
 import {
-  architectureOf,
-  inferredFlowOf,
+  architectureOf as architectureOfDesign,
+  inferredFlowOf as inferredFlowOfDesign,
 } from '../src/features/design-docs/design-doc-architecture';
 import {
   behaviorIdAt,
@@ -26,6 +29,34 @@ import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixt
 
 const agent = <const T>(value: T) => ({ value, author: 'agent' as const });
 
+/*
+ * A block or a behavior is written here with its slots beside it, as the
+ * shorthand `slots`; `flat` moves them to the document's relations, where a
+ * design keeps them, before the design is read.
+ */
+type Slot = string | { many: string };
+
+const many = (type: string): Slot => ({ many: type });
+
+const slotOf = (
+  kind: 'has_state' | 'has_output',
+  from: string,
+  name: string,
+  slot: Slot,
+): DesignedRelationInput => {
+  const [to, cardinality]: [string, Cardinality] =
+    typeof slot === 'string' ? [slot, '1'] : [slot.many, '*'];
+  return kind === 'has_state'
+    ? { kind, from, name, to: agent(to), cardinality: agent(cardinality) }
+    : {
+        kind,
+        from,
+        name: 'result',
+        to: agent(to),
+        cardinality: agent(cardinality),
+      };
+};
+
 const block = (
   address: string,
   type: BuildingBlockType,
@@ -33,33 +64,84 @@ const block = (
 ) => ({
   id: `building_block|${address}`,
   type: agent(type),
-  properties: {
-    added: uses.map((used, index) => ({
-      name: `p${index}`,
-      type: agent(`building_block|${used}`),
-    })),
-  },
+  slots: uses.map((used, index) =>
+    slotOf(
+      'has_state',
+      `building_block|${address}`,
+      `p${index}`,
+      `building_block|${used}`,
+    ),
+  ),
 });
 
 const behavior = (
   address: string,
   visibility: { kind: 'private' } | { kind: 'public'; actors: string[] },
-  io: {
-    input?: BuildingBlockRefInput[];
-    output?: BuildingBlockRefInput[];
-  } = {},
-) => ({
-  id: `behavior|${address}`,
-  type: agent('Command'),
-  visibility: agent<typeof visibility>(visibility),
-  input: {
-    added: (io.input ?? []).map((type, index) => ({
+  io: { input?: Slot[]; output?: Slot[] } = {},
+) => {
+  const id = `behavior|${address}`;
+  const inputs = (io.input ?? []).map((slot, index): DesignedRelationInput => {
+    const [to, cardinality]: [string, Cardinality] =
+      typeof slot === 'string' ? [slot, '1'] : [slot.many, '*'];
+    return {
+      kind: 'has_input',
+      from: id,
       name: `in${index}`,
-      type: agent(type),
-    })),
-  },
-  output: { added: (io.output ?? []).map((type) => ({ type })) },
-});
+      to: agent(to),
+      cardinality: agent(cardinality),
+      position: agent(index + 1),
+    };
+  });
+  return {
+    id,
+    type: agent('Command'),
+    visibility: agent<typeof visibility>(visibility),
+    slots: [
+      ...inputs,
+      ...(io.output ?? []).map((slot) => slotOf('has_output', id, '', slot)),
+    ],
+  };
+};
+
+/** The document with every shorthand `slots` moved to its relations. */
+function flat(document: DesignDocumentInput): DesignDocumentInput {
+  const moved: DesignedRelationInput[] = [];
+  const strip = <Item extends object>(items: Item[] | undefined) =>
+    items?.map((item) => {
+      if (!('slots' in item)) return item;
+      const { slots, ...rest } = item;
+      moved.push(...(slots as DesignedRelationInput[]));
+      return rest as Item;
+    });
+  const strippedIn = <Set extends { added?: object[]; modified?: object[] }>(
+    set: Set | undefined,
+  ) =>
+    set && {
+      ...set,
+      added: strip(set.added),
+      modified: strip(set.modified),
+    };
+  const buildingBlocks = strippedIn(document.buildingBlocks);
+  const behaviors = strippedIn(document.behaviors);
+  return {
+    ...document,
+    buildingBlocks,
+    behaviors,
+    relations: {
+      ...document.relations,
+      added: [...(document.relations?.added ?? []), ...moved],
+    },
+  } as DesignDocumentInput;
+}
+
+const architectureOf = (document: DesignDocumentInput) =>
+  architectureOfDesign(flat(document));
+
+const inferredFlowOf: typeof inferredFlowOfDesign = (
+  document,
+  outline,
+  elementId,
+) => inferredFlowOfDesign(flat(document), outline, elementId);
 
 const PRIVATE = { kind: 'private' } as const;
 
@@ -83,7 +165,7 @@ const clean = {
       behavior(
         'sales.orders.OrderService.place',
         { kind: 'public', actors: ['Customer'] },
-        { input: [{ collectionOf: 'building_block|sales.orders.OrderLine' }] },
+        { input: [many('building_block|sales.orders.OrderLine')] },
       ),
       behavior('sales.orders.Orders.save', PRIVATE, {
         input: ['building_block|sales.orders.Order'],
@@ -537,7 +619,7 @@ describe('a block whose behaviors share a type', () => {
             output: ['building_block|sales.orders.Order'],
           }),
           behavior('sales.orders.Orders.all', PRIVATE, {
-            output: [{ collectionOf: 'building_block|sales.orders.Order' }],
+            output: [many('building_block|sales.orders.Order')],
           }),
           behavior('sales.orders.OrderService.ship', PRIVATE, {
             input: ['building_block|sales.orders.Order'],

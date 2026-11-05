@@ -18,17 +18,6 @@ const document = {
         id: 'building_block|pay.Hold',
         type: plain('aggregate'),
         definition: plain('Holds a card. Never shown in a tooltip.'),
-        properties: {
-          added: [
-            {
-              name: 'amount',
-              type: plain('building_block|pay.Money'),
-              optional: plain(true),
-              description: plain('What is held.'),
-            },
-          ],
-          removed: ['legacyId'],
-        },
       },
     ],
   },
@@ -37,20 +26,70 @@ const document = {
       {
         id: 'behavior|pay.Hold.place',
         definition: plain('Places a hold.'),
-        input: {
-          added: [{ name: 'amount', type: plain('building_block|pay.Money') }],
-        },
-        output: { added: [{ type: 'building_block|pay.Hold' }] },
       },
       {
         id: 'behavior|pay.Hold.release',
         type: plain('Command'),
-        input: { added: [{ name: 'reason', type: plain('string') }] },
       },
       {
         id: 'behavior|pay.Hold.balance',
         type: plain('Query'),
-        output: { added: [{ type: 'building_block|pay.Money' }] },
+      },
+    ],
+  },
+  relations: {
+    added: [
+      {
+        kind: 'has_state',
+        from: 'building_block|pay.Hold',
+        name: 'amount',
+        to: plain('building_block|pay.Money'),
+        cardinality: plain('0..1'),
+      },
+      {
+        kind: 'has_state',
+        from: 'building_block|pay.Hold',
+        name: 'lines',
+        to: plain('building_block|pay.HoldLine'),
+        cardinality: plain('*'),
+      },
+      {
+        kind: 'has_input',
+        from: 'behavior|pay.Hold.place',
+        name: 'amount',
+        to: plain('building_block|pay.Money'),
+        cardinality: plain('1'),
+        position: plain(1),
+      },
+      {
+        kind: 'has_output',
+        from: 'behavior|pay.Hold.place',
+        name: 'result',
+        to: plain('building_block|pay.Hold'),
+        cardinality: plain('1'),
+      },
+      {
+        kind: 'has_input',
+        from: 'behavior|pay.Hold.release',
+        name: 'reason',
+        to: plain('primitive|string'),
+        cardinality: plain('1'),
+        position: plain(1),
+      },
+      {
+        kind: 'has_output',
+        from: 'behavior|pay.Hold.balance',
+        name: 'result',
+        to: plain('building_block|pay.Money'),
+        cardinality: plain('1'),
+      },
+    ],
+    removed: [
+      {
+        kind: 'has_state',
+        from: 'building_block|pay.Hold',
+        name: 'legacyId',
+        to: 'primitive|uuid',
       },
     ],
   },
@@ -84,7 +123,8 @@ describe('ElementTooltip', () => {
     expect(html).toMatch(/>Hold<\/span><span[^>]*>pay</);
     expect(html).toContain('>Properties<');
     // The type apart from the name, coloured as a declaration box colours it.
-    expect(html).toMatch(/>amount\?: <span[^>]*>Money<\/span>/);
+    expect(html).toMatch(/>amount: <span[^>]*>Money \[0..1\]<\/span>/);
+    expect(html).toMatch(/>lines: <span[^>]*>HoldLine \[\*\]<\/span>/);
     // What the design removes is not part of what the block is.
     expect(html).not.toContain('legacyId');
   });
@@ -123,14 +163,23 @@ describe('ElementTooltip', () => {
     expect(html).toMatch(/>Hold: <span[^>]*>aggregate<\/span>/);
   });
 
-  it('reads a collection by its item', () => {
-    expect(render('pay.Hold[]')).toMatch(/>amount\?: <span[^>]*>Money</);
+  it('reads a slot by its type, whatever it holds', () => {
+    expect(render('pay.Hold [*]')).toMatch(/>Hold<\/span><span[^>]*>pay</);
   });
 
-  it('never shows a definition or a description', () => {
+  it("reads a behavior's input and output even where the document leaves the behavior alone", () => {
+    const doc = {
+      ...document,
+      behaviors: { added: [] },
+    } satisfies DesignDocumentInput;
+    const html = render('pay.Hold.place', doc);
+    expect(html).toContain('>Input<');
+    expect(html).toMatch(/>amount: <span[^>]*>Money<\/span>/);
+  });
+
+  it('never shows a definition', () => {
     const html = render('pay.Hold') + render('pay.Hold.place');
     expect(html).not.toContain('Never shown');
-    expect(html).not.toContain('What is held.');
     expect(html).not.toContain('Places a hold.');
   });
 

@@ -81,20 +81,6 @@
           "value": "flowchart LR\n  accTitle: Subsystems taking part in creating a QDoc\n  QM([Quality manager]) -->|createQDoc| PRE[preparation]\n  PRE -->|notifyUsers| NOT[notifications]\n  NOT -->|notification| QMs([Each quality manager])",
           "author": "agent"
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_module",
-              "from": "module|qdocmanagement",
-              "to": "module|qdocmanagement.preparation"
-            },
-            {
-              "kind": "module_contains_module",
-              "from": "module|qdocmanagement",
-              "to": "module|qdocmanagement.notifications"
-            }
-          ]
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -116,115 +102,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.QDocId"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.UserId"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.QDocTitle"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.DocumentType"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.DocumentNumber"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.QDocStatus"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.VersionStatus"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.AssignmentRole"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.Assignment"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.ContentFileId"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.CreateQDoc"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.QDocCreated"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.ContentFile"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.Version"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.QDoc"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.QDocRepository"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.IdentityProvider"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.QDocCreationService"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.preparation",
-              "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
-            }
-          ]
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -245,35 +122,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.notifications",
-              "to": "building_block|qdocmanagement.notifications.Recipient"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.notifications",
-              "to": "building_block|qdocmanagement.notifications.NotifyUsers"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.notifications",
-              "to": "building_block|qdocmanagement.notifications.Notification"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.notifications",
-              "to": "building_block|qdocmanagement.notifications.NotificationSender"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|qdocmanagement.notifications",
-              "to": "building_block|qdocmanagement.notifications.NotificationService"
-            }
-          ]
         },
         "rules": {
           "added": [
@@ -339,34 +187,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|uuid",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The identifier.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -398,34 +218,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The user's identifier in the identity provider.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -456,34 +248,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The title text.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [
@@ -574,34 +338,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The type: procedure, guideline, instruction or policy.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [
@@ -721,34 +457,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The composed document number.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -779,34 +487,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "active or archived.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [
@@ -871,34 +551,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "new, approved, published, no longer in force or archived.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [
             {
@@ -961,34 +613,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "author, reviewer or approver.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [
@@ -1053,52 +677,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "user",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The assigned user.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "role",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.AssignmentRole",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The role the user holds on the version.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1130,34 +708,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "changed": true,
-                "value": "primitive|uuid",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The identifier.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1188,130 +738,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "requestedBy",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The user who submits the request.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "title",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocTitle",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The title of the new QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentType",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentType",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The document type of the new QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "authors",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The authors of version 1; at least one.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "reviewers",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The reviewers of version 1; may be empty, reviewers can be added later (UC-3).",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": true,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "approvers",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The approvers of version 1; may be empty, at least one is needed only when the version is shared (UC-6).",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": true,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [
@@ -1483,106 +909,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "qdocId",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The new QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "title",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocTitle",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Its title.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentNumber",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentNumber",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Its document number.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "createdBy",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The quality manager who created it.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "createdAt",
-              "type": {
-                "changed": true,
-                "value": "primitive|datetime",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "When it was created.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1614,52 +940,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "id",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.ContentFileId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The file's identity.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "text",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The rich-text content; empty when the file is created.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1690,98 +970,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|qdocmanagement.preparation.Version",
-              "to": "behavior|qdocmanagement.preparation.Version.createFirst"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "number",
-              "type": {
-                "changed": true,
-                "value": "primitive|integer",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The version number, from 1.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "status",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.VersionStatus",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The workflow status.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "contentFiles",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.ContentFile"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The content files; at least one.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "assignments",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.Assignment"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The people assigned to the version, each with one role.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -1815,168 +1003,6 @@
           "changed": true,
           "value": "erDiagram\n  accTitle: Entities of the QDoc aggregate\n  QDoc {\n    QDocId id PK\n    QDocTitle title\n    DocumentType documentType\n    DocumentNumber documentNumber\n    QDocStatus status\n    UserId createdBy\n    datetime createdAt\n  }\n  Version {\n    integer number\n    VersionStatus status\n  }\n  ContentFile {\n    ContentFileId id PK\n    string text\n  }\n  Assignment {\n    UserId user\n    AssignmentRole role\n  }\n  QDoc ||--|{ Version : \"has versions\"\n  Version ||--|{ ContentFile : \"holds content files\"\n  Version ||--|{ Assignment : \"assigns people\"",
           "author": "agent"
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|qdocmanagement.preparation.QDoc",
-              "to": "behavior|qdocmanagement.preparation.QDoc.create"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "id",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The QDoc's identity.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "title",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocTitle",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The title.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentType",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentType",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The document type.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentNumber",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentNumber",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The document number, given at creation.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "status",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocStatus",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "active or archived.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "versions",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.Version"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The versions, at least one.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "createdBy",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The quality manager who created the QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "createdAt",
-              "type": {
-                "changed": true,
-                "value": "primitive|datetime",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "When the QDoc was created.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [
@@ -2070,21 +1096,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|qdocmanagement.preparation.QDocRepository",
-              "to": "behavior|qdocmanagement.preparation.QDocRepository.save"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2115,21 +1126,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|qdocmanagement.preparation.DocumentNumberGenerator",
-              "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -2162,26 +1158,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|qdocmanagement.preparation.IdentityProvider",
-              "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|qdocmanagement.preparation.IdentityProvider",
-              "to": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2212,21 +1188,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|qdocmanagement.preparation.PreparationEventPublisher",
-              "to": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -2259,21 +1220,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|qdocmanagement.preparation.QDocCreationService",
-              "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2304,34 +1250,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "userId",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The user's identifier in the identity provider.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -2364,70 +1282,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "qdocTitle",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocTitle",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The title of the new QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentNumber",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentNumber",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The document number of the new QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "createdBy",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The quality manager who created the QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2458,72 +1312,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "recipients",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.notifications.Recipient"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The users to notify.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "subject",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "What the notification is about, in one line.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "body",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The text of the notification.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -2556,70 +1344,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "recipient",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.notifications.Recipient",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The user notified.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "subject",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "What the notification is about, in one line.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "body",
-              "type": {
-                "changed": true,
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The text of the notification.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2651,21 +1375,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|qdocmanagement.notifications.NotificationSender",
-              "to": "behavior|qdocmanagement.notifications.NotificationSender.send"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2696,21 +1405,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|qdocmanagement.notifications.NotificationService",
-              "to": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -2758,49 +1452,6 @@
             "actors": ["Quality manager"]
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "command",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.CreateQDoc",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The QDoc creation request.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|qdocmanagement.preparation.QDocId",
-              "description": {
-                "changed": true,
-                "value": "The identity of the created QDoc.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [
@@ -3158,67 +1809,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "command",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.CreateQDoc",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The validated creation request: the title, the document type, the creator and the authors, reviewers and approvers to assign to version 1. The creation time is when the QDoc is created.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "documentNumber",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentNumber",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The number the generator gave.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|qdocmanagement.preparation.QDocCreated",
-              "description": {
-                "changed": true,
-                "value": "The QDocCreated event to publish, telling the other subsystems the QDoc exists; returned together with the new QDoc aggregate.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [
             {
@@ -3317,91 +1907,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "authors",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The authors to assign; at least one.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "reviewers",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The reviewers to assign; may be empty.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": true,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "approvers",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The approvers to assign; may be empty.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": true,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|qdocmanagement.preparation.Version",
-              "description": {
-                "changed": true,
-                "value": "Version 1: number 1, status new, one empty content file and one assignment per named author, reviewer and approver.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [
@@ -3792,35 +2297,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "qdoc",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDoc",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The QDoc to store.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -3858,49 +2334,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "documentType",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.DocumentType",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The type of the QDoc being created, available to a type-aware format.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|qdocmanagement.preparation.DocumentNumber",
-              "description": {
-                "changed": true,
-                "value": "The new document number.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -3940,49 +2373,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "user",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The user to check.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "primitive|boolean",
-              "description": {
-                "changed": true,
-                "value": "True when the user holds the quality manager role.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -4020,35 +2410,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "event",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.preparation.QDocCreated",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The event to publish.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -4090,35 +2451,6 @@
             "actors": []
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "command",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.notifications.NotifyUsers",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The request: the recipients, the subject and the body.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [
@@ -4306,32 +2638,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": {
-                "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-              },
-              "description": {
-                "changed": true,
-                "value": "The quality managers.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -4370,35 +2676,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "notification",
-              "type": {
-                "changed": true,
-                "value": "building_block|qdocmanagement.notifications.Notification",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The notification to deliver.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -4413,6 +2690,941 @@
     ],
     "removed": [],
     "modified": []
+  },
+  "relations": {
+    "added": [
+      {
+        "kind": "exposes",
+        "from": "building_block|qdocmanagement.notifications.NotificationSender",
+        "to": "behavior|qdocmanagement.notifications.NotificationSender.send"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|qdocmanagement.notifications.NotificationService",
+        "to": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|qdocmanagement.preparation.DocumentNumberGenerator",
+        "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|qdocmanagement.preparation.IdentityProvider",
+        "to": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|qdocmanagement.preparation.IdentityProvider",
+        "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|qdocmanagement.preparation.PreparationEventPublisher",
+        "to": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "to": "behavior|qdocmanagement.preparation.QDoc.create"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|qdocmanagement.preparation.QDocCreationService",
+        "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|qdocmanagement.preparation.QDocRepository",
+        "to": "behavior|qdocmanagement.preparation.QDocRepository.save"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|qdocmanagement.preparation.Version",
+        "to": "behavior|qdocmanagement.preparation.Version.createFirst"
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.notifications.NotificationSender.send",
+        "name": "notification",
+        "to": {
+          "value": "building_block|qdocmanagement.notifications.Notification"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+        "name": "command",
+        "to": {
+          "value": "building_block|qdocmanagement.notifications.NotifyUsers"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+        "name": "documentType",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.DocumentType"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+        "name": "user",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish",
+        "name": "event",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDocCreated"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.QDoc.create",
+        "name": "command",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.CreateQDoc"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.QDoc.create",
+        "name": "documentNumber",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.DocumentNumber"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 2
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "name": "command",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.CreateQDoc"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.QDocRepository.save",
+        "name": "qdoc",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDoc"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "name": "authors",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "*"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "name": "reviewers",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "*"
+        },
+        "position": {
+          "value": 2
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "name": "approvers",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "*"
+        },
+        "position": {
+          "value": 3
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+        "name": "result",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.DocumentNumber"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers",
+        "name": "result",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+        "name": "result",
+        "to": {
+          "value": "primitive|boolean"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.QDoc.create",
+        "name": "result",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDocCreated"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "name": "result",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDocId"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+        "name": "result",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.Version"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.Notification",
+        "name": "recipient",
+        "to": {
+          "value": "building_block|qdocmanagement.notifications.Recipient"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.Notification",
+        "name": "body",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.Notification",
+        "name": "subject",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+        "name": "recipients",
+        "to": {
+          "value": "building_block|qdocmanagement.notifications.Recipient"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+        "name": "body",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+        "name": "subject",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.notifications.Recipient",
+        "name": "userId",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Assignment",
+        "name": "role",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.AssignmentRole"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Assignment",
+        "name": "user",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.AssignmentRole",
+        "name": "value",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.ContentFile",
+        "name": "id",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.ContentFileId"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.ContentFile",
+        "name": "text",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.ContentFileId",
+        "name": "value",
+        "to": {
+          "value": "primitive|uuid"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "name": "documentType",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.DocumentType"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "name": "title",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDocTitle"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "name": "approvers",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "name": "authors",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "name": "requestedBy",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+        "name": "reviewers",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.DocumentNumber",
+        "name": "value",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.DocumentType",
+        "name": "value",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+        "name": "documentNumber",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.DocumentNumber"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+        "name": "qdocTitle",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDocTitle"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+        "name": "createdBy",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "name": "documentNumber",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.DocumentNumber"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "name": "documentType",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.DocumentType"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "name": "id",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDocId"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "name": "status",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDocStatus"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "name": "title",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDocTitle"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "name": "createdBy",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "name": "versions",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.Version"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDoc",
+        "name": "createdAt",
+        "to": {
+          "value": "primitive|datetime"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocCreated",
+        "name": "documentNumber",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.DocumentNumber"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocCreated",
+        "name": "qdocId",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDocId"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocCreated",
+        "name": "title",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.QDocTitle"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocCreated",
+        "name": "createdBy",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.UserId"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocCreated",
+        "name": "createdAt",
+        "to": {
+          "value": "primitive|datetime"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocId",
+        "name": "value",
+        "to": {
+          "value": "primitive|uuid"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocStatus",
+        "name": "value",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.QDocTitle",
+        "name": "value",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.UserId",
+        "name": "value",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Version",
+        "name": "assignments",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.Assignment"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Version",
+        "name": "contentFiles",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.ContentFile"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Version",
+        "name": "status",
+        "to": {
+          "value": "building_block|qdocmanagement.preparation.VersionStatus"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.Version",
+        "name": "number",
+        "to": {
+          "value": "primitive|integer"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|qdocmanagement.preparation.VersionStatus",
+        "name": "value",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.notifications",
+        "to": "building_block|qdocmanagement.notifications.Notification"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.notifications",
+        "to": "building_block|qdocmanagement.notifications.NotificationSender"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.notifications",
+        "to": "building_block|qdocmanagement.notifications.NotificationService"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.notifications",
+        "to": "building_block|qdocmanagement.notifications.NotifyUsers"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.notifications",
+        "to": "building_block|qdocmanagement.notifications.Recipient"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.Assignment"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.AssignmentRole"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.ContentFile"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.ContentFileId"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.CreateQDoc"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.DocumentNumber"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.DocumentType"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.IdentityProvider"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.QDoc"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.QDocCreated"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.QDocCreationService"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.QDocId"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.QDocRepository"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.QDocStatus"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.QDocTitle"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.UserId"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.Version"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|qdocmanagement.preparation",
+        "to": "building_block|qdocmanagement.preparation.VersionStatus"
+      },
+      {
+        "kind": "module_contains_module",
+        "from": "module|qdocmanagement",
+        "to": "module|qdocmanagement.notifications"
+      },
+      {
+        "kind": "module_contains_module",
+        "from": "module|qdocmanagement",
+        "to": "module|qdocmanagement.preparation"
+      }
+    ],
+    "removed": []
   },
   "implemented": false,
   "implementedAt": null

@@ -30,7 +30,7 @@ export const buildingBlockSections = (
       element,
       title: 'Properties',
       kind: 'property',
-      items: propertyItems(block.id, block.properties),
+      items: propertyItems(doc, block.id),
     }),
     ...section(DiagramSection, 'diagram', {
       element,
