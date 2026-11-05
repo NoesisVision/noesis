@@ -1,5 +1,6 @@
 import { Outlet } from '@tanstack/react-router';
 import { useMemo } from 'react';
+import { useSystemModelTools } from '#/features/system-model/ui/use-system-model-tools.ts';
 import { AppShell } from '#/shared/design-system/app-shell';
 import {
   useDisclosure,
@@ -12,11 +13,15 @@ import {
 } from '#/shared/ui/shell-fullscreen.tsx';
 import { useActiveRoute } from './navigation/use-active-route.ts';
 import { Rail } from './rail';
+import { useSearchTools } from './search/search-tools.ts';
 import { TopBar } from './top-bar';
 import classes from './shell-layout.module.css';
 
 export function ShellLayout() {
   const [navbarOpened, navbar] = useDisclosure(false);
+  // Offered to an agent in the browser from every page, behind its flag.
+  useSystemModelTools();
+  useSearchTools();
   // Folded to icons, as the reader last left it.
   const [railCollapsed, setRailCollapsed] = useLocalStorage<boolean>({
     key: 'noesis.rail-collapsed',

@@ -96,6 +96,7 @@ import { type RelationEdge, RelationEdgeView } from './relation-edge.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
 import { DiagramThemeContext } from './themes/diagram-theme-context.ts';
 import { useDiagramTheme } from './themes/use-diagram-theme.ts';
+import { useExplorationTools, useSettled } from './use-exploration-tools.ts';
 import { VisibilityPanel } from './visibility-panel.tsx';
 import classes from './exploration.module.css';
 
@@ -151,7 +152,7 @@ const ALGORITHM = 'layered';
 
 export function ExplorationView({ model }: { model: SystemModel }) {
   const {
-    features: { animateEdgesWhileDragging },
+    features: { animateEdgesWhileDragging, webMcpTools },
   } = useDevToolsContext();
   const exploration = useMemo(() => explorationOf(model), [model]);
   const modelId = model.id;
@@ -335,22 +336,38 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const [zoom, setZoom] = useState(1);
   const document = useMemo(() => designOf(model), [model]);
   // In hand, in the order taken; the last is the one the panel reads.
-  const [selection, setSelection] = useState<readonly string[]>([]);
+  const drawn = useMemo(
+    () => new Set(graph.elements.map(({ id }) => id)),
+    [graph],
+  );
+  const [hand, setSelection] = useState<readonly string[]>([]);
+  // What leaves the diagram leaves the hand too, however it went — an undo
+  // or a clear as much as a card's cross.
+  const selection = useMemo(
+    () =>
+      hand.every((id) => drawn.has(id))
+        ? hand
+        : hand.filter((id) => drawn.has(id)),
+    [hand, drawn],
+  );
   const selected = selection.at(-1) ?? null;
   const inHandSet = useMemo(() => new Set(selection), [selection]);
   // A card clicked is taken in hand alone; clicked again, alone in hand, it
   // is let go of. With Ctrl or Cmd it joins the hand, or leaves it.
-  const select = useCallback((id: string, adding: boolean) => {
-    setSelection((held) =>
-      !adding
-        ? held.length === 1 && held[0] === id
-          ? []
-          : [id]
-        : held.includes(id)
-          ? held.filter((each) => each !== id)
-          : [...held, id],
-    );
-  }, []);
+  const select = useCallback(
+    (id: string, adding: boolean) =>
+      setSelection((was) => {
+        const held = was.filter((each) => drawn.has(each));
+        return !adding
+          ? held.length === 1 && held[0] === id
+            ? []
+            : [id]
+          : held.includes(id)
+            ? held.filter((each) => each !== id)
+            : [...held, id];
+      }),
+    [drawn],
+  );
   const letGo = useCallback(() => setSelection([]), []);
   // The panel a lone card is read in, minimized: it shrinks into its corner,
   // where a button opens it again. Kept so as the hand changes.
@@ -395,10 +412,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         ? (exploration.elements.find(({ id }) => id === selected) ?? null)
         : null,
     [exploration, selection, selected],
-  );
-  const drawn = useMemo(
-    () => new Set(graph.elements.map(({ id }) => id)),
-    [graph],
   );
   const isShown = useCallback((id: string) => drawn.has(id), [drawn]);
   const onShowAll = useCallback(
@@ -724,6 +737,78 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       onShowAll,
       bringIn,
     ],
+  );
+
+  // Offered to an agent in the browser, behind its dev tools flag: each tool
+  // takes the reader's own paths, so its changes are steps like theirs, and
+  // answers once the cards have landed.
+  const settled = useSettled(placing || gliding);
+  useExplorationTools(
+    webMcpTools,
+    {
+      exploration,
+      neighbours,
+      elements: elementsById,
+      graph,
+      relations,
+      direction,
+      selection,
+      veiled,
+      canUndo: stepAt.at > 0,
+      canRedo: stepAt.at < stepAt.count - 1,
+    },
+    {
+      // A relation asked for with them is drawn in the same step.
+      show: (ids, draw) => {
+        if (draw !== undefined) reading.onDraw(draw);
+        onShowAll(ids, true);
+        bringIn(ids);
+        return settled();
+      },
+      showBeside: (ids, from, draw) => {
+        if (draw !== undefined) reading.onDraw(draw);
+        placeBeside(from);
+        onShowAll(ids, true);
+        bringIn(ids, from);
+        return settled();
+      },
+      hide: (ids) => {
+        const [first] = ids;
+        if (first !== undefined) remove(ids, first);
+        return settled();
+      },
+      setRelations: (kinds) => {
+        setRelations(kinds);
+        return settled();
+      },
+      select: (ids) => {
+        setSelection(ids);
+        return settled();
+      },
+      focus: async (ids) => {
+        await flow?.fitView({
+          ...focusOn(ids.length === 1),
+          nodes: ids.map((id) => ({ id })),
+        });
+      },
+      arrange: (toward) => {
+        if (toward === undefined || toward === direction) autoPlace();
+        else setDrawing((was) => ({ ...was, direction: toward }));
+        return settled();
+      },
+      undo: () => {
+        undo();
+        return settled();
+      },
+      redo: () => {
+        redo();
+        return settled();
+      },
+      clear: () => {
+        clear();
+        return settled();
+      },
+    },
   );
 
   return (
