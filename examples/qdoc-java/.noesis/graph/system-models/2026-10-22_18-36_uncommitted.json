@@ -7,176 +7,33 @@
       "id": "module|qdocmanagement",
       "name": "qdocmanagement",
       "description": null,
-      "relations": [
-        {
-          "kind": "module_contains_module",
-          "from": "module|qdocmanagement",
-          "to": "module|qdocmanagement.notifications"
-        },
-        {
-          "kind": "module_contains_module",
-          "from": "module|qdocmanagement",
-          "to": "module|qdocmanagement.preparation"
-        }
-      ],
       "rules": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/DomainException.java",
-        "line": 1
+        "startLine": 1,
+        "endLine": null
       }
     },
     {
       "id": "module|qdocmanagement.notifications",
       "name": "notifications",
       "description": null,
-      "relations": [
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.notifications",
-          "to": "building_block|qdocmanagement.notifications.Notification"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.notifications",
-          "to": "building_block|qdocmanagement.notifications.NotificationSender"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.notifications",
-          "to": "building_block|qdocmanagement.notifications.NotificationService"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.notifications",
-          "to": "building_block|qdocmanagement.notifications.NotifyUsers"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.notifications",
-          "to": "building_block|qdocmanagement.notifications.Recipient"
-        }
-      ],
       "rules": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/Notification.java",
-        "line": 1
+        "startLine": 1,
+        "endLine": null
       }
     },
     {
       "id": "module|qdocmanagement.preparation",
       "name": "preparation",
       "description": null,
-      "relations": [
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.Assignment"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.AssignmentRole"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.ContentFile"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.ContentFileId"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.CreateQDoc"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.DocumentNumber"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.DocumentType"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.IdentityProvider"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.QDoc"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.QDocCreated"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.QDocCreationService"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.QDocId"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.QDocRepository"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.QDocStatus"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.QDocTitle"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.UserId"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.Version"
-        },
-        {
-          "kind": "module_contains_building_block",
-          "from": "module|qdocmanagement.preparation",
-          "to": "building_block|qdocmanagement.preparation.VersionStatus"
-        }
-      ],
       "rules": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/Assignment.java",
-        "line": 1
+        "startLine": 1,
+        "endLine": null
       }
     }
   ],
@@ -186,32 +43,12 @@
       "name": "Notification",
       "type": "value_object",
       "description": "A message to one user: a subject and a body, as the requesting subsystem wrote them.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "body",
-          "type": "primitive|string",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "recipient",
-          "type": "building_block|qdocmanagement.notifications.Recipient",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "subject",
-          "type": "primitive|string",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/Notification.java",
-        "line": 15
+        "startLine": 15,
+        "endLine": null
       }
     },
     {
@@ -219,19 +56,12 @@
       "name": "NotificationSender",
       "type": "external_integration",
       "description": "Port that delivers a notification to a user.",
-      "relations": [
-        {
-          "kind": "building_block_exposes_behavior",
-          "from": "building_block|qdocmanagement.notifications.NotificationSender",
-          "to": "behavior|qdocmanagement.notifications.NotificationSender.send"
-        }
-      ],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationSender.java",
-        "line": 9
+        "startLine": 9,
+        "endLine": null
       }
     },
     {
@@ -239,19 +69,12 @@
       "name": "NotificationService",
       "type": "application_service",
       "description": "The service the Notifications subsystem offers every other subsystem: takes a request to tell users something and has a notification delivered to each of them.",
-      "relations": [
-        {
-          "kind": "building_block_exposes_behavior",
-          "from": "building_block|qdocmanagement.notifications.NotificationService",
-          "to": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers"
-        }
-      ],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationService.java",
-        "line": 15
+        "startLine": 15,
+        "endLine": null
       }
     },
     {
@@ -259,34 +82,12 @@
       "name": "NotifyUsers",
       "type": "value_object",
       "description": "Command: a request from another subsystem to tell users something, naming the recipients, a subject and a body. The requesting subsystem chooses the recipients and writes the text.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "body",
-          "type": "primitive|string",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "recipients",
-          "type": {
-            "collectionOf": "building_block|qdocmanagement.notifications.Recipient"
-          },
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "subject",
-          "type": "primitive|string",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotifyUsers.java",
-        "line": 17
+        "startLine": 17,
+        "endLine": null
       }
     },
     {
@@ -294,20 +95,12 @@
       "name": "Recipient",
       "type": "value_object",
       "description": "A user a notification goes to, by the user's identifier in the identity provider.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "userId",
-          "type": "primitive|string",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/Recipient.java",
-        "line": 13
+        "startLine": 13,
+        "endLine": null
       }
     },
     {
@@ -315,26 +108,12 @@
       "name": "Assignment",
       "type": "value_object",
       "description": "The link between a user, a version and one role the user holds on the version.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "role",
-          "type": "building_block|qdocmanagement.preparation.AssignmentRole",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "user",
-          "type": "building_block|qdocmanagement.preparation.UserId",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/Assignment.java",
-        "line": 14
+        "startLine": 14,
+        "endLine": null
       }
     },
     {
@@ -342,13 +121,12 @@
       "name": "AssignmentRole",
       "type": "value_object",
       "description": "The role a user holds on a version: author, reviewer or approver.",
-      "relations": [],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/AssignmentRole.java",
-        "line": 8
+        "startLine": 8,
+        "endLine": null
       }
     },
     {
@@ -356,13 +134,12 @@
       "name": "ContentFile",
       "type": "entity",
       "description": "A rich-text file the authors write; the body of a QDoc version. Each version has at least one. Its editing, change history and comments belong to the Content management subsystem.",
-      "relations": [],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/ContentFile.java",
-        "line": 12
+        "startLine": 12,
+        "endLine": null
       }
     },
     {
@@ -370,20 +147,12 @@
       "name": "ContentFileId",
       "type": "value_object",
       "description": "Identity of a content file.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "value",
-          "type": "primitive|uuid",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/ContentFileId.java",
-        "line": 13
+        "startLine": 13,
+        "endLine": null
       }
     },
     {
@@ -391,56 +160,12 @@
       "name": "CreateQDoc",
       "type": "value_object",
       "description": "Command: a quality manager's QDoc creation request, naming the title, the document type, at least one author and, optionally, reviewers and approvers.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "authors",
-          "type": {
-            "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-          },
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "documentType",
-          "type": "building_block|qdocmanagement.preparation.DocumentType",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "requestedBy",
-          "type": "building_block|qdocmanagement.preparation.UserId",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "title",
-          "type": "building_block|qdocmanagement.preparation.QDocTitle",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "approvers",
-          "type": {
-            "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-          },
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "reviewers",
-          "type": {
-            "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-          },
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/CreateQDoc.java",
-        "line": 21
+        "startLine": 21,
+        "endLine": null
       }
     },
     {
@@ -448,20 +173,12 @@
       "name": "DocumentNumber",
       "type": "value_object",
       "description": "The human-facing identifier a QDoc gets at creation, for searching and for referring to the QDoc. Not a security device.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "value",
-          "type": "primitive|string",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentNumber.java",
-        "line": 13
+        "startLine": 13,
+        "endLine": null
       }
     },
     {
@@ -469,19 +186,12 @@
       "name": "DocumentNumberGenerator",
       "type": "domain_service",
       "description": "Gives a new QDoc its document number, and owns the rules by which document numbers are composed, sequenced and kept unique. The format, the sequence and the uniqueness are defined by UC-2.",
-      "relations": [
-        {
-          "kind": "building_block_exposes_behavior",
-          "from": "building_block|qdocmanagement.preparation.DocumentNumberGenerator",
-          "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next"
-        }
-      ],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentNumberGenerator.java",
-        "line": 10
+        "startLine": 10,
+        "endLine": null
       }
     },
     {
@@ -489,20 +199,12 @@
       "name": "DocumentType",
       "type": "value_object",
       "description": "The type of a QDoc, one of the list of document types: procedure, guideline, instruction, policy. The list may grow.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "value",
-          "type": "primitive|string",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentType.java",
-        "line": 14
+        "startLine": 14,
+        "endLine": null
       }
     },
     {
@@ -510,24 +212,12 @@
       "name": "IdentityProvider",
       "type": "external_integration",
       "description": "Port to the Identity subsystem, or to a directory the organisation runs: answers which roles a user holds and which users hold the quality manager role.",
-      "relations": [
-        {
-          "kind": "building_block_exposes_behavior",
-          "from": "building_block|qdocmanagement.preparation.IdentityProvider",
-          "to": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers"
-        },
-        {
-          "kind": "building_block_exposes_behavior",
-          "from": "building_block|qdocmanagement.preparation.IdentityProvider",
-          "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager"
-        }
-      ],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
-        "line": 13
+        "startLine": 13,
+        "endLine": null
       }
     },
     {
@@ -535,32 +225,12 @@
       "name": "NewQDocNotification",
       "type": "value_object",
       "description": "The message telling the quality managers about a new QDoc: names the QDoc, its document number and its creator, and gives the subject and the body the Notifications subsystem is asked to deliver.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "createdBy",
-          "type": "building_block|qdocmanagement.preparation.UserId",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "documentNumber",
-          "type": "building_block|qdocmanagement.preparation.DocumentNumber",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "qdocTitle",
-          "type": "building_block|qdocmanagement.preparation.QDocTitle",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/NewQDocNotification.java",
-        "line": 19
+        "startLine": 19,
+        "endLine": null
       }
     },
     {
@@ -568,19 +238,12 @@
       "name": "PreparationEventPublisher",
       "type": "external_integration",
       "description": "Port that publishes the events of the Preparation subsystem to the other subsystems.",
-      "relations": [
-        {
-          "kind": "building_block_exposes_behavior",
-          "from": "building_block|qdocmanagement.preparation.PreparationEventPublisher",
-          "to": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish"
-        }
-      ],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/PreparationEventPublisher.java",
-        "line": 10
+        "startLine": 10,
+        "endLine": null
       }
     },
     {
@@ -588,19 +251,12 @@
       "name": "QDoc",
       "type": "aggregate",
       "description": "A quality document: a package of files that always works as a whole. Has a title, a document type, a document number and one or more versions; is either active or archived. Invariants: A QDoc keeps at least one version: every QDoc holds at least one version at all times (FR-PRE-010); no operation leaves a QDoc with zero versions.",
-      "relations": [
-        {
-          "kind": "building_block_exposes_behavior",
-          "from": "building_block|qdocmanagement.preparation.QDoc",
-          "to": "behavior|qdocmanagement.preparation.QDoc.create"
-        }
-      ],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDoc.java",
-        "line": 21
+        "startLine": 21,
+        "endLine": null
       }
     },
     {
@@ -608,44 +264,12 @@
       "name": "QDocCreated",
       "type": "value_object",
       "description": "Event: a QDoc was created. Published by the Preparation subsystem for any subsystem that follows new QDocs.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "createdBy",
-          "type": "building_block|qdocmanagement.preparation.UserId",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "documentNumber",
-          "type": "building_block|qdocmanagement.preparation.DocumentNumber",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "qdocId",
-          "type": "building_block|qdocmanagement.preparation.QDocId",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "title",
-          "type": "building_block|qdocmanagement.preparation.QDocTitle",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "createdAt",
-          "type": "primitive|datetime",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreated.java",
-        "line": 18
+        "startLine": 18,
+        "endLine": null
       }
     },
     {
@@ -653,19 +277,12 @@
       "name": "QDocCreationService",
       "type": "application_service",
       "description": "Use cases that create QDocs in the Preparation subsystem.",
-      "relations": [
-        {
-          "kind": "building_block_exposes_behavior",
-          "from": "building_block|qdocmanagement.preparation.QDocCreationService",
-          "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc"
-        }
-      ],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreationService.java",
-        "line": 15
+        "startLine": 15,
+        "endLine": null
       }
     },
     {
@@ -673,20 +290,12 @@
       "name": "QDocId",
       "type": "value_object",
       "description": "Identity of a QDoc inside the QDoc System. Technical identifier, not the document number people use.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "value",
-          "type": "primitive|uuid",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocId.java",
-        "line": 14
+        "startLine": 14,
+        "endLine": null
       }
     },
     {
@@ -694,19 +303,12 @@
       "name": "QDocRepository",
       "type": "repository",
       "description": "Stores and loads QDoc aggregates, whole.",
-      "relations": [
-        {
-          "kind": "building_block_exposes_behavior",
-          "from": "building_block|qdocmanagement.preparation.QDocRepository",
-          "to": "behavior|qdocmanagement.preparation.QDocRepository.save"
-        }
-      ],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocRepository.java",
-        "line": 8
+        "startLine": 8,
+        "endLine": null
       }
     },
     {
@@ -714,13 +316,12 @@
       "name": "QDocStatus",
       "type": "value_object",
       "description": "The status of a QDoc itself: active or archived. Workflow statuses belong to versions, not to the QDoc.",
-      "relations": [],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocStatus.java",
-        "line": 9
+        "startLine": 9,
+        "endLine": null
       }
     },
     {
@@ -728,20 +329,12 @@
       "name": "QDocTitle",
       "type": "value_object",
       "description": "The title of a QDoc.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "value",
-          "type": "primitive|string",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocTitle.java",
-        "line": 12
+        "startLine": 12,
+        "endLine": null
       }
     },
     {
@@ -749,20 +342,12 @@
       "name": "UserId",
       "type": "value_object",
       "description": "Identity of a user, a person with an account in the identity provider. The Preparation subsystem refers to users only by this identity.",
-      "relations": [],
-      "properties": [
-        {
-          "name": "value",
-          "type": "primitive|string",
-          "description": null,
-          "optional": false
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/UserId.java",
-        "line": 13
+        "startLine": 13,
+        "endLine": null
       }
     },
     {
@@ -770,19 +355,12 @@
       "name": "Version",
       "type": "entity",
       "description": "A complete, self-contained edition of a QDoc, numbered from 1. Carries the workflow status, the content files and the assignments of people.",
-      "relations": [
-        {
-          "kind": "building_block_exposes_behavior",
-          "from": "building_block|qdocmanagement.preparation.Version",
-          "to": "behavior|qdocmanagement.preparation.Version.createFirst"
-        }
-      ],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/Version.java",
-        "line": 13
+        "startLine": 13,
+        "endLine": null
       }
     },
     {
@@ -790,13 +368,12 @@
       "name": "VersionStatus",
       "type": "value_object",
       "description": "The workflow status of a version: new, approved, published, no longer in force or archived.",
-      "relations": [],
-      "properties": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/VersionStatus.java",
-        "line": 9
+        "startLine": 9,
+        "endLine": null
       }
     }
   ],
@@ -810,21 +387,12 @@
         "kind": "public",
         "actors": []
       },
-      "input": [
-        {
-          "name": "notification",
-          "type": "building_block|qdocmanagement.notifications.Notification",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [],
-      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationSender.java",
-        "line": 16
+        "startLine": 16,
+        "endLine": null
       }
     },
     {
@@ -836,27 +404,12 @@
         "kind": "public",
         "actors": []
       },
-      "input": [
-        {
-          "name": "command",
-          "type": "building_block|qdocmanagement.notifications.NotifyUsers",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [],
-      "relations": [
-        {
-          "kind": "behavior_invokes_behavior",
-          "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
-          "to": "behavior|qdocmanagement.notifications.NotificationSender.send"
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/notifications/NotificationService.java",
-        "line": 32
+        "startLine": 32,
+        "endLine": null
       }
     },
     {
@@ -868,27 +421,12 @@
         "kind": "public",
         "actors": []
       },
-      "input": [
-        {
-          "name": "documentType",
-          "type": "building_block|qdocmanagement.preparation.DocumentType",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [
-        {
-          "type": "building_block|qdocmanagement.preparation.DocumentNumber",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/DocumentNumberGenerator.java",
-        "line": 20
+        "startLine": 20,
+        "endLine": null
       }
     },
     {
@@ -900,22 +438,12 @@
         "kind": "public",
         "actors": []
       },
-      "input": [],
-      "output": [
-        {
-          "type": {
-            "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-          },
-          "description": null,
-          "optional": false
-        }
-      ],
-      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
-        "line": 29
+        "startLine": 29,
+        "endLine": null
       }
     },
     {
@@ -927,27 +455,12 @@
         "kind": "public",
         "actors": []
       },
-      "input": [
-        {
-          "name": "user",
-          "type": "building_block|qdocmanagement.preparation.UserId",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [
-        {
-          "type": "primitive|boolean",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/IdentityProvider.java",
-        "line": 22
+        "startLine": 22,
+        "endLine": null
       }
     },
     {
@@ -959,21 +472,12 @@
         "kind": "public",
         "actors": []
       },
-      "input": [
-        {
-          "name": "event",
-          "type": "building_block|qdocmanagement.preparation.QDocCreated",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [],
-      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/PreparationEventPublisher.java",
-        "line": 17
+        "startLine": 17,
+        "endLine": null
       }
     },
     {
@@ -985,45 +489,12 @@
         "kind": "public",
         "actors": []
       },
-      "input": [
-        {
-          "name": "command",
-          "type": "building_block|qdocmanagement.preparation.CreateQDoc",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "documentNumber",
-          "type": "building_block|qdocmanagement.preparation.DocumentNumber",
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "now",
-          "type": "primitive|datetime",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [
-        {
-          "type": "building_block|qdocmanagement.preparation.QDoc",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "relations": [
-        {
-          "kind": "behavior_invokes_behavior",
-          "from": "behavior|qdocmanagement.preparation.QDoc.create",
-          "to": "behavior|qdocmanagement.preparation.Version.createFirst"
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDoc.java",
-        "line": 69
+        "startLine": 69,
+        "endLine": null
       }
     },
     {
@@ -1035,48 +506,12 @@
         "kind": "public",
         "actors": []
       },
-      "input": [
-        {
-          "name": "command",
-          "type": "building_block|qdocmanagement.preparation.CreateQDoc",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [
-        {
-          "type": "building_block|qdocmanagement.preparation.QDocId",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "relations": [
-        {
-          "kind": "behavior_invokes_behavior",
-          "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
-          "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next"
-        },
-        {
-          "kind": "behavior_invokes_behavior",
-          "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
-          "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager"
-        },
-        {
-          "kind": "behavior_invokes_behavior",
-          "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
-          "to": "behavior|qdocmanagement.preparation.QDoc.create"
-        },
-        {
-          "kind": "behavior_invokes_behavior",
-          "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
-          "to": "behavior|qdocmanagement.preparation.QDocRepository.save"
-        }
-      ],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocCreationService.java",
-        "line": 50
+        "startLine": 50,
+        "endLine": null
       }
     },
     {
@@ -1088,21 +523,12 @@
         "kind": "public",
         "actors": []
       },
-      "input": [
-        {
-          "name": "qdoc",
-          "type": "building_block|qdocmanagement.preparation.QDoc",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [],
-      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/QDocRepository.java",
-        "line": 15
+        "startLine": 15,
+        "endLine": null
       }
     },
     {
@@ -1114,46 +540,590 @@
         "kind": "public",
         "actors": []
       },
-      "input": [
-        {
-          "name": "authors",
-          "type": {
-            "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-          },
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "reviewers",
-          "type": {
-            "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-          },
-          "description": null,
-          "optional": false
-        },
-        {
-          "name": "approvers",
-          "type": {
-            "collectionOf": "building_block|qdocmanagement.preparation.UserId"
-          },
-          "description": null,
-          "optional": false
-        }
-      ],
-      "output": [
-        {
-          "type": "building_block|qdocmanagement.preparation.Version",
-          "description": null,
-          "optional": false
-        }
-      ],
-      "relations": [],
       "rules": [],
       "scenarios": [],
       "source": {
         "path": "src/main/java/com/example/qdocmanagement/preparation/Version.java",
-        "line": 40
+        "startLine": 40,
+        "endLine": null
       }
+    }
+  ],
+  "relations": [
+    {
+      "kind": "behavior_invokes_behavior",
+      "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+      "to": "behavior|qdocmanagement.notifications.NotificationSender.send",
+      "order": 1
+    },
+    {
+      "kind": "behavior_invokes_behavior",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "order": 1
+    },
+    {
+      "kind": "behavior_invokes_behavior",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+      "order": 1
+    },
+    {
+      "kind": "behavior_invokes_behavior",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+      "order": 2
+    },
+    {
+      "kind": "behavior_invokes_behavior",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "behavior|qdocmanagement.preparation.QDoc.create",
+      "order": 3
+    },
+    {
+      "kind": "behavior_invokes_behavior",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "behavior|qdocmanagement.preparation.QDocRepository.save",
+      "order": 4
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.notifications.NotificationSender",
+      "to": "behavior|qdocmanagement.notifications.NotificationSender.send"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.notifications.NotificationService",
+      "to": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.DocumentNumberGenerator",
+      "to": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.IdentityProvider",
+      "to": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.IdentityProvider",
+      "to": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.PreparationEventPublisher",
+      "to": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.QDoc",
+      "to": "behavior|qdocmanagement.preparation.QDoc.create"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.QDocCreationService",
+      "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.QDocRepository",
+      "to": "behavior|qdocmanagement.preparation.QDocRepository.save"
+    },
+    {
+      "kind": "exposes",
+      "from": "building_block|qdocmanagement.preparation.Version",
+      "to": "behavior|qdocmanagement.preparation.Version.createFirst"
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.notifications.NotificationSender.send",
+      "to": "building_block|qdocmanagement.notifications.Notification",
+      "name": "notification",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
+      "to": "building_block|qdocmanagement.notifications.NotifyUsers",
+      "name": "command",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+      "to": "building_block|qdocmanagement.preparation.DocumentType",
+      "name": "documentType",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "user",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.PreparationEventPublisher.publish",
+      "to": "building_block|qdocmanagement.preparation.QDocCreated",
+      "name": "event",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "name": "command",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "name": "documentNumber",
+      "cardinality": "1",
+      "position": 2
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "primitive|datetime",
+      "name": "now",
+      "cardinality": "1",
+      "position": 3
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "name": "command",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.QDocRepository.save",
+      "to": "building_block|qdocmanagement.preparation.QDoc",
+      "name": "qdoc",
+      "cardinality": "1",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "authors",
+      "cardinality": "*",
+      "position": 1
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "reviewers",
+      "cardinality": "*",
+      "position": 2
+    },
+    {
+      "kind": "has_input",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "approvers",
+      "cardinality": "*",
+      "position": 3
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "name": "result",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.IdentityProvider.findQualityManagers",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "result",
+      "cardinality": "*"
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.IdentityProvider.isQualityManager",
+      "to": "primitive|boolean",
+      "name": "result",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.QDoc.create",
+      "to": "building_block|qdocmanagement.preparation.QDoc",
+      "name": "result",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+      "to": "building_block|qdocmanagement.preparation.QDocId",
+      "name": "result",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_output",
+      "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+      "to": "building_block|qdocmanagement.preparation.Version",
+      "name": "result",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.Notification",
+      "to": "building_block|qdocmanagement.notifications.Recipient",
+      "name": "recipient",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.Notification",
+      "to": "primitive|string",
+      "name": "body",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.Notification",
+      "to": "primitive|string",
+      "name": "subject",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+      "to": "building_block|qdocmanagement.notifications.Recipient",
+      "name": "recipients",
+      "cardinality": "*"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+      "to": "primitive|string",
+      "name": "body",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.NotifyUsers",
+      "to": "primitive|string",
+      "name": "subject",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.notifications.Recipient",
+      "to": "primitive|string",
+      "name": "userId",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.Assignment",
+      "to": "building_block|qdocmanagement.preparation.AssignmentRole",
+      "name": "role",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.Assignment",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "user",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.ContentFileId",
+      "to": "primitive|uuid",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.DocumentType",
+      "name": "documentType",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.QDocTitle",
+      "name": "title",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "approvers",
+      "cardinality": "*"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "authors",
+      "cardinality": "*"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "requestedBy",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "reviewers",
+      "cardinality": "*"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "to": "primitive|string",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.DocumentType",
+      "to": "primitive|string",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "name": "documentNumber",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+      "to": "building_block|qdocmanagement.preparation.QDocTitle",
+      "name": "qdocTitle",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.NewQDocNotification",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "createdBy",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocCreated",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber",
+      "name": "documentNumber",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocCreated",
+      "to": "building_block|qdocmanagement.preparation.QDocId",
+      "name": "qdocId",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocCreated",
+      "to": "building_block|qdocmanagement.preparation.QDocTitle",
+      "name": "title",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocCreated",
+      "to": "building_block|qdocmanagement.preparation.UserId",
+      "name": "createdBy",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocCreated",
+      "to": "primitive|datetime",
+      "name": "createdAt",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocId",
+      "to": "primitive|uuid",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.QDocTitle",
+      "to": "primitive|string",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_state",
+      "from": "building_block|qdocmanagement.preparation.UserId",
+      "to": "primitive|string",
+      "name": "value",
+      "cardinality": "1"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.notifications",
+      "to": "building_block|qdocmanagement.notifications.Notification"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.notifications",
+      "to": "building_block|qdocmanagement.notifications.NotificationSender"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.notifications",
+      "to": "building_block|qdocmanagement.notifications.NotificationService"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.notifications",
+      "to": "building_block|qdocmanagement.notifications.NotifyUsers"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.notifications",
+      "to": "building_block|qdocmanagement.notifications.Recipient"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.Assignment"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.AssignmentRole"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.ContentFile"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.ContentFileId"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.CreateQDoc"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumber"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.DocumentNumberGenerator"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.DocumentType"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.IdentityProvider"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.NewQDocNotification"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.PreparationEventPublisher"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDoc"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocCreated"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocCreationService"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocId"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocRepository"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocStatus"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.QDocTitle"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.UserId"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.Version"
+    },
+    {
+      "kind": "module_contains_block",
+      "from": "module|qdocmanagement.preparation",
+      "to": "building_block|qdocmanagement.preparation.VersionStatus"
+    },
+    {
+      "kind": "module_contains_module",
+      "from": "module|qdocmanagement",
+      "to": "module|qdocmanagement.notifications"
+    },
+    {
+      "kind": "module_contains_module",
+      "from": "module|qdocmanagement",
+      "to": "module|qdocmanagement.preparation"
     }
   ]
 }
