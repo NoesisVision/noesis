@@ -33,7 +33,7 @@ describe('Reading a feature file', () => {
         kind: 'validation',
         description:
           'An order must have at least one line.\n  Lines are what is bought.',
-        source: { path: PATH, line: 4 },
+        source: { path: PATH, startLine: 4, endLine: null },
         scenarios: [
           {
             name: 'An order without lines is refused',
@@ -44,7 +44,7 @@ describe('Reading a feature file', () => {
               { kind: 'then', text: 'the order is refused' },
             ],
             whenSteps: ['the customer places the order'],
-            source: { path: PATH, line: 8 },
+            source: { path: PATH, startLine: 8, endLine: null },
           },
         ],
       },
@@ -142,7 +142,7 @@ describe('Reading a feature file', () => {
     expect<unknown>(read(text).diagnostics).toEqual([
       {
         message: `${PATH}: scenario "Alone" is under no Rule:, so it illustrates nothing; dropped`,
-        source: { path: PATH, line: 2 },
+        source: { path: PATH, startLine: 2, endLine: null },
       },
     ]);
   });

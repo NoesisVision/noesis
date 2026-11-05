@@ -66,7 +66,7 @@ describe('ModelReader', () => {
             id: RULE,
             name: 'Discounts never go below zero',
             kind: 'validation',
-            source: { path: 'a.feature', line: 3 },
+            source: { path: 'a.feature', startLine: 3, endLine: null },
           },
         ],
         scenarios: [
@@ -79,7 +79,7 @@ describe('ModelReader', () => {
                 text: 'a discount bigger than the price is applied',
               },
             ],
-            source: { path: 'a.feature', line: 4 },
+            source: { path: 'a.feature', startLine: 4, endLine: null },
           },
         ],
         relations: [

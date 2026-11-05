@@ -160,7 +160,8 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
           description: null,
           source: {
             path: 'shop-domain/src/main/java/com/acme/shop/package-info.java',
-            line: 3,
+            startLine: 3,
+            endLine: 3,
           },
         },
       ]);
@@ -278,7 +279,7 @@ describe('test/fixtures/java/billing over a library no scan parses (e2e)', () =>
 
       // The system model: the manifest is a library of the two blocks it
       // lists, in the module their package maps to, at the manifest.
-      const atManifest = { path: MANIFEST, line: null };
+      const atManifest = { path: MANIFEST, startLine: null, endLine: null };
       expect<unknown>(model.libraries).toContainEqual({
         id: 'library|shared-kernel',
         name: 'shared-kernel',

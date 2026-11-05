@@ -26,7 +26,7 @@ const weather = change('2026-09-17-weather', 'Weather-based discount', [
 ] as unknown as ChangeWithEntries['entries']);
 const loyalty = change('2026-10-01-loyalty', 'Loyalty points expiry');
 
-const source = { path: 'X.java', line: null };
+const source = { path: 'X.java', startLine: null, endLine: null };
 const block = (id: string, name: string, type: string) => ({
   id,
   name,

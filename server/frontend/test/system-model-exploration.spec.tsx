@@ -40,7 +40,7 @@ import { borderTowards } from '../src/features/system-model/ui/exploration/relat
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
 import { MantineProvider } from '../src/shared/design-system/provider';
 
-const source = { path: 'X.java', line: null };
+const source = { path: 'X.java', startLine: null, endLine: null };
 const model = {
   id: '01a15509-0909-725f-8ab8-25ab23fc10d3',
   name: 'shop',

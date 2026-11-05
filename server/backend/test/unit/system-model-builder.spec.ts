@@ -1005,7 +1005,8 @@ describe('4. building blocks', () => {
     // The namespace nodes take lines 1 and 2 of the builder's counter.
     expect<unknown>(model.buildingBlocks[0]?.source).toEqual({
       path: 'Sales/Orders/Order.cs',
-      line: 2,
+      startLine: 2,
+      endLine: 2,
     });
   });
 });
@@ -1537,11 +1538,17 @@ describe('6. modules', () => {
       namespacePartsToSkip: ['MyCompany'],
     });
     expect<unknown>(model.modules.map((m) => [m.id, m.source])).toEqual([
-      ['module|Sales', { path: 'Sales/Orders/Deep/Order.cs', line: 2 }],
-      ['module|Sales.Orders', { path: 'Sales/Orders/Deep/Order.cs', line: 3 }],
+      [
+        'module|Sales',
+        { path: 'Sales/Orders/Deep/Order.cs', startLine: 2, endLine: 2 },
+      ],
+      [
+        'module|Sales.Orders',
+        { path: 'Sales/Orders/Deep/Order.cs', startLine: 3, endLine: 3 },
+      ],
       [
         'module|Sales.Orders.Deep',
-        { path: 'Sales/Orders/Deep/Order.cs', line: 4 },
+        { path: 'Sales/Orders/Deep/Order.cs', startLine: 4, endLine: 4 },
       ],
     ]);
     // A prefix only skipping creates: the directory above the descendant's file.
@@ -1555,7 +1562,10 @@ describe('6. modules', () => {
       { namespacePartsToSkip: ['Sales.Skip'] },
     );
     expect<unknown>(skipped.modules.map((m) => [m.id, m.source])).toEqual([
-      ['module|Orders', { path: 'Sales/Orders/Order.cs', line: 3 }],
+      [
+        'module|Orders',
+        { path: 'Sales/Orders/Order.cs', startLine: 3, endLine: 3 },
+      ],
     ]);
   });
 
@@ -1899,7 +1909,7 @@ describe('9. behaviors', () => {
         (slot) => (slot as string[])[0],
       ),
     ).toEqual(['quantity', 'note']);
-    expect<unknown>(model.behaviors[0]?.source.line).toBe(5);
+    expect<unknown>(model.behaviors[0]?.source.startLine).toBe(5);
   });
 
   it('R9.4 gives a behavior no type: a handler annotation only marks it', () => {
@@ -2109,7 +2119,8 @@ describe('9. behaviors', () => {
     ]);
     expect<unknown>(model.behaviors[0]?.source).toEqual({
       path: 'b.cs',
-      line: 5,
+      startLine: 5,
+      endLine: 5,
     });
   });
 
@@ -2535,7 +2546,7 @@ describe('12. rules and scenarios from feature files (R12)', () => {
         name: 'Non-empty order',
         kind: 'validation',
         description: 'An order must have at least one line.',
-        source: { path: FEATURE, line: 7 },
+        source: { path: FEATURE, startLine: 7, endLine: null },
       },
     ]);
     expect<unknown>(built.model.scenarios).toEqual([
@@ -2548,7 +2559,7 @@ describe('12. rules and scenarios from feature files (R12)', () => {
           { kind: 'when', text: 'the customer cancels the order' },
           { kind: 'then', text: 'the order is gone' },
         ],
-        source: { path: FEATURE, line: 14 },
+        source: { path: FEATURE, startLine: 14, endLine: null },
       },
       {
         id: `scenario|Sales.Orders.Non-empty order.Placed`,
@@ -2559,7 +2570,7 @@ describe('12. rules and scenarios from feature files (R12)', () => {
           { kind: 'when', text: 'the customer places the order' },
           { kind: 'then', text: 'the order is placed' },
         ],
-        source: { path: FEATURE, line: 10 },
+        source: { path: FEATURE, startLine: 10, endLine: null },
       },
     ]);
     expect<unknown>(rulesRelationsOf(built.model)).toEqual([
@@ -2760,7 +2771,7 @@ describe('12. rules and scenarios from feature files (R12)', () => {
       expect.objectContaining({
         id: 'rule|Sales.Orders.Placing',
         kind: 'validation',
-        source: { path: 'features/a.feature', line: 3 },
+        source: { path: 'features/a.feature', startLine: 3, endLine: null },
       }),
     ]);
     expect<unknown>(messages(built, 'info')).toEqual([
@@ -2788,7 +2799,7 @@ describe('12. rules and scenarios from feature files (R12)', () => {
     );
 
     expect<unknown>(built.model.scenarios.map(({ source }) => source)).toEqual([
-      { path: FEATURE, line: 4 },
+      { path: FEATURE, startLine: 4, endLine: null },
     ]);
     expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining(
@@ -2822,7 +2833,7 @@ describe('12. rules and scenarios from feature files (R12)', () => {
       {
         level: 'info',
         message: expect.stringContaining('is under no Rule:'),
-        source: { path: FEATURE, line: 2 },
+        source: { path: FEATURE, startLine: 2, endLine: null },
       },
     ]);
   });
@@ -2968,7 +2979,11 @@ describe('13. deployable units and libraries (R13)', () => {
           id: 'deployable_unit|MyCompany.Shop.Api',
           name: 'MyCompany.Shop.Api',
           description: null,
-          source: { path: 'MyCompany.Shop.Api', line: null },
+          source: {
+            path: 'MyCompany.Shop.Api',
+            startLine: null,
+            endLine: null,
+          },
         },
       ],
       libraries: [],
@@ -2998,7 +3013,7 @@ describe('13. deployable units and libraries (R13)', () => {
           id: 'library|Sales',
           name: 'Sales',
           description: null,
-          source: { path: 'Sales', line: null },
+          source: { path: 'Sales', startLine: null, endLine: null },
         },
       ],
       contains: [
@@ -3091,7 +3106,7 @@ describe('14. libraries described by hand (R14)', () => {
       name: 'Money',
       type: 'value_object',
       description: 'An amount in a currency.',
-      source: { path: KERNEL, line: null },
+      source: { path: KERNEL, startLine: null, endLine: null },
     });
     expect<unknown>(ids(model.modules)).toContain('module|Shared');
     expect<unknown>(stateTypesOf(model, ORDER)).toEqual([['Total', MONEY]]);
@@ -3167,13 +3182,13 @@ describe('14. libraries described by hand (R14)', () => {
         id: 'library|MyCompany.Shared.Kernel',
         name: 'MyCompany.Shared.Kernel',
         description: 'Shared value types.',
-        source: { path: KERNEL, line: null },
+        source: { path: KERNEL, startLine: null, endLine: null },
       },
       {
         id: 'library|Sales',
         name: 'Sales',
         description: null,
-        source: { path: 'Sales', line: null },
+        source: { path: 'Sales', startLine: null, endLine: null },
       },
     ]);
     expect<unknown>(built.model.relations).toContainEqual({
@@ -3237,7 +3252,11 @@ describe('15. layers (R15)', () => {
           id: 'layer|domain',
           name: 'domain',
           description: null,
-          source: { path: PACKAGE_INFO, line: expect.any(Number) },
+          source: {
+            path: PACKAGE_INFO,
+            startLine: expect.any(Number),
+            endLine: expect.any(Number),
+          },
         },
       ],
       contains: [

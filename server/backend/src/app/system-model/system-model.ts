@@ -25,10 +25,25 @@ import { SystemModelId } from './system-model-id';
 export const SourceLocation = z
   .strictObject({
     path: z.string(),
-    line: z.int().min(1).nullable().default(null),
+    startLine: z
+      .int()
+      .min(1)
+      .nullable()
+      .default(null)
+      .describe(
+        'The first line of the element, counting from 1; null when unknown.',
+      ),
+    endLine: z
+      .int()
+      .min(1)
+      .nullable()
+      .default(null)
+      .describe(
+        'The last line of the element, counting from 1; null when unknown.',
+      ),
   })
   .describe(
-    'Where an element was found: a file by its path from the repository root, and the line in it when known.',
+    'Where an element was found: a file by its path from the repository root, and the lines it spans in it, each when known.',
   );
 export type SourceLocation = z.infer<typeof SourceLocation>;
 

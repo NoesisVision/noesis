@@ -80,19 +80,33 @@ describe('A Java repository scanned through its Maven plugin', () => {
     // infrastructure module has no blocks. The money API's package holds
     // only a listed block, so its modules sit at the manifest (R14.2).
     const domain = 'shop-domain/src/main/java/com/acme/shop';
-    const moneyApi = { path: '.noesis/libraries/money-api.json', line: null };
+    const moneyApi = {
+      path: '.noesis/libraries/money-api.json',
+      startLine: null,
+      endLine: null,
+    };
     expect<unknown>(model.modules.map((m) => [m.id, m.source])).toEqual([
       ['module|javax', moneyApi],
       ['module|javax.money', moneyApi],
-      ['module|shop', { path: `${domain}/internal/Hidden.java`, line: 1 }],
-      ['module|shop.orders', { path: `${domain}/orders/Clock.java`, line: 1 }],
+      [
+        'module|shop',
+        { path: `${domain}/internal/Hidden.java`, startLine: 1, endLine: 1 },
+      ],
+      [
+        'module|shop.orders',
+        { path: `${domain}/orders/Clock.java`, startLine: 1, endLine: 1 },
+      ],
       [
         'module|shop.pricing',
-        { path: `${domain}/pricing/PriceRepository.java`, line: 1 },
+        {
+          path: `${domain}/pricing/PriceRepository.java`,
+          startLine: 1,
+          endLine: 1,
+        },
       ],
       [
         'module|shop.products',
-        { path: `${domain}/products/ProductId.java`, line: 1 },
+        { path: `${domain}/products/ProductId.java`, startLine: 1, endLine: 1 },
       ],
     ]);
 
@@ -112,7 +126,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
         id: 'library|shop-domain',
         name: 'shop-domain',
         description: null,
-        source: { path: 'shop-domain', line: null },
+        source: { path: 'shop-domain', startLine: null, endLine: null },
       },
     ]);
     expect<unknown>(
@@ -133,7 +147,11 @@ describe('A Java repository scanned through its Maven plugin', () => {
         id: 'layer|domain',
         name: 'domain',
         description: null,
-        source: { path: `${domain}/package-info.java`, line: 3 },
+        source: {
+          path: `${domain}/package-info.java`,
+          startLine: 3,
+          endLine: 3,
+        },
       },
     ]);
     const inLayer = (from: string) =>
@@ -182,7 +200,8 @@ describe('A Java repository scanned through its Maven plugin', () => {
     // container, makes an actor per name, found at the method.
     const handle = {
       path: `${domain}/orders/PlaceOrderHandler.java`,
-      line: 22,
+      startLine: 22,
+      endLine: 31,
     };
     expect<unknown>(model.actors).toEqual([
       {
@@ -202,7 +221,11 @@ describe('A Java repository scanned through its Maven plugin', () => {
     const order = model.buildingBlocks.find((b) => b.name === 'Order');
     expect<unknown>(order).toMatchObject({
       description: 'An order *placed* by a customer.',
-      source: { path: `${domain}/orders/Order.java`, line: 15 },
+      source: {
+        path: `${domain}/orders/Order.java`,
+        startLine: 15,
+        endLine: 83,
+      },
     });
     const state = (name: string) =>
       stateOf(model, `building_block|shop.orders.${name}`);
@@ -349,7 +372,11 @@ describe('A Java repository scanned through its Maven plugin', () => {
       model.behaviors.find((b) => b.name === 'placeOrder'),
     ).toMatchObject({
       description: 'Places the order.',
-      source: { path: `${domain}/orders/Order.java`, line: 44 },
+      source: {
+        path: `${domain}/orders/Order.java`,
+        startLine: 44,
+        endLine: 48,
+      },
     });
 
     // Calls, directly and through methods that are no behavior: handle →
@@ -422,14 +449,14 @@ describe('A Java repository scanned through its Maven plugin', () => {
         name: 'Order total',
         kind: 'computation',
         description: 'The total is the sum of the lines, less the discount.',
-        source: { path: FEATURE, line: 15 },
+        source: { path: FEATURE, startLine: 15, endLine: null },
       },
       {
         id: PLACING,
         name: 'Placing an order',
         kind: 'state_change',
         description: 'A new order becomes placed when the customer places it.',
-        source: { path: FEATURE, line: 7 },
+        source: { path: FEATURE, startLine: 7, endLine: null },
       },
     ]);
     expect<unknown>(model.scenarios.map((s) => [s.id, s.steps.length])).toEqual(

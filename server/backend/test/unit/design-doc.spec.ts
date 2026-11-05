@@ -1783,7 +1783,11 @@ describe('A rule of a design', () => {
   const ORDERS = 'module|sales.orders';
   const CANCEL = 'behavior|sales.orders.Order.cancel';
   const PAID_ONLY = 'rule|sales.orders.Paid orders only';
-  const source = { path: 'features/orders.feature', line: 3 };
+  const source = {
+    path: 'features/orders.feature',
+    startLine: 3,
+    endLine: null,
+  };
   const need = {
     id: 'refund-single-lines',
     name: { value: 'Refund single lines' },

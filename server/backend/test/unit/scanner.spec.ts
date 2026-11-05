@@ -106,7 +106,8 @@ describe('Scanner', () => {
     expect<unknown>(model.rules).toEqual([]);
     expect<unknown>(diagnostics.map(({ source }) => source)).toContainEqual({
       path: 'features/orders.feature',
-      line: 4,
+      startLine: 4,
+      endLine: null,
     });
   });
 

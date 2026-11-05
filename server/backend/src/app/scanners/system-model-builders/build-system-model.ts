@@ -963,7 +963,7 @@ class ModelAssembly {
     const taken = this.rules.get(id);
     if (taken !== undefined) {
       this.infoAt(
-        `rule "${rule.name}" has the id ${id} of the rule at ${taken.source.path}:${taken.source.line}, which came first; dropped`,
+        `rule "${rule.name}" has the id ${id} of the rule at ${taken.source.path}:${taken.source.startLine}, which came first; dropped`,
         rule.source,
       );
       return;
@@ -1151,7 +1151,7 @@ class ModelAssembly {
   private directoryAbove(block: Block, levels: number): SourceLocation {
     let dir = posix.dirname(locationOf(block.node).path);
     for (let i = 0; i < levels; i++) dir = posix.dirname(dir);
-    return { path: dir, line: null };
+    return { path: dir, startLine: null, endLine: null };
   }
 
   /* ----------------------------------------------- listed blocks (R14) */
@@ -1166,7 +1166,7 @@ class ModelAssembly {
       [...this.blocks.values()].map((block) => block.id),
     );
     for (const manifest of this.manifests) {
-      const source = { path: manifest.path, line: null };
+      const source = { path: manifest.path, startLine: null, endLine: null };
       for (const listed of manifest.buildingBlocks) {
         const typeId = `T:${listed.type}` as NodeId;
         const drop = (why: string) =>
@@ -1254,7 +1254,8 @@ class ModelAssembly {
       // a location has none (R4.6).
       const source = {
         path: node.rootDirectory === null ? '' : node.rootDirectory || '.',
-        line: null,
+        startLine: null,
+        endLine: null,
       };
       const declared = blocks.filter((block) => block.artifact === artifact);
       if (declared.length === 0) {
@@ -1307,7 +1308,7 @@ class ModelAssembly {
     }
     // R14.4: then each manifest, a library of the blocks it kept.
     for (const manifest of this.manifests) {
-      const source = { path: manifest.path, line: null };
+      const source = { path: manifest.path, startLine: null, endLine: null };
       const id = LibraryId.of(manifest.name);
       const kept = [...this.listed.values()].filter(
         (block) => block.manifest === manifest,
@@ -1616,7 +1617,7 @@ function layerSourceOf(node: NamespaceNode): SourceLocation {
 
 /** R4.6, R9.10: the node's first location; a node without one has no path. */
 function locationOf(node: DeclarationNode): SourceLocation {
-  return sourceOrNull(node) ?? { path: '', line: null };
+  return sourceOrNull(node) ?? { path: '', startLine: null, endLine: null };
 }
 
 function sourceOrNull(node: DeclarationNode): SourceLocation | null {
@@ -1625,7 +1626,12 @@ function sourceOrNull(node: DeclarationNode): SourceLocation | null {
 }
 
 function toSourceLocation(span: SourceSpan): SourceLocation {
-  return { path: span.file, line: span.startLine >= 1 ? span.startLine : null };
+  const startLine = span.startLine >= 1 ? span.startLine : null;
+  const endLine =
+    span.endLine >= 1 && (startLine === null || span.endLine >= startLine)
+      ? span.endLine
+      : null;
+  return { path: span.file, startLine, endLine };
 }
 
 function byLocationThenName(a: DeclarationNode, b: DeclarationNode): number {

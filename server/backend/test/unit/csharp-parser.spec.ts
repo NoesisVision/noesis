@@ -126,7 +126,11 @@ describe('Scanning through the C# parser', () => {
     expect<unknown>(ids(model.modules)).toEqual(MODULES);
     expect<unknown>(
       model.modules.find((m) => m.id === 'module|Projection.Blocks')?.source,
-    ).toEqual({ path: `${SOURCES}/Blocks/BlockKinds.cs`, line: 7 });
+    ).toEqual({
+      path: `${SOURCES}/Blocks/BlockKinds.cs`,
+      startLine: 7,
+      endLine: 7,
+    });
 
     // One block per annotation; nested types get the enclosing type's name
     // first; a name override that is no element name gives way to the code's
@@ -172,7 +176,11 @@ describe('Scanning through the C# parser', () => {
     );
     expect<unknown>(aggregate).toMatchObject({
       description: 'An aggregate with a *short* description.',
-      source: { path: `${SOURCES}/Blocks/BlockKinds.cs`, line: 10 },
+      source: {
+        path: `${SOURCES}/Blocks/BlockKinds.cs`,
+        startLine: 10,
+        endLine: 52,
+      },
     });
     expect<unknown>(extendsOf(model, block('AggregateBlock'))).toEqual([]);
     // Public instance members only; the dictionary and the unannotated
@@ -238,7 +246,11 @@ describe('Scanning through the C# parser', () => {
       model.behaviors.find((b) => b.id === form('Named behavior')),
     ).toMatchObject({
       description: 'Named by its annotation.',
-      source: { path: `${SOURCES}/Behaviors/BehaviorForms.cs`, line: 23 },
+      source: {
+        path: `${SOURCES}/Behaviors/BehaviorForms.cs`,
+        startLine: 23,
+        endLine: 24,
+      },
     });
     // R13: each project that declares a block is a deployable unit when it
     // builds an executable, a library otherwise.
@@ -247,7 +259,8 @@ describe('Scanning through the C# parser', () => {
     ]);
     expect<unknown>(model.deployableUnits[0]?.source).toEqual({
       path: 'code-parsers/dotnet/test/fixtures/CSharpSyntax',
-      line: null,
+      startLine: null,
+      endLine: null,
     });
     // The dots of a project's name are part of it.
     expect<unknown>(ids(model.libraries)).toEqual([
@@ -262,7 +275,8 @@ describe('Scanning through the C# parser', () => {
         description: null,
         source: {
           path: `${SOURCES}/Behaviors/BehaviorForms.cs`,
-          line: 13,
+          startLine: 13,
+          endLine: 14,
         },
       },
     ]);
@@ -294,7 +308,7 @@ describe('Scanning through the C# parser', () => {
         name: 'Named behaviors keep their name',
         kind: 'post',
         description: null,
-        source: { path: FEATURE, line: 15 },
+        source: { path: FEATURE, startLine: 15, endLine: null },
       },
       {
         id: WIDEST,
@@ -302,7 +316,7 @@ describe('Scanning through the C# parser', () => {
         kind: 'validation',
         description:
           'The overload with the most parameters stands for the behavior.',
-        source: { path: FEATURE, line: 7 },
+        source: { path: FEATURE, startLine: 7, endLine: null },
       },
     ]);
     expect<unknown>(model.scenarios).toEqual([
@@ -315,7 +329,7 @@ describe('Scanning through the C# parser', () => {
           { kind: 'when', text: 'the named behavior runs' },
           { kind: 'then', text: 'nothing is returned' },
         ],
-        source: { path: FEATURE, line: 16 },
+        source: { path: FEATURE, startLine: 16, endLine: null },
       },
       {
         id: `scenario|${WIDEST.slice(5)}.One argument`,
@@ -326,7 +340,7 @@ describe('Scanning through the C# parser', () => {
           { kind: 'when', text: 'the overloaded behavior runs with 1' },
           { kind: 'then', text: 'nothing is returned' },
         ],
-        source: { path: FEATURE, line: 10 },
+        source: { path: FEATURE, startLine: 10, endLine: null },
       },
     ]);
     expect<unknown>(

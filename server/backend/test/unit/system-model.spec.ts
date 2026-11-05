@@ -29,12 +29,12 @@ const block = {
   id: ORDER,
   name: 'Order',
   type: 'aggregate',
-  source: { path: 'src/sales/orders/order.ts', line: 12 },
+  source: { path: 'src/sales/orders/order.ts', startLine: 12, endLine: 12 },
 };
 const behavior = {
   id: PLACE,
   name: 'place',
-  source: { path: 'src/sales/orders/order.ts', line: 30 },
+  source: { path: 'src/sales/orders/order.ts', startLine: 30, endLine: 30 },
 };
 
 const model = (patch: Record<string, unknown> = {}) => ({
@@ -115,7 +115,7 @@ describe('A system model', () => {
     expect(written.modules?.[0]).toEqual({
       ...module,
       description: null,
-      source: { path: 'src/sales/orders', line: null },
+      source: { path: 'src/sales/orders', startLine: null, endLine: null },
     });
   });
 });
@@ -131,12 +131,16 @@ describe('A scanned element', () => {
 
   it('names the line it starts on, counting from 1, when the scanner knows it', () => {
     expect(isValid(withBlock({ source: { path: 'order.ts' } }))).toBe(true);
-    expect(isValid(withBlock({ source: { path: 'order.ts', line: 1 } }))).toBe(
-      true,
-    );
-    expect(isValid(withBlock({ source: { path: 'order.ts', line: 0 } }))).toBe(
-      false,
-    );
+    expect(
+      isValid(
+        withBlock({ source: { path: 'order.ts', startLine: 1, endLine: 1 } }),
+      ),
+    ).toBe(true);
+    expect(
+      isValid(
+        withBlock({ source: { path: 'order.ts', startLine: 0, endLine: 0 } }),
+      ),
+    ).toBe(false);
   });
 
   it('has a description only when the code gives one', () => {
@@ -196,12 +200,16 @@ describe('An actor and a manual process', () => {
   const actor = {
     id: CUSTOMER,
     name: 'Customer',
-    source: { path: 'src/sales/orders/order.ts', line: 29 },
+    source: { path: 'src/sales/orders/order.ts', startLine: 29, endLine: 29 },
   };
   const process = {
     id: RETURN_GOODS,
     name: 'Return goods',
-    source: { path: 'test/sales/returns/return-goods.spec.ts', line: 12 },
+    source: {
+      path: 'test/sales/returns/return-goods.spec.ts',
+      startLine: 12,
+      endLine: 12,
+    },
   };
 
   it('are elements of their own, named by their name alone', () => {
@@ -248,13 +256,17 @@ describe('A deployable unit and a library', () => {
       model({ deployableUnits: [unit], libraries: [library] }),
     );
     expect<unknown>(parsed.deployableUnits).toEqual([
-      { ...unit, description: null, source: { path: 'shop-api', line: null } },
+      {
+        ...unit,
+        description: null,
+        source: { path: 'shop-api', startLine: null, endLine: null },
+      },
     ]);
     expect<unknown>(parsed.libraries).toEqual([
       {
         ...library,
         description: null,
-        source: { path: 'src/MyCompany.Sales', line: null },
+        source: { path: 'src/MyCompany.Sales', startLine: null, endLine: null },
       },
     ]);
     expect(
@@ -291,17 +303,21 @@ describe('A layer and a deployment container', () => {
   const layer = {
     id: 'layer|domain',
     name: 'domain',
-    source: { path: 'src/sales/domain/package-info.java', line: 1 },
+    source: {
+      path: 'src/sales/domain/package-info.java',
+      startLine: 1,
+      endLine: 1,
+    },
   };
   const container = {
     id: 'deployment_container|Orders cluster',
     name: 'Orders cluster',
-    source: { path: 'infra/orders-cluster.tf', line: 3 },
+    source: { path: 'infra/orders-cluster.tf', startLine: 3, endLine: 3 },
   };
   const unit = {
     id: 'deployable_unit|shop-api',
     name: 'shop-api',
-    source: { path: 'shop-api', line: null },
+    source: { path: 'shop-api', startLine: null, endLine: null },
   };
 
   it('are elements of their own, named by one name', () => {
@@ -566,7 +582,7 @@ const rule = {
   id: RULE,
   name: 'Paid orders only',
   kind: 'state_change',
-  source: { path: 'features/orders.feature', line: 4 },
+  source: { path: 'features/orders.feature', startLine: 4, endLine: null },
 };
 const scenario = {
   id: SCENARIO,
@@ -577,7 +593,7 @@ const scenario = {
     { kind: 'when', text: 'the customer places the order' },
     { kind: 'then', text: 'the order is placed' },
   ],
-  source: { path: 'features/orders.feature', line: 7 },
+  source: { path: 'features/orders.feature', startLine: 7, endLine: null },
 };
 
 describe('A scanned rule', () => {

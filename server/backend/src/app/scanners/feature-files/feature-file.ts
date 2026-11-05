@@ -212,7 +212,7 @@ class FeatureFileReading {
   }
 
   private at(line: number): SourceLocation {
-    return { path: this.source.path, line };
+    return { path: this.source.path, startLine: line, endLine: null };
   }
 }
 

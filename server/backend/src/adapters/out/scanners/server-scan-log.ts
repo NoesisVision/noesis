@@ -11,7 +11,7 @@ export class ServerScanLog implements ScanLog {
       const where = source === null ? '' : ` ({path}:{line})`;
       this.log[level](`${message}${where}`, {
         path: source?.path,
-        line: source?.line,
+        line: source?.startLine,
       });
     }
   }
