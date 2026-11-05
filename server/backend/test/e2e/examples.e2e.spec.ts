@@ -3,9 +3,11 @@
 // served, so a schema change that strands one fails here, not in a demo.
 import { describe, expect, it } from 'bun:test';
 import { resolve } from 'node:path';
+import { systemClock } from '#backend/app/clock';
 import { createApp } from '#backend/boot/app';
 import { createServices } from '#backend/boot/services';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { fakeAgent } from '../support/fake-agent-host';
 
 const EXAMPLES = resolve(__dirname, '../../../../examples');
 
@@ -28,7 +30,9 @@ const EXAMPLE_REPOSITORIES: Record<string, Record<string, ExpectedChange>> = {
 // Read only: the repositories open nothing that is not there, so the checkout
 // stays as committed.
 function appOver(repositoryRoot: string) {
-  return createApp(createServices(new NoesisDir(repositoryRoot)));
+  return createApp(
+    createServices(new NoesisDir(repositoryRoot), fakeAgent(systemClock)),
+  );
 }
 
 interface NavigationChange {

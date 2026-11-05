@@ -14,6 +14,7 @@ import {
 import { DocumentSchema } from '#backend/app/information-sources/document';
 import { createServices, type Services } from '#backend/boot/services';
 import { NoesisDir } from '#backend/platform/files/noesis-dir';
+import { type FakeAgent, fakeAgent } from '../support/fake-agent-host';
 import { fixedClock } from '../support/fixed-clock';
 
 /**
@@ -30,6 +31,8 @@ export interface TestNoesis extends Services {
   changesRepository: ChangesFileRepository;
   designDocsRepository: DesignDocsFileRepository;
   documentsRepository: DocumentsFileRepository;
+  /** The agent the page speaks to, recording what it is sent. */
+  agent: FakeAgent;
   /** `graph/changes/`, where each change's file and folder sit. */
   changesDir: string;
   /** Writes a change with placeholder data, bypassing the handlers. */
@@ -57,8 +60,11 @@ export async function testNoesis(): Promise<TestNoesis> {
   const changesRepository = new ChangesFileRepository(noesis);
   const designDocsRepository = new DesignDocsFileRepository(noesis);
   const documentsRepository = new DocumentsFileRepository(noesis);
+  const clock = fixedClock(NOW);
+  const agent = fakeAgent(clock);
   return {
-    ...createServices(noesis, fixedClock(NOW)),
+    ...createServices(noesis, agent, clock),
+    agent,
     root,
     noesis,
     changesRepository,

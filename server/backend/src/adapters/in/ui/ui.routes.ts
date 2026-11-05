@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { type AgentDeps, createAgentApp } from './agent/agent.routes';
 import { type ChangesDeps, createChangesApp } from './changes/changes.routes';
 import {
   createDesignDocsApp,
@@ -17,7 +18,8 @@ import {
 } from './system-models/system-models.routes';
 
 /** Every handler the surface's routes call. */
-export type UiDeps = SearchDeps &
+export type UiDeps = AgentDeps &
+  SearchDeps &
   ChangesDeps &
   DesignDocsDeps &
   DocumentsDeps &
@@ -33,5 +35,6 @@ export function createUiApp(deps: UiDeps) {
     .route('/changes', createChangesApp(deps))
     .route('/changes/:change/design-docs', createDesignDocsApp(deps))
     .route('/changes/:change/documents', createDocumentsApp(deps))
-    .route('/system-models', createSystemModelsApp(deps));
+    .route('/system-models', createSystemModelsApp(deps))
+    .route('/agent', createAgentApp(deps));
 }

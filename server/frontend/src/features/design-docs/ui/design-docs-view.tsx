@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import { Grid } from '#/shared/design-system/grid.tsx';
+import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack';
 import { CardLink } from '#/shared/ui/card-link.tsx';
 import { LoadingPanel } from '#/shared/ui/loading-panel.tsx';
 import { StatusPanel } from '#/shared/ui/status-panel.tsx';
 import { designDocsList } from '../design-docs.api.ts';
 import { DesignDocsIcon } from '../design-docs.model.ts';
+import { AskAgentButton } from './ask-agent-button.tsx';
 
 const route = getRouteApi('/_shell/changes/$changeId/design-docs');
 
@@ -14,6 +16,9 @@ export function DesignDocsView() {
   const { changeId } = route.useParams();
   return (
     <Stack>
+      <Group justify="flex-end">
+        <AskAgentButton>Design with the agent</AskAgentButton>
+      </Group>
       <DesignDocList changeId={changeId} />
     </Stack>
   );

@@ -1,0 +1,153 @@
+# Claude Code inside the Noesis page
+
+A proof of concept: the person works with the agent from the Noesis page
+instead of a terminal beside it. The page gets an agent panel down its right
+side, where a design document is created and revised through the plugin's
+own skills, with the person's messages, files, answers and permissions all
+given there.
+
+## Two ways the page reaches a session
+
+| The service was started by                                     | Mode       | What the page speaks to                                                                                                                                             |
+| -------------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| a person (`bun run dev`, the bin by hand: a terminal on stdin) | `embedded` | A Claude Code session the service starts beside the page, through the Claude Agent SDK, from the `claude` installed on this machine, with the Noesis plugin loaded. |
+| an agent, over stdio (the plugin's `.mcp.json`)                | `attached` | The session that started the service. Nothing else is started: a message goes out on the MCP connection as a channel event, and the session answers through a tool. |
+
+`main.ts` decides by `process.stdin.isTTY`, as it already did for the page.
+`boot/agent.ts` builds the host; `createServices` wires it to the handlers
+the `/ui/agent` routes call.
+
+### Embedded: the Agent SDK over the person's own Claude Code
+
+`ClaudeCodeAgentHost` (`adapters/out/agent/`) runs `query()` from
+`@anthropic-ai/claude-agent-sdk` in streaming-input mode: the person's
+messages are an async queue the session reads from, so one session lasts as
+long as the page. What the session says comes back as SDK messages and lands
+in an `AgentTranscript` (`app/agent/`), which the page follows as server-sent
+events (`GET /ui/agent/events`).
+
+The SDK is pointed at the `claude` on `PATH` (`pathToClaudeCodeExecutable`),
+never at the binary the SDK package bundles: the session is the person's own
+Claude Code, with their login, settings, plugins and hooks. The service passes
+no credentials and sets no `ANTHROPIC_*` variable; it adds only
+`NOESIS_OPEN_BROWSER=0` (the page is already open) and, from source,
+`NOESIS_SERVICE_ENTRY` so the plugin's `.mcp.json` runs this checkout's
+service. Licensing: Anthropic's terms let an end user sign in to the
+unmodified Claude Code binary with their own subscription, including where a
+platform hosts it; they forbid a third party offering Claude.ai login, routing
+requests through a subscription on a user's behalf, or holding their tokens.
+This design does none of that. Distributing Noesis with this feature is still
+something to confirm against the terms of the day.
+
+The session's own Noesis tools come from the plugin: the plugin's `.mcp.json`
+starts a second service process for the session, in `attached` mode, over
+stdio. Files are the source of truth, so the page's process and the session's
+process read the same graph; the page re-reads what it shows whenever a tool
+call of the session ends.
+
+Permissions stay with the person: `permissionMode: 'default'`, and every
+prompt comes to the page through `canUseTool` as a permission card (allow
+once, allow for this session, refuse). The card shows the whole call, uncut,
+and "allow for this session" keeps the rule with the session, never in a
+settings file. What asks at all is the person's own Claude Code
+configuration: with auto mode on in their settings, the classifier decides
+most calls and the page sees only the ones it cannot. A short allow-list spares the person
+the read-only calls: `Read`, `Glob`, `Grep`, writes under
+`.noesis/sessions/`, and the plugin's `list_*` and `get_*` tools. An
+`AskUserQuestion` call is a question card: the options the skill offers, one
+more for the person's own words, and one button for all of them.
+
+### Attached: the channel into the session that started the service
+
+`AttachedAgentHost` (`adapters/in/mcp/`) sends a message as a
+`notifications/claude/channel` notification on the connection the host
+opened, with the MCP server declaring the `claude/channel` experimental
+capability and offering a `reply_to_noesis_page` tool for the answer. Claude
+Code reads channel events only in an interactive session started with the
+channel loaded (`--dangerously-load-development-channels`, a research
+preview), so the panel says so; otherwise a message goes nowhere, and the
+session answers in its terminal. This half is unverified end to end: a
+headless run cannot start an interactive session with that flag.
+
+## The page
+
+- The agent is drawn over the page, never beside it, in one of two places
+  the reader chooses in the conversation's header and keeps
+  (`features/agent/agent-panel-context.tsx`): a bar at the foot of the page
+  (the default; `ui/agent-bar.tsx`) with the task, the field and the status
+  on one line, whose conversation rises as a sheet over the page; or a card
+  floating over the page's bottom right corner (`ui/agent-card.tsx`),
+  resized from its corner, that folds to a pill with the status. The
+  conversation comes into view by itself when the agent replies or waits on
+  the person, and folds at a click, from the header or the bar's sparkles
+  button (`⌘.`). The bar takes a line of the page: the shell sets
+  `--noesis-agent-foot` on its main while the bar is there, and a view that
+  fills the window's height takes it off its own.
+- `features/agent/` is the domain: `agent.api.ts` (the session query, kept
+  current by the event stream; the mutations), `agent.model.ts` (icon, status
+  words, the skill invocations, file rules), `ui/` (panel, entries, composer,
+  question and permission cards).
+- The panel is about where the page is, and says so over the composer: on a
+  change, a message designs a document into it; on an open design document,
+  it revises that one. The service adds the skill's invocation
+  (`/noesis:create-design-doc <change> 1` or
+  `/noesis:update-design-doc <change> <doc>`) at the head of the message the
+  session reads, never in what the person types or sees; a follow-up sent
+  from the same place goes without it, and a message from another place
+  starts the skill again (`app/agent/design-task.ts`). The bar's agent button
+  shows only on a change's pages, since off one there is nothing to design
+  into.
+- A file attached in the composer is uploaded to the session's scratch
+  directory (`POST /ui/agent/files`) and named to the agent by its path, which
+  is what the plugin's skills take.
+
+## The diagram, by instruction
+
+On the system model's page the agent composes the exploration diagram, and
+it never touches the canvas itself. A message from there carries the diagram
+as it stands (`DiagramTask`: the ids drawn, the relations shown) and starts
+the plugin's `explore-system-model` skill, which answers with a **diagram
+plan** in a fenced `noesis-diagram` block: a list of steps from a small,
+deterministic vocabulary (`app/system-model/diagram-plan.ts`, shipped as
+`contracts/diagram-plan.schema.json`): `add`, `addInside`, `addNeighbours`,
+`addChain`, `remove`, `clear`, `relations`, `direction`, `autoPlace`, each
+naming elements by the scan's ids. The service takes the plan out of the
+reply (`app/agent/diagram-plan-fence.ts`) into an entry of its own; the page
+resolves it against the model (`features/system-model/diagram-plan.ts`:
+unknown ids are reported, not fatal) and applies it through the exploration
+as one step of its own, so Undo takes it back. The plan is applied as it
+arrives when the diagram is on the page, and from its card otherwise. Where
+the request can be read two ways — which `Order`, how far to follow, keep
+or start over — the skill asks with `AskUserQuestion` first, which the page
+answers in its question card.
+
+## What the session may do
+
+The agent reaches the knowledge graph through Noesis's tools and nothing
+else. That is a rule the host enforces, not a request in a prompt:
+`adapters/out/agent/tool-policy.ts` judges every tool call in a
+`PreToolUse` hook of the SDK session, by the task the last message was
+about, before any permission is asked — so neither an allow rule nor the
+person's own auto mode can wave a call through. On a diagram the agent may
+call Noesis's tools, ask a question and search for a tool, and nothing else.
+On a design it may also read the plugin's own files, read and write the
+working files under `.noesis/sessions/`, run the plugin's scripts and read
+the repository's history (`git log`, `git status`, `git diff`), as the
+skills ask; other skills, other commands, the repository's sources and the
+web are refused with the reason, which the transcript shows as a failed
+tool line.
+
+The whole system model is too large for a session to read inline (Claude
+Code spills a tool answer over its limit to a file and tells the agent to
+read it, which the policy refuses), so the diagram skill works from
+`get_system_model_graph`: the model as elements, containment, uses and
+calls, a fraction of the size.
+
+## Left out of the proof of concept
+
+- Resuming a session across restarts, several sessions, a session per change.
+- Images and other binary attachments as content blocks (they upload and are
+  named by path only).
+- Verifying the attached mode against an interactive Claude Code with the
+  channel flag.
+- One service process for both the page and the session's tools.

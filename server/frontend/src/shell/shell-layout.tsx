@@ -1,5 +1,12 @@
 import { Outlet } from '@tanstack/react-router';
 import { useMemo } from 'react';
+import {
+  AgentPanelProvider,
+  useAgentPanel,
+} from '#/features/agent/agent-panel-context.tsx';
+import { useAgentPlace } from '#/features/agent/agent-place.ts';
+import { AgentSurface } from '#/features/agent/ui/agent-surface.tsx';
+import { DiagramApplierProvider } from '#/features/system-model/diagram-applier.tsx';
 import { AppShell } from '#/shared/design-system/app-shell';
 import {
   useDisclosure,
@@ -16,7 +23,22 @@ import { TopBar } from './top-bar';
 import classes from './shell-layout.module.css';
 
 export function ShellLayout() {
+  return (
+    <AgentPanelProvider>
+      <DiagramApplierProvider>
+        <ShellFrame />
+      </DiagramApplierProvider>
+    </AgentPanelProvider>
+  );
+}
+
+/** The bar, the rail, the page and, on a change, the agent over it. */
+function ShellFrame() {
   const [navbarOpened, navbar] = useDisclosure(false);
+  const { placement } = useAgentPanel();
+  // The agent works on what the page is on, a change or the diagram: off
+  // both, it has nothing to do and is not drawn, wherever the reader put it.
+  const { shown: agentShown } = useAgentPlace();
   // Folded to icons, as the reader last left it.
   const [railCollapsed, setRailCollapsed] = useLocalStorage<boolean>({
     key: 'noesis.rail-collapsed',
@@ -67,10 +89,14 @@ export function ShellLayout() {
         ref={ref}
         className={classes.main}
         data-page-tone={activeItem?.tone}
+        // The bar at the foot takes a line of the page, so the page keeps
+        // clear of it; the card takes nothing.
+        data-agent-foot={(agentShown && placement === 'bar') || undefined}
       >
         <ShellFullscreenContext value={shellFullscreen}>
           <Outlet />
           <ExitFullscreenButton />
+          {agentShown && <AgentSurface />}
         </ShellFullscreenContext>
       </AppShell.Main>
     </AppShell>

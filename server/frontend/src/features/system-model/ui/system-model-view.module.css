@@ -9,7 +9,8 @@
   flex-direction: column;
   gap: var(--mantine-spacing-lg);
   height: calc(
-    100dvh - var(--app-shell-header-offset, 0rem) - 2 * var(--workbench-gutter)
+    100dvh - var(--app-shell-header-offset, 0rem) - 2 *
+      var(--workbench-gutter) - var(--noesis-agent-foot, 0px)
   );
   min-height: 24rem;
 }

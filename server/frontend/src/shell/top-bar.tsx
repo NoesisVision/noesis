@@ -10,6 +10,9 @@ import {
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
 import { use } from 'react';
+import { useAgentPanel } from '#/features/agent/agent-panel-context.tsx';
+import { useAgentPlace } from '#/features/agent/agent-place.ts';
+import { AgentIcon } from '#/features/agent/agent.model.ts';
 import { currentProject } from '#/features/project/project.api.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon';
 import { Box } from '#/shared/design-system/box';
@@ -71,6 +74,7 @@ export function TopBar({ navbarOpened, onToggleNavbar }: TopBarProps) {
       <Brand />
       <SearchTool />
       <Group gap={2} wrap="nowrap">
+        <AgentTool />
         <FullscreenTool />
         <DevToolsTool />
         <SettingsTool />
@@ -139,6 +143,34 @@ function SearchTool() {
       </UnstyledButton>
       <SearchDialog opened={opened} onClose={dialog.close} />
     </Box>
+  );
+}
+
+/**
+ * The agent's conversation, brought into view and folded from the bar, and
+ * with ⌘. (Ctrl . off a Mac). Only where the agent has work: a change's
+ * pages and the system model's diagram.
+ */
+function AgentTool() {
+  const { opened, toggle } = useAgentPanel();
+  const { shown } = useAgentPlace();
+  const mac = ['macos', 'ios'].includes(useOs());
+  useHotkeys([['mod+.', () => shown && toggle()]], []);
+  if (!shown) return null;
+  return (
+    <Tooltip label={`Agent conversation (${mac ? '⌘.' : 'Ctrl .'})`}>
+      <ActionIcon
+        variant={opened ? 'light' : 'subtle'}
+        color={opened ? undefined : 'gray'}
+        size={34}
+        aria-label="Agent conversation"
+        aria-pressed={opened}
+        aria-keyshortcuts="Meta+. Control+."
+        onClick={toggle}
+      >
+        <AgentIcon size={18} stroke={1.7} aria-hidden />
+      </ActionIcon>
+    </Tooltip>
   );
 }
 

@@ -1,0 +1,121 @@
+/* --- The card's composer: pinned under the transcript, on a faint ground. */
+.composer {
+  flex: none;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--noesis-rail-border);
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-8)
+  );
+}
+
+/* --- The bar's composer: one line, centred at the page's measure. */
+.line {
+  width: min(880px, 100%);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.above {
+  min-height: 0;
+}
+
+.after {
+  flex: none;
+  padding-bottom: 2px;
+}
+
+/* The field and its buttons as one rounded box. */
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 8px 6px 12px;
+  border-radius: 14px;
+  background-color: var(--noesis-rail-surface);
+  box-shadow: 0 0 0 1px var(--noesis-rail-border);
+
+  &:focus-within {
+    box-shadow: 0 0 0 2px var(--mantine-color-brand-5);
+  }
+}
+
+.box[data-layout='bar'] {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+/* The textarea keeps nothing of its own: the box is its frame. */
+.field.field {
+  border: 0;
+  padding: 2px 0;
+  background: transparent;
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.5;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+/* What the next message is about: a verb, then the name, cut short. */
+.task.task {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 4px 8px;
+  font-size: 11px;
+
+  & svg {
+    flex: none;
+    color: var(--mantine-color-brand-6);
+  }
+}
+
+/* On the bar the task stands before the field, level with it, narrow. */
+.line .task.task {
+  flex: 0 1 240px;
+  padding: 0 0 10px 4px;
+}
+
+.taskVerb {
+  flex: none;
+  font-weight: 600;
+}
+
+.taskSubject {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--noesis-secondary-text);
+}
+
+.hint.hint {
+  padding: 6px 4px 0;
+  font-size: 11px;
+  color: var(--noesis-secondary-text);
+}
+
+.problem.problem {
+  padding: 2px 4px;
+  font-size: 11px;
+  color: var(--mantine-color-red-6);
+}
+
+/* On a phone the task goes over the field, as the card has it. */
+@media (max-width: 47.99em) {
+  .line > :last-child {
+    flex-wrap: wrap;
+  }
+
+  .line .task.task {
+    flex: 1 0 100%;
+    padding-bottom: 2px;
+  }
+}
