@@ -309,19 +309,24 @@ export const DesignDocument = Object.assign(designDocumentSchema, {
 });
 export type DesignDocument = z.infer<typeof designDocumentSchema>;
 
+/** Why a design document is refused, as the error body names it. */
+export const DesignDocViolationReason = z.enum([
+  'changedInGreenField',
+  'unknownElement',
+  'unchangedFieldInAddedItem',
+  'humanAuthor',
+  'diagramInDefinition',
+  'unknownNeed',
+  'ungovernedRule',
+  'unknownRelationEnd',
+  'containmentOutsideIdPath',
+  'slotOutsideTypeKind',
+]);
+export type DesignDocViolationReason = z.infer<typeof DesignDocViolationReason>;
+
 export interface DesignDocViolation {
   path: string;
-  reason:
-    | 'changedInGreenField'
-    | 'unknownElement'
-    | 'unchangedFieldInAddedItem'
-    | 'humanAuthor'
-    | 'diagramInDefinition'
-    | 'unknownNeed'
-    | 'ungovernedRule'
-    | 'unknownRelationEnd'
-    | 'containmentOutsideIdPath'
-    | 'slotOutsideTypeKind';
+  reason: DesignDocViolationReason;
 }
 
 export type DesignDocumentInput = z.input<typeof designDocumentSchema>;

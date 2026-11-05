@@ -5,17 +5,20 @@ import { ChangeId } from './change-id';
 // documents and design docs.
 
 /** The commit-type vocabulary, with `feature` as the long form of `feat`. */
-export const CHANGE_TYPES = ['feature', 'fix', 'improvement', 'chore'] as const;
-export type ChangeType = (typeof CHANGE_TYPES)[number];
+export const ChangeType = z
+  .enum(['feature', 'fix', 'improvement', 'chore'])
+  .describe(
+    'What kind of change this is: feature (new behavior), fix (a bug), improvement (better once, no new behavior), chore (recurring upkeep).',
+  );
+export type ChangeType = z.infer<typeof ChangeType>;
 
 /** Order matters: later stages sort after earlier ones. */
-export const CHANGE_STATUSES = [
-  'discovery',
-  'design',
-  'implementation',
-  'done',
-] as const;
-export type ChangeStatus = (typeof CHANGE_STATUSES)[number];
+export const ChangeStatus = z
+  .enum(['discovery', 'design', 'implementation', 'done'])
+  .describe(
+    'Where the change is in its lifecycle, in order: discovery (understanding the problem), design (shaping the solution), implementation (building it), done. A new change leaves it out and starts in discovery; an update always names it, carrying the value list_changes returned unless the change moves on.',
+  );
+export type ChangeStatus = z.infer<typeof ChangeStatus>;
 
 const CHANGE_KEY_PATTERN = /^[A-Z]{2,8}-\d+$/;
 
@@ -39,16 +42,8 @@ export const ChangeSchema = z
       .describe(
         'The tracker key the team uses for it, e.g. "NOE-142". Empty when there is none.',
       ),
-    type: z
-      .enum(CHANGE_TYPES)
-      .describe(
-        'What kind of change this is: feature (new behavior), fix (a bug), improvement (better once, no new behavior), chore (recurring upkeep).',
-      ),
-    status: z
-      .enum(CHANGE_STATUSES)
-      .describe(
-        'Where the change is in its lifecycle, in order: discovery (understanding the problem), design (shaping the solution), implementation (building it), done. A new change leaves it out and starts in discovery; an update always names it, carrying the value list_changes returned unless the change moves on.',
-      ),
+    type: ChangeType,
+    status: ChangeStatus,
     description: z
       .string()
       .default('')

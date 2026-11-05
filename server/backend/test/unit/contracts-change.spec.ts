@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  CHANGE_STATUSES,
-  CHANGE_TYPES,
+  ChangeStatus,
+  ChangeType,
   ChangeSchema,
 } from '#backend/app/changes/change';
 
@@ -63,8 +63,13 @@ describe('ChangeSchema', () => {
   });
 
   it('keeps the vocabularies in the order the ui sorts by', () => {
-    expect(CHANGE_TYPES).toEqual(['feature', 'fix', 'improvement', 'chore']);
-    expect(CHANGE_STATUSES).toEqual([
+    expect(ChangeType.options).toEqual([
+      'feature',
+      'fix',
+      'improvement',
+      'chore',
+    ]);
+    expect(ChangeStatus.options).toEqual([
       'discovery',
       'design',
       'implementation',

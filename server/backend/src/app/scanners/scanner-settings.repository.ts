@@ -1,10 +1,11 @@
 import { z } from 'zod';
+import { Language } from '#backend/app/scanners/code-parsers/code-model';
 import type { LibraryManifest } from '#backend/app/scanners/system-model-builders/library-manifest';
 import type { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
 
 /** The `csharp` parser: runs `noesis-parse-csharp`, which needs no settings. */
 const CSharpParserSettings = z.strictObject({
-  language: z.literal('csharp'),
+  language: z.literal(Language.enum.csharp),
 });
 
 /**
@@ -15,7 +16,7 @@ const CSharpParserSettings = z.strictObject({
  * name. The build must leave a `code-model/java/` tree under `{out}`.
  */
 export const JavaParserSettings = z.strictObject({
-  language: z.literal('java'),
+  language: z.literal(Language.enum.java),
   command: z.array(z.string()).min(1),
   /** What to tell someone on whose machine the command cannot be started. */
   installHint: z.string().optional(),

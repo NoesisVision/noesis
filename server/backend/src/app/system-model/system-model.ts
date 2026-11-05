@@ -202,7 +202,8 @@ export const ScannedDeploymentContainer = ScannedElement.extend({
 
 const PRIMITIVE_KIND = 'primitive';
 
-const PRIMITIVES = [
+/** The model's built-in types, the part after `primitive|`. */
+export const PrimitiveName = z.enum([
   'string',
   'integer',
   'decimal',
@@ -211,16 +212,13 @@ const PRIMITIVES = [
   'datetime',
   'duration',
   'uuid',
-];
+]);
+export type PrimitiveName = z.infer<typeof PrimitiveName>;
 
 export const PrimitiveId = z
-  .string()
-  .regex(
-    new RegExp(`^${PRIMITIVE_KIND}\\|(?:${PRIMITIVES.join('|')})$`),
-    'Invalid PrimitiveId',
-  )
+  .templateLiteral([`${PRIMITIVE_KIND}|`, PrimitiveName])
   .describe(
-    `A built-in building block's id: '${PRIMITIVE_KIND}|', then one of ${PRIMITIVES.join(', ')}, e.g. '${PRIMITIVE_KIND}|uuid'.`,
+    `A built-in building block's id: '${PRIMITIVE_KIND}|', then one of ${PrimitiveName.options.join(', ')}, e.g. '${PRIMITIVE_KIND}|uuid'.`,
   )
   .brand<'PrimitiveId'>();
 export type PrimitiveId = z.infer<typeof PrimitiveId>;

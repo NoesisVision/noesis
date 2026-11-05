@@ -9,6 +9,22 @@ const idPattern = (kind: string, minContainers: number) =>
 /** `{kind}|`, then the element's own name: an element in no container. */
 const topLevelIdPattern = (kind: string) => new RegExp(`^${kind}\\|${NAME}$`);
 
+/** What an element is: the kind its id is written with, before the `|`. */
+export const ElementKind = z.enum([
+  'module',
+  'building_block',
+  'behavior',
+  'rule',
+  'scenario',
+  'actor',
+  'manual_process',
+  'deployable_unit',
+  'library',
+  'layer',
+  'deployment_container',
+]);
+export type ElementKind = z.infer<typeof ElementKind>;
+
 export const ElementName = z
   .string()
   .regex(new RegExp(`^${NAME}$`))
@@ -17,7 +33,7 @@ export const ElementName = z
   );
 export type ElementName = z.infer<typeof ElementName>;
 
-const MODULE_KIND = 'module';
+const MODULE_KIND = ElementKind.enum.module;
 const moduleIdSchema = z
   .string()
   .regex(idPattern(MODULE_KIND, 0), 'Invalid ModuleId')
@@ -47,7 +63,7 @@ export const ModuleId = Object.assign(moduleIdSchema, {
 
 export type ModuleId = z.infer<typeof moduleIdSchema>;
 
-const BUILDING_BLOCK_KIND = 'building_block';
+const BUILDING_BLOCK_KIND = ElementKind.enum.building_block;
 const buildingBlockIdSchema = z
   .string()
   .regex(idPattern(BUILDING_BLOCK_KIND, 1), 'Invalid BuildingBlockId')
@@ -65,7 +81,7 @@ export const BuildingBlockId = Object.assign(buildingBlockIdSchema, {
 });
 export type BuildingBlockId = z.infer<typeof buildingBlockIdSchema>;
 
-const BEHAVIOR_KIND = 'behavior';
+const BEHAVIOR_KIND = ElementKind.enum.behavior;
 const behaviorIdSchema = z
   .string()
   .regex(idPattern(BEHAVIOR_KIND, 2), 'Invalid BehaviorId')
@@ -79,7 +95,7 @@ export const BehaviorId = Object.assign(behaviorIdSchema, {
 });
 export type BehaviorId = z.infer<typeof behaviorIdSchema>;
 
-const RULE_KIND = 'rule';
+const RULE_KIND = ElementKind.enum.rule;
 const ruleIdSchema = z
   .string()
   .regex(idPattern(RULE_KIND, 1), 'Invalid RuleId')
@@ -93,7 +109,7 @@ export const RuleId = Object.assign(ruleIdSchema, {
 });
 export type RuleId = z.infer<typeof ruleIdSchema>;
 
-const SCENARIO_KIND = 'scenario';
+const SCENARIO_KIND = ElementKind.enum.scenario;
 const scenarioIdSchema = z
   .string()
   .regex(idPattern(SCENARIO_KIND, 2), 'Invalid ScenarioId')
@@ -107,7 +123,7 @@ export const ScenarioId = Object.assign(scenarioIdSchema, {
 });
 export type ScenarioId = z.infer<typeof scenarioIdSchema>;
 
-const ACTOR_KIND = 'actor';
+const ACTOR_KIND = ElementKind.enum.actor;
 const actorIdSchema = z
   .string()
   .regex(topLevelIdPattern(ACTOR_KIND), 'Invalid ActorId')
@@ -121,7 +137,7 @@ export const ActorId = Object.assign(actorIdSchema, {
 });
 export type ActorId = z.infer<typeof actorIdSchema>;
 
-const MANUAL_PROCESS_KIND = 'manual_process';
+const MANUAL_PROCESS_KIND = ElementKind.enum.manual_process;
 const manualProcessIdSchema = z
   .string()
   .regex(topLevelIdPattern(MANUAL_PROCESS_KIND), 'Invalid ManualProcessId')
@@ -137,7 +153,7 @@ export const ManualProcessId = Object.assign(manualProcessIdSchema, {
 });
 export type ManualProcessId = z.infer<typeof manualProcessIdSchema>;
 
-const LAYER_KIND = 'layer';
+const LAYER_KIND = ElementKind.enum.layer;
 const layerIdSchema = z
   .string()
   .regex(topLevelIdPattern(LAYER_KIND), 'Invalid LayerId')
@@ -151,7 +167,7 @@ export const LayerId = Object.assign(layerIdSchema, {
 });
 export type LayerId = z.infer<typeof layerIdSchema>;
 
-const DEPLOYMENT_CONTAINER_KIND = 'deployment_container';
+const DEPLOYMENT_CONTAINER_KIND = ElementKind.enum.deployment_container;
 const deploymentContainerIdSchema = z
   .string()
   .regex(
@@ -191,7 +207,7 @@ export type ArtifactName = z.infer<typeof ArtifactName>;
 const artifactIdPattern = (kind: string) =>
   new RegExp(`^${kind}\\|${ARTIFACT_NAME}$`);
 
-const DEPLOYABLE_UNIT_KIND = 'deployable_unit';
+const DEPLOYABLE_UNIT_KIND = ElementKind.enum.deployable_unit;
 const deployableUnitIdSchema = z
   .string()
   .regex(artifactIdPattern(DEPLOYABLE_UNIT_KIND), 'Invalid DeployableUnitId')
@@ -207,7 +223,7 @@ export const DeployableUnitId = Object.assign(deployableUnitIdSchema, {
 });
 export type DeployableUnitId = z.infer<typeof deployableUnitIdSchema>;
 
-const LIBRARY_KIND = 'library';
+const LIBRARY_KIND = ElementKind.enum.library;
 const libraryIdSchema = z
   .string()
   .regex(artifactIdPattern(LIBRARY_KIND), 'Invalid LibraryId')
