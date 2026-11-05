@@ -1,6 +1,6 @@
 # Plan: the system model as flat elements and one list of relations
 
-Status: proposed (November 2026).
+Status: built (November 2026).
 
 `server/backend/src/app/system-model/system-model.ts` nests what an element
 has (properties, input, output, its own relations) inside the element. This
