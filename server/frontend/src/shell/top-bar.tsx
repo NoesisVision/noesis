@@ -147,9 +147,9 @@ function SearchTool() {
 }
 
 /**
- * The agent's panel, opened and shut from the bar, and with ⌘. (Ctrl . off a
- * Mac). Only on a change: the panel designs into the change the page is on,
- * and has nothing to do elsewhere.
+ * The agent's conversation, brought into view and folded from the bar, and
+ * with ⌘. (Ctrl . off a Mac). Only on a change: the agent designs into the
+ * change the page is on, and has nothing to do elsewhere.
  */
 function AgentTool() {
   const { opened, toggle } = useAgentPanel();
@@ -159,12 +159,12 @@ function AgentTool() {
   useHotkeys([['mod+.', () => onChange && toggle()]], []);
   if (!onChange) return null;
   return (
-    <Tooltip label={`Agent panel (${mac ? '⌘.' : 'Ctrl .'})`}>
+    <Tooltip label={`Agent conversation (${mac ? '⌘.' : 'Ctrl .'})`}>
       <ActionIcon
         variant={opened ? 'light' : 'subtle'}
         color={opened ? undefined : 'gray'}
         size={34}
-        aria-label="Agent panel"
+        aria-label="Agent conversation"
         aria-pressed={opened}
         aria-keyshortcuts="Meta+. Control+."
         onClick={toggle}

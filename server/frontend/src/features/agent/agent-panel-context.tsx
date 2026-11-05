@@ -7,7 +7,16 @@ import {
 } from 'react';
 import { useLocalStorage } from '#/shared/design-system/hooks.ts';
 
+/**
+ * Where the conversation is: a bar at the foot of the page whose history
+ * rises as a sheet, or a card floating over the page that folds to a pill.
+ */
+export type AgentPlacement = 'bar' | 'card';
+
 interface AgentPanel {
+  placement: AgentPlacement;
+  setPlacement: (placement: AgentPlacement) => void;
+  /** The conversation is in view: the sheet risen, or the card unfolded. */
   opened: boolean;
   open: () => void;
   close: () => void;
@@ -17,16 +26,23 @@ interface AgentPanel {
 const noop = () => {};
 
 const AgentPanelContext = createContext<AgentPanel>({
+  placement: 'bar',
+  setPlacement: noop,
   opened: false,
   open: noop,
   close: noop,
   toggle: noop,
 });
 
-/** Whether the agent's panel is open beside the page, as the reader last left it. */
+/** Where the agent sits and whether its conversation is in view, as the reader last left them. */
 export function AgentPanelProvider({ children }: { children: ReactNode }) {
+  const [placement, setPlacement] = useLocalStorage<AgentPlacement>({
+    key: 'noesis.agent.placement',
+    defaultValue: 'bar',
+    getInitialValueInEffect: false,
+  });
   const [opened, setOpened] = useLocalStorage<boolean>({
-    key: 'noesis.agent.panel-opened',
+    key: 'noesis.agent.opened',
     defaultValue: false,
     getInitialValueInEffect: false,
   });
@@ -34,8 +50,8 @@ export function AgentPanelProvider({ children }: { children: ReactNode }) {
   const close = useCallback(() => setOpened(false), [setOpened]);
   const toggle = useCallback(() => setOpened((value) => !value), [setOpened]);
   const value = useMemo(
-    () => ({ opened, open, close, toggle }),
-    [opened, open, close, toggle],
+    () => ({ placement, setPlacement, opened, open, close, toggle }),
+    [placement, setPlacement, opened, open, close, toggle],
   );
   return <AgentPanelContext value={value}>{children}</AgentPanelContext>;
 }

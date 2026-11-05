@@ -79,6 +79,10 @@
           "description": "Theme-aware outlined hover background for the Noesis brand palette."
         },
         {
+          "name": "--noesis-agent-foot",
+          "description": "How much of the page's foot the agent's bar takes, set on the shell's main while the bar is there; a view that fills the window's height takes it off its own. 0 when unset."
+        },
+        {
           "name": "--noesis-secondary-text",
           "description": "Secondary text: quieter than the body text, a step more contrast than Mantine's dimmed. Gray 7 in light, dark 1 in dark, from `cssVariablesResolver` in `theme.ts`."
         },

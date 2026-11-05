@@ -4,7 +4,7 @@ import {
   AgentPanelProvider,
   useAgentPanel,
 } from '#/features/agent/agent-panel-context.tsx';
-import { AgentPanel } from '#/features/agent/ui/agent-panel.tsx';
+import { AgentSurface } from '#/features/agent/ui/agent-surface.tsx';
 import { AppShell } from '#/shared/design-system/app-shell';
 import {
   useDisclosure,
@@ -28,14 +28,14 @@ export function ShellLayout() {
   );
 }
 
-/** The bar, the rail, the page and, when open, the agent beside it. */
+/** The bar, the rail, the page and, on a change, the agent over it. */
 function ShellFrame() {
   const [navbarOpened, navbar] = useDisclosure(false);
-  const agentPanel = useAgentPanel();
-  // The agent designs into the change the page is on: off a change, the
-  // panel has nothing to do and is not drawn, whatever the reader left it as.
+  const { placement } = useAgentPanel();
+  // The agent designs into the change the page is on: off a change, it has
+  // nothing to do and is not drawn, wherever the reader put it.
   const { changeId } = useParams({ strict: false });
-  const agentShown = agentPanel.opened && changeId !== undefined;
+  const agentShown = changeId !== undefined;
   // Folded to icons, as the reader last left it.
   const [railCollapsed, setRailCollapsed] = useLocalStorage<boolean>({
     key: 'noesis.rail-collapsed',
@@ -68,13 +68,6 @@ function ShellFrame() {
         breakpoint: 'md',
         collapsed: { mobile: !navbarOpened },
       }}
-      // The agent down the right, as wide as a conversation reads well at,
-      // only while open: shut, it takes no room and nothing is drawn.
-      aside={{
-        width: 420,
-        breakpoint: 'md',
-        collapsed: { desktop: !agentShown, mobile: !agentShown },
-      }}
       padding="lg"
     >
       <AppShell.Header withBorder={false}>
@@ -89,17 +82,18 @@ function ShellFrame() {
           onNavigate={navbar.close}
         />
       </AppShell.Navbar>
-      <AppShell.Aside withBorder={false}>
-        {agentShown && <AgentPanel />}
-      </AppShell.Aside>
       <AppShell.Main
         ref={ref}
         className={classes.main}
         data-page-tone={activeItem?.tone}
+        // The bar at the foot takes a line of the page, so the page keeps
+        // clear of it; the card takes nothing.
+        data-agent-foot={(agentShown && placement === 'bar') || undefined}
       >
         <ShellFullscreenContext value={shellFullscreen}>
           <Outlet />
           <ExitFullscreenButton />
+          {agentShown && <AgentSurface />}
         </ShellFullscreenContext>
       </AppShell.Main>
     </AppShell>

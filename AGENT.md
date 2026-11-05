@@ -77,7 +77,7 @@ Backend code reachable from `AppType` (routes, handlers, contracts) must be runt
 
 Client-only React SPA. Rules the linter enforces:
 
-- Partitioned by domain, enforced by `boundaries`: `src/features/<domain>/` (`<domain>.api.ts`, `<domain>.model.ts`, `ui/`), `src/shell/` (chrome and navigation), `src/shared/` (client, design system, routing ids), `src/routes/` (wiring only). `features/agent/` is the agent's panel; the shell opens it as an `AppShell.Aside`, and a view opens it with words in its composer through `agent-panel-context.tsx`.
+- Partitioned by domain, enforced by `boundaries`: `src/features/<domain>/` (`<domain>.api.ts`, `<domain>.model.ts`, `ui/`), `src/shell/` (chrome and navigation), `src/shared/` (client, design system, routing ids), `src/routes/` (wiring only). `features/agent/` is the agent: a bar at the foot of the page whose conversation rises as a sheet, or a card floating over the page, as the reader chooses (`agent-panel-context.tsx`); the shell draws it over its main on a change's pages (`ui/agent-surface.tsx`).
 - The shell composes features; no feature imports the shell. A feature is reached through its `*.api.ts` / `*.model.ts`, never its `ui/` — inside a feature, import siblings relatively; `#/` means crossing a module.
 - Route files export `Route` and nothing else, with a **literal** route id (`tsr generate` rejects an imported constant); the typed ids live in `src/shared/routing/route-ids.ts`.
 - `@mantine/*` is private to `src/shared/design-system/`; everything else imports from `#/shared/design-system`.

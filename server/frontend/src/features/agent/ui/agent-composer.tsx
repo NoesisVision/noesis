@@ -5,7 +5,7 @@ import {
   IconX,
 } from '@tabler/icons-react';
 import { useParams } from '@tanstack/react-router';
-import { type KeyboardEvent, useState } from 'react';
+import { type KeyboardEvent, type ReactNode, useState } from 'react';
 import { useChangesWithEntries } from '#/features/changes/changes.api.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
@@ -24,23 +24,35 @@ import {
   useUploadAgentFile,
 } from '../agent.api.ts';
 import { AgentIcon, designTaskOf, taskVerb } from '../agent.model.ts';
-import classes from './agent-panel.module.css';
+import classes from './agent-composer.module.css';
 
 interface AgentComposerProps {
+  /**
+   * `bar`: one line across the foot of the page, the task before the field
+   * and `trailing` after it. `card`: the task over the field, the buttons
+   * under it, as a chat's composer is.
+   */
+  layout: 'bar' | 'card';
   /** The agent is in the middle of a turn: Stop is offered beside Send. */
   busy: boolean;
   /** Nothing listens: the field says so and sends nothing. */
   disabled: boolean;
+  /** What the bar carries after the field: the status, the sheet's toggle. */
+  trailing?: ReactNode;
 }
 
 /**
- * Where the person writes to the agent: what the message is about over the
- * field, the field itself, the files attached to it as chips, and Send — or
- * Stop, while the agent is working. Enter sends; Shift+Enter breaks the
- * line. The skill the message starts is never typed: the service adds it
- * from where the page is.
+ * Where the person writes to the agent: what the message is about, the
+ * field, the files attached to it as chips, and Send — or Stop, while the
+ * agent is working. Enter sends; Shift+Enter breaks the line. The skill the
+ * message starts is never typed: the service adds it from where the page is.
  */
-export function AgentComposer({ busy, disabled }: AgentComposerProps) {
+export function AgentComposer({
+  layout,
+  busy,
+  disabled,
+  trailing,
+}: AgentComposerProps) {
   const task = designTaskOf(useParams({ strict: false }));
   const [text, setText] = useState('');
   const [attachments, setAttachments] = useState<AgentAttachment[]>([]);
@@ -99,104 +111,145 @@ export function AgentComposer({ busy, disabled }: AgentComposerProps) {
   const detach = (path: string) =>
     setAttachments((all) => all.filter((a) => a.path !== path));
 
+  const chips = attachments.length > 0 && (
+    <Group gap={4}>
+      {attachments.map((file) => (
+        <Button
+          key={file.path}
+          size="compact-xs"
+          variant="light"
+          color="gray"
+          radius="xl"
+          leftSection={<IconPaperclip size={11} aria-hidden />}
+          rightSection={<IconX size={11} aria-hidden />}
+          onClick={() => detach(file.path)}
+          aria-label={`Remove ${file.name}`}
+        >
+          {file.name}
+        </Button>
+      ))}
+    </Group>
+  );
+
+  const field = (
+    <Textarea
+      className={classes.field}
+      classNames={{ input: classes.field }}
+      aria-label="Message to the agent"
+      placeholder={placeholderFor(task, disabled)}
+      value={text}
+      onChange={(event) => setText(event.currentTarget.value)}
+      onKeyDown={onKeyDown}
+      disabled={disabled}
+      autosize
+      minRows={1}
+      maxRows={layout === 'bar' ? 5 : 8}
+      variant="unstyled"
+    />
+  );
+
+  const buttons = (
+    <>
+      <FileButton
+        onChange={(files) => void attach(files)}
+        multiple
+        disabled={disabled}
+      >
+        {(props) => (
+          <Tooltip label="Attach files">
+            <ActionIcon
+              {...props}
+              variant="subtle"
+              color="gray"
+              size="md"
+              aria-label="Attach files"
+              loading={upload.isPending}
+            >
+              <IconPaperclip size={16} aria-hidden />
+            </ActionIcon>
+          </Tooltip>
+        )}
+      </FileButton>
+      {busy && (
+        <Tooltip label="Stop the agent">
+          <ActionIcon
+            variant="light"
+            color="red"
+            size="md"
+            aria-label="Stop the agent"
+            onClick={() => interrupt.mutate()}
+            loading={interrupt.isPending}
+          >
+            <IconPlayerStopFilled size={14} aria-hidden />
+          </ActionIcon>
+        </Tooltip>
+      )}
+      <Tooltip label={`Send (${enter}; Shift+${enter} for a new line)`}>
+        <ActionIcon
+          variant="filled"
+          size="md"
+          radius="xl"
+          aria-label="Send"
+          onClick={submit}
+          disabled={!canSend}
+          loading={send.isPending}
+        >
+          <IconArrowUp size={16} aria-hidden />
+        </ActionIcon>
+      </Tooltip>
+    </>
+  );
+
+  const note = problem !== null && (
+    <Text className={classes.problem} role="alert">
+      {problem}
+    </Text>
+  );
+
+  if (layout === 'bar') {
+    return (
+      <Box className={classes.line}>
+        {(chips || note) && (
+          <Group gap="sm" className={classes.above}>
+            {chips}
+            {note}
+          </Group>
+        )}
+        <Group gap="sm" wrap="nowrap" align="flex-end">
+          <TaskChip task={task} />
+          <Box className={classes.box} data-layout="bar">
+            {field}
+          </Box>
+          <Group gap={4} wrap="nowrap" className={classes.after}>
+            {buttons}
+            {trailing}
+          </Group>
+        </Group>
+      </Box>
+    );
+  }
+
   return (
     <Box className={classes.composer}>
       <TaskChip task={task} />
       <Box className={classes.box}>
-        {attachments.length > 0 && (
-          <Group gap={4}>
-            {attachments.map((file) => (
-              <Button
-                key={file.path}
-                size="compact-xs"
-                variant="light"
-                color="gray"
-                radius="xl"
-                leftSection={<IconPaperclip size={11} aria-hidden />}
-                rightSection={<IconX size={11} aria-hidden />}
-                onClick={() => detach(file.path)}
-                aria-label={`Remove ${file.name}`}
-              >
-                {file.name}
-              </Button>
-            ))}
-          </Group>
-        )}
-        <Textarea
-          className={classes.field}
-          classNames={{ input: classes.field }}
-          aria-label="Message to the agent"
-          placeholder={placeholderFor(task, disabled)}
-          value={text}
-          onChange={(event) => setText(event.currentTarget.value)}
-          onKeyDown={onKeyDown}
-          disabled={disabled}
-          autosize
-          minRows={1}
-          maxRows={8}
-          variant="unstyled"
-        />
-        <Group justify="space-between" gap="xs">
-          <FileButton
-            onChange={(files) => void attach(files)}
-            multiple
-            disabled={disabled}
-          >
-            {(props) => (
-              <Tooltip label="Attach files">
-                <ActionIcon
-                  {...props}
-                  variant="subtle"
-                  color="gray"
-                  size="md"
-                  aria-label="Attach files"
-                  loading={upload.isPending}
-                >
-                  <IconPaperclip size={16} aria-hidden />
-                </ActionIcon>
-              </Tooltip>
-            )}
-          </FileButton>
-          <Group gap={4}>
-            {busy && (
-              <Tooltip label="Stop the agent">
-                <ActionIcon
-                  variant="light"
-                  color="red"
-                  size="md"
-                  aria-label="Stop the agent"
-                  onClick={() => interrupt.mutate()}
-                  loading={interrupt.isPending}
-                >
-                  <IconPlayerStopFilled size={14} aria-hidden />
-                </ActionIcon>
-              </Tooltip>
-            )}
-            <Tooltip label={`Send (${enter})`}>
-              <ActionIcon
-                variant="filled"
-                size="md"
-                radius="xl"
-                aria-label="Send"
-                onClick={submit}
-                disabled={!canSend}
-                loading={send.isPending}
-              >
-                <IconArrowUp size={16} aria-hidden />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
+        {chips}
+        {field}
+        <Group justify="flex-end" gap={4}>
+          {buttons}
         </Group>
       </Box>
-      <Text className={classes.hint} role={problem ? 'alert' : undefined}>
-        {problem ?? `${enter} to send · Shift+${enter} for a new line`}
-      </Text>
+      {note || (
+        <Text className={classes.hint}>
+          {enter} to send · Shift+{enter} for a new line
+        </Text>
+      )}
     </Box>
   );
 }
 
 /**
- * What the next message is about, named over the field: the change a
+ * What the next message is about, named beside the field: the change a
  * design document is made for, or the design document being revised. Off a
  * change, that there is nothing to design into.
  */
@@ -216,7 +269,7 @@ function TaskChip({ task }: { task: DesignTask | undefined }) {
       : (change?.entries.find((entry) => entry.id === task.designDoc)?.name ??
         task.designDoc);
   return (
-    <Text className={classes.task}>
+    <Text className={classes.task} title={`${taskVerb(task)}: ${subject}`}>
       <AgentIcon size={12} stroke={1.8} aria-hidden />
       <span className={classes.taskVerb}>{taskVerb(task)}</span>
       <span className={classes.taskSubject}>{subject}</span>

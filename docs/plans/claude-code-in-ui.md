@@ -71,10 +71,18 @@ headless run cannot start an interactive session with that flag.
 
 ## The page
 
-- The panel is an `AppShell.Aside` the shell opens from the bar (the sparkles
-  button, `⌘.`), remembered between visits. Its state lives in
-  `features/agent/agent-panel-context.tsx`, so a view can open it with words
-  already in the composer.
+- The agent is drawn over the page, never beside it, in one of two places
+  the reader chooses in the conversation's header and keeps
+  (`features/agent/agent-panel-context.tsx`): a bar at the foot of the page
+  (the default; `ui/agent-bar.tsx`) with the task, the field and the status
+  on one line, whose conversation rises as a sheet over the page; or a card
+  floating over the page's bottom right corner (`ui/agent-card.tsx`),
+  resized from its corner, that folds to a pill with the status. The
+  conversation comes into view by itself when the agent replies or waits on
+  the person, and folds at a click, from the header or the bar's sparkles
+  button (`⌘.`). The bar takes a line of the page: the shell sets
+  `--noesis-agent-foot` on its main while the bar is there, and a view that
+  fills the window's height takes it off its own.
 - `features/agent/` is the domain: `agent.api.ts` (the session query, kept
   current by the event stream; the mutations), `agent.model.ts` (icon, status
   words, the skill invocations, file rules), `ui/` (panel, entries, composer,
