@@ -3,7 +3,8 @@ import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts
 /*
  * A design that changes something at every level, in the JSON form the wire
  * carries: an element added, modified and removed at each of the three kinds,
- * a part of each kind, a rule on a module, rules traced to a need and to
+ * a part of each kind — a property as a relation from its block — a rule on
+ * a module, rules traced to a need and to
  * none, and one element that draws a diagram. Only what the
  * outline reads is spelled out — the bodies of the fields are the detail
  * panel's business, not the tree's.
@@ -61,21 +62,6 @@ export const changedEverywhereFixture = {
         id: 'building_block|sales.refunds.Refund',
         type: human('aggregate'),
         definition: agent('A refund of one or more lines of an order.'),
-        properties: {
-          added: [
-            {
-              name: 'orderId',
-              type: agent('building_block|sales.orders.OrderId'),
-            },
-            {
-              name: 'lines',
-              type: agent({
-                collectionOf: 'building_block|sales.refunds.RefundLine',
-              }),
-            },
-            { name: 'issuedAt', type: agent('primitive|date') },
-          ],
-        },
         rules: {
           added: [
             {
@@ -127,21 +113,7 @@ export const changedEverywhereFixture = {
     modified: [
       {
         id: 'building_block|sales.orders.Order',
-        properties: {
-          added: [
-            {
-              name: 'refundedAmount',
-              type: agent('building_block|sales.Money'),
-            },
-          ],
-          removed: ['creditNoteId'],
-          modified: [
-            {
-              name: 'status',
-              type: human('building_block|sales.orders.OrderStatus'),
-            },
-          ],
-        },
+        definition: { changed: false },
       },
     ],
   },
@@ -166,5 +138,54 @@ export const changedEverywhereFixture = {
     ],
     removed: ['behavior|sales.credit-notes.CreditNote.issue'],
     modified: [{ id: 'behavior|sales.orders.Order.cancel' }],
+  },
+  relations: {
+    added: [
+      {
+        kind: 'has_state',
+        from: 'building_block|sales.refunds.Refund',
+        name: 'orderId',
+        to: agent('building_block|sales.orders.OrderId'),
+        cardinality: agent('1'),
+      },
+      {
+        kind: 'has_state',
+        from: 'building_block|sales.refunds.Refund',
+        name: 'lines',
+        to: agent('building_block|sales.refunds.RefundLine'),
+        cardinality: agent('*'),
+      },
+      {
+        kind: 'has_state',
+        from: 'building_block|sales.refunds.Refund',
+        name: 'issuedAt',
+        to: agent('primitive|date'),
+        cardinality: agent('1'),
+      },
+      {
+        kind: 'has_state',
+        from: 'building_block|sales.orders.Order',
+        name: 'refundedAmount',
+        to: agent('building_block|sales.Money'),
+        cardinality: agent('0..1'),
+      },
+    ],
+    removed: [
+      {
+        kind: 'has_state',
+        from: 'building_block|sales.orders.Order',
+        name: 'creditNoteId',
+        to: 'building_block|sales.credit-notes.CreditNoteId',
+      },
+    ],
+    modified: [
+      {
+        kind: 'has_state',
+        from: 'building_block|sales.orders.Order',
+        name: 'status',
+        to: human('building_block|sales.orders.OrderStatus'),
+        cardinality: { changed: false },
+      },
+    ],
   },
 } satisfies DesignDocumentInput;

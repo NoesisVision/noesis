@@ -4,8 +4,9 @@ The second stage of the scanner. The first stage (one per language, the
 Roslyn parser for C#) writes the **code model**: declarations, edges and
 stubs, see [`docs/arch/code-model.md`](../arch/code-model.md).
 This stage reads that model and writes the **system model** the server keeps
-in `.noesis/graph/system-models/`: modules, building blocks and behaviors,
-see `server/backend/src/app/system-model/system-model.ts`. It runs in the
+in `.noesis/graph/system-models/`: modules, building blocks, behaviors
+and one list of the relations between them, see
+`server/backend/src/app/system-model/system-model.ts`. It runs in the
 TypeScript server, once for every language, and knows a language only through
 its **annotation vocabulary**: which annotation types mean what, which
 platform types are the model's primitives, which are collections.
@@ -26,8 +27,10 @@ namespace-wide annotations).
 | `.noesis/settings.json`       | In the repository: `parser` (which parser reads the repository, by `language`, with its settings: the `java` parser's `command`), `engine` (the Java presets' engine), `namespacePartsToSkip`, `namespacesToExclude` |
 | Clock, repository name        | From the scanner adapter, as today                                                                                                                                                                                   |
 
-Output: the `modules`, `buildingBlocks` and `behaviors` of one
-`SystemModel`, plus diagnostics. The stage is a pure function of its inputs;
+Output: the `modules`, `buildingBlocks`, `behaviors` and `relations` of
+one `SystemModel`, plus diagnostics. An element carries only what is its
+own; what a module holds, a block's state, supertypes and behaviors, and a
+behavior's inputs, output and calls are relations. The stage is a pure function of its inputs;
 the adapter around it mints the id, stamps the time, reads the files and logs
 the diagnostics.
 
@@ -66,8 +69,8 @@ package annotation (decision 13). Primitives are the eight keywords and the
 `java.lang` boxes, `String`, `BigDecimal`, `UUID` and the `java.time` types;
 collections are the `java.util` collection interfaces and classes and
 `Stream`; `Map` and its kin are dictionaries; `CompletableFuture`,
-`CompletionStage` and `Future` are looked through, `Optional` marks optional,
-`Void` is nothing.
+`CompletionStage` and `Future` are looked through, `Optional` makes a value
+`0..1`, `Void` is nothing.
 
 Besides annotations the vocabulary names, per language:
 
@@ -124,16 +127,23 @@ attribute.
   outermost enclosing type for a nested one. Two types that resolve to one
   id keep the first in scan order (manifest order of artifacts, then node
   order) and drop the rest with a diagnostic.
-- **R4.4 `implements`.** The blocks among the types the node directly
-  `EXTENDS` or `IMPLEMENTS` (one hop, type arguments ignored:
-  `IRepository<Order>` is the block `IRepository`), sorted, unique.
+- **R4.4 `extends`.** One `extends` relation from the block to each block
+  among the types the node directly `EXTENDS` or `IMPLEMENTS` (one hop,
+  type arguments ignored: `IRepository<Order>` is the block `IRepository`),
+  never to itself.
 - **R4.5 Description.** The `description` role's text, else the node's
   `documentation`, else null.
-- **R4.6 Source.** The node's first location: `path`, `startLine`.
+- **R4.6 Source.** The node's first location: its `file` as `path`, and
+  `startLine` and `endLine` from its span. A line below 1 is null, and so
+  is an end before the start. A node with no location has `path: ''` and
+  both lines null.
 - **R4.7 `rules`**: empty; nothing in the annotation package expresses a
   rule. **`scenarios`**: one per `scenario` role on the type (section 9.9).
 
 ## 5. Properties of a building block
+
+A property is one `has_state` relation from the block: `name`, `to` the
+block or primitive its type resolves to, and `cardinality` (R5.4).
 
 - **R5.1 Candidates.** The property and field nodes the block `CONTAINS`
   that are `public` (or, in Java, exposed by a getter, R5.8), not static,
@@ -143,15 +153,20 @@ attribute.
 - **R5.2 One name, one property.** A field and a property whose names match
   after stripping leading underscores and case (`_total` and `Total`) are
   one property; the property node wins.
-- **R5.3 Type.** The member's `type` resolved by section 7. A member whose
+- **R5.3 Type.** The member's `type` resolved by section 7 gives `to`. A member whose
   type resolves to nothing is left out, with a diagnostic at debug level
   (a `Data` interface, a `Func<…>`, a technical type).
-- **R5.4 `optional`.** True when the type reference is `nullable` or wraps
-  `Nullable<T>`; false otherwise.
-- **R5.5 Order.** By source location (file, line) of the member, then by
-  name; name is the key, so two members cannot share one.
-- **R5.6 `description`**: the member's `documentation`, else that of the
-  getter that exposes it (R5.8), else null.
+- **R5.4 Cardinality.** `*` when the type is a collection (R7.3), whether
+  or not it may be empty; else `0..1` when the type reference is
+  `nullable` or an optional wrapper (`Nullable<T>`, Java's `Optional<T>`)
+  wraps it; else `1`.
+- **R5.5 Order.** Members are read by source location (file, line), then
+  by name, which decides R5.2 between two fields; the relations are written
+  in the order of R10.1. The name is the key, so two members cannot share
+  one.
+- **R5.6 No description.** A `has_state` carries none, so the member's
+  `documentation` is not read: what a piece of state means is the
+  description of the block or primitive it points at.
 - **R5.7 Record components.** A field the parser marks
   `java.isRecordComponent` is a candidate although it is private: a Java
   record's state is its components, read through accessors the parser marks
@@ -190,21 +205,26 @@ attribute.
   a level through `SkipNamespaceInDomainModulesHierarchy`, wait for
   namespace-wide annotations, section 12.)
 - **R6.4 Source.** The first location of the first namespace node (scan
-  order) whose name maps to the module's path: its `file` and `startLine`.
+  order) whose name maps to the module's path, as R4.6.
   A module path that no namespace node maps to (a prefix created only by
   skipping) takes the directory of the nearest descendant module's file,
-  `line: null`, as the Java parser does today.
+  `startLine` and `endLine` null, as the Java parser does today.
 - **R6.5 `description`**: null; the annotation package has no description
   for a namespace. `rules`: empty.
+- **R6.6 Containment.** A `module_contains_module` relation from each
+  module to every module one level below it, and a `module_contains_block`
+  from each block's module to the block. They repeat what the ids say, so
+  the relations list is complete.
 
 ## 7. Resolving a type reference
 
-A `TypeRef` resolves to a `BuildingBlockRef` (a block id, a `primitive|…`,
-or `{ collectionOf }`) or to nothing. The rules apply in this order; the
+A `TypeRef` resolves to a `TypeId` (a block id or a `primitive|…`) with
+a cardinality (`1`, `0..1` or `*`, R5.4), or to nothing. The type is never
+a wrapper: a collection is said by `*`. The rules apply in this order; the
 first that fits decides.
 
 - **R7.1 Transparent wrappers.** A `named` reference to `Task<T>`,
-  `ValueTask<T>` resolves as `T`; to `Nullable<T>` as `T`, marked optional.
+  `ValueTask<T>` resolves as `T`; to `Nullable<T>` as `T`, made `0..1`.
   A non-generic `Task`/`ValueTask`, `void` and `dynamic` resolve to nothing.
 - **R7.2 Primitives.** A `primitive` reference by name (`bool` → boolean;
   `byte`, `sbyte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`,
@@ -215,21 +235,23 @@ first that fits decides.
   `NodaTime.LocalDateTime`, `NodaTime.OffsetDateTime` → datetime;
   `System.DateOnly`, `NodaTime.LocalDate` → date; `System.TimeSpan`,
   `NodaTime.Duration`, `NodaTime.Period` → duration.
-- **R7.3 Collections.** An `array` resolves to `{ collectionOf: element }`.
-  A `named` reference to a collection type of the vocabulary
+- **R7.3 Collections.** An `array` resolves to its element, `*`. A
+  `named` reference to a collection type of the vocabulary
   (`IEnumerable<T>`, `ICollection<T>`, `IList<T>`, `IReadOnlyCollection<T>`,
   `IReadOnlyList<T>`, `ISet<T>`, `IReadOnlySet<T>`, `List<T>`,
   `HashSet<T>`, `SortedSet<T>`, `Queue<T>`, `Stack<T>`, `LinkedList<T>`,
   `IAsyncEnumerable<T>`, `IQueryable<T>`, `ImmutableArray<T>`,
   `ImmutableList<T>`, `IImmutableList<T>`, `ImmutableHashSet<T>`,
   `IImmutableSet<T>`, `Span<T>`, `ReadOnlySpan<T>`, `Memory<T>`,
-  `ReadOnlyMemory<T>`) resolves to a collection of its element argument. An
-  element that resolves to nothing makes the whole reference resolve to
-  nothing. A dictionary (`IDictionary<K,V>`, `IReadOnlyDictionary<K,V>`,
-  `Dictionary<K,V>`, `ImmutableDictionary<K,V>`) is a collection of
-  key-value pairs, which `BuildingBlockRef` cannot express; it resolves to
-  nothing, with a diagnostic, until the contract has a pair (section 12,
-  decision 7).
+  `ReadOnlyMemory<T>`) resolves to its element argument, `*`, whether or
+  not it may be empty: the code does not say. A collection of collections
+  (`List<List<Order>>`, `Order[][]`) resolves to its innermost element,
+  `*`, with an info diagnostic. An element that resolves to nothing makes
+  the whole reference resolve to nothing. A dictionary (`IDictionary<K,V>`,
+  `IReadOnlyDictionary<K,V>`, `Dictionary<K,V>`,
+  `ImmutableDictionary<K,V>`) is a collection of key-value pairs, which a
+  `TypeId` cannot express; it resolves to nothing, with a diagnostic, until
+  the contract has a pair (section 12, decision 7).
 - **R7.4 Building blocks.** A `named` reference whose `type` id, looked up
   from the referencing artifact (section 8), is a building block resolves to
   that block, whatever its type arguments (`IRepository<Order>` is
@@ -279,7 +301,8 @@ projects is one module.
 - **R9.3 Identity.** `behavior|<block id path>.<name>`. Overloads share a
   name and so an id: the overload with the most parameters stands for them,
   the first in node order when several have as many (the Java parser's
-  rule: a design's optional last input becomes an overload without it).
+  rule: a design's `0..1` last input becomes an overload without it). The
+  block has one `exposes` relation to each of its behaviors.
 - **R9.4 Type.** The `TriggeredBy` of the `behavior` role on the method,
   or on the member it overrides or implements, when it is `Command`, `Query`
   or `Event`; else the type the role itself fixes, when the vocabulary gives
@@ -291,14 +314,19 @@ projects is one module.
   else `private` (a `behavior` role on a non-public method). Actors: the
   `actor` roles on the method, on the members it overrides or implements,
   and on the containing type, as names, sorted and unique.
-- **R9.6 Input.** One `ScannedParameter` per parameter whose type resolves
-  (section 7), in declaration order: `name`, `type`, `optional` when the
-  parameter is `optional` (has a default) or its type is nullable,
-  `description` null. A parameter whose type resolves to nothing is left out
-  (`CancellationToken`, a `Func<…>`), with a debug diagnostic.
+- **R9.6 Input.** One `has_input` relation from the behavior per parameter
+  of the chosen overload whose type resolves (section 7): `name`, `to`,
+  `cardinality` by R5.4, `0..1` too when the parameter is `optional` (has
+  a default) and would otherwise be `1`, and `position`, the parameter's
+  index in the signature counting from 1. A parameter whose type resolves
+  to nothing is left out (`CancellationToken`, a `Func<…>`), with a debug
+  diagnostic, and so is one whose name is no `ElementName` or repeats an
+  earlier one; the others keep their positions, so a left-out parameter
+  leaves a gap.
 - **R9.7 Output.** The return type resolved through R7.1 first: nothing for
-  `void`, `Task`, `ValueTask`; else one `ScannedResult` when the type
-  resolves, with `optional` from nullability; else none.
+  `void`, `Task`, `ValueTask`; else one `has_output` relation named
+  `result` when the type resolves, with `to` and `cardinality` as for an
+  input; else none.
 - **R9.8 Description.** The `description` role on the method, else its
   `documentation`, else the first either of the other overloads has, else
   null.
@@ -308,7 +336,7 @@ projects is one module.
   contract now allows that, section 12). A role without a name, or with one
   that is no `ElementName`, is dropped with a diagnostic. The same for a
   block's scenarios (R4.7).
-- **R9.10 Source.** The chosen overload's first location.
+- **R9.10 Source.** The chosen overload's first location, as R4.6.
 - **R9.11 A `behavior` role on a method of a type that is no block** has no
   home (`BehaviorId` needs a block) and is dropped with a diagnostic; so is
   one on an interface or delegate type.
@@ -316,8 +344,9 @@ projects is one module.
 ## 10. Order, determinism, diagnostics
 
 - **R10.1** `modules`, `buildingBlocks` and `behaviors` are sorted by id
-  (code unit order), `implements`, `actors` and `invokes` too; properties by
-  R5.5; input by declaration order. Two builds from one code model give one
+  (code unit order), `actors` by name. `relations` are sorted by kind,
+  holder (`from`), `position`, target (`to`), `name`, then `order`, so a
+  signature reads in its order. Two builds from one code model give one
   output.
 - **R10.2** Every drop and every fallback above is a diagnostic: the stage
   returns them beside the model (`{ model, diagnostics }`), the adapter logs
@@ -329,11 +358,11 @@ projects is one module.
 
 The old scanner derived three relations between elements:
 
-| Old relation                     | How it was found                                                                                                                                                                                                                                                            | Home in the system model                                                                                  |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `DomainObject.UsesObject`        | The types of a type's fields and properties, generic arguments walked, arrays unwrapped; the source is the type and every base type and interface that is a domain object                                                                                                   | `ScannedBuildingBlock.properties` (sections 5, 7)                                                         |
-| `DomainBehavior.UsesObject`      | The parameter, return and constraint types of the behavior's method, and of every method it calls                                                                                                                                                                           | `input` and `output` (section 9) for the method's own signature; the called methods' signatures have none |
-| `DomainBehavior.InvokesBehavior` | From a method call: the caller resolved to its behaviors (the method, its base methods and the interface members it implements), the callee to a behavior; a callee that is no behavior is walked through its own outgoing calls, transitively, until behaviors are reached | `ScannedBehavior.invokes` (added by this design, section 12)                                              |
+| Old relation                     | How it was found                                                                                                                                                                                                                                                            | Home in the system model                                                                                          |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `DomainObject.UsesObject`        | The types of a type's fields and properties, generic arguments walked, arrays unwrapped; the source is the type and every base type and interface that is a domain object                                                                                                   | `has_state` relations (sections 5, 7)                                                                             |
+| `DomainBehavior.UsesObject`      | The parameter, return and constraint types of the behavior's method, and of every method it calls                                                                                                                                                                           | `has_input` and `has_output` (section 9) for the method's own signature; the called methods' signatures have none |
+| `DomainBehavior.InvokesBehavior` | From a method call: the caller resolved to its behaviors (the method, its base methods and the interface members it implements), the callee to a behavior; a callee that is no behavior is walked through its own outgoing calls, transitively, until behaviors are reached | `behavior_invokes_behavior` relations (section 12)                                                                |
 
 - **R11.1 Source of a call.** An `INVOKES` edge whose `from` is a method
   is attributed to the behaviors of that method: the behavior the method
@@ -349,8 +378,15 @@ The old scanner derived three relations between elements:
   methods with behaviors are reached. Steps may cross blocks and artifacts
   and pass through excluded types; the walk stops at stubs, at constructors
   and at methods with no outgoing calls.
-- **R11.3 Shape.** `invokes: BehaviorId[]`, sorted, unique, never the
-  behavior itself.
+- **R11.3 Shape.** One `behavior_invokes_behavior` relation from the
+  behavior to each behavior its calls reach, never to itself, with
+  `order`, counting from 1. The calls attributed to the behavior, from all
+  its methods (overloads, implementations) together, are read in the order
+  of their sites (file, line, column), and each target is numbered at its
+  first call; a later call of a numbered target adds nothing. A call that
+  reaches several behaviors, through a method that is no behavior (R11.2)
+  or a member several behaviors stand for, numbers them at that call's
+  site, in id order.
 - **R11.4 Creation.** `INVOKES` of a constructor is a use of the created
   block, not a call of a behavior; the system model has no slot for it.
 
@@ -359,10 +395,8 @@ The old scanner derived three relations between elements:
 Taken on the first draft of this document; the rules above are written to
 them.
 
-1. **Invocations** are in the system model: `ScannedBehavior.invokes:
-   BehaviorId[]` (default empty), filled by section 11. The design document's
-   `DesignedBehavior` does not carry it yet; the dummy scanner leaves it
-   empty.
+1. **Invocations** are in the system model: a `behavior_invokes_behavior`
+   relation per behavior called, with its `order`, filled by section 11.
 2. **Messages are value objects.** `Command`, `Query`, `Event`,
    `DddDomainEvent` and `ReadModel` become `value_object` blocks.
 3. **No annotation inheritance.** Every block is annotated itself. The old
@@ -375,9 +409,9 @@ them.
    without one is a `Command`, the one default this design takes on its own;
    it is written here so it can be changed in one place.
 7. **Dictionaries are collections of key-value pairs.** The contract cannot
-   say so (`BuildingBlockRef` is a block, a primitive or a collection of
-   one); until it can, a dictionary resolves to nothing. Open: add a pair
-   (`{ pairOf: [key, value] }` or a tuple) to `BuildingBlockRef`.
+   say so (a slot's `to` is one block or primitive, its cardinality how
+   many); until it can, a dictionary resolves to nothing. Open: a pair type
+   (a key and a value) a slot can point at.
 8. **Looking through unmapped generics** (R7.6) stays.
 9. **Scenarios** are mapped by title only. `ScannedScenario` is relaxed for
    that: `description` nullable, `steps` may be empty. `DesignedScenario`
@@ -431,5 +465,6 @@ annotated types; `code-parsers/dotnet/test/Noesis.Parser.Tests/golden/` is
 regenerated with `NOESIS_UPDATE_GOLDEN=1 dotnet test`) and checks the whole
 chain without .NET. `test/e2e-toolchain/csharp-parser.e2e.spec.ts` builds the .NET
 parser, scans the same fixture through `CSharpParser` and asserts the model
-and the time each stage took. The expected `invokes` of every chain in the
-fixture are in `test/support/csharp-fixture-expectations.ts`, shared by both.
+and the time each stage took. The expected `behavior_invokes_behavior`
+relations of every chain in the fixture are in
+`test/support/csharp-fixture-expectations.ts`, shared by both.

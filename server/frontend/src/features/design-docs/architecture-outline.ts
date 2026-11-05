@@ -55,7 +55,7 @@ export interface PlacedElement<
   /** The building block type, or the behavior type. */
   pattern: Pattern | null;
   change: OutlineChange;
-  /** The building blocks its properties, inputs and outputs use, collections unwrapped; itself left out. */
+  /** The building blocks its properties, inputs and outputs are typed by, whatever their cardinality; itself left out. */
   uses: BuildingBlockId[];
   /** Its own rules and those of its behaviors the view does not draw apart from it. */
   rules: PlacedRule[];

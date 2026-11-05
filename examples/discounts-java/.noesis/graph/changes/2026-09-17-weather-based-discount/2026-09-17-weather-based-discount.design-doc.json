@@ -62,25 +62,6 @@
         "definition": {
           "value": "The current weather at the shop's location, as one of the conditions a discount can depend on.",
           "author": "agent"
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_module",
-              "from": "module|discounts.weather",
-              "to": "module|discounts.weather.openmeteo"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.weather",
-              "to": "building_block|discounts.weather.Weather"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.weather",
-              "to": "building_block|discounts.weather.WeatherProvider"
-            }
-          ]
         }
       },
       {
@@ -92,47 +73,15 @@
         "definition": {
           "value": "The Open-Meteo weather service as the source of the current weather.",
           "author": "agent"
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.weather.openmeteo",
-              "to": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider"
-            }
-          ]
         }
       }
     ],
     "modified": [
       {
-        "id": "module|discounts",
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_module",
-              "from": "module|discounts",
-              "to": "module|discounts.weather"
-            }
-          ]
-        }
+        "id": "module|discounts"
       },
       {
-        "id": "module|discounts.calculation",
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.PercentageDiscount"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.PotentialPrecipitationDiscount"
-            }
-          ]
-        }
+        "id": "module|discounts.calculation"
       }
     ]
   },
@@ -151,25 +100,6 @@
         "definition": {
           "value": "A snapshot of the current weather at the shop's location, from which every weather-based discount reads.",
           "author": "agent"
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "precipitation",
-              "type": {
-                "value": "primitive|decimal",
-                "author": "agent"
-              },
-              "description": {
-                "value": "Current precipitation in millimetres as reported by the weather provider (rain or snow). 0 means dry weather.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
@@ -211,15 +141,6 @@
         "definition": {
           "value": "The source of the current weather for discount decisions: it gives a weather snapshot, or says the weather is unknown.",
           "author": "agent"
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.weather.WeatherProvider",
-              "to": "behavior|discounts.weather.WeatherProvider.getCurrent"
-            }
-          ]
         }
       },
       {
@@ -235,20 +156,6 @@
         "definition": {
           "value": "The weather source backed by the Open-Meteo forecast service.",
           "author": "agent"
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_extends_building_block",
-              "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
-              "to": "building_block|discounts.weather.WeatherProvider"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
-              "to": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent"
-            }
-          ]
         }
       },
       {
@@ -264,39 +171,6 @@
         "definition": {
           "value": "A discount of a percentage of the whole offer's value.",
           "author": "agent"
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_extends_building_block",
-              "from": "building_block|discounts.calculation.PercentageDiscount",
-              "to": "building_block|discounts.calculation.Discount"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.PercentageDiscount",
-              "to": "behavior|discounts.calculation.PercentageDiscount.apply"
-            }
-          ]
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "percentage",
-              "type": {
-                "value": "primitive|integer",
-                "author": "agent"
-              },
-              "description": {
-                "value": "Discount percentage of the whole offer; 10 for the precipitation discount.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
@@ -358,91 +232,15 @@
         "definition": {
           "value": "A discount a customer can get while it is raining or snowing at the shop's location.",
           "author": "agent"
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_extends_building_block",
-              "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
-              "to": "building_block|discounts.calculation.PotentialDiscount"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
-              "to": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
-              "to": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount"
-            }
-          ]
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "discount",
-              "type": {
-                "value": "building_block|discounts.calculation.PercentageDiscount",
-                "author": "agent"
-              },
-              "description": {
-                "value": "The discount granted when the precipitation condition holds; configured as 10 percent.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
         }
       }
     ],
     "modified": [
       {
-        "id": "building_block|discounts.calculation.Conditions",
-        "properties": {
-          "added": [
-            {
-              "name": "weather",
-              "type": {
-                "value": "building_block|discounts.weather.Weather",
-                "author": "agent"
-              },
-              "description": {
-                "value": "Current weather snapshot, absent when the weather provider could not deliver one (Option<Weather>).",
-                "author": "agent"
-              },
-              "optional": {
-                "value": true,
-                "author": "agent"
-              }
-            }
-          ]
-        }
+        "id": "building_block|discounts.calculation.Conditions"
       },
       {
-        "id": "building_block|discounts.calculation.DiscountPolicyFactory",
-        "properties": {
-          "added": [
-            {
-              "name": "weatherProvider",
-              "type": {
-                "value": "building_block|discounts.weather.WeatherProvider",
-                "author": "agent"
-              },
-              "description": {
-                "value": "Port used to read the current weather once per policy resolution.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
-        }
+        "id": "building_block|discounts.calculation.DiscountPolicyFactory"
       },
       {
         "id": "building_block|discounts.calculation.DiscountsConfigProvider"
@@ -470,19 +268,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.weather.Weather",
-              "description": {
-                "value": "The current weather; absent when it cannot be determined. A failure of the source is never an exception to the caller, only an absent result, which the calculation reads as unknown weather."
-              },
-              "optional": {
-                "value": true
-              }
-            }
-          ]
         }
       },
       {
@@ -504,19 +289,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.weather.Weather",
-              "description": {
-                "value": "The weather whose precipitation is the current.precipitation of the forecast response. Absent on a network error, a timeout, a non-2xx status, or a body that cannot be parsed or lacks current.precipitation; such a failure is not logged in a way that interrupts processing."
-              },
-              "optional": {
-                "value": true
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
@@ -615,35 +387,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "discountedOffer",
-              "type": {
-                "value": "building_block|discounts.calculation.DiscountedOffer"
-              },
-              "description": {
-                "value": "The offer to discount; it is not changed."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedOffer",
-              "description": {
-                "value": "A new DiscountedOffer with the same products and one more offer-level DiscountAmount for this percentage discount. Applying it twice gives two such entries."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         }
       },
       {
@@ -665,22 +408,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "conditions",
-              "type": {
-                "value": "building_block|discounts.calculation.Conditions"
-              },
-              "description": {
-                "value": "The conditions to judge. The weather is read from them alone, never from the weather provider."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
@@ -824,19 +551,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.PercentageDiscount",
-              "description": {
-                "value": "The configured PercentageDiscount, the same instance on every call, which DiscountConfig adds to the discounts to apply once isApplicableFor answers yes. Its percentage (10) is set where the discount is registered, in DiscountsConfigProvider."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         }
       }
     ],
@@ -903,6 +617,213 @@
         "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig"
       }
     ]
+  },
+  "relations": {
+    "added": [
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.PercentageDiscount",
+        "to": "behavior|discounts.calculation.PercentageDiscount.apply"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+        "to": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+        "to": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.weather.WeatherProvider",
+        "to": "behavior|discounts.weather.WeatherProvider.getCurrent"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
+        "to": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent"
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|discounts.calculation.PercentageDiscount",
+        "to": "building_block|discounts.calculation.Discount"
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+        "to": "building_block|discounts.calculation.PotentialDiscount"
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider",
+        "to": "building_block|discounts.weather.WeatherProvider"
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.PercentageDiscount.apply",
+        "name": "discountedOffer",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
+        "name": "conditions",
+        "to": {
+          "value": "building_block|discounts.calculation.Conditions"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.PercentageDiscount.apply",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.getDiscount",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.PercentageDiscount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.weather.WeatherProvider.getCurrent",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.weather.Weather"
+        },
+        "cardinality": {
+          "value": "0..1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.weather.Weather"
+        },
+        "cardinality": {
+          "value": "0..1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.Conditions",
+        "name": "weather",
+        "to": {
+          "value": "building_block|discounts.weather.Weather"
+        },
+        "cardinality": {
+          "value": "0..1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+        "name": "weatherProvider",
+        "to": {
+          "value": "building_block|discounts.weather.WeatherProvider"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.PercentageDiscount",
+        "name": "percentage",
+        "to": {
+          "value": "primitive|integer"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.PotentialPrecipitationDiscount",
+        "name": "discount",
+        "to": {
+          "value": "building_block|discounts.calculation.PercentageDiscount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.weather.Weather",
+        "name": "precipitation",
+        "to": {
+          "value": "primitive|decimal"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.PercentageDiscount"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.PotentialPrecipitationDiscount"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.weather",
+        "to": "building_block|discounts.weather.Weather"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.weather",
+        "to": "building_block|discounts.weather.WeatherProvider"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.weather.openmeteo",
+        "to": "building_block|discounts.weather.openmeteo.OpenMeteoWeatherProvider"
+      },
+      {
+        "kind": "module_contains_module",
+        "from": "module|discounts",
+        "to": "module|discounts.weather"
+      },
+      {
+        "kind": "module_contains_module",
+        "from": "module|discounts.weather",
+        "to": "module|discounts.weather.openmeteo"
+      }
+    ],
+    "removed": []
   },
   "implemented": false
 }

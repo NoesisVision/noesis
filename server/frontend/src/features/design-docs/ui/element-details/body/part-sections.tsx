@@ -3,6 +3,7 @@ import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-out
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById, findByName } from '../../../change-set.ts';
 import { ownerOfPart } from '../../../design-doc-outline.ts';
+import { relationsFrom } from '../../../relations.ts';
 import type { OwnerRef } from '../element-ref.ts';
 import { propertySections } from './property-sections.tsx';
 import { ruleSections } from './rule-sections.tsx';
@@ -20,6 +21,20 @@ export const partSections = (
   const { elementId: ownerId, rule: ruleName } = ownerOfPart(node.parentPath);
   const block = findById(doc.buildingBlocks, ownerId);
   const behavior = block ? null : findById(doc.behaviors, ownerId);
+  // A property is a relation from its block, written whether or not the
+  // document names the block itself.
+  if (node.kind === 'property') {
+    const property = findByName(
+      relationsFrom(doc, 'property', ownerId),
+      node.name,
+    );
+    return property
+      ? propertySections(
+          { collection: 'buildingBlocks', id: ownerId },
+          property,
+        )
+      : [];
+  }
   const module = block || behavior ? null : findById(doc.modules, ownerId);
   const parts = block ?? behavior ?? module;
   if (parts === null) return [];
@@ -29,10 +44,6 @@ export const partSections = (
   };
   const scenarios = (block ?? behavior)?.scenarios;
 
-  if (node.kind === 'property') {
-    const property = block && findByName(block.properties, node.name);
-    return property ? propertySections(owner, property) : [];
-  }
   if (ruleName !== null) {
     const rule = findByName(parts.rules, ruleName);
     const scenario = rule && findByName(rule.scenarios, node.name);

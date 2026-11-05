@@ -55,33 +55,6 @@ const document = {
         type: plain('aggregate'),
         definition: human(DIAGRAM),
         diagram: plain('stateDiagram-v2\n  Held --> Settled'),
-        relations: {
-          added: [
-            {
-              kind: 'building_block_extends_building_block',
-              from: 'building_block|pay.Hold',
-              to: 'building_block|pay.Settleable',
-            },
-          ],
-          removed: [
-            {
-              kind: 'building_block_extends_building_block',
-              from: 'building_block|pay.Hold',
-              to: 'building_block|pay.Lockable',
-            },
-          ],
-        },
-        properties: {
-          added: [
-            {
-              name: 'amount',
-              type: plain('building_block|pay.Money'),
-              optional: plain(true),
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
         rules: {
           added: [
             {
@@ -132,16 +105,6 @@ const document = {
       {
         id: 'behavior|pay.Hold.place',
         definition: plain('Holds a card for a booking.'),
-        input: {
-          added: [
-            {
-              name: 'amount',
-              type: plain('building_block|pay.Money'),
-              description: plain('What to hold.'),
-            },
-          ],
-        },
-        output: { added: [{ type: 'building_block|pay.Hold' }] },
         rules: {
           added: [
             {
@@ -153,6 +116,45 @@ const document = {
       },
     ],
     removed: ['behavior|pay.Voucher.redeem'],
+    modified: [],
+  },
+  relations: {
+    added: [
+      {
+        kind: 'extends',
+        from: 'building_block|pay.Hold',
+        to: 'building_block|pay.Settleable',
+      },
+      {
+        kind: 'has_state',
+        from: 'building_block|pay.Hold',
+        name: 'amount',
+        to: plain('building_block|pay.Money'),
+        cardinality: plain('0..1'),
+      },
+      {
+        kind: 'has_input',
+        from: 'behavior|pay.Hold.place',
+        name: 'amount',
+        to: plain('building_block|pay.Money'),
+        cardinality: plain('1'),
+        position: plain(1),
+      },
+      {
+        kind: 'has_output',
+        from: 'behavior|pay.Hold.place',
+        name: 'result',
+        to: plain('building_block|pay.Hold'),
+        cardinality: plain('1'),
+      },
+    ],
+    removed: [
+      {
+        kind: 'extends',
+        from: 'building_block|pay.Hold',
+        to: 'building_block|pay.Lockable',
+      },
+    ],
     modified: [],
   },
   implemented: false,
@@ -255,7 +257,11 @@ const tree = outlineTree(outline, ['property']);
 // It leaves properties out; the panel still reads one given it.
 const withProperties = outlineTree(outline, []);
 
-const show = (path: string, from = tree) => {
+const show = (
+  path: string,
+  from = tree,
+  doc: DesignDocumentInput = document,
+) => {
   const selected = from.byPath.get(path)!;
   return renderToStaticMarkup(
     <MantineProvider>
@@ -265,7 +271,7 @@ const show = (path: string, from = tree) => {
           .ancestryOf(path)
           .map((step) => from.byPath.get(step))
           .filter((step) => step !== undefined)}
-        document={document}
+        document={doc}
         onSelect={() => {}}
         tree={from}
       />
@@ -454,24 +460,39 @@ describe('ElementDetail', () => {
     );
   });
 
-  it('says a description the design leaves alone is unchanged', () => {
-    // The fixture's property carries no description at all: the design keeps
-    // whatever the model says, which is not the same as saying nothing.
+  it('says a type the design leaves alone is unchanged', () => {
+    // The design keeps whatever the model says, which is not the same as
+    // saying nothing.
+    const kept = {
+      ...document,
+      relations: {
+        modified: [
+          {
+            kind: 'has_state',
+            from: 'building_block|pay.Hold',
+            name: 'amount',
+            to: { changed: false },
+            cardinality: plain('*'),
+          },
+        ],
+      },
+    } satisfies DesignDocumentInput;
     const html = show(
       'building_block|pay.Hold#property:amount',
       withProperties,
+      kept,
     );
-    expect(html).toContain('>unchanged<');
-    expect(html).not.toContain('Not specified.');
+    expect(html).toContain('>amount: unchanged [*];<');
   });
 
-  it('reads a property as the field it declares', () => {
+  it('reads a property as the field it declares, how many it holds after its type', () => {
     const html = show(
       'building_block|pay.Hold#property:amount',
       withProperties,
     );
     expect(html).toContain('Money');
-    expect(html).toContain('amount?');
+    expect(html).toContain('amount:');
+    expect(html).toContain(' [0..1];');
   });
 
   it('reads a scenario as the three things it says', () => {
@@ -500,11 +521,12 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/<button[^>]*>(<[^>]+>)*A hold expires</);
     // A property reads as its declaration, name and type apart, and has no
     // row in the tree to open, so it is only text.
-    expect(html).toContain('>amount?<');
-    // Its type by its last segment, as inputs and outputs read one.
-    expect(html).toMatch(/<span[^>]*>Money<\/span>/);
+    expect(html).toContain('>amount<');
+    // Its type by its last segment, as inputs and outputs read one, and how
+    // many it holds after it.
+    expect(html).toMatch(/Money(<\/span>)* \[0..1\]/);
     expect(html).not.toContain('>pay.Money<');
-    expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount\?/);
+    expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount</);
   });
 
   it("opens a property's type when the tree has a row for it", () => {
@@ -521,31 +543,53 @@ describe('ElementDetail', () => {
     );
   });
 
-  it("reads a property's description under its line, and nothing else's", () => {
-    const properties = {
-      added: [
-        { name: 'amount', description: plain('What the hold keeps.') },
-        { name: 'note', description: plain('  ') },
-      ],
-    };
-    const [amount, note] = propertyItems('building_block|pay.Hold', properties);
-    expect(amount!.description).toBe('What the hold keeps.');
+  it("reads a property's cardinality after its type, and nothing for exactly one", () => {
+    const doc = {
+      ...document,
+      relations: {
+        added: [
+          {
+            kind: 'has_state',
+            from: 'building_block|pay.Hold',
+            name: 'lines',
+            to: plain('building_block|pay.HoldLine'),
+            cardinality: plain('*'),
+          },
+          {
+            kind: 'has_state',
+            from: 'building_block|pay.Hold',
+            name: 'note',
+            to: plain('primitive|string'),
+            cardinality: plain('1'),
+          },
+        ],
+      },
+    } satisfies DesignDocumentInput;
+    const [lines, note] = propertyItems(doc, 'building_block|pay.Hold');
+    expect(lines).toMatchObject({
+      label: 'lines: pay.HoldLine [*]',
+      type: 'pay.HoldLine',
+      cardinality: ' [*]',
+      typePath: 'building_block|pay.HoldLine',
+    });
+    expect(note).toMatchObject({ label: 'note: string', type: 'string' });
+    expect(note!.cardinality).toBeUndefined();
     expect(note!.description).toBeUndefined();
-    const hold = document.buildingBlocks.added[0]!;
-    for (const item of ruleItems(hold.id, hold.rules))
-      expect(item.description).toBeUndefined();
 
     const html = renderToStaticMarkup(
       <MantineProvider>
         <ChangeListSection
-          element={{ collection: 'buildingBlocks', id: hold.id }}
+          element={{
+            collection: 'buildingBlocks',
+            id: 'building_block|pay.Hold',
+          }}
           title="Properties"
           kind="property"
-          items={[amount!, note!]}
+          items={[lines!, note!]}
         />
       </MantineProvider>,
     );
-    expect(html).toMatch(/<span[^>]*>What the hold keeps\.<\/span>/);
+    expect(html).toMatch(/HoldLine(<\/span>)* \[\*\]/);
   });
 
   it('points every listed part at the row the tree has for it', () => {
@@ -554,7 +598,7 @@ describe('ElementDetail', () => {
     expect(items.length).toBe(1);
     for (const item of items) expect(tree.byPath.has(item.path!)).toBe(true);
     // A property's path is kept, but the tree has no row for it.
-    for (const item of propertyItems(hold.id, hold.properties))
+    for (const item of propertyItems(document, hold.id))
       expect(tree.byPath.has(item.path!)).toBe(false);
   });
 
@@ -727,7 +771,6 @@ describe('ElementDetail', () => {
     expect(html).toContain('>Outputs · 1<');
     expect(html).toContain('>amount<');
     expect(html).toContain('>Money<');
-    expect(html).toContain('What to hold.');
     expect(html).toContain('>Hold<');
   });
 

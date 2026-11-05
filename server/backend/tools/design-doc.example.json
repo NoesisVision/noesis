@@ -27,25 +27,6 @@
         "definition": {
           "value": "Everything about giving money back to a customer."
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|sales.refunds",
-              "to": "building_block|sales.refunds.Refund"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|sales.refunds",
-              "to": "building_block|sales.refunds.RefundIssued"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|sales.refunds",
-              "to": "building_block|sales.refunds.RefundRepository"
-            }
-          ]
-        },
         "rules": {
           "added": [
             {
@@ -77,23 +58,7 @@
         }
       },
       {
-        "id": "module|sales",
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_module",
-              "from": "module|sales",
-              "to": "module|sales.refunds"
-            }
-          ],
-          "removed": [
-            {
-              "kind": "module_contains_module",
-              "from": "module|sales",
-              "to": "module|sales.credit-notes"
-            }
-          ]
-        }
+        "id": "module|sales"
       }
     ]
   },
@@ -111,74 +76,6 @@
         },
         "definition": {
           "value": "A refund of one or more lines of a single order."
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|sales.refunds.Refund",
-              "to": "behavior|sales.refunds.Refund.issue"
-            }
-          ]
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "orderId",
-              "type": {
-                "value": "building_block|sales.orders.OrderId",
-                "author": "human"
-              },
-              "description": {
-                "value": "The order the refunded lines belong to."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "lines",
-              "type": {
-                "value": {
-                  "collectionOf": "building_block|sales.refunds.RefundLine"
-                }
-              },
-              "description": {
-                "value": "The refunded lines."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "notes",
-              "type": {
-                "value": {
-                  "collectionOf": {
-                    "collectionOf": "primitive|string"
-                  }
-                }
-              },
-              "description": {
-                "value": "Notes per line, several per line."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "issuedAt",
-              "type": {
-                "value": "primitive|datetime"
-              },
-              "description": {
-                "value": "When the refund was issued."
-              },
-              "optional": {
-                "value": true
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
@@ -253,50 +150,13 @@
         },
         "definition": {
           "value": "Stores refunds."
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_extends_building_block",
-              "from": "building_block|sales.refunds.RefundRepository",
-              "to": "building_block|sales.shared.Repository"
-            }
-          ]
         }
       }
     ],
     "removed": ["building_block|sales.credit-notes.CreditNote"],
     "modified": [
       {
-        "id": "building_block|sales.orders.Order",
-        "properties": {
-          "added": [
-            {
-              "name": "refundedAmount",
-              "type": {
-                "value": "building_block|sales.shared.Money"
-              },
-              "description": {
-                "value": "What has been refunded so far."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ],
-          "removed": ["creditNoteId"],
-          "modified": [
-            {
-              "name": "status",
-              "type": {
-                "changed": false
-              },
-              "description": {
-                "value": "Gains the 'partially_refunded' state."
-              }
-            }
-          ]
-        }
+        "id": "building_block|sales.orders.Order"
       }
     ]
   },
@@ -323,61 +183,6 @@
             "actors": ["Support agent"]
           },
           "author": "human"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "orderId",
-              "type": {
-                "value": "building_block|sales.orders.OrderId"
-              },
-              "description": {
-                "value": "The order to refund."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "lines",
-              "type": {
-                "value": {
-                  "collectionOf": "building_block|sales.refunds.RefundLine"
-                }
-              },
-              "description": {
-                "value": "The lines to refund."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "reason",
-              "type": {
-                "value": "primitive|string"
-              },
-              "description": {
-                "value": "Why support refunds the lines."
-              },
-              "optional": {
-                "value": true
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|sales.refunds.RefundIssued",
-              "description": {
-                "value": "Tells the ledger the refund went out."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
@@ -408,6 +213,175 @@
           "value": {
             "kind": "private"
           }
+        }
+      }
+    ]
+  },
+  "relations": {
+    "added": [
+      {
+        "kind": "exposes",
+        "from": "building_block|sales.refunds.Refund",
+        "to": "behavior|sales.refunds.Refund.issue"
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|sales.refunds.RefundRepository",
+        "to": "building_block|sales.shared.Repository"
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "name": "orderId",
+        "to": {
+          "value": "building_block|sales.orders.OrderId"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "name": "lines",
+        "to": {
+          "value": "building_block|sales.refunds.RefundLine"
+        },
+        "cardinality": {
+          "value": "*"
+        },
+        "position": {
+          "value": 2
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "name": "reason",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "0..1"
+        },
+        "position": {
+          "value": 3
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "name": "result",
+        "to": {
+          "value": "building_block|sales.refunds.RefundIssued"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.orders.Order",
+        "name": "refundedAmount",
+        "to": {
+          "value": "building_block|sales.shared.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.refunds.Refund",
+        "name": "orderId",
+        "to": {
+          "value": "building_block|sales.orders.OrderId",
+          "author": "human"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.refunds.Refund",
+        "name": "lines",
+        "to": {
+          "value": "building_block|sales.refunds.RefundLine"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.refunds.Refund",
+        "name": "issuedAt",
+        "to": {
+          "value": "primitive|datetime"
+        },
+        "cardinality": {
+          "value": "0..1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.refunds.Refund",
+        "name": "notes",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|sales.refunds",
+        "to": "building_block|sales.refunds.Refund"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|sales.refunds",
+        "to": "building_block|sales.refunds.RefundIssued"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|sales.refunds",
+        "to": "building_block|sales.refunds.RefundRepository"
+      },
+      {
+        "kind": "module_contains_module",
+        "from": "module|sales",
+        "to": "module|sales.refunds"
+      }
+    ],
+    "removed": [
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.orders.Order",
+        "to": "primitive|uuid",
+        "name": "creditNoteId"
+      },
+      {
+        "kind": "module_contains_module",
+        "from": "module|sales",
+        "to": "module|sales.credit-notes"
+      }
+    ],
+    "modified": [
+      {
+        "kind": "has_state",
+        "from": "building_block|sales.orders.Order",
+        "name": "status",
+        "to": {
+          "value": "building_block|sales.orders.OrderStatus"
+        },
+        "cardinality": {
+          "changed": false
         }
       }
     ]

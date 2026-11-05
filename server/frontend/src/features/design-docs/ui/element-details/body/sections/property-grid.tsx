@@ -37,8 +37,8 @@ export function BoxGrid({
 
 /**
  * Properties as the boxes inputs and outputs are drawn with. Where the
- * design may be written, a property's description is written in place — and its name, while the design adds it: the model knows one it
- * has by its name.
+ * design may be written, a property's name is written in place while the
+ * design adds it: the model knows one it has by its name.
  */
 export function PropertyGrid({
   items,

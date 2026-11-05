@@ -63,7 +63,7 @@ export function ElementDetail({
   // Only a building block extends anything, or is extended.
   const extended =
     node.kind === 'building_block' && node.elementId
-      ? extendedItems(findById(doc.buildingBlocks, node.elementId)?.relations)
+      ? extendedItems(doc, node.elementId)
       : [];
   // And what extends it — found in the document even when it leaves the
   // block itself alone.

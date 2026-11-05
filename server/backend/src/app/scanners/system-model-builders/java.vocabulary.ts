@@ -1,9 +1,8 @@
-import type { BuildingBlockType } from '#backend/app/system-model/system-model';
 import type {
-  AnnotationRole,
-  AnnotationVocabulary,
+  BuildingBlockType,
   PrimitiveName,
-} from './vocabulary';
+} from '#backend/app/system-model/system-model';
+import type { AnnotationRole, AnnotationVocabulary } from './vocabulary';
 
 /*
  * The Java vocabulary: the `vision.noesis.annotations` library

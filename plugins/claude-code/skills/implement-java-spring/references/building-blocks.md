@@ -52,8 +52,9 @@ by an identity.
    Only behaviors the design document names are public.
 5. SHOULD offer named static factories for other constructions
    (`Money.zero(currency)`), package-private unless the design names them.
-6. A collection component is copied with `List.copyOf` in the compact
-   constructor.
+6. A `*` component is a `List<T>`, copied with `List.copyOf` in the
+   compact constructor. It may be empty: only a rule that says it must not
+   be is checked, as `Version.createFirst` below refuses empty `authors`.
 7. MAY refer to other value objects, never to an entity or an aggregate.
 
 ```java
@@ -143,7 +144,7 @@ every command.
    events.
 4. Only the root is public, and only the root has a repository.
 5. A command behavior checks its preconditions, changes state and returns
-   what the design document says it outputs: `void`, an event, or a value.
+   what its `has_output` says: `void` without one, an event, or a value.
    Never `this` for chaining.
 6. MUST NOT call repositories, external integrations, clocks or random
    generators. It gets what it needs as arguments: an `Instant now`, a

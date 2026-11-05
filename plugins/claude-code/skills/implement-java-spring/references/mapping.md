@@ -89,8 +89,8 @@ the annotation:
 A design document types messages and identifiers as `value_object`. Tell
 them apart by their definition and their use:
 
-- **Identifier**: the type of an `id` property, or named `<Something>Id`
-  with a single `value` property (`QDocId`, `UserId`).
+- **Identifier**: the type of a piece of state named `id`, or named
+  `<Something>Id` with a single `value` piece of state (`QDocId`, `UserId`).
 - **Command**: the definition calls it a command or a request to change
   something, it is named in the imperative, and a `Command` behavior takes
   it as input (`CreateQDoc`).
@@ -98,7 +98,7 @@ them apart by their definition and their use:
 - **Event**: the definition calls it an event or says what happened, it is
   named in the past tense, and a behavior outputs it or an `Event`
   behavior takes it as input (`QDocCreated`).
-- **Enum**: a value object with one `value` property whose `Structure`
+- **Enum**: a value object with one `value` piece of state whose `Structure`
   rule names a closed set of values ("takes exactly one of two values:
   active, archived") is an `enum` with one constant per value, in upper
   snake case (`ACTIVE`, `ARCHIVED`).
@@ -113,7 +113,7 @@ an application service's behaviors carry a handler annotation: never a
 method of another building block, and never a method that is not a
 behavior (package-private helpers, accessors, `equals`).
 
-### `building_block_extends_building_block` relations
+### `extends` relations
 
 A base building block that others reach by this relation is a Java interface
 carrying the base's own annotation; each implementer `implements` it. Make
@@ -125,29 +125,51 @@ A type's Javadoc is its building block's definition. An aggregate's Javadoc
 adds the invariants it protects, one line per rule attached to it. Write
 them in the dominant language of the design document; do not translate.
 
-## Properties
+## State
 
-Each property is a record component or a `private final` field (a plain
-`private` field when a behavior changes it), named exactly as the property.
+Each `has_state` relation from a building block is one of its record
+components or `private final` fields (a plain `private` field when a
+behavior changes it), named exactly as the relation's `name`. The scan
+reads it back the same way, so a `CreateQDoc` record with a
+`List<UserId> authors` component is:
 
-| Design document type    | Java type                                                            |
-| ----------------------- | -------------------------------------------------------------------- |
-| `primitive\|string`     | `String`                                                             |
-| `primitive\|integer`    | `int` (`long` when the definition says counts grow past two billion) |
-| `primitive\|decimal`    | `BigDecimal`, never `double`                                         |
-| `primitive\|boolean`    | `boolean`                                                            |
-| `primitive\|date`       | `LocalDate`                                                          |
-| `primitive\|datetime`   | `Instant`                                                            |
-| `primitive\|duration`   | `Duration`                                                           |
-| `primitive\|uuid`       | `UUID`                                                               |
-| `building_block\|…`     | the type of that building block                                      |
-| `{ "collectionOf": T }` | `List<T>`, held as an unmodifiable copy                              |
+```json
+{
+  "kind": "has_state",
+  "from": "building_block|qdocmanagement.preparation.CreateQDoc",
+  "to": "building_block|qdocmanagement.preparation.UserId",
+  "name": "authors",
+  "cardinality": "*"
+}
+```
 
-An `optional` property may be `null` in its field or component. Every other
-one is checked with `Objects.requireNonNull` on construction. Where a class
-exposes an optional property, the accessor returns `Optional<T>`.
+Its `to` gives the element type:
 
-A property typed with another aggregate breaks the aggregate rules
+| `to`                  | Java type                                                            |
+| --------------------- | -------------------------------------------------------------------- |
+| `primitive\|string`   | `String`                                                             |
+| `primitive\|integer`  | `int` (`long` when the definition says counts grow past two billion) |
+| `primitive\|decimal`  | `BigDecimal`, never `double`                                         |
+| `primitive\|boolean`  | `boolean`                                                            |
+| `primitive\|date`     | `LocalDate`                                                          |
+| `primitive\|datetime` | `Instant`                                                            |
+| `primitive\|duration` | `Duration`                                                           |
+| `primitive\|uuid`     | `UUID`                                                               |
+| `building_block\|…`   | the type of that building block                                      |
+
+Its `cardinality` says how many:
+
+| `cardinality` | Java                                                                                                                                         |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `1`           | the type, checked with `Objects.requireNonNull` on construction                                                                              |
+| `0..1`        | the type, boxed for a primitive, which may be `null` in its field or component; where a class exposes it, the accessor returns `Optional<T>` |
+| `*`           | `List<T>` of the boxed type, held as an unmodifiable copy and checked non-null; empty is allowed unless a rule says otherwise                |
+
+`*` says nothing about emptiness: a list that must not be empty is a rule's
+to require, enforced where the rule is attached. The model keeps no order
+of state; order the components as they read best, the identifier first.
+
+A piece of state typed by another aggregate breaks the aggregate rules
 ([building blocks](building-blocks.md#aggregates)): hold that aggregate's
 identifier instead, and report it as a deviation.
 
@@ -158,16 +180,16 @@ method `create` of the type `QDoc`.
 
 - **Name**: the behavior's name, verbatim. One name, one behavior: Java
   overloads of it are the same behavior.
-- **Parameters**: the inputs, in their order, named as the inputs, typed
-  as in [Properties](#properties). An optional input that comes last is
-  left out of an overload without it; one that does not come last is a
-  parameter that may be `null`, and its Javadoc says so. Spring Boot's
-  parent POM compiles with `-parameters`, which keeps the names in the
-  bytecode the scanner reads; keep it that way.
-- **Return type**: `void` with no output; the output's type with one;
-  `Optional<T>` for an optional output, `List<T>` for a collection. Several
-  outputs need a base building block they all implement, which is then the
-  return type; without one, ask the user.
+- **Parameters**: one per `has_input` relation from the behavior, in the
+  order of their `position`, each named as the relation's `name` and typed
+  by its `to` and `cardinality` as in [State](#state). A `0..1` input that
+  comes last is left out of an overload without it; one that does not come
+  last is a parameter that may be `null`, and its Javadoc says so. Spring
+  Boot's parent POM compiles with `-parameters`, which keeps the names in
+  the bytecode the scanner reads; keep it that way.
+- **Return type**: `void` without a `has_output`; with one, its `to`: the
+  type for `1`, `Optional<T>` for `0..1`, `List<T>` for `*`. A behavior has
+  at most one output, always named `result`.
 - **Static or instance**: a behavior of a block whose output is that same
   block creates it, so it is a `public static` factory method
   (`Version.createFirst(...)` returns a `Version`). Every other behavior
@@ -185,8 +207,49 @@ method `create` of the type `QDoc`.
   actors for a use case, `private` for the rest) is a design notion, not a
   Java one. Every behavior is a `public` method, because the scanner sees
   only public methods. A use case's actors go in its Javadoc.
-- **Javadoc**: the behavior's definition; `@param` with each input's
-  description; `@return` with the output's; `Actors:` for a use case.
+- **Javadoc**: the behavior's definition; `@param` for each input and
+  `@return` for the output, in the words of the definitions of the blocks
+  they are typed by; `Actors:` for a use case.
+
+The signature
+`public static Version createFirst(List<UserId> authors, List<UserId> reviewers, List<UserId> approvers)`
+is read back as these relations:
+
+```json
+[
+  {
+    "kind": "has_input",
+    "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+    "to": "building_block|qdocmanagement.preparation.UserId",
+    "name": "authors",
+    "cardinality": "*",
+    "position": 1
+  },
+  {
+    "kind": "has_input",
+    "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+    "to": "building_block|qdocmanagement.preparation.UserId",
+    "name": "reviewers",
+    "cardinality": "*",
+    "position": 2
+  },
+  {
+    "kind": "has_input",
+    "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+    "to": "building_block|qdocmanagement.preparation.UserId",
+    "name": "approvers",
+    "cardinality": "*",
+    "position": 3
+  },
+  {
+    "kind": "has_output",
+    "from": "behavior|qdocmanagement.preparation.Version.createFirst",
+    "to": "building_block|qdocmanagement.preparation.Version",
+    "name": "result",
+    "cardinality": "1"
+  }
+]
+```
 
 ### When the signature cannot be written as given
 
@@ -239,9 +302,13 @@ not domain code. Leave it to the adapters and report it.
 ## Modified and removed elements
 
 - **Modified**: only the fields with `"changed": true` change. A new
-  definition replaces the Javadoc; a property, input, output, rule or
-  scenario is added, changed or removed in the code and its tests. A
-  changed `building_block_extends_building_block` relation is one removed and one added.
+  definition replaces the Javadoc; a rule or scenario is added, changed or
+  removed in the code and its tests. An added or removed relation adds or
+  removes a field, a parameter, a return type or a supertype of its
+  `from`. A modified `has_state`, `has_input` or `has_output` keeps its
+  name and changes its type, its cardinality or, for an input, its
+  position; a modified `behavior_invokes_behavior` changes the order of
+  the calls. A changed `extends` is one removed and one added.
 - **Removed**: delete the type or the method, every use of it, and the
   tests of its scenarios. A removed building block takes its behaviors
   with it.

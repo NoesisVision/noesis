@@ -27,8 +27,18 @@ import {
   NamespaceConfig,
   type NamespaceConfigInput,
 } from '#backend/app/scanners/system-model-builders/namespace-config';
+import { byRelation } from '#backend/app/scanners/system-model-builders/relation-order';
 import type { AnnotationVocabulary } from '#backend/app/scanners/system-model-builders/vocabulary';
 import { SystemModel } from '#backend/app/system-model/system-model';
+import {
+  containedBy,
+  exposedBy,
+  extendsOf,
+  inputOf,
+  invokesOf,
+  outputOf,
+  stateOf,
+} from '../support/relations';
 
 /*
  * One `describe` per section of docs/plans/code-model-to-system-model.md,
@@ -506,7 +516,19 @@ function buildFrom(
   config: NamespaceConfigInput = {},
   vocabulary: AnnotationVocabulary = CSHARP_VOCABULARY,
 ): BuiltSystemModel {
-  const files = artifacts.map((a) => a.build());
+  return buildFiles(
+    artifacts.map((a) => a.build()),
+    config,
+    vocabulary,
+  );
+}
+
+/** Builds the system model of code model files, for a spec that edits one after `build()`. */
+function buildFiles(
+  files: CodeModelFile[],
+  config: NamespaceConfigInput = {},
+  vocabulary: AnnotationVocabulary = CSHARP_VOCABULARY,
+): BuiltSystemModel {
   const manifest: ParseManifest = {
     schemaVersion: 1,
     generator: { name: 'spec', version: '0' },
@@ -620,16 +642,10 @@ describe('3. scope', () => {
     expect<unknown>(ids(model.buildingBlocks)).toEqual([
       'building_block|Sales.Order',
     ]);
-    expect<unknown>(
-      model.buildingBlocks[0]?.relations
-        .filter(({ kind }) => kind === 'building_block_extends_building_block')
-        .map(({ to }) => to),
-    ).toEqual([]);
-    expect<unknown>(
-      model.behaviors
-        .find((b) => b.name === 'Place')
-        ?.relations.map(({ to }) => to),
-    ).toEqual(['behavior|Sales.Order.Total']);
+    expect<unknown>(extendsOf(model, 'building_block|Sales.Order')).toEqual([]);
+    expect<unknown>(invokesOf(model, 'behavior|Sales.Order.Place')).toEqual([
+      'behavior|Sales.Order.Total',
+    ]);
   });
 
   it('R3.2 drops a namespace .noesis/settings.json excludes, with everything in it', () => {
@@ -677,9 +693,9 @@ describe('3. scope', () => {
     expect<unknown>(ids(model.behaviors)).toEqual([
       'behavior|Sales.Orders.Order.Place',
     ]);
-    expect<unknown>(
-      model.buildingBlocks[0]?.properties.map((p) => p.name),
-    ).toEqual(['Total']);
+    expect<unknown>(stateOf(model, ORDER)).toEqual([
+      ['Total', 'primitive|decimal', '1'],
+    ]);
   });
 
   it('R3.4 never makes a generated member a behavior or a property', () => {
@@ -695,9 +711,9 @@ describe('3. scope', () => {
     expect<unknown>(ids(model.behaviors)).toEqual([
       'behavior|Sales.Orders.Order.Place',
     ]);
-    expect<unknown>(
-      model.buildingBlocks[0]?.properties.map((p) => p.name),
-    ).toEqual(['Total']);
+    expect<unknown>(stateOf(model, ORDER)).toEqual([
+      ['Total', 'primitive|decimal', '1'],
+    ]);
   });
 
   it('R3.5 never makes a stub an element, however it is referenced', () => {
@@ -715,11 +731,9 @@ describe('3. scope', () => {
       ORDER,
     ]);
     expect<unknown>(
-      model.buildingBlocks[0]?.relations
-        .filter(({ kind }) => kind === 'building_block_extends_building_block')
-        .map(({ to }) => to),
+      extendsOf(model, 'building_block|Sales.Orders.Line'),
     ).toEqual([]);
-    expect<unknown>(model.buildingBlocks[1]?.properties).toEqual([]);
+    expect<unknown>(stateOf(model, ORDER)).toEqual([]);
   });
 });
 
@@ -845,12 +859,7 @@ describe('4. building blocks', () => {
         }),
     ]);
     expect<unknown>(
-      model.buildingBlocks
-        .find((b) => b.name === 'OrderRepository')
-        ?.relations.filter(
-          ({ kind }) => kind === 'building_block_extends_building_block',
-        )
-        .map(({ to }) => to),
+      extendsOf(model, 'building_block|Sales.OrderRepository'),
     ).toEqual(['building_block|Sales.IRepository', 'building_block|Sales.Zed']);
   });
 
@@ -881,8 +890,56 @@ describe('4. building blocks', () => {
     // The namespace nodes take lines 1 and 2 of the builder's counter.
     expect<unknown>(model.buildingBlocks[0]?.source).toEqual({
       path: 'Sales/Orders/Order.cs',
-      line: 2,
+      startLine: 2,
+      endLine: 2,
     });
+  });
+
+  it('R4.6 spans a source from its start line to its end line; a line below 1 is unknown, and so is an end before the start', () => {
+    const at = (span: Partial<SourceSpan>) => {
+      const file = artifact('Sales')
+        .type('T:Sales.Order', { annotations: [aggregate()] })
+        .build();
+      const order = file.nodes.find((node) => node.id === 'T:Sales.Order')!;
+      order.locations[0] = {
+        file: 'Order.cs',
+        startLine: 3,
+        startColumn: 1,
+        endLine: 9,
+        endColumn: 2,
+        ...span,
+      };
+      return buildFiles([file]).model.buildingBlocks[0]?.source;
+    };
+    expect<unknown>(at({})).toEqual({
+      path: 'Order.cs',
+      startLine: 3,
+      endLine: 9,
+    });
+    expect<unknown>(at({ endLine: 2 })).toEqual({
+      path: 'Order.cs',
+      startLine: 3,
+      endLine: null,
+    });
+    expect<unknown>(at({ startLine: 0 })).toEqual({
+      path: 'Order.cs',
+      startLine: null,
+      endLine: 9,
+    });
+    expect<unknown>(at({ startLine: 0, endLine: 0 })).toEqual({
+      path: 'Order.cs',
+      startLine: null,
+      endLine: null,
+    });
+    // A node with no location has no path and no lines.
+    const file = artifact('Sales')
+      .type('T:Sales.Order', { annotations: [aggregate()] })
+      .build();
+    file.nodes.find((node) => node.id === 'T:Sales.Order')!.locations.length =
+      0;
+    expect<unknown>(buildFiles([file]).model.buildingBlocks[0]?.source).toEqual(
+      { path: '', startLine: null, endLine: null },
+    );
   });
 
   it('R4.7 takes the Scenario annotations on a type as its scenarios, by title only, and has no rules', () => {
@@ -936,13 +993,12 @@ describe('5. properties', () => {
           constantValue: '0',
         }),
     ]);
+    expect<unknown>(stateOf(model, ORDER)).toEqual([
+      ['Total', 'primitive|decimal', '1'],
+      ['Count', 'primitive|integer', '1'],
+    ]);
     expect<unknown>(
-      model.buildingBlocks
-        .find((b) => b.name === 'Order')
-        ?.properties.map((p) => p.name),
-    ).toEqual(['Total', 'Count']);
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'Status')?.properties,
+      stateOf(model, 'building_block|Sales.Orders.Status'),
     ).toEqual([]);
   });
 
@@ -952,12 +1008,15 @@ describe('5. properties', () => {
         .field('F:Sales.Orders.Order._total', prim('int'))
         .property('P:Sales.Orders.Order.Total', prim('decimal')),
     ]);
-    expect<unknown>(model.buildingBlocks[0]?.properties).toEqual([
+    expect<unknown>(
+      model.relations.filter(({ kind }) => kind === 'has_state'),
+    ).toEqual([
       {
+        kind: 'has_state',
+        from: ORDER,
+        to: 'primitive|decimal',
         name: 'Total',
-        type: 'primitive|decimal',
-        description: null,
-        optional: false,
+        cardinality: '1',
       },
     ]);
   });
@@ -969,15 +1028,15 @@ describe('5. properties', () => {
         .property('P:Sales.Orders.Order.Clock', named('T:Sales.Clock'))
         .property('P:Sales.Orders.Order.Total', prim('decimal')),
     ]);
-    expect<unknown>(
-      built.model.buildingBlocks[0]?.properties.map((p) => p.name),
-    ).toEqual(['Total']);
+    expect<unknown>(stateOf(built.model, ORDER)).toEqual([
+      ['Total', 'primitive|decimal', '1'],
+    ]);
     expect<unknown>(messages(built, 'debug')).toEqual([
       expect.stringContaining('P:Sales.Orders.Order.Clock'),
     ]);
   });
 
-  it('R5.4 marks a nullable or Nullable<T> member optional', () => {
+  it('R5.4 marks a nullable or Nullable<T> member 0..1, any other 1', () => {
     const { model } = buildFrom([
       sales()
         .property('P:Sales.Orders.Order.A', nullable(prim('string')))
@@ -988,17 +1047,15 @@ describe('5. properties', () => {
         )
         .property('P:Sales.Orders.Order.D', prim('int')),
     ]);
-    expect<unknown>(
-      model.buildingBlocks[0]?.properties.map((p) => [p.name, p.optional]),
-    ).toEqual([
-      ['A', true],
-      ['B', true],
-      ['C', true],
-      ['D', false],
+    expect<unknown>(stateOf(model, ORDER)).toEqual([
+      ['C', ORDER, '0..1'],
+      ['B', 'primitive|integer', '0..1'],
+      ['D', 'primitive|integer', '1'],
+      ['A', 'primitive|string', '0..1'],
     ]);
   });
 
-  it('R5.5 orders properties by location, then name', () => {
+  it("R5.5 orders a block's state as every relation is sorted: by the type it points at, then by name, wherever it is declared", () => {
     const { model } = buildFrom([
       sales()
         .property('P:Sales.Orders.Order.Z', prim('int'), {
@@ -1009,18 +1066,21 @@ describe('5. properties', () => {
           file: 'a.cs',
           line: 9,
         })
-        .property('P:Sales.Orders.Order.A', prim('int'), {
+        .property('P:Sales.Orders.Order.A', prim('string'), {
           file: 'a.cs',
           line: 9,
         })
-        .property('P:Sales.Orders.Order.C', prim('int'), {
-          file: 'a.cs',
+        .property('P:Sales.Orders.Order.C', prim('decimal'), {
+          file: 'c.cs',
           line: 2,
         }),
     ]);
-    expect<unknown>(
-      model.buildingBlocks[0]?.properties.map((p) => p.name),
-    ).toEqual(['C', 'A', 'B', 'Z']);
+    expect<unknown>(stateOf(model, ORDER).map(([name]) => name)).toEqual([
+      'C',
+      'B',
+      'Z',
+      'A',
+    ]);
   });
 
   it("R5.7 takes a Java record's components as properties although their fields are private, and their accessors as no behaviors", () => {
@@ -1050,9 +1110,8 @@ describe('5. properties', () => {
       {},
       JAVA_VOCABULARY,
     );
-    const money = model.buildingBlocks.find((b) => b.name === 'Money');
-    expect<unknown>(money?.properties.map((p) => [p.name, p.type])).toEqual([
-      ['amount', 'primitive|integer'],
+    expect<unknown>(stateOf(model, 'building_block|com.acme.Money')).toEqual([
+      ['amount', 'primitive|integer', '1'],
     ]);
     expect<unknown>(model.behaviors.map((b) => b.name)).toEqual(['negate']);
   });
@@ -1070,11 +1129,12 @@ describe('5. properties', () => {
   const javaModel = (artifact: ArtifactBuilder) =>
     buildFrom([artifact], {}, JAVA_VOCABULARY).model;
   const propertiesOfOffer = (model: BuiltSystemModel['model']) =>
-    model.buildingBlocks
-      .find((b) => b.name === 'Offer')
-      ?.properties.map((p) => [p.name, p.type]);
+    stateOf(model, 'building_block|com.acme.Offer').map(([name, to]) => [
+      name,
+      to,
+    ]);
 
-  it("R5.8 takes a Java field behind Lombok's generated getter as a property, described by the field, else the getter", () => {
+  it("R5.8 takes a Java field behind Lombok's generated getter as a property, and the getter as no behavior", () => {
     const model = javaModel(
       offer()
         .field('F:com.acme.Offer.products', named(JAVA.list, prim('long')), {
@@ -1101,11 +1161,9 @@ describe('5. properties', () => {
           origin: 'generated',
         }),
     );
-    expect<unknown>(
-      model.buildingBlocks[0]?.properties.map((p) => [p.name, p.description]),
-    ).toEqual([
-      ['products', 'The products offered.'],
-      ['total', 'What is owed.'],
+    expect<unknown>(stateOf(model, 'building_block|com.acme.Offer')).toEqual([
+      ['products', 'primitive|integer', '*'],
+      ['total', 'primitive|integer', '1'],
     ]);
     expect<unknown>(model.behaviors).toEqual([]);
   });
@@ -1215,22 +1273,11 @@ describe('5. properties', () => {
         .method('M:Sales.Orders.Order#getTotal()', { returns: prim('decimal') })
         .method('M:Sales.Orders.Order#total()', { returns: prim('decimal') }),
     ]);
-    expect<unknown>(model.buildingBlocks[0]?.properties).toEqual([]);
+    expect<unknown>(stateOf(model, ORDER)).toEqual([]);
     expect<unknown>(model.behaviors.map((b) => b.name)).toEqual([
       'getTotal',
       'total',
     ]);
-  });
-
-  it('R5.6 describes a property by its doc comment', () => {
-    const { model } = buildFrom([
-      sales().property('P:Sales.Orders.Order.Total', prim('decimal'), {
-        documentation: 'What is owed.',
-      }),
-    ]);
-    expect<unknown>(model.buildingBlocks[0]?.properties[0]?.description).toBe(
-      'What is owed.',
-    );
   });
 });
 
@@ -1284,6 +1331,11 @@ describe('6. modules', () => {
       'module|Sales',
       'module|Sales.Orders',
     ]);
+    // Each module contains the modules and blocks one level below it.
+    expect<unknown>(containedBy(model, 'module|Sales')).toEqual([
+      'module|Sales.Orders',
+    ]);
+    expect<unknown>(containedBy(model, 'module|Sales.Orders')).toEqual([ORDER]);
   });
 
   it('R6.3 names a module by the last segment of its path', () => {
@@ -1310,11 +1362,17 @@ describe('6. modules', () => {
       namespacePartsToSkip: ['MyCompany'],
     });
     expect<unknown>(model.modules.map((m) => [m.id, m.source])).toEqual([
-      ['module|Sales', { path: 'Sales/Orders/Deep/Order.cs', line: 2 }],
-      ['module|Sales.Orders', { path: 'Sales/Orders/Deep/Order.cs', line: 3 }],
+      [
+        'module|Sales',
+        { path: 'Sales/Orders/Deep/Order.cs', startLine: 2, endLine: 2 },
+      ],
+      [
+        'module|Sales.Orders',
+        { path: 'Sales/Orders/Deep/Order.cs', startLine: 3, endLine: 3 },
+      ],
       [
         'module|Sales.Orders.Deep',
-        { path: 'Sales/Orders/Deep/Order.cs', line: 4 },
+        { path: 'Sales/Orders/Deep/Order.cs', startLine: 4, endLine: 4 },
       ],
     ]);
     // A prefix only skipping creates: the directory above the descendant's file.
@@ -1328,7 +1386,29 @@ describe('6. modules', () => {
       { namespacePartsToSkip: ['Sales.Skip'] },
     );
     expect<unknown>(skipped.modules.map((m) => [m.id, m.source])).toEqual([
-      ['module|Orders', { path: 'Sales/Orders/Order.cs', line: 3 }],
+      [
+        'module|Orders',
+        { path: 'Sales/Orders/Order.cs', startLine: 3, endLine: 3 },
+      ],
+    ]);
+    // No namespace declared where: the directory a level above per level up, with no lines.
+    const file = artifact('Sales')
+      .type('T:Sales.Orders.Order', {
+        annotations: [aggregate()],
+        file: 'src/Sales/Orders/Order.cs',
+      })
+      .build();
+    for (const node of file.nodes) {
+      if (node.kind === 'namespace') node.locations.length = 0;
+    }
+    expect<unknown>(
+      buildFiles([file]).model.modules.map((m) => [m.id, m.source]),
+    ).toEqual([
+      ['module|Sales', { path: 'src/Sales', startLine: null, endLine: null }],
+      [
+        'module|Sales.Orders',
+        { path: 'src/Sales/Orders', startLine: null, endLine: null },
+      ],
     ]);
   });
 
@@ -1349,78 +1429,90 @@ describe('6. modules', () => {
 function resolved(
   type: TypeRef,
   extend: (builder: ArtifactBuilder) => ArtifactBuilder = (b) => b,
-): { type: unknown; optional: boolean } | undefined {
+): { to: string; cardinality: string } | undefined {
   const builder = extend(
     artifact('Sales').type('T:Sales.Order', { annotations: [aggregate()] }),
   ).property('P:Sales.Order.Probe', type);
   const { model } = buildFrom([builder]);
-  const property = model.buildingBlocks
-    .find((b) => b.id === 'building_block|Sales.Order')
-    ?.properties.find((p) => p.name === 'Probe');
-  return property === undefined
+  const probe = stateOf(model, 'building_block|Sales.Order').find(
+    ([name]) => name === 'Probe',
+  );
+  return probe === undefined
     ? undefined
-    : { type: property.type, optional: property.optional };
+    : { to: probe[1], cardinality: probe[2] };
 }
 
 describe('7. resolving a type reference', () => {
-  it('R7.1 looks through Task<T> and ValueTask<T>, makes Nullable<T> optional, and gives Task, void and dynamic nothing', () => {
+  it('R7.1 looks through Task<T> and ValueTask<T>, makes Nullable<T> 0..1, and gives Task, void and dynamic nothing', () => {
     expect<unknown>(resolved(named(SYS.taskOf, prim('int')))).toEqual({
-      type: 'primitive|integer',
-      optional: false,
+      to: 'primitive|integer',
+      cardinality: '1',
     });
     expect<unknown>(
       resolved(named(SYS.valueTaskOf, named('T:Sales.Order'))),
     ).toEqual({
-      type: 'building_block|Sales.Order',
-      optional: false,
+      to: 'building_block|Sales.Order',
+      cardinality: '1',
     });
     expect<unknown>(resolved(named(SYS.nullableOf, named(SYS.guid)))).toEqual({
-      type: 'primitive|uuid',
-      optional: true,
+      to: 'primitive|uuid',
+      cardinality: '0..1',
     });
     expect<unknown>(resolved(named(SYS.task))).toBeUndefined();
     expect<unknown>(resolved({ kind: 'dynamic' })).toBeUndefined();
   });
 
   it('R7.2 maps the primitives by keyword and by platform type id; object is nothing', () => {
-    expect<unknown>(resolved(prim('bool'))?.type).toBe('primitive|boolean');
-    expect<unknown>(resolved(prim('long'))?.type).toBe('primitive|integer');
-    expect<unknown>(resolved(prim('double'))?.type).toBe('primitive|decimal');
-    expect<unknown>(resolved(prim('char'))?.type).toBe('primitive|string');
+    expect<unknown>(resolved(prim('bool'))?.to).toBe('primitive|boolean');
+    expect<unknown>(resolved(prim('long'))?.to).toBe('primitive|integer');
+    expect<unknown>(resolved(prim('double'))?.to).toBe('primitive|decimal');
+    expect<unknown>(resolved(prim('char'))?.to).toBe('primitive|string');
     expect<unknown>(resolved(prim('object'))).toBeUndefined();
-    expect<unknown>(resolved(named(SYS.guid))?.type).toBe('primitive|uuid');
-    expect<unknown>(resolved(named(SYS.dateTime))?.type).toBe(
+    expect<unknown>(resolved(named(SYS.guid))?.to).toBe('primitive|uuid');
+    expect<unknown>(resolved(named(SYS.dateTime))?.to).toBe(
       'primitive|datetime',
     );
-    expect<unknown>(resolved(named('T:System.DateOnly'))?.type).toBe(
+    expect<unknown>(resolved(named('T:System.DateOnly'))?.to).toBe(
       'primitive|date',
     );
-    expect<unknown>(resolved(named('T:NodaTime.Period'))?.type).toBe(
+    expect<unknown>(resolved(named('T:NodaTime.Period'))?.to).toBe(
       'primitive|duration',
     );
     expect<unknown>(resolved(nullable(prim('string')))).toEqual({
-      type: 'primitive|string',
-      optional: true,
+      to: 'primitive|string',
+      cardinality: '0..1',
     });
   });
 
-  it('R7.3 makes arrays and the collection types collections of their element, nested too; a dictionary is nothing, with a diagnostic', () => {
-    expect<unknown>(resolved(arr(prim('int')))?.type).toEqual({
-      collectionOf: 'primitive|integer',
+  it("R7.3 makes arrays and the collection types '*' of their element, nullable or not; a collection of collections '*' of the innermost element, with a diagnostic; a dictionary is nothing, with a diagnostic", () => {
+    expect<unknown>(resolved(arr(prim('int')))).toEqual({
+      to: 'primitive|integer',
+      cardinality: '*',
+    });
+    expect<unknown>(resolved(named(SYS.list, named('T:Sales.Order')))).toEqual({
+      to: 'building_block|Sales.Order',
+      cardinality: '*',
     });
     expect<unknown>(
-      resolved(named(SYS.list, named('T:Sales.Order')))?.type,
-    ).toEqual({
-      collectionOf: 'building_block|Sales.Order',
-    });
-    expect<unknown>(
-      resolved(named(SYS.enumerable, arr(prim('string'))))?.type,
-    ).toEqual({
-      collectionOf: { collectionOf: 'primitive|string' },
-    });
+      resolved(nullable(named(SYS.list, nullable(prim('string'))))),
+    ).toEqual({ to: 'primitive|string', cardinality: '*' });
     expect<unknown>(
       resolved(named(SYS.list, named(SYS.cancellation))),
     ).toBeUndefined();
+    const nested = buildFrom([
+      artifact('Sales')
+        .type('T:Sales.Order', { annotations: [aggregate()] })
+        .property(
+          'P:Sales.Order.Grid',
+          named(SYS.enumerable, arr(prim('string'))),
+        ),
+    ]);
+    expect<unknown>(
+      stateOf(nested.model, 'building_block|Sales.Order'),
+    ).toEqual([['Grid', 'primitive|string', '*']]);
+    expect<unknown>(messages(nested, 'info')).toEqual([
+      'P:Sales.Order.Grid: a collection of collections is read as one collection of primitive|string',
+    ]);
     const built = buildFrom([
       artifact('Sales')
         .type('T:Sales.Order', { annotations: [aggregate()] })
@@ -1429,7 +1521,9 @@ describe('7. resolving a type reference', () => {
           named(SYS.dictionary, prim('string'), prim('int')),
         ),
     ]);
-    expect<unknown>(built.model.buildingBlocks[0]?.properties).toEqual([]);
+    expect<unknown>(stateOf(built.model, 'building_block|Sales.Order')).toEqual(
+      [],
+    );
     expect<unknown>(messages(built, 'debug')).toEqual([
       expect.stringContaining('key-value pairs'),
       expect.stringContaining('P:Sales.Order.Tags'),
@@ -1448,9 +1542,11 @@ describe('7. resolving a type reference', () => {
         named('T:Shared.IRepository`1', named('T:Sales.Order')),
       );
     const { model } = buildFrom([shared, sales]);
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'Order')?.properties[0]?.type,
-    ).toBe('building_block|Shared.IRepository');
+    expect<unknown>(stateOf(model, 'building_block|Sales.Order')[0]).toEqual([
+      'Repo',
+      'building_block|Shared.IRepository',
+      '1',
+    ]);
   });
 
   it('R7.5 resolves a type parameter through its one resolving constraint; two, none or a cycle give nothing', () => {
@@ -1460,12 +1556,11 @@ describe('7. resolving a type reference', () => {
           typeParameters: [typeParameter('T', 0, constraints)],
         }),
       );
-    expect<unknown>(constrained([named('T:Sales.Order')])?.type).toBe(
+    expect<unknown>(constrained([named('T:Sales.Order')])?.to).toBe(
       'building_block|Sales.Order',
     );
     expect<unknown>(
-      constrained([named('T:System.IDisposable'), named('T:Sales.Order')])
-        ?.type,
+      constrained([named('T:System.IDisposable'), named('T:Sales.Order')])?.to,
     ).toBe('building_block|Sales.Order');
     expect<unknown>(
       constrained([named('T:Sales.Order'), named(SYS.guid)]),
@@ -1480,14 +1575,14 @@ describe('7. resolving a type reference', () => {
 
   it('R7.6 looks through an unmapped generic with exactly one resolving argument', () => {
     expect<unknown>(
-      resolved(named('T:Sales.Result`1', named('T:Sales.Order')))?.type,
+      resolved(named('T:Sales.Result`1', named('T:Sales.Order')))?.to,
     ).toBe('building_block|Sales.Order');
     expect<unknown>(
       resolved(named(SYS.func, prim('decimal'), prim('decimal'))),
     ).toBeUndefined();
     expect<unknown>(
       resolved(named('T:Sales.Pair`2', named(SYS.cancellation), prim('int')))
-        ?.type,
+        ?.to,
     ).toBe('primitive|integer');
     expect<unknown>(
       resolved(named('T:Sales.Result`1', named(SYS.cancellation))),
@@ -1526,13 +1621,12 @@ describe('8. resolving ids across artifacts', () => {
       .type('T:Billing.Invoice', { annotations: [aggregate()] })
       .property('P:Billing.Invoice.Total', named('T:Common.Money'));
     const { model } = buildFrom([shared, sales, billing]);
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'Order')?.properties[0]?.type,
-    ).toBe('building_block|Common.Sales money');
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'Invoice')?.properties[0]
-        ?.type,
-    ).toBe('building_block|Common.Shared money');
+    expect<unknown>(stateOf(model, 'building_block|Sales.Order')).toEqual([
+      ['Total', 'building_block|Common.Sales money', '1'],
+    ]);
+    expect<unknown>(stateOf(model, 'building_block|Billing.Invoice')).toEqual([
+      ['Total', 'building_block|Common.Shared money', '1'],
+    ]);
   });
 
   it('merges namespaces across artifacts into one module', () => {
@@ -1655,12 +1749,18 @@ describe('9. behaviors', () => {
           ],
         }),
     ]);
-    expect<unknown>(model.behaviors).toHaveLength(1);
-    expect<unknown>(model.behaviors[0]?.input.map((i) => i.name)).toEqual([
-      'quantity',
-      'note',
+    expect<unknown>(ids(model.behaviors)).toEqual([
+      'behavior|Sales.Orders.Order.Add',
     ]);
-    expect<unknown>(model.behaviors[0]?.source.line).toBe(5);
+    // A block exposes each of its behaviors.
+    expect<unknown>(exposedBy(model, ORDER)).toEqual([
+      'behavior|Sales.Orders.Order.Add',
+    ]);
+    expect<unknown>(inputOf(model, 'behavior|Sales.Orders.Order.Add')).toEqual([
+      ['quantity', 'primitive|integer', '1'],
+      ['note', 'primitive|string', '1'],
+    ]);
+    expect<unknown>(model.behaviors[0]?.source.startLine).toBe(5);
   });
 
   it("R9.4 types a behavior by TriggeredBy on its own or an implemented member's annotation; a Command without one", () => {
@@ -1758,35 +1858,62 @@ describe('9. behaviors', () => {
     ]);
   });
 
-  it('R9.6 reads the input in declaration order, optional for a default or a nullable type, leaving out what has no word', () => {
+  it("R9.6 gives each parameter a has_input at its position in the signature, counting from 1; 0..1 for a default or a nullable type, a collection '*' even with a default; what has no word is left out, its position with it", () => {
     const built = buildFrom([
       sales()
         .stub(SYS.cancellation)
         .method(
-          'M:Sales.Orders.Order#Place(Sales.Orders.Order,string,int,System.Threading.CancellationToken)',
+          'M:Sales.Orders.Order#Place(Sales.Orders.Order,System.Threading.CancellationToken,string,int,System.Collections.Generic.List{Sales.Orders.Order})',
           {
             parameters: [
               { name: 'other', type: named('T:Sales.Orders.Order') },
+              { name: 'token', type: named(SYS.cancellation) },
               { name: 'note', type: nullable(prim('string')) },
               { name: 'count', type: prim('int'), optional: true },
-              { name: 'token', type: named(SYS.cancellation) },
+              {
+                name: 'lines',
+                type: named(SYS.list, named('T:Sales.Orders.Order')),
+                optional: true,
+              },
             ],
           },
         ),
     ]);
-    expect<unknown>(built.model.behaviors[0]?.input).toEqual([
-      { name: 'other', type: ORDER, description: null, optional: false },
+    const place = 'behavior|Sales.Orders.Order.Place';
+    expect<unknown>(
+      built.model.relations.filter(({ kind }) => kind === 'has_input'),
+    ).toEqual([
       {
-        name: 'note',
-        type: 'primitive|string',
-        description: null,
-        optional: true,
+        kind: 'has_input',
+        from: place,
+        to: ORDER,
+        name: 'other',
+        cardinality: '1',
+        position: 1,
       },
       {
+        kind: 'has_input',
+        from: place,
+        to: 'primitive|string',
+        name: 'note',
+        cardinality: '0..1',
+        position: 3,
+      },
+      {
+        kind: 'has_input',
+        from: place,
+        to: 'primitive|integer',
         name: 'count',
-        type: 'primitive|integer',
-        description: null,
-        optional: true,
+        cardinality: '0..1',
+        position: 4,
+      },
+      {
+        kind: 'has_input',
+        from: place,
+        to: ORDER,
+        name: 'lines',
+        cardinality: '*',
+        position: 5,
       },
     ]);
     expect<unknown>(messages(built, 'debug')).toEqual([
@@ -1794,7 +1921,7 @@ describe('9. behaviors', () => {
     ]);
   });
 
-  it('R9.7 gives no output for void, Task and ValueTask, and one result otherwise, optional when nullable', () => {
+  it("R9.7 gives no output for void, Task and ValueTask, and otherwise one has_output named 'result', 0..1 when nullable", () => {
     const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#A()')
@@ -1807,15 +1934,33 @@ describe('9. behaviors', () => {
         })
         .method('M:Sales.Orders.Order#E()', {
           returns: named(SYS.func, prim('int'), prim('int')),
+        })
+        .method('M:Sales.Orders.Order#F()', {
+          returns: arr(named('T:Sales.Orders.Order')),
         }),
     ]);
-    expect<unknown>(model.behaviors.map((b) => [b.name, b.output])).toEqual([
+    expect<unknown>(
+      model.behaviors.map((b) => [b.name, outputOf(model, b.id)]),
+    ).toEqual([
       ['A', []],
       ['B', []],
-      ['C', [{ type: ORDER, description: null, optional: false }]],
-      ['D', [{ type: 'primitive|string', description: null, optional: true }]],
+      ['C', [[ORDER, '1']]],
+      ['D', [['primitive|string', '0..1']]],
       ['E', []],
+      ['F', [[ORDER, '*']]],
     ]);
+    expect<unknown>(
+      model.relations.find(
+        (r) =>
+          r.kind === 'has_output' && r.from === 'behavior|Sales.Orders.Order.C',
+      ),
+    ).toEqual({
+      kind: 'has_output',
+      from: 'behavior|Sales.Orders.Order.C',
+      to: ORDER,
+      name: 'result',
+      cardinality: '1',
+    });
   });
 
   it("R9.8 describes a behavior by its ShortDescription, its doc comment, or an overload's", () => {
@@ -1873,7 +2018,8 @@ describe('9. behaviors', () => {
     ]);
     expect<unknown>(model.behaviors[0]?.source).toEqual({
       path: 'b.cs',
-      line: 5,
+      startLine: 5,
+      endLine: 5,
     });
   });
 
@@ -1897,7 +2043,7 @@ describe('9. behaviors', () => {
 /* ====================================================== 10 determinism */
 
 describe('10. order and determinism', () => {
-  it('R10.1 sorts modules, blocks, behaviors, implements, actors and invokes by id, and gives one output for one input', () => {
+  it('R10.1 sorts modules, blocks, behaviors and actors by id, and the relations by kind, holder, position, target, name and order, and gives one output for one input', () => {
     const build = () => [
       artifact('Sales')
         .type('T:Sales.Zed', { annotations: [valueObject()] })
@@ -1905,7 +2051,7 @@ describe('10. order and determinism', () => {
           annotations: [aggregate(), actor('Zoe'), actor('Adam')],
         })
         .method('M:Sales.Alpha#Zip()', {
-          invokes: ['M:Sales.Alpha#Act()', 'M:Sales.Zed#Make()'],
+          invokes: ['M:Sales.Zed#Make()', 'M:Sales.Alpha#Act()'],
         })
         .method('M:Sales.Alpha#Act()')
         .method('M:Sales.Zed#Make()'),
@@ -1922,21 +2068,53 @@ describe('10. order and determinism', () => {
       'behavior|Sales.Alpha.Zip',
       'behavior|Sales.Zed.Make',
     ]);
-    expect<unknown>(first.model.behaviors[1]).toMatchObject({
-      visibility: { kind: 'public', actors: ['Adam', 'Zoe'] },
-      relations: [
-        {
-          kind: 'behavior_invokes_behavior',
-          from: 'behavior|Sales.Alpha.Zip',
-          to: 'behavior|Sales.Alpha.Act',
-        },
-        {
-          kind: 'behavior_invokes_behavior',
-          from: 'behavior|Sales.Alpha.Zip',
-          to: 'behavior|Sales.Zed.Make',
-        },
-      ],
+    expect<unknown>(first.model.behaviors[1]?.visibility).toEqual({
+      kind: 'public',
+      actors: ['Adam', 'Zoe'],
     });
+    expect<unknown>(first.model.relations).toEqual(
+      [...first.model.relations].sort(byRelation),
+    );
+    // By target, not by call order: Zip calls Make first.
+    expect<unknown>(first.model.relations).toEqual([
+      {
+        kind: 'behavior_invokes_behavior',
+        from: 'behavior|Sales.Alpha.Zip',
+        to: 'behavior|Sales.Alpha.Act',
+        order: 2,
+      },
+      {
+        kind: 'behavior_invokes_behavior',
+        from: 'behavior|Sales.Alpha.Zip',
+        to: 'behavior|Sales.Zed.Make',
+        order: 1,
+      },
+      {
+        kind: 'exposes',
+        from: 'building_block|Sales.Alpha',
+        to: 'behavior|Sales.Alpha.Act',
+      },
+      {
+        kind: 'exposes',
+        from: 'building_block|Sales.Alpha',
+        to: 'behavior|Sales.Alpha.Zip',
+      },
+      {
+        kind: 'exposes',
+        from: 'building_block|Sales.Zed',
+        to: 'behavior|Sales.Zed.Make',
+      },
+      {
+        kind: 'module_contains_block',
+        from: 'module|Sales',
+        to: 'building_block|Sales.Alpha',
+      },
+      {
+        kind: 'module_contains_block',
+        from: 'module|Sales',
+        to: 'building_block|Sales.Zed',
+      },
+    ]);
   });
 });
 
@@ -1971,13 +2149,14 @@ describe('11. relations derived from invocations', () => {
           invokes: ['M:Sales.Order#Total()'],
         }),
     ]);
+    // Place()'s call comes before Place(int)'s: the overloads' calls are ordered together.
     expect<unknown>(
-      model.behaviors.map((b) => [b.id, b.relations.map(({ to }) => to)]),
+      model.behaviors.map((b) => [b.id, invokesOf(model, b.id)]),
     ).toEqual([
       ['behavior|Sales.IOrderRepository.Save', ['behavior|Sales.Order.Total']],
       [
         'behavior|Sales.Order.Place',
-        ['behavior|Sales.IOrderRepository.Save', 'behavior|Sales.Order.Total'],
+        ['behavior|Sales.Order.Total', 'behavior|Sales.IOrderRepository.Save'],
       ],
       ['behavior|Sales.Order.Total', []],
     ]);
@@ -2017,11 +2196,9 @@ describe('11. relations derived from invocations', () => {
         invokes: ['M:Sales.Order#Loop()'],
       });
     const { model } = buildFrom([technical, sales]);
-    expect<unknown>(
-      model.behaviors
-        .find((b) => b.name === 'Place')
-        ?.relations.map(({ to }) => to),
-    ).toEqual(['behavior|Sales.Order.Total']);
+    expect<unknown>(invokesOf(model, 'behavior|Sales.Order.Place')).toEqual([
+      'behavior|Sales.Order.Total',
+    ]);
   });
 
   it('R11.2 resolves the target through the members it implements: a call to the implementation reaches the interface behavior', () => {
@@ -2043,14 +2220,12 @@ describe('11. relations derived from invocations', () => {
           invokes: ['M:Sales.SqlOrderRepository#Save()'],
         }),
     ]);
-    expect<unknown>(
-      model.behaviors
-        .find((b) => b.name === 'Persist')
-        ?.relations.map(({ to }) => to),
-    ).toEqual(['behavior|Sales.IOrderRepository.Save']);
+    expect<unknown>(invokesOf(model, 'behavior|Sales.Order.Persist')).toEqual([
+      'behavior|Sales.IOrderRepository.Save',
+    ]);
   });
 
-  it('R11.3 lists the invoked behaviors sorted, unique and never the behavior itself', () => {
+  it('R11.3 orders the invoked behaviors by the call that first reaches each, counting from 1; unique, and never the behavior itself', () => {
     const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.Order', { annotations: [aggregate()] })
@@ -2066,9 +2241,52 @@ describe('11. relations derived from invocations', () => {
         .method('M:Sales.Order#Audit()'),
     ]);
     expect<unknown>(
-      model.behaviors
-        .find((b) => b.name === 'Place')
-        ?.relations.map(({ to }) => to),
-    ).toEqual(['behavior|Sales.Order.Audit', 'behavior|Sales.Order.Total']);
+      model.relations.filter(
+        ({ kind }) => kind === 'behavior_invokes_behavior',
+      ),
+    ).toEqual([
+      {
+        kind: 'behavior_invokes_behavior',
+        from: 'behavior|Sales.Order.Place',
+        to: 'behavior|Sales.Order.Audit',
+        order: 2,
+      },
+      {
+        kind: 'behavior_invokes_behavior',
+        from: 'behavior|Sales.Order.Place',
+        to: 'behavior|Sales.Order.Total',
+        order: 1,
+      },
+    ]);
+  });
+
+  it('R11.3 puts the behaviors reached through a method that is no behavior at the position of the call to it, by id, each at its first call', () => {
+    const { model } = buildFrom([
+      artifact('Sales')
+        .type('T:Sales.Order', { annotations: [aggregate()] })
+        .method('M:Sales.Order#Place()', {
+          invokes: [
+            'M:Sales.Order#Zed()',
+            'M:Sales.Order#Helper()',
+            'M:Sales.Order#Alpha()',
+            'M:Sales.Order#Last()',
+            'M:Sales.Order#Zed()',
+          ],
+        })
+        .method('M:Sales.Order#Helper()', {
+          visibility: 'private',
+          invokes: ['M:Sales.Order#Mid()', 'M:Sales.Order#Alpha()'],
+        })
+        .method('M:Sales.Order#Zed()')
+        .method('M:Sales.Order#Mid()')
+        .method('M:Sales.Order#Alpha()')
+        .method('M:Sales.Order#Last()'),
+    ]);
+    expect<unknown>(invokesOf(model, 'behavior|Sales.Order.Place')).toEqual([
+      'behavior|Sales.Order.Zed',
+      'behavior|Sales.Order.Alpha',
+      'behavior|Sales.Order.Mid',
+      'behavior|Sales.Order.Last',
+    ]);
   });
 });

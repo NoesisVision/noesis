@@ -24,25 +24,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_module",
-              "from": "module|discounts",
-              "to": "module|discounts.calculation"
-            },
-            {
-              "kind": "module_contains_module",
-              "from": "module|discounts",
-              "to": "module|discounts.offers"
-            },
-            {
-              "kind": "module_contains_module",
-              "from": "module|discounts",
-              "to": "module|discounts.users"
-            }
-          ]
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -63,80 +44,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.Conditions"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.Discount"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.DiscountAmount"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.DiscountCalculation"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.DiscountConfig"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.DiscountPolicyFactory"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.DiscountedOffer"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.DiscountedProduct"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.DiscountsConfigProvider"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.FixedDiscount"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.PotentialDiscount"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.PotentialVipUserDiscount"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.calculation",
-              "to": "building_block|discounts.calculation.ProductDiscount"
-            }
-          ]
         },
         "rules": {
           "added": [],
@@ -159,20 +66,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.offers",
-              "to": "building_block|discounts.offers.Offer"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.offers",
-              "to": "building_block|discounts.offers.Product"
-            }
-          ]
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -193,25 +86,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.users",
-              "to": "building_block|discounts.users.UserId"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.users",
-              "to": "building_block|discounts.users.UserStatus"
-            },
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|discounts.users",
-              "to": "building_block|discounts.users.UserStatusProvider"
-            }
-          ]
         },
         "rules": {
           "added": [],
@@ -245,34 +119,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "userStatus",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.users.UserStatus",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The status of the customer the offer is calculated for.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -303,21 +149,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.Discount",
-              "to": "behavior|discounts.calculation.Discount.apply"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -350,34 +181,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "appliedDiscount",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.Discount",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The discount that granted this amount.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -408,40 +211,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.DiscountCalculation",
-              "to": "behavior|discounts.calculation.DiscountCalculation.calculate"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "discountsFactory",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.DiscountPolicyFactory",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Where the calculation gets the discounts that apply to the customer.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -474,42 +243,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.DiscountConfig",
-              "to": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "potentialDiscounts",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|discounts.calculation.PotentialDiscount"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Every discount the shop offers, with its condition.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -540,58 +273,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.DiscountPolicyFactory",
-              "to": "behavior|discounts.calculation.DiscountPolicyFactory.get"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "discountsConfigProvider",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.DiscountsConfigProvider",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Source of the shop's discount configuration.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "userStatusProvider",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.users.UserStatusProvider",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Source of the customer's status.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -624,67 +305,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.DiscountedOffer",
-              "to": "behavior|discounts.calculation.DiscountedOffer.applyDiscount"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.DiscountedOffer",
-              "to": "behavior|discounts.calculation.DiscountedOffer.createFrom"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "products",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|discounts.calculation.DiscountedProduct"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The offer's products, each with the discounts granted on it.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "offerLevelDiscounts",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|discounts.calculation.DiscountAmount"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The discounts granted on the offer as a whole, in the order they were applied.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -715,47 +335,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.DiscountedProduct",
-              "to": "behavior|discounts.calculation.DiscountedProduct.applyDiscount"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.DiscountedProduct",
-              "to": "behavior|discounts.calculation.DiscountedProduct.from"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "discountAmounts",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|discounts.calculation.DiscountAmount"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The discounts granted on this product.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -788,21 +367,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.DiscountsConfigProvider",
-              "to": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -833,45 +397,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_extends_building_block",
-              "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
-              "to": "building_block|discounts.calculation.Discount"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
-              "to": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "discountToApply",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.Discount",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The discount applied when no excluding discount is on the offer yet.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -904,45 +429,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_extends_building_block",
-              "from": "building_block|discounts.calculation.FixedDiscount",
-              "to": "building_block|discounts.calculation.Discount"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.FixedDiscount",
-              "to": "behavior|discounts.calculation.FixedDiscount.apply"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "fixedDiscountAmount",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.DiscountAmount",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The amount this discount grants.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -973,26 +459,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.PotentialDiscount",
-              "to": "behavior|discounts.calculation.PotentialDiscount.getDiscount"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.PotentialDiscount",
-              "to": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -1025,50 +491,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_extends_building_block",
-              "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
-              "to": "building_block|discounts.calculation.PotentialDiscount"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
-              "to": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
-              "to": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "fixedDiscount",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.FixedDiscount",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The fixed discount granted to VIP customers.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1099,26 +521,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_extends_building_block",
-              "from": "building_block|discounts.calculation.ProductDiscount",
-              "to": "building_block|discounts.calculation.Discount"
-            },
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.calculation.ProductDiscount",
-              "to": "behavior|discounts.calculation.ProductDiscount.apply"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -1151,36 +553,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "products",
-              "type": {
-                "changed": true,
-                "value": {
-                  "collectionOf": "building_block|discounts.offers.Product"
-                },
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The products in the offer.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1211,15 +583,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -1252,34 +615,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "id",
-              "type": {
-                "changed": true,
-                "value": "primitive|uuid",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The customer's unique identifier.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1311,34 +646,6 @@
         "diagram": {
           "changed": false
         },
-        "relations": {
-          "added": [],
-          "removed": []
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "vip",
-              "type": {
-                "changed": true,
-                "value": "primitive|boolean",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "Whether the customer is a VIP.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1369,21 +676,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|discounts.users.UserStatusProvider",
-              "to": "behavior|discounts.users.UserStatusProvider.getFor"
-            }
-          ],
-          "removed": []
-        },
-        "properties": {
-          "added": [],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -1430,49 +722,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "discountedOffer",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.DiscountedOffer",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The offer as discounted so far.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedOffer",
-              "description": {
-                "changed": true,
-                "value": "The offer with this discount added.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1512,67 +761,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "offer",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.offers.Offer",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The offer to discount.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "user",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.users.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The customer the offer is for.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedOffer",
-              "description": {
-                "changed": true,
-                "value": "The offer with every applicable discount applied.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1610,51 +798,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "conditions",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.Conditions",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The customer's status and the weather to check the discounts against.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": {
-                "collectionOf": "building_block|discounts.calculation.Discount"
-              },
-              "description": {
-                "changed": true,
-                "value": "The discounts whose conditions hold, in configuration order.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -1694,51 +837,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "userId",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.users.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The customer to find the discounts for.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": {
-                "collectionOf": "building_block|discounts.calculation.Discount"
-              },
-              "description": {
-                "changed": true,
-                "value": "The discounts that apply to the customer now.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1776,49 +874,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "discount",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.Discount",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The discount to apply.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedOffer",
-              "description": {
-                "changed": true,
-                "value": "The offer with the discount applied.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -1858,49 +913,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "offer",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.offers.Offer",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The offer to start from.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedOffer",
-              "description": {
-                "changed": true,
-                "value": "The offer with no discount applied.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -1939,49 +951,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "productDiscount",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.ProductDiscount",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The product discount to apply.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedProduct",
-              "description": {
-                "changed": true,
-                "value": "The product with the discount applied.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2019,49 +988,6 @@
             "kind": "private"
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "product",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.offers.Product",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The product of the offer.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedProduct",
-              "description": {
-                "changed": true,
-                "value": "The product with no discount applied.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -2102,30 +1028,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountConfig",
-              "description": {
-                "changed": true,
-                "value": "The shop's discount configuration.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2164,49 +1066,6 @@
             "actors": []
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "previous",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.DiscountedOffer",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The offer as discounted so far.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedOffer",
-              "description": {
-                "changed": true,
-                "value": "The offer with the wrapped discount added, or unchanged when an excluding discount is already on it.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -2247,49 +1106,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "previous",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.DiscountedOffer",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The offer as discounted so far.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedOffer",
-              "description": {
-                "changed": true,
-                "value": "The offer with the fixed discount added.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2328,30 +1144,6 @@
             "actors": []
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.Discount",
-              "description": {
-                "changed": true,
-                "value": "The discount to grant.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -2392,49 +1184,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "conditions",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.Conditions",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The customer's status and the weather to check.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "primitive|boolean",
-              "description": {
-                "changed": true,
-                "value": "Whether the discount applies.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2473,30 +1222,6 @@
             "actors": []
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.Discount",
-              "description": {
-                "changed": true,
-                "value": "The fixed discount to grant.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -2537,49 +1262,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "conditions",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.Conditions",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The conditions carrying the customer's status.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "primitive|boolean",
-              "description": {
-                "changed": true,
-                "value": "Whether the customer is a VIP.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2618,49 +1300,6 @@
             "actors": []
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "previous",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.calculation.DiscountedOffer",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The offer as discounted so far.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.calculation.DiscountedOffer",
-              "description": {
-                "changed": true,
-                "value": "The offer with the discount applied to each product.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
         },
         "rules": {
           "added": [],
@@ -2701,49 +1340,6 @@
           },
           "author": "agent"
         },
-        "input": {
-          "added": [
-            {
-              "name": "userId",
-              "type": {
-                "changed": true,
-                "value": "building_block|discounts.users.UserId",
-                "author": "agent"
-              },
-              "description": {
-                "changed": true,
-                "value": "The customer to look up.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|discounts.users.UserStatus",
-              "description": {
-                "changed": true,
-                "value": "The customer's status.",
-                "author": "agent"
-              },
-              "optional": {
-                "changed": true,
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ],
-          "removed": [],
-          "modified": []
-        },
         "rules": {
           "added": [],
           "removed": [],
@@ -2758,6 +1354,788 @@
     ],
     "removed": [],
     "modified": []
+  },
+  "relations": {
+    "added": [
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.Discount",
+        "to": "behavior|discounts.calculation.Discount.apply"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.DiscountCalculation",
+        "to": "behavior|discounts.calculation.DiscountCalculation.calculate"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.DiscountConfig",
+        "to": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+        "to": "behavior|discounts.calculation.DiscountPolicyFactory.get"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.DiscountedOffer",
+        "to": "behavior|discounts.calculation.DiscountedOffer.applyDiscount"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.DiscountedOffer",
+        "to": "behavior|discounts.calculation.DiscountedOffer.createFrom"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.DiscountedProduct",
+        "to": "behavior|discounts.calculation.DiscountedProduct.applyDiscount"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.DiscountedProduct",
+        "to": "behavior|discounts.calculation.DiscountedProduct.from"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.DiscountsConfigProvider",
+        "to": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+        "to": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.FixedDiscount",
+        "to": "behavior|discounts.calculation.FixedDiscount.apply"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.PotentialDiscount",
+        "to": "behavior|discounts.calculation.PotentialDiscount.getDiscount"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.PotentialDiscount",
+        "to": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+        "to": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+        "to": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.calculation.ProductDiscount",
+        "to": "behavior|discounts.calculation.ProductDiscount.apply"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|discounts.users.UserStatusProvider",
+        "to": "behavior|discounts.users.UserStatusProvider.getFor"
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+        "to": "building_block|discounts.calculation.Discount"
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|discounts.calculation.FixedDiscount",
+        "to": "building_block|discounts.calculation.Discount"
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+        "to": "building_block|discounts.calculation.PotentialDiscount"
+      },
+      {
+        "kind": "extends",
+        "from": "building_block|discounts.calculation.ProductDiscount",
+        "to": "building_block|discounts.calculation.Discount"
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.Discount.apply",
+        "name": "discountedOffer",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
+        "name": "offer",
+        "to": {
+          "value": "building_block|discounts.offers.Offer"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
+        "name": "user",
+        "to": {
+          "value": "building_block|discounts.users.UserId"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 2
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions",
+        "name": "conditions",
+        "to": {
+          "value": "building_block|discounts.calculation.Conditions"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.DiscountPolicyFactory.get",
+        "name": "userId",
+        "to": {
+          "value": "building_block|discounts.users.UserId"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.DiscountedOffer.applyDiscount",
+        "name": "discount",
+        "to": {
+          "value": "building_block|discounts.calculation.Discount"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.DiscountedOffer.createFrom",
+        "name": "offer",
+        "to": {
+          "value": "building_block|discounts.offers.Offer"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.DiscountedProduct.applyDiscount",
+        "name": "productDiscount",
+        "to": {
+          "value": "building_block|discounts.calculation.ProductDiscount"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.DiscountedProduct.from",
+        "name": "product",
+        "to": {
+          "value": "building_block|discounts.offers.Product"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
+        "name": "previous",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.FixedDiscount.apply",
+        "name": "previous",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
+        "name": "conditions",
+        "to": {
+          "value": "building_block|discounts.calculation.Conditions"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
+        "name": "conditions",
+        "to": {
+          "value": "building_block|discounts.calculation.Conditions"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.calculation.ProductDiscount.apply",
+        "name": "previous",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|discounts.users.UserStatusProvider.getFor",
+        "name": "userId",
+        "to": {
+          "value": "building_block|discounts.users.UserId"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.Discount.apply",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.DiscountCalculation.calculate",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.Discount"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.DiscountPolicyFactory.get",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.Discount"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.DiscountedOffer.applyDiscount",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.DiscountedOffer.createFrom",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.DiscountedProduct.applyDiscount",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedProduct"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.DiscountedProduct.from",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedProduct"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountConfig"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.FixedDiscount.apply",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.PotentialDiscount.getDiscount",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.Discount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
+        "name": "result",
+        "to": {
+          "value": "primitive|boolean"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.Discount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
+        "name": "result",
+        "to": {
+          "value": "primitive|boolean"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.calculation.ProductDiscount.apply",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedOffer"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|discounts.users.UserStatusProvider.getFor",
+        "name": "result",
+        "to": {
+          "value": "building_block|discounts.users.UserStatus"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.Conditions",
+        "name": "userStatus",
+        "to": {
+          "value": "building_block|discounts.users.UserStatus"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.DiscountAmount",
+        "name": "appliedDiscount",
+        "to": {
+          "value": "building_block|discounts.calculation.Discount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.DiscountCalculation",
+        "name": "discountsFactory",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountPolicyFactory"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.DiscountConfig",
+        "name": "potentialDiscounts",
+        "to": {
+          "value": "building_block|discounts.calculation.PotentialDiscount"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+        "name": "discountsConfigProvider",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountsConfigProvider"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+        "name": "userStatusProvider",
+        "to": {
+          "value": "building_block|discounts.users.UserStatusProvider"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.DiscountedOffer",
+        "name": "offerLevelDiscounts",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountAmount"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.DiscountedOffer",
+        "name": "products",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountedProduct"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.DiscountedProduct",
+        "name": "discountAmounts",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountAmount"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount",
+        "name": "discountToApply",
+        "to": {
+          "value": "building_block|discounts.calculation.Discount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.FixedDiscount",
+        "name": "fixedDiscountAmount",
+        "to": {
+          "value": "building_block|discounts.calculation.DiscountAmount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.calculation.PotentialVipUserDiscount",
+        "name": "fixedDiscount",
+        "to": {
+          "value": "building_block|discounts.calculation.FixedDiscount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.offers.Offer",
+        "name": "products",
+        "to": {
+          "value": "building_block|discounts.offers.Product"
+        },
+        "cardinality": {
+          "value": "*"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.users.UserId",
+        "name": "id",
+        "to": {
+          "value": "primitive|uuid"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|discounts.users.UserStatus",
+        "name": "vip",
+        "to": {
+          "value": "primitive|boolean"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.Conditions"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.Discount"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.DiscountAmount"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.DiscountCalculation"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.DiscountConfig"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.DiscountPolicyFactory"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.DiscountedOffer"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.DiscountedProduct"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.DiscountsConfigProvider"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.ExclusiveOfferLevelDiscount"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.FixedDiscount"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.PotentialDiscount"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.PotentialVipUserDiscount"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.calculation",
+        "to": "building_block|discounts.calculation.ProductDiscount"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.offers",
+        "to": "building_block|discounts.offers.Offer"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.offers",
+        "to": "building_block|discounts.offers.Product"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.users",
+        "to": "building_block|discounts.users.UserId"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.users",
+        "to": "building_block|discounts.users.UserStatus"
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|discounts.users",
+        "to": "building_block|discounts.users.UserStatusProvider"
+      },
+      {
+        "kind": "module_contains_module",
+        "from": "module|discounts",
+        "to": "module|discounts.calculation"
+      },
+      {
+        "kind": "module_contains_module",
+        "from": "module|discounts",
+        "to": "module|discounts.offers"
+      },
+      {
+        "kind": "module_contains_module",
+        "from": "module|discounts",
+        "to": "module|discounts.users"
+      }
+    ],
+    "removed": []
   },
   "implemented": true,
   "implementedAt": "2026-10-13T18:03:13.000Z"

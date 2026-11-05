@@ -1,7 +1,7 @@
 /*
- * A soft grey card, one line under another: the name, its type as a tag
- * under it, and what it is for. Each has the card's whole width, so a long
- * one wraps inside it rather than being cut short.
+ * A soft grey card, one line under another: the name and its type as a tag
+ * under it. Each has the card's whole width, so a long one wraps inside it
+ * rather than being cut short.
  */
 .box {
   display: grid;
@@ -74,15 +74,6 @@
   }
 }
 
-/* Named with the box, to win over the reset of a button written in place. */
-.box .description {
-  display: block;
-  font-family: var(--mantine-font-family);
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: var(--noesis-secondary-text);
-}
-
 /* Read at a glance, over a card: a size down. */
 [data-glance] .box {
   padding: 6px var(--mantine-spacing-xs);
@@ -93,7 +84,6 @@
   font-size: 11px;
 }
 
-[data-glance] .box .type,
-[data-glance] .box .description {
+[data-glance] .box .type {
   font-size: 10px;
 }
