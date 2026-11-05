@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { DesignTask } from './design-task';
+import { DiagramPlan } from '#backend/app/system-model/diagram-plan';
+import { AgentTask } from './agent-task';
 
 /**
  * How the page reaches a Claude Code session. `embedded`: the service started
@@ -58,7 +59,7 @@ export const AgentEntry = z.discriminatedUnion('kind', [
     text: z.string(),
     attachments: z.array(AgentAttachment),
     /** What the page was about; null off a change. */
-    task: DesignTask.nullable(),
+    task: AgentTask.nullable(),
     /** The message started the task's skill, which the session read at its head. */
     starts: z.boolean(),
   }),
@@ -94,6 +95,12 @@ export const AgentEntry = z.discriminatedUnion('kind', [
     /** All of what the call would do, uncut: what an approval covers. */
     detail: z.string(),
     decision: PermissionDecision.nullable(),
+  }),
+  z.object({
+    ...entry,
+    kind: z.literal('diagram'),
+    /** The steps the agent answered with, for the page to apply to its diagram. */
+    plan: DiagramPlan,
   }),
   z.object({
     ...entry,

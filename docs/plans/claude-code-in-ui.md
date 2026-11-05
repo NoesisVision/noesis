@@ -101,6 +101,26 @@ headless run cannot start an interactive session with that flag.
   directory (`POST /ui/agent/files`) and named to the agent by its path, which
   is what the plugin's skills take.
 
+## The diagram, by instruction
+
+On the system model's page the agent composes the exploration diagram, and
+it never touches the canvas itself. A message from there carries the diagram
+as it stands (`DiagramTask`: the ids drawn, the relations shown) and starts
+the plugin's `explore-system-model` skill, which answers with a **diagram
+plan** in a fenced `noesis-diagram` block: a list of steps from a small,
+deterministic vocabulary (`app/system-model/diagram-plan.ts`, shipped as
+`contracts/diagram-plan.schema.json`): `add`, `addInside`, `addNeighbours`,
+`addChain`, `remove`, `clear`, `relations`, `direction`, `autoPlace`, each
+naming elements by the scan's ids. The service takes the plan out of the
+reply (`app/agent/diagram-plan-fence.ts`) into an entry of its own; the page
+resolves it against the model (`features/system-model/diagram-plan.ts`:
+unknown ids are reported, not fatal) and applies it through the exploration
+as one step of its own, so Undo takes it back. The plan is applied as it
+arrives when the diagram is on the page, and from its card otherwise. Where
+the request can be read two ways — which `Order`, how far to follow, keep
+or start over — the skill asks with `AskUserQuestion` first, which the page
+answers in its question card.
+
 ## Left out of the proof of concept
 
 - Resuming a session across restarts, several sessions, a session per change.

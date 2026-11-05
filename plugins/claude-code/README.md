@@ -115,7 +115,7 @@ nothing.
   adds the Noesis parser plugin and the `noesis-annotations` dependency, both
   from Maven Central, to a Maven or Gradle build and writes the `parser` of `.noesis/settings.json`
   that runs it, and moves the parser to a release the plugin reads when a
-  scan refuses its code model schema; `setup-dotnet-scanner` installs the `noesis-parse-csharp`
+  scan refuses its code model schema; `explore-system-model` turns what a person wants to see of the scanned model into a diagram plan, the steps the Noesis page applies to its exploration diagram, each naming elements by the scan's ids as `contracts/diagram-plan.schema.json` shapes them, asking before it guesses which elements, how far, or whether to start over; `setup-dotnet-scanner` installs the `noesis-parse-csharp`
   tool, adds the `NoesisVision.Annotations` package to the domain projects
   and writes `{ "language": "csharp" }` there. Both prove the setup with
   `scan_system_model`. A skill

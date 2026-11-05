@@ -9,9 +9,9 @@ import {
   IconSun,
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
-import { useParams } from '@tanstack/react-router';
 import { use } from 'react';
 import { useAgentPanel } from '#/features/agent/agent-panel-context.tsx';
+import { useAgentPlace } from '#/features/agent/agent-place.ts';
 import { AgentIcon } from '#/features/agent/agent.model.ts';
 import { currentProject } from '#/features/project/project.api.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon';
@@ -148,16 +148,15 @@ function SearchTool() {
 
 /**
  * The agent's conversation, brought into view and folded from the bar, and
- * with ⌘. (Ctrl . off a Mac). Only on a change: the agent designs into the
- * change the page is on, and has nothing to do elsewhere.
+ * with ⌘. (Ctrl . off a Mac). Only where the agent has work: a change's
+ * pages and the system model's diagram.
  */
 function AgentTool() {
   const { opened, toggle } = useAgentPanel();
-  const { changeId } = useParams({ strict: false });
+  const { shown } = useAgentPlace();
   const mac = ['macos', 'ios'].includes(useOs());
-  const onChange = changeId !== undefined;
-  useHotkeys([['mod+.', () => onChange && toggle()]], []);
-  if (!onChange) return null;
+  useHotkeys([['mod+.', () => shown && toggle()]], []);
+  if (!shown) return null;
   return (
     <Tooltip label={`Agent conversation (${mac ? '⌘.' : 'Ctrl .'})`}>
       <ActionIcon

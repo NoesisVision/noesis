@@ -1,6 +1,6 @@
 import { IconSparkles } from '@tabler/icons-react';
 import type { AgentStatus } from '#backend/app/agent/agent-session.ts';
-import type { DesignTask } from '#backend/app/agent/design-task.ts';
+import type { AgentTask } from '#backend/app/agent/agent-task.ts';
 
 /** The icon the agent is drawn with, wherever it is named: the bar, the panel, a button that calls it. */
 export const AgentIcon = IconSparkles;
@@ -18,27 +18,21 @@ export const AGENT_STATUS_META: Record<
   failed: { label: 'Unavailable', color: 'red', busy: false },
 };
 
-/**
- * What a message is about, from where the page is: the change open, and
- * the design document open in it. The service starts the matching skill
- * from it; off a change there is nothing to start.
- */
-export function designTaskOf(params: {
-  changeId?: string | undefined;
-  docId?: string | undefined;
-}): DesignTask | undefined {
-  if (params.changeId === undefined) return undefined;
-  return {
-    change: params.changeId,
-    ...(params.docId === undefined ? {} : { designDoc: params.docId }),
-  } as DesignTask;
-}
-
 /** What a task does, in the person's words: the verb for the chip and the caption. */
-export function taskVerb(task: DesignTask): string {
+export function taskVerb(task: AgentTask): string {
+  if (task.kind === 'diagram') return 'Composing the diagram';
   return task.designDoc === undefined
     ? 'New design document'
     : 'Revising the design document';
+}
+
+/** What the field asks for, by what the message will do. */
+export function taskPlaceholder(task: AgentTask | undefined): string {
+  if (task === undefined) return 'Ask the agent…';
+  if (task.kind === 'diagram') return 'What should the diagram show?';
+  return task.designDoc === undefined
+    ? 'What should the design cover?'
+    : 'What should change in the design?';
 }
 
 /**

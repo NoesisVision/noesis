@@ -4,7 +4,6 @@ import {
   IconPlayerStopFilled,
   IconX,
 } from '@tabler/icons-react';
-import { useParams } from '@tanstack/react-router';
 import { type KeyboardEvent, type ReactNode, useState } from 'react';
 import { useChangesWithEntries } from '#/features/changes/changes.api.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
@@ -17,13 +16,14 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { Textarea } from '#/shared/design-system/textarea.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import type { AgentAttachment } from '#backend/app/agent/agent-session.ts';
-import type { DesignTask } from '#backend/app/agent/design-task.ts';
+import type { AgentTask } from '#backend/app/agent/agent-task.ts';
+import { useAgentPlace } from '../agent-place.ts';
 import {
   useInterruptAgent,
   useSendAgentMessage,
   useUploadAgentFile,
 } from '../agent.api.ts';
-import { AgentIcon, designTaskOf, taskVerb } from '../agent.model.ts';
+import { AgentIcon, taskPlaceholder, taskVerb } from '../agent.model.ts';
 import classes from './agent-composer.module.css';
 
 interface AgentComposerProps {
@@ -53,7 +53,9 @@ export function AgentComposer({
   disabled,
   trailing,
 }: AgentComposerProps) {
-  const task = designTaskOf(useParams({ strict: false }));
+  // The task is read as the message goes, so a diagram is told as it stands then.
+  const { task: taskNow } = useAgentPlace();
+  const task = taskNow();
   const [text, setText] = useState('');
   const [attachments, setAttachments] = useState<AgentAttachment[]>([]);
   const [problem, setProblem] = useState<string | null>(null);
@@ -69,7 +71,7 @@ export function AgentComposer({
     if (!canSend) return;
     const sent = text.trim();
     send.mutate(
-      { text: sent, attachments, task },
+      { text: sent, attachments, task: taskNow() },
       {
         // Words typed while the send was on its way stay in the field.
         onSuccess: () => {
@@ -136,7 +138,9 @@ export function AgentComposer({
       className={classes.field}
       classNames={{ input: classes.field }}
       aria-label="Message to the agent"
-      placeholder={placeholderFor(task, disabled)}
+      placeholder={
+        disabled ? 'The agent is not available.' : taskPlaceholder(task)
+      }
       value={text}
       onChange={(event) => setText(event.currentTarget.value)}
       onKeyDown={onKeyDown}
@@ -253,21 +257,16 @@ export function AgentComposer({
  * design document is made for, or the design document being revised. Off a
  * change, that there is nothing to design into.
  */
-function TaskChip({ task }: { task: DesignTask | undefined }) {
+function TaskChip({ task }: { task: AgentTask | undefined }) {
   const { changes } = useChangesWithEntries();
   if (task === undefined) {
     return (
       <Text className={classes.task} c="dimmed">
-        Open a change to design into it.
+        Open a change or the system model to work with the agent.
       </Text>
     );
   }
-  const change = changes.find((c) => c.id === task.change);
-  const subject =
-    task.designDoc === undefined
-      ? (change?.name ?? task.change)
-      : (change?.entries.find((entry) => entry.id === task.designDoc)?.name ??
-        task.designDoc);
+  const subject = subjectOf(task, changes);
   return (
     <Text className={classes.task} title={`${taskVerb(task)}: ${subject}`}>
       <AgentIcon size={12} stroke={1.8} aria-hidden />
@@ -277,10 +276,20 @@ function TaskChip({ task }: { task: DesignTask | undefined }) {
   );
 }
 
-function placeholderFor(task: DesignTask | undefined, disabled: boolean) {
-  if (disabled) return 'The agent is not available.';
-  if (task === undefined) return 'Ask the agent…';
+/** What the chip names: the change, the design document, or the diagram by what is on it. */
+function subjectOf(
+  task: AgentTask,
+  changes: ReturnType<typeof useChangesWithEntries>['changes'],
+): string {
+  if (task.kind === 'diagram') {
+    const count = task.diagram.drawn.length;
+    return count === 0
+      ? 'an empty canvas'
+      : `${count} element${count === 1 ? '' : 's'} on the canvas`;
+  }
+  const change = changes.find((c) => c.id === task.change);
   return task.designDoc === undefined
-    ? 'What should the design cover?'
-    : 'What should change in the design?';
+    ? (change?.name ?? task.change)
+    : (change?.entries.find((entry) => entry.id === task.designDoc)?.name ??
+        task.designDoc);
 }

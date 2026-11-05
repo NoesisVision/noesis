@@ -15,8 +15,9 @@ import {
   AgentQuestion,
   type PermissionDecision,
 } from '#backend/app/agent/agent-session';
+import { promptOf, startsTask } from '#backend/app/agent/agent-task';
 import type { AgentTranscript } from '#backend/app/agent/agent-transcript';
-import { promptOf, startsTask } from '#backend/app/agent/design-task';
+import { splitDiagramPlans } from '#backend/app/agent/diagram-plan-fence';
 import type { SendAgentMessage } from '#backend/app/agent/send-agent-message';
 import { serverLogger } from '#backend/platform/logging/logging';
 import { AsyncQueue } from './async-queue';
@@ -242,16 +243,29 @@ export class ClaudeCodeAgentHost implements AgentHost {
     return this.streaming;
   }
 
-  /** Whatever was streamed stands as the reply; nothing more is coming for it. */
+  /**
+   * Whatever was streamed stands as the reply; nothing more is coming for
+   * it. A diagram plan the reply carries becomes an entry of its own, after
+   * the prose.
+   */
   private closeReply(text?: string): void {
     if (this.streaming === null) return;
     const { id } = this.streaming;
     this.streaming = null;
+    const whole =
+      text ?? this.transcript.find('assistant', (e) => e.id === id)?.text ?? '';
+    this.replied(id, whole);
+  }
+
+  private replied(id: string, whole: string): void {
+    const { text, plans, problems } = splitDiagramPlans(whole);
     this.transcript.update(id, (entry) => ({
       ...entry,
-      ...(text === undefined ? {} : { text }),
+      text,
       streaming: false,
     }));
+    for (const plan of plans) this.transcript.append({ kind: 'diagram', plan });
+    for (const problem of problems) this.transcript.note(problem, 'error');
   }
 
   /** The whole message: its text replaces what was streamed, its tool calls open tool entries. */
@@ -259,11 +273,12 @@ export class ClaudeCodeAgentHost implements AgentHost {
     for (const block of message.message.content) {
       if (block.type === 'text') {
         if (this.streaming === null) {
-          this.transcript.append({
+          const entry = this.transcript.append({
             kind: 'assistant',
             text: block.text,
             streaming: false,
           });
+          this.replied(entry.id, block.text);
         } else {
           this.closeReply(block.text);
         }

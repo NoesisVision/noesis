@@ -24,7 +24,7 @@ describe('AgentEntryView', () => {
       kind: 'user',
       text: 'Design it',
       attachments: [{ name: 'spec.md', path: '/scratch/spec.md' }],
-      task: { change: '2026-09-17-x' } as never,
+      task: { kind: 'design', change: '2026-09-17-x' } as never,
       starts: true,
     });
     expect(html).toContain('Design it');
@@ -120,6 +120,26 @@ describe('AgentEntryView', () => {
     expect(html).toContain('Allow for this session');
     expect(html).toContain('Allow once');
     expect(render({ ...open, decision: 'allow' })).not.toContain('Allow once');
+  });
+
+  it('lists the steps of a diagram plan, with a way to apply them', () => {
+    const html = render({
+      id: '9',
+      at,
+      kind: 'diagram',
+      plan: {
+        summary: 'The sales module whole.',
+        steps: [
+          { op: 'clear' },
+          { op: 'addInside', element: 'module|sales' as never },
+        ],
+      },
+    });
+    expect(html).toContain('The sales module whole.');
+    expect(html).toContain('Clear the diagram');
+    expect(html).toContain('Add sales with everything inside it');
+    expect(html).toContain('Apply to the diagram');
+    expect(html).toContain('Open the system model to apply it.');
   });
 
   it('announces a note that reports an error', () => {

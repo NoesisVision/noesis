@@ -1,30 +1,36 @@
 import { describe, expect, it } from 'bun:test';
+import type { AgentTask } from '#backend/app/agent/agent-task.ts';
 import {
-  designTaskOf,
   isTextFile,
   safeFileName,
+  taskPlaceholder,
   taskVerb,
   toolLabel,
 } from '../src/features/agent/agent.model';
 
+const design = { kind: 'design', change: '2026-09-17-x' } as AgentTask;
+const revision = {
+  kind: 'design',
+  change: '2026-09-17-x',
+  designDoc: '2026-11-05-y',
+} as AgentTask;
+const diagram: AgentTask = {
+  kind: 'diagram',
+  diagram: { drawn: [], relations: [] },
+};
+
 describe('agent model', () => {
-  it('reads what the page is about from its address', () => {
-    expect(designTaskOf({})).toBeUndefined();
-    expect(designTaskOf({ changeId: '2026-09-17-x' })).toEqual({
-      change: '2026-09-17-x',
-    } as never);
-    expect(
-      designTaskOf({ changeId: '2026-09-17-x', docId: '2026-11-05-y' }),
-    ).toEqual({ change: '2026-09-17-x', designDoc: '2026-11-05-y' } as never);
+  it('names what a task does', () => {
+    expect(taskVerb(design)).toBe('New design document');
+    expect(taskVerb(revision)).toBe('Revising the design document');
+    expect(taskVerb(diagram)).toBe('Composing the diagram');
   });
 
-  it('names what a task does', () => {
-    expect(taskVerb({ change: '2026-09-17-x' } as never)).toBe(
-      'New design document',
-    );
-    expect(
-      taskVerb({ change: '2026-09-17-x', designDoc: '2026-11-05-y' } as never),
-    ).toBe('Revising the design document');
+  it('asks for what the message will do', () => {
+    expect(taskPlaceholder(undefined)).toBe('Ask the agent…');
+    expect(taskPlaceholder(design)).toBe('What should the design cover?');
+    expect(taskPlaceholder(revision)).toBe('What should change in the design?');
+    expect(taskPlaceholder(diagram)).toBe('What should the diagram show?');
   });
 
   it('reads a file as text by its type, else by its name', () => {

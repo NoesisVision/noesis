@@ -7,6 +7,7 @@ import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import type { AgentEntry } from '#backend/app/agent/agent-session.ts';
 import { taskVerb, toolLabel } from '../agent.model.ts';
+import { AgentDiagramCard } from './agent-diagram-card.tsx';
 import { AgentPermissionCard } from './agent-permission-card.tsx';
 import { AgentQuestionCard } from './agent-question-card.tsx';
 import classes from './agent-entry.module.css';
@@ -60,6 +61,8 @@ export function AgentEntryView({ entry }: { entry: AgentEntry }) {
       return <AgentQuestionCard entry={entry} />;
     case 'permission':
       return <AgentPermissionCard entry={entry} />;
+    case 'diagram':
+      return <AgentDiagramCard entry={entry} />;
     case 'note':
       return (
         <Text

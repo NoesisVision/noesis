@@ -1,6 +1,7 @@
 import type { AgentHost } from '#backend/app/agent/agent-host';
+import { promptOf, startsTask } from '#backend/app/agent/agent-task';
 import type { AgentTranscript } from '#backend/app/agent/agent-transcript';
-import { promptOf, startsTask } from '#backend/app/agent/design-task';
+import { splitDiagramPlans } from '#backend/app/agent/diagram-plan-fence';
 import type { SendAgentMessage } from '#backend/app/agent/send-agent-message';
 import type { ChannelLink } from './channel-link';
 import { REPLY_TO_NOESIS_PAGE } from './tool-names';
@@ -44,9 +45,13 @@ export class AttachedAgentHost implements AgentHost {
     }
   }
 
-  /** What the session says back, through the reply tool. */
-  reply(text: string): void {
-    this.transcript.append({ kind: 'assistant', text, streaming: false });
+  /** What the session says back, through the reply tool; a diagram plan in it is an entry of its own. */
+  reply(whole: string): void {
+    const { text, plans, problems } = splitDiagramPlans(whole);
+    if (text !== '')
+      this.transcript.append({ kind: 'assistant', text, streaming: false });
+    for (const plan of plans) this.transcript.append({ kind: 'diagram', plan });
+    for (const problem of problems) this.transcript.note(problem, 'error');
   }
 
   answer(): Promise<void> {

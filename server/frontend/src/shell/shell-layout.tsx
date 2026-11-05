@@ -1,10 +1,12 @@
-import { Outlet, useParams } from '@tanstack/react-router';
+import { Outlet } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import {
   AgentPanelProvider,
   useAgentPanel,
 } from '#/features/agent/agent-panel-context.tsx';
+import { useAgentPlace } from '#/features/agent/agent-place.ts';
 import { AgentSurface } from '#/features/agent/ui/agent-surface.tsx';
+import { DiagramApplierProvider } from '#/features/system-model/diagram-applier.tsx';
 import { AppShell } from '#/shared/design-system/app-shell';
 import {
   useDisclosure,
@@ -23,7 +25,9 @@ import classes from './shell-layout.module.css';
 export function ShellLayout() {
   return (
     <AgentPanelProvider>
-      <ShellFrame />
+      <DiagramApplierProvider>
+        <ShellFrame />
+      </DiagramApplierProvider>
     </AgentPanelProvider>
   );
 }
@@ -32,10 +36,9 @@ export function ShellLayout() {
 function ShellFrame() {
   const [navbarOpened, navbar] = useDisclosure(false);
   const { placement } = useAgentPanel();
-  // The agent designs into the change the page is on: off a change, it has
-  // nothing to do and is not drawn, wherever the reader put it.
-  const { changeId } = useParams({ strict: false });
-  const agentShown = changeId !== undefined;
+  // The agent works on what the page is on, a change or the diagram: off
+  // both, it has nothing to do and is not drawn, wherever the reader put it.
+  const { shown: agentShown } = useAgentPlace();
   // Folded to icons, as the reader last left it.
   const [railCollapsed, setRailCollapsed] = useLocalStorage<boolean>({
     key: 'noesis.rail-collapsed',
