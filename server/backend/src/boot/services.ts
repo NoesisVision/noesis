@@ -35,6 +35,7 @@ import { scanSystemModelHandler } from '#backend/app/scanners/scan-system-model'
 import { ScannerFactory } from '#backend/app/scanners/scanner-factory';
 import { searchHandler } from '#backend/app/search/search';
 import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
+import { findSystemModelGraphHandler } from '#backend/app/system-model/find-system-model-graph';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { codeParserFor } from './code-parsers';
 
@@ -108,6 +109,7 @@ export function createServices(
       systemModels,
     ),
     findNewestSystemModel: findNewestSystemModelHandler(systemModels),
+    findSystemModelGraph: findSystemModelGraphHandler(systemModels),
     findAgentSession: findAgentSessionHandler(agent.host),
     followAgentSession: (listener: AgentSessionListener) =>
       agent.host.transcript.subscribe(listener),

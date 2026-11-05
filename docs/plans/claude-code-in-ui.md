@@ -121,6 +121,28 @@ the request can be read two ways — which `Order`, how far to follow, keep
 or start over — the skill asks with `AskUserQuestion` first, which the page
 answers in its question card.
 
+## What the session may do
+
+The agent reaches the knowledge graph through Noesis's tools and nothing
+else. That is a rule the host enforces, not a request in a prompt:
+`adapters/out/agent/tool-policy.ts` judges every tool call in a
+`PreToolUse` hook of the SDK session, by the task the last message was
+about, before any permission is asked — so neither an allow rule nor the
+person's own auto mode can wave a call through. On a diagram the agent may
+call Noesis's tools, ask a question and search for a tool, and nothing else.
+On a design it may also read the plugin's own files, read and write the
+working files under `.noesis/sessions/`, run the plugin's scripts and read
+the repository's history (`git log`, `git status`, `git diff`), as the
+skills ask; other skills, other commands, the repository's sources and the
+web are refused with the reason, which the transcript shows as a failed
+tool line.
+
+The whole system model is too large for a session to read inline (Claude
+Code spills a tool answer over its limit to a file and tells the agent to
+read it, which the policy refuses), so the diagram skill works from
+`get_system_model_graph`: the model as elements, containment, uses and
+calls, a fraction of the size.
+
 ## Left out of the proof of concept
 
 - Resuming a session across restarts, several sessions, a session per change.

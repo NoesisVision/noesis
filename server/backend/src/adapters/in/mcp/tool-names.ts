@@ -13,4 +13,5 @@ export const LIST_DESIGN_DOCS_IN_CHANGE = 'list_design_docs_in_change';
 export const GET_DESIGN_DOC_IN_CHANGE = 'get_design_doc_in_change';
 export const SCAN_SYSTEM_MODEL = 'scan_system_model';
 export const GET_NEWEST_SYSTEM_MODEL = 'get_newest_system_model';
+export const GET_SYSTEM_MODEL_GRAPH = 'get_system_model_graph';
 export const REPLY_TO_NOESIS_PAGE = 'reply_to_noesis_page';

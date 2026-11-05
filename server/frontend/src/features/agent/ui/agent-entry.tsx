@@ -39,9 +39,11 @@ export function AgentEntryView({ entry }: { entry: AgentEntry }) {
         </Box>
       );
     case 'assistant':
+      // A plan still arriving is not for reading as text: it shows as its
+      // card once whole.
       return entry.streaming ? (
         <Text className={`${classes.assistant} ${classes.streaming}`}>
-          {entry.text}
+          {entry.text.split('```noesis-diagram')[0]}
         </Text>
       ) : (
         <Box className={classes.assistant}>

@@ -98,6 +98,7 @@ describe('the MCP surface', () => {
           'get_design_doc_in_change',
           'scan_system_model',
           'get_newest_system_model',
+          'get_system_model_graph',
         ].includes(tool.name),
     );
     expect(writers).toHaveLength(6);
@@ -135,6 +136,7 @@ describe('the MCP surface', () => {
       'get_design_doc_in_change',
       'get_document_in_change',
       'get_newest_system_model',
+      'get_system_model_graph',
       'list_changes',
       'list_design_docs_in_change',
       'list_documents_in_change',

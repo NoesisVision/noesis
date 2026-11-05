@@ -5,6 +5,7 @@ import {
   GET_DESIGN_DOC_IN_CHANGE,
   GET_DOCUMENT_IN_CHANGE,
   GET_NEWEST_SYSTEM_MODEL,
+  GET_SYSTEM_MODEL_GRAPH,
   LIST_CHANGES,
   LIST_DESIGN_DOCS_IN_CHANGE,
   LIST_DOCUMENTS_IN_CHANGE,
@@ -12,6 +13,7 @@ import {
 import type { PageReplies } from '#backend/adapters/in/mcp/tools/reply-to-noesis-page.tool';
 import { ClaudeCodeAgentHost } from '#backend/adapters/out/agent/claude-code-agent-host';
 import { SessionAgentFiles } from '#backend/adapters/out/agent/session-agent-files';
+import { NOESIS_TOOL_PREFIX } from '#backend/adapters/out/agent/tool-policy';
 import type { AgentFiles } from '#backend/app/agent/agent-files';
 import type { AgentHost } from '#backend/app/agent/agent-host';
 import { AgentTranscript } from '#backend/app/agent/agent-transcript';
@@ -21,9 +23,6 @@ import { serverLogger } from '#backend/platform/logging/logging';
 import { production } from './process';
 
 const log = serverLogger('agent');
-
-/** How the session names a tool of the plugin's `noesis` server. */
-const NOESIS_TOOL_PREFIX = 'mcp__plugin_noesis_noesis__';
 
 /**
  * What the session may do without asking: read the repository and the
@@ -47,6 +46,7 @@ function allowedTools(pluginRoot: string): string[] {
       LIST_DESIGN_DOCS_IN_CHANGE,
       GET_DESIGN_DOC_IN_CHANGE,
       GET_NEWEST_SYSTEM_MODEL,
+      GET_SYSTEM_MODEL_GRAPH,
     ].map((tool) => `${NOESIS_TOOL_PREFIX}${tool}`),
   ];
 }

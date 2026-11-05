@@ -1,5 +1,6 @@
 import {
   type CanUseTool,
+  type HookCallback,
   type PermissionResult,
   type PermissionUpdate,
   type Query,
@@ -21,6 +22,7 @@ import { splitDiagramPlans } from '#backend/app/agent/diagram-plan-fence';
 import type { SendAgentMessage } from '#backend/app/agent/send-agent-message';
 import { serverLogger } from '#backend/platform/logging/logging';
 import { AsyncQueue } from './async-queue';
+import { judgeToolUse } from './tool-policy';
 import { describeToolInput, summarizeToolInput } from './tool-summary';
 
 const log = serverLogger('agent');
@@ -161,6 +163,10 @@ export class ClaudeCodeAgentHost implements AgentHost {
         env: { ...process.env, ...env },
         permissionMode: 'default',
         allowedTools,
+        // The policy runs before any permission does, so an allow rule or
+        // the person's own auto mode cannot wave through what the page's
+        // task does not call for.
+        hooks: { PreToolUse: [{ hooks: [this.judge] }] },
         includePartialMessages: true,
         abortController: this.abort,
         canUseTool: this.canUseTool,
@@ -311,6 +317,37 @@ export class ClaudeCodeAgentHost implements AgentHost {
       this.transcript.update(tool.id, (entry) => ({ ...entry, state }));
     }
   }
+
+  /** Every tool call, judged by what the page is about before Claude Code asks anyone. */
+  private readonly judge: HookCallback = (input) => {
+    if (input.hook_event_name !== 'PreToolUse') return Promise.resolve({});
+    const verdict = judgeToolUse(
+      this.transcript.lastTask(),
+      {
+        tool: input.tool_name,
+        input: (input.tool_input ?? {}) as Record<string, unknown>,
+      },
+      {
+        pluginRoot: this.options.pluginRoot,
+        repositoryRoot: this.options.cwd,
+      },
+    );
+    if (verdict.allowed) return Promise.resolve({});
+    this.transcript.append({
+      kind: 'tool',
+      toolUseId: input.tool_use_id,
+      tool: input.tool_name,
+      summary: `refused: ${verdict.reason}`,
+      state: 'failed',
+    });
+    return Promise.resolve({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: verdict.reason,
+      },
+    });
+  };
 
   private readonly canUseTool: CanUseTool = (toolName, input, options) => {
     const { toolUseID, signal, suggestions = [] } = options;
