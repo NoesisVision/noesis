@@ -4,6 +4,7 @@ import type {
   MethodNode,
   NodeId,
   ParseManifest,
+  SourceSpan,
   StubNode,
   TypeNode,
   TypeRef,
@@ -30,6 +31,12 @@ export function globalId(artifact: IndexedArtifact, nodeId: NodeId): GlobalId {
   return `${artifact.id}\u0000${nodeId}` as GlobalId;
 }
 
+/** One `INVOKES` edge as a caller sees it: what it calls and where in the source. */
+export interface Invocation {
+  readonly to: NodeId;
+  readonly site: SourceSpan;
+}
+
 export class IndexedArtifact {
   readonly id: NodeId;
   readonly file: CodeModelFile;
@@ -43,8 +50,8 @@ export class IndexedArtifact {
   readonly supertypesOf = new Map<NodeId, TypeRef[]>();
   /** `OVERRIDES` and `IMPLEMENTS_MEMBER`: the members each member stands in for. */
   readonly overriddenBy = new Map<NodeId, NodeId[]>();
-  /** `INVOKES`: the methods each node calls, in edge order, repeats kept. */
-  readonly invokedBy = new Map<NodeId, NodeId[]>();
+  /** `INVOKES`: the calls each node makes, in edge order, repeats kept. */
+  readonly invokedBy = new Map<NodeId, Invocation[]>();
   /** The ids of the `source` artifacts this one depends on, in declaration order. */
   readonly sourceDependencies: readonly NodeId[];
 
@@ -68,7 +75,10 @@ export class IndexedArtifact {
           push(this.overriddenBy, edge.from, edge.to);
           break;
         case 'INVOKES':
-          push(this.invokedBy, edge.from, edge.to);
+          push(this.invokedBy, edge.from, {
+            to: edge.to,
+            site: edge.site.location,
+          });
           break;
         default:
           break;

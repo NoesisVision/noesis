@@ -1,6 +1,7 @@
 import type {
   BehaviorType,
   BuildingBlockType,
+  PrimitiveName,
 } from '#backend/app/system-model/system-model';
 import type { Language, NodeId } from '../code-parsers/code-model';
 
@@ -11,17 +12,6 @@ import type { Language, NodeId } from '../code-parsers/code-model';
  * a role, so a second language is a second table, not a second builder.
  * See docs/plans/code-model-to-system-model.md, section 2.
  */
-
-/** The model's built-in types, the part after `primitive|`. */
-export type PrimitiveName =
-  | 'string'
-  | 'integer'
-  | 'decimal'
-  | 'boolean'
-  | 'date'
-  | 'datetime'
-  | 'duration'
-  | 'uuid';
 
 export type AnnotationRole =
   /** The type is a building block of `type`; the `name` argument overrides its name. */

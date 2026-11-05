@@ -44,9 +44,8 @@ const removing = contentOf({
   },
 });
 
-/** The root module and the refunds module under it, as the green field adds them. */
-const [salesRoot, refunds] = greenFieldDesignDocFixture.modules!.added! as [
-  DesignedDomainModuleInput,
+/** The root module, as the green field adds it. */
+const [salesRoot] = greenFieldDesignDocFixture.modules!.added! as [
   DesignedDomainModuleInput,
 ];
 
@@ -259,7 +258,6 @@ describe('Creating a design document', () => {
             id: 'module|sales.refunds',
             name: { value: 'refunds' },
             definition: { value: 'Money back.', author: 'human' },
-            relations: refunds.relations!,
           },
         ],
       },
@@ -287,7 +285,6 @@ describe('Creating a design document', () => {
           {
             id: 'module|sales.refunds',
             name: { value: 'refunds' },
-            relations: refunds.relations!,
           },
         ],
       },

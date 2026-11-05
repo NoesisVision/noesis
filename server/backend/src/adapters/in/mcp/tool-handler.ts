@@ -88,7 +88,11 @@ const FIXES: Record<DesignDocViolation['reason'], string> = {
   businessRuleOnModule:
     'a module holds only quality and constraint rules; move the business rule to the building block or behavior it governs',
   uncontained:
-    'the element its id places this one under does not add a relation to it; add { "kind": "module_contains_module" | "module_contains_building_block" | "building_block_exposes_behavior", "from": <that element\'s id>, "to": <this id> } to that element\'s "relations" (as "modified" when the scanned model has it)',
+    'the element its id places this one under has no relation to it; add { "kind": "module_contains_module" | "module_contains_block" | "exposes", "from": <that element\'s id>, "to": <this id> } to the design\'s "relations.added"',
+  unknownRelationEnd:
+    'this end of the relation is no element of the design or the scanned model; add the element, or point the relation at one that exists',
+  containmentOutsideIdPath:
+    'what a module contains is in the ids too: "to" must be "from"\'s path and its own name; point the relation at the module its id names',
 };
 
 function message(error: unknown): string {

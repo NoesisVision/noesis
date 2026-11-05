@@ -23,6 +23,7 @@ import {
   MODULES,
   UNREACHED,
 } from '../support/csharp-fixture-expectations';
+import { extendsOf, invokedTargetsOf } from '../support/relations';
 import { scannerOver } from '../support/test-scanner';
 
 const REPOSITORY = resolve(import.meta.dir, '../../../..');
@@ -163,6 +164,7 @@ describe('the fixture solution through the C# parser (e2e)', () => {
       expect<unknown>(firstStage).toBeLessThan(FIRST_STAGE_BUDGET_MS);
       expect<unknown>(building).toBeLessThan(BUILD_BUDGET_MS);
       expect<unknown>(built.buildingBlocks).toEqual(model.buildingBlocks);
+      expect<unknown>(built.relations).toEqual(model.relations);
 
       // What the real scan gives the builder, by the rules; the unit test
       // over the golden model checks the same expectations in full.
@@ -183,11 +185,10 @@ describe('the fixture solution through the C# parser (e2e)', () => {
         source: { path: 'CSharpSyntax/Projection/Blocks/BlockKinds.cs' },
       });
       expect<unknown>(
-        block('building_block|Projection.Invocations.ImplementsTwoContracts')
-          ?.relations.filter(
-            ({ kind }) => kind === 'building_block_extends_building_block',
-          )
-          .map(({ to }) => to),
+        extendsOf(
+          model,
+          'building_block|Projection.Invocations.ImplementsTwoContracts',
+        ),
       ).toEqual([
         'building_block|Projection.Invocations.FirstContract',
         'building_block|Projection.Invocations.SecondContract',
@@ -200,11 +201,13 @@ describe('the fixture solution through the C# parser (e2e)', () => {
       );
       expect<unknown>(
         Object.fromEntries(
-          invocations.map((b) => [b.id, b.relations.map(({ to }) => to)]),
+          invocations.map((b) => [b.id, invokedTargetsOf(model, b.id)]),
         ),
       ).toEqual(INVOKES);
       const reachedByAnyone = new Set<string>(
-        model.behaviors.flatMap((b) => b.relations.map(({ to }) => to)),
+        model.relations
+          .filter(({ kind }) => kind === 'behavior_invokes_behavior')
+          .map(({ to }) => to),
       );
       for (const leaf of UNREACHED)
         expect<unknown>(reachedByAnyone.has(leaf)).toBe(false);

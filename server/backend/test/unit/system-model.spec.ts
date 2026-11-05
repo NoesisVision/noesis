@@ -1,25 +1,31 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import {
-  BuildingBlockRef,
+  Cardinality,
   PrimitiveId,
+  PrimitiveName,
   RULE_TYPES_OF,
+  Relation,
   ScannedScenario,
+  SourceLocation,
   SystemModel,
+  TypeId,
 } from '#backend/app/system-model/system-model';
 
 /*
  * The system model is what a scanner found in the code of one unit: its
- * modules, building blocks and behaviors. A design document is a diff
+ * modules, building blocks and behaviors, each flat, and the relations
+ * between them in one list beside them. A design document is a diff
  * against it.
  */
 
+const MODULE = 'module|sales.orders';
 const ORDER = 'building_block|sales.orders.Order';
 const PLACE = 'behavior|sales.orders.Order.place';
 const CANCEL = 'behavior|sales.orders.Order.cancel';
 
 const module = {
-  id: 'module|sales.orders',
+  id: MODULE,
   name: 'orders',
   source: { path: 'src/sales/orders' },
 };
@@ -27,14 +33,14 @@ const block = {
   id: ORDER,
   name: 'Order',
   type: 'aggregate',
-  source: { path: 'src/sales/orders/order.ts', line: 12 },
+  source: { path: 'src/sales/orders/order.ts', startLine: 12, endLine: 40 },
 };
 const behavior = {
   id: PLACE,
   name: 'place',
   type: 'Command',
   visibility: { kind: 'public', actors: ['Customer'] },
-  source: { path: 'src/sales/orders/order.ts', line: 30 },
+  source: { path: 'src/sales/orders/order.ts', startLine: 30 },
 };
 
 const model = (patch: Record<string, unknown> = {}) => ({
@@ -53,8 +59,11 @@ const withBlock = (patch: Record<string, unknown>) =>
   model({ buildingBlocks: [{ ...block, ...patch }] });
 const withBehavior = (patch: Record<string, unknown>) =>
   model({ behaviors: [{ ...behavior, ...patch }] });
+const withRelation = (relation: Record<string, unknown>) =>
+  model({ relations: [relation] });
 
 const isValid = (value: unknown) => SystemModel.safeParse(value).success;
+const isRelation = (value: unknown) => Relation.safeParse(value).success;
 
 describe('A system model', () => {
   it('records which unit was scanned and when', () => {
@@ -65,7 +74,7 @@ describe('A system model', () => {
     expect(isValid(model({ scanned_at: undefined }))).toBe(false);
   });
 
-  it('holds no element when the scanner found none', () => {
+  it('holds no element and no relation when the scanner found none', () => {
     const parsed = SystemModel.parse(
       model({
         modules: undefined,
@@ -77,27 +86,31 @@ describe('A system model', () => {
     expect(parsed.modules).toEqual([]);
     expect(parsed.buildingBlocks).toEqual([]);
     expect(parsed.behaviors).toEqual([]);
+    expect(parsed.relations).toEqual([]);
   });
 
   it('refuses a key it does not know, so nothing a scanner wrote is lost', () => {
     expect(isValid(model({ scanner: 'ts' }))).toBe(false);
-    expect(isValid(model({ modules: [{ ...module, parent: null }] }))).toBe(
-      false,
-    );
+    expect(isValid(withModule({ parent: null }))).toBe(false);
     expect(isValid(withBlock({ invariants: [] }))).toBe(false);
     expect(
       isValid(withBlock({ source: { path: 'order.ts', column: 4 } })),
     ).toBe(false);
+    expect(isValid(withBehavior({ usedBuildingBlocks: [] }))).toBe(false);
+  });
+
+  it('keeps what an element has in relations, never in the element', () => {
+    expect(isValid(withModule({ relations: [] }))).toBe(false);
     expect(
       isValid(
         withBlock({
-          properties: [
-            { name: 'total', type: 'primitive|decimal', nullable: true },
-          ],
+          properties: [{ name: 'total', type: 'primitive|decimal' }],
         }),
       ),
     ).toBe(false);
-    expect(isValid(withBehavior({ usedBuildingBlocks: [] }))).toBe(false);
+    expect(isValid(withBehavior({ input: [] }))).toBe(false);
+    expect(isValid(withBehavior({ output: [] }))).toBe(false);
+    expect(isValid(withBehavior({ relations: [] }))).toBe(false);
   });
 
   it('reads back exactly as the scanner wrote it, with every default spelled out', () => {
@@ -108,30 +121,19 @@ describe('A system model', () => {
     expect(written.modules?.[0]).toEqual({
       ...module,
       description: null,
-      relations: [],
       rules: [],
-      source: { path: 'src/sales/orders', line: null },
+      source: { path: 'src/sales/orders', startLine: null, endLine: null },
     });
+    expect(written.relations).toEqual([]);
+    expect(written.commit).toBe(null);
   });
 });
 
 describe('A scanned element', () => {
   it('always says where in the code it was found', () => {
-    expect(
-      isValid(model({ modules: [{ ...module, source: undefined }] })),
-    ).toBe(false);
+    expect(isValid(withModule({ source: undefined }))).toBe(false);
     expect(isValid(withBlock({ source: undefined }))).toBe(false);
     expect(isValid(withBehavior({ source: undefined }))).toBe(false);
-  });
-
-  it('names the line it starts on, counting from 1, when the scanner knows it', () => {
-    expect(isValid(withBlock({ source: { path: 'order.ts' } }))).toBe(true);
-    expect(isValid(withBlock({ source: { path: 'order.ts', line: 1 } }))).toBe(
-      true,
-    );
-    expect(isValid(withBlock({ source: { path: 'order.ts', line: 0 } }))).toBe(
-      false,
-    );
   });
 
   it('has a description only when the code gives one', () => {
@@ -143,48 +145,25 @@ describe('A scanned element', () => {
   });
 
   it('is named by an id of its own kind', () => {
-    expect(isValid(model({ modules: [{ ...module, id: ORDER }] }))).toBe(false);
-    expect(isValid(withBlock({ id: 'module|sales.orders' }))).toBe(false);
+    expect(isValid(withModule({ id: ORDER }))).toBe(false);
+    expect(isValid(withBlock({ id: MODULE }))).toBe(false);
     expect(isValid(withBehavior({ id: ORDER }))).toBe(false);
   });
 });
 
-describe('A scanned module', () => {
-  it('contains modules and building blocks, and relates to nothing else', () => {
-    const contains = (kind: string, to: string) => ({
-      kind,
-      from: module.id,
-      to,
+describe('Where an element was found', () => {
+  const isSource = (value: unknown) => SourceLocation.safeParse(value).success;
+
+  it('names the lines it spans, counting from 1, each when the scanner knows it', () => {
+    expect(SourceLocation.parse({ path: 'order.ts' })).toEqual({
+      path: 'order.ts',
+      startLine: null,
+      endLine: null,
     });
-    expect(
-      isValid(
-        withModule({
-          relations: [
-            contains('module_contains_module', 'module|sales.orders.returns'),
-            contains('module_contains_building_block', ORDER),
-          ],
-        }),
-      ),
-    ).toBe(true);
-    expect(
-      isValid(
-        withModule({ relations: [contains('module_contains_module', ORDER)] }),
-      ),
-    ).toBe(false);
-    expect(
-      isValid(
-        withModule({
-          relations: [contains('module_contains_building_block', PLACE)],
-        }),
-      ),
-    ).toBe(false);
-    expect(
-      isValid(
-        withModule({
-          relations: [contains('building_block_extends_building_block', ORDER)],
-        }),
-      ),
-    ).toBe(false);
+    expect(isSource({ path: 'order.ts', startLine: 1, endLine: 9 })).toBe(true);
+    expect(isSource({ path: 'order.ts', startLine: 0 })).toBe(false);
+    expect(isSource({ path: 'order.ts', endLine: 0 })).toBe(false);
+    expect(isSource({ path: 'order.ts', line: 3 })).toBe(false);
   });
 });
 
@@ -193,98 +172,9 @@ describe('A scanned building block', () => {
     expect(isValid(withBlock({ type: undefined }))).toBe(false);
     expect(isValid(withBlock({ type: 'controller' }))).toBe(false);
   });
-
-  it('lists the building blocks it extends and its properties', () => {
-    const extended = {
-      kind: 'building_block_extends_building_block',
-      from: ORDER,
-      to: 'building_block|sales.shared.Auditable',
-    };
-    const parsed = SystemModel.parse(
-      withBlock({
-        relations: [extended],
-        properties: [{ name: 'total', type: 'primitive|decimal' }],
-      }),
-    );
-    const scanned = parsed.buildingBlocks[0]!;
-
-    expect<unknown>(scanned.relations).toEqual([extended]);
-    expect(scanned.properties.map((p) => p.name)).toEqual(['total']);
-    expect(SystemModel.parse(model()).buildingBlocks[0]?.relations).toEqual([]);
-  });
-
-  it('exposes behaviors and extends building blocks, nothing else', () => {
-    expect(
-      isValid(
-        withBlock({
-          relations: [
-            { kind: 'building_block_exposes_behavior', from: ORDER, to: PLACE },
-          ],
-        }),
-      ),
-    ).toBe(true);
-    expect(
-      isValid(
-        withBlock({
-          relations: [
-            {
-              kind: 'building_block_extends_building_block',
-              from: ORDER,
-              to: PLACE,
-            },
-          ],
-        }),
-      ),
-    ).toBe(false);
-    expect(
-      isValid(
-        withBlock({
-          relations: [
-            { kind: 'behavior_invokes_behavior', from: PLACE, to: PLACE },
-          ],
-        }),
-      ),
-    ).toBe(false);
-  });
-});
-
-describe('A scanned property', () => {
-  const withProperty = (property: Record<string, unknown>) =>
-    withBlock({ properties: [{ name: 'total', ...property }] });
-
-  it('always has a type', () => {
-    expect(isValid(withProperty({ type: 'primitive|decimal' }))).toBe(true);
-    expect(isValid(withProperty({}))).toBe(false);
-  });
-
-  it('is required unless the code marks it optional', () => {
-    const parsed = SystemModel.parse(
-      withProperty({ type: 'primitive|decimal' }),
-    );
-
-    expect(parsed.buildingBlocks[0]?.properties[0]?.optional).toBe(false);
-  });
 });
 
 describe('A scanned behavior', () => {
-  it('relates to behaviors only: those it invokes', () => {
-    const invokes = {
-      kind: 'behavior_invokes_behavior',
-      from: PLACE,
-      to: CANCEL,
-    };
-    expect(isValid(withBehavior({ relations: [invokes] }))).toBe(true);
-    expect(
-      isValid(
-        withBehavior({
-          relations: [
-            { kind: 'building_block_exposes_behavior', from: ORDER, to: PLACE },
-          ],
-        }),
-      ),
-    ).toBe(false);
-  });
-
   it('is always classified as a command, an event or a query', () => {
     expect(isValid(withBehavior({ type: 'Query' }))).toBe(true);
     expect(isValid(withBehavior({ type: undefined }))).toBe(false);
@@ -312,76 +202,137 @@ describe('A scanned behavior', () => {
       ),
     ).toBe(false);
   });
+});
 
-  it('takes and returns building blocks, primitives or collections of them', () => {
-    const parsed = SystemModel.parse(
-      withBehavior({
-        input: [
-          { name: 'order', type: ORDER },
-          { name: 'ids', type: { collectionOf: 'primitive|uuid' } },
-        ],
-        output: [{ type: 'primitive|boolean' }],
-      }),
-    );
+describe('A relation', () => {
+  const slot = { name: 'total', to: 'primitive|decimal', cardinality: '1' };
 
-    expect(parsed.behaviors[0]?.input).toHaveLength(2);
-    expect(parsed.behaviors[0]?.output).toHaveLength(1);
+  it.each([
+    { kind: 'module_contains_module', from: MODULE, to: `${MODULE}.returns` },
+    { kind: 'module_contains_block', from: MODULE, to: ORDER },
+    {
+      kind: 'extends',
+      from: ORDER,
+      to: 'building_block|sales.shared.Auditable',
+    },
+    { kind: 'has_state', from: ORDER, ...slot },
+    { kind: 'exposes', from: ORDER, to: PLACE },
+    { kind: 'has_input', from: PLACE, ...slot, position: 1 },
+    { kind: 'has_output', from: PLACE, ...slot, name: 'result' },
+    { kind: 'behavior_invokes_behavior', from: PLACE, to: CANCEL, order: 1 },
+  ])('$kind is one the model knows', (relation) => {
+    expect(isRelation(relation)).toBe(true);
+    expect(isValid(withRelation(relation))).toBe(true);
+  });
+
+  it('has ends of the kinds its kind allows', () => {
     expect(
-      isValid(
-        withBehavior({ input: [{ name: 'total', type: 'primitive|money' }] }),
-      ),
+      isRelation({ kind: 'module_contains_module', from: MODULE, to: ORDER }),
+    ).toBe(false);
+    expect(
+      isRelation({ kind: 'module_contains_block', from: MODULE, to: PLACE }),
+    ).toBe(false);
+    expect(isRelation({ kind: 'extends', from: ORDER, to: PLACE })).toBe(false);
+    expect(isRelation({ kind: 'exposes', from: PLACE, to: PLACE })).toBe(false);
+    expect(isRelation({ kind: 'has_state', from: PLACE, ...slot })).toBe(false);
+    expect(
+      isRelation({
+        kind: 'behavior_invokes_behavior',
+        from: PLACE,
+        to: ORDER,
+        order: 1,
+      }),
     ).toBe(false);
   });
 
-  it('names what it takes, never what it returns', () => {
-    expect(isValid(withBehavior({ input: [{ type: ORDER }] }))).toBe(false);
+  it('carries the data its edge shows, and nothing more', () => {
     expect(
-      isValid(withBehavior({ output: [{ name: 'order', type: ORDER }] })),
+      isRelation({
+        kind: 'behavior_invokes_behavior',
+        from: PLACE,
+        to: CANCEL,
+      }),
     ).toBe(false);
+    expect(isRelation({ kind: 'has_input', from: PLACE, ...slot })).toBe(false);
+    expect(
+      isRelation({ kind: 'has_input', from: PLACE, ...slot, position: 0 }),
+    ).toBe(false);
+    expect(
+      isRelation({ kind: 'has_state', from: ORDER, ...slot, description: 'x' }),
+    ).toBe(false);
+    expect(
+      isRelation({ kind: 'exposes', from: ORDER, to: PLACE, order: 1 }),
+    ).toBe(false);
+    expect(isRelation({ kind: 'implements', from: ORDER, to: ORDER })).toBe(
+      false,
+    );
   });
 });
 
-describe('A reference to the type of a value', () => {
-  const isRef = (value: unknown) => BuildingBlockRef.safeParse(value).success;
-
-  it('names a building block of the model', () => {
-    expect(isRef(ORDER)).toBe(true);
+describe('A named slot', () => {
+  const state = (patch: Record<string, unknown>) => ({
+    kind: 'has_state',
+    from: ORDER,
+    name: 'total',
+    to: 'primitive|decimal',
+    cardinality: '1',
+    ...patch,
   });
 
-  it('names a primitive', () => {
-    expect(isRef('primitive|string')).toBe(true);
+  it('always has a name, a type and a cardinality', () => {
+    expect(isRelation(state({}))).toBe(true);
+    expect(isRelation(state({ name: undefined }))).toBe(false);
+    expect(isRelation(state({ to: undefined }))).toBe(false);
+    expect(isRelation(state({ cardinality: undefined }))).toBe(false);
   });
 
-  it('describes a collection of any value, collections included', () => {
-    expect(isRef({ collectionOf: ORDER })).toBe(true);
-    expect(isRef({ collectionOf: { collectionOf: 'primitive|string' } })).toBe(
-      true,
-    );
-    expect(isRef({ collectionOf: 'primitive|money' })).toBe(false);
-    expect(isRef({})).toBe(false);
+  it('says a collection by its cardinality, never by its type', () => {
+    expect(isRelation(state({ cardinality: '*' }))).toBe(true);
+    expect(
+      isRelation(state({ to: { collectionOf: 'primitive|decimal' } })),
+    ).toBe(false);
   });
 
-  it('describes a collection only by what it is a collection of', () => {
-    expect(isRef({ collectionOf: ORDER, ordered: true })).toBe(false);
+  it("is named 'result' when it is what a behavior gives back", () => {
+    const output = {
+      kind: 'has_output',
+      from: PLACE,
+      to: ORDER,
+      cardinality: '0..1',
+    };
+    expect(isRelation({ ...output, name: 'result' })).toBe(true);
+    expect(isRelation({ ...output, name: 'order' })).toBe(false);
+    expect(isRelation(output)).toBe(false);
+  });
+});
+
+describe('A cardinality', () => {
+  it.each(Cardinality.options)('includes %p', (value) => {
+    expect(Cardinality.safeParse(value).success).toBe(true);
   });
 
-  it('never names a module or a behavior', () => {
-    expect(isRef('module|sales.orders')).toBe(false);
-    expect(isRef(PLACE)).toBe(false);
+  it.each(['0..*', '1..*', 'many', 2])('excludes %p', (value) => {
+    expect(Cardinality.safeParse(value).success).toBe(false);
+  });
+});
+
+describe('The type of a slot', () => {
+  const isType = (value: unknown) => TypeId.safeParse(value).success;
+
+  it('names a building block of the model or a primitive', () => {
+    expect(isType(ORDER)).toBe(true);
+    expect(isType('primitive|string')).toBe(true);
+  });
+
+  it('never names a module, a behavior or a wrapper', () => {
+    expect(isType(MODULE)).toBe(false);
+    expect(isType(PLACE)).toBe(false);
+    expect(isType({ collectionOf: ORDER })).toBe(false);
   });
 });
 
 describe('A primitive', () => {
-  it.each([
-    'string',
-    'integer',
-    'decimal',
-    'boolean',
-    'date',
-    'datetime',
-    'duration',
-    'uuid',
-  ])('includes %s', (name) => {
+  it.each(PrimitiveName.options)('includes %s', (name) => {
     expect(PrimitiveId.safeParse(`primitive|${name}`).success).toBe(true);
   });
 
@@ -518,35 +469,5 @@ describe('A scanned scenario', () => {
       description: null,
       steps: [],
     });
-  });
-});
-
-describe('A scanned behavior', () => {
-  it('names the behaviors it invokes, none unless the scan found calls', () => {
-    const parsed = SystemModel.parse(
-      model({
-        behaviors: [
-          behavior,
-          {
-            ...behavior,
-            id: CANCEL,
-            name: 'cancel',
-            relations: [
-              { kind: 'behavior_invokes_behavior', from: CANCEL, to: PLACE },
-            ],
-          },
-        ],
-      }),
-    );
-
-    expect(parsed.behaviors[0]?.relations).toEqual([]);
-    expect<unknown>(parsed.behaviors[1]?.relations).toEqual([
-      { kind: 'behavior_invokes_behavior', from: CANCEL, to: PLACE },
-    ]);
-    const invokes = (from: string, to: string) =>
-      withBehavior({
-        relations: [{ kind: 'behavior_invokes_behavior', from, to }],
-      });
-    expect(isValid(invokes(PLACE, ORDER))).toBe(false);
   });
 });
