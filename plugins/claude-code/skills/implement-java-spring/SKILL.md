@@ -8,7 +8,8 @@ argument-hint: [change-id] [design-doc-id] [instructions]
 
 A design document says what a change does to the domain model: the modules,
 building blocks and behaviors it adds, modifies or removes, with their
-properties, rules and scenarios. You turn it into Java domain code that the
+rules and scenarios, and the relations between them. You turn it into Java
+domain code that the
 Noesis Java parser reads back as the same model, and into tests that prove
 every scenario. Each module becomes a package, each building block a type
 carrying its `vision.noesis.annotations` stereotype, each behavior a public
@@ -61,7 +62,11 @@ Read all three at step 5, before planning:
    `.design-doc.json`). When the chosen one has `implemented: true`, ask
    whether to implement it anyway. Read both contracts now: every field of
    the document is `{ "changed": true, "value": … }` or
-   `{ "changed": false }`, and only a changed field has a value.
+   `{ "changed": false }`, and only a changed field has a value. The
+   elements carry only what is their own; what a block holds and exposes,
+   and what a behavior takes, gives back and calls, are in `relations`,
+   one list beside them, each read by its `from`
+   ([mapping](references/mapping.md#state)).
 3. **Load the baseline.** Call `get_newest_system_model`. Every `modified`
    and `removed` id names an element in it, and its `source.path` says
    where its code lives. Scan first with `scan_system_model`, then call
@@ -94,9 +99,9 @@ Read all three at step 5, before planning:
 
    Then look for what the design document leaves open or what Java cannot
    express as written: a signature that cannot compile as given (a static
-   creation behavior whose output is not the block it creates), several
-   outputs with no base building block, a collaborator a behavior's
-   diagram calls that the design does not name, a property typed with
+   creation behavior whose output is not the block it creates, two inputs
+   at one `position`), a collaborator a behavior's
+   diagram calls that the design does not name, a piece of state typed by
    another aggregate, a scenario on an interface that has no implementation
    in scope, a rule with no scenario. Resolve one yourself only when the
    design document or the references say how. Ask the user about every
@@ -122,8 +127,10 @@ Read all three at step 5, before planning:
    6. application services.
 
    For a `modified` element, edit its code where `source.path` points and
-   change only what the design document changes. For a `removed` one,
-   delete its type or method, every use of it and its tests.
+   change only what the design document changes. A relation the design
+   adds, modifies or removes changes the code of its `from`: a field or
+   component, a parameter, a return type, a supertype. For a `removed`
+   element, delete its type or method, every use of it and its tests.
 
 8. **Write the tests**: the test doubles first, then one test per scenario,
    as the plan decided. Modified scenarios change their test; removed ones
@@ -138,6 +145,10 @@ Read all three at step 5, before planning:
     - every added or modified module has a package with `@Module`, every
       building block a type with its annotation, and every behavior a
       public method of exactly its name;
+    - every `has_state` is a field or component of its name, every
+      `has_input` a parameter of its name at its `position`, and every
+      `has_output` the return type, each typed by its `to` and
+      `cardinality`;
     - every application service behavior carries `@CommandHandler`,
       `@QueryHandler` or `@EventHandler` after its type, and no other
       method does;

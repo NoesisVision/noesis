@@ -79,13 +79,28 @@ For a new one:
 
 ### Interchangeable building blocks
 
-When a property, a collection's elements or a behavior's input or output
-can be any of two or more building blocks, model the abstraction they share
-as a base building block. Each of them carries a `building_block_extends_building_block` relation to
-the base among its `relations`, and
-the reference names the base. The base is a real domain concept (a
+When a piece of state, a behavior's input or its output can be any of two
+or more building blocks, model the abstraction they share as a base
+building block. Each of them `extends` the base, a relation from it to the
+base, and the slot's `to` names the base. The base is a real domain concept (a
 `Component` over `CompositeComponent` and `SimpleComponent`), never an
 umbrella invented to satisfy a reference.
+
+### State, inputs and outputs
+
+A block's state (`has_state`), a behavior's inputs (`has_input`) and its
+output (`has_output`) are slots: relations from the holder to the block or
+primitive the slot is typed by, each with a `cardinality`:
+
+- `1`: exactly one value.
+- `0..1`: one or none; the value may be absent or left out.
+- `*`: any number; every collection, whether or not it may be empty. When
+  it must not be, a rule says so. A collection of collections is `*` of its
+  innermost element.
+
+The type is never a wrapper: `lines` is `*` of `RefundLine`, never a list
+type. A slot has no description; what it holds is the definition of the
+block it is typed by.
 
 ### Tables in the sources
 
@@ -110,13 +125,18 @@ Decide what a table stands for before modelling its rows:
   object that gives a primitive its meaning (`Money`, not `decimal`) when
   the model has one.
 - An input has the name the behavior takes it under (`reason`, not
-  `string`), a description and whether it may be left out. An output has
-  no name: it is its type, a description and whether it may be absent.
+  `string`), its `position` in the signature, counting from 1, and a
+  cardinality: `0..1` when it may be left out. An output is always named
+  `result`: it is its type and a cardinality, `0..1` when it may be absent.
+  A behavior has at most one output.
 - A behavior's `definition` says what it does for the domain, as any
   [definition](#definitions) does. What an implementer needs beyond that has
-  a field of its own: what goes in and out in the descriptions of the input
-  and output, preconditions in rules, edge cases in scenarios, and the steps,
-  when they matter, in the diagram.
+  a place of its own: what goes in and out in the inputs and the output and
+  the definitions of the blocks they are typed by, preconditions in rules,
+  edge cases in scenarios, and the steps, when they matter, in the diagram.
+- What a behavior calls is a `behavior_invokes_behavior` to each behavior it
+  calls, its `order` the place of the first call among the behavior's
+  calls, counting from 1.
 - A module, a building block and a behavior each have a `diagram` field:
   the source of one Mermaid diagram, without the ` ```mermaid ` fence.
   Never put a diagram in a `definition`; the service refuses a fence there.
