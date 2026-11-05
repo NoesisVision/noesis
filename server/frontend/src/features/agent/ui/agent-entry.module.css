@@ -1,3 +1,13 @@
+/* What a message starts, in small capitals over the words. */
+.caption {
+  margin-bottom: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--noesis-tone-light-color);
+}
+
 /* What the person said: a tinted bubble on the right, as a chat has it. */
 .user {
   align-self: flex-end;

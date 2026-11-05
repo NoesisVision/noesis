@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DesignTask } from './design-task';
 
 /**
  * How the page reaches a Claude Code session. `embedded`: the service started
@@ -56,6 +57,10 @@ export const AgentEntry = z.discriminatedUnion('kind', [
     kind: z.literal('user'),
     text: z.string(),
     attachments: z.array(AgentAttachment),
+    /** What the page was about; null off a change. */
+    task: DesignTask.nullable(),
+    /** The message started the task's skill, which the session read at its head. */
+    starts: z.boolean(),
   }),
   z.object({
     ...entry,

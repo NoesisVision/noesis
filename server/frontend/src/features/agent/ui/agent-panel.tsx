@@ -1,11 +1,9 @@
 import { IconX } from '@tabler/icons-react';
 import { useEffect, useRef } from 'react';
-import { useChangeId } from '#/features/changes/current-change.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
-import { Button } from '#/shared/design-system/button.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Loader } from '#/shared/design-system/loader.tsx';
 import { ScrollArea } from '#/shared/design-system/scroll-area.tsx';
@@ -17,11 +15,7 @@ import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import type { AgentSession } from '#backend/app/agent/agent-session.ts';
 import { useAgentPanel } from '../agent-panel-context.tsx';
 import { useAgentSession } from '../agent.api.ts';
-import {
-  AGENT_STATUS_META,
-  AgentIcon,
-  createDesignDocPrompt,
-} from '../agent.model.ts';
+import { AGENT_STATUS_META, AgentIcon } from '../agent.model.ts';
 import { AgentComposer } from './agent-composer.tsx';
 import { AgentEntryView } from './agent-entry.tsx';
 import classes from './agent-panel.module.css';
@@ -119,27 +113,15 @@ function Transcript({ session }: { session: AgentSession | undefined }) {
   );
 }
 
-/** Before anything is said: what the agent is for, and the one thing it does best here. */
+/** Before anything is said: what the agent is for here. */
 function Welcome({ mode }: { mode: AgentSession['mode'] | undefined }) {
-  const { open } = useAgentPanel();
-  const { changeId } = useChangeId();
   return (
     <Stack gap="sm" py="md">
       <Text size="sm" c="dimmed">
         {mode === 'attached'
           ? 'This is the Claude Code session that started Noesis.'
-          : 'Claude Code, running beside this page with the Noesis plugin. Ask it to design a change, revise a design document or add material to a change.'}
+          : 'Claude Code, running beside this page with the Noesis plugin. On a change, your words design a document into it; on a design document, they revise it.'}
       </Text>
-      {changeId !== null && (
-        <Button
-          variant="light"
-          size="xs"
-          leftSection={<AgentIcon size={14} aria-hidden />}
-          onClick={() => open(createDesignDocPrompt(changeId))}
-        >
-          Design this change
-        </Button>
-      )}
     </Stack>
   );
 }

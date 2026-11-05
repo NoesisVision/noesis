@@ -9,6 +9,7 @@ import {
   IconSun,
 } from '@tabler/icons-react';
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from '@tanstack/react-router';
 import { use } from 'react';
 import { useAgentPanel } from '#/features/agent/agent-panel-context.tsx';
 import { AgentIcon } from '#/features/agent/agent.model.ts';
@@ -147,12 +148,16 @@ function SearchTool() {
 
 /**
  * The agent's panel, opened and shut from the bar, and with ⌘. (Ctrl . off a
- * Mac) from anywhere.
+ * Mac). Only on a change: the panel designs into the change the page is on,
+ * and has nothing to do elsewhere.
  */
 function AgentTool() {
   const { opened, toggle } = useAgentPanel();
+  const { changeId } = useParams({ strict: false });
   const mac = ['macos', 'ios'].includes(useOs());
-  useHotkeys([['mod+.', toggle]], []);
+  const onChange = changeId !== undefined;
+  useHotkeys([['mod+.', () => onChange && toggle()]], []);
+  if (!onChange) return null;
   return (
     <Tooltip label={`Agent panel (${mac ? '⌘.' : 'Ctrl .'})`}>
       <ActionIcon

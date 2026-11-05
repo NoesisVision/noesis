@@ -6,7 +6,7 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import type { AgentEntry } from '#backend/app/agent/agent-session.ts';
-import { toolLabel } from '../agent.model.ts';
+import { taskVerb, toolLabel } from '../agent.model.ts';
 import { AgentPermissionCard } from './agent-permission-card.tsx';
 import { AgentQuestionCard } from './agent-question-card.tsx';
 import classes from './agent-entry.module.css';
@@ -17,6 +17,9 @@ export function AgentEntryView({ entry }: { entry: AgentEntry }) {
     case 'user':
       return (
         <Box className={classes.user}>
+          {entry.starts && entry.task !== null && (
+            <Box className={classes.caption}>{taskVerb(entry.task)}</Box>
+          )}
           {entry.text}
           {entry.attachments.length > 0 && (
             <Group gap={4} mt={6}>

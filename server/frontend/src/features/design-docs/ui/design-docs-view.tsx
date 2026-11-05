@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
-import { createDesignDocPrompt } from '#/features/agent/agent.model.ts';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack';
@@ -18,9 +17,7 @@ export function DesignDocsView() {
   return (
     <Stack>
       <Group justify="flex-end">
-        <AskAgentButton prompt={createDesignDocPrompt(changeId)}>
-          Design with the agent
-        </AskAgentButton>
+        <AskAgentButton>Design with the agent</AskAgentButton>
       </Group>
       <DesignDocList changeId={changeId} />
     </Stack>

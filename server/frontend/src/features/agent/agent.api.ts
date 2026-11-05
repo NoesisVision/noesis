@@ -12,6 +12,7 @@ import type {
   AgentSession,
   PermissionDecision,
 } from '#backend/app/agent/agent-session.ts';
+import type { DesignTask } from '#backend/app/agent/design-task.ts';
 import {
   isTextFile,
   MAX_ATTACHMENT_BYTES,
@@ -69,6 +70,7 @@ export function useAgentSession() {
 interface SentMessage {
   text: string;
   attachments: AgentAttachment[];
+  task: DesignTask | undefined;
 }
 
 export function useSendAgentMessage() {

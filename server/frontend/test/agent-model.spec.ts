@@ -1,20 +1,30 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  createDesignDocPrompt,
+  designTaskOf,
   isTextFile,
   safeFileName,
+  taskVerb,
   toolLabel,
-  updateDesignDocPrompt,
 } from '../src/features/agent/agent.model';
 
 describe('agent model', () => {
-  it('invokes the plugin’s skills by their namespaced names', () => {
-    expect(createDesignDocPrompt('2026-09-17-x')).toBe(
-      '/noesis:create-design-doc 2026-09-17-x 1',
+  it('reads what the page is about from its address', () => {
+    expect(designTaskOf({})).toBeUndefined();
+    expect(designTaskOf({ changeId: '2026-09-17-x' })).toEqual({
+      change: '2026-09-17-x',
+    } as never);
+    expect(
+      designTaskOf({ changeId: '2026-09-17-x', docId: '2026-11-05-y' }),
+    ).toEqual({ change: '2026-09-17-x', designDoc: '2026-11-05-y' } as never);
+  });
+
+  it('names what a task does', () => {
+    expect(taskVerb({ change: '2026-09-17-x' } as never)).toBe(
+      'New design document',
     );
-    expect(updateDesignDocPrompt('2026-09-17-x', '2026-11-05-y')).toBe(
-      '/noesis:update-design-doc 2026-09-17-x 2026-11-05-y ',
-    );
+    expect(
+      taskVerb({ change: '2026-09-17-x', designDoc: '2026-11-05-y' } as never),
+    ).toBe('Revising the design document');
   });
 
   it('reads a file as text by its type, else by its name', () => {

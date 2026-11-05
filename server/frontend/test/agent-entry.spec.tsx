@@ -24,9 +24,12 @@ describe('AgentEntryView', () => {
       kind: 'user',
       text: 'Design it',
       attachments: [{ name: 'spec.md', path: '/scratch/spec.md' }],
+      task: { change: '2026-09-17-x' } as never,
+      starts: true,
     });
     expect(html).toContain('Design it');
     expect(html).toContain('spec.md');
+    expect(html).toContain('New design document');
   });
 
   it('shows a reply still arriving as plain text', () => {

@@ -4,7 +4,9 @@ import {
   IconPlayerStopFilled,
   IconX,
 } from '@tabler/icons-react';
-import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { useParams } from '@tanstack/react-router';
+import { type KeyboardEvent, useState } from 'react';
+import { useChangesWithEntries } from '#/features/changes/changes.api.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
@@ -15,12 +17,13 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { Textarea } from '#/shared/design-system/textarea.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import type { AgentAttachment } from '#backend/app/agent/agent-session.ts';
-import { useAgentPanel } from '../agent-panel-context.tsx';
+import type { DesignTask } from '#backend/app/agent/design-task.ts';
 import {
   useInterruptAgent,
   useSendAgentMessage,
   useUploadAgentFile,
 } from '../agent.api.ts';
+import { AgentIcon, designTaskOf, taskVerb } from '../agent.model.ts';
 import classes from './agent-panel.module.css';
 
 interface AgentComposerProps {
@@ -31,27 +34,22 @@ interface AgentComposerProps {
 }
 
 /**
- * Where the person writes to the agent: a field that grows with the text,
- * the files attached to it as chips above, and Send — or Stop, while the
- * agent is working. Enter sends; Shift+Enter breaks the line.
+ * Where the person writes to the agent: what the message is about over the
+ * field, the field itself, the files attached to it as chips, and Send — or
+ * Stop, while the agent is working. Enter sends; Shift+Enter breaks the
+ * line. The skill the message starts is never typed: the service adds it
+ * from where the page is.
  */
 export function AgentComposer({ busy, disabled }: AgentComposerProps) {
-  const { text, setText, draftCount } = useAgentPanel();
-  const field = useRef<HTMLTextAreaElement>(null);
-  // A view handed over a draft: the caret goes after it, ready for more.
-  useEffect(() => {
-    if (draftCount === 0) return;
-    const input = field.current;
-    if (input === null) return;
-    input.focus();
-    input.setSelectionRange(input.value.length, input.value.length);
-  }, [draftCount]);
+  const task = designTaskOf(useParams({ strict: false }));
+  const [text, setText] = useState('');
   const [attachments, setAttachments] = useState<AgentAttachment[]>([]);
   const [problem, setProblem] = useState<string | null>(null);
   const send = useSendAgentMessage();
   const interrupt = useInterruptAgent();
   const upload = useUploadAgentFile();
   const mac = ['macos', 'ios'].includes(useOs());
+  const enter = mac ? 'Return' : 'Enter';
 
   const canSend = text.trim() !== '' && !disabled && !send.isPending;
 
@@ -59,11 +57,11 @@ export function AgentComposer({ busy, disabled }: AgentComposerProps) {
     if (!canSend) return;
     const sent = text.trim();
     send.mutate(
-      { text: sent, attachments },
+      { text: sent, attachments, task },
       {
         // Words typed while the send was on its way stay in the field.
         onSuccess: () => {
-          setText(text === sent || text.trim() === sent ? '' : text);
+          setText((current) => (current.trim() === sent ? '' : current));
           setAttachments([]);
           setProblem(null);
         },
@@ -103,6 +101,7 @@ export function AgentComposer({ busy, disabled }: AgentComposerProps) {
 
   return (
     <Box className={classes.composer}>
+      <TaskChip task={task} />
       <Box className={classes.box}>
         {attachments.length > 0 && (
           <Group gap={4}>
@@ -124,13 +123,10 @@ export function AgentComposer({ busy, disabled }: AgentComposerProps) {
           </Group>
         )}
         <Textarea
-          ref={field}
           className={classes.field}
           classNames={{ input: classes.field }}
           aria-label="Message to the agent"
-          placeholder={
-            disabled ? 'The agent is not available.' : 'Ask the agent…'
-          }
+          placeholder={placeholderFor(task, disabled)}
           value={text}
           onChange={(event) => setText(event.currentTarget.value)}
           onKeyDown={onKeyDown}
@@ -176,7 +172,7 @@ export function AgentComposer({ busy, disabled }: AgentComposerProps) {
                 </ActionIcon>
               </Tooltip>
             )}
-            <Tooltip label={`Send (${mac ? 'Return' : 'Enter'})`}>
+            <Tooltip label={`Send (${enter})`}>
               <ActionIcon
                 variant="filled"
                 size="md"
@@ -193,9 +189,45 @@ export function AgentComposer({ busy, disabled }: AgentComposerProps) {
         </Group>
       </Box>
       <Text className={classes.hint} role={problem ? 'alert' : undefined}>
-        {problem ??
-          `${mac ? 'Return' : 'Enter'} to send · Shift+${mac ? 'Return' : 'Enter'} for a new line`}
+        {problem ?? `${enter} to send · Shift+${enter} for a new line`}
       </Text>
     </Box>
   );
+}
+
+/**
+ * What the next message is about, named over the field: the change a
+ * design document is made for, or the design document being revised. Off a
+ * change, that there is nothing to design into.
+ */
+function TaskChip({ task }: { task: DesignTask | undefined }) {
+  const { changes } = useChangesWithEntries();
+  if (task === undefined) {
+    return (
+      <Text className={classes.task} c="dimmed">
+        Open a change to design into it.
+      </Text>
+    );
+  }
+  const change = changes.find((c) => c.id === task.change);
+  const subject =
+    task.designDoc === undefined
+      ? (change?.name ?? task.change)
+      : (change?.entries.find((entry) => entry.id === task.designDoc)?.name ??
+        task.designDoc);
+  return (
+    <Text className={classes.task}>
+      <AgentIcon size={12} stroke={1.8} aria-hidden />
+      <span className={classes.taskVerb}>{taskVerb(task)}</span>
+      <span className={classes.taskSubject}>{subject}</span>
+    </Text>
+  );
+}
+
+function placeholderFor(task: DesignTask | undefined, disabled: boolean) {
+  if (disabled) return 'The agent is not available.';
+  if (task === undefined) return 'Ask the agent…';
+  return task.designDoc === undefined
+    ? 'What should the design cover?'
+    : 'What should change in the design?';
 }

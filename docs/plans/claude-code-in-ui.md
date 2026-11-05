@@ -79,10 +79,16 @@ headless run cannot start an interactive session with that flag.
   current by the event stream; the mutations), `agent.model.ts` (icon, status
   words, the skill invocations, file rules), `ui/` (panel, entries, composer,
   question and permission cards).
-- "Design with the agent" on the design docs view, and "Revise with the agent"
-  on a design document, open the panel with `/noesis:create-design-doc <change> 1`
-  or `/noesis:update-design-doc <change> <doc> ` written, for the person to
-  add to and send.
+- The panel is about where the page is, and says so over the composer: on a
+  change, a message designs a document into it; on an open design document,
+  it revises that one. The service adds the skill's invocation
+  (`/noesis:create-design-doc <change> 1` or
+  `/noesis:update-design-doc <change> <doc>`) at the head of the message the
+  session reads, never in what the person types or sees; a follow-up sent
+  from the same place goes without it, and a message from another place
+  starts the skill again (`app/agent/design-task.ts`). The bar's agent button
+  shows only on a change's pages, since off one there is nothing to design
+  into.
 - A file attached in the composer is uploaded to the session's scratch
   directory (`POST /ui/agent/files`) and named to the agent by its path, which
   is what the plugin's skills take.

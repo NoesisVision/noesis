@@ -6,6 +6,7 @@ import {
   type AgentSession,
   type AgentStatus,
 } from './agent-session';
+import type { DesignTask } from './design-task';
 
 export type AgentSessionListener = (session: AgentSession) => void;
 
@@ -80,6 +81,12 @@ export class AgentTranscript {
       (entry): entry is Extract<AgentEntry, { kind: K }> =>
         entry.kind === kind && match(entry as Extract<AgentEntry, { kind: K }>),
     );
+  }
+
+  /** What the last message sent was about; null before one, or off a change. */
+  lastTask(): DesignTask | null {
+    const last = this.entries.findLast((entry) => entry.kind === 'user');
+    return last?.kind === 'user' ? last.task : null;
   }
 
   setStatus(status: AgentStatus, hint: string | null = null): void {

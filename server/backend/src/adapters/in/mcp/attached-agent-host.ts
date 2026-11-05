@@ -1,5 +1,6 @@
 import type { AgentHost } from '#backend/app/agent/agent-host';
 import type { AgentTranscript } from '#backend/app/agent/agent-transcript';
+import { promptOf, startsTask } from '#backend/app/agent/design-task';
 import type { SendAgentMessage } from '#backend/app/agent/send-agent-message';
 import type { ChannelLink } from './channel-link';
 import { REPLY_TO_NOESIS_PAGE } from './tool-names';
@@ -24,12 +25,15 @@ export class AttachedAgentHost implements AgentHost {
   }
 
   async send(message: SendAgentMessage): Promise<void> {
+    const starts = startsTask(message.task, this.transcript.lastTask());
     this.transcript.append({
       kind: 'user',
       text: message.text,
       attachments: message.attachments,
+      task: message.task ?? null,
+      starts,
     });
-    const delivered = await this.channel.notify(content(message), {
+    const delivered = await this.channel.notify(content(message, starts), {
       reply_tool: REPLY_TO_NOESIS_PAGE,
     });
     if (!delivered) {
@@ -62,14 +66,11 @@ export class AttachedAgentHost implements AgentHost {
   }
 }
 
-function content(message: SendAgentMessage): string {
-  const lines = [message.text];
-  if (message.attachments.length > 0) {
-    lines.push('', 'Attached files (read them by path):');
-    for (const file of message.attachments) {
-      lines.push(`- ${file.name}: ${file.path}`);
-    }
-  }
-  lines.push('', `Answer the person in the page with ${REPLY_TO_NOESIS_PAGE}.`);
-  return lines.join('\n');
+function content(message: SendAgentMessage, starts: boolean): string {
+  const { text, attachments, task } = message;
+  return [
+    promptOf(text, attachments, task, starts),
+    '',
+    `Answer the person in the page with ${REPLY_TO_NOESIS_PAGE}.`,
+  ].join('\n');
 }

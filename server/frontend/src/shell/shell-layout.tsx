@@ -1,4 +1,4 @@
-import { Outlet } from '@tanstack/react-router';
+import { Outlet, useParams } from '@tanstack/react-router';
 import { useMemo } from 'react';
 import {
   AgentPanelProvider,
@@ -32,6 +32,10 @@ export function ShellLayout() {
 function ShellFrame() {
   const [navbarOpened, navbar] = useDisclosure(false);
   const agentPanel = useAgentPanel();
+  // The agent designs into the change the page is on: off a change, the
+  // panel has nothing to do and is not drawn, whatever the reader left it as.
+  const { changeId } = useParams({ strict: false });
+  const agentShown = agentPanel.opened && changeId !== undefined;
   // Folded to icons, as the reader last left it.
   const [railCollapsed, setRailCollapsed] = useLocalStorage<boolean>({
     key: 'noesis.rail-collapsed',
@@ -69,7 +73,7 @@ function ShellFrame() {
       aside={{
         width: 420,
         breakpoint: 'md',
-        collapsed: { desktop: !agentPanel.opened, mobile: !agentPanel.opened },
+        collapsed: { desktop: !agentShown, mobile: !agentShown },
       }}
       padding="lg"
     >
@@ -86,7 +90,7 @@ function ShellFrame() {
         />
       </AppShell.Navbar>
       <AppShell.Aside withBorder={false}>
-        {agentPanel.opened && <AgentPanel />}
+        {agentShown && <AgentPanel />}
       </AppShell.Aside>
       <AppShell.Main
         ref={ref}

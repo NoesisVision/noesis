@@ -32,6 +32,8 @@ export function fakeAgent(clock: Clock): FakeAgent {
           kind: 'user',
           text: message.text,
           attachments: message.attachments,
+          task: message.task ?? null,
+          starts: message.task !== undefined,
         });
         return Promise.resolve();
       },

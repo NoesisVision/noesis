@@ -1,5 +1,6 @@
 import { IconSparkles } from '@tabler/icons-react';
 import type { AgentStatus } from '#backend/app/agent/agent-session.ts';
+import type { DesignTask } from '#backend/app/agent/design-task.ts';
 
 /** The icon the agent is drawn with, wherever it is named: the bar, the panel, a button that calls it. */
 export const AgentIcon = IconSparkles;
@@ -17,18 +18,27 @@ export const AGENT_STATUS_META: Record<
   failed: { label: 'Unavailable', color: 'red', busy: false },
 };
 
-/** The plugin's skills, as a message invokes them. */
-const CREATE_DESIGN_DOC_SKILL = '/noesis:create-design-doc';
-const UPDATE_DESIGN_DOC_SKILL = '/noesis:update-design-doc';
-
-/** The message that asks the agent to design a change into a new design document. */
-export function createDesignDocPrompt(changeId: string): string {
-  return `${CREATE_DESIGN_DOC_SKILL} ${changeId} 1`;
+/**
+ * What a message is about, from where the page is: the change open, and
+ * the design document open in it. The service starts the matching skill
+ * from it; off a change there is nothing to start.
+ */
+export function designTaskOf(params: {
+  changeId?: string | undefined;
+  docId?: string | undefined;
+}): DesignTask | undefined {
+  if (params.changeId === undefined) return undefined;
+  return {
+    change: params.changeId,
+    ...(params.docId === undefined ? {} : { designDoc: params.docId }),
+  } as DesignTask;
 }
 
-/** The message that asks the agent to revise a design document; what to change follows it. */
-export function updateDesignDocPrompt(changeId: string, docId: string): string {
-  return `${UPDATE_DESIGN_DOC_SKILL} ${changeId} ${docId} `;
+/** What a task does, in the person's words: the verb for the chip and the caption. */
+export function taskVerb(task: DesignTask): string {
+  return task.designDoc === undefined
+    ? 'New design document'
+    : 'Revising the design document';
 }
 
 /**

@@ -92,6 +92,34 @@
   }
 }
 
+/* What the next message is about, over the field: a verb, then the name. */
+.task.task {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 4px 8px;
+  font-size: 11px;
+
+  & svg {
+    flex: none;
+    color: var(--mantine-color-brand-6);
+  }
+}
+
+.taskVerb {
+  flex: none;
+  font-weight: 600;
+}
+
+.taskSubject {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--noesis-secondary-text);
+}
+
 .hint.hint {
   padding: 6px 4px 0;
   font-size: 11px;

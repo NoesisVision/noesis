@@ -12,11 +12,11 @@ import {
 import { z } from 'zod';
 import type { AgentHost } from '#backend/app/agent/agent-host';
 import {
-  type AgentAttachment,
   AgentQuestion,
   type PermissionDecision,
 } from '#backend/app/agent/agent-session';
 import type { AgentTranscript } from '#backend/app/agent/agent-transcript';
+import { promptOf, startsTask } from '#backend/app/agent/design-task';
 import type { SendAgentMessage } from '#backend/app/agent/send-agent-message';
 import { serverLogger } from '#backend/platform/logging/logging';
 import { AsyncQueue } from './async-queue';
@@ -84,10 +84,13 @@ export class ClaudeCodeAgentHost implements AgentHost {
   }
 
   async send(message: SendAgentMessage): Promise<void> {
+    const starts = startsTask(message.task, this.transcript.lastTask());
     this.transcript.append({
       kind: 'user',
       text: message.text,
       attachments: message.attachments,
+      task: message.task ?? null,
+      starts,
     });
     if (!this.alive()) {
       this.transcript.note(
@@ -97,7 +100,7 @@ export class ClaudeCodeAgentHost implements AgentHost {
       return;
     }
     this.transcript.setStatus('working');
-    this.inbox.push(userMessage(message));
+    this.inbox.push(userMessage(message, starts));
     await Promise.resolve();
   }
 
@@ -407,18 +410,17 @@ function decided(held: Held, decision: PermissionDecision): PermissionResult {
   };
 }
 
-/** The message as the session reads it: the text, then the files by path. */
-function userMessage(message: SendAgentMessage): SDKUserMessage {
-  const lines = [message.text];
-  if (message.attachments.length > 0) {
-    lines.push('', 'Attached files (read them by path):');
-    for (const file of message.attachments as AgentAttachment[]) {
-      lines.push(`- ${file.name}: ${file.path}`);
-    }
-  }
+function userMessage(
+  message: SendAgentMessage,
+  starts: boolean,
+): SDKUserMessage {
+  const { text, attachments, task } = message;
   return {
     type: 'user',
-    message: { role: 'user', content: lines.join('\n') },
+    message: {
+      role: 'user',
+      content: promptOf(text, attachments, task, starts),
+    },
     parent_tool_use_id: null,
   };
 }
