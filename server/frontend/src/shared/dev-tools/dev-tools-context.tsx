@@ -31,6 +31,12 @@ const featuresSchema = z.object({
     .describe(
       "On the system model exploration, with the edges' animation on (the Edges menu), their dashes keep running while a card is dragged. Off, they hold still until the card is let go of, so the dragged card alone moves.",
     ),
+  webMcpTools: z
+    .boolean()
+    .default(false)
+    .describe(
+      'The page offers tools to an agent in the browser through WebMCP: on every page, ones to search Noesis as its search dialog does, open a result and open the system model exploration; on the exploration, ones to search and read the model and to show, hide, select and arrange what the diagram draws. Off, it offers none. Needs a browser with WebMCP.',
+    ),
 });
 
 type Features = z.infer<typeof featuresSchema>;
@@ -55,6 +61,7 @@ const INIT_VALUE: DevToolsContextProps = {
   features: {
     outlineDragForBigGroups: false,
     animateEdgesWhileDragging: true,
+    webMcpTools: false,
   },
   setFeatures: noop,
 };

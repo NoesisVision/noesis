@@ -47,7 +47,7 @@ export interface MatchingGroup {
 /** How many of the model's elements one search lists before it says "more". */
 const MODEL_ELEMENTS_LISTED = 20;
 
-interface SearchSources {
+export interface SearchSources {
   changes: ChangeWithEntries[];
   activeChange: ChangeWithEntries | null;
   projectName: string | undefined;
