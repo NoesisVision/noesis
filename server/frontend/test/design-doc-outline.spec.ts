@@ -112,13 +112,25 @@ describe('outlineOf', () => {
     ]);
   });
 
-  it('names a property type by its item, a collection with brackets', () => {
+  it('names a property by its type and how many it holds, nothing for exactly one', () => {
     expect(
       at('building_block|sales.refunds.Refund#property:lines').pattern,
-    ).toBe('RefundLine[]');
+    ).toBe('RefundLine [*]');
+    expect(
+      at('building_block|sales.orders.Order#property:refundedAmount').pattern,
+    ).toBe('Money [0..1]');
     expect(
       at('building_block|sales.refunds.Refund#property:issuedAt').pattern,
     ).toBe('date');
+  });
+
+  it('reads a property from the relations, with what the design does to it', () => {
+    const order = 'building_block|sales.orders.Order';
+    expect(at(`${order}#property:status`)).toMatchObject({
+      change: 'modified',
+      pattern: 'OrderStatus',
+      parentPath: order,
+    });
   });
 
   it('keys a part under the element that owns it', () => {
@@ -172,10 +184,10 @@ describe('outlineOf', () => {
     const labelAt = (path: string) => at(path).patternLabel;
     const refund = 'building_block|sales.refunds.Refund';
     // A type is a name somebody wrote: writing it out would leave `Orderid`
-    // beside a `RefundLine[]` that kept its own spelling, and `date` — a
+    // beside a `RefundLine [*]` that kept its own spelling, and `date` — a
     // primitive the model does spell in lower case — would read `Date`.
     expect(labelAt(`${refund}#property:orderId`)).toBe('OrderId');
-    expect(labelAt(`${refund}#property:lines`)).toBe('RefundLine[]');
+    expect(labelAt(`${refund}#property:lines`)).toBe('RefundLine [*]');
     expect(labelAt(`${refund}#property:issuedAt`)).toBe('date');
     expect(
       labelAt(

@@ -5,6 +5,7 @@ import { JavaParser } from '#backend/adapters/out/scanners/code-parsers/java-par
 import { SystemModel } from '#backend/app/system-model/system-model';
 import { SystemModelId } from '#backend/app/system-model/system-model-id';
 import { fixedClock } from '../support/fixed-clock';
+import { inputOf, invokesOf, outputOf, stateOf } from '../support/relations';
 import { settingsScanner } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
@@ -69,17 +70,15 @@ describe('A Java repository scanned through its Maven plugin', () => {
     // com.acme is skipped by .noesis/settings.json, *.internal excluded; the
     // infrastructure module has no blocks.
     const domain = 'shop-domain/src/main/java/com/acme/shop';
+    const firstLine = (path: string) => ({ path, startLine: 1, endLine: 1 });
     expect<unknown>(model.modules.map((m) => [m.id, m.source])).toEqual([
-      ['module|shop', { path: `${domain}/internal/Hidden.java`, line: 1 }],
-      ['module|shop.orders', { path: `${domain}/orders/Money.java`, line: 1 }],
+      ['module|shop', firstLine(`${domain}/internal/Hidden.java`)],
+      ['module|shop.orders', firstLine(`${domain}/orders/Money.java`)],
       [
         'module|shop.pricing',
-        { path: `${domain}/pricing/PriceRepository.java`, line: 1 },
+        firstLine(`${domain}/pricing/PriceRepository.java`),
       ],
-      [
-        'module|shop.products',
-        { path: `${domain}/products/ProductId.java`, line: 1 },
-      ],
+      ['module|shop.products', firstLine(`${domain}/products/ProductId.java`)],
     ]);
 
     expect<unknown>(model.buildingBlocks.map((b) => [b.id, b.type])).toEqual([
@@ -100,56 +99,35 @@ describe('A Java repository scanned through its Maven plugin', () => {
     const order = model.buildingBlocks.find((b) => b.name === 'Order');
     expect<unknown>(order).toMatchObject({
       description: 'An order *placed* by a customer.',
-      source: { path: `${domain}/orders/Order.java`, line: 14 },
+      source: {
+        path: `${domain}/orders/Order.java`,
+        startLine: 14,
+        endLine: 76,
+      },
     });
     // A class's private fields are no properties unless a getter exposes
     // them (R5.8), and Order has none; a record's components are (R5.7),
     // the UUID a primitive, OrderId a block.
-    expect<unknown>(order?.properties).toEqual([]);
+    expect<unknown>(stateOf(model, 'building_block|shop.orders.Order')).toEqual(
+      [],
+    );
     expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'PlaceOrder')?.properties,
+      stateOf(model, 'building_block|shop.orders.PlaceOrder'),
     ).toEqual([
-      {
-        name: 'note',
-        type: 'primitive|string',
-        description: null,
-        optional: false,
-      },
-      {
-        name: 'orderId',
-        type: 'building_block|shop.orders.OrderId',
-        description: null,
-        optional: false,
-      },
+      ['orderId', 'building_block|shop.orders.OrderId', '1'],
+      ['note', 'primitive|string', '1'],
     ]);
     expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'OrderId')?.properties,
-    ).toEqual([
-      {
-        name: 'value',
-        type: 'primitive|uuid',
-        description: null,
-        optional: false,
-      },
-    ]);
+      stateOf(model, 'building_block|shop.orders.OrderId'),
+    ).toEqual([['value', 'primitive|uuid', '1']]);
     // A public field is a property too, and so is a private one behind the
     // fluent getter product() (R5.8), which is then no behavior; a record's
     // accessors are not behaviors.
     expect<unknown>(
-      model.buildingBlocks.find((b) => b.name === 'OrderLine')?.properties,
+      stateOf(model, 'building_block|shop.orders.OrderLine'),
     ).toEqual([
-      {
-        name: 'product',
-        type: 'building_block|shop.products.ProductId',
-        description: null,
-        optional: false,
-      },
-      {
-        name: 'unitPrice',
-        type: 'building_block|shop.orders.Money',
-        description: null,
-        optional: false,
-      },
+      ['unitPrice', 'building_block|shop.orders.Money', '1'],
+      ['product', 'building_block|shop.products.ProductId', '1'],
     ]);
     expect<unknown>(ids(model.behaviors)).not.toContain(
       'behavior|shop.orders.Money.amount',
@@ -162,8 +140,8 @@ describe('A Java repository scanned through its Maven plugin', () => {
       model.behaviors.map((b) => [
         b.id,
         b.type,
-        b.input.map((i) => i.name),
-        b.output.map((o) => o.type),
+        inputOf(model, b.id).map(([name]) => name),
+        outputOf(model, b.id).map(([to]) => to),
       ]),
     ).toEqual([
       [
@@ -231,7 +209,7 @@ describe('A Java repository scanned through its Maven plugin', () => {
         'behavior|shop.pricing.PricingService.history',
         'Command',
         ['id'],
-        [{ collectionOf: 'building_block|shop.orders.Money' }],
+        ['building_block|shop.orders.Money'],
       ],
       [
         'behavior|shop.pricing.PricingService.priceFor',
@@ -253,36 +231,44 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ],
     ]);
     expect<unknown>(
-      model.behaviors.find((b) => b.name === 'tryPrice')?.output[0]?.optional,
-    ).toBe(true);
+      outputOf(model, 'behavior|shop.pricing.PricingService.history'),
+    ).toEqual([['building_block|shop.orders.Money', '*']]);
+    expect<unknown>(
+      outputOf(model, 'behavior|shop.pricing.PricingService.tryPrice'),
+    ).toEqual([['building_block|shop.orders.Money', '0..1']]);
     expect<unknown>(
       model.behaviors.find((b) => b.name === 'placeOrder'),
     ).toMatchObject({
       description: 'Places the order.',
-      source: { path: `${domain}/orders/Order.java`, line: 42 },
+      source: {
+        path: `${domain}/orders/Order.java`,
+        startLine: 42,
+        endLine: 46,
+      },
     });
 
-    // Calls, directly and through methods that are no behavior: handle →
-    // logTotal → total; the SqlOrderRepository implementation's calls count
-    // for the interface's behaviors.
+    // Calls in the order they are made, directly and through methods that
+    // are no behavior: handle → logTotal → total, at logTotal's place; the
+    // SqlOrderRepository implementation's calls count for the interface's
+    // behaviors.
     expect<unknown>(
       Object.fromEntries(
-        model.behaviors.map((b) => [b.name, b.relations.map(({ to }) => to)]),
+        model.behaviors.map((b) => [b.name, invokesOf(model, b.id)]),
       ),
     ).toMatchObject({
       handle: [
         'behavior|shop.orders.Order Repository.getBy',
-        'behavior|shop.orders.Order Repository.save',
         'behavior|shop.orders.Order.placeOrder',
         'behavior|shop.orders.Order.total',
         'behavior|shop.pricing.PricingService.priceFor',
+        'behavior|shop.orders.Order Repository.save',
       ],
       save: ['behavior|shop.orders.Order.total'],
       getBy: ['behavior|shop.orders.Order.create'],
       placeOrder: ['behavior|shop.orders.Order.total'],
       total: [
-        'behavior|shop.orders.Money.add',
         'behavior|shop.orders.Money.zero',
+        'behavior|shop.orders.Money.add',
         'behavior|shop.orders.OrderLine.price',
       ],
       persist: ['behavior|shop.orders.Order Repository.save'],

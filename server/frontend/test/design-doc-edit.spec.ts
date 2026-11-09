@@ -12,7 +12,6 @@ import {
   moveDestinationsOf,
   movedIdOf,
   isEditableField,
-  refKeyOf,
   UNIT_FIELDS,
   unitNameOf,
   unitsWithin,
@@ -79,15 +78,30 @@ const doc = (): DesignDocumentInput => ({
         type: agent('Command'),
         definition: agent('Settles.'),
         visibility: agent({ kind: 'private' }),
-        output: {
-          added: [
-            { type: HOLD, description: agent(''), optional: agent(false) },
-          ],
-        },
+      },
+    ],
+  },
+  relations: {
+    added: [
+      {
+        kind: 'has_output',
+        from: SETTLE,
+        name: 'result',
+        to: agent(HOLD),
+        cardinality: agent('1'),
       },
     ],
   },
 });
+
+/** The type a slot from `from` named `name` has in what the design adds. */
+const slotTypeIn = (doc: DesignDocumentInput, from: string, name: string) => {
+  const slot = doc.relations?.added?.find(
+    (relation) =>
+      relation.from === from && 'name' in relation && relation.name === name,
+  );
+  return slot !== undefined && 'name' in slot ? slot.to : undefined;
+};
 
 describe('the state of a unit', () => {
   it('is where its change set has it', () => {
@@ -199,7 +213,9 @@ describe('an edit', () => {
     });
     expect(next.buildingBlocks?.added?.[0]?.id).toBe(id);
     expect(next.behaviors?.added?.[0]?.id).toBe('behavior|pay.CardHold.settle');
-    expect(next.behaviors?.added?.[0]?.output?.added?.[0]?.type).toBe(id);
+    expect(
+      slotTypeIn(next, 'behavior|pay.CardHold.settle', 'result'),
+    ).toMatchObject({ value: id });
   });
 });
 
@@ -484,21 +500,30 @@ describe('a part', () => {
     expect(unitStateOf(next, holdRule)).toBe('unchanged');
   });
 
-  it('is removed from the system by its key, a result by its type', () => {
-    const collection = { collectionOf: HOLD };
+  it('is removed from the system by its relation key, a result by its name and the type the model has', () => {
     const ref = {
       kind: 'result',
-      id: refKeyOf(collection),
+      id: 'result',
       owner: { kind: 'behavior', id: 'behavior|pay.Ledger.book' },
     } as const;
-    const removed = applyEdit(doc(), { op: 'removeFromSystem', ref });
-    expect(removed.behaviors?.modified).toContainEqual({
-      id: 'behavior|pay.Ledger.book',
-      output: { removed: [collection] },
+    const removed = applyEdit(doc(), {
+      op: 'removeFromSystem',
+      ref,
+      type: HOLD,
     });
+    expect(removed.relations?.removed).toEqual([
+      {
+        kind: 'has_output',
+        from: 'behavior|pay.Ledger.book',
+        to: HOLD,
+        name: 'result',
+      },
+    ]);
+    // The behavior itself is left as the model has it.
+    expect(removed.behaviors).toEqual(doc().behaviors);
     expect(unitStateOf(removed, ref)).toBe('removed');
     expect(
-      applyEdit(removed, { op: 'restore', ref }).behaviors?.modified,
+      applyEdit(removed, { op: 'restore', ref }).relations?.removed,
     ).toEqual([]);
   });
 
@@ -508,7 +533,7 @@ describe('a part', () => {
       id: 'building_block|pay.Fee',
     } as const;
     const relation = {
-      kind: 'module_contains_building_block' as const,
+      kind: 'module_contains_block' as const,
       from: MODULE,
       to: ref.id,
     };
@@ -522,13 +547,12 @@ describe('a part', () => {
         definition: agent('A fee.'),
       },
     });
-    expect(added.modules?.added?.[0]?.relations?.added).toEqual([relation]);
+    expect(added.relations?.added).toContainEqual(relation);
     expect(
-      applyEdit(added, { op: 'discard', ref }).modules?.added?.[0]?.relations
-        ?.added,
-    ).toEqual([]);
+      applyEdit(added, { op: 'discard', ref }).relations?.added,
+    ).not.toContainEqual(relation);
 
-    // A behavior moved to another block leaves the one and is listed by the other, modified for it.
+    // A behavior moved to another block leaves the one and is exposed by the other.
     const settle = { kind: 'behavior', id: SETTLE } as const;
     const moved = applyEdit(
       applyEdit(doc(), {
@@ -544,23 +568,17 @@ describe('a part', () => {
       }),
       { op: 'move', ref: settle, to: LEDGER },
     );
-    expect(moved.buildingBlocks?.added?.[0]?.relations?.added).toEqual([
-      {
-        kind: 'building_block_exposes_behavior',
-        from: HOLD,
-        to: 'behavior|pay.Hold.release',
-      },
+    const exposed = moved.relations?.added?.filter(
+      ({ kind }) => kind === 'exposes',
+    );
+    expect(exposed).toEqual([
+      { kind: 'exposes', from: HOLD, to: 'behavior|pay.Hold.release' },
+      { kind: 'exposes', from: LEDGER, to: 'behavior|pay.Ledger.settle' },
     ]);
-    expect(
-      moved.buildingBlocks?.modified?.find(({ id }) => id === LEDGER)?.relations
-        ?.added,
-    ).toEqual([
-      {
-        kind: 'building_block_exposes_behavior',
-        from: LEDGER,
-        to: 'behavior|pay.Ledger.settle',
-      },
-    ]);
+    // The element the behavior is on is left alone: the relation says it all.
+    expect(moved.buildingBlocks?.modified).toEqual(
+      doc().buildingBlocks?.modified,
+    );
   });
 
   it('may be an extended type: a relation from its owner, keyed by its target', () => {
@@ -582,10 +600,117 @@ describe('a part', () => {
       ref,
       unit: unitFromDraft('extends', draft, null, id, ref.owner),
     });
-    expect(next.buildingBlocks?.added?.[0]?.relations?.added).toEqual([
-      { kind: 'building_block_extends_building_block', from: HOLD, to: ref.id },
-    ]);
+    expect(next.relations?.added).toContainEqual({
+      kind: 'extends',
+      from: HOLD,
+      to: ref.id,
+    });
     expect(unitNameOf(next, ref)).toBe('Lockable');
+    // Taking it out leaves the type it extended in the design.
+    const discarded = applyEdit(next, { op: 'discard', ref });
+    expect(discarded.relations?.added).toEqual(doc().relations?.added);
+    expect(discarded.buildingBlocks).toEqual(doc().buildingBlocks);
+  });
+
+  it('may be a property: a has_state relation from its block, typed and counted', () => {
+    const owner = { kind: 'building_block', id: LEDGER } as const;
+    const target = { mode: 'add', kind: 'property', owner } as const;
+    const draft = draftOfUnit('property', null, 'added');
+    expect(draft.fields.cardinality?.value).toBe('1');
+    draft.fields.name = { written: true, value: 'entries' };
+    draft.fields.ref = { written: true, value: HOLD };
+    draft.fields.cardinality = { written: true, value: '*' };
+    expect(draftErrors(doc(), target, draft)).toEqual({});
+    const id = idOfDraft(doc(), target, draft);
+    const ref = { kind: 'property', id, owner } as const;
+    const next = applyEdit(doc(), {
+      op: 'add',
+      ref,
+      unit: unitFromDraft('property', draft, null, id, owner),
+    });
+    expect(next.relations?.added).toContainEqual({
+      kind: 'has_state',
+      from: LEDGER,
+      name: 'entries',
+      to: { changed: true, value: HOLD, author: 'human' },
+      cardinality: { changed: true, value: '*', author: 'human' },
+    });
+    expect(unitStateOf(next, ref)).toBe('added');
+    // The block it is on is left alone.
+    expect(next.buildingBlocks).toEqual(doc().buildingBlocks);
+    // A second one of that name is refused.
+    expect(draftErrors(next, target, draft)).toEqual({
+      'fields.name.value': 'This design already has this property here.',
+    });
+  });
+
+  it('may be an input, placed after the last the design gives the behavior', () => {
+    const owner = { kind: 'behavior', id: SETTLE } as const;
+    const add = (doc: DesignDocumentInput, name: string) => {
+      const draft = draftOfUnit('parameter', null, 'added');
+      draft.fields.name = { written: true, value: name };
+      draft.fields.ref = { written: true, value: 'primitive|decimal' };
+      return applyEdit(doc, {
+        op: 'add',
+        ref: { kind: 'parameter', id: name, owner },
+        unit: unitFromDraft('parameter', draft, null, name, owner),
+      });
+    };
+    const next = add(add(doc(), 'amount'), 'fee');
+    const inputs = next.relations?.added?.filter(
+      ({ kind }) => kind === 'has_input',
+    );
+    expect(inputs).toMatchObject([
+      { name: 'amount', position: { value: 1 } },
+      { name: 'fee', position: { value: 2 } },
+    ]);
+    // Rewritten, an input keeps its place.
+    const ref = { kind: 'parameter', id: 'amount', owner } as const;
+    const original = unitOf(next, ref);
+    const draft = draftOfUnit('parameter', original, 'added');
+    draft.fields.cardinality = { written: true, value: '0..1' };
+    const rewritten = applyEdit(next, {
+      op: 'write',
+      ref,
+      unit: unitFromDraft('parameter', draft, original, 'amount', owner),
+    });
+    expect(unitOf(rewritten, ref)).toMatchObject({
+      position: { value: 1 },
+      cardinality: { value: '0..1', author: 'human' },
+    });
+  });
+
+  it('names an output by its type', () => {
+    expect(
+      unitNameOf(doc(), {
+        kind: 'result',
+        id: 'result',
+        owner: { kind: 'behavior', id: SETTLE },
+      }),
+    ).toBe('Hold');
+  });
+
+  it('has the violations on a relation laid on its fields', () => {
+    const { fields, rest } = violationsOf(
+      doc(),
+      {
+        kind: 'result',
+        id: 'result',
+        owner: { kind: 'behavior', id: SETTLE },
+      },
+      'added',
+      [
+        {
+          path: `relations.added[has_output|${SETTLE}|#result].to`,
+          reason: 'unknownRelationEnd',
+        },
+      ],
+    );
+    expect(fields).toEqual({
+      'fields.ref.value':
+        'Neither this design nor the scanned model has this element.',
+    });
+    expect(rest).toEqual([]);
   });
 
   it('is refused a rule type outside its category, and a module a business rule', () => {
@@ -650,7 +775,9 @@ describe('moving an element', () => {
     expect(moved).toBe('building_block|refunds.Hold');
     expect(next.buildingBlocks?.added?.[0]?.id).toBe(moved);
     expect(next.behaviors?.added?.[0]?.id).toBe('behavior|refunds.Hold.settle');
-    expect(next.behaviors?.added?.[0]?.output?.added?.[0]?.type).toBe(moved);
+    expect(
+      slotTypeIn(next, 'behavior|refunds.Hold.settle', 'result'),
+    ).toMatchObject({ value: moved });
   });
 
   it('brings a submodule to the top', () => {

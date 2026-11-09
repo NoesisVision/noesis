@@ -1,6 +1,6 @@
 ---
 name: update-design-doc
-description: Revise an existing Noesis design document as the user asks — add, change, move, rename or remove its needs, modules, building blocks, behaviors, rules, scenarios or diagrams — starting from the version stored now, edits made in the Noesis page included, and store it in place under the same id. Use when the user asks to change, revise, correct, extend, rework or apply feedback to a design document (design doc) of a change.
+description: Revise an existing Noesis design document as the user asks — add, change, move, rename or remove its needs, modules, building blocks, behaviors, relations, rules, scenarios or diagrams — starting from the version stored now, edits made in the Noesis page included, and store it in place under the same id. Use when the user asks to change, revise, correct, extend, rework or apply feedback to a design document (design doc) of a change.
 argument-hint: [change-id] [design-doc-id] [what to change]
 ---
 
@@ -85,15 +85,24 @@ step 6.
 6. **Plan the revision.** Read the contracts and the modelling guidance
    now. List each edit the request asks for, then follow each one through
    the design document to everything that must change with it:
-   - **References.** The `type` of a property, an input or an output,
-     a relation's `to`, a rule's `needs`: each names a building block this design
-     adds or modifies, one the system model has, a primitive, or a need this
-     design adds. A rename moves every reference to the old id or name.
-   - **Containment.** An element added under another is among that one's
-     `relations` (`module_contains_module`, `module_contains_building_block`,
-     `building_block_exposes_behavior`), added by the parent; a removed element's relation
-     is removed by its parent; a moved element leaves the one and joins the
-     other.
+   - **References.** Both ends of a relation, and a rule's `needs`: each
+     names an element this design adds or modifies, one the system model
+     has, a primitive (a slot's `to` only), or a need this design adds. A
+     rename moves every reference to the old id or name, in `relations`
+     too.
+   - **Containment.** An element added under another has the relation that
+     contains it added in `relations`: `module_contains_module` or
+     `module_contains_block` from its module, `exposes` from its building
+     block. A removed element whose holder stays has that relation removed;
+     a moved element has the old one removed and the new one added.
+   - **Slots.** A block's state (`has_state`), a behavior's inputs
+     (`has_input`) and its output (`has_output`, always named `"result"`)
+     are relations with a `to` (a building block or a primitive, never a
+     collection) and a `cardinality`: `"1"`, `"0..1"` when it may be absent,
+     `"*"` for any collection. An input's `position` counts from 1; adding,
+     removing or moving one renumbers the inputs after it. A call's `order`
+     (`behavior_invokes_behavior`) is its place among the behavior's calls,
+     counting from 1.
    - **Ids and names.** Ids spell the path (`building_block|sales.refunds.Refund`),
      so moving or renaming a module or a building block renames every
      element beneath it, and a name is always the last segment of its id.
@@ -136,13 +145,18 @@ step 6.
      `diagram`. Changing an element that is only in `added` is editing that
      item; dropping it is deleting the item from `added`, never listing it
      under `removed`.
-   - **In the model and changed:** `modified`, with its id and only the
-     fields that change. The `description` of a property, an input, an
-     output or a scenario is a change note: `"Change note: "`, then what
-     changes and why. An element's `definition` is never one, nor is a
-     rule's `description`.
-   - **In the model and retired:** `removed`, by id. Remove a building
-     block's behaviors with it.
+   - **In the model and changed:** `modified`, with its id (a relation's
+     key) and only the fields that change. The `description` of a scenario
+     is a change note: `"Change note: "`, then what changes and why. An
+     element's `definition` is never one, nor is a rule's `description`.
+     A slot is known by its holder and `name`, so its `to`, `cardinality`
+     and `position` change in place; a call by its two ends, so its
+     `order` does. Any other relation that changes is one removed and one
+     added. An element whose own fields stay but whose relations change is
+     listed in `modified` by its id alone.
+   - **In the model and retired:** `removed`, by id; a relation by its key:
+     `kind`, `from` and `to`, and a slot's `name` too, as the system model
+     holds them. Remove a building block's behaviors with it.
    - **In the model and unchanged:** left out. A rename of an element in
      the model is a removal of the old id and an addition of the new one.
 
@@ -172,9 +186,9 @@ step 6.
   again.
 - **The design breaks its rules.** Nothing was written. Each line names a
   field and what to do:
-  - _the scanned model has no such element or part_: the id is misspelt,
-    or the element is new and belongs in `added`. Check it against the
-    system model.
+  - _the scanned model has no such element or part_: the id or a
+    relation's key is misspelt, or the element or relation is new and
+    belongs in `added`. Check it against the system model.
   - _nothing is scanned yet_: there was no scan when the tool checked.
     Scan with `scan_system_model` and call again.
   - _the item is new, so this field needs a value_: give that field of the
@@ -190,6 +204,13 @@ step 6.
     rule's `category`, or the `category` of its type.
   - _a module holds only quality and constraint rules_: move the business
     rule to the building block or behavior it governs.
+  - _the element its id places this one under has no relation to it_: add
+    its `module_contains_module`, `module_contains_block` or `exposes` to
+    `relations.added`.
+  - _this end of the relation is no element of the design or the scanned
+    model_: add the element, or point the relation at one that exists.
+  - _what a module contains is in the ids too_: the containment's `to` is
+    `from`'s id and its own name; point it at the module its id names.
 
   Fix every line, then call again; repeat until the tool accepts the file.
   An element the newest scan dropped since the design was written fails
@@ -206,7 +227,7 @@ step 6.
   delete one, nor rename or move what holds it, without the user's yes, and
   never write a field in a person's name. One you leave alone stays theirs.
 - Revise only what the request reaches and what must change with it. A
-  rule, scenario or property no source states is an assumption: ask about
+  rule, scenario or piece of state no source states is an assumption: ask about
   it, or name it in the report.
 - Never write under `.noesis/` yourself, except the working file in the
   scratch directory; the tool stores the design document.

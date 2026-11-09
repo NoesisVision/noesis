@@ -13,6 +13,14 @@ import {
   behavior as invocation,
 } from '../support/csharp-fixture-expectations';
 import { fixedClock } from '../support/fixed-clock';
+import {
+  extendsOf,
+  inputOf,
+  invokedTargetsOf,
+  invokesOf,
+  outputOf,
+  stateOf,
+} from '../support/relations';
 import { scannerOver } from '../support/test-scanner';
 import { NOW, type TestNoesis, testNoesis } from './test-noesis';
 
@@ -118,7 +126,11 @@ describe('Scanning through the C# parser', () => {
     expect<unknown>(ids(model.modules)).toEqual(MODULES);
     expect<unknown>(
       model.modules.find((m) => m.id === 'module|Projection.Blocks')?.source,
-    ).toEqual({ path: `${SOURCES}/Blocks/BlockKinds.cs`, line: 7 });
+    ).toEqual({
+      path: `${SOURCES}/Blocks/BlockKinds.cs`,
+      startLine: 7,
+      endLine: 7,
+    });
 
     // One block per annotation; nested types get the enclosing type's name
     // first; a name override that is no element name gives way to the code's
@@ -165,65 +177,29 @@ describe('Scanning through the C# parser', () => {
     expect<unknown>(aggregate).toMatchObject({
       description: 'An aggregate with a *short* description.',
       scenarios: [{ name: 'Aggregate scenario', description: null, steps: [] }],
-      source: { path: `${SOURCES}/Blocks/BlockKinds.cs`, line: 10 },
+      source: {
+        path: `${SOURCES}/Blocks/BlockKinds.cs`,
+        startLine: 10,
+        endLine: 53,
+      },
     });
     // Public instance members only; the dictionary and the unannotated
     // interface have no word in the model; the excluded property is dropped.
-    expect<unknown>(aggregate?.properties).toEqual([
-      {
-        name: 'Entities',
-        type: { collectionOf: block('EntityBlock') },
-        description: 'A collection, backed by a field of the same name.',
-        optional: false,
-      },
-      {
-        name: 'OptionalValueObject',
-        type: block('ValueObjectBlock'),
-        description: null,
-        optional: true,
-      },
-      {
-        name: 'OptionalPrimitive',
-        type: 'primitive|datetime',
-        description: null,
-        optional: true,
-      },
-      {
-        name: 'Enum',
-        type: block('EnumBlock'),
-        description: null,
-        optional: false,
-      },
+    expect<unknown>(stateOf(model, block('AggregateBlock'))).toEqual([
+      ['Entities', block('EntityBlock'), '*'],
+      ['Enum', block('EnumBlock'), '1'],
+      ['OptionalValueObject', block('ValueObjectBlock'), '0..1'],
+      ['OptionalPrimitive', 'primitive|datetime', '0..1'],
     ]);
     // Positional record properties are properties too.
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.id === block('CommandBlock'))
-        ?.properties,
-    ).toEqual([
-      {
-        name: 'Id',
-        type: block('ValueObjectBlock'),
-        description: null,
-        optional: false,
-      },
-      {
-        name: 'Note',
-        type: 'primitive|string',
-        description: null,
-        optional: true,
-      },
+    expect<unknown>(stateOf(model, block('CommandBlock'))).toEqual([
+      ['Id', block('ValueObjectBlock'), '1'],
+      ['Note', 'primitive|string', '0..1'],
     ]);
-    expect<unknown>(
-      model.buildingBlocks.find((b) => b.id === block('EnumBlock'))?.properties,
-    ).toEqual([]);
+    expect<unknown>(stateOf(model, block('EnumBlock'))).toEqual([]);
     // Direct supertypes that are blocks only (R4.4).
     expect<unknown>(
-      model.buildingBlocks
-        .find((b) => b.id === block('ImplementsBlocksAndOthers'))
-        ?.relations.filter(
-          ({ kind }) => kind === 'building_block_extends_building_block',
-        )
-        .map(({ to }) => to),
+      extendsOf(model, block('ImplementsBlocksAndOthers')),
     ).toEqual([block('AbstractBlock'), block('ExternalIntegrationBlock')]);
 
     // Public methods become behaviors: static ones too; not the excluded,
@@ -236,8 +212,8 @@ describe('Scanning through the C# parser', () => {
           b.id,
           b.type,
           b.visibility,
-          b.input.map((i) => [i.name, i.type, i.optional]),
-          b.output.map((o) => [o.type, o.optional]),
+          inputOf(model, b.id),
+          outputOf(model, b.id),
         ]),
     ).toEqual([
       [
@@ -245,14 +221,14 @@ describe('Scanning through the C# parser', () => {
         'Command',
         { kind: 'public', actors: [] },
         [],
-        [[{ collectionOf: block('ValueObjectBlock') }, false]],
+        [[block('ValueObjectBlock'), '*']],
       ],
       [
         form('CollectionOutput'),
         'Command',
         { kind: 'public', actors: [] },
         [],
-        [[{ collectionOf: block('ValueObjectBlock') }, false]],
+        [[block('ValueObjectBlock'), '*']],
       ],
       [
         form('EntryPointCommand'),
@@ -266,7 +242,7 @@ describe('Scanning through the C# parser', () => {
         'Query',
         { kind: 'public', actors: [] },
         [],
-        [[block('ValueObjectBlock'), false]],
+        [[block('ValueObjectBlock'), '1']],
       ],
       [
         form('InputWithoutWord'),
@@ -287,8 +263,8 @@ describe('Scanning through the C# parser', () => {
         'Command',
         { kind: 'public', actors: [] },
         [
-          ['nullable', block('ValueObjectBlock'), true],
-          ['withDefault', 'primitive|integer', true],
+          ['nullable', block('ValueObjectBlock'), '0..1'],
+          ['withDefault', 'primitive|integer', '0..1'],
         ],
         [],
       ],
@@ -297,15 +273,15 @@ describe('Scanning through the C# parser', () => {
         'Command',
         { kind: 'public', actors: [] },
         [],
-        [[block('ValueObjectBlock'), true]],
+        [[block('ValueObjectBlock'), '0..1']],
       ],
       [
         form('Overloaded'),
         'Command',
         { kind: 'public', actors: [] },
         [
-          ['first', 'primitive|integer', false],
-          ['second', 'primitive|integer', false],
+          ['first', 'primitive|integer', '1'],
+          ['second', 'primitive|integer', '1'],
         ],
         [],
       ],
@@ -314,7 +290,7 @@ describe('Scanning through the C# parser', () => {
         'Command',
         { kind: 'public', actors: [] },
         [],
-        [['building_block|Projection.Behaviors.BehaviorForms', false]],
+        [['building_block|Projection.Behaviors.BehaviorForms', '1']],
       ],
       [
         form('TaskOutputIsVoid'),
@@ -328,7 +304,7 @@ describe('Scanning through the C# parser', () => {
         'Command',
         { kind: 'public', actors: [] },
         [],
-        [[block('ValueObjectBlock'), false]],
+        [[block('ValueObjectBlock'), '1']],
       ],
       [
         form('WithActor'),
@@ -343,7 +319,11 @@ describe('Scanning through the C# parser', () => {
     ).toMatchObject({
       description: 'Named by its annotation.',
       scenarios: [{ name: 'Behavior scenario' }],
-      source: { path: `${SOURCES}/Behaviors/BehaviorForms.cs`, line: 23 },
+      source: {
+        path: `${SOURCES}/Behaviors/BehaviorForms.cs`,
+        startLine: 23,
+        endLine: 25,
+      },
     });
     // An annotated private method is a private behavior; an explicit
     // interface implementation and a member inherited from a non-block base
@@ -371,18 +351,32 @@ describe('Scanning through the C# parser', () => {
     );
     expect<unknown>(
       Object.fromEntries(
-        invocations.map((b) => [b.id, b.relations.map(({ to }) => to)]),
+        invocations.map((b) => [b.id, invokedTargetsOf(model, b.id)]),
       ),
     ).toEqual(INVOKES);
+    // In the order of the calls: the implementors' calls, attributed to the
+    // interface's behavior, by their place in the source (R11.3).
+    expect<unknown>(
+      invokesOf(model, invocation('GenericBlockInterface.Load')),
+    ).toEqual([
+      invocation('Reached.ByClosedImplementor'),
+      invocation('Reached.ByOpenImplementor'),
+      invocation('Reached.ByImplementedTwiceA'),
+      invocation('Reached.ByImplementedTwiceB'),
+    ]);
 
     // The leaves invoke nothing, and some of them nothing reaches.
     const leaves = model.behaviors.filter((b) =>
       b.id.startsWith('behavior|Projection.Invocations.Reached.'),
     );
     expect<unknown>(leaves.length).toBeGreaterThan(40);
-    expect<unknown>(leaves.every((b) => b.relations.length === 0)).toBe(true);
+    expect<unknown>(
+      leaves.every((b) => invokesOf(model, b.id).length === 0),
+    ).toBe(true);
     const reachedByAnyone = new Set<string>(
-      model.behaviors.flatMap((b) => b.relations.map(({ to }) => to)),
+      model.relations
+        .filter(({ kind }) => kind === 'behavior_invokes_behavior')
+        .map(({ to }) => to),
     );
     for (const leaf of UNREACHED) {
       expect<unknown>(ids(leaves)).toContain(leaf);

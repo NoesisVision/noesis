@@ -14,7 +14,11 @@ export const ElementName = z
   );
 export type ElementName = z.infer<typeof ElementName>;
 
-const MODULE_KIND = 'module';
+/** The kinds of element an id names, the part before `|`. */
+export const ElementKind = z.enum(['module', 'building_block', 'behavior']);
+export type ElementKind = z.infer<typeof ElementKind>;
+
+const MODULE_KIND = ElementKind.enum.module;
 const moduleIdSchema = z
   .string()
   .regex(idPattern(MODULE_KIND, 0), 'Invalid ModuleId')
@@ -44,7 +48,7 @@ export const ModuleId = Object.assign(moduleIdSchema, {
 
 export type ModuleId = z.infer<typeof moduleIdSchema>;
 
-const BUILDING_BLOCK_KIND = 'building_block';
+const BUILDING_BLOCK_KIND = ElementKind.enum.building_block;
 const buildingBlockIdSchema = z
   .string()
   .regex(idPattern(BUILDING_BLOCK_KIND, 1), 'Invalid BuildingBlockId')
@@ -62,7 +66,7 @@ export const BuildingBlockId = Object.assign(buildingBlockIdSchema, {
 });
 export type BuildingBlockId = z.infer<typeof buildingBlockIdSchema>;
 
-const BEHAVIOR_KIND = 'behavior';
+const BEHAVIOR_KIND = ElementKind.enum.behavior;
 const behaviorIdSchema = z
   .string()
   .regex(idPattern(BEHAVIOR_KIND, 2), 'Invalid BehaviorId')

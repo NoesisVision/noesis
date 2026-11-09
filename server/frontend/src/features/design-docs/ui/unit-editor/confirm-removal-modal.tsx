@@ -1,6 +1,8 @@
 import { IconArrowBackUp, IconTrash } from '@tabler/icons-react';
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { counted } from '#/features/design-docs/ui/plural.ts';
+import { newestSystemModel } from '#/features/system-model/system-model.api.ts';
 import { describeFailure } from '#/shared/api/failure.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
@@ -13,6 +15,7 @@ import {
   ModalFrame,
 } from '#/shared/ui/modal-frame.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
   type Removal,
   removalsOf,
@@ -26,6 +29,7 @@ import {
   violationsInWords,
 } from '../../design-doc-edit.ts';
 import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
+import { relationKeyOf, relationKeyOfPart } from '../../relations.ts';
 
 const SITUATION: Record<UnitState, (name: string) => string> = {
   added: (name) =>
@@ -65,6 +69,7 @@ export function ConfirmRemovalModal({
   const choices = removalsOf(state);
   const [choice, setChoice] = useState<Removal>(choices[0]!);
   const save = useDesignDocEdit(changeId, docId);
+  const { data: systemModel = null } = useQuery(newestSystemModel);
   const [problems, setProblems] = useState<string[]>([]);
   const name = unitNameOf(doc, unit);
   const label = UNIT_LABEL[unit.kind];
@@ -72,7 +77,7 @@ export function ConfirmRemovalModal({
   const confirm = () => {
     setProblems([]);
     save.mutate(
-      { op: choice, ref: unit },
+      { op: choice, ref: unit, type: scannedTypeOf(systemModel, unit) },
       {
         onSuccess: onClose,
         onError: (error) => {
@@ -195,4 +200,24 @@ function Consequences({
       {`What this design says about the ${counted(within, unit.kind === 'rule' ? 'scenario' : 'element')} under it goes too.`}
     </Text>
   );
+}
+
+/**
+ * A slot's type as the model has it: a slot is removed by a key that names
+ * its type, which the design may leave unsaid.
+ */
+function scannedTypeOf(
+  systemModel: SystemModel | null,
+  unit: UnitRef,
+): string | undefined {
+  if (
+    unit.kind !== 'property' &&
+    unit.kind !== 'parameter' &&
+    unit.kind !== 'result'
+  )
+    return undefined;
+  const key = relationKeyOfPart(unit.kind, unit.owner.id, unit.id);
+  return systemModel?.relations.find(
+    (relation) => relationKeyOf(relation) === key,
+  )?.to;
 }

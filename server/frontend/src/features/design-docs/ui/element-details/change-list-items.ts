@@ -1,15 +1,9 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
-  DesignedParameterInput,
-  DesignedPropertyInput,
-  DesignedResultInput,
   DesignedRuleInput,
-  BuildingBlockRelationInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import type { BuildingBlockRefInput } from '#backend/app/system-model/system-model.ts';
-import { type ChangeSetInput, writtenIn } from '../../change-set.ts';
-import { refKeyOf } from '../../design-doc-edit.ts';
+import type { ChangeSetInput } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
 import {
@@ -17,25 +11,35 @@ import {
   type NeedsInput,
   needNamesOf,
 } from '../../design-doc-requirements.ts';
-import { blockOfRef, refIdOf } from '../../element-id.ts';
+import { blockOfRef } from '../../element-id.ts';
+import {
+  cardinalitySuffixOf,
+  OUTPUT_NAME,
+  type RelationLike,
+  relationsFrom,
+  relationsTo,
+  typeOf,
+} from '../../relations.ts';
 import { refAddressOf } from './ref-address.ts';
 
 /*
  * What a list section shows, one line per thing the design touches: what it
  * does to it, how it reads, the row of the tree it opens, if any, and — for a
- * property, a rule, an input or an output — the description the design gives it.
+ * rule — the description the design gives it.
  */
 export interface ChangeListItem {
   change: OutlineChange;
   label: string;
   path: string | null;
   description?: string;
-  /** The key its change set knows it by: an input's name, an output's type. */
+  /** What its owner knows it by: a property's or an input's name, an output's `result`. */
   key?: string;
   /** A property's or an input's name, apart from its type. */
   name?: string;
-  /** The type it is declared with, by address; `?` already folded into the name. */
+  /** The type it is declared with, by address. */
   type?: string;
+  /** How many of the type it holds, as read after the type: ` [*]`; nothing for exactly one. */
+  cardinality?: string;
   /** The row that type has in the tree, when it is a building block. */
   typePath?: string;
   /** How many scenarios a rule has, to point at them. */
@@ -57,138 +61,116 @@ function* changed<Item, Key>(
   for (const key of set?.removed ?? []) yield [key, 'removed'];
 }
 
-/** A type that names another building block, not a primitive. */
-const isReference = (ref: BuildingBlockRefInput): boolean =>
-  blockOfRef(ref) !== null;
-
 /** A declaration's name and type, apart, for a reader that sets them apart. */
-const declared = (name: string, type: BuildingBlockRefInput) => ({
+const declared = (name: string, type: string, cardinality: string | null) => ({
   name,
   type: refAddressOf(type),
-  ...(isReference(type) ? { typePath: refIdOf(type) } : {}),
+  ...withCardinality(cardinality),
+  ...(blockOfRef(type) === null ? {} : { typePath: type }),
 });
 
-/** What a block extends, by the targets of its `extends` relations, each opening its row. */
+const withCardinality = (cardinality: string | null) => {
+  const suffix = cardinalitySuffixOf(cardinality);
+  return suffix === '' ? {} : { cardinality: suffix };
+};
+
+/** How many a slot holds as the design writes it; a removal's key says nothing of it. */
+const cardinalityOf = (slot: RelationLike): string | null =>
+  'cardinality' in slot
+    ? valueOf(slot.cardinality as { value: string } | undefined)
+    : null;
+
+/** The building blocks a block extends, each by its address, opening its row. */
 export const extendedItems = (
-  set:
-    | ChangeSetInput<BuildingBlockRelationInput, BuildingBlockRelationInput>
-    | undefined,
+  doc: DesignDocumentInput,
+  blockId: string,
 ): ChangeListItem[] =>
-  [...changed(set)]
-    .filter(([{ kind }]) => kind === 'building_block_extends_building_block')
-    .map(([{ to }, change]) => ({
+  [...changed(relationsFrom(doc, 'extends', blockId))].map(
+    ([relation, change]) => ({
       change,
-      label: refAddressOf(to),
-      path: refIdOf(to),
-    }));
+      label: refAddressOf(relation.to),
+      path: relation.to,
+    }),
+  );
 
 /**
- * The building blocks the document says extend a type, each by its
- * address and opening its row; one the design stops extending it is
- * listed as removed.
+ * The building blocks the document says extend a type, each by its address
+ * and opening its row; one the design stops extending it is listed as removed.
  */
 export const extenderItems = (
   doc: DesignDocumentInput,
   id: string,
 ): ChangeListItem[] =>
-  writtenIn(doc.buildingBlocks).flatMap((block) =>
-    [...changed(block.relations)]
-      .filter(
-        ([{ kind, to }]) =>
-          kind === 'building_block_extends_building_block' && to === id,
-      )
-      .map(([, change]) => ({
-        change,
-        label: refAddressOf(block.id),
-        path: block.id,
-      })),
+  [...changed(relationsTo(doc, 'extends', id))].map(([relation, change]) => ({
+    change,
+    label: refAddressOf(relation.from),
+    path: relation.from,
+  }));
+
+/** A named slot — a property, an input — as it would be declared, or by name when the type is kept. */
+function slotItem(
+  slot: RelationLike & { name: string },
+  change: OutlineChange,
+  path: string | null,
+): ChangeListItem {
+  const type = typeOf(slot);
+  const cardinality = cardinalityOf(slot);
+  if (type === null)
+    return { change, key: slot.name, label: slot.name, path, name: slot.name };
+  return {
+    change,
+    key: slot.name,
+    label: `${slot.name}: ${refAddressOf(type)}${cardinalitySuffixOf(cardinality)}`,
+    path: path ?? type,
+    ...declared(slot.name, type, cardinality),
+  };
+}
+
+/** A behavior's inputs in the order of its signature, each opening its type. */
+export const parameterItems = (
+  doc: DesignDocumentInput,
+  behaviorId: string,
+): ChangeListItem[] =>
+  [...changed(relationsFrom(doc, 'parameter', behaviorId))].map(
+    ([parameter, change]) => slotItem(parameter, change, null),
   );
 
-/** A behavior's inputs as they would be declared, or by name when the type is kept; each opens its type. */
-export const parameterItems = (
-  set: ChangeSetInput<DesignedParameterInput, string> | undefined,
-): ChangeListItem[] =>
-  [...changed(set)].map(([parameter, change]) => {
-    if (typeof parameter === 'string')
-      return {
-        change,
-        key: parameter,
-        label: parameter,
-        path: null,
-        name: parameter,
-      };
-    const type = valueOf(parameter.type);
-    const optional = valueOf(parameter.optional) ? '?' : '';
-    const description = valueOf(parameter.description)?.trim();
-    return {
-      change,
-      key: parameter.name,
-      label:
-        type === null
-          ? parameter.name
-          : `${parameter.name}${optional}: ${refAddressOf(type)}`,
-      path: type === null ? null : refIdOf(type),
-      ...(type === null
-        ? { name: parameter.name }
-        : declared(`${parameter.name}${optional}`, type)),
-      ...(description ? { description } : {}),
-    };
-  });
-
-/** A behavior's results, each by its type, which it opens. */
+/** What a behavior gives back, by its type, which it opens; by its name while the design keeps the type. */
 export const resultItems = (
-  set: ChangeSetInput<DesignedResultInput, BuildingBlockRefInput> | undefined,
+  doc: DesignDocumentInput,
+  behaviorId: string,
 ): ChangeListItem[] =>
-  [...changed(set)].map(([result, change]) => {
-    // A removal names the result by its type alone.
-    const type = isResult(result) ? result.type : result;
-    const description = isResult(result)
-      ? valueOf(result.description)?.trim()
-      : undefined;
-    return {
-      change,
-      key: refKeyOf(type),
-      label: refAddressOf(type),
-      path: refIdOf(type),
-      type: refAddressOf(type),
-      ...(description ? { description } : {}),
-    };
-  });
-
-const isResult = (
-  item: DesignedResultInput | BuildingBlockRefInput,
-): item is DesignedResultInput => typeof item === 'object' && 'type' in item;
-
-/** Properties as they would be declared, or by name when the type is kept. */
-export const propertyItems = (
-  owner: string,
-  set: ChangeSetInput<DesignedPropertyInput, string> | undefined,
-): ChangeListItem[] =>
-  [...changed(set)].map(([property, change]) => {
-    if (typeof property === 'string')
+  [...changed(relationsFrom(doc, 'result', behaviorId))].map(
+    ([result, change]) => {
+      const type = typeOf(result);
+      if (type === null)
+        return { change, key: OUTPUT_NAME, label: OUTPUT_NAME, path: null };
+      const cardinality = cardinalityOf(result);
+      const address = refAddressOf(type);
       return {
         change,
-        label: property,
-        path: partPathOf(owner, 'property', property),
-        name: property,
+        key: OUTPUT_NAME,
+        label: `${address}${cardinalitySuffixOf(cardinality)}`,
+        path: type,
+        type: address,
+        ...withCardinality(cardinality),
       };
-    const type = valueOf(property.type);
-    const optional = valueOf(property.optional) ? '?' : '';
-    const description = valueOf(property.description)?.trim();
-    return {
-      change,
-      key: property.name,
-      label:
-        type === null
-          ? property.name
-          : `${property.name}${optional}: ${refAddressOf(type)}`,
-      path: partPathOf(owner, 'property', property.name),
-      ...(type === null
-        ? { name: property.name }
-        : declared(`${property.name}${optional}`, type)),
-      ...(description ? { description } : {}),
-    };
-  });
+    },
+  );
+
+/** A block's properties as they would be declared, or by name when the type is kept. */
+export const propertyItems = (
+  doc: DesignDocumentInput,
+  blockId: string,
+): ChangeListItem[] =>
+  [...changed(relationsFrom(doc, 'property', blockId))].map(
+    ([property, change]) =>
+      slotItem(
+        property,
+        change,
+        partPathOf(blockId, 'property', property.name),
+      ),
+  );
 
 /** Rules, each by its name with what the design says of it and the needs it answers. */
 export const ruleItems = (

@@ -87,15 +87,6 @@
         "definition": {
           "value": "The discounts a single product's price can be given — a percentage off, a fixed amount off, or a percentage off above a threshold — and the one `Discount` that stands for any of them.",
           "author": "agent"
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "module_contains_building_block",
-              "from": "module|Sales.Pricing.Discounts",
-              "to": "building_block|Sales.Pricing.Discounts.ThresholdDiscount"
-            }
-          ]
         }
       }
     ]
@@ -115,49 +106,6 @@
         "definition": {
           "value": "A discount that reduces a price by a percentage, but only when the price is strictly above a set threshold.",
           "author": "agent"
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|Sales.Pricing.Discounts.ThresholdDiscount",
-              "to": "behavior|Sales.Pricing.Discounts.ThresholdDiscount.ApplyOn"
-            }
-          ]
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "value": "building_block|Sales.Commons.Percentage",
-                "author": "agent"
-              },
-              "description": {
-                "value": "The percentage reduction applied when the price clears the threshold. Validity (within `[0%, 100%]`) is enforced by the `Percentage` value object itself.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            },
-            {
-              "name": "threshold",
-              "type": {
-                "value": "building_block|Sales.Commons.Money",
-                "author": "agent"
-              },
-              "description": {
-                "value": "Strictly positive `Money` amount. The discount activates only when the price being applied to is strictly greater than this value.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
@@ -391,25 +339,6 @@
         "definition": {
           "value": "A discount that reduces any price by a set percentage.",
           "author": "agent"
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "value": "building_block|Sales.Commons.Percentage",
-                "author": "agent"
-              },
-              "description": {
-                "value": "The percentage reduction applied to any price. Validity (within `[0%, 100%]`) is enforced by the `Percentage` value object itself.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
         }
       },
       {
@@ -423,25 +352,6 @@
         "definition": {
           "value": "A discount that takes a fixed amount of money off a price, never taking it below zero.",
           "author": "agent"
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "value",
-              "type": {
-                "value": "building_block|Sales.Commons.Money",
-                "author": "agent"
-              },
-              "description": {
-                "value": "The fixed-amount reduction subtracted from the price, capped at the price so the result is never negative.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
         }
       },
       {
@@ -455,34 +365,6 @@
         "definition": {
           "value": "Any one discount — a percentage, a fixed amount or a threshold discount — held as a single value, so a caller can apply a discount without knowing which kind it is.",
           "author": "agent"
-        },
-        "relations": {
-          "added": [
-            {
-              "kind": "building_block_exposes_behavior",
-              "from": "building_block|Sales.Pricing.Discounts.Discount",
-              "to": "behavior|Sales.Pricing.Discounts.Discount.Threshold"
-            }
-          ]
-        },
-        "properties": {
-          "added": [
-            {
-              "name": "discriminator",
-              "type": {
-                "value": "primitive|string",
-                "author": "agent"
-              },
-              "description": {
-                "value": "Private three-valued discriminator distinguishing the `Percentage`, `Value`, `Threshold` cases; it replaces the two-valued (bool) one that sufficed for two variants. Implementation choice (private nested enum or three named constants) is local; the rule is that dispatch over the discriminator must be exhaustive. The field is private — never observed by callers.",
-                "author": "agent"
-              },
-              "optional": {
-                "value": false,
-                "author": "agent"
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
@@ -729,35 +611,6 @@
             "actors": []
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "money",
-              "type": {
-                "value": "building_block|Sales.Commons.Money"
-              },
-              "description": {
-                "value": "The price to discount. A currency differing from the discount's is a concern of `Money`'s own arithmetic and comparison, not of the discount."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|Sales.Commons.Money",
-              "description": {
-                "value": "The price reduced by the percentage when it is strictly above the threshold; otherwise the price unchanged."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         }
       },
       {
@@ -784,47 +637,6 @@
             "actors": []
           },
           "author": "agent"
-        },
-        "input": {
-          "added": [
-            {
-              "name": "percentage",
-              "type": {
-                "value": "building_block|Sales.Commons.Percentage"
-              },
-              "description": {
-                "value": "The percentage to take off above the threshold; it lies within `[0%, 100%]`, which `Percentage` itself enforces."
-              },
-              "optional": {
-                "value": false
-              }
-            },
-            {
-              "name": "money",
-              "type": {
-                "value": "building_block|Sales.Commons.Money"
-              },
-              "description": {
-                "value": "The threshold a price must strictly exceed for the discount to apply; it must be strictly positive."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|Sales.Pricing.Discounts.Discount",
-              "description": {
-                "value": "A `Discount` holding a threshold discount, which callers hold without knowing its kind."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         }
       }
     ],
@@ -843,35 +655,6 @@
         },
         "visibility": {
           "changed": false
-        },
-        "input": {
-          "added": [
-            {
-              "name": "money",
-              "type": {
-                "value": "building_block|Sales.Commons.Money"
-              },
-              "description": {
-                "value": "The price to discount. A currency differing from the discount's is a concern of `Money`'s own arithmetic and comparison, not of the discount."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|Sales.Commons.Money",
-              "description": {
-                "value": "The price reduced by the percentage, in the price's currency."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         },
         "rules": {
           "added": [
@@ -990,35 +773,6 @@
         "visibility": {
           "changed": false
         },
-        "input": {
-          "added": [
-            {
-              "name": "money",
-              "type": {
-                "value": "building_block|Sales.Commons.Money"
-              },
-              "description": {
-                "value": "The price to discount. A currency differing from the discount's is a concern of `Money`'s own arithmetic and comparison, not of the discount."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|Sales.Commons.Money",
-              "description": {
-                "value": "The price less the amount, or zero in the price's currency when the amount is larger than the price."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
         "rules": {
           "added": [
             {
@@ -1136,35 +890,6 @@
         },
         "visibility": {
           "changed": false
-        },
-        "input": {
-          "added": [
-            {
-              "name": "percentage",
-              "type": {
-                "value": "building_block|Sales.Commons.Percentage"
-              },
-              "description": {
-                "value": "The percentage to take off. One outside `[0%, 100%]` is rejected by `Percentage` itself, and no `Discount` is made."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|Sales.Pricing.Discounts.Discount",
-              "description": {
-                "value": "A `Discount` holding a percentage discount, which callers hold without knowing its kind."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         }
       },
       {
@@ -1182,35 +907,6 @@
         },
         "visibility": {
           "changed": false
-        },
-        "input": {
-          "added": [
-            {
-              "name": "money",
-              "type": {
-                "value": "building_block|Sales.Commons.Money"
-              },
-              "description": {
-                "value": "The amount to take off. Zero is allowed: it leaves every price unchanged. Its validity is `Money`'s own concern; nothing more is checked."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|Sales.Pricing.Discounts.Discount",
-              "description": {
-                "value": "A `Discount` holding a value discount, which callers hold without knowing its kind."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         }
       },
       {
@@ -1231,38 +927,273 @@
         },
         "visibility": {
           "changed": false
-        },
-        "input": {
-          "added": [
-            {
-              "name": "money",
-              "type": {
-                "value": "building_block|Sales.Commons.Money"
-              },
-              "description": {
-                "value": "The price to discount."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
-        },
-        "output": {
-          "added": [
-            {
-              "type": "building_block|Sales.Commons.Money",
-              "description": {
-                "value": "The price as the held discount changes it, or unchanged when that discount does not apply."
-              },
-              "optional": {
-                "value": false
-              }
-            }
-          ]
         }
       }
     ]
+  },
+  "relations": {
+    "added": [
+      {
+        "kind": "exposes",
+        "from": "building_block|Sales.Pricing.Discounts.Discount",
+        "to": "behavior|Sales.Pricing.Discounts.Discount.Threshold"
+      },
+      {
+        "kind": "exposes",
+        "from": "building_block|Sales.Pricing.Discounts.ThresholdDiscount",
+        "to": "behavior|Sales.Pricing.Discounts.ThresholdDiscount.ApplyOn"
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
+        "name": "money",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 2
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
+        "name": "percentage",
+        "to": {
+          "value": "building_block|Sales.Commons.Percentage"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 2
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|Sales.Pricing.Discounts.Discount.Threshold",
+        "name": "percentage",
+        "to": {
+          "value": "building_block|Sales.Commons.Percentage"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|Sales.Pricing.Discounts.Discount.Threshold",
+        "name": "money",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 2
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|Sales.Pricing.Discounts.Discount.Value",
+        "name": "money",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 2
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
+        "name": "money",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 2
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|Sales.Pricing.Discounts.ThresholdDiscount.ApplyOn",
+        "name": "money",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 1
+        }
+      },
+      {
+        "kind": "has_input",
+        "from": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
+        "name": "money",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        },
+        "position": {
+          "value": 2
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
+        "name": "result",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
+        "name": "result",
+        "to": {
+          "value": "building_block|Sales.Pricing.Discounts.Discount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|Sales.Pricing.Discounts.Discount.Threshold",
+        "name": "result",
+        "to": {
+          "value": "building_block|Sales.Pricing.Discounts.Discount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|Sales.Pricing.Discounts.Discount.Value",
+        "name": "result",
+        "to": {
+          "value": "building_block|Sales.Pricing.Discounts.Discount"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
+        "name": "result",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|Sales.Pricing.Discounts.ThresholdDiscount.ApplyOn",
+        "name": "result",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_output",
+        "from": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
+        "name": "result",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|Sales.Pricing.Discounts.Discount",
+        "name": "discriminator",
+        "to": {
+          "value": "primitive|string"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|Sales.Pricing.Discounts.PercentageDiscount",
+        "name": "value",
+        "to": {
+          "value": "building_block|Sales.Commons.Percentage"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|Sales.Pricing.Discounts.ThresholdDiscount",
+        "name": "threshold",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|Sales.Pricing.Discounts.ThresholdDiscount",
+        "name": "value",
+        "to": {
+          "value": "building_block|Sales.Commons.Percentage"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "has_state",
+        "from": "building_block|Sales.Pricing.Discounts.ValueDiscount",
+        "name": "value",
+        "to": {
+          "value": "building_block|Sales.Commons.Money"
+        },
+        "cardinality": {
+          "value": "1"
+        }
+      },
+      {
+        "kind": "module_contains_block",
+        "from": "module|Sales.Pricing.Discounts",
+        "to": "building_block|Sales.Pricing.Discounts.ThresholdDiscount"
+      }
+    ],
+    "removed": []
   },
   "implemented": false
 }

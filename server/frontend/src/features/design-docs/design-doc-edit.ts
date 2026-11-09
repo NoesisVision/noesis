@@ -5,28 +5,26 @@ import type {
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
   DesignedNeedInput,
-  DesignedParameterInput,
-  DesignedPropertyInput,
-  DesignedResultInput,
+  DesignedRelationKeyInput,
   DesignedRuleInput,
   DesignedScenarioInput,
-  BuildingBlockExtendsBuildingBlockRelationInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BehaviorType,
-  BuildingBlockRefInput,
   BuildingBlockType,
+  Cardinality,
+  PrimitiveName,
   RuleCategory,
   RuleType,
   ScenarioStep,
   Visibility,
 } from '#backend/app/system-model/system-model.ts';
+import { writtenIn } from './change-set.ts';
 import {
   type DesignDocFieldInput,
   draftOf,
   type FieldDraft,
   fieldFrom,
-  refLabelOf,
   valueOf,
 } from './design-doc-field.ts';
 import {
@@ -38,6 +36,22 @@ import {
   nameOf,
   parentOf,
 } from './element-id.ts';
+import {
+  CONTAINMENT_KINDS,
+  type DesignedExtendsInput,
+  type DesignedInputInput,
+  type DesignedOutputInput,
+  type DesignedStateInput,
+  isRelation,
+  OUTPUT_NAME,
+  RELATION_KIND_OF,
+  type RelationLike,
+  type RelationPartKind,
+  relationKeyOf,
+  relationKeyOfPart,
+  relationsFrom,
+  typeOf,
+} from './relations.ts';
 
 /*
  * A human's revision of a design document, one unit at a time. An edit is an
@@ -45,19 +59,15 @@ import {
  * version just before it is saved: the server replaces the document whole.
  *
  * Every unit lives in a change set somewhere in the document — a need or an
- * element at the top, a part inside the element that owns it, a rule's own
- * scenario inside that rule — and every operation is the same at any depth,
- * once it has found that set.
+ * element at the top, a rule inside the element that owns it, a rule's own
+ * scenario inside that rule, and a property, an input, an output or an
+ * extended type among the relations, from the element that owns it — and
+ * every operation is the same wherever it is, once it has found that set.
  */
 
 export type ElementKind = 'module' | 'building_block' | 'behavior';
-type PartKind =
-  | 'rule'
-  | 'scenario'
-  | 'property'
-  | 'parameter'
-  | 'result'
-  | 'extends';
+type OwnedPartKind = 'rule' | 'scenario';
+type PartKind = OwnedPartKind | RelationPartKind;
 export type UnitKind = 'need' | ElementKind | PartKind;
 
 /** The element a part is written under, and the rule for a rule's own scenario. */
@@ -68,8 +78,9 @@ export interface PartOwner {
 }
 
 /**
- * A unit by what it is and where it is. A part's `id` is the key its change
- * set knows it by: a name, a result's type, an extended type's id.
+ * A unit by what it is and where it is. A part's `id` is what its owner
+ * knows it by: a name — an output's is always `result` — or an extended
+ * type's id.
  */
 export type UnitRef =
   | { kind: 'need' | ElementKind; id: string }
@@ -85,10 +96,10 @@ interface UnitOf {
   behavior: DesignedBehaviorInput;
   rule: DesignedRuleInput;
   scenario: DesignedScenarioInput;
-  property: DesignedPropertyInput;
-  parameter: DesignedParameterInput;
-  result: DesignedResultInput;
-  extends: BuildingBlockExtendsBuildingBlockRelationInput;
+  property: DesignedStateInput;
+  parameter: DesignedInputInput;
+  result: DesignedOutputInput;
+  extends: DesignedExtendsInput;
 }
 export type Unit = UnitOf[UnitKind];
 
@@ -112,18 +123,27 @@ const COLLECTION_OF = {
   behavior: 'behaviors',
 } as const satisfies Record<'need' | ElementKind, keyof DesignDocumentInput>;
 
-const PART_SET: Record<PartKind, string> = {
+const PART_SET: Record<OwnedPartKind, string> = {
   rule: 'rules',
   scenario: 'scenarios',
-  property: 'properties',
-  parameter: 'input',
-  result: 'output',
-  extends: 'relations',
 };
 
 const ELEMENT_KINDS = ['module', 'building_block', 'behavior'] as const;
 
-const isPart = (kind: UnitKind): kind is PartKind => kind in PART_SET;
+const isRelationPart = (kind: UnitKind): kind is RelationPartKind =>
+  kind in RELATION_KIND_OF;
+const isPart = (kind: UnitKind): kind is PartKind =>
+  kind in PART_SET || isRelationPart(kind);
+
+/** Whether an item of a change set is the unit: a relation by its key, anything else by its own. */
+function matchesRef(ref: UnitRef, item: unknown): boolean {
+  if (isRelationPart(ref.kind) && 'owner' in ref)
+    return (
+      isRelation(item) &&
+      relationKeyOf(item) === relationKeyOfPart(ref.kind, ref.owner.id, ref.id)
+    );
+  return keyOf(item) === ref.id;
+}
 
 /** Where a new unit goes, or the unit a form revises. */
 export type UnitTarget =
@@ -157,7 +177,8 @@ export type DesignDocEdit =
   | { op: 'add'; ref: UnitRef; unit: Unit; first?: boolean }
   /** `unit` may carry another key than `ref`: an added unit renamed moves, an element with what is under it. */
   | { op: 'write'; ref: UnitRef; unit: Unit }
-  | { op: Removal; ref: UnitRef }
+  /** `type`: a slot's type as the model has it, for a slot whose type the design leaves unsaid. */
+  | { op: Removal; ref: UnitRef; type?: string }
   /** An element the design adds, under another parent — or, a module, at the top. */
   | { op: 'move'; ref: UnitRef; to: string | null }
   /** A part the design adds, written into another owner — a scenario into another rule. */
@@ -183,7 +204,7 @@ export const removalsOf = (state: UnitState): readonly Removal[] =>
 export function unitStateOf(doc: DesignDocumentInput, ref: UnitRef): UnitState {
   const set = setAt(doc, ref);
   if (set === null) return 'unchanged';
-  const matches = (item: unknown) => keyOf(item) === ref.id;
+  const matches = (item: unknown) => matchesRef(ref, item);
   if (set.added?.some(matches)) return 'added';
   if (set.modified?.some(matches)) return 'modified';
   if (set.removed?.some(matches)) return 'removed';
@@ -199,7 +220,7 @@ export function isWritable(doc: DesignDocumentInput, ref: UnitRef): boolean {
 /** What the design writes for a unit; null for one it removes or leaves alone. */
 export function unitOf(doc: DesignDocumentInput, ref: UnitRef): Unit | null {
   const set = setAt(doc, ref);
-  const matches = (item: unknown) => keyOf(item) === ref.id;
+  const matches = (item: unknown) => matchesRef(ref, item);
   return (set?.added?.find(matches) ??
     set?.modified?.find(matches) ??
     null) as Unit | null;
@@ -218,29 +239,15 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
     case 'behavior':
     case 'extends':
       return nameOf(ref.id);
-    case 'result':
-      return refLabelOf(refOfKey(ref.id));
+    case 'result': {
+      const output = unitOf(doc, ref);
+      const type = output === null ? null : typeOf(output as RelationLike);
+      return type === null ? ref.id : nameOf(type);
+    }
     default:
       return ref.id;
   }
 }
-
-/** What a building block extends, as its change set carries it: a relation from the block to the type. */
-function extendsRelation(
-  owner: PartOwner | null,
-  to: string,
-): BuildingBlockExtendsBuildingBlockRelationInput {
-  if (owner === null) throw new Error('an extended type has an owner');
-  return { kind: 'building_block_extends_building_block', from: owner.id, to };
-}
-
-/** The key a change set knows a result by: its type, as the server reads it. */
-export const refKeyOf = (ref: BuildingBlockRefInput): string =>
-  typeof ref === 'string' ? ref : JSON.stringify(ref);
-
-/** A type reference back from the key a change set knows it by. */
-const refOfKey = (key: string): BuildingBlockRefInput =>
-  key.startsWith('{') ? (JSON.parse(key) as BuildingBlockRefInput) : key;
 
 export function applyEdit<Doc extends DesignDocumentInput>(
   doc: Doc,
@@ -249,11 +256,12 @@ export function applyEdit<Doc extends DesignDocumentInput>(
   const { ref } = edit;
   switch (edit.op) {
     case 'add': {
+      const unit = placed(doc, ref, edit.unit);
       const added = updateAt(doc, ref, (set) => ({
         ...set,
         added: edit.first
-          ? [edit.unit, ...(set.added ?? [])]
-          : [...(set.added ?? []), edit.unit],
+          ? [unit, ...(set.added ?? [])]
+          : [...(set.added ?? []), unit],
       }));
       return isElement(ref.kind) ? contained(added, ref.id, 'added') : added;
     }
@@ -262,20 +270,12 @@ export function applyEdit<Doc extends DesignDocumentInput>(
     case 'discard':
       return discarded(doc, ref);
     case 'removeFromSystem': {
+      const key = removalKeyOf(doc, ref, edit.type);
+      const dropped = discarded(doc, ref);
       const removed = updateAt(
-        withoutWithin(discarded(doc, ref), ref.id),
+        isPart(ref.kind) ? dropped : withoutWithin(dropped, ref.id),
         ref,
-        (set) => ({
-          ...set,
-          removed: [
-            ...(set.removed ?? []),
-            ref.kind === 'result'
-              ? refOfKey(ref.id)
-              : ref.kind === 'extends'
-                ? extendsRelation(ref.owner, ref.id)
-                : ref.id,
-          ],
-        }),
+        (set) => ({ ...set, removed: [...(set.removed ?? []), key] }),
       );
       return isElement(ref.kind)
         ? contained(removed, ref.id, 'removed')
@@ -297,7 +297,7 @@ export function applyEdit<Doc extends DesignDocumentInput>(
     case 'restore': {
       const restored = updateAt(doc, ref, (set) => ({
         ...set,
-        removed: set.removed?.filter((key) => keyOf(key) !== ref.id),
+        removed: set.removed?.filter((key) => !matchesRef(ref, key)),
       }));
       return isElement(ref.kind)
         ? uncontained(restored, ref.id, 'removed')
@@ -312,60 +312,86 @@ const isElement = (kind: UnitKind): kind is ElementKind =>
 /** The relation by which an element's parent contains it, by the element's kind. */
 const CONTAINS = {
   module: 'module_contains_module',
-  building_block: 'module_contains_building_block',
-  behavior: 'building_block_exposes_behavior',
+  building_block: 'module_contains_block',
+  behavior: 'exposes',
 } as const;
 
-const containsRelation = (parent: string, id: string) => ({
-  kind: CONTAINS[kindOf(id)],
-  from: parent,
-  to: id,
-});
-
 /**
- * The document with the parent's relations changed. A root module has no
- * parent, and a parent the design removes carries nothing: what is under
- * it goes with it.
+ * The document with the relation that places `id` under its parent among
+ * those it adds or removes. A root module is under nothing, and a parent the
+ * design removes takes what is under it along.
  */
-function relationsOfParent<Doc extends DesignDocumentInput>(
+function contained<Doc extends DesignDocumentInput>(
   doc: Doc,
   id: string,
-  change: (set: LooseSet, parent: string) => LooseSet,
+  part: 'added' | 'removed',
 ): Doc {
   const parent = parentOf(id);
-  if (parent === null) return doc;
-  const kind = kindOf(parent);
-  if (topSetOf(doc, kind).removed?.some((key) => keyOf(key) === parent))
-    return doc;
-  return updateIn(
-    doc as Container,
-    [COLLECTION_OF[kind], 'relations'],
-    [parent],
-    (set) => change(set, parent),
-  ) as Doc;
+  if (parent === null || isRemoved(doc, parent)) return doc;
+  const relation = { kind: CONTAINS[kindOf(id)], from: parent, to: id };
+  const relations = relationsOf(doc);
+  const key = relationKeyOf(relation);
+  if (relations[part]?.some((item) => keyOf(item) === key)) return doc;
+  return {
+    ...doc,
+    relations: { ...relations, [part]: [...(relations[part] ?? []), relation] },
+  };
 }
 
-/** The parent's relations with the one that contains `id`, among those added or removed. */
-const contained = <Doc extends DesignDocumentInput>(
+/** The document without the relation that places `id` under its parent, among those it adds or removes. */
+function uncontained<Doc extends DesignDocumentInput>(
   doc: Doc,
   id: string,
   part: 'added' | 'removed',
-): Doc =>
-  relationsOfParent(doc, id, (set, parent) => ({
-    ...set,
-    [part]: [...(set[part] ?? []), containsRelation(parent, id)],
-  }));
+): Doc {
+  const relations = relationsOf(doc);
+  return {
+    ...doc,
+    relations: {
+      ...relations,
+      [part]: relations[part]?.filter(
+        (item) =>
+          !isRelation(item) ||
+          !CONTAINMENT_KINDS.has(item.kind) ||
+          item.to !== id,
+      ),
+    },
+  };
+}
 
-/** The parent's relations without the one that contains `id`. */
-const uncontained = <Doc extends DesignDocumentInput>(
-  doc: Doc,
-  id: string,
-  part: 'added' | 'removed',
-): Doc =>
-  relationsOfParent(doc, id, (set) => ({
-    ...set,
-    [part]: set[part]?.filter((item) => keyOf(item) !== id),
-  }));
+const isRemoved = (doc: DesignDocumentInput, id: string) =>
+  topSetOf(doc, kindOf(id)).removed?.some((key) => keyOf(key) === id) ?? false;
+
+const relationsOf = (doc: DesignDocumentInput) =>
+  (doc.relations ?? {}) as LooseSet;
+
+/**
+ * What a removal from the system writes for a unit: a relation's key — a
+ * named slot's with the type the model has, which the edit carries, or else
+ * the one the design gives it — and anything else's id or name.
+ */
+function removalKeyOf(
+  doc: DesignDocumentInput,
+  ref: UnitRef,
+  type: string | undefined,
+): unknown {
+  if (!isRelationPart(ref.kind) || !('owner' in ref)) return ref.id;
+  const from = ref.owner.id;
+  if (ref.kind === 'extends')
+    return { kind: RELATION_KIND_OF.extends, from, to: ref.id };
+  const unit = unitOf(doc, ref);
+  const to = type ?? (unit === null ? null : typeOf(unit as RelationLike));
+  if (to === null)
+    throw new Error(
+      `The type of ${ref.id} is not known, so it cannot be removed.`,
+    );
+  return {
+    kind: RELATION_KIND_OF[ref.kind],
+    from,
+    to,
+    name: ref.id,
+  } as DesignedRelationKeyInput;
+}
 
 /** The names of the rules that answer a need, which lose it when it goes. */
 export function rulesTracing(
@@ -503,9 +529,10 @@ interface UnitFieldValues {
   rationale: string;
   /** A scenario's steps, in the order they are read. */
   steps: ScenarioStep[];
-  /** A type reference: a property's, an input's, an output's, a block extended. */
-  ref: BuildingBlockRefInput;
-  optional: boolean;
+  /** A slot's type — a property's, an input's, an output's — or a block extended. */
+  ref: string;
+  /** How many values a property, an input or an output holds. */
+  cardinality: Cardinality | '';
 }
 export type UnitFieldName = keyof UnitFieldValues;
 
@@ -530,12 +557,7 @@ const key = (name: UnitFieldName, prop: string = name): FieldSpec => ({
   key: true,
 });
 
-const TYPED_PART = [
-  key('name'),
-  field('ref', 'type'),
-  field('description'),
-  field('optional'),
-];
+const NAMED_SLOT = [key('name'), field('ref', 'to'), field('cardinality')];
 
 export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
   need: [field('name'), field('stakeholder'), field('statement')],
@@ -562,9 +584,9 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
     field('rationale'),
   ],
   scenario: [key('name'), field('description'), field('steps')],
-  property: TYPED_PART,
-  parameter: TYPED_PART,
-  result: [key('ref', 'type'), field('description'), field('optional')],
+  property: NAMED_SLOT,
+  parameter: NAMED_SLOT,
+  result: [field('ref', 'to'), field('cardinality')],
   extends: [key('ref', 'to')],
 };
 
@@ -607,7 +629,7 @@ export const PRIMITIVES = [
   'primitive|datetime',
   'primitive|duration',
   'primitive|uuid',
-] as const;
+] as const satisfies readonly `primitive|${PrimitiveName}`[];
 
 /** What a new unit may leave out: the model never has them, so there is nothing to keep. */
 const isOptionalField = (name: UnitFieldName): boolean =>
@@ -633,7 +655,7 @@ const BLANK: UnitFieldValues = {
     { kind: 'then', text: '' },
   ],
   ref: '',
-  optional: false,
+  cardinality: '1',
 };
 
 export interface UnitDraft {
@@ -680,8 +702,8 @@ export function idOfDraft(
   const kind = kindOfTarget(target);
   const { name, ref } = draft.fields;
   if (isPart(kind)) {
-    if (kind === 'result' || kind === 'extends')
-      return refKeyOf(ref?.value ?? '');
+    if (kind === 'result') return OUTPUT_NAME;
+    if (kind === 'extends') return ref?.value ?? '';
     return name?.value.trim() ?? '';
   }
   if (kind === 'need')
@@ -698,7 +720,11 @@ export function idOfDraft(
   return childIdOf(kind, parentOf(current.id), name.value.trim());
 }
 
-/** The unit a draft writes, everything it does not edit — its rules, its scenarios — kept. */
+/**
+ * The unit a draft writes, everything it does not edit — its rules, its
+ * scenarios — kept. A relation part is written from the element that owns
+ * it, which the draft does not hold.
+ */
 export function unitFromDraft(
   kind: UnitKind,
   draft: UnitDraft,
@@ -706,7 +732,11 @@ export function unitFromDraft(
   id: string,
   owner: PartOwner | null = null,
 ): Unit {
-  if (kind === 'extends') return extendsRelation(owner, id);
+  if (isRelationPart(kind)) {
+    if (owner === null)
+      throw new Error(`A ${UNIT_LABEL[kind]} is written from its element.`);
+    return relationFromDraft(kind, draft, original, id, owner);
+  }
   const fields = Object.fromEntries(
     UNIT_FIELDS[kind].map((spec) => {
       const fieldDraft = trimmed<unknown>(draft.fields[spec.name]!);
@@ -726,6 +756,56 @@ export function unitFromDraft(
   );
   const unit = { ...(original as object | null), ...fields };
   return (isPart(kind) ? unit : { ...unit, id }) as Unit;
+}
+
+function relationFromDraft(
+  kind: RelationPartKind,
+  draft: UnitDraft,
+  original: Unit | null,
+  id: string,
+  owner: PartOwner,
+): Unit {
+  const relation = { kind: RELATION_KIND_OF[kind], from: owner.id };
+  if (kind === 'extends') return { ...relation, to: id } as Unit;
+  const written = (name: UnitFieldName, prop: string) =>
+    fieldFrom<unknown>(
+      trimmed<unknown>(draft.fields[name]!),
+      original === null ? undefined : fieldOf(original, prop),
+    );
+  const slot = {
+    ...relation,
+    name: id,
+    to: written('ref', 'to'),
+    cardinality: written('cardinality', 'cardinality'),
+  };
+  // A parameter keeps the place it has; a new one is placed when it is added.
+  return (
+    kind === 'parameter' && original !== null
+      ? { ...slot, position: fieldOf(original, 'position') }
+      : slot
+  ) as Unit;
+}
+
+/**
+ * A parameter added takes the place after the last the design gives the
+ * behavior. The design does not see the scanned parameters, so one added
+ * to a scanned behavior may share a place with one of theirs; they then
+ * read in the order they stand.
+ */
+function placed(doc: DesignDocumentInput, ref: UnitRef, unit: Unit): Unit {
+  if (ref.kind !== 'parameter' || !('owner' in ref)) return unit;
+  if ('position' in (unit as object)) return unit;
+  const taken = writtenIn(relationsFrom(doc, 'parameter', ref.owner.id))
+    .map(({ position }) => valueOf(position))
+    .filter((position): position is number => typeof position === 'number');
+  return {
+    ...unit,
+    position: {
+      changed: true,
+      value: Math.max(0, ...taken) + 1,
+      author: 'human',
+    },
+  } as Unit;
 }
 
 /** Whether a field may be changed: a key only while the design adds its part. */
@@ -754,6 +834,11 @@ export function draftErrors(
     errors['fields.type.value'] = 'Choose a type.';
   if (ref?.written && ref.value === '')
     errors['fields.ref.value'] = 'Choose a type.';
+  if (
+    draft.fields.cardinality?.written &&
+    draft.fields.cardinality.value === ''
+  )
+    errors['fields.cardinality.value'] = 'Choose how many it holds.';
   if (category?.written && category.value === '')
     errors['fields.category.value'] = 'Choose a category.';
   if (ruleType?.written && ruleType.value === '')
@@ -933,7 +1018,11 @@ const VIOLATION_MESSAGE: Record<DesignDocViolation['reason'], string> = {
   ruleTypeOutsideCategory: 'This rule type is not one of its category.',
   businessRuleOnModule: 'A module holds no business rules.',
   uncontained:
-    'The element this one is under does not list it among its relations.',
+    'The design does not add the relation that places this element under the one it is in.',
+  unknownRelationEnd:
+    'Neither this design nor the scanned model has this element.',
+  containmentOutsideIdPath:
+    'What holds what is in the ids: a module contains only what its id names under it.',
 };
 
 export const violationsInWords = (
@@ -977,12 +1066,14 @@ function serverPathOf(
   ref: UnitRef,
   state: UnitState,
 ): string {
+  if (isRelationPart(ref.kind) && 'owner' in ref)
+    return `relations.${state}[${relationKeyOfPart(ref.kind, ref.owner.id, ref.id)}]`;
   const owner = ownerRefOf(ref);
   const at = `[${ref.id}]`;
   if (owner === null)
     return `${COLLECTION_OF[ref.kind as 'need' | ElementKind]}.${state}${at}`;
   const ownerState = unitStateOf(doc, owner);
-  return `${serverPathOf(doc, owner, ownerState === 'unchanged' ? 'modified' : ownerState)}.${PART_SET[ref.kind as PartKind]}.${state}${at}`;
+  return `${serverPathOf(doc, owner, ownerState === 'unchanged' ? 'modified' : ownerState)}.${PART_SET[ref.kind as OwnedPartKind]}.${state}${at}`;
 }
 
 // --- The document's change sets, read loosely: every unit is known by its key ---
@@ -1010,9 +1101,8 @@ function keyOf(item: unknown): string {
   if (typeof item === 'string') return item;
   if (typeof item === 'object' && item !== null) {
     if ('id' in item && typeof item.id === 'string') return item.id;
+    if (isRelation(item)) return relationKeyOf(item);
     if ('name' in item && typeof item.name === 'string') return item.name;
-    if ('to' in item && typeof item.to === 'string') return item.to;
-    if ('type' in item) return keyOf(item.type);
   }
   return JSON.stringify(item);
 }
@@ -1029,14 +1119,13 @@ const keyValueOf = (unit: Unit, spec: FieldSpec): unknown =>
 /** The sets from the top of the document down to the unit's own, and the owners between them. */
 function locationOf(ref: UnitRef): { sets: string[]; keys: string[] } {
   if (!('owner' in ref)) return { sets: [COLLECTION_OF[ref.kind]], keys: [] };
+  if (isRelationPart(ref.kind)) return { sets: ['relations'], keys: [] };
   const { owner } = ref;
+  const partSet = PART_SET[ref.kind as OwnedPartKind];
   return owner.rule === undefined
-    ? {
-        sets: [COLLECTION_OF[owner.kind], PART_SET[ref.kind]],
-        keys: [owner.id],
-      }
+    ? { sets: [COLLECTION_OF[owner.kind], partSet], keys: [owner.id] }
     : {
-        sets: [COLLECTION_OF[owner.kind], 'rules', PART_SET[ref.kind]],
+        sets: [COLLECTION_OF[owner.kind], 'rules', partSet],
         keys: [owner.id, owner.rule],
       };
 }
@@ -1166,7 +1255,7 @@ function written<Doc extends DesignDocumentInput>(
   const replaced = updateAt(doc, ref, (set) => ({
     ...set,
     [state]: (set[state] ?? []).map((item) =>
-      keyOf(item) === ref.id ? unit : item,
+      matchesRef(ref, item) ? unit : item,
     ),
   }));
   const id = keyOf(unit);
@@ -1182,8 +1271,8 @@ function discarded<Doc extends DesignDocumentInput>(
   const state = unitStateOf(doc, ref);
   const dropped = updateAt(doc, ref, (set) => ({
     ...set,
-    added: set.added?.filter((item) => keyOf(item) !== ref.id),
-    modified: set.modified?.filter((item) => keyOf(item) !== ref.id),
+    added: set.added?.filter((item) => !matchesRef(ref, item)),
+    modified: set.modified?.filter((item) => !matchesRef(ref, item)),
   }));
   if (state !== 'added') return dropped;
   // Nothing the design added can stand under one it no longer adds, and no rule answers a need it no longer states.
@@ -1192,7 +1281,12 @@ function discarded<Doc extends DesignDocumentInput>(
   return uncontained(withoutWithin(dropped, ref.id), ref.id, 'added');
 }
 
-/** The document without the elements under `ancestor`, in any part of their change sets. */
+/**
+ * The document without the elements under `ancestor`, in any part of their
+ * change sets, and without the relations from them or ending at them, the
+ * ancestor's own included: a relation stands on both its ends. A slot typed
+ * by one of them stays, for its holder to be retyped.
+ */
 function withoutWithin<Doc extends DesignDocumentInput>(
   doc: Doc,
   ancestor: string,
@@ -1201,6 +1295,20 @@ function withoutWithin<Doc extends DesignDocumentInput>(
   const outside = (item: unknown) => {
     const id = keyOf(item);
     return id === ancestor || !isWithin(id, ancestor);
+  };
+  const apart = (item: unknown) =>
+    !isRelation(item) ||
+    (!isWithin(item.from, ancestor) &&
+      !(typeof item.to === 'string' && isWithin(item.to, ancestor)));
+  const relations = relationsOf(doc);
+  const kept = {
+    ...doc,
+    relations: {
+      ...relations,
+      added: relations.added?.filter(apart),
+      modified: relations.modified?.filter(apart),
+      removed: relations.removed?.filter(apart),
+    },
   };
   return ELEMENT_KINDS.reduce((next, kind) => {
     const set = topSetOf(next, kind);
@@ -1213,7 +1321,7 @@ function withoutWithin<Doc extends DesignDocumentInput>(
         removed: set.removed?.filter(outside),
       },
     };
-  }, doc);
+  }, kept);
 }
 
 function untraced<Doc extends DesignDocumentInput>(
@@ -1269,7 +1377,7 @@ function elementsWithRules(doc: DesignDocumentInput): ElementWithRules[] {
 
 /**
  * The document with an element's id moved, and every id under it: wherever
- * the document names one — a key, a relation's target, a property's type.
+ * the document names one — a key, a relation's end, a slot's type.
  */
 function renamed<Node>(node: Node, from: string, to: string): Node {
   if (typeof node === 'string') {

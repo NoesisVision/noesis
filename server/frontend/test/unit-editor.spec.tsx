@@ -180,7 +180,7 @@ describe('the fields of a part', () => {
     expect(html).toMatch(/aria-label="Rationale"/);
   });
 
-  it('type a property, which may be a collection and may be left out', () => {
+  it('type a property, and say how many of it it holds, exactly one at first', () => {
     const html = render(
       <Fields
         kind="property"
@@ -188,8 +188,10 @@ describe('the fields of a part', () => {
         owner={{ kind: 'building_block', id: BLOCK }}
       />,
     );
-    expect(html).toContain('A collection of it');
-    expect(html).toContain('It may be left out');
+    expect(html).toMatch(/aria-label="Type"/);
+    expect(html).toMatch(/aria-label="How many"/);
+    expect(html).toContain('value="1 — exactly one"');
+    expect(html).not.toContain('Description');
   });
 
   it('starts a new scenario at given, when and then, each a step to switch, remove or add one after', () => {
@@ -232,17 +234,6 @@ const parts: DesignDocumentInput = {
             },
           ],
         },
-        properties: {
-          added: [
-            {
-              name: 'amount',
-              type: { value: 'primitive|decimal' },
-              description: { value: 'How much.' },
-              optional: { value: false },
-            },
-          ],
-          modified: [{ name: 'currency', description: { value: 'Which.' } }],
-        },
         scenarios: {
           added: [
             {
@@ -261,6 +252,26 @@ const parts: DesignDocumentInput = {
       },
     ],
     removed: ['building_block|pay.Old'],
+  },
+  relations: {
+    added: [
+      {
+        kind: 'has_state',
+        from: BLOCK,
+        name: 'amount',
+        to: { value: 'primitive|decimal' },
+        cardinality: { value: '1' },
+      },
+    ],
+    modified: [
+      {
+        kind: 'has_state',
+        from: BLOCK,
+        name: 'currency',
+        to: { changed: false },
+        cardinality: { value: '0..1' },
+      },
+    ],
   },
 };
 const writing = {
@@ -304,20 +315,17 @@ describe('a rule card', () => {
 
 describe('a property tile', () => {
   const grid = (
-    <PropertyGrid
-      items={propertyItems(BLOCK, block.properties)}
-      owner={owner}
-    />
+    <PropertyGrid items={propertyItems(parts, BLOCK)} owner={owner} />
   );
 
-  it("writes its description in place, and an added one's name; never its type", () => {
+  it("writes an added one's name in place; never its type", () => {
     const html = render(
       <UnitEditingContext.Provider value={writing}>
         {grid}
       </UnitEditingContext.Provider>,
     );
-    // `amount` is added: its name too; `currency` is the model's, kept by name.
-    expect(editable(html)).toEqual(['name', 'description', 'description']);
+    // `amount` is added: its name; `currency` is the model's, kept by name.
+    expect(editable(html)).toEqual(['name']);
   });
 
   it('only reads where the document is read only', () => {

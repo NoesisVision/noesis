@@ -40,14 +40,15 @@ import { borderTowards } from '../src/features/system-model/ui/exploration/relat
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
 import { MantineProvider } from '../src/shared/design-system/provider';
 
-const source = { path: 'X.java', line: null };
+const source = { path: 'X.java', startLine: null, endLine: null };
 
-/** The model with each module and block containing what its id says it does, as a scan writes it. */
+/** The model with each module and block containing what its id says it does, as a scan writes it, beside the relations it is given. */
 function contained<
   Model extends {
     modules: { id: string }[];
     buildingBlocks: { id: string }[];
     behaviors: { id: string }[];
+    relations?: unknown[];
   },
 >(model: Model): Model {
   const under = (ids: string[], parent: string, kind: string) =>
@@ -65,24 +66,34 @@ function contained<
   const behaviorIds = model.behaviors.map(({ id }) => id);
   return {
     ...model,
-    modules: model.modules.map((module) => ({
-      ...module,
-      relations: [
+    relations: [
+      ...model.modules.flatMap((module) => [
         ...under(moduleIds, module.id, 'module_contains_module'),
-        ...under(blockIds, module.id, 'module_contains_building_block'),
-      ],
-    })),
-    buildingBlocks: model.buildingBlocks.map((block) => ({
-      ...block,
-      relations: [
-        ...under(behaviorIds, block.id, 'building_block_exposes_behavior'),
-        ...('relations' in block && Array.isArray(block.relations)
-          ? block.relations
-          : []),
-      ],
-    })),
+        ...under(blockIds, module.id, 'module_contains_block'),
+      ]),
+      ...model.buildingBlocks.flatMap((block) =>
+        under(behaviorIds, block.id, 'exposes'),
+      ),
+      ...(model.relations ?? []),
+    ],
   };
 }
+
+/** A named slot of a scan: a piece of state, an input, an output. */
+const slot = (
+  kind: 'has_state' | 'has_input' | 'has_output',
+  from: string,
+  name: string,
+  to: string,
+  cardinality: '1' | '0..1' | '*' = '1',
+) => ({
+  kind,
+  from,
+  name,
+  to,
+  cardinality,
+  ...(kind === 'has_input' ? { position: 1 } : {}),
+});
 
 const model = contained({
   id: '01a15509-0909-725f-8ab8-25ab23fc10d3',
@@ -104,21 +115,6 @@ const model = contained({
       name: 'Order',
       type: 'aggregate',
       description: null,
-      relations: [],
-      properties: [
-        {
-          name: 'lines',
-          type: { collectionOf: 'building_block|shop.orders.Line' },
-          description: null,
-          optional: false,
-        },
-        {
-          name: 'id',
-          type: 'primitive|uuid',
-          description: null,
-          optional: false,
-        },
-      ],
       rules: [],
       scenarios: [],
       source,
@@ -128,8 +124,6 @@ const model = contained({
       name: 'Line',
       type: 'value_object',
       description: null,
-      relations: [],
-      properties: [],
       rules: [],
       scenarios: [],
       source,
@@ -142,20 +136,31 @@ const model = contained({
       type: 'Command',
       description: null,
       visibility: { kind: 'private' },
-      input: [
-        {
-          name: 'line',
-          type: 'building_block|shop.orders.Line',
-          description: null,
-          optional: false,
-        },
-      ],
-      output: [],
-      relations: [],
       rules: [],
       scenarios: [],
       source,
     },
+  ],
+  relations: [
+    slot(
+      'has_state',
+      'building_block|shop.orders.Order',
+      'lines',
+      'building_block|shop.orders.Line',
+      '*',
+    ),
+    slot(
+      'has_state',
+      'building_block|shop.orders.Order',
+      'id',
+      'primitive|uuid',
+    ),
+    slot(
+      'has_input',
+      'behavior|shop.orders.Order.place',
+      'line',
+      'building_block|shop.orders.Line',
+    ),
   ],
 }) as unknown as SystemModel;
 
@@ -179,21 +184,75 @@ describe('the exploration of a system model', () => {
     ]);
   });
 
-  it('finds use in property and parameter types, through collections, never of primitives', () => {
-    expect(exploration.uses).toEqual([
+  it('reads state and input apart, whatever their cardinality, never of primitives', () => {
+    expect(exploration.edges.state).toEqual([
       ['building_block|shop.orders.Order', 'building_block|shop.orders.Line'],
+    ]);
+    expect(exploration.edges.input).toEqual([
       ['behavior|shop.orders.Order.place', 'building_block|shop.orders.Line'],
     ]);
+    expect(exploration.edges.output).toEqual([]);
+  });
+
+  it('draws what a block extends as an edge of its own, and the calls in their order', () => {
+    const [order] = model.buildingBlocks;
+    const place = model.behaviors[0]!;
+    const behaviorOn = (id: string) => ({ ...place, id, name: id });
+    const read = explorationOf({
+      ...model,
+      behaviors: [
+        place,
+        behaviorOn('behavior|shop.orders.Line.check'),
+        behaviorOn('behavior|shop.orders.Line.price'),
+      ],
+      relations: [
+        ...model.relations,
+        {
+          kind: 'extends',
+          from: 'building_block|shop.orders.Line',
+          to: order!.id,
+        },
+        {
+          kind: 'behavior_invokes_behavior',
+          from: place.id,
+          to: 'behavior|shop.orders.Line.price',
+          order: 2,
+        },
+        {
+          kind: 'behavior_invokes_behavior',
+          from: place.id,
+          to: 'behavior|shop.orders.Line.check',
+          order: 1,
+        },
+      ],
+    } as unknown as SystemModel);
+    expect(read.edges.extends).toEqual([
+      ['building_block|shop.orders.Line', 'building_block|shop.orders.Order'],
+    ]);
+    expect(read.edges.invokes.map(([, called]) => called)).toEqual([
+      'behavior|shop.orders.Line.check',
+      'behavior|shop.orders.Line.price',
+    ]);
+    const graph = graphOf(read, {
+      hidden: new Set(),
+      relations: new Set(['extends']),
+    });
+    expect(graph.relations.map(({ id }) => id)).toEqual([
+      'extends:building_block|shop.orders.Line->building_block|shop.orders.Order',
+    ]);
+    expect(
+      neighboursOf(read).get('building_block|shop.orders.Order')!.extendedBy,
+    ).toEqual(['building_block|shop.orders.Line']);
   });
 
   it('nests elements in their nearest shown container', () => {
-    const graph = draw(['contains', 'uses'], ['module']);
+    const graph = draw(['contains', 'state', 'input'], ['module']);
     expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
       ['building_block|shop.orders.Order', null],
       ['building_block|shop.orders.Line', null],
       ['behavior|shop.orders.Order.place', 'building_block|shop.orders.Order'],
     ]);
-    expect(graph.relations.map(({ kind }) => kind)).toEqual(['uses', 'uses']);
+    expect(graph.relations.map(({ kind }) => kind)).toEqual(['state', 'input']);
   });
 
   it('draws containment either way round as nesting, never as an edge', () => {
@@ -208,7 +267,7 @@ describe('the exploration of a system model', () => {
   });
 
   it('leaves out a relation to a hidden element rather than moving it', () => {
-    const graph = draw(['uses'], ['value_object']);
+    const graph = draw(['state', 'input'], ['value_object']);
     expect(graph.relations).toEqual([]);
   });
 
@@ -218,25 +277,21 @@ describe('the exploration of a system model', () => {
       ...model.behaviors[0]!,
       id: 'behavior|shop.orders.Line.check',
       name: 'check',
-      input: [],
     };
     const calling = explorationOf({
       ...model,
-      behaviors: [
+      behaviors: [model.behaviors[0]!, check],
+      relations: [
+        ...model.relations,
         {
-          ...model.behaviors[0]!,
-          relations: [
-            {
-              kind: 'behavior_invokes_behavior',
-              from: model.behaviors[0]!.id,
-              to: check.id,
-            },
-          ],
+          kind: 'behavior_invokes_behavior',
+          from: model.behaviors[0]!.id,
+          to: check.id,
+          order: 1,
         },
-        { ...check, relations: [] },
       ],
     } as unknown as SystemModel);
-    expect(calling.invokes).toEqual([
+    expect(calling.edges.invokes).toEqual([
       ['behavior|shop.orders.Order.place', 'behavior|shop.orders.Line.check'],
     ]);
     const graph = graphOf(calling, {
@@ -260,34 +315,30 @@ describe('the exploration of a system model', () => {
   });
 
   it('draws no edge between a card and the frame it is drawn inside', () => {
-    // The order's place takes an order: it uses the block it belongs to.
+    // The order's place takes an order: its input is the block it belongs to.
     const own = explorationOf({
       ...model,
-      behaviors: [
-        {
-          ...model.behaviors[0]!,
-          input: [
-            {
-              name: 'order',
-              type: 'building_block|shop.orders.Order',
-              description: null,
-              optional: false,
-            },
-          ],
-        },
+      relations: [
+        ...model.relations,
+        slot(
+          'has_input',
+          'behavior|shop.orders.Order.place',
+          'order',
+          'building_block|shop.orders.Order',
+        ),
       ],
     } as unknown as SystemModel);
     const id =
-      'uses:behavior|shop.orders.Order.place->building_block|shop.orders.Order';
+      'input:behavior|shop.orders.Order.place->building_block|shop.orders.Order';
     const nested = graphOf(own, {
       hidden: new Set(),
-      relations: new Set(['contains', 'uses']),
+      relations: new Set(['contains', 'input']),
     });
     expect(nested.relations.map(({ id }) => id)).not.toContain(id);
     // Not nested, the two are cards apart, and the edge is drawn.
     const apart = graphOf(own, {
       hidden: new Set(),
-      relations: new Set(['uses']),
+      relations: new Set(['input']),
     });
     expect(apart.relations.map(({ id }) => id)).toContain(id);
   });
@@ -311,7 +362,10 @@ it('lays out every relation and every kind in the visibility panel', () => {
   expect(RELATIONS.map(({ kind }) => kind)).toEqual([
     'contains',
     'isPartOf',
-    'uses',
+    'state',
+    'input',
+    'output',
+    'extends',
     'invokes',
   ]);
   const html = renderToStaticMarkup(
@@ -328,7 +382,15 @@ it('lays out every relation and every kind in the visibility panel', () => {
   );
   expect(html).toMatch(/<h2[^>]*>Visibility<\/h2>/);
   expect(html).toContain('aria-label="Close the visibility panel"');
-  for (const label of ['Contains', 'Is part of', 'Uses', 'Invokes'])
+  for (const label of [
+    'Contains',
+    'Is part of',
+    'State',
+    'Input',
+    'Output',
+    'Extends',
+    'Invokes',
+  ])
     expect(html).toContain(`>${label}<`);
   expect(html).not.toContain('Not implemented');
   expect(html).toContain('Value Object');
@@ -346,7 +408,7 @@ describe('placing the exploration', () => {
     if (stubbed) Object.assign(globalThis, { document: {} });
     try {
       return await layoutExploration(
-        draw(['contains', 'uses']),
+        draw(['contains', 'state', 'input']),
         algorithm,
         direction,
       );
@@ -372,7 +434,7 @@ describe('placing the exploration', () => {
     expect(order!.width).toBeGreaterThan(behavior!.width);
   });
 
-  it('runs the uses edge down or across, as asked', async () => {
+  it('runs the state edge down or across, as asked', async () => {
     const at = (placed: Awaited<ReturnType<typeof place>>, id: string) =>
       placed.elements.find(({ element }) => element.id === id)!;
     const down = await place('vertical');
@@ -416,13 +478,13 @@ describe('a floating edge', () => {
 
 describe('the selection', () => {
   it('joins an element to what its drawn relations and its nesting join it to', () => {
-    const graph = draw(['contains', 'uses']);
+    const graph = draw(['contains', 'state', 'input']);
     const { relations, elements } = relatedTo(
       graph,
       'building_block|shop.orders.Order',
     );
     expect([...relations]).toEqual([
-      'uses:building_block|shop.orders.Order->building_block|shop.orders.Line',
+      'state:building_block|shop.orders.Order->building_block|shop.orders.Line',
     ]);
     expect([...elements].sort()).toEqual([
       'behavior|shop.orders.Order.place',
@@ -442,7 +504,7 @@ describe('the selection', () => {
   });
 
   it('draws a card as a button that says where it stands to the selection', () => {
-    const graph = draw(['uses']);
+    const graph = draw(['state', 'input']);
     const line = graph.elements.find(
       ({ id }) => id === 'building_block|shop.orders.Line',
     )!;
@@ -562,7 +624,7 @@ describe('elements put in or taken out one by one', () => {
     picks = picked(picks, 'behavior|shop.orders.Order.place', false);
     const graph = graphOf(exploration, {
       hidden: new Set(['value_object']),
-      relations: new Set(['contains', 'uses']),
+      relations: new Set(['contains', 'state', 'input']),
       picks,
     });
     const ids = graph.elements.map(({ id }) => id);
@@ -649,13 +711,16 @@ describe('the way into the picker', () => {
 describe('whom each element reaches', () => {
   const neighbours = neighboursOf(exploration);
 
-  it('reads containment and use from both sides', () => {
+  it('reads containment and state from both sides', () => {
     const order = neighbours.get('building_block|shop.orders.Order')!;
     expect(order.isPartOf).toEqual(['module|shop.orders']);
-    expect(order.uses).toContain('building_block|shop.orders.Line');
-    expect(neighbours.get('building_block|shop.orders.Line')!.usedBy).toContain(
-      'building_block|shop.orders.Order',
-    );
+    expect(order.hasState).toContain('building_block|shop.orders.Line');
+    expect(
+      neighbours.get('building_block|shop.orders.Line')!.stateOf,
+    ).toContain('building_block|shop.orders.Order');
+    expect(
+      neighbours.get('building_block|shop.orders.Line')!.inputOf,
+    ).toContain('behavior|shop.orders.Order.place');
     expect(neighbours.get('module|shop.orders')!.contains).toContain(
       'building_block|shop.orders.Order',
     );
@@ -663,45 +728,55 @@ describe('whom each element reaches', () => {
 });
 
 describe('a chain followed up to the next of its type', () => {
-  const block = (name: string, type: string, uses: string[] = []) => ({
+  const block = (name: string, type: string) => ({
     ...model.buildingBlocks[1]!,
     id: `building_block|shop.orders.${name}`,
     name,
     type,
-    properties: uses.map((used) => ({
-      name: used,
-      type: `building_block|shop.orders.${used}`,
-      description: null,
-      optional: false,
-    })),
   });
-  const behavior = (on: string, name: string, invokes: string[] = []) => ({
+  const behavior = (on: string, name: string) => ({
     ...model.behaviors[0]!,
     id: `behavior|shop.orders.${on}.${name}`,
     name,
-    input: [],
-    relations: invokes.map((called) => ({
-      kind: 'behavior_invokes_behavior',
-      from: `behavior|shop.orders.${on}.${name}`,
-      to: `behavior|shop.orders.${called}`,
-    })),
+  });
+  const holds = (name: string, held: string) =>
+    slot(
+      'has_state',
+      `building_block|shop.orders.${name}`,
+      held,
+      `building_block|shop.orders.${held}`,
+    );
+  const calls = (caller: string, called: string) => ({
+    kind: 'behavior_invokes_behavior',
+    from: `behavior|shop.orders.${caller}`,
+    to: `behavior|shop.orders.${called}`,
+    order: 1,
   });
   const chained = explorationOf(
     contained({
       ...model,
       buildingBlocks: [
-        block('Price', 'value_object', ['Product']),
-        block('Product', 'entity', ['Money']),
-        block('Money', 'value_object', ['Currency']),
+        block('Price', 'value_object'),
+        block('Product', 'entity'),
+        block('Money', 'value_object'),
         block('Currency', 'value_object'),
         block('Pricing', 'domain_service'),
       ],
       behaviors: [
-        behavior('Price', 'apply', ['Pricing.quote']),
-        behavior('Pricing', 'quote', ['Pricing.round']),
-        behavior('Pricing', 'round', ['Money.round']),
-        behavior('Money', 'round', ['Currency.scale']),
+        behavior('Price', 'apply'),
+        behavior('Pricing', 'quote'),
+        behavior('Pricing', 'round'),
+        behavior('Money', 'round'),
         behavior('Currency', 'scale'),
+      ],
+      relations: [
+        holds('Price', 'Product'),
+        holds('Product', 'Money'),
+        holds('Money', 'Currency'),
+        calls('Price.apply', 'Pricing.quote'),
+        calls('Pricing.quote', 'Pricing.round'),
+        calls('Pricing.round', 'Money.round'),
+        calls('Money.round', 'Currency.scale'),
       ],
     }) as unknown as SystemModel,
   );
@@ -709,15 +784,15 @@ describe('a chain followed up to the next of its type', () => {
   const elements = new Map(chained.elements.map((each) => [each.id, each]));
   const follow = (
     id: string,
-    reach: 'uses' | 'invokes' | 'invokedBy',
+    reach: 'hasState' | 'invokes' | 'invokedBy',
     depth?: number,
   ) =>
     chainOf(neighbours, elements, id, reach, depth).map((each) =>
       each.replace(/^\w+\|shop\.orders\./, ''),
     );
 
-  it('follows use through other types and stops at the first of its own', () => {
-    expect(follow('building_block|shop.orders.Price', 'uses')).toEqual([
+  it('follows state through other types and stops at the first of its own', () => {
+    expect(follow('building_block|shop.orders.Price', 'hasState')).toEqual([
       'Product',
       'Money',
     ]);
@@ -739,7 +814,7 @@ describe('a chain followed up to the next of its type', () => {
       'Pricing.quote',
       'Pricing.round',
     ]);
-    expect(follow('building_block|shop.orders.Price', 'uses', 1)).toEqual([
+    expect(follow('building_block|shop.orders.Price', 'hasState', 1)).toEqual([
       'Product',
     ]);
   });
@@ -1193,7 +1268,7 @@ describe('what goes when an element is taken off', () => {
   it('takes only what was named when containment is not drawn', () => {
     const flat = graphOf(exploration, {
       hidden: new Set(),
-      relations: new Set(['uses']),
+      relations: new Set(['state']),
     });
     expect(removalOf(flat, ['module|shop.orders'])).toEqual([
       'module|shop.orders',
