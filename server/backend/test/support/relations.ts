@@ -57,7 +57,7 @@ export const invokesOf = (model: Built, behavior: string): string[] =>
 export const invokedTargetsOf = (model: Built, behavior: string): string[] =>
   from(model, 'behavior_invokes_behavior', behavior)
     .map((r) => r.to)
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
 
 /** The behaviors a block exposes, in the model's order. */
 export const exposedBy = (model: Built, block: string): string[] =>
