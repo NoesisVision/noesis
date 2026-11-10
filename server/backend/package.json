@@ -17,6 +17,7 @@
     "test:e2e:toolchain": "bun test --parallel ./test/e2e-toolchain/"
   },
   "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.316",
     "@hono/standard-validator": "^0.4.0",
     "@logtape/file": "^2.3.4",
     "@logtape/hono": "^2.3.4",

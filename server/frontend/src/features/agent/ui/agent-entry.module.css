@@ -1,0 +1,152 @@
+/* What a message starts, in small capitals over the words. */
+.caption {
+  margin-bottom: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--noesis-tone-light-color);
+}
+
+/* What the person said: a tinted bubble on the right, as a chat has it. */
+.user {
+  align-self: flex-end;
+  max-width: 88%;
+  padding: 8px 12px;
+  border-radius: 14px 14px 4px 14px;
+  background-color: var(--noesis-tone-light);
+  color: var(--mantine-color-text);
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* What the agent said: plain prose, the full width, in the page's type. */
+.assistant.assistant {
+  font-size: var(--mantine-font-size-sm);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+/* Still arriving: shown as typed, since the markdown is not whole yet. */
+.streaming.streaming {
+  white-space: pre-wrap;
+}
+
+/*
+ * The editor sets its own type; read in the panel the markdown takes the
+ * panel's. Named twice, and with the editable root, to win over the editor.
+ */
+.assistant.assistant [contenteditable] {
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+
+  & p {
+    margin-block: 0 6px;
+  }
+
+  & p:last-child {
+    margin-bottom: 0;
+  }
+
+  & ul,
+  & ol {
+    margin-block: 0 6px;
+    padding-inline-start: 18px;
+  }
+
+  & li,
+  & li p {
+    margin: 0;
+  }
+
+  & h1,
+  & h2,
+  & h3,
+  & h4 {
+    margin-block: 8px 4px;
+    font-size: var(--mantine-font-size-sm);
+    font-weight: 600;
+  }
+
+  & pre {
+    font-size: 12px;
+  }
+}
+
+/* A tool the agent ran: one quiet line, its state at the end. */
+.tool {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 2px 0;
+  font-size: 12px;
+  color: var(--noesis-secondary-text);
+
+  & svg {
+    flex: none;
+  }
+}
+
+.toolName {
+  flex: none;
+  font-weight: 600;
+}
+
+.toolSummary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 11px;
+}
+
+/* The agent waits on the person: a card the eye lands on. */
+.ask {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--noesis-rail-border);
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+}
+
+.askHeader.askHeader {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--noesis-secondary-text);
+}
+
+/* A note from the service about the session: small, dimmed, centred. */
+.note.note {
+  align-self: center;
+  text-align: center;
+  font-size: 11px;
+  color: var(--noesis-secondary-text);
+}
+
+.attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  background-color: light-dark(rgba(255, 255, 255, 0.6), rgba(0, 0, 0, 0.25));
+}
+
+/* All of what a call would do, however long: read in place, scrolled. */
+.detail.detail {
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

@@ -7,6 +7,17 @@
 }
 
 /*
+ * The agent's bar runs along the foot of the page: the page keeps that much
+ * clear below its content, and a view that fills the window's height
+ * (`design-doc-surface`) takes it off its own.
+ */
+.main.main[data-agent-foot] {
+  --noesis-agent-foot: 68px;
+
+  padding-bottom: calc(var(--app-shell-padding) + var(--noesis-agent-foot));
+}
+
+/*
  * Beside the rail, the page is a sheet of its own, set into the top bar and the rail: behind
  * it their tint runs on unbroken, and the sheet's top left corner is rounded,
  * edged in the rail's faint line. Fixed where the bar and the rail leave it,

@@ -33,6 +33,8 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
+import { useDiagramApplier } from '../../diagram-applier.tsx';
+import { resolveDiagramPlan } from '../../diagram-plan.ts';
 import {
   choiceWithin,
   type DrawnRelation,
@@ -661,6 +663,54 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     bringIn(all);
   }, [onShowAll, bringIn, exploration]);
   const clear = useCallback(() => setChoice(NOTHING_CHOSEN), []);
+  // What the agent's plans are applied through, while this diagram is on
+  // the page: each step as the reader would do it, in order, as one step
+  // back for Undo.
+  const { register } = useDiagramApplier();
+  const applierNow = useRef({ graph, relations, elementsById, neighbours });
+  useLayoutEffect(() => {
+    applierNow.current = { graph, relations, elementsById, neighbours };
+  });
+  useEffect(
+    () =>
+      register({
+        snapshot: () => ({
+          drawn: applierNow.current.graph.elements.map(({ id }) => id),
+          relations: [...applierNow.current.relations],
+        }),
+        apply: (plan) => {
+          const now = applierNow.current;
+          const resolved = resolveDiagramPlan(
+            plan,
+            now.elementsById,
+            now.neighbours,
+          );
+          const drawnNow = new Set(now.graph.elements.map(({ id }) => id));
+          if (resolved.clear) setChoice(NOTHING_CHOSEN);
+          const removed = resolved.clear
+            ? [...drawnNow].filter((id) => !resolved.add.includes(id))
+            : resolved.remove.filter((id) => drawnNow.has(id));
+          const added = resolved.add.filter((id) => !drawnNow.has(id));
+          if (resolved.remove.length > 0) onShowAll(resolved.remove, false);
+          if (resolved.add.length > 0) {
+            onShowAll(resolved.add, true);
+            bringIn(resolved.add);
+          }
+          if (resolved.relations !== null) setRelations(resolved.relations);
+          if (resolved.direction !== null) {
+            const direction = resolved.direction;
+            setDrawing((was) => ({ ...was, direction }));
+          }
+          if (resolved.autoPlace || resolved.clear) autoPlace();
+          return {
+            added: added.length,
+            removed: removed.length,
+            problems: resolved.problems,
+          };
+        },
+      }),
+    [register, onShowAll, bringIn, autoPlace],
+  );
   const picker = useMemo(
     () => (
       <ExplorationPicker

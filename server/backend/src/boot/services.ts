@@ -6,6 +6,15 @@ import { DesignDocsFileRepository } from '#backend/adapters/out/store/design-doc
 import { DocumentsFileRepository } from '#backend/adapters/out/store/documents.repository';
 import { ScannerSettingsFileRepository } from '#backend/adapters/out/store/scanner-settings.repository';
 import { SystemModelsFileRepository } from '#backend/adapters/out/store/system-models.repository';
+import type { AgentFiles } from '#backend/app/agent/agent-files';
+import type { AgentHost } from '#backend/app/agent/agent-host';
+import type { AgentSessionListener } from '#backend/app/agent/agent-transcript';
+import { answerAgentQuestionHandler } from '#backend/app/agent/answer-agent-question';
+import { decideAgentPermissionHandler } from '#backend/app/agent/decide-agent-permission';
+import { findAgentSessionHandler } from '#backend/app/agent/find-agent-session';
+import { interruptAgentHandler } from '#backend/app/agent/interrupt-agent';
+import { sendAgentMessageHandler } from '#backend/app/agent/send-agent-message';
+import { uploadAgentFileHandler } from '#backend/app/agent/upload-agent-file';
 import { createChangeHandler } from '#backend/app/changes/create-change';
 import { deleteChangeHandler } from '#backend/app/changes/delete-change';
 import { findChangeHandler } from '#backend/app/changes/find-change';
@@ -26,14 +35,25 @@ import { scanSystemModelHandler } from '#backend/app/scanners/scan-system-model'
 import { ScannerFactory } from '#backend/app/scanners/scanner-factory';
 import { searchHandler } from '#backend/app/search/search';
 import { findNewestSystemModelHandler } from '#backend/app/system-model/find-newest-system-model';
+import { findSystemModelGraphHandler } from '#backend/app/system-model/find-system-model-graph';
 import type { NoesisDir } from '#backend/platform/files/noesis-dir';
 import { codeParserFor } from './code-parsers';
 
+/** The session the page speaks to, and where the files it hands over go. */
+export interface AgentServices {
+  host: AgentHost;
+  files: AgentFiles;
+}
+
 /**
- * Wires the file repositories under `.noesis/` and the scanners to the
- * handlers that use them.
+ * Wires the file repositories under `.noesis/`, the scanners and the agent
+ * session to the handlers that use them.
  */
-export function createServices(noesis: NoesisDir, clock: Clock = systemClock) {
+export function createServices(
+  noesis: NoesisDir,
+  agent: AgentServices,
+  clock: Clock = systemClock,
+) {
   const changes = new ChangesFileRepository(noesis);
   const designDocs = new DesignDocsFileRepository(noesis);
   const documents = new DocumentsFileRepository(noesis);
@@ -89,6 +109,15 @@ export function createServices(noesis: NoesisDir, clock: Clock = systemClock) {
       systemModels,
     ),
     findNewestSystemModel: findNewestSystemModelHandler(systemModels),
+    findSystemModelGraph: findSystemModelGraphHandler(systemModels),
+    findAgentSession: findAgentSessionHandler(agent.host),
+    followAgentSession: (listener: AgentSessionListener) =>
+      agent.host.transcript.subscribe(listener),
+    sendAgentMessage: sendAgentMessageHandler(agent.host),
+    answerAgentQuestion: answerAgentQuestionHandler(agent.host),
+    decideAgentPermission: decideAgentPermissionHandler(agent.host),
+    interruptAgent: interruptAgentHandler(agent.host),
+    uploadAgentFile: uploadAgentFileHandler(agent.files),
   };
 }
 

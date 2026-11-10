@@ -1,0 +1,161 @@
+/*
+ * Two places for the agent over the page's sheet. Both are fixed where the
+ * bar and the rail leave the page, so they stay put as the page scrolls, and
+ * they are drawn over it, never beside it: the page keeps its width.
+ */
+
+/* --- The foot: a bar along the bottom, and the sheet that rises over it. */
+.foot {
+  position: fixed;
+  left: var(--app-shell-navbar-offset, 0rem);
+  right: 0;
+  bottom: 0;
+  /* Over a canvas's own floating pieces, under the shell's header and every overlay. */
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  pointer-events: none;
+
+  & > * {
+    pointer-events: auto;
+  }
+}
+
+.bar {
+  padding: 8px var(--app-shell-padding, 16px) 10px;
+  background-color: light-dark(
+    rgba(255, 255, 255, 0.86),
+    rgba(20, 23, 32, 0.86)
+  );
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--noesis-rail-border);
+}
+
+/* The sheet: the page's width less a margin, half the window tall, lifted. */
+.sheet {
+  align-self: center;
+  width: min(880px, calc(100% - 2 * var(--app-shell-padding, 16px)));
+  height: min(56vh, 640px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-radius: 18px 18px 0 0;
+  background-color: var(--noesis-rail-surface);
+  box-shadow:
+    0 -12px 32px rgba(16, 24, 40, 0.16),
+    0 0 0 1px var(--noesis-rail-border);
+  overflow: hidden;
+}
+
+.chevron {
+  transition: transform 150ms ease;
+}
+
+.chevron[data-open] {
+  transform: rotate(180deg);
+}
+
+/* --- The card: over the page's bottom right corner, resized from its own. */
+.card {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 90;
+  width: min(440px, calc(100vw - 48px));
+  height: min(70vh, 720px);
+  min-width: 320px;
+  min-height: 320px;
+  max-width: calc(100vw - 48px);
+  max-height: calc(100vh - var(--app-shell-header-offset, 0rem) - 48px);
+  resize: both;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background-color: var(--noesis-rail-surface);
+  box-shadow:
+    0 16px 40px rgba(16, 24, 40, 0.2),
+    0 0 0 1px var(--noesis-rail-border);
+  overflow: hidden;
+}
+
+/* The pill the card folds to: with the status, where the card was. */
+.pill.pill {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px 0 12px;
+  border-radius: 999px;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  color: var(--mantine-color-text);
+  background-color: var(--noesis-rail-surface);
+  box-shadow:
+    0 6px 16px rgba(16, 24, 40, 0.16),
+    0 0 0 1px var(--noesis-rail-border);
+
+  & svg {
+    color: var(--mantine-color-brand-6);
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* --- Shared: the head and the transcript of the conversation. */
+.header {
+  flex: none;
+  padding: 10px 10px 10px 16px;
+  border-bottom: 1px solid var(--noesis-rail-border);
+}
+
+.title.title {
+  margin: 0;
+  font-size: var(--mantine-font-size-md);
+  font-weight: 600;
+}
+
+.transcript {
+  flex: 1;
+  min-height: 0;
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+@media (max-width: 61.99em) {
+  .foot {
+    left: 0;
+  }
+
+  .card {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100vw - 24px);
+    max-width: calc(100vw - 24px);
+    height: min(70vh, 720px);
+    resize: none;
+  }
+
+  .pill.pill {
+    right: 12px;
+    bottom: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron {
+    transition: none;
+  }
+}

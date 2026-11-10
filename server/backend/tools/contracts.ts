@@ -10,6 +10,7 @@ import {
 } from '#backend/app/changes/change';
 import { DesignDocumentContent } from '#backend/app/design-docs/design-doc';
 import { DocumentContentSchema } from '#backend/app/information-sources/document';
+import { DiagramPlan } from '#backend/app/system-model/diagram-plan';
 import { SystemModel } from '#backend/app/system-model/system-model';
 import designDocumentExample from './design-doc.example.json';
 
@@ -24,4 +25,5 @@ export const CONTRACTS = {
     example: DesignDocumentContent.parse(designDocumentExample),
   },
   'system-model': { schema: SystemModel },
+  'diagram-plan': { schema: DiagramPlan },
 } satisfies Record<string, { schema: z.ZodType; example?: unknown }>;
