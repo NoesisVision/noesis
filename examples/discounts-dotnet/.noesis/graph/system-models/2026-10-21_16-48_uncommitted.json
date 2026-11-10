@@ -7,7 +7,6 @@
       "id": "module|Sales",
       "name": "Sales",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
         "startLine": 3,
@@ -18,7 +17,6 @@
       "id": "module|Sales.Clients",
       "name": "Clients",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
         "startLine": 3,
@@ -29,7 +27,6 @@
       "id": "module|Sales.Commons",
       "name": "Commons",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Currency.cs",
         "startLine": 3,
@@ -40,7 +37,6 @@
       "id": "module|Sales.ExchangeRates",
       "name": "ExchangeRates",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
         "startLine": 7,
@@ -51,7 +47,6 @@
       "id": "module|Sales.Orders",
       "name": "Orders",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/AllOrderDetails.cs",
         "startLine": 4,
@@ -62,7 +57,6 @@
       "id": "module|Sales.Orders.PriceChanges",
       "name": "PriceChanges",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowAnyPriceChanges.cs",
         "startLine": 5,
@@ -73,7 +67,6 @@
       "id": "module|Sales.Pricing",
       "name": "Pricing",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/CalculatePrices.cs",
         "startLine": 10,
@@ -84,7 +77,6 @@
       "id": "module|Sales.Pricing.Discounts",
       "name": "Discounts",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ClientLevelDiscounts.cs",
         "startLine": 5,
@@ -95,7 +87,6 @@
       "id": "module|Sales.Pricing.PriceLists",
       "name": "PriceLists",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrice.cs",
         "startLine": 5,
@@ -106,7 +97,6 @@
       "id": "module|Sales.Pricing.SpecialOffers",
       "name": "SpecialOffers",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
         "startLine": 3,
@@ -117,7 +107,6 @@
       "id": "module|Sales.Products",
       "name": "Products",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/Amount.cs",
         "startLine": 4,
@@ -128,7 +117,6 @@
       "id": "module|Sales.SalesChannels",
       "name": "SalesChannels",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/SalesChannels/SalesChannel.cs",
         "startLine": 3,
@@ -139,7 +127,6 @@
       "id": "module|Sales.Time",
       "name": "Time",
       "description": null,
-      "rules": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Time/Clock.cs",
         "startLine": 3,
@@ -153,8 +140,6 @@
       "name": "ClientId",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
         "startLine": 5,
@@ -166,8 +151,6 @@
       "name": "ClientRepository",
       "type": "repository",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientRepository.cs",
         "startLine": 5,
@@ -179,8 +162,6 @@
       "name": "ClientStatus",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientStatus.cs",
         "startLine": 5,
@@ -192,8 +173,6 @@
       "name": "Currency",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Currency.cs",
         "startLine": 5,
@@ -205,8 +184,6 @@
       "name": "Money",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
         "startLine": 8,
@@ -218,8 +195,6 @@
       "name": "Percentage",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Percentage.cs",
         "startLine": 5,
@@ -231,8 +206,6 @@
       "name": "TaxId",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/TaxId.cs",
         "startLine": 5,
@@ -244,8 +217,6 @@
       "name": "ExchangeRate",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
         "startLine": 9,
@@ -257,8 +228,6 @@
       "name": "ExchangeRateProvider",
       "type": "external_integration",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRateProvider.cs",
         "startLine": 6,
@@ -270,8 +239,6 @@
       "name": "AllOrderDetails",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/AllOrderDetails.cs",
         "startLine": 6,
@@ -283,8 +250,6 @@
       "name": "InvoicingDetails",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/InvoicingDetails.cs",
         "startLine": 6,
@@ -296,8 +261,6 @@
       "name": "Order",
       "type": "aggregate",
       "description": "*An order is a request for products.* It is placed by a customer and contains a list of products with their amounts. The order is placed when the customer confirms the prices of the products.",
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Data.cs",
         "startLine": 7,
@@ -309,8 +272,6 @@
       "name": "Order CreatedFromOffer",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 24,
@@ -322,8 +283,6 @@
       "name": "Order Factory",
       "type": "factory",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
         "startLine": 11,
@@ -335,8 +294,6 @@
       "name": "Order Placed",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 77,
@@ -348,8 +305,6 @@
       "name": "Order PriceAgreement",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 11,
@@ -361,8 +316,6 @@
       "name": "Order PricesConfirmed",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 44,
@@ -374,8 +327,6 @@
       "name": "Order ProductAmountAdded",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 36,
@@ -387,8 +338,6 @@
       "name": "Order Repository",
       "type": "repository",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Repository.cs",
         "startLine": 7,
@@ -400,8 +349,6 @@
       "name": "OrderItemDetails",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/OrderItemDetails.cs",
         "startLine": 6,
@@ -413,8 +360,6 @@
       "name": "PriceAgreementType",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceAgreementType.cs",
         "startLine": 5,
@@ -426,8 +371,6 @@
       "name": "AllowAnyPriceChanges",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowAnyPriceChanges.cs",
         "startLine": 7,
@@ -439,8 +382,6 @@
       "name": "AllowPriceChangesIfTotalPriceIsLower",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowPriceChangesIfTotalPriceIsLower.cs",
         "startLine": 8,
@@ -452,8 +393,6 @@
       "name": "PriceChangesPolicies",
       "type": "factory",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/PriceChangesPolicies.cs",
         "startLine": 6,
@@ -465,8 +404,6 @@
       "name": "PriceChangesPolicy",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/PriceChangesPolicy.cs",
         "startLine": 7,
@@ -478,8 +415,6 @@
       "name": "CalculatePrices",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/CalculatePrices.cs",
         "startLine": 12,
@@ -491,8 +426,6 @@
       "name": "ClientLevelDiscounts",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ClientLevelDiscounts.cs",
         "startLine": 7,
@@ -504,8 +437,6 @@
       "name": "Discount",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
         "startLine": 6,
@@ -517,8 +448,6 @@
       "name": "DiscountsRepository",
       "type": "repository",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/DiscountsRepository.cs",
         "startLine": 8,
@@ -530,8 +459,6 @@
       "name": "PercentageDiscount",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/PercentageDiscount.cs",
         "startLine": 6,
@@ -543,8 +470,6 @@
       "name": "ProductDiscount",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductDiscount.cs",
         "startLine": 6,
@@ -556,8 +481,6 @@
       "name": "ProductLevelDiscounts",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductLevelDiscounts.cs",
         "startLine": 7,
@@ -569,8 +492,6 @@
       "name": "ValueDiscount",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ValueDiscount.cs",
         "startLine": 6,
@@ -582,8 +503,6 @@
       "name": "IndividualSalesConditions",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/IndividualSalesConditions.cs",
         "startLine": 6,
@@ -595,8 +514,6 @@
       "name": "Offer",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Offer.cs",
         "startLine": 10,
@@ -608,8 +525,6 @@
       "name": "OfferModifier",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferModifier.cs",
         "startLine": 6,
@@ -621,8 +536,6 @@
       "name": "OfferModifiers",
       "type": "factory",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferModifiers.cs",
         "startLine": 8,
@@ -634,8 +547,6 @@
       "name": "OfferRequest",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferRequest.cs",
         "startLine": 10,
@@ -647,8 +558,6 @@
       "name": "BasePrice",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrice.cs",
         "startLine": 7,
@@ -660,8 +569,6 @@
       "name": "BasePrices",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrices.cs",
         "startLine": 9,
@@ -673,8 +580,6 @@
       "name": "PriceListRepository",
       "type": "repository",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/PriceListRepository.cs",
         "startLine": 9,
@@ -686,8 +591,6 @@
       "name": "Quote",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Quote.cs",
         "startLine": 8,
@@ -699,8 +602,6 @@
       "name": "QuoteModifier",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/QuoteModifier.cs",
         "startLine": 6,
@@ -712,8 +613,6 @@
       "name": "EverySecondBoxForHalfPrice",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
         "startLine": 5,
@@ -725,8 +624,6 @@
       "name": "SpecialOffer",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/SpecialOffer.cs",
         "startLine": 5,
@@ -738,8 +635,6 @@
       "name": "ThreeForTwo",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/ThreeForTwo.cs",
         "startLine": 5,
@@ -751,8 +646,6 @@
       "name": "Amount",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/Amount.cs",
         "startLine": 6,
@@ -764,8 +657,6 @@
       "name": "AmountUnit",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/AmountUnit.cs",
         "startLine": 5,
@@ -777,8 +668,6 @@
       "name": "ProductAmount",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductAmount.cs",
         "startLine": 7,
@@ -790,8 +679,6 @@
       "name": "ProductId",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductId.cs",
         "startLine": 6,
@@ -803,8 +690,6 @@
       "name": "ProductUnit",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductUnit.cs",
         "startLine": 6,
@@ -816,8 +701,6 @@
       "name": "SalesChannel",
       "type": "value_object",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/SalesChannels/SalesChannel.cs",
         "startLine": 5,
@@ -829,8 +712,6 @@
       "name": "Clock",
       "type": "domain_service",
       "description": null,
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Time/Clock.cs",
         "startLine": 5,
@@ -848,8 +729,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
         "startLine": 11,
@@ -865,8 +744,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
         "startLine": 10,
@@ -882,8 +759,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientRepository.cs",
         "startLine": 8,
@@ -899,8 +774,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
         "startLine": 39,
@@ -916,8 +789,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
         "startLine": 12,
@@ -933,8 +804,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
         "startLine": 11,
@@ -950,8 +819,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Percentage.cs",
         "startLine": 13,
@@ -967,8 +834,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
         "startLine": 23,
@@ -984,8 +849,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
         "startLine": 15,
@@ -1001,8 +864,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRateProvider.cs",
         "startLine": 9,
@@ -1018,8 +879,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 29,
@@ -1035,8 +894,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
         "startLine": 27,
@@ -1052,8 +909,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
         "startLine": 20,
@@ -1069,8 +924,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
         "startLine": 14,
@@ -1086,8 +939,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 80,
@@ -1103,8 +954,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 37,
@@ -1120,8 +969,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 23,
@@ -1137,8 +984,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 45,
@@ -1154,8 +999,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 18,
@@ -1171,8 +1014,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 20,
@@ -1188,8 +1029,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 74,
@@ -1205,8 +1044,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 41,
@@ -1222,8 +1059,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Repository.cs",
         "startLine": 10,
@@ -1239,8 +1074,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Repository.cs",
         "startLine": 11,
@@ -1256,8 +1089,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
         "startLine": 21,
@@ -1273,8 +1104,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
         "startLine": 43,
@@ -1290,8 +1119,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
         "startLine": 118,
@@ -1307,8 +1134,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
         "startLine": 101,
@@ -1324,8 +1149,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Data.cs",
         "startLine": 13,
@@ -1341,8 +1164,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowAnyPriceChanges.cs",
         "startLine": 10,
@@ -1358,8 +1179,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowPriceChangesIfTotalPriceIsLower.cs",
         "startLine": 11,
@@ -1375,8 +1194,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/PriceChangesPolicies.cs",
         "startLine": 12,
@@ -1392,8 +1209,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/PriceChangesPolicy.cs",
         "startLine": 10,
@@ -1409,8 +1224,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/CalculatePrices.cs",
         "startLine": 18,
@@ -1426,8 +1239,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ClientLevelDiscounts.cs",
         "startLine": 16,
@@ -1443,8 +1254,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
         "startLine": 24,
@@ -1460,8 +1269,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
         "startLine": 13,
@@ -1477,8 +1284,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
         "startLine": 15,
@@ -1494,8 +1299,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/DiscountsRepository.cs",
         "startLine": 11,
@@ -1511,8 +1314,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/PercentageDiscount.cs",
         "startLine": 15,
@@ -1528,8 +1329,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/PercentageDiscount.cs",
         "startLine": 11,
@@ -1545,8 +1344,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductDiscount.cs",
         "startLine": 12,
@@ -1562,8 +1359,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductLevelDiscounts.cs",
         "startLine": 20,
@@ -1579,8 +1374,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductLevelDiscounts.cs",
         "startLine": 12,
@@ -1596,8 +1389,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ValueDiscount.cs",
         "startLine": 15,
@@ -1613,8 +1404,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ValueDiscount.cs",
         "startLine": 11,
@@ -1630,8 +1419,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/IndividualSalesConditions.cs",
         "startLine": 12,
@@ -1647,8 +1434,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Offer.cs",
         "startLine": 56,
@@ -1664,8 +1449,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Offer.cs",
         "startLine": 27,
@@ -1681,8 +1464,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferModifier.cs",
         "startLine": 9,
@@ -1698,8 +1479,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferModifiers.cs",
         "startLine": 11,
@@ -1715,8 +1494,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferRequest.cs",
         "startLine": 17,
@@ -1732,8 +1509,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrice.cs",
         "startLine": 13,
@@ -1749,8 +1524,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrices.cs",
         "startLine": 21,
@@ -1766,8 +1539,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrices.cs",
         "startLine": 14,
@@ -1783,8 +1554,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/PriceListRepository.cs",
         "startLine": 12,
@@ -1800,8 +1569,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/PriceListRepository.cs",
         "startLine": 13,
@@ -1817,8 +1584,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Quote.cs",
         "startLine": 22,
@@ -1834,8 +1599,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Quote.cs",
         "startLine": 15,
@@ -1851,8 +1614,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/QuoteModifier.cs",
         "startLine": 9,
@@ -1868,8 +1629,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
         "startLine": 14,
@@ -1885,8 +1644,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
         "startLine": 8,
@@ -1902,8 +1659,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/SpecialOffer.cs",
         "startLine": 12,
@@ -1919,8 +1674,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/ThreeForTwo.cs",
         "startLine": 14,
@@ -1936,8 +1689,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/ThreeForTwo.cs",
         "startLine": 8,
@@ -1953,8 +1704,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/Amount.cs",
         "startLine": 9,
@@ -1970,8 +1719,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductAmount.cs",
         "startLine": 12,
@@ -1987,8 +1734,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductId.cs",
         "startLine": 12,
@@ -2004,8 +1749,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductId.cs",
         "startLine": 11,
@@ -2021,8 +1764,6 @@
         "kind": "public",
         "actors": []
       },
-      "rules": [],
-      "scenarios": [],
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductUnit.cs",
         "startLine": 12,
@@ -2030,6 +1771,8 @@
       }
     }
   ],
+  "rules": [],
+  "scenarios": [],
   "relations": [
     {
       "kind": "behavior_invokes_behavior",
