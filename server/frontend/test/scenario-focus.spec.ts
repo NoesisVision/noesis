@@ -7,6 +7,7 @@ import type { ScenarioEntry } from '../src/features/design-docs/ui/element-detai
 
 const removed = (name: string, rule?: string): ScenarioEntry => ({
   change: 'removed',
+  id: `scenario|a.${rule ?? 'none'}.${name}`,
   name,
   scenario: null,
   ...(rule === undefined ? {} : { rule }),

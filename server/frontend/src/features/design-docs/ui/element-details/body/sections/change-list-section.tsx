@@ -71,7 +71,8 @@ export function ChangeListSection({
         <PropertyGrid items={sorted} owner={owner} />
       ) : kind === 'rule' ? (
         <Stack gap={10}>
-          {writable !== null && owner !== null && (
+          {/* A rule is added under a behavior, which governs it. */}
+          {writable !== null && owner?.kind === 'behavior' && (
             <NewRuleButton owner={owner} />
           )}
           {sorted.length === 0 ? (

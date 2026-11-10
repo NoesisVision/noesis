@@ -15,7 +15,6 @@ import { titleCase } from '#/shared/ui/title-case.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type {
   Cardinality,
-  RuleCategory,
   Visibility,
 } from '#backend/app/system-model/system-model.ts';
 import { writtenIn } from '../../change-set.ts';
@@ -25,9 +24,8 @@ import {
   fieldOf,
   isEditableField,
   needIdOf,
-  type PartOwner,
   PRIMITIVES,
-  RULE_TYPES_OF,
+  RULE_KINDS,
   TYPES_OF,
   UNIT_FIELDS,
   type Unit,
@@ -39,6 +37,7 @@ import {
 import { authorOf, fieldFrom, valueOf } from '../../design-doc-field.ts';
 import { addressOf, nameOf } from '../../element-id.ts';
 import { CARDINALITIES } from '../../relations.ts';
+import { ruleKindLabelOf } from '../../rules.ts';
 import { DesignedField } from './designed-field.tsx';
 import { ScenarioStepsInput } from './scenario-fields.tsx';
 
@@ -52,8 +51,7 @@ const LABEL: Record<UnitFieldName, string> = {
   diagram: 'Diagram',
   type: 'Type',
   visibility: 'Visibility',
-  category: 'Category',
-  ruleType: 'Rule type',
+  kind: 'Kind',
   description: 'Description',
   needs: 'Answers the needs',
   rationale: 'Rationale',
@@ -73,7 +71,6 @@ export function UnitFields({
   original,
   state,
   document: doc,
-  owner,
   newNeed,
 }: {
   kind: UnitKind;
@@ -82,7 +79,6 @@ export function UnitFields({
   original: Unit | null;
   state: UnitState;
   document: DesignDocumentInput;
-  owner: PartOwner | null;
   newNeed: boolean;
 }) {
   const [idChosen, setIdChosen] = useState(false);
@@ -119,7 +115,6 @@ export function UnitFields({
               spec={spec}
               form={form}
               document={doc}
-              owner={owner}
               disabled={!isEditableField(spec, state)}
               onName={
                 newNeed && !idChosen
@@ -153,7 +148,6 @@ function FieldInput({
   spec,
   form,
   document: doc,
-  owner,
   disabled,
   onName,
 }: {
@@ -161,7 +155,6 @@ function FieldInput({
   spec: FieldSpec;
   form: UnitForm;
   document: DesignDocumentInput;
-  owner: PartOwner | null;
   disabled: boolean;
   onName?: (name: string) => void;
 }) {
@@ -248,50 +241,20 @@ function FieldInput({
           onChange={(visibility) => form.setFieldValue(path, visibility)}
         />
       );
-    case 'category':
-      return (
-        <ChipChoice
-          label={label}
-          options={Object.keys(RULE_TYPES_OF)
-            // A module holds quality and constraint rules only.
-            .filter(
-              (category) => owner?.kind !== 'module' || category !== 'Business',
-            )
-            .map((category) => ({ value: category, label: category }))}
-          value={fields.category!.value}
-          onChange={(category) => {
-            form.setFieldValue(path, category);
-            const ruleType = fields.ruleType!;
-            if (
-              ruleType.written &&
-              !RULE_TYPES_OF[category as RuleCategory].some(
-                (type) => type === ruleType.value,
-              )
-            )
-              form.setFieldValue('fields.ruleType.value', '');
-          }}
-        />
-      );
-    case 'ruleType': {
-      const category = fields.category;
-      const allowed =
-        category?.written && category.value !== ''
-          ? [category.value as RuleCategory]
-          : (Object.keys(RULE_TYPES_OF) as RuleCategory[]);
+    case 'kind':
       return (
         <Select
           {...common}
-          placeholder="Choose a rule type"
+          placeholder="Choose a kind"
           allowDeselect={false}
-          data={allowed.map((group) => ({
-            group,
-            items: [...RULE_TYPES_OF[group]],
+          data={RULE_KINDS.map((kind) => ({
+            value: kind,
+            label: ruleKindLabelOf(kind) ?? kind,
           }))}
-          value={fields.ruleType!.value || null}
-          onChange={(ruleType) => form.setFieldValue(path, ruleType ?? '')}
+          value={fields.kind!.value || null}
+          onChange={(kind) => form.setFieldValue(path, kind ?? '')}
         />
       );
-    }
     case 'needs': {
       const needs = writtenIn(doc.needs);
       if (needs.length === 0)

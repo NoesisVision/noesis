@@ -1,17 +1,10 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
-import type {
-  DesignDocumentInput,
-  DesignedRuleInput,
-} from '#backend/app/design-docs/design-doc.ts';
+import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type { ChangeSetInput } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
-import {
-  classificationOf,
-  type NeedsInput,
-  needNamesOf,
-} from '../../design-doc-requirements.ts';
-import { blockOfRef } from '../../element-id.ts';
+import { needNamesOf } from '../../design-doc-requirements.ts';
+import { blockOfRef, nameOf } from '../../element-id.ts';
 import {
   cardinalitySuffixOf,
   OUTPUT_NAME,
@@ -20,6 +13,12 @@ import {
   relationsTo,
   typeOf,
 } from '../../relations.ts';
+import {
+  ruleKindLabelOf,
+  ruleNameOf,
+  rulesUnder,
+  scenariosUnder,
+} from '../../rules.ts';
 import { refAddressOf } from './ref-address.ts';
 
 /*
@@ -32,7 +31,7 @@ export interface ChangeListItem {
   label: string;
   path: string | null;
   description?: string;
-  /** What its owner knows it by: a property's or an input's name, an output's `result`. */
+  /** The key its change set knows it by: a property's or an input's name, an output's `result`, a rule's id. */
   key?: string;
   /** A property's or an input's name, apart from its type. */
   name?: string;
@@ -46,7 +45,7 @@ export interface ChangeListItem {
   scenarios?: number;
   /** Those scenarios by name, to list where the count is pointed at. */
   scenarioNames?: string[];
-  /** A rule's category and type, as far as the design writes them. */
+  /** A rule's kind, as far as the design writes it. */
   classification?: string;
   /** The needs a rule answers, by name; none for a design decision. */
   needs?: string[];
@@ -172,29 +171,35 @@ export const propertyItems = (
       ),
   );
 
-/** Rules, each by its name with what the design says of it and the needs it answers. */
+/**
+ * The rules shown under an element, each by its name with what the design
+ * says of it, the needs it answers and the scenarios that illustrate it.
+ */
 export const ruleItems = (
+  doc: DesignDocumentInput,
   owner: string,
-  set: ChangeSetInput<DesignedRuleInput, string> | undefined,
-  needs?: NeedsInput,
 ): ChangeListItem[] =>
-  [...changed(set)].map(([rule, change]) => {
+  [...changed(rulesUnder(doc, owner))].map(([rule, change]) => {
+    const id = typeof rule === 'string' ? rule : rule.id;
+    const path = partPathOf(owner, 'rule', id);
     if (typeof rule === 'string')
-      return { change, label: rule, path: partPathOf(owner, 'rule', rule) };
+      return { change, label: nameOf(id), key: id, path };
     const description = valueOf(rule.description)?.trim();
-    const scenarioNames = [...changed(rule.scenarios)].map(([scenario]) =>
-      typeof scenario === 'string' ? scenario : scenario.name,
+    const scenarioNames = [...changed(scenariosUnder(doc, id))].map(
+      ([scenario]) =>
+        typeof scenario === 'string' ? nameOf(scenario) : ruleNameOf(scenario),
     );
     const scenarios = scenarioNames.length;
-    const classification = classificationOf(rule);
+    const classification = ruleKindLabelOf(valueOf(rule.kind));
     const traced = valueOf(rule.needs);
     return {
       change,
-      label: rule.name,
-      path: partPathOf(owner, 'rule', rule.name),
+      label: ruleNameOf(rule),
+      key: id,
+      path,
       ...(description ? { description } : {}),
       ...(scenarios > 0 ? { scenarios, scenarioNames } : {}),
       ...(classification ? { classification } : {}),
-      ...(traced ? { needs: needNamesOf(traced, needs) } : {}),
+      ...(traced ? { needs: needNamesOf(traced, doc.needs) } : {}),
     };
   });

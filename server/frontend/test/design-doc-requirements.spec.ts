@@ -46,7 +46,7 @@ describe('requirementsOf', () => {
     ]);
   });
 
-  it('reads the rules of a module, the module being their element and their subsystem', () => {
+  it('reads a rule no behavior of the design governs on its module, the module being its element and its subsystem', () => {
     const rule = outline.needs[0]?.rules.find(
       ({ name }) => name === 'A refund is issued within a second',
     );
@@ -61,7 +61,7 @@ describe('requirementsOf', () => {
     });
   });
 
-  it('places a behavior rule in the module its building block sits in', () => {
+  it('places a rule in the module of the behavior that governs it', () => {
     const rule = outline.designDecisions.find(
       ({ name }) => name === 'Only paid orders are refundable',
     );
@@ -79,17 +79,17 @@ describe('requirementsOf', () => {
     expect(rule?.trace).toEqual(['See what was refunded']);
   });
 
-  it('keeps a removed rule by its name, on its element', () => {
+  it('keeps a removed rule by its name, on the behavior that governed it', () => {
     const rule = outline.designDecisions[0];
     expect(rule?.change).toBe('removed');
     expect(rule?.rule).toBeNull();
-    expect(rule?.element.name).toBe('Order');
+    expect(rule?.element.name).toBe('pay');
   });
 
   it('names an element and its module the document only implies', () => {
-    // Neither `Order` nor `sales.orders` is written out beyond the id.
+    // Neither `Order.total` nor `sales.orders` is written out beyond the id.
     const rule = outline.needs[1]?.rules[0];
-    expect(rule?.element.name).toBe('Order');
+    expect(rule?.element.name).toBe('total');
     expect(rule?.module).toEqual({ id: 'module|sales.orders', name: 'orders' });
   });
 
@@ -157,9 +157,7 @@ describe('requirementsTreeOf', () => {
     ]);
     expect(childrenOf('unaddressed')).toEqual(['Audit refunds']);
     expect(
-      row(
-        'decisions/rule:building_block|sales.orders.Order:Paid orders are final',
-      )?.change,
+      row('decisions/rule:rule|sales.orders.Paid orders are final')?.change,
     ).toBe('removed');
   });
 });

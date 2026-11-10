@@ -4,7 +4,7 @@ import type {
   DesignDocumentInput,
   DesignedBuildingBlockInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import { ruleItems, propertyItems } from '../change-list-items.ts';
+import { propertyItems } from '../change-list-items.ts';
 import type { ElementRef } from '../element-ref.ts';
 import { childSections } from './child-sections.tsx';
 import { section } from './section.ts';
@@ -20,12 +20,6 @@ export const buildingBlockSections = (
   return [
     // What it does reads before what it holds.
     ...childSections(element, 'building_block', block.id, tree, doc),
-    ...section(ChangeListSection, 'rules', {
-      element,
-      title: 'Rules',
-      kind: 'rule',
-      items: ruleItems(block.id, block.rules, doc.needs),
-    }),
     ...section(ChangeListSection, 'properties', {
       element,
       title: 'Properties',

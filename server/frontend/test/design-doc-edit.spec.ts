@@ -29,6 +29,7 @@ const MODULE = 'module|pay';
 const HOLD = 'building_block|pay.Hold';
 const SETTLE = 'behavior|pay.Hold.settle';
 const LEDGER = 'building_block|pay.Ledger';
+const HELD_ONCE = 'rule|pay.held once';
 
 const doc = (): DesignDocumentInput => ({
   id: '2026-10-05-holds',
@@ -54,17 +55,6 @@ const doc = (): DesignDocumentInput => ({
         name: agent('Hold'),
         type: agent('aggregate'),
         definition: agent('A hold.'),
-        rules: {
-          added: [
-            {
-              name: 'held once',
-              category: agent('Business'),
-              ruleType: agent('Consistency'),
-              description: agent('Once.'),
-              needs: agent(['hold-a-card']),
-            },
-          ],
-        },
       },
     ],
     modified: [{ id: LEDGER, definition: agent('Books.') }],
@@ -81,6 +71,17 @@ const doc = (): DesignDocumentInput => ({
       },
     ],
   },
+  rules: {
+    added: [
+      {
+        id: HELD_ONCE,
+        name: agent('held once'),
+        kind: agent('validation'),
+        description: agent('Once.'),
+        needs: agent(['hold-a-card']),
+      },
+    ],
+  },
   relations: {
     added: [
       {
@@ -90,6 +91,7 @@ const doc = (): DesignDocumentInput => ({
         to: agent(HOLD),
         cardinality: agent('1'),
       },
+      { kind: 'governs', from: SETTLE, to: HELD_ONCE },
     ],
   },
 });
@@ -177,7 +179,7 @@ describe('an edit', () => {
       ref: { kind: 'need', id: 'hold-a-card' },
     });
     expect(next.needs?.added).toEqual([]);
-    expect(next.buildingBlocks?.added?.[0]?.rules?.added?.[0]?.needs).toEqual({
+    expect(next.rules?.added?.[0]?.needs).toEqual({
       changed: true,
       value: [],
       author: 'human',
@@ -236,7 +238,7 @@ describe('a draft', () => {
       diagram: { changed: false },
     });
     // What the form does not edit stays.
-    expect(unit).toMatchObject({ rules: { added: [{ name: 'held once' }] } });
+    expect(unit).toMatchObject({ id: HOLD, name: { value: 'Hold' } });
   });
 
   it('leaves a field the human set back to unchanged', () => {
@@ -332,7 +334,7 @@ describe('a draft', () => {
     const target = {
       mode: 'add',
       kind: 'scenario',
-      owner: { kind: 'building_block', id: HOLD },
+      owner: { kind: 'behavior', id: SETTLE, rule: HELD_ONCE },
     } as const;
     const draft = draftOfUnit('scenario', null, 'added');
     // A new scenario starts as the classic three.
@@ -362,7 +364,11 @@ describe('a draft', () => {
       ],
     };
     expect(draftErrors(doc(), target, draft)).toEqual({});
-    expect(unitFromDraft('scenario', draft, null, 'held twice')).toMatchObject({
+    const id = idOfDraft(doc(), target, draft);
+    expect(id).toBe('scenario|pay.held once.held twice');
+    expect(unitFromDraft('scenario', draft, null, id)).toMatchObject({
+      id,
+      name: { changed: true, value: 'held twice', author: 'human' },
       steps: {
         value: [
           { kind: 'given', text: 'a hold' },
@@ -382,7 +388,6 @@ describe('a draft', () => {
 describe('violations', () => {
   it('fall on the field they name, and the rest are said in words', () => {
     const { fields, rest } = violationsOf(
-      doc(),
       { kind: 'building_block', id: LEDGER },
       'modified',
       [
@@ -408,67 +413,67 @@ describe('violations', () => {
 describe('a part', () => {
   const holdRule = {
     kind: 'rule',
-    id: 'held once',
-    owner: { kind: 'building_block', id: HOLD },
+    id: HELD_ONCE,
+    owner: { kind: 'behavior', id: SETTLE },
   } as const;
 
-  it('is written into an element the design left alone, which then modifies it and nothing else', () => {
-    const ref = {
-      kind: 'rule',
-      id: 'balanced',
-      owner: { kind: 'building_block', id: 'building_block|pay.Account' },
+  it('is added under a behavior, which then governs it, and goes with the relation when discarded', () => {
+    const owner = {
+      kind: 'behavior',
+      id: 'behavior|pay.Account.post',
     } as const;
-    const target = { mode: 'add', kind: 'rule', owner: ref.owner } as const;
+    const target = { mode: 'add', kind: 'rule', owner } as const;
     const draft = draftOfUnit('rule', null, 'added');
     draft.fields.name = { written: true, value: 'balanced' };
-    draft.fields.category = { written: true, value: 'Business' };
-    draft.fields.ruleType = { written: true, value: 'Consistency' };
+    draft.fields.kind = { written: true, value: 'validation' };
     draft.fields.description = { written: true, value: 'Debits meet credits.' };
     expect(draftErrors(doc(), target, draft)).toEqual({});
+    // A rule is named in the module of the behavior that governs it.
     const id = idOfDraft(doc(), target, draft);
+    expect(id).toBe('rule|pay.balanced');
+    const ref = { kind: 'rule', id, owner } as const;
     const next = applyEdit(doc(), {
       op: 'add',
       ref,
       unit: unitFromDraft('rule', draft, null, id),
     });
-    expect(next.buildingBlocks?.modified).toContainEqual({
-      id: 'building_block|pay.Account',
-      rules: {
-        added: [
-          {
-            name: 'balanced',
-            category: { changed: true, value: 'Business', author: 'human' },
-            ruleType: { changed: true, value: 'Consistency', author: 'human' },
-            description: {
-              changed: true,
-              value: 'Debits meet credits.',
-              author: 'human',
-            },
-            needs: { changed: true, value: [], author: 'human' },
-            rationale: { changed: false },
-          },
-        ],
+    expect(next.rules?.added).toContainEqual({
+      id,
+      name: { changed: true, value: 'balanced', author: 'human' },
+      kind: { changed: true, value: 'validation', author: 'human' },
+      description: {
+        changed: true,
+        value: 'Debits meet credits.',
+        author: 'human',
       },
+      needs: { changed: true, value: [], author: 'human' },
+      rationale: { changed: false },
+    });
+    expect(next.relations?.added).toContainEqual({
+      kind: 'governs',
+      from: owner.id,
+      to: id,
     });
     expect(unitStateOf(next, ref)).toBe('added');
-    // Discarding the rule leaves the element as the model has it again.
+    // Discarding the rule takes the relation that joined it with it.
     const back = applyEdit(next, { op: 'discard', ref });
-    expect(back.buildingBlocks?.modified).toEqual(
-      doc().buildingBlocks?.modified,
-    );
+    expect(back.rules?.added).toEqual(doc().rules?.added);
+    expect(back.relations?.added).toEqual(doc().relations?.added);
   });
 
-  it('is found through a rule, as a rule has its own scenarios', () => {
+  it('is added under its rule, which it then illustrates', () => {
+    const SCENARIO = 'scenario|pay.held once.twice';
     const ref = {
       kind: 'scenario',
-      id: 'twice',
-      owner: { kind: 'building_block', id: HOLD, rule: 'held once' },
+      id: SCENARIO,
+      owner: { kind: 'behavior', id: SETTLE, rule: HELD_ONCE },
     } as const;
     const next = applyEdit(doc(), {
       op: 'add',
       ref,
       unit: {
-        name: 'twice',
+        id: SCENARIO,
+        name: { value: 'twice' },
         description: { value: '' },
         steps: {
           value: [
@@ -480,17 +485,27 @@ describe('a part', () => {
       },
     });
     expect(unitStateOf(next, ref)).toBe('added');
+    expect(next.relations?.added).toContainEqual({
+      kind: 'illustrates',
+      from: SCENARIO,
+      to: HELD_ONCE,
+    });
     expect(unitsWithin(next, holdRule)).toBe(1);
+    // The rule removed from the system takes its scenarios out of the design.
+    const removed = applyEdit(next, { op: 'removeFromSystem', ref: holdRule });
+    expect(removed.scenarios?.added).toEqual([]);
+    expect(removed.rules?.removed).toEqual([HELD_ONCE]);
   });
 
-  it('keeps its name while the model has it, and takes another while the design adds it', () => {
+  it('takes another id with its name while the design adds it, what names it following', () => {
+    // A rule's name is a field of its own, written whatever the design does to it.
+    expect(isEditableField(UNIT_FIELDS.rule[0]!, 'modified')).toBe(true);
     const rule = unitOf(doc(), holdRule);
-    expect(isEditableField(UNIT_FIELDS.rule[0]!, 'modified')).toBe(false);
-    expect(isEditableField(UNIT_FIELDS.rule[0]!, 'added')).toBe(true);
     const draft = draftOfUnit('rule', rule, 'added');
     draft.fields.name = { written: true, value: 'held at most once' };
     const target = { mode: 'edit', ref: holdRule } as const;
     const id = idOfDraft(doc(), target, draft);
+    expect(id).toBe('rule|pay.held at most once');
     const next = applyEdit(doc(), {
       op: 'write',
       ref: holdRule,
@@ -498,6 +513,11 @@ describe('a part', () => {
     });
     expect(unitStateOf(next, { ...holdRule, id })).toBe('added');
     expect(unitStateOf(next, holdRule)).toBe('unchanged');
+    expect(next.relations?.added).toContainEqual({
+      kind: 'governs',
+      from: SETTLE,
+      to: id,
+    });
   });
 
   it('is removed from the system by its relation key, a result by its name and the type the model has', () => {
@@ -692,7 +712,6 @@ describe('a part', () => {
 
   it('has the violations on a relation laid on its fields', () => {
     const { fields, rest } = violationsOf(
-      doc(),
       {
         kind: 'result',
         id: 'result',
@@ -713,25 +732,25 @@ describe('a part', () => {
     expect(rest).toEqual([]);
   });
 
-  it('is refused a rule type outside its category, and a module a business rule', () => {
-    const owner = { kind: 'module', id: MODULE } as const;
+  it('is refused without a kind, or under a name its module has already', () => {
+    const owner = { kind: 'behavior', id: SETTLE } as const;
+    const target = { mode: 'add', kind: 'rule', owner } as const;
     const draft = draftOfUnit('rule', null, 'added');
     draft.fields.name = { written: true, value: 'fast' };
-    draft.fields.category = { written: true, value: 'Business' };
-    draft.fields.ruleType = { written: true, value: 'Performance' };
-    expect(
-      draftErrors(doc(), { mode: 'add', kind: 'rule', owner }, draft),
-    ).toEqual({
-      'fields.ruleType.value':
-        'A Business rule is one of: Consistency, Structure, Computation, State change.',
-      'fields.category.value': 'A module holds no business rules.',
+    expect(draftErrors(doc(), target, draft)).toEqual({
+      'fields.kind.value': 'Choose a kind.',
+    });
+    draft.fields.name = { written: true, value: 'held once' };
+    draft.fields.kind = { written: true, value: 'post' };
+    expect(draftErrors(doc(), target, draft)).toEqual({
+      'fields.name.value': 'This design already has this rule here.',
     });
   });
 
   it('has the violations on it laid on its fields', () => {
-    const { fields } = violationsOf(doc(), holdRule, 'added', [
+    const { fields } = violationsOf(holdRule, 'added', [
       {
-        path: `buildingBlocks.added[${HOLD}].rules.added[held once].needs[gone]`,
+        path: `rules.added[${HELD_ONCE}].needs[gone]`,
         reason: 'unknownNeed',
       },
     ]);
