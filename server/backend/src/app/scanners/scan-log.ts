@@ -8,6 +8,7 @@ export interface ScanSummary {
   readonly parseMs: number;
   readonly blocks: number;
   readonly behaviors: number;
+  readonly rules: number;
   readonly buildMs: number;
 }
 

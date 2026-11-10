@@ -4,14 +4,15 @@ import {
   BuildingBlockId,
   ElementName,
   ModuleId,
+  RuleId,
+  ScenarioId,
 } from '#backend/app/element-id';
 import { SystemModelId } from './system-model-id';
 
 /*
  * What every element and every relation of the model is built from. The
- * parts elements share follow, then the elements, each kind with the
- * vocabulary it alone uses, then what types a slot, then the relations,
- * then the model that holds them all.
+ * elements follow, each kind with the vocabulary it alone uses, then what
+ * types a slot, then the relations, then the model that holds them all.
  */
 
 export const SourceLocation = z
@@ -69,103 +70,10 @@ const ScannedRelation = z.strictObject({
 /** What a behavior's output is named: the code gives a return value no name of its own. */
 export const OUTPUT_NAME = 'result';
 
-/* The parts elements share: rules and the scenarios that illustrate them. */
-
-export const RuleCategory = z
-  .enum(['Business', 'Quality', 'Constraint'])
-  .describe(
-    "What a rule is: 'Business', a truth of the domain; 'Quality', a measurable quality the system must have (ISO/IEC 25010); 'Constraint', a limit imposed on the solution from outside the domain.",
-  );
-export type RuleCategory = z.infer<typeof RuleCategory>;
-
-export const BusinessRuleType = z.enum([
-  'Consistency',
-  'Structure',
-  'Computation',
-  'State change',
-]);
-export const QualityRuleType = z.enum([
-  'Performance',
-  'Security',
-  'Reliability',
-  'Usability',
-  'Compatibility',
-  'Maintainability',
-  'Portability',
-]);
-export const ConstraintRuleType = z.enum([
-  'Technology',
-  'Regulation',
-  'Interface',
-  'Organisation',
-]);
-
-export const RuleType = z
-  .enum([
-    ...BusinessRuleType.options,
-    ...QualityRuleType.options,
-    ...ConstraintRuleType.options,
-  ])
-  .describe(
-    `The kind of rule within its category. Business: ${BusinessRuleType.options.join(', ')}. Quality: ${QualityRuleType.options.join(', ')}. Constraint: ${ConstraintRuleType.options.join(', ')}.`,
-  );
-export type RuleType = z.infer<typeof RuleType>;
-
-/** The rule types each category allows. */
-export const RULE_TYPES_OF: Record<RuleCategory, readonly RuleType[]> = {
-  Business: BusinessRuleType.options,
-  Quality: QualityRuleType.options,
-  Constraint: ConstraintRuleType.options,
-};
-
-export const ScenarioStepKind = z
-  .enum(['given', 'when', 'then'])
-  .describe(
-    "Which part of a scenario a step is: 'given' sets the starting state, 'when' is the action, 'then' the outcome.",
-  );
-export type ScenarioStepKind = z.infer<typeof ScenarioStepKind>;
-
-export const ScenarioStep = z
-  .strictObject({ kind: ScenarioStepKind, text: z.string() })
-  .describe('One step of a scenario: its kind and what it says.');
-export type ScenarioStep = z.infer<typeof ScenarioStep>;
-
-export const ScenarioSteps = z
-  .array(ScenarioStep)
-  .min(1)
-  .describe(
-    'The steps in reading order; each kind may repeat or be left out, but there is at least one step. Consecutive steps of one kind read as "And".',
-  );
-
-export const ScannedScenario = z
-  .strictObject({
-    name: ElementName,
-    description: z.string().nullable().default(null),
-    steps: z.array(ScenarioStep).default([]),
-  })
-  .describe(
-    'A scenario as a scan found it: code carries its title and little else, so the description and the steps may be missing.',
-  );
-export type ScannedScenario = z.infer<typeof ScannedScenario>;
-
-export const ScannedRule = z
-  .strictObject({
-    name: ElementName,
-    category: RuleCategory.default('Business'),
-    ruleType: RuleType,
-    description: z.string().nullable().default(null),
-    scenarios: z.array(ScannedScenario).default([]),
-  })
-  .describe(
-    'A rule the element that holds it follows, with the scenarios that illustrate it.',
-  );
-export type ScannedRule = z.infer<typeof ScannedRule>;
-
 /* The elements, in the order the model lists them. */
 
 export const ScannedDomainModule = ScannedElement.extend({
   id: ModuleId,
-  rules: z.array(ScannedRule).default([]),
 }).describe(
   "A module: a package or namespace of the code that groups building blocks and other modules; 'module_contains_module' relations name the modules in it, 'module_contains_block' relations the blocks.",
 );
@@ -190,8 +98,6 @@ export type BuildingBlockType = z.infer<typeof BuildingBlockType>;
 export const ScannedBuildingBlock = ScannedElement.extend({
   id: BuildingBlockId,
   type: BuildingBlockType,
-  rules: z.array(ScannedRule).default([]),
-  scenarios: z.array(ScannedScenario).default([]),
 }).describe(
   'A building block: a class, interface, struct or enum of the code that an annotation names as one of the types; its state and the behaviors it exposes are relations.',
 );
@@ -218,12 +124,59 @@ export const ScannedBehavior = ScannedElement.extend({
   id: BehaviorId,
   type: BehaviorType,
   visibility: Visibility,
-  rules: z.array(ScannedRule).default([]),
-  scenarios: z.array(ScannedScenario).default([]),
 }).describe(
-  "A behavior: a public method of a building block, named by the block's id path and its own name; its inputs, output and the behaviors it invokes ('behavior_invokes_behavior') are relations.",
+  "A behavior: a public method of a building block, named by the block's id path and its own name; its inputs, output, the behaviors it invokes ('behavior_invokes_behavior') and the rules it governs ('governs') are relations.",
 );
 export type ScannedBehavior = z.infer<typeof ScannedBehavior>;
+
+export const RuleKind = z
+  .enum([
+    'validation',
+    'state_change',
+    'post',
+    'computation',
+    'coordination',
+    'configuration',
+  ])
+  .describe(
+    "What a rule does: 'validation' accepts or rejects input before anything changes; 'state_change' says how state moves from one value to the next; 'post' must hold, or happen, after a behavior completes; 'computation' derives a value from others; 'coordination' orders or ties together work across behaviors or building blocks; 'configuration' is set by a setting rather than fixed in code.",
+  );
+export type RuleKind = z.infer<typeof RuleKind>;
+
+export const ScannedRule = ScannedElement.extend({
+  id: RuleId,
+  kind: RuleKind,
+}).describe(
+  'A rule: a `Rule:` of a feature file, its kind the tag on it; behaviors govern it, scenarios illustrate it.',
+);
+export type ScannedRule = z.infer<typeof ScannedRule>;
+
+export const ScenarioStepKind = z
+  .enum(['given', 'when', 'then'])
+  .describe(
+    "Which part of a scenario a step is: 'given' sets the starting state, 'when' is the action, 'then' the outcome.",
+  );
+export type ScenarioStepKind = z.infer<typeof ScenarioStepKind>;
+
+export const ScenarioStep = z
+  .strictObject({ kind: ScenarioStepKind, text: z.string() })
+  .describe('One step of a scenario: its kind and what it says.');
+export type ScenarioStep = z.infer<typeof ScenarioStep>;
+
+export const ScenarioSteps = z
+  .array(ScenarioStep)
+  .min(1)
+  .describe(
+    'The steps in reading order; each kind may repeat or be left out, but there is at least one step. Consecutive steps of one kind read as "And".',
+  );
+
+export const ScannedScenario = ScannedElement.extend({
+  id: ScenarioId,
+  steps: ScenarioSteps,
+}).describe(
+  "A scenario: a `Scenario:` of a feature file under the `Rule:` it illustrates, its steps as written there, the feature's and the rule's `Background:` first.",
+);
+export type ScannedScenario = z.infer<typeof ScannedScenario>;
 
 /* What types a slot — a piece of state, an input, an output — and how many values it holds. */
 
@@ -356,6 +309,22 @@ export const BehaviorInvokesBehaviorRelation = ScannedRelation.extend({
   'A behavior calls another behavior, as its `order`th call; a behavior never calls itself.',
 );
 
+export const GovernsRelation = ScannedRelation.extend({
+  kind: z.literal('governs'),
+  from: BehaviorId,
+  to: RuleId,
+}).describe(
+  "A behavior enforces or follows a rule: the behavior the `When` steps of the rule's scenarios invoke.",
+);
+
+export const IllustratesRelation = ScannedRelation.extend({
+  kind: z.literal('illustrates'),
+  from: ScenarioId,
+  to: RuleId,
+}).describe(
+  "A scenario is an example of a rule; the scenario's id path is the rule's path and its own name.",
+);
+
 export const Relation = z.discriminatedUnion('kind', [
   ModuleContainsModuleRelation,
   ModuleContainsBlockRelation,
@@ -365,6 +334,8 @@ export const Relation = z.discriminatedUnion('kind', [
   HasInputRelation,
   HasOutputRelation,
   BehaviorInvokesBehaviorRelation,
+  GovernsRelation,
+  IllustratesRelation,
 ]);
 export type Relation = z.infer<typeof Relation>;
 
@@ -384,6 +355,8 @@ export const SystemModel = z
     modules: z.array(ScannedDomainModule).default([]),
     buildingBlocks: z.array(ScannedBuildingBlock).default([]),
     behaviors: z.array(ScannedBehavior).default([]),
+    rules: z.array(ScannedRule).default([]),
+    scenarios: z.array(ScannedScenario).default([]),
     relations: z.array(Relation).default([]),
   })
   .describe(

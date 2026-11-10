@@ -149,6 +149,8 @@ describe('the fixture solution through the C# parser (e2e)', () => {
       const { model: built } = buildSystemModel({
         manifest,
         files,
+        // The fixture has no feature files.
+        featureFiles: [],
         vocabulary: CSHARP_VOCABULARY,
         config,
       });

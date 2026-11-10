@@ -87,6 +87,8 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       const { model: committed } = buildSystemModel({
         manifest,
         files,
+        // The fixture has no feature files.
+        featureFiles: [],
         vocabulary: JAVA_VOCABULARY,
         config,
       });

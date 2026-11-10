@@ -176,7 +176,6 @@ describe('Scanning through the C# parser', () => {
     );
     expect<unknown>(aggregate).toMatchObject({
       description: 'An aggregate with a *short* description.',
-      scenarios: [{ name: 'Aggregate scenario', description: null, steps: [] }],
       source: {
         path: `${SOURCES}/Blocks/BlockKinds.cs`,
         startLine: 10,
@@ -318,7 +317,6 @@ describe('Scanning through the C# parser', () => {
       model.behaviors.find((b) => b.id === form('Named behavior')),
     ).toMatchObject({
       description: 'Named by its annotation.',
-      scenarios: [{ name: 'Behavior scenario' }],
       source: {
         path: `${SOURCES}/Behaviors/BehaviorForms.cs`,
         startLine: 23,

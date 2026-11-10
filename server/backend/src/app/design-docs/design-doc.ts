@@ -6,6 +6,8 @@ import {
   ElementId,
   ElementName,
   ModuleId,
+  RuleId,
+  ScenarioId,
 } from '#backend/app/element-id';
 import {
   BehaviorInvokesBehaviorRelation,
@@ -14,16 +16,15 @@ import {
   Cardinality,
   ExposesRelation,
   ExtendsRelation,
+  GovernsRelation,
   HasInputRelation,
   HasOutputRelation,
   HasStateRelation,
+  IllustratesRelation,
   ModuleContainsBlockRelation,
   ModuleContainsModuleRelation,
-  RULE_TYPES_OF,
-  RuleCategory,
-  RuleType,
+  RuleKind,
   ScenarioSteps,
-  type ScannedRule,
   type SystemModel,
   TypeId,
   Visibility,
@@ -43,11 +44,16 @@ export const DesignedNeed = z.strictObject({
 });
 export type DesignedNeed = z.infer<typeof DesignedNeed>;
 
-export const DesignedScenario = z.strictObject({
-  name: ElementName,
-  description: DesignDocField(z.string()),
-  steps: DesignDocField(ScenarioSteps),
-});
+export const DesignedScenario = z
+  .strictObject({
+    id: ScenarioId,
+    name: DesignDocField(ElementName),
+    description: DesignDocField(z.string()),
+    steps: DesignDocField(ScenarioSteps),
+  })
+  .describe(
+    "An example of a rule, as the Gherkin `Scenario:` under the rule's `Rule:` it becomes: its steps are the scenario's Given, When and Then steps. Its id is its rule's path and its name; an 'illustrates' relation joins it to the rule.",
+  );
 export type DesignedScenario = z.infer<typeof DesignedScenario>;
 
 /*
@@ -74,6 +80,8 @@ export const DesignedRelation = z.discriminatedUnion('kind', [
   BehaviorInvokesBehaviorRelation.extend({
     order: DesignDocField(BehaviorInvokesBehaviorRelation.shape.order),
   }),
+  GovernsRelation,
+  IllustratesRelation,
 ]);
 export type DesignedRelation = z.infer<typeof DesignedRelation>;
 
@@ -87,27 +95,32 @@ export const DesignedRelationKey = z
     HasInputRelation.pick({ kind: true, from: true, to: true, name: true }),
     HasOutputRelation.pick({ kind: true, from: true, to: true, name: true }),
     BehaviorInvokesBehaviorRelation.pick({ kind: true, from: true, to: true }),
+    GovernsRelation.pick({ kind: true, from: true, to: true }),
+    IllustratesRelation.pick({ kind: true, from: true, to: true }),
   ])
   .describe(
     "What a design removes a relation by: its kind and both ends, and for a named slot ('has_state', 'has_input', 'has_output') its name too, so the key says what was removed in full.",
   );
 export type DesignedRelationKey = z.infer<typeof DesignedRelationKey>;
 
-export const DesignedRule = z.strictObject({
-  name: ElementName,
-  category: DesignDocField(RuleCategory),
-  ruleType: DesignDocField(RuleType),
-  description: DesignDocField(z.string()),
-  needs: DesignDocField(
-    z
-      .array(NeedId)
-      .describe(
-        'The needs of this design document the rule answers; empty for a design decision no need asks for.',
-      ),
-  ),
-  rationale: DesignDocField(z.string()),
-  scenarios: changeSet(DesignedScenario, ElementName),
-});
+export const DesignedRule = z
+  .strictObject({
+    id: RuleId,
+    name: DesignDocField(ElementName),
+    kind: DesignDocField(RuleKind),
+    description: DesignDocField(z.string()),
+    needs: DesignDocField(
+      z
+        .array(NeedId)
+        .describe(
+          'The needs of this design document the rule answers; empty for a design decision no need asks for.',
+        ),
+    ),
+    rationale: DesignDocField(z.string()),
+  })
+  .describe(
+    "A rule a behavior follows, as the Gherkin `Rule:` it becomes: its name the `Rule:` line, its description the text under it, its kind the tag on it. Its id is the path of the module of the behavior that governs it, then its name; a 'governs' relation from each behavior that follows it joins them.",
+  );
 export type DesignedRule = z.infer<typeof DesignedRule>;
 
 export const DesignedDomainModule = z.strictObject({
@@ -115,7 +128,6 @@ export const DesignedDomainModule = z.strictObject({
   name: DesignDocField(ElementName),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
-  rules: changeSet(DesignedRule, ElementName),
 });
 export type DesignedDomainModule = z.infer<typeof DesignedDomainModule>;
 
@@ -125,8 +137,6 @@ export const DesignedBuildingBlock = z.strictObject({
   type: DesignDocField(BuildingBlockType),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
-  rules: changeSet(DesignedRule, ElementName),
-  scenarios: changeSet(DesignedScenario, ElementName),
 });
 export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlock>;
 
@@ -137,8 +147,6 @@ export const DesignedBehavior = z.strictObject({
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
   visibility: DesignDocField(Visibility),
-  rules: changeSet(DesignedRule, ElementName),
-  scenarios: changeSet(DesignedScenario, ElementName),
 });
 export type DesignedBehavior = z.infer<typeof DesignedBehavior>;
 
@@ -150,14 +158,16 @@ const designDocumentSchema = z.strictObject({
   description: z
     .string()
     .describe(
-      "The design's overview, read first when it is opened: a short guide to its changes in the model, from the general to the particular, in Markdown of at most about 60 lines and no diagrams. States facts the design shows or its sources state, and cites the source for every reason. Links elements with 'noesis:' and the element's id, e.g. '[Refund](noesis:building_block|sales.refunds.Refund)', and needs with 'noesis:need|' and the need's id.",
+      "The design's overview, read first when it is opened: a short guide to its changes in the model, from the general to the particular, in Markdown of at most about 60 lines and no diagrams. States facts the design shows or its sources state, and cites the source for every reason. Links elements with 'noesis:' and the element's id, e.g. '[Refund](noesis:building_block|sales.refunds.Refund)', an id with a space in angle brackets, e.g. '[Paid orders only](<noesis:rule|sales.orders.Paid orders only>)', and needs with 'noesis:need|' and the need's id.",
     ),
   needs: changeSet(DesignedNeed, NeedId),
   modules: changeSet(DesignedDomainModule, ModuleId),
   buildingBlocks: changeSet(DesignedBuildingBlock, BuildingBlockId),
   behaviors: changeSet(DesignedBehavior, BehaviorId),
+  rules: changeSet(DesignedRule, RuleId),
+  scenarios: changeSet(DesignedScenario, ScenarioId),
   relations: changeSet(DesignedRelation, DesignedRelationKey).describe(
-    "The relations the design adds, removes or changes between elements of the design or the model: what a module contains ('module_contains_module', 'module_contains_block'), what a block extends, holds ('has_state') and exposes, what a behavior takes ('has_input'), gives back ('has_output') and invokes. Both ends of an added or modified relation exist, in the design or the model; a containment agrees with the ids, whose paths already say what holds what.",
+    "The relations the design adds, removes or changes between elements of the design or the model: what a module contains ('module_contains_module', 'module_contains_block'), what a block extends, holds ('has_state') and exposes, what a behavior takes ('has_input'), gives back ('has_output') and invokes, which rules a behavior follows ('governs') and which scenarios illustrate a rule ('illustrates'). Both ends of an added or modified relation exist, in the design or the model; a containment or an 'illustrates' agrees with the ids, whose paths already say what holds what; an added rule is governed by a behavior.",
   ),
   implemented: z
     .boolean()
@@ -201,8 +211,7 @@ export interface DesignDocViolation {
     | 'humanAuthor'
     | 'diagramInDefinition'
     | 'unknownNeed'
-    | 'ruleTypeOutsideCategory'
-    | 'businessRuleOnModule'
+    | 'ungovernedRule'
     | 'uncontained'
     | 'unknownRelationEnd'
     | 'containmentOutsideIdPath';
@@ -374,21 +383,21 @@ function rulesOfEveryDesign(
   document: DesignDocumentContent,
   systemModel?: SystemModel,
 ): DesignDocViolation[] {
-  const rules = [...rulesIn(document, systemModel)];
   return [
     ...changesMissingFrom(systemModel, document),
     ...uncontainedElements(document),
     ...unchangedFieldsInAddedItems(document),
-    ...unknownNeeds(document, rules),
-    ...ruleTypesOutsideCategory(rules),
-    ...businessRulesOnModules(rules),
+    ...unknownNeeds(document),
+    ...ungovernedRules(document),
     ...unknownRelationEnds(document, systemModel),
     ...containmentsOutsideIdPaths(document),
   ];
 }
 
 const ELEMENT_COLLECTIONS = ['modules', 'buildingBlocks', 'behaviors'] as const;
-type ElementCollection = (typeof ELEMENT_COLLECTIONS)[number];
+
+/** Every list of elements, those a relation may end at. */
+const ELEMENT_LISTS = [...ELEMENT_COLLECTIONS, 'rules', 'scenarios'] as const;
 
 /** The relations that place an element under another: the tree of modules, blocks and behaviors. */
 const CONTAINMENT_KINDS: ReadonlySet<string> = new Set([
@@ -428,9 +437,9 @@ function unknownRelationEnds(
   systemModel: SystemModel | undefined,
 ): DesignDocViolation[] {
   const known = new Set<string>();
-  for (const collection of ELEMENT_COLLECTIONS) {
-    for (const { id } of systemModel?.[collection] ?? []) known.add(id);
-    for (const { id } of document[collection].added) known.add(id);
+  for (const list of ELEMENT_LISTS) {
+    for (const { id } of systemModel?.[list] ?? []) known.add(id);
+    for (const { id } of document[list].added) known.add(id);
   }
   const isUnknown = (id: string | undefined) =>
     id !== undefined && !known.has(id) && !id.startsWith('primitive|');
@@ -457,17 +466,25 @@ const targetOf = (relation: DesignedRelation): string | undefined => {
   return relation.to.changed ? relation.to.value : undefined;
 };
 
-/** What a module holds is in the ids too: `to`'s path is `from`'s path and its own name. */
+/**
+ * What holds what is in the ids too: a module's holding has `to`'s path be
+ * `from`'s path and its own name, an `illustrates` has `from`'s path be
+ * `to`'s path and its own name.
+ */
 function containmentsOutsideIdPaths(
   document: DesignDocumentContent,
 ): DesignDocViolation[] {
   return document.relations.added
-    .filter(
-      (relation) =>
-        (relation.kind === 'module_contains_module' ||
-          relation.kind === 'module_contains_block') &&
-        parentOf(relation.to) !== relation.from,
-    )
+    .filter((relation) => {
+      if (
+        relation.kind === 'module_contains_module' ||
+        relation.kind === 'module_contains_block'
+      )
+        return parentOf(relation.to) !== relation.from;
+      if (relation.kind === 'illustrates')
+        return parentOf(relation.from) !== relation.to;
+      return false;
+    })
     .map((relation) => ({
       path: `relations.added[${relationKeyOf(relation)}]`,
       reason: 'containmentOutsideIdPath' as const,
@@ -480,117 +497,51 @@ const parentOf = (id: ElementId): ElementId | null =>
     module: (module) => ModuleId.parentOf(module),
     buildingBlock: (block) => ModuleId.containing(block),
     behavior: (behavior) => BuildingBlockId.containing(behavior),
+    // A rule is in the module of the behavior that governs it, a scenario in its rule.
+    rule: (rule) => ModuleId.parse(`module|${parentPathOf(rule)}`),
+    scenario: (scenario) => RuleId.parse(`rule|${parentPathOf(scenario)}`),
   });
 
-interface DesignedElementWithRules {
-  id: string;
-  rules: { added: DesignedRule[]; modified: DesignedRule[] };
-}
+/** `id`'s path without its own name. */
+const parentPathOf = (id: string): string =>
+  id
+    .slice(id.indexOf('|') + 1)
+    .split('.')
+    .slice(0, -1)
+    .join('.');
 
-interface ScannedElementWithRules {
-  id: string;
-  rules: ScannedRule[];
-}
-
-/** A rule the design adds or modifies, and the scanned rule a modified one changes. */
-interface RuleInDesign {
-  path: string;
-  collection: ElementCollection;
-  designed: DesignedRule;
-  scanned: ScannedRule | undefined;
-}
-
-function* rulesIn(
+/** A rule enters the model only through a behavior: an added rule is governed by one the design names. */
+function ungovernedRules(
   document: DesignDocumentContent,
-  systemModel: SystemModel | undefined,
-): Generator<RuleInDesign> {
-  for (const collection of ELEMENT_COLLECTIONS) {
-    const scannedElements: readonly ScannedElementWithRules[] =
-      systemModel?.[collection] ?? [];
-    for (const kind of ['added', 'modified'] as const) {
-      const elements: readonly DesignedElementWithRules[] =
-        document[collection][kind];
-      for (const element of elements) {
-        const scannedRules =
-          kind === 'modified'
-            ? (scannedElements.find(({ id }) => id === element.id)?.rules ?? [])
-            : [];
-        for (const ruleKind of ['added', 'modified'] as const) {
-          for (const rule of element.rules[ruleKind]) {
-            yield {
-              path: `${collection}.${kind}[${element.id}].rules.${ruleKind}[${rule.name}]`,
-              collection,
-              designed: rule,
-              scanned:
-                ruleKind === 'modified'
-                  ? scannedRules.find(({ name }) => name === rule.name)
-                  : undefined,
-            };
-          }
-        }
-      }
-    }
-  }
+): DesignDocViolation[] {
+  const governed = new Set<string>(
+    document.relations.added.flatMap((relation) =>
+      relation.kind === 'governs' ? [relation.to] : [],
+    ),
+  );
+  return document.rules.added
+    .filter(({ id }) => !governed.has(id))
+    .map(({ id }) => ({
+      path: `rules.added[${id}]`,
+      reason: 'ungovernedRule' as const,
+    }));
 }
 
 /** A rule traces only to needs this design document states. */
-function unknownNeeds(
-  document: DesignDocumentContent,
-  rules: RuleInDesign[],
-): DesignDocViolation[] {
+function unknownNeeds(document: DesignDocumentContent): DesignDocViolation[] {
   const stated = new Set<string>(document.needs.added.map(({ id }) => id));
-  return rules.flatMap(({ path, designed }) =>
-    designed.needs.changed
-      ? designed.needs.value
-          .filter((need) => !stated.has(need))
-          .map((need) => ({
-            path: `${path}.needs[${need}]`,
-            reason: 'unknownNeed' as const,
-          }))
-      : [],
+  return (['added', 'modified'] as const).flatMap((change) =>
+    document.rules[change].flatMap(({ id, needs }) =>
+      needs.changed
+        ? needs.value
+            .filter((need) => !stated.has(need))
+            .map((need) => ({
+              path: `rules.${change}[${id}].needs[${need}]`,
+              reason: 'unknownNeed' as const,
+            }))
+        : [],
+    ),
   );
-}
-
-/** A rule's type is one its category allows, the scanned rule filling in the half a modified one leaves alone. */
-function ruleTypesOutsideCategory(rules: RuleInDesign[]): DesignDocViolation[] {
-  return rules
-    .filter(({ designed, scanned }) => {
-      if (!designed.category.changed && !designed.ruleType.changed) {
-        return false;
-      }
-      const category = valueOf(designed.category, scanned?.category);
-      const ruleType = valueOf(designed.ruleType, scanned?.ruleType);
-      return (
-        category !== undefined &&
-        ruleType !== undefined &&
-        !RULE_TYPES_OF[category].includes(ruleType)
-      );
-    })
-    .map(({ path }) => ({
-      path: `${path}.ruleType`,
-      reason: 'ruleTypeOutsideCategory',
-    }));
-}
-
-/** A module holds quality and constraint rules; a domain truth belongs to a building block or a behavior. */
-function businessRulesOnModules(rules: RuleInDesign[]): DesignDocViolation[] {
-  return rules
-    .filter(
-      ({ collection, designed, scanned }) =>
-        collection === 'modules' &&
-        valueOf(designed.category, scanned?.category) === 'Business',
-    )
-    .map(({ path }) => ({
-      path: `${path}.category`,
-      reason: 'businessRuleOnModule',
-    }));
-}
-
-function valueOf<Value>(
-  field: DesignDocField<Value>,
-  held: Value | undefined,
-): Value | undefined {
-  return field.changed ? field.value : held;
 }
 
 /**

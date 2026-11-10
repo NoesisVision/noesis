@@ -83,16 +83,14 @@ const FIXES: Record<DesignDocViolation['reason'], string> = {
     'move the ```mermaid fence out of the definition: write its source, without the fence, to the element\'s "diagram"',
   unknownNeed:
     'the design document states no such need; add it to "needs", or leave it out of the rule\'s "needs"',
-  ruleTypeOutsideCategory:
-    'the rule\'s "ruleType" belongs to another "category"; pick a type of its category, or the category of its type',
-  businessRuleOnModule:
-    'a module holds only quality and constraint rules; move the business rule to the building block or behavior it governs',
+  ungovernedRule:
+    "a rule enters the model only through a behavior that follows it; add a 'governs' relation from that behavior to the rule",
   uncontained:
     'the element its id places this one under has no relation to it; add { "kind": "module_contains_module" | "module_contains_block" | "exposes", "from": <that element\'s id>, "to": <this id> } to the design\'s "relations.added"',
   unknownRelationEnd:
     'this end of the relation is no element of the design or the scanned model; add the element, or point the relation at one that exists',
   containmentOutsideIdPath:
-    'what a module contains is in the ids too: "to" must be "from"\'s path and its own name; point the relation at the module its id names',
+    'what holds what is in the ids too: a module\'s "to" must be "from"\'s path and its own name, an "illustrates"\' "from" must be "to"\'s path and its own name; point the relation at the element its id names',
 };
 
 function message(error: unknown): string {

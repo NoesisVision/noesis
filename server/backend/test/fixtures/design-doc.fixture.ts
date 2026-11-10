@@ -7,9 +7,9 @@ import {
  * The JSON form, with every default spelled out, so that decoding and
  * encoding it again gives back exactly this object. Keeps one of every shape
  * the specs rely on: an element added, modified and removed at every level,
- * a relation of each kind, named slots added, modified and removed, unchanged
- * fields and changed fields of both authors, every cardinality, a public
- * behavior.
+ * rules and scenarios added, modified and removed, a relation of each kind,
+ * named slots added, modified and removed, unchanged fields and changed
+ * fields of both authors, every cardinality, a public behavior.
  */
 
 const byHuman = <const T>(value: T) => ({
@@ -23,7 +23,6 @@ const byAgent = <const T>(value: T) => ({
   author: 'agent' as const,
 });
 const unchanged = { changed: false as const };
-const noChanges = { added: [], removed: [], modified: [] };
 
 const SALES = 'module|sales';
 const REFUNDS = 'module|sales.refunds';
@@ -35,6 +34,10 @@ const REFUND_REPOSITORY = 'building_block|sales.refunds.RefundRepository';
 const ISSUE = 'behavior|sales.refunds.Refund.issue';
 const ORDER = 'building_block|sales.orders.Order';
 const CANCEL = 'behavior|sales.orders.Order.cancel';
+const NOT_EXCEEDING = 'rule|sales.refunds.Refund never exceeds paid amount';
+const PAID_ONLY = 'rule|sales.refunds.Only paid orders are refundable';
+const ONE_LINE = `scenario|sales.refunds.Refund never exceeds paid amount.Refunding one line of a paid order`;
+const STAYS_CANCELLED = 'rule|sales.orders.Cancelled orders stay cancelled';
 
 /** The root module, which gains the refunds module: added in a green field, modified once scanned. */
 const salesRoot = {
@@ -42,7 +45,6 @@ const salesRoot = {
   name: byAgent('sales'),
   definition: byAgent('Selling to customers.'),
   diagram: unchanged,
-  rules: noChanges,
 };
 
 const slot = <const To extends string>(
@@ -84,6 +86,9 @@ const relationsWithinTheDesign = [
     to: byAgent(REFUND_ISSUED),
     cardinality: byAgent('1'),
   },
+  { kind: 'governs', from: ISSUE, to: NOT_EXCEEDING },
+  { kind: 'governs', from: ISSUE, to: PAID_ONLY },
+  { kind: 'illustrates', from: ONE_LINE, to: NOT_EXCEEDING },
 ] as const;
 
 /** The relations the design adds that reach elements the model has. */
@@ -139,23 +144,6 @@ export const designDocFixture = {
           'Everything about giving money back to a customer.',
         ),
         diagram: unchanged,
-        rules: {
-          added: [
-            {
-              name: 'A refund is issued within a second',
-              category: byAgent('Quality'),
-              ruleType: byAgent('Performance'),
-              description: byAgent(
-                'Issuing a refund answers within one second for an order of up to 100 lines.',
-              ),
-              needs: byAgent(['refund-single-lines']),
-              rationale: unchanged,
-              scenarios: noChanges,
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
       },
     ],
     removed: [CREDIT_NOTES],
@@ -165,7 +153,6 @@ export const designDocFixture = {
         name: unchanged,
         definition: unchanged,
         diagram: unchanged,
-        rules: noChanges,
       },
       {
         id: 'module|sales.orders',
@@ -174,7 +161,6 @@ export const designDocFixture = {
           'Order lifecycle, now including the refundable state of each line.',
         ),
         diagram: unchanged,
-        rules: noChanges,
       },
     ],
   },
@@ -186,40 +172,6 @@ export const designDocFixture = {
         type: byHuman('aggregate'),
         definition: byAgent('A refund of one or more lines of a single order.'),
         diagram: unchanged,
-        rules: {
-          added: [
-            {
-              name: 'Refund never exceeds paid amount',
-              category: byAgent('Business'),
-              ruleType: byAgent('Consistency'),
-              description: byHuman(
-                'The sum of all refunds of an order is at most what the customer paid for it.',
-              ),
-              needs: byAgent(['refund-single-lines']),
-              rationale: byAgent(
-                'Support may not pay out more than the order brought in.',
-              ),
-              scenarios: noChanges,
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
-        scenarios: {
-          added: [
-            {
-              name: 'Refunding one line of a paid order',
-              description: byAgent('The happy path of a partial refund.'),
-              steps: byAgent([
-                { kind: 'given', text: 'a paid order with two lines' },
-                { kind: 'when', text: 'support refunds the first line' },
-                { kind: 'then', text: REFUND_OUTCOME },
-              ]),
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
       },
       {
         id: REFUND_LINE,
@@ -227,8 +179,6 @@ export const designDocFixture = {
         type: byAgent('value_object'),
         definition: byAgent('One order line given back, and how much of it.'),
         diagram: unchanged,
-        rules: noChanges,
-        scenarios: noChanges,
       },
       {
         id: REFUND_ISSUED,
@@ -236,8 +186,6 @@ export const designDocFixture = {
         type: byAgent('value_object'),
         definition: byAgent('Tells the ledger a refund went out.'),
         diagram: unchanged,
-        rules: noChanges,
-        scenarios: noChanges,
       },
       {
         id: REFUND_REPOSITORY,
@@ -245,8 +193,6 @@ export const designDocFixture = {
         type: byAgent('repository'),
         definition: byAgent('Stores refunds.'),
         diagram: unchanged,
-        rules: noChanges,
-        scenarios: noChanges,
       },
     ],
     removed: ['building_block|sales.credit-notes.CreditNote'],
@@ -257,8 +203,6 @@ export const designDocFixture = {
         type: unchanged,
         definition: unchanged,
         diagram: unchanged,
-        rules: noChanges,
-        scenarios: noChanges,
       },
     ],
   },
@@ -275,22 +219,6 @@ export const designDocFixture = {
           'sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund-->>Support agent: RefundIssued',
         ),
         visibility: byHuman({ kind: 'public', actors: ['Support agent'] }),
-        rules: {
-          added: [
-            {
-              name: 'Only paid orders are refundable',
-              category: byAgent('Business'),
-              ruleType: byAgent('State change'),
-              description: byAgent('An unpaid order has nothing to refund.'),
-              needs: byAgent([]),
-              rationale: unchanged,
-              scenarios: noChanges,
-            },
-          ],
-          removed: [],
-          modified: [],
-        },
-        scenarios: noChanges,
       },
     ],
     removed: ['behavior|sales.credit-notes.CreditNote.issue'],
@@ -302,14 +230,70 @@ export const designDocFixture = {
         definition: unchanged,
         diagram: unchanged,
         visibility: byAgent({ kind: 'private' }),
-        rules: noChanges,
-        scenarios: noChanges,
       },
     ],
+  },
+  rules: {
+    added: [
+      {
+        id: NOT_EXCEEDING,
+        name: byAgent('Refund never exceeds paid amount'),
+        kind: byAgent('validation'),
+        description: byHuman(
+          'The sum of all refunds of an order is at most what the customer paid for it.',
+        ),
+        needs: byAgent(['refund-single-lines']),
+        rationale: byAgent(
+          'Support may not pay out more than the order brought in.',
+        ),
+      },
+      {
+        id: PAID_ONLY,
+        name: byAgent('Only paid orders are refundable'),
+        kind: byAgent('state_change'),
+        description: byAgent('An unpaid order has nothing to refund.'),
+        needs: byAgent([]),
+        rationale: unchanged,
+      },
+    ],
+    removed: ['rule|sales.credit-notes.Credit notes are numbered'],
+    modified: [
+      {
+        id: STAYS_CANCELLED,
+        name: unchanged,
+        kind: byAgent('post'),
+        description: unchanged,
+        needs: unchanged,
+        rationale: unchanged,
+      },
+    ],
+  },
+  scenarios: {
+    added: [
+      {
+        id: ONE_LINE,
+        name: byAgent('Refunding one line of a paid order'),
+        description: byAgent('The happy path of a partial refund.'),
+        steps: byAgent([
+          { kind: 'given', text: 'a paid order with two lines' },
+          { kind: 'when', text: 'support refunds the first line' },
+          { kind: 'then', text: REFUND_OUTCOME },
+        ]),
+      },
+    ],
+    removed: [
+      `scenario|sales.orders.Cancelled orders stay cancelled.Cancelling twice`,
+    ],
+    modified: [],
   },
   relations: {
     added: [...relationsWithinTheDesign, ...relationsToTheModel],
     removed: [
+      {
+        kind: 'governs',
+        from: 'behavior|sales.credit-notes.CreditNote.issue',
+        to: 'rule|sales.credit-notes.Credit notes are numbered',
+      },
       { kind: 'module_contains_module', from: SALES, to: CREDIT_NOTES },
       {
         kind: 'has_state',
@@ -371,6 +355,8 @@ export const greenFieldDesignDocFixture: DesignDocumentInput = {
   modules: { added: [salesRoot, ...byAgentOnly.modules.added] },
   buildingBlocks: { added: byAgentOnly.buildingBlocks.added },
   behaviors: { added: byAgentOnly.behaviors.added },
+  rules: { added: byAgentOnly.rules.added },
+  scenarios: { added: byAgentOnly.scenarios.added },
   relations: {
     added: [...byAgentOnly.relations.added].slice(
       0,
@@ -389,6 +375,8 @@ export const humanEditedDesignDocFixture: DesignDocumentInput = {
   modules: { added: [salesRoot, ...designDocFixture.modules.added] },
   buildingBlocks: { added: designDocFixture.buildingBlocks.added },
   behaviors: { added: designDocFixture.behaviors.added },
+  rules: { added: designDocFixture.rules.added },
+  scenarios: { added: designDocFixture.scenarios.added },
   relations: { added: [...relationsWithinTheDesign] },
 };
 
