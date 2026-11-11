@@ -4,8 +4,12 @@ import {
   ActorId,
   BehaviorId,
   BuildingBlockId,
+  DeployableUnitId,
+  DeploymentContainerId,
   ElementId,
   ElementName,
+  LayerId,
+  LibraryId,
   ManualProcessId,
   ModuleId,
   RuleId,
@@ -199,6 +203,61 @@ describe('ManualProcessId', () => {
   });
 });
 
+describe('LayerId', () => {
+  it('is its kind, then its name, in no module', () => {
+    expect(LayerId.of('domain')).toBe(LayerId.parse('layer|domain'));
+    for (const value of ['layer|', 'layer|sales.domain', 'layer| domain']) {
+      expect(LayerId.safeParse(value).success).toBe(false);
+    }
+    expect(() => LayerId.of('sales.domain')).toThrow();
+  });
+});
+
+describe('DeploymentContainerId', () => {
+  it('is its kind, then its name, in no module', () => {
+    expect(DeploymentContainerId.of('Orders cluster')).toBe(
+      DeploymentContainerId.parse('deployment_container|Orders cluster'),
+    );
+    for (const value of [
+      'deployment_container|',
+      'deployment_container|eu.Orders',
+      'layer|Orders',
+    ]) {
+      expect(DeploymentContainerId.safeParse(value).success).toBe(false);
+    }
+    expect(() => DeploymentContainerId.of('a|b')).toThrow();
+  });
+});
+
+describe('DeployableUnitId', () => {
+  it('is its kind, then its whole artifact name, dots included', () => {
+    const unit = DeployableUnitId.of('MyCompany.Sales.Api');
+    expect(unit).toBe(
+      DeployableUnitId.parse('deployable_unit|MyCompany.Sales.Api'),
+    );
+    expect(ElementId.nameOf(unit)).toBe('MyCompany.Sales.Api');
+    for (const value of [
+      'deployable_unit|',
+      'deployable_unit| shop-api',
+      'deployable_unit|a|b',
+      'library|shop-api',
+    ]) {
+      expect(DeployableUnitId.safeParse(value).success).toBe(false);
+    }
+  });
+});
+
+describe('LibraryId', () => {
+  it('is its kind, then its whole artifact name, dots included', () => {
+    const library = LibraryId.of('MyCompany.Sales.DeepModel');
+    expect(library).toBe(LibraryId.parse('library|MyCompany.Sales.DeepModel'));
+    expect(ElementId.nameOf(library)).toBe('MyCompany.Sales.DeepModel');
+    for (const value of ['library|', 'library|shop-domain ', 'library|a|b']) {
+      expect(LibraryId.safeParse(value).success).toBe(false);
+    }
+  });
+});
+
 describe('ElementId', () => {
   it('accepts each kind and rejects an unknown kind or a value too shallow for its kind', () => {
     for (const value of [
@@ -234,6 +293,10 @@ describe('ElementId', () => {
       'scenario|a.b.c',
       'actor|a',
       'manual_process|a',
+      'deployable_unit|a.b',
+      'library|a.b',
+      'layer|a',
+      'deployment_container|a',
     ].map((v) => ElementId.parse(v));
     const only = (index: number) => ids.map((_, i) => i === index);
     expect(ids.map(ElementId.isModule)).toEqual(only(0));
@@ -243,6 +306,10 @@ describe('ElementId', () => {
     expect(ids.map(ElementId.isScenario)).toEqual(only(4));
     expect(ids.map(ElementId.isActor)).toEqual(only(5));
     expect(ids.map(ElementId.isManualProcess)).toEqual(only(6));
+    expect(ids.map(ElementId.isDeployableUnit)).toEqual(only(7));
+    expect(ids.map(ElementId.isLibrary)).toEqual(only(8));
+    expect(ids.map(ElementId.isLayer)).toEqual(only(9));
+    expect(ids.map(ElementId.isDeploymentContainer)).toEqual(only(10));
     expect(
       ids.map((id) =>
         ElementId.match(id, {
@@ -253,6 +320,10 @@ describe('ElementId', () => {
           scenario: () => 'scenario',
           actor: () => 'actor',
           manualProcess: () => 'manual process',
+          deployableUnit: () => 'deployable unit',
+          library: () => 'library',
+          layer: () => 'layer',
+          deploymentContainer: () => 'deployment container',
         }),
       ),
     ).toEqual([
@@ -263,6 +334,10 @@ describe('ElementId', () => {
       'scenario',
       'actor',
       'manual process',
+      'deployable unit',
+      'library',
+      'layer',
+      'deployment container',
     ]);
   });
 

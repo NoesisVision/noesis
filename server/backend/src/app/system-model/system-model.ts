@@ -1,9 +1,14 @@
 import { z } from 'zod';
 import {
   ActorId,
+  ArtifactName,
   BehaviorId,
   BuildingBlockId,
+  DeployableUnitId,
+  DeploymentContainerId,
   ElementName,
+  LayerId,
+  LibraryId,
   ManualProcessId,
   ModuleId,
   RuleId,
@@ -104,7 +109,7 @@ export const ScannedBuildingBlock = ScannedElement.extend({
   id: BuildingBlockId,
   type: BuildingBlockType,
 }).describe(
-  'A building block: a class, interface, struct or enum of the code that an annotation names as one of the types; its state and the behaviors it exposes are relations.',
+  'A building block: a class, interface, struct or enum of the code that an annotation names as one of the types; its state, collaborators and the behaviors it exposes are relations.',
 );
 export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
 
@@ -176,6 +181,36 @@ export const ScannedManualProcess = ScannedElement.extend({
 );
 export type ScannedManualProcess = z.infer<typeof ScannedManualProcess>;
 
+export const ScannedDeployableUnit = ScannedElement.extend({
+  id: DeployableUnitId,
+  name: ArtifactName,
+}).describe(
+  "Something built and shipped as one piece: an executable artifact of the build (a service, a runnable JAR, an executable assembly), named as the build names it; its 'unit_contains_module' relations name the modules in it.",
+);
+export type ScannedDeployableUnit = z.infer<typeof ScannedDeployableUnit>;
+
+export const ScannedLibrary = ScannedElement.extend({
+  id: LibraryId,
+  name: ArtifactName,
+}).describe(
+  "A reusable package of building blocks: an artifact of the build that is no executable, named as the build names it; its 'library_contains_block' relations name the blocks in it.",
+);
+export type ScannedLibrary = z.infer<typeof ScannedLibrary>;
+
+export const ScannedLayer = ScannedElement.extend({ id: LayerId }).describe(
+  "A horizontal slice of the code (domain, application, infrastructure, …): named by a layer annotation on a package or namespace, found on the first package by path that names it; its 'layer_contains_block' relations name the blocks in it.",
+);
+export type ScannedLayer = z.infer<typeof ScannedLayer>;
+
+export const ScannedDeploymentContainer = ScannedElement.extend({
+  id: DeploymentContainerId,
+}).describe(
+  "Where deployable units run: a cluster, a server, a serverless platform; 'container_contains_unit' relations name the units on it; found in the infrastructure-as-code file that declares it.",
+);
+export type ScannedDeploymentContainer = z.infer<
+  typeof ScannedDeploymentContainer
+>;
+
 /* What types a slot — a piece of state, an input, an output — and how many values it holds. */
 
 const PRIMITIVE_KIND = 'primitive';
@@ -244,6 +279,28 @@ export const ModuleContainsBlockRelation = ScannedRelation.extend({
   "A module declares a building block, `to`'s id path being `from`'s path and its own name.",
 );
 
+export const UnitContainsModuleRelation = ScannedRelation.extend({
+  kind: z.literal('unit_contains_module'),
+  from: DeployableUnitId,
+  to: ModuleId,
+}).describe('A deployable unit ships a module: the module is built into it.');
+
+export const LibraryContainsBlockRelation = ScannedRelation.extend({
+  kind: z.literal('library_contains_block'),
+  from: LibraryId,
+  to: BuildingBlockId,
+}).describe(
+  'A library provides a building block: the block is packaged in it.',
+);
+
+export const LayerContainsBlockRelation = ScannedRelation.extend({
+  kind: z.literal('layer_contains_block'),
+  from: LayerId,
+  to: BuildingBlockId,
+}).describe(
+  'A layer places a building block: the block is in that slice of the code.',
+);
+
 export const ExtendsRelation = ScannedRelation.extend({
   kind: z.literal('extends'),
   from: BuildingBlockId,
@@ -255,7 +312,15 @@ export const HasStateRelation = NamedSlotRelation.extend({
   from: BuildingBlockId,
   to: TypeId,
 }).describe(
-  "A building block's piece of state: a field or property named `name`, typed by `to`, holding `cardinality` values.",
+  "A building block's piece of state: a field or property named `name`, typed by `to` (a primitive, or a block whose type is a value of the domain), holding `cardinality` values.",
+);
+
+export const HasCollaboratorRelation = NamedSlotRelation.extend({
+  kind: z.literal('has_collaborator'),
+  from: BuildingBlockId,
+  to: BuildingBlockId,
+}).describe(
+  'A building block works with another it holds, named `name` and holding `cardinality` of it: a repository, a service or an integration, by the type of `to`. A value of the domain it holds is its state (`has_state`) instead.',
 );
 
 export const ExposesRelation = ScannedRelation.extend({
@@ -349,11 +414,21 @@ export const PerformsRelation = ScannedRelation.extend({
   to: ManualProcessId,
 }).describe('An actor carries out a manual process.');
 
+export const ContainerContainsUnitRelation = ScannedRelation.extend({
+  kind: z.literal('container_contains_unit'),
+  from: DeploymentContainerId,
+  to: DeployableUnitId,
+}).describe('A deployment container runs a deployable unit.');
+
 export const Relation = z.discriminatedUnion('kind', [
   ModuleContainsModuleRelation,
   ModuleContainsBlockRelation,
+  UnitContainsModuleRelation,
+  LibraryContainsBlockRelation,
+  LayerContainsBlockRelation,
   ExtendsRelation,
   HasStateRelation,
+  HasCollaboratorRelation,
   ExposesRelation,
   HasInputRelation,
   HasOutputRelation,
@@ -363,6 +438,7 @@ export const Relation = z.discriminatedUnion('kind', [
   ProcessGovernsRuleRelation,
   IllustratesRelation,
   PerformsRelation,
+  ContainerContainsUnitRelation,
 ]);
 export type Relation = z.infer<typeof Relation>;
 
@@ -386,6 +462,10 @@ export const SystemModel = z
     scenarios: z.array(ScannedScenario).default([]),
     actors: z.array(ScannedActor).default([]),
     manualProcesses: z.array(ScannedManualProcess).default([]),
+    deployableUnits: z.array(ScannedDeployableUnit).default([]),
+    libraries: z.array(ScannedLibrary).default([]),
+    layers: z.array(ScannedLayer).default([]),
+    deploymentContainers: z.array(ScannedDeploymentContainer).default([]),
     relations: z.array(Relation).default([]),
   })
   .describe(
