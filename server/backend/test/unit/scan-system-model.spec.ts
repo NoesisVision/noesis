@@ -80,11 +80,7 @@ describe('ScannerFactory', () => {
     new ScannerFactory(
       new ScannerSettingsFileRepository(t.noesis),
       parserFor,
-      {
-        name: 'shop',
-        headCommit: () => Promise.resolve(null),
-        featureFiles: () => Promise.resolve([]),
-      },
+      { name: 'shop', headCommit: () => Promise.resolve(null) },
       fixedClock('2026-09-29T08:00:00.000Z'),
       { buildDiagnostics: () => {}, scanned: () => {} },
     );

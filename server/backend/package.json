@@ -17,9 +17,6 @@
     "test:e2e:toolchain": "bun test --parallel ./test/e2e-toolchain/"
   },
   "devDependencies": {
-    "@cucumber/cucumber-expressions": "^20.1.0",
-    "@cucumber/gherkin": "^42.0.1",
-    "@cucumber/messages": "^34.2.1",
     "@hono/standard-validator": "^0.4.0",
     "@logtape/file": "^2.3.4",
     "@logtape/hono": "^2.3.4",

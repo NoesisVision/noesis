@@ -43,8 +43,6 @@ const ROLES = new Map<string, AnnotationRole>([
   [`${DOMAIN}.EntryPointAttribute`, { role: 'behavior' }],
   [`${ANNOTATIONS}.People.ActorAttribute`, { role: 'actor' }],
   [`${ANNOTATIONS}.ShortDescriptionAttribute`, { role: 'description' }],
-  // Reqnroll's, not SpecFlow's: the step definitions a feature file's `When` steps bind to.
-  ['T:Reqnroll.WhenAttribute', { role: 'stepDefinition' }],
   [`${ANNOTATIONS}.ExcludeFromDocsAttribute`, { role: 'exclude' }],
 ]);
 
@@ -138,12 +136,10 @@ const TECHNICAL_MEMBERS = new Set([
 export const CSHARP_VOCABULARY: AnnotationVocabulary = {
   language: 'csharp',
   roles: ROLES,
-  stepExpressions: 'reqnroll',
   arguments: {
     name: 'name',
     description: 'markdownText',
     triggeredBy: 'TriggeredBy',
-    expression: 'expression',
   },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,

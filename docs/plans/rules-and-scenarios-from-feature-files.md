@@ -1,6 +1,12 @@
 # Plan: rules and scenarios from feature files
 
 Status: built (November 2026) on `feat/system-model-rules-from-features`.
+
+Update: the scan no longer reads feature files. The system model is a
+projection of the code model alone, so the reading and binding below
+(`SourceRepository.featureFiles`, `app/scanners/feature-files/`, the
+`stepDefinition` role) were taken out; they move to the parsers later.
+The model keeps its `rules` and `scenarios`, empty after a scan.
 Beyond the plan, decided while building:
 
 - `main`'s writer's rule `uncontained` stays, for modules, blocks and

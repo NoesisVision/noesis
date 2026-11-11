@@ -42,8 +42,6 @@ const ROLES = new Map<string, AnnotationRole>([
   [`${ANNOTATIONS}.CommandHandler`, { role: 'behavior', type: 'Command' }],
   [`${ANNOTATIONS}.QueryHandler`, { role: 'behavior', type: 'Query' }],
   [`${ANNOTATIONS}.EventHandler`, { role: 'behavior', type: 'Event' }],
-  // Cucumber's: the step definitions a feature file's `When` steps bind to.
-  ['T:io.cucumber.java.en.When', { role: 'stepDefinition' }],
   // `Module` is a package annotation: no namespace-wide annotations yet (section 12).
 ]);
 
@@ -133,14 +131,11 @@ const TECHNICAL_MEMBERS = new Set([
 export const JAVA_VOCABULARY: AnnotationVocabulary = {
   language: 'java',
   roles: ROLES,
-  stepExpressions: 'cucumber',
-  // No Java annotation carries a name, a description or a trigger today; the names are what a future one would use.
+  // No Java annotation carries these arguments today; the names are what a future one would use.
   arguments: {
     name: 'name',
     description: 'description',
     triggeredBy: 'triggeredBy',
-    // A single-element annotation's argument is `value`, however it is spelled.
-    expression: 'value',
   },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,

@@ -4,10 +4,8 @@ import type {
   ParseManifest,
 } from '#backend/app/scanners/code-parsers/code-model';
 import type { CodeParser } from '#backend/app/scanners/code-parsers/code-parser';
-import type { FeatureFileSource } from '#backend/app/scanners/feature-files/feature-file';
 import type { ScanLog, ScanSummary } from '#backend/app/scanners/scan-log';
 import { Scanner } from '#backend/app/scanners/scanner';
-import type { BuildDiagnostic } from '#backend/app/scanners/system-model-builders/build-system-model';
 import { NamespaceConfig } from '#backend/app/scanners/system-model-builders/namespace-config';
 import { SystemModelBuilder } from '#backend/app/scanners/system-model-builders/system-model-builder';
 import { SystemModel } from '#backend/app/system-model/system-model';
@@ -37,27 +35,18 @@ const parserOf = (language: Language): CodeParser => ({
 
 const recordingLog = () => {
   const summaries: ScanSummary[] = [];
-  const diagnostics: BuildDiagnostic[] = [];
   const log: ScanLog = {
-    buildDiagnostics: (found) => diagnostics.push(...found),
+    buildDiagnostics: () => {},
     scanned: (summary) => summaries.push(summary),
   };
-  return { log, summaries, diagnostics };
+  return { log, summaries };
 };
 
-const scannerWith = (
-  parser: CodeParser,
-  log: ScanLog = recordingLog().log,
-  featureFiles: FeatureFileSource[] = [],
-) =>
+const scannerWith = (parser: CodeParser, log: ScanLog = recordingLog().log) =>
   new Scanner({
     parser,
     builder: new SystemModelBuilder(NamespaceConfig.of({})),
-    repository: {
-      name: 'shop',
-      headCommit: () => Promise.resolve('7ba8217'),
-      featureFiles: () => Promise.resolve(featureFiles),
-    },
+    repository: { name: 'shop', headCommit: () => Promise.resolve('7ba8217') },
     clock: fixedClock(NOW),
     log,
   });
@@ -89,26 +78,8 @@ describe('Scanner', () => {
         artifacts: 0,
         blocks: 0,
         behaviors: 0,
-        rules: 0,
       }),
     ]);
-  });
-
-  it("hands the repository's feature files to the builder beside the code model", async () => {
-    const { log, diagnostics } = recordingLog();
-    const feature = {
-      path: 'features/orders.feature',
-      text: 'Feature: Orders\n  @validation\n  Rule: Non-empty order\n    Scenario: Refused\n      When the customer places the order\n',
-    };
-
-    const model = await scannerWith(parserOf('java'), log, [feature]).scan();
-
-    expect<unknown>(model.rules).toEqual([]);
-    expect<unknown>(diagnostics.map(({ source }) => source)).toContainEqual({
-      path: 'features/orders.feature',
-      startLine: 4,
-      endLine: null,
-    });
   });
 
   it('refuses a code model in a language the builder has no vocabulary for', async () => {

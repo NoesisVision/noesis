@@ -4,7 +4,6 @@ import type {
   PrimitiveName,
 } from '#backend/app/system-model/system-model';
 import type { Language, NodeId } from '../code-parsers/code-model';
-import type { StepExpressionDialect } from '../feature-files/step-expression';
 
 /*
  * What the system model builder knows about one language: which annotation types mean
@@ -23,11 +22,6 @@ export type AnnotationRole =
   | { readonly role: 'actor' }
   /** The element's description, Markdown, in the `description` argument. */
   | { readonly role: 'description' }
-  /**
-   * The method is a step definition a `When` step of a feature file binds
-   * to, by the `expression` argument (R12).
-   */
-  | { readonly role: 'stepDefinition' }
   /** The element is not in the system model. */
   | { readonly role: 'exclude' };
 
@@ -36,8 +30,6 @@ interface RoleArguments {
   readonly name: string;
   readonly description: string;
   readonly triggeredBy: string;
-  /** The step definition's Cucumber expression or regular expression. */
-  readonly expression: string;
 }
 
 export interface AnnotationVocabulary {
@@ -45,8 +37,6 @@ export interface AnnotationVocabulary {
   /** Roles by the annotation type's node or stub id, e.g. `T:NoesisVision.Annotations.Domain.DDD.DddAggregateAttribute`. */
   readonly roles: ReadonlyMap<NodeId, AnnotationRole>;
   readonly arguments: RoleArguments;
-  /** How the language's step library reads a step definition's expression. */
-  readonly stepExpressions: StepExpressionDialect;
   /** `PrimitiveTypeRef.name`s and platform type ids that are the model's primitives. */
   readonly primitives: ReadonlyMap<string, PrimitiveName>;
   /** Type ids whose first type argument is the element of a collection. */

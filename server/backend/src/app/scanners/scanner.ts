@@ -21,7 +21,7 @@ interface ScannerDeps {
 /**
  * Reads a codebase and tells what it implements, in two stages: the parser
  * reads the source code into the code model, the builder makes the system
- * model of it and of the repository's feature files. Rules in docs/plans/code-model-to-system-model.md.
+ * model of it. Rules in docs/plans/code-model-to-system-model.md.
  */
 export class Scanner {
   private readonly parser: CodeParser;
@@ -43,13 +43,8 @@ export class Scanner {
     const id = SystemModelId.mint();
     const scannedAt = this.clock.now();
     const commit = await this.repository.headCommit();
-    const [parsed, featureFiles] = await Promise.all([
-      timed(() => this.parser.parse()),
-      this.repository.featureFiles(),
-    ]);
-    const built = await timed(async () =>
-      this.builder.build(parsed.result, featureFiles),
-    );
+    const parsed = await timed(() => this.parser.parse());
+    const built = await timed(async () => this.builder.build(parsed.result));
     this.report(parsed, built);
     return {
       id,
@@ -74,7 +69,6 @@ export class Scanner {
       parseMs: parsed.ms,
       blocks: model.buildingBlocks.length,
       behaviors: model.behaviors.length,
-      rules: model.rules.length,
       buildMs: built.ms,
     });
   }

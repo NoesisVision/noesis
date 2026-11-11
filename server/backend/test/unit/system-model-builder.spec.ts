@@ -16,7 +16,6 @@ import type {
   TypeRef,
   Visibility,
 } from '#backend/app/scanners/code-parsers/code-model';
-import type { FeatureFileSource } from '#backend/app/scanners/feature-files/feature-file';
 import { unquote } from '#backend/app/scanners/system-model-builders/annotations';
 import {
   type BuiltSystemModel,
@@ -150,17 +149,6 @@ const entryPoint = (triggeredBy: string, name: string | null = null) =>
 const actor = (name: string) => attr('People.ActorAttribute', { name });
 const description = (markdownText: string) =>
   attr('ShortDescriptionAttribute', { markdownText });
-/** Reqnroll's `[When("…")]`: the step definition a `When` step binds to. */
-const when = (expression: string): Annotation => ({
-  type: named('T:Reqnroll.WhenAttribute'),
-  arguments: [
-    {
-      name: 'expression',
-      positional: true,
-      value: { kind: 'literal', text: JSON.stringify(expression) },
-    },
-  ],
-});
 const exclude = () => attr('ExcludeFromDocsAttribute');
 const domainModel = () => attr('Domain.DomainModelAttribute');
 
@@ -525,13 +513,11 @@ function buildFrom(
   artifacts: ArtifactBuilder[],
   config: NamespaceConfigInput = {},
   vocabulary: AnnotationVocabulary = CSHARP_VOCABULARY,
-  featureFiles: readonly FeatureFileSource[] = [],
 ): BuiltSystemModel {
   return buildFiles(
     artifacts.map((a) => a.build()),
     config,
     vocabulary,
-    featureFiles,
   );
 }
 
@@ -540,7 +526,6 @@ function buildFiles(
   files: CodeModelFile[],
   config: NamespaceConfigInput = {},
   vocabulary: AnnotationVocabulary = CSHARP_VOCABULARY,
-  featureFiles: readonly FeatureFileSource[] = [],
 ): BuiltSystemModel {
   const manifest: ParseManifest = {
     schemaVersion: 1,
@@ -557,7 +542,6 @@ function buildFiles(
   const built = buildSystemModel({
     manifest,
     files,
-    featureFiles,
     vocabulary,
     config: NamespaceConfig.of(config),
   });
@@ -2266,479 +2250,14 @@ describe('11. relations derived from invocations', () => {
   });
 });
 
-/* ========================================== 12 rules from feature files */
+/* ================================================ 12 rules and scenarios */
 
-const STEPS = 'T:Sales.Specs.OrderSteps';
-const PLACE = 'behavior|Sales.Orders.Order.Place';
-const CANCEL = 'behavior|Sales.Orders.Order.Cancel';
-const FEATURE = 'features/orders.feature';
-
-/** The `Sales` artifact with `Order.Place()` and `Order.Cancel()`, and the unannotated step definitions class. */
-function withSteps(): ArtifactBuilder {
-  return sales()
-    .method('M:Sales.Orders.Order#Place()')
-    .method('M:Sales.Orders.Order#Cancel()')
-    .type(STEPS);
-}
-
-const feature = (text: string, path = FEATURE): FeatureFileSource => ({
-  path,
-  text,
-});
-
-const ORDERS_FEATURE = `Feature: Orders
-
-  Background:
-    Given an order with one line
-
-  @validation
-  Rule: Non-empty order
-    An order must have at least one line.
-
-    Scenario: Placed
-      When the customer places the order
-      Then the order is placed
-
-    Scenario: Cancelled before placing
-      When the customer cancels the order
-      Then the order is gone
-`;
-
-const rulesFrom = (
-  steps: ArtifactBuilder,
-  ...features: FeatureFileSource[]
-): BuiltSystemModel => buildFrom([steps], {}, CSHARP_VOCABULARY, features);
-
-const rulesRelationsOf = (model: BuiltSystemModel['model']) =>
-  model.relations.filter(
-    (r) => r.kind === 'governs' || r.kind === 'illustrates',
-  );
-
-describe('12. rules and scenarios from feature files (R12)', () => {
-  it("makes a rule of a Rule:, governed by the behavior its scenarios' When steps invoke, in that behavior's module", () => {
-    const built = rulesFrom(
-      withSteps()
-        .method(`M:${STEPS.slice(2)}#WhenPlaced()`, {
-          annotations: [when('the customer places the order')],
-          invokes: ['M:Sales.Orders.Order#Place()'],
-        })
-        .method(`M:${STEPS.slice(2)}#WhenCancelled()`, {
-          annotations: [when('the customer cancels the order')],
-          invokes: ['M:Sales.Orders.Order#Cancel()'],
-        }),
-      feature(ORDERS_FEATURE),
-    );
-    const RULE = 'rule|Sales.Orders.Non-empty order';
-
-    expect<unknown>(built.model.rules).toEqual([
-      {
-        id: RULE,
-        name: 'Non-empty order',
-        kind: 'validation',
-        description: 'An order must have at least one line.',
-        source: { path: FEATURE, startLine: 7, endLine: null },
-      },
+describe('12. rules and scenarios', () => {
+  it('builds none: they come from feature files, which no parser reads yet', () => {
+    const { model } = buildFrom([
+      sales().method('M:Sales.Orders.Order#Place()'),
     ]);
-    expect<unknown>(built.model.scenarios).toEqual([
-      {
-        id: `scenario|Sales.Orders.Non-empty order.Cancelled before placing`,
-        name: 'Cancelled before placing',
-        description: null,
-        steps: [
-          { kind: 'given', text: 'an order with one line' },
-          { kind: 'when', text: 'the customer cancels the order' },
-          { kind: 'then', text: 'the order is gone' },
-        ],
-        source: { path: FEATURE, startLine: 14, endLine: null },
-      },
-      {
-        id: `scenario|Sales.Orders.Non-empty order.Placed`,
-        name: 'Placed',
-        description: null,
-        steps: [
-          { kind: 'given', text: 'an order with one line' },
-          { kind: 'when', text: 'the customer places the order' },
-          { kind: 'then', text: 'the order is placed' },
-        ],
-        source: { path: FEATURE, startLine: 10, endLine: null },
-      },
-    ]);
-    expect<unknown>(rulesRelationsOf(built.model)).toEqual([
-      { kind: 'governs', from: CANCEL, to: RULE },
-      { kind: 'governs', from: PLACE, to: RULE },
-      {
-        kind: 'illustrates',
-        from: `scenario|Sales.Orders.Non-empty order.Cancelled before placing`,
-        to: RULE,
-      },
-      {
-        kind: 'illustrates',
-        from: `scenario|Sales.Orders.Non-empty order.Placed`,
-        to: RULE,
-      },
-    ]);
-    expect<unknown>(messages(built)).toEqual([]);
-  });
-
-  it('follows a step definition through methods that are no behavior, and stops at the first behavior it reaches', () => {
-    const built = rulesFrom(
-      sales()
-        .method('M:Sales.Orders.Order#Place()', {
-          invokes: ['M:Sales.Orders.Order#Cancel()'],
-        })
-        .method('M:Sales.Orders.Order#Cancel()')
-        .type(STEPS)
-        .method(`M:${STEPS.slice(2)}#WhenPlaced()`, {
-          annotations: [when('the customer places the order')],
-          invokes: [`M:${STEPS.slice(2)}#Helper()`],
-        })
-        .method(`M:${STEPS.slice(2)}#Helper()`, {
-          visibility: 'private',
-          invokes: ['M:Sales.Orders.Order#Place()'],
-        }),
-      feature(`Feature: F
-  @post
-  Rule: Placed orders stay
-    Scenario: Placed
-      When the customer places the order
-`),
-    );
-
-    expect<unknown>(rulesRelationsOf(built.model)).toContainEqual({
-      kind: 'governs',
-      from: PLACE,
-      to: 'rule|Sales.Orders.Placed orders stay',
-    });
-  });
-
-  it('binds a step by a Cucumber expression or a regular expression, an outline by its first example', () => {
-    const built = rulesFrom(
-      withSteps()
-        .method(`M:${STEPS.slice(2)}#WhenAdded(int)`, {
-          annotations: [when('the customer adds {int} lines')],
-          parameters: [{ name: 'count', type: prim('int') }],
-          invokes: ['M:Sales.Orders.Order#Place()'],
-        })
-        .method(`M:${STEPS.slice(2)}#WhenCancelled()`, {
-          annotations: [when('^the order is (?:cancelled|dropped)$')],
-          invokes: ['M:Sales.Orders.Order#Cancel()'],
-        }),
-      feature(`Feature: F
-  @computation
-  Rule: Lines count
-    Scenario Outline: Adding
-      When the customer adds <count> lines
-      Examples:
-        | count |
-        | 2     |
-
-  @state_change
-  Rule: Cancelling
-    Scenario: Dropped
-      When the order is dropped
-`),
-    );
-
-    expect<unknown>(ids(built.model.rules)).toEqual([
-      'rule|Sales.Orders.Cancelling',
-      'rule|Sales.Orders.Lines count',
-    ]);
-    expect<unknown>(
-      built.model.scenarios.find(({ name }) => name === 'Adding')?.steps,
-    ).toEqual([{ kind: 'when', text: 'the customer adds <count> lines' }]);
-  });
-
-  it("names a rule in the module of its first scenario's behavior when its scenarios bind to several", () => {
-    const built = rulesFrom(
-      withSteps()
-        .type('T:Sales.Billing.Invoice', { annotations: [aggregate()] })
-        .method('M:Sales.Billing.Invoice#Issue()')
-        .method(`M:${STEPS.slice(2)}#WhenIssued()`, {
-          annotations: [when('the invoice is issued')],
-          invokes: ['M:Sales.Billing.Invoice#Issue()'],
-        })
-        .method(`M:${STEPS.slice(2)}#WhenPlaced()`, {
-          annotations: [when('the customer places the order')],
-          invokes: ['M:Sales.Orders.Order#Place()'],
-        }),
-      feature(`Feature: F
-  @coordination
-  Rule: Billed when placed
-    Scenario: Issued
-      When the invoice is issued
-    Scenario: Placed
-      When the customer places the order
-`),
-    );
-
-    expect<unknown>(ids(built.model.rules)).toEqual([
-      'rule|Sales.Billing.Billed when placed',
-    ]);
-    expect<unknown>(
-      rulesRelationsOf(built.model)
-        .filter(({ kind }) => kind === 'governs')
-        .map(({ from }) => from),
-    ).toEqual(['behavior|Sales.Billing.Invoice.Issue', PLACE]);
-  });
-
-  it('drops a scenario whose When step binds to no step definition, or to several', () => {
-    const built = rulesFrom(
-      withSteps()
-        .method(`M:${STEPS.slice(2)}#WhenPlaced()`, {
-          annotations: [when('the customer places the order')],
-          invokes: ['M:Sales.Orders.Order#Place()'],
-        })
-        .method(`M:${STEPS.slice(2)}#WhenPlacedAgain()`, {
-          annotations: [when('the customer places the {word}')],
-          invokes: ['M:Sales.Orders.Order#Place()'],
-        }),
-      feature(ORDERS_FEATURE),
-    );
-
-    expect<unknown>(built.model.rules).toEqual([]);
-    expect<unknown>(built.model.scenarios).toEqual([]);
-    expect<unknown>(messages(built, 'info')).toEqual([
-      expect.stringContaining(
-        'scenario "Placed": the When step "the customer places the order" matches 2 step definitions',
-      ),
-      expect.stringContaining(
-        'scenario "Cancelled before placing": the When step "the customer cancels the order" matches no step definition',
-      ),
-      expect.stringContaining(
-        'rule "Non-empty order": none of its scenarios binds to a behavior; dropped',
-      ),
-    ]);
-  });
-
-  it('drops a scenario whose When steps invoke no behavior, or more than one', () => {
-    const built = rulesFrom(
-      withSteps()
-        .method(`M:${STEPS.slice(2)}#WhenPlaced()`, {
-          annotations: [when('the customer places the order')],
-          invokes: [
-            'M:Sales.Orders.Order#Place()',
-            'M:Sales.Orders.Order#Cancel()',
-          ],
-        })
-        .method(`M:${STEPS.slice(2)}#WhenCancelled()`, {
-          annotations: [when('the customer cancels the order')],
-        }),
-      feature(ORDERS_FEATURE),
-    );
-
-    expect<unknown>(built.model.rules).toEqual([]);
-    expect<unknown>(messages(built, 'info')).toEqual([
-      expect.stringContaining(
-        `scenario "Placed": its When steps invoke 2 behaviors (${CANCEL}, ${PLACE}), not one`,
-      ),
-      expect.stringContaining(
-        'scenario "Cancelled before placing": its When steps invoke no behavior, not one',
-      ),
-      expect.stringContaining('rule "Non-empty order": none of its scenarios'),
-    ]);
-  });
-
-  it('keeps the rule of the first feature file by path when two make one id', () => {
-    const steps = () =>
-      withSteps().method(`M:${STEPS.slice(2)}#WhenPlaced()`, {
-        annotations: [when('the customer places the order')],
-        invokes: ['M:Sales.Orders.Order#Place()'],
-      });
-    const text = (kind: string) => `Feature: F
-  @${kind}
-  Rule: Placing
-    Scenario: Placed
-      When the customer places the order
-`;
-
-    const built = rulesFrom(
-      steps(),
-      feature(text('post'), 'features/b.feature'),
-      feature(text('validation'), 'features/a.feature'),
-    );
-
-    expect<unknown>(built.model.rules).toEqual([
-      expect.objectContaining({
-        id: 'rule|Sales.Orders.Placing',
-        kind: 'validation',
-        source: { path: 'features/a.feature', startLine: 3, endLine: null },
-      }),
-    ]);
-    expect<unknown>(messages(built, 'info')).toEqual([
-      expect.stringContaining(
-        'rule "Placing" has the id rule|Sales.Orders.Placing of the rule at features/a.feature:3, which came first; dropped',
-      ),
-    ]);
-  });
-
-  it('keeps the first of two scenarios of one name in a rule', () => {
-    const built = rulesFrom(
-      withSteps().method(`M:${STEPS.slice(2)}#WhenPlaced()`, {
-        annotations: [when('the customer places the order')],
-        invokes: ['M:Sales.Orders.Order#Place()'],
-      }),
-      feature(`Feature: F
-  @post
-  Rule: Placing
-    Scenario: Placed
-      When the customer places the order
-    Scenario: Placed
-      When the customer places the order
-      Then again
-`),
-    );
-
-    expect<unknown>(built.model.scenarios.map(({ source }) => source)).toEqual([
-      { path: FEATURE, startLine: 4, endLine: null },
-    ]);
-    expect<unknown>(messages(built, 'info')).toEqual([
-      expect.stringContaining(
-        'scenario "Placed" is the second of its name in rule "Placing"',
-      ),
-    ]);
-  });
-
-  it('leaves out a step definition whose expression is none, with a diagnostic', () => {
-    const built = rulesFrom(
-      withSteps().method(`M:${STEPS.slice(2)}#WhenPlaced()`, {
-        annotations: [when('the {customer} places the order')],
-        invokes: ['M:Sales.Orders.Order#Place()'],
-      }),
-    );
-
-    expect<unknown>(messages(built, 'info')).toEqual([
-      expect.stringContaining(
-        `M:${STEPS.slice(2)}#WhenPlaced(): a step definition no step can bind to`,
-      ),
-    ]);
-  });
-
-  it("passes the feature file's own diagnostics on", () => {
-    const built = rulesFrom(
-      withSteps(),
-      feature('Feature: F\n  Scenario: Alone\n    When it runs\n'),
-    );
-
-    expect<unknown>(built.diagnostics).toEqual([
-      {
-        level: 'info',
-        message: expect.stringContaining('is under no Rule:'),
-        source: { path: FEATURE, startLine: 2, endLine: null },
-      },
-    ]);
-  });
-
-  it("binds each of a Java method's repeated @When, as the container annotation holds them", () => {
-    const javaWhen = (text: string): Annotation => ({
-      type: named('T:io.cucumber.java.en.When'),
-      arguments: [
-        {
-          name: 'value',
-          positional: true,
-          value: { kind: 'literal', text: JSON.stringify(text) },
-        },
-      ],
-    });
-    const built = buildFrom(
-      [
-        artifact('shop')
-          .type('T:shop.orders.Order', {
-            annotations: [javaAnnotation('AggregateRoot')],
-          })
-          .method('M:shop.orders.Order#place()')
-          .type('T:shop.orders.OrderSteps')
-          .method('M:shop.orders.OrderSteps#placed()', {
-            annotations: [
-              {
-                type: named('T:io.cucumber.java.en.When+Whens'),
-                arguments: [
-                  {
-                    name: 'value',
-                    positional: false,
-                    value: {
-                      kind: 'array',
-                      items: [
-                        {
-                          kind: 'annotation',
-                          annotation: javaWhen('it is placed'),
-                        },
-                        {
-                          kind: 'annotation',
-                          annotation: javaWhen('it is sent'),
-                        },
-                      ],
-                    },
-                  },
-                ],
-              },
-            ],
-            invokes: ['M:shop.orders.Order#place()'],
-          }),
-      ],
-      {},
-      JAVA_VOCABULARY,
-      [
-        feature(`Feature: F
-  @validation
-  Rule: Placing
-    Scenario: Placed
-      When it is placed
-    Scenario: Sent
-      When it is sent
-`),
-      ],
-    );
-
-    expect<unknown>(built.model.scenarios.map(({ name }) => name)).toEqual([
-      'Placed',
-      'Sent',
-    ]);
-  });
-
-  it("binds Java's Cucumber @When by its value", () => {
-    const built = buildFrom(
-      [
-        artifact('shop')
-          .type('T:shop.orders.Order', {
-            annotations: [javaAnnotation('AggregateRoot')],
-          })
-          .method('M:shop.orders.Order#place()')
-          .type('T:shop.orders.OrderSteps')
-          .method('M:shop.orders.OrderSteps#placed()', {
-            annotations: [
-              {
-                type: named('T:io.cucumber.java.en.When'),
-                arguments: [
-                  {
-                    name: 'value',
-                    positional: true,
-                    value: {
-                      kind: 'literal',
-                      text: '"the customer places the order"',
-                    },
-                  },
-                ],
-              },
-            ],
-            invokes: ['M:shop.orders.Order#place()'],
-          }),
-      ],
-      {},
-      JAVA_VOCABULARY,
-      [
-        feature(`Feature: F
-  @validation
-  Rule: Placing
-    Scenario: Placed
-      When the customer places the order
-`),
-      ],
-    );
-
-    expect<unknown>(rulesRelationsOf(built.model)).toContainEqual({
-      kind: 'governs',
-      from: 'behavior|shop.orders.Order.place',
-      to: 'rule|shop.orders.Placing',
-    });
+    expect<unknown>(model.rules).toEqual([]);
+    expect<unknown>(model.scenarios).toEqual([]);
   });
 });

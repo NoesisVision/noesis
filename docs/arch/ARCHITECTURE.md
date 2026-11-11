@@ -124,11 +124,9 @@ Both land on the same service layer. Neither bypasses it.
   runs the `command` in its parser settings (a Gradle build's `noesisParse` task, say)
   and `SystemModelBuilder` projects the code model it wrote onto the system model by the
   vocabulary of the language the manifest names, with the rules in
-  `docs/plans/code-model-to-system-model.md`. Beside the code model the builder reads the
-  `*.feature` files Git tracks (`SourceRepository.featureFiles`): each tagged `Rule:` is a
-  rule, governed by the behavior its scenarios' `When` steps reach through their Cucumber
-  or Reqnroll step definitions (R12); the Java parser reads main sources only, so a Java
-  step definition binds only once that parser reads test sources too. A Java repository
+  `docs/plans/code-model-to-system-model.md`. The system model is a projection of the code
+  model alone; the scan reads no file on the side, so rules and scenarios stay empty until a
+  parser reads feature files (R12). A Java repository
   is parsed this way: its build declares the Noesis Maven or Gradle plugin, with the engine in the
   plugin's configuration, and the command runs it. `csharp` (the .NET parser,
   `noesis-parse-csharp` on the PATH) is a fixed command line of the same kind. The service knows

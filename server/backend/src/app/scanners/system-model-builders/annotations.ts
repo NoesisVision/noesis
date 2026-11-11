@@ -41,24 +41,6 @@ export function hasRole(
   return rolesOf(annotations, role, vocabulary).length > 0;
 }
 
-/**
- * The annotations with those a container holds unwrapped beside them: Java
- * writes an annotation repeated on one element as one container annotation
- * (`@When.Whens`) whose `value` lists the repetitions.
- */
-export function withRepeated(annotations: readonly Annotation[]): Annotation[] {
-  return annotations.flatMap((annotation) => [
-    annotation,
-    ...annotation.arguments.flatMap(({ value }) =>
-      value.kind === 'array'
-        ? value.items.flatMap((item) =>
-            item.kind === 'annotation' ? [item.annotation] : [],
-          )
-        : [],
-    ),
-  ]);
-}
-
 /** The text of the string argument `name`, unquoted; null when absent or `null`. */
 export function stringArgument(
   annotation: Annotation,

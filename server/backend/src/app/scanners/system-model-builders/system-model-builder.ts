@@ -1,6 +1,5 @@
 import type { Language } from '../code-parsers/code-model';
 import type { ParsedCode } from '../code-parsers/code-parser';
-import type { FeatureFileSource } from '../feature-files/feature-file';
 import { type BuiltSystemModel, buildSystemModel } from './build-system-model';
 import { CSHARP_VOCABULARY } from './csharp.vocabulary';
 import { JAVA_VOCABULARY } from './java.vocabulary';
@@ -14,9 +13,9 @@ const VOCABULARIES: Partial<Record<Language, AnnotationVocabulary>> = {
 };
 
 /**
- * The second stage of a scan: builds the system model of a parsed code model
- * and the repository's feature files, by the vocabulary of the language its
- * manifest names and the repository's namespace settings.
+ * The second stage of a scan: builds the system model of a parsed code model,
+ * by the vocabulary of the language its manifest names and the repository's
+ * namespace settings.
  */
 export class SystemModelBuilder {
   private readonly namespaces: NamespaceConfig;
@@ -25,14 +24,10 @@ export class SystemModelBuilder {
     this.namespaces = namespaces;
   }
 
-  build(
-    { manifest, files }: ParsedCode,
-    featureFiles: readonly FeatureFileSource[],
-  ): BuiltSystemModel {
+  build({ manifest, files }: ParsedCode): BuiltSystemModel {
     return buildSystemModel({
       manifest,
       files,
-      featureFiles,
       vocabulary: vocabularyOf(manifest.language),
       config: this.namespaces,
     });
