@@ -309,6 +309,55 @@ describe('the exploration of a system model', () => {
     ).toEqual(['behavior|shop.orders.Order.place']);
   });
 
+  it('draws an actor and a manual process, which performs and invokes join', () => {
+    const ACTOR = 'actor|Customer';
+    const PROCESS = 'manual_process|Place an order';
+    const PLACE = 'behavior|shop.orders.Order.place';
+    const people = explorationOf({
+      ...model,
+      actors: [{ id: ACTOR, name: 'Customer', description: null, source }],
+      manualProcesses: [
+        { id: PROCESS, name: 'Place an order', description: null, source },
+      ],
+      relations: [
+        ...model.relations,
+        { kind: 'performs', from: ACTOR, to: PROCESS },
+        {
+          kind: 'process_invokes_behavior',
+          from: PROCESS,
+          to: PLACE,
+          order: 1,
+        },
+      ],
+    } as unknown as SystemModel);
+    expect(
+      people.elements
+        .filter(({ kind }) => kind === 'actor' || kind === 'manual_process')
+        .map(({ id, container }) => [id, container]),
+    ).toEqual([
+      [ACTOR, null],
+      [PROCESS, null],
+    ]);
+    expect(people.edges.performs).toEqual([[ACTOR, PROCESS]]);
+    expect(people.edges.invokes).toEqual([[PROCESS, PLACE]]);
+    expect(elementSectionsOf(people).map(({ title }) => title)).toEqual([
+      'Modules',
+      'Building blocks',
+      'Behaviors',
+      'Actors',
+      'Manual processes',
+    ]);
+    expect(neighboursOf(people).get(PROCESS)!.performedBy).toEqual([ACTOR]);
+    expect(
+      chainOf(
+        neighboursOf(people),
+        new Map(people.elements.map((each) => [each.id, each])),
+        PROCESS,
+        'invokes',
+      ),
+    ).toEqual([PLACE]);
+  });
+
   it('draws no edge between a card and the frame it is drawn inside', () => {
     // The order's place takes an order: its input is the block it belongs to.
     const own = explorationOf({
@@ -362,6 +411,7 @@ it('lays out every relation and every kind in the visibility panel', () => {
     'output',
     'extends',
     'invokes',
+    'performs',
   ]);
   const html = renderToStaticMarkup(
     <MantineProvider>
@@ -385,6 +435,7 @@ it('lays out every relation and every kind in the visibility panel', () => {
     'Output',
     'Extends',
     'Invokes',
+    'Performs',
   ])
     expect(html).toContain(`>${label}<`);
   expect(html).not.toContain('Not implemented');

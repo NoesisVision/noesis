@@ -187,7 +187,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const [relations, setRelations] = useState<ReadonlySet<RelationKind>>(
     () =>
       opening?.relations ??
-      new Set(['contains', 'state', 'input', 'output', 'invokes']),
+      new Set(['contains', 'state', 'input', 'output', 'invokes', 'performs']),
   );
   const [drawing, setDrawing] = useState<Drawing>({
     direction: opening?.direction ?? 'vertical',

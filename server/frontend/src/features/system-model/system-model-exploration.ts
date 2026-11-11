@@ -16,16 +16,24 @@ import type {
  * blocks it extends or implements. "Is part of" is containment read from the
  * inside. A behavior invokes the behaviors the scan found it calls, in the
  * order of the calls — where the scanner records calls; one that does not
- * leaves the model without any.
+ * leaves the model without any. An actor performs manual processes
+ * ('performs'), and a manual process invokes behaviors in order
+ * ('process_invokes_behavior'), as a behavior does; neither is contained by
+ * anything.
  */
 
-type ExploredKind = 'module' | 'building_block' | 'behavior';
+type ExploredKind =
+  | 'module'
+  | 'building_block'
+  | 'behavior'
+  | 'actor'
+  | 'manual_process';
 
 export interface ExploredElement {
   id: string;
   kind: ExploredKind;
   name: string;
-  /** The building block's type; null for a module or a behavior. */
+  /** The building block's type; null for any other element. */
   pattern: BuildingBlockType | null;
   /** The element that contains this one, if the model holds it. */
   container: string | null;
@@ -35,7 +43,7 @@ export interface ExploredElement {
 type Pair = [string, string];
 
 /**
- * Each relation drawn as an edge, as the view knows it: the model's relation
+ * Each relation drawn as an edge, as the view knows it: the model's relations
  * it reads, how the filter names it, the word its edges carry, and its two
  * ways of reaching — from the source, and read back from the target.
  * Containment is drawn as cards inside cards, never as an edge, and reads
@@ -44,7 +52,7 @@ type Pair = [string, string];
 export const DRAWN_RELATIONS = [
   {
     kind: 'state',
-    model: 'has_state',
+    models: ['has_state'],
     label: 'State',
     word: 'has state',
     reach: 'hasState',
@@ -52,7 +60,7 @@ export const DRAWN_RELATIONS = [
   },
   {
     kind: 'input',
-    model: 'has_input',
+    models: ['has_input'],
     label: 'Input',
     word: 'has input',
     reach: 'hasInput',
@@ -60,7 +68,7 @@ export const DRAWN_RELATIONS = [
   },
   {
     kind: 'output',
-    model: 'has_output',
+    models: ['has_output'],
     label: 'Output',
     word: 'has output',
     reach: 'hasOutput',
@@ -68,7 +76,7 @@ export const DRAWN_RELATIONS = [
   },
   {
     kind: 'extends',
-    model: 'extends',
+    models: ['extends'],
     label: 'Extends',
     word: 'extends',
     reach: 'extends',
@@ -76,15 +84,23 @@ export const DRAWN_RELATIONS = [
   },
   {
     kind: 'invokes',
-    model: 'behavior_invokes_behavior',
+    models: ['behavior_invokes_behavior', 'process_invokes_behavior'],
     label: 'Invokes',
     word: 'invokes',
     reach: 'invokes',
     back: 'invokedBy',
   },
+  {
+    kind: 'performs',
+    models: ['performs'],
+    label: 'Performs',
+    word: 'performs',
+    reach: 'performs',
+    back: 'performedBy',
+  },
 ] as const satisfies readonly {
   kind: string;
-  model: Relation['kind'];
+  models: readonly Relation['kind'][];
   label: string;
   word: string;
   reach: string;
@@ -125,12 +141,12 @@ export const RELATION_WORD = Object.fromEntries(
 ) as Record<DrawnRelationKind, string>;
 
 const DRAWN_OF_MODEL = new Map<string, DrawnRelationKind>(
-  DRAWN_RELATIONS.map(({ model, kind }) => [model, kind]),
+  DRAWN_RELATIONS.flatMap(({ models, kind }) =>
+    models.map((model): [string, DrawnRelationKind] => [model, kind]),
+  ),
 );
 
 export function explorationOf(model: SystemModel): Exploration {
-  const blockIds = new Set<string>(model.buildingBlocks.map(({ id }) => id));
-  const behaviorIds = new Set<string>(model.behaviors.map(({ id }) => id));
   // What contains each element, as the containment relations say.
   const containerOf = new Map<string, string>();
   for (const relation of model.relations)
@@ -159,11 +175,33 @@ export function explorationOf(model: SystemModel): Exploration {
       pattern: null,
       container: container(behavior.id),
     })),
+    ...model.actors.map((actor) => ({
+      id: actor.id,
+      kind: 'actor' as const,
+      name: actor.name,
+      pattern: null,
+      container: null,
+    })),
+    ...model.manualProcesses.map((process) => ({
+      id: process.id,
+      kind: 'manual_process' as const,
+      name: process.name,
+      pattern: null,
+      container: null,
+    })),
   ];
 
   // A slot typed by a primitive, or a relation of an element the model does
   // not list, joins nothing drawn; a relation to oneself is no edge either.
-  const known = (id: string) => blockIds.has(id) || behaviorIds.has(id);
+  const joinable = new Set<string>(
+    [
+      ...model.buildingBlocks,
+      ...model.behaviors,
+      ...model.actors,
+      ...model.manualProcesses,
+    ].map(({ id }) => id),
+  );
+  const known = (id: string) => joinable.has(id);
   const pairs = new Map<DrawnRelationKind, Map<string, Pair>>(
     DRAWN_RELATIONS.map(({ kind }) => [kind, new Map()]),
   );
@@ -173,7 +211,10 @@ export function explorationOf(model: SystemModel): Exploration {
     const kind = DRAWN_OF_MODEL.get(relation.kind);
     if (kind === undefined || from === to || !known(from) || !known(to))
       continue;
-    if (relation.kind === 'behavior_invokes_behavior')
+    if (
+      relation.kind === 'behavior_invokes_behavior' ||
+      relation.kind === 'process_invokes_behavior'
+    )
       calls.push({ from, to, order: relation.order });
     else pairs.get(kind)?.set(`${from}->${to}`, [from, to]);
   }
@@ -197,7 +238,12 @@ export const groupLabelOf = (group: string): string =>
   titleCase(group.replaceAll('_', ' '));
 
 export interface ElementSection {
-  title: 'Modules' | 'Building blocks' | 'Behaviors';
+  title:
+    | 'Modules'
+    | 'Building blocks'
+    | 'Behaviors'
+    | 'Actors'
+    | 'Manual processes';
   groups: { group: string; count: number }[];
 }
 
@@ -205,6 +251,8 @@ const SECTIONS = [
   ['Modules', 'module'],
   ['Building blocks', 'building_block'],
   ['Behaviors', 'behavior'],
+  ['Actors', 'actor'],
+  ['Manual processes', 'manual_process'],
 ] as const satisfies readonly [ElementSection['title'], ExploredKind][];
 
 /** The groups a reader may hide, by kind of element, as many as the model holds. */
@@ -440,6 +488,8 @@ const KIND_WORD = {
   module: 'Module',
   building_block: 'Building block',
   behavior: 'Behavior',
+  actor: 'Actor',
+  manual_process: 'Manual process',
 } as const satisfies Record<ExploredKind, string>;
 
 /** What an element is, in words: "Building block · Value Object". */
@@ -540,7 +590,8 @@ export function chainOf(
   if (start === undefined) return [];
   const type = groupOf(start);
   const throughBehaviours =
-    (reach === 'invokes' || reach === 'invokedBy') && start.kind !== 'behavior';
+    (reach === 'invokes' || reach === 'invokedBy') &&
+    (start.kind === 'module' || start.kind === 'building_block');
   const blockOf = (element: ExploredElement) =>
     element.kind === 'behavior' && element.container !== null
       ? elements.get(element.container)

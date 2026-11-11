@@ -39,6 +39,7 @@
   --edge-input: var(--cy-cyan);
   --edge-output: var(--cy-cyan);
   --edge-invokes: var(--cy-magenta);
+  --edge-performs: var(--cy-magenta);
   --edge-highlight: var(--cy-signal);
 }
 
