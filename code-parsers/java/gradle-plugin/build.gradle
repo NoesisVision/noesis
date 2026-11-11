@@ -5,7 +5,7 @@ plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
     // Publishes the plugin and its marker to Maven Central, signed, with sources and javadoc.
-    id 'com.vanniktech.maven.publish' version '0.36.0'
+    id 'com.vanniktech.maven.publish' version '0.37.0'
 }
 
 // The version is in gradle.properties.
