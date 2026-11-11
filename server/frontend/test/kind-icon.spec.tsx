@@ -7,7 +7,7 @@ const iconName = (html: string) => /tabler-icon-([a-z0-9-]+)/.exec(html)?.[1];
 describe('KindIcon', () => {
   it.each([
     ['building_block', 'repository', 'database'],
-    ['behavior', 'Query', 'circle-letter-q'],
+    ['building_block', 'query', 'circle-letter-q'],
     ['rule', 'State change', 'status-change'],
   ] as const)('draws a %s by its pattern %s', (kind, pattern, icon) => {
     expect(
@@ -20,7 +20,8 @@ describe('KindIcon', () => {
   it.each([
     ['no pattern', 'building_block', null, 'blocks'],
     ['an unknown pattern', 'building_block', 'saga', 'blocks'],
-    ['a property typed like a pattern', 'property', 'Event', 'point'],
+    ['a property typed like a pattern', 'property', 'event', 'point'],
+    ['a behavior, which has none', 'behavior', null, 'activity'],
   ] as const)('falls back to the kind for %s', (_, kind, pattern, icon) => {
     expect(
       iconName(
@@ -30,9 +31,9 @@ describe('KindIcon', () => {
   });
 
   it.each([
-    ['behavior', 'Event', 'event'],
-    ['behavior', 'Query', 'query'],
-    ['behavior', 'Command', 'command'],
+    ['building_block', 'event', 'event'],
+    ['building_block', 'query', 'query'],
+    ['building_block', 'command', 'command'],
   ] as const)('tones a %s patterned %s as a %s', (kind, pattern, tone) => {
     expect(
       renderToStaticMarkup(<KindIcon kind={kind} pattern={pattern} />),
@@ -41,7 +42,8 @@ describe('KindIcon', () => {
 
   it.each([
     ['a pattern that is no message', 'building_block', 'aggregate'],
-    ['a property typed like one', 'property', 'Event'],
+    ['a property typed like one', 'property', 'event'],
+    ['a behavior', 'behavior', null],
   ] as const)('gives no tone to %s', (_, kind, pattern) => {
     expect(
       renderToStaticMarkup(<KindIcon kind={kind} pattern={pattern} />),

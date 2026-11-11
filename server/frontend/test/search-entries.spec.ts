@@ -47,7 +47,6 @@ const systemModel = {
     {
       id: 'behavior|shop.Basket.checkOut',
       name: 'checkOut',
-      type: 'Command',
       description: null,
       visibility: { kind: 'public', actors: [] },
       source,
@@ -143,7 +142,7 @@ describe('search', () => {
     expect(found?.entries.map((entry) => [entry.label, entry.context])).toEqual(
       [
         ['Basket', 'Aggregate · shop'],
-        ['checkOut', 'Command · shop.Basket'],
+        ['checkOut', 'Behavior · shop.Basket'],
       ],
     );
     expect(labels('value object')).toEqual([['System model', ['Price']]]);

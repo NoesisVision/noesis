@@ -53,10 +53,9 @@ const PATTERNS = [
   'repository',
   'factory',
   'external_integration',
-  // behaviors
-  'Command',
-  'Event',
-  'Query',
+  'command',
+  'event',
+  'query',
   // rules
   'Consistency',
   'Structure',
@@ -74,9 +73,9 @@ const PATTERN_ICONS = {
   repository: IconDatabase,
   factory: IconAssembly,
   external_integration: IconWorld,
-  Command: IconCircleLetterC,
-  Event: IconCircleLetterE, // event handler
-  Query: IconCircleLetterQ,
+  command: IconCircleLetterC,
+  event: IconCircleLetterE,
+  query: IconCircleLetterQ,
   Consistency: IconShield,
   Structure: IconSitemap,
   Computation: IconMathFunction,
@@ -89,9 +88,9 @@ const PATTERN_ICONS = {
  * the rules for the selected row and the way down to it still win over it.
  */
 const PATTERN_TONES: Partial<Record<Pattern, 'event' | 'query' | 'command'>> = {
-  Event: 'event',
-  Query: 'query',
-  Command: 'command',
+  event: 'event',
+  query: 'query',
+  command: 'command',
 };
 
 /*

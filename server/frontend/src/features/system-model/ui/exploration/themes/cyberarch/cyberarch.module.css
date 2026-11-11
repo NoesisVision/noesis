@@ -89,9 +89,8 @@
   text-transform: uppercase;
 }
 
-/* Every card but a value object, whose shape is its own layers (below). */
-.theme[data-diagram-theme]
-  [data-part='card']:not([data-pattern='value_object']) {
+/* Every card but a bevelled one, whose shape is its own layers (below). */
+.theme[data-diagram-theme] [data-part='card']:not([data-shape='bevel']) {
   --cy-edge: var(--cy-cyan);
   --noesis-secondary-text: var(--cy-muted);
 
@@ -277,7 +276,7 @@
  * layer's own size (`--cut`, from the plain look) — its face dark, edged
  * cyan, glowing round its shape.
  */
-.theme[data-diagram-theme] [data-part='card'][data-pattern='value_object'] {
+.theme[data-diagram-theme] [data-part='card'][data-shape='bevel'] {
   --noesis-secondary-text: var(--cy-muted);
 
   filter: drop-shadow(

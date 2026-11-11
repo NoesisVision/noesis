@@ -10,7 +10,6 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BehaviorType,
   BuildingBlockType,
   Cardinality,
   PrimitiveName,
@@ -606,7 +605,6 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
   ],
   behavior: [
     field('name'),
-    field('type'),
     field('visibility'),
     field('definition'),
     field('diagram'),
@@ -636,8 +634,10 @@ export const TYPES_OF: Partial<Record<UnitKind, readonly string[]>> = {
     'repository',
     'factory',
     'external_integration',
+    'command',
+    'event',
+    'query',
   ] satisfies BuildingBlockType[],
-  behavior: ['Command', 'Event', 'Query'] satisfies BehaviorType[],
 };
 
 /** The kinds a rule may be, as the model spells them. */

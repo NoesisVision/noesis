@@ -29,11 +29,9 @@ const document = {
       },
       {
         id: 'behavior|pay.Hold.release',
-        type: plain('Command'),
       },
       {
         id: 'behavior|pay.Hold.balance',
-        type: plain('Query'),
       },
     ],
   },
@@ -145,14 +143,14 @@ describe('ElementTooltip', () => {
     );
     expect(html).toMatch(/>release\(reason: string\)</);
     expect(html).toMatch(/>balance\(\): <span[^>]*>Money<\/span>/);
-    // One whose kind the design leaves as it is still listed.
+    // One the design leaves as it is still listed.
     expect(html).toMatch(/>place\(amount: Money\): <span[^>]*>Hold<\/span>/);
   });
 
-  it('marks each behavior by its kind and each property with braces', () => {
+  it('marks each behavior with the plain behavior icon and each property with braces', () => {
     const html = render('pay.Hold');
-    expect(html).toContain('tabler-icon-circle-letter-c');
-    expect(html).toContain('tabler-icon-circle-letter-q');
+    expect(html).not.toContain('tabler-icon-circle-letter-c');
+    expect(html).not.toContain('tabler-icon-circle-letter-q');
     expect(html).toContain('tabler-icon-activity');
     expect(html).toContain('tabler-icon-braces');
   });

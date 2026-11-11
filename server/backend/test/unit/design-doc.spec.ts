@@ -395,13 +395,17 @@ describe('The elements a design changes', () => {
     ).toBe(true);
   });
 
-  it('classifies a building block and a behavior only by the known types', () => {
+  it('classifies a building block only by the known types, messages among them', () => {
     expect(isValid(addingRefund({ type: { value: 'aggregate' } }))).toBe(true);
+    expect(isValid(addingRefund({ type: { value: 'command' } }))).toBe(true);
     expect(isValid(addingRefund({ type: { value: 'controller' } }))).toBe(
       false,
     );
-    expect(isValid(addingIssue({ type: { value: 'Command' } }))).toBe(true);
-    expect(isValid(addingIssue({ type: { value: 'Request' } }))).toBe(false);
+  });
+
+  it('refuses a type on a behavior', () => {
+    expect(isValid(addingIssue({}))).toBe(true);
+    expect(isValid(addingIssue({ type: { value: 'Command' } }))).toBe(false);
   });
 });
 
@@ -598,7 +602,6 @@ describe('A design document an agent wrote', () => {
       {
         id: CANCEL,
         name: 'cancel',
-        type: 'Command',
         visibility: { kind: 'private' },
         source,
       },
@@ -954,7 +957,6 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingIssue({
-            type: { value: 'Command' },
             definition: { value: 'Issues a refund.' },
             visibility: { value: { kind: 'private' } },
           }),
@@ -1033,7 +1035,6 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingIssue({
-            type: { value: 'Command' },
             definition: { value: fenced },
             visibility: { value: { kind: 'private' } },
           }),
@@ -1049,7 +1050,6 @@ describe('A design document an agent wrote', () => {
         DesignDocument.validateHumanEdited(
           DesignDocument.parse(
             addingIssue({
-              type: { value: 'Command' },
               definition: { value: fenced },
               visibility: { value: { kind: 'private' } },
             }),
@@ -1059,7 +1059,6 @@ describe('A design document an agent wrote', () => {
       expect(
         validate(
           addingIssue({
-            type: { value: 'Command' },
             definition: { value: 'Issues a refund.' },
             diagram: { value: 'sequenceDiagram\n  A->>B: issue' },
             visibility: { value: { kind: 'private' } },
@@ -1210,7 +1209,6 @@ describe('A rule of a design', () => {
       {
         id: CANCEL,
         name: 'cancel',
-        type: 'Command',
         visibility: { kind: 'private' },
         source,
       },

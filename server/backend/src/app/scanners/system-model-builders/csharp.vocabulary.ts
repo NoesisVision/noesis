@@ -24,11 +24,10 @@ const BUILDING_BLOCKS: Record<string, BuildingBlockType> = {
   [`${DDD}.DddRepositoryAttribute`]: 'repository',
   [`${DDD}.DddFactoryAttribute`]: 'factory',
   [`${DOMAIN}.ExternalSystemIntegrationAttribute`]: 'external_integration',
-  // Messages: the model has no message types, so they are value objects.
-  [`${DOMAIN}.CommandAttribute`]: 'value_object',
-  [`${DOMAIN}.QueryAttribute`]: 'value_object',
-  [`${DOMAIN}.EventAttribute`]: 'value_object',
-  [`${DDD}.DddDomainEventAttribute`]: 'value_object',
+  [`${DOMAIN}.CommandAttribute`]: 'command',
+  [`${DOMAIN}.QueryAttribute`]: 'query',
+  [`${DOMAIN}.EventAttribute`]: 'event',
+  [`${DDD}.DddDomainEventAttribute`]: 'event',
   [`${DOMAIN}.ReadModelAttribute`]: 'value_object',
 };
 
@@ -136,11 +135,7 @@ const TECHNICAL_MEMBERS = new Set([
 export const CSHARP_VOCABULARY: AnnotationVocabulary = {
   language: 'csharp',
   roles: ROLES,
-  arguments: {
-    name: 'name',
-    description: 'markdownText',
-    triggeredBy: 'TriggeredBy',
-  },
+  arguments: { name: 'name', description: 'markdownText' },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,
   dictionaries: DICTIONARIES,

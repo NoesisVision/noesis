@@ -491,11 +491,6 @@
           "value": "apply",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the offer with this discount added.",
@@ -518,11 +513,6 @@
         "name": {
           "changed": true,
           "value": "calculate",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -549,11 +539,6 @@
           "value": "getDiscountsForConditions",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells which of the shop's discounts apply under the given conditions.",
@@ -575,11 +560,6 @@
         "name": {
           "changed": true,
           "value": "get",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -605,11 +585,6 @@
           "value": "applyDiscount",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies a discount to the offer.",
@@ -631,11 +606,6 @@
         "name": {
           "changed": true,
           "value": "createFrom",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -661,11 +631,6 @@
           "value": "applyDiscount",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies a product discount to this product.",
@@ -689,11 +654,6 @@
           "value": "from",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Starts a product's discounting with no discount on it.",
@@ -715,11 +675,6 @@
         "name": {
           "changed": true,
           "value": "getDiscountsConfig",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -746,11 +701,6 @@
           "value": "apply",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the wrapped discount unless the offer already carries a discount of the excluding kind.",
@@ -773,11 +723,6 @@
         "name": {
           "changed": true,
           "value": "apply",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -804,11 +749,6 @@
           "value": "getDiscount",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the discount granted when the condition holds.",
@@ -831,11 +771,6 @@
         "name": {
           "changed": true,
           "value": "isApplicableFor",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -862,11 +797,6 @@
           "value": "getDiscount",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the fixed discount granted to VIP customers.",
@@ -889,11 +819,6 @@
         "name": {
           "changed": true,
           "value": "isApplicableFor",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -920,11 +845,6 @@
           "value": "apply",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the discount to every product of the offer, leaving the offer-level discounts as they are.",
@@ -947,11 +867,6 @@
         "name": {
           "changed": true,
           "value": "getFor",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {

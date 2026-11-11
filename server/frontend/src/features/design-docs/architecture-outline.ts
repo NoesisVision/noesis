@@ -7,7 +7,6 @@ import type {
   ModuleId,
 } from '#backend/app/element-id.ts';
 import type {
-  BehaviorType,
   BuildingBlockType,
   RuleKind,
 } from '#backend/app/system-model/system-model.ts';
@@ -45,14 +44,12 @@ interface DrivingPort {
 }
 
 export interface PlacedElement<
-  Pattern extends BuildingBlockType | BehaviorType =
-    | BuildingBlockType
-    | BehaviorType,
+  Id extends BuildingBlockId | BehaviorId = BuildingBlockId | BehaviorId,
 > {
-  id: Pattern extends BuildingBlockType ? BuildingBlockId : BehaviorId;
+  id: Id;
   name: string;
-  /** The building block type, or the behavior type. */
-  pattern: Pattern | null;
+  /** The building block type; null for a behavior, which has none. */
+  pattern: BuildingBlockType | null;
   change: OutlineChange;
   /** The building blocks its properties, inputs and outputs are typed by, whatever their cardinality; itself left out. */
   uses: BuildingBlockId[];
@@ -60,8 +57,8 @@ export interface PlacedElement<
   rules: PlacedRule[];
 }
 
-export type PlacedBlock = PlacedElement<BuildingBlockType>;
-export type PlacedBehavior = PlacedElement<BehaviorType>;
+export type PlacedBlock = PlacedElement<BuildingBlockId>;
+export type PlacedBehavior = PlacedElement<BehaviorId>;
 
 export interface PlacedRule {
   id: string;

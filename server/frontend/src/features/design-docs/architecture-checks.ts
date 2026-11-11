@@ -96,6 +96,9 @@ const TYPES: readonly BuildingBlockType[] = [
   'aggregate',
   'entity',
   'value_object',
+  'command',
+  'event',
+  'query',
 ];
 
 function typeInNoContract({ hexagons, unplaced }: Placed): ArchitectureCheck {
@@ -111,7 +114,7 @@ function typeInNoContract({ hexagons, unplaced }: Placed): ArchitectureCheck {
     return pass(
       'type-in-no-contract',
       title,
-      'Every aggregate, entity and value object is used by a property, an input or an output.',
+      'Every aggregate, entity, value object and message is used by a property, an input or an output.',
       types.map(({ id }) => id),
     );
   return {

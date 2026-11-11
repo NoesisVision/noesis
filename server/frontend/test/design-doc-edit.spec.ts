@@ -65,7 +65,6 @@ const doc = (): DesignDocumentInput => ({
       {
         id: SETTLE,
         name: agent('settle'),
-        type: agent('Command'),
         definition: agent('Settles.'),
         visibility: agent({ kind: 'private' }),
       },
@@ -581,7 +580,6 @@ describe('a part', () => {
         unit: {
           id: 'behavior|pay.Hold.release',
           name: agent('release'),
-          type: agent('Command'),
           definition: agent('Releases.'),
           visibility: agent({ kind: 'private' }),
         },

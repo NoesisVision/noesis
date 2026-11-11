@@ -141,10 +141,14 @@ const repository = (name: string | null = null) =>
 const domainService = () => attr('Domain.DDD.DddDomainServiceAttribute');
 const behavior = (name: string | null = null) =>
   attr('Domain.DomainBehaviorAttribute', { name });
-const entryPoint = (triggeredBy: string, name: string | null = null) =>
+/** C#'s `[EntryPoint]`; a `TriggeredBy` it carries is left in the code and not read. */
+const entryPoint = (
+  name: string | null = null,
+  triggeredBy: string | null = null,
+) =>
   attr('Domain.EntryPointAttribute', {
     name,
-    TriggeredBy: { enum: triggeredBy },
+    ...(triggeredBy === null ? {} : { TriggeredBy: { enum: triggeredBy } }),
   });
 const actor = (name: string) => attr('People.ActorAttribute', { name });
 const description = (markdownText: string) =>
@@ -785,6 +789,59 @@ describe('4. building blocks', () => {
     expect<unknown>(built.model.buildingBlocks[0]?.type).toBe('entity');
     expect<unknown>(messages(built, 'info')).toEqual([
       expect.stringContaining('2 building block annotations'),
+    ]);
+  });
+
+  it('R4.1 gives the message annotations of each language their message types', () => {
+    const csharp = buildFrom([
+      sales()
+        .type('T:Sales.Orders.PlaceOrder', {
+          annotations: [attr('Domain.CommandAttribute')],
+        })
+        .type('T:Sales.Orders.OrderTotal', {
+          annotations: [attr('Domain.QueryAttribute')],
+        })
+        .type('T:Sales.Orders.OrderShipped', {
+          annotations: [attr('Domain.EventAttribute')],
+        })
+        .type('T:Sales.Orders.OrderPlaced', {
+          annotations: [attr('Domain.DDD.DddDomainEventAttribute')],
+        })
+        .type('T:Sales.Orders.OrderSummary', {
+          annotations: [attr('Domain.ReadModelAttribute')],
+        }),
+    ]).model;
+    const java = buildFrom(
+      [
+        artifact('shop')
+          .type('T:com.acme.PlaceOrder', {
+            annotations: [javaAnnotation('Command')],
+          })
+          .type('T:com.acme.OrderTotal', {
+            annotations: [javaAnnotation('Query')],
+          })
+          .type('T:com.acme.OrderPlaced', {
+            annotations: [javaAnnotation('Event')],
+          }),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    ).model;
+    expect<unknown>(
+      [...csharp.buildingBlocks, ...java.buildingBlocks].map((b) => [
+        b.name,
+        b.type,
+      ]),
+    ).toEqual([
+      ['Order', 'aggregate'],
+      ['OrderPlaced', 'event'],
+      ['OrderShipped', 'event'],
+      ['OrderSummary', 'value_object'],
+      ['OrderTotal', 'query'],
+      ['PlaceOrder', 'command'],
+      ['OrderPlaced', 'event'],
+      ['OrderTotal', 'query'],
+      ['PlaceOrder', 'command'],
     ]);
   });
 
@@ -1742,46 +1799,16 @@ describe('9. behaviors', () => {
     expect<unknown>(model.behaviors[0]?.source.startLine).toBe(5);
   });
 
-  it("R9.4 types a behavior by TriggeredBy on its own or an implemented member's annotation; a Command without one", () => {
-    const { model } = buildFrom([
+  it('R9.1 takes a method with a handler annotation for a behavior, and reads nothing more from it', () => {
+    const csharp = buildFrom([
       sales()
-        .type('T:Sales.Orders.IHandler', {
-          kind: 'interface',
-          annotations: [domainService()],
-        })
-        .method('M:Sales.Orders.IHandler#Handle()', {
-          annotations: [entryPoint('Event')],
-        })
-        .method('M:Sales.Orders.Order#Total()', {
-          returns: prim('decimal'),
-          annotations: [entryPoint('Query')],
-        })
-        .method('M:Sales.Orders.Order#Place()', {
-          annotations: [entryPoint('Command')],
-        })
-        .method('M:Sales.Orders.Order#Handle()', {
-          implementsMember: ['M:Sales.Orders.IHandler#Handle()'],
-        })
-        .method('M:Sales.Orders.Order#Unspecified()', {
-          returns: prim('decimal'),
-          annotations: [entryPoint('Unspecified')],
-        })
-        .method('M:Sales.Orders.Order#GetTotal()', {
-          returns: prim('decimal'),
+        .type('T:Sales.Orders.Orders', { annotations: [domainService()] })
+        .method('M:Sales.Orders.Orders#Place()', {
+          annotations: [entryPoint(null, 'Query')],
+          visibility: 'artifact',
         }),
-    ]);
-    expect<unknown>(model.behaviors.map((b) => [b.name, b.type])).toEqual([
-      ['Handle', 'Event'],
-      ['GetTotal', 'Command'],
-      ['Handle', 'Event'],
-      ['Place', 'Command'],
-      ['Total', 'Query'],
-      ['Unspecified', 'Command'],
-    ]);
-  });
-
-  it('R9.4 takes the type a Java handler annotation fixes itself, which carries no argument', () => {
-    const { model } = buildFrom(
+    ]).model;
+    const java = buildFrom(
       [
         artifact('shop')
           .type('T:com.acme.Orders', {
@@ -1789,27 +1816,31 @@ describe('9. behaviors', () => {
           })
           .method('M:com.acme.Orders#place()', {
             annotations: [javaAnnotation('CommandHandler')],
+            visibility: 'namespace',
           })
           .method('M:com.acme.Orders#total()', {
             returns: prim('long'),
             annotations: [javaAnnotation('QueryHandler')],
+            visibility: 'namespace',
           })
           .method('M:com.acme.Orders#onPlaced()', {
             annotations: [javaAnnotation('EventHandler')],
             visibility: 'namespace',
-          })
-          .method('M:com.acme.Orders#list()', { returns: prim('long') }),
+          }),
       ],
       {},
       JAVA_VOCABULARY,
-    );
+    ).model;
     expect<unknown>(
-      model.behaviors.map((b) => [b.name, b.type, b.visibility.kind]),
+      [...csharp.behaviors, ...java.behaviors].map((b) => [
+        b.name,
+        'type' in b,
+      ]),
     ).toEqual([
-      ['list', 'Command', 'public'],
-      ['onPlaced', 'Event', 'private'],
-      ['place', 'Command', 'public'],
-      ['total', 'Query', 'public'],
+      ['Place', false],
+      ['onPlaced', false],
+      ['place', false],
+      ['total', false],
     ]);
   });
 

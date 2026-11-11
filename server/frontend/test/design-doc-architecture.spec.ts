@@ -94,7 +94,6 @@ const behavior = (
   });
   return {
     id,
-    type: agent('Command'),
     visibility: agent<typeof visibility>(visibility),
     slots: [
       ...inputs,
@@ -429,6 +428,26 @@ describe('the qdoc design', () => {
     ]);
   });
 
+  it('places the messages in the domain core, after the values', () => {
+    const core = outline.hexagons.flatMap(({ domainCore }) => domainCore);
+    expect(
+      core
+        .filter(({ pattern }) => ['command', 'event'].includes(pattern ?? ''))
+        .map(({ name, pattern }) => [name, pattern]),
+    ).toEqual([
+      ['CreateQDoc', 'command'],
+      ['QDocCreated', 'event'],
+      ['NotifyUsers', 'command'],
+    ]);
+  });
+
+  it('counts the messages among the types a contract should use', () => {
+    expect(check('type-in-no-contract')?.text).not.toContain('CreateQDoc');
+    expect(checkOf(clean, 'type-in-no-contract')?.text).toBe(
+      'Every aggregate, entity, value object and message is used by a property, an input or an output.',
+    );
+  });
+
   it('finds NewQDocNotification in no contract', () => {
     expect(check('type-in-no-contract')?.elementIds).toEqual([
       blockIdAt('qdocmanagement.preparation.NewQDocNotification'),
@@ -593,7 +612,7 @@ describe('a public behavior off an application service', () => {
     const row = architectureTreeOf(outline, new Set()).find(
       ({ path }) => path === `${checkPath(exposing)}/${CANCEL}`,
     );
-    expect(row).toMatchObject({ change: 'added', pattern: 'Command' });
+    expect(row).toMatchObject({ change: 'added', pattern: null });
   });
 
   it('is found on its building block’s card', () => {

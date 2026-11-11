@@ -60,7 +60,9 @@ describe('buildingBlockTypesOf', () => {
           { pattern: 'aggregate', count: 1 },
           { pattern: 'entity', count: 2 },
           { pattern: 'domain_service', count: 1 },
-          { pattern: 'value_object', count: 16 },
+          { pattern: 'value_object', count: 13 },
+          { pattern: 'command', count: 2 },
+          { pattern: 'event', count: 1 },
         ],
       },
       {
@@ -110,12 +112,12 @@ describe('the building block filter in the diagram', () => {
   it('shows no count when nothing is left out', () => {
     const html = render([]);
     expect(html).toContain('Building blocks');
-    expect(html).not.toContain(' of 7');
+    expect(html).not.toContain(' of 9');
   });
 
   it('counts the types shown on its button, and nothing else names them', () => {
     const html = render(['value_object', 'entity']);
-    expect(html).toContain('5 of 7');
+    expect(html).toContain('7 of 9');
     expect(html).not.toContain('Hiding');
     expect(html).not.toContain('aria-label="Show every building block"');
     expect(html).not.toContain('aria-label="QDocId,');

@@ -105,7 +105,6 @@ export function designOf(model: SystemModel): DesignDocument {
       model.behaviors.map((behavior) => ({
         id: behavior.id,
         name: field(behavior.name),
-        type: field(behavior.type),
         definition: optional(behavior.description),
         diagram: UNSET,
         visibility: field(behavior.visibility),

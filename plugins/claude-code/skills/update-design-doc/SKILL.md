@@ -26,7 +26,8 @@ Both are JSON Schema. Read them at step 6, not from memory.
 ## Modelling guidance
 
 `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/modelling.md`:
-definitions, needs, modules, building block types, use cases and actors,
+definitions, needs, modules, building block types (messages among them),
+use cases and actors,
 rules, scenarios. A revision follows it as a new design does. Read it at
 step 6.
 

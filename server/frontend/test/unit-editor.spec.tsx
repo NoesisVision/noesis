@@ -5,6 +5,7 @@ import {
   applyEdit,
   draftOfUnit,
   newRuleOf,
+  TYPES_OF,
   type UnitKind,
   type UnitRef,
   unitOf,
@@ -139,14 +140,20 @@ describe('the fields of a unit', () => {
     expect(html).toContain('value="Aggregate"');
   });
 
-  it("choose a behavior's kind from chips, and a block's pattern from a list", () => {
-    const behavior = render(<Fields kind="behavior" id={null} />);
-    expect(behavior).toMatch(/role="radiogroup" aria-label="Type"/);
-    for (const kind of ['Command', 'Event', 'Query'])
-      expect(behavior).toContain(`<span>${kind}</span>`);
+  it("choose a block's pattern from a list, and give a behavior none", () => {
+    expect(render(<Fields kind="behavior" id={null} />)).not.toMatch(
+      /aria-label="Type"/,
+    );
     expect(render(<Fields kind="building_block" id={null} />)).toMatch(
       /role="combobox"[^>]*>|aria-label="Type"[^>]*role="combobox"/,
     );
+  });
+
+  it('offers the messages among the building block types', () => {
+    expect(TYPES_OF.building_block).toEqual(
+      expect.arrayContaining(['command', 'event', 'query']),
+    );
+    expect(TYPES_OF.behavior).toBeUndefined();
   });
 
   it('give a new need an id to choose', () => {

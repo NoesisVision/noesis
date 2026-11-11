@@ -50,15 +50,6 @@ export function stringArgument(
   return value?.kind === 'literal' ? unquote(value.text) : null;
 }
 
-/** The member of the enum argument `name` (`TriggeredBy.Command` → `Command`); null when absent. */
-export function enumArgument(
-  annotation: Annotation,
-  name: string,
-): string | null {
-  const value = argumentValue(annotation, name);
-  return value?.kind === 'enum' ? value.member : null;
-}
-
 function argumentValue(
   annotation: Annotation,
   name: string,

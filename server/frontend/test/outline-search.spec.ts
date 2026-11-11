@@ -45,8 +45,8 @@ describe('searchOutline', () => {
   });
 
   it('wants every word, anywhere in the row, and asks of that row alone', () => {
-    expect(found('place command')).toEqual([
-      'behavior|shop.orders.Order.place',
+    expect(found('order aggregate')).toEqual([
+      'building_block|shop.orders.Order',
     ]);
     expect(found('place nonsense')).toEqual([]);
     // The name searched is the row's own; a behavior is not found by the

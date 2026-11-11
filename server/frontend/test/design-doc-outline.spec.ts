@@ -62,8 +62,8 @@ describe('outlineOf', () => {
     expect(at('behavior|sales.refunds.Refund.issue')).toMatchObject({
       kind: 'behavior',
       name: 'issue',
-      pattern: 'Command',
-      patternLabel: 'Command',
+      pattern: null,
+      patternLabel: null,
       parentPath: 'building_block|sales.refunds.Refund',
       depth: 3,
     });

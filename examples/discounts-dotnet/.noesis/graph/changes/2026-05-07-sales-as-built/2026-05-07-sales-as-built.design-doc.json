@@ -1255,11 +1255,6 @@
           "value": "New",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a new, unique client id.",
@@ -1282,11 +1277,6 @@
         "name": {
           "changed": true,
           "value": "From",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1313,11 +1303,6 @@
           "value": "GetStatusFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells the status of a client.",
@@ -1340,11 +1325,6 @@
         "name": {
           "changed": true,
           "value": "Zero",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1371,11 +1351,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives an amount of money in a currency.",
@@ -1398,11 +1373,6 @@
         "name": {
           "changed": true,
           "value": "Max",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1429,11 +1399,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a percentage of a whole number.",
@@ -1456,11 +1421,6 @@
         "name": {
           "changed": true,
           "value": "Of",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1487,11 +1447,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Converts a price at this rate.",
@@ -1514,11 +1469,6 @@
         "name": {
           "changed": true,
           "value": "NewWithMaxTotalCostFor",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1545,11 +1495,6 @@
           "value": "NewWith",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Creates an order capped at a total cost.",
@@ -1572,11 +1517,6 @@
         "name": {
           "changed": true,
           "value": "ImmediatelyPlacedBasedOn",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1603,11 +1543,6 @@
           "value": "Non",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the agreement of an item whose price is not agreed yet.",
@@ -1630,11 +1565,6 @@
         "name": {
           "changed": true,
           "value": "Temporary",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1661,11 +1591,6 @@
           "value": "Final",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives an agreement on a price for good.",
@@ -1688,11 +1613,6 @@
         "name": {
           "changed": true,
           "value": "CanChangePrice",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1719,11 +1639,6 @@
           "value": "IsValidOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells whether the agreement holds on a date.",
@@ -1746,11 +1661,6 @@
         "name": {
           "changed": true,
           "value": "GetBy",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1777,11 +1687,6 @@
           "value": "Save",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Stores an order.",
@@ -1804,11 +1709,6 @@
         "name": {
           "changed": true,
           "value": "Add",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -1835,11 +1735,6 @@
           "value": "ConfirmPrices",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Agrees the prices of an offer for the order's items, final or until a date, where the price-change policy allows.",
@@ -1862,11 +1757,6 @@
         "name": {
           "changed": true,
           "value": "Place",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -1893,11 +1783,6 @@
           "value": "HasSameDataAs",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells whether another order holds the same data.",
@@ -1920,11 +1805,6 @@
         "name": {
           "changed": true,
           "value": "CanChangePrices",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -1951,11 +1831,6 @@
           "value": "CanChangePrices",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Allows new prices only when their total is lower than that of the prices they replace.",
@@ -1978,11 +1853,6 @@
         "name": {
           "changed": true,
           "value": "ChooseFor",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2009,11 +1879,6 @@
           "value": "CanChangePrices",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells whether the old quotes may be replaced by the new ones.",
@@ -2036,11 +1901,6 @@
         "name": {
           "changed": true,
           "value": "For",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2067,11 +1927,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the client's discount for each product unit, or their base discount, to a quote or every quote of an offer.",
@@ -2094,11 +1949,6 @@
         "name": {
           "changed": true,
           "value": "Percentage",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2125,11 +1975,6 @@
           "value": "Value",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a discount of a value.",
@@ -2152,11 +1997,6 @@
         "name": {
           "changed": true,
           "value": "ApplyOn",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2183,11 +2023,6 @@
           "value": "GetFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Finds the discounts of a client, or those on the given products.",
@@ -2210,11 +2045,6 @@
         "name": {
           "changed": true,
           "value": "Of",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2241,11 +2071,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the price less the percentage.",
@@ -2268,11 +2093,6 @@
         "name": {
           "changed": true,
           "value": "Of",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2299,11 +2119,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the discounts on the given product units.",
@@ -2326,11 +2141,6 @@
         "name": {
           "changed": true,
           "value": "ApplyOn",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2357,11 +2167,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives a discount of a value.",
@@ -2384,11 +2189,6 @@
         "name": {
           "changed": true,
           "value": "ApplyOn",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2415,11 +2215,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives each quote the lower of its price after the client's discounts and after the product discounts.",
@@ -2442,11 +2237,6 @@
         "name": {
           "changed": true,
           "value": "FromQuotes",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2473,11 +2263,6 @@
           "value": "Compare",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Tells whether this offer's total is within an accuracy of another's.",
@@ -2500,11 +2285,6 @@
         "name": {
           "changed": true,
           "value": "ApplyOn",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2531,11 +2311,6 @@
           "value": "ChooseFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Chooses the modifier of an offer request: three for two over every second box for half price, over individual sales conditions in wholesale or product discounts elsewhere.",
@@ -2558,11 +2333,6 @@
         "name": {
           "changed": true,
           "value": "For",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2589,11 +2359,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the base price of a product unit.",
@@ -2616,11 +2381,6 @@
         "name": {
           "changed": true,
           "value": "Of",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2647,11 +2407,6 @@
           "value": "GetFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the base price of a product amount.",
@@ -2674,11 +2429,6 @@
         "name": {
           "changed": true,
           "value": "GetBasePriceFor",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2705,11 +2455,6 @@
           "value": "GetBasePricesFor",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Finds the base prices of product amounts for a client.",
@@ -2732,11 +2477,6 @@
         "name": {
           "changed": true,
           "value": "For",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2763,11 +2503,6 @@
           "value": "ChangePrice",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the same product amount at a new price.",
@@ -2790,11 +2525,6 @@
         "name": {
           "changed": true,
           "value": "ApplyOn",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2821,11 +2551,6 @@
           "value": "Or",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the offer with a modifier to fall back on.",
@@ -2848,11 +2573,6 @@
         "name": {
           "changed": true,
           "value": "ApplyOn",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2879,11 +2599,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the fallback modifier to an offer.",
@@ -2906,11 +2621,6 @@
         "name": {
           "changed": true,
           "value": "Or",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2937,11 +2647,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Applies the special offer to an offer; until it is implemented, the fallback modifier.",
@@ -2964,11 +2669,6 @@
         "name": {
           "changed": true,
           "value": "Of",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -2995,11 +2695,6 @@
           "value": "Of",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives an amount of a product.",
@@ -3022,11 +2717,6 @@
         "name": {
           "changed": true,
           "value": "New",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {
@@ -3053,11 +2743,6 @@
           "value": "From",
           "author": "agent"
         },
-        "type": {
-          "changed": true,
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "changed": true,
           "value": "Gives the product id of a known identifier.",
@@ -3080,11 +2765,6 @@
         "name": {
           "changed": true,
           "value": "Of",
-          "author": "agent"
-        },
-        "type": {
-          "changed": true,
-          "value": "Query",
           "author": "agent"
         },
         "definition": {

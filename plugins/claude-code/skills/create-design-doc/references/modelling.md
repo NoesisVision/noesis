@@ -62,10 +62,12 @@ For a new one:
   Equal by identity; its behaviors change state and guard invariants.
 - `value_object`: a concept without identity. Immutable, validated on
   creation, rich in meaning (calculations, formatting) rather than a bag of
-  primitives. Messages are value objects too: an event records something
-  meaningful that happened, is named in the past tense and carries the
-  minimum its subscribers need; a command is a request to change the
-  domain, named in the imperative; a query is a request to read it.
+  primitives.
+- `command`, `query`, `event`: the messages, values that cross a module's
+  ports. A `command` is a request to change the domain, named in the
+  imperative; a `query` is a request to read it; an `event` records
+  something meaningful that happened, is named in the past tense and
+  carries the minimum its subscribers need.
 - `domain_service`: a stateless operation that fits no entity or value
   object. Takes and returns domain concepts; owns no state.
 - `application_service`: orchestrates use cases — calls aggregates, domain
@@ -116,8 +118,10 @@ Decide what a table stands for before modelling its rows:
 
 ## Behaviors
 
-- `Command` changes state, `Query` reads it, `Event` reacts to something
-  that happened.
+- A behavior has no type. What it does is read from the messages it takes
+  and gives back: a behavior that takes a `command` changes state, one
+  that takes a `query` reads it, one that takes an `event` reacts to
+  something that happened.
 - A use case is a public behavior: an action triggered from outside its
   module by a command, event or query. Group cohesive use cases as the
   behaviors of one `application_service`; do not give every use case a

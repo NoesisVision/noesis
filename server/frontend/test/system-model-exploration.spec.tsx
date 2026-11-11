@@ -130,7 +130,6 @@ const model = contained({
     {
       id: 'behavior|shop.orders.Order.place',
       name: 'place',
-      type: 'Command',
       description: null,
       visibility: { kind: 'private' },
       source,
@@ -252,7 +251,7 @@ describe('the exploration of a system model', () => {
 
   it('draws containment either way round as nesting, never as an edge', () => {
     for (const relation of ['contains', 'isPartOf'] as const) {
-      const graph = draw([relation], ['aggregate', 'value_object', 'Command']);
+      const graph = draw([relation], ['aggregate', 'value_object', 'behavior']);
       expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
         ['module|shop', null],
         ['module|shop.orders', 'module|shop'],
@@ -348,7 +347,7 @@ describe('the exploration of a system model', () => {
           { group: 'value_object', count: 1 },
         ],
       },
-      { title: 'Behaviors', groups: [{ group: 'Command', count: 1 }] },
+      { title: 'Behaviors', groups: [{ group: 'behavior', count: 1 }] },
     ]);
   });
 });
@@ -494,7 +493,7 @@ describe('the selection', () => {
     expect([module, order, behavior].map((each) => kindWordOf(each!))).toEqual([
       'Module',
       'Building block · Aggregate',
-      'Behavior · Command',
+      'Behavior',
     ]);
   });
 

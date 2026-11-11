@@ -89,9 +89,12 @@ export const BuildingBlockType = z
     'repository',
     'factory',
     'external_integration',
+    'command',
+    'event',
+    'query',
   ])
   .describe(
-    "What a building block is. The domain's values: 'aggregate', 'entity', 'value_object'. The parts that do the work: 'domain_service', 'application_service', 'repository', 'factory', 'external_integration'.",
+    "What a building block is. The domain's values: 'aggregate', 'entity', 'value_object', and the messages 'command', 'event', 'query'. The parts that do the work: 'domain_service', 'application_service', 'repository', 'factory', 'external_integration'.",
   );
 export type BuildingBlockType = z.infer<typeof BuildingBlockType>;
 
@@ -102,13 +105,6 @@ export const ScannedBuildingBlock = ScannedElement.extend({
   'A building block: a class, interface, struct or enum of the code that an annotation names as one of the types; its state and the behaviors it exposes are relations.',
 );
 export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
-
-export const BehaviorType = z
-  .enum(['Command', 'Event', 'Query'])
-  .describe(
-    "What a behavior does: a 'Command' changes state, an 'Event' says something happened, a 'Query' asks for data.",
-  );
-export type BehaviorType = z.infer<typeof BehaviorType>;
 
 export const Visibility = z
   .discriminatedUnion('kind', [
@@ -122,7 +118,6 @@ export type Visibility = z.infer<typeof Visibility>;
 
 export const ScannedBehavior = ScannedElement.extend({
   id: BehaviorId,
-  type: BehaviorType,
   visibility: Visibility,
 }).describe(
   "A behavior: a public method of a building block, named by the block's id path and its own name; its inputs, output, the behaviors it invokes ('behavior_invokes_behavior') and the rules it governs ('governs') are relations.",

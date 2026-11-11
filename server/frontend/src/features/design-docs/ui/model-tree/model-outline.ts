@@ -44,7 +44,7 @@ export interface OutlineNode {
   /** 0 at the top. */
   depth: number;
   change: OutlineChange;
-  /** The pattern as the model spells it: `application_service`, `Command`, `Consistency`. */
+  /** The pattern as the model spells it: `application_service`, `command`, `Consistency`. */
   pattern: string | null;
   /** The pattern as a reader reads it: `Application Service`, `OrderId`. */
   patternLabel: string | null;
@@ -85,6 +85,9 @@ const BUILDING_BLOCK_READING_ORDER = [
   'aggregate',
   'entity',
   'value_object',
+  'command',
+  'query',
+  'event',
 ] as const;
 
 /** Submodules above the blocks they hold; rules and scenarios last of all. */

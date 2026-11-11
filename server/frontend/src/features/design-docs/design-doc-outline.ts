@@ -76,10 +76,7 @@ function addBehaviors(
   behaviors: ChangeSetInput<DesignedBehaviorInput, string> | undefined,
 ): void {
   for (const [behavior, change] of named(behaviors)) {
-    put(
-      nodes,
-      element(behavior.id, change, valueOf(behavior.type), isDrawn(behavior)),
-    );
+    put(nodes, element(behavior.id, change, null, isDrawn(behavior)));
   }
   for (const id of behaviors?.removed ?? []) put(nodes, element(id, 'removed'));
 }
