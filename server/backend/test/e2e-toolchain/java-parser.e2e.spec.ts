@@ -99,7 +99,14 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       expect<unknown>(model.modules).toEqual(committed.modules);
       expect<unknown>(model.buildingBlocks).toEqual(committed.buildingBlocks);
       expect<unknown>(model.behaviors).toEqual(committed.behaviors);
+      expect<unknown>(model.actors).toEqual(committed.actors);
       expect<unknown>(model.relations).toEqual(committed.relations);
+      // `@Actor`, repeated on one method, reaches the model through the real
+      // parser (R9.5).
+      expect<unknown>(model.actors.map((a) => a.id)).toEqual([
+        'actor|Customer',
+        'actor|Sales rep',
+      ]);
       expect<unknown>(
         model.buildingBlocks.find(
           (b) => b.id === 'building_block|shop.orders.PlaceOrder',

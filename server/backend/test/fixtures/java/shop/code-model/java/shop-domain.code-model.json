@@ -647,9 +647,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 12,
+          "startLine": 13,
           "startColumn": 5,
-          "endLine": 12,
+          "endLine": 13,
           "endColumn": 42
         }
       ],
@@ -677,9 +677,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 11,
+          "startLine": 12,
           "startColumn": 5,
-          "endLine": 11,
+          "endLine": 12,
           "endColumn": 47
         }
       ],
@@ -2622,9 +2622,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 14,
+          "startLine": 15,
           "startColumn": 5,
-          "endLine": 17,
+          "endLine": 18,
           "endColumn": 6
         }
       ],
@@ -2687,9 +2687,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 19,
+          "startLine": 20,
           "startColumn": 5,
-          "endLine": 26,
+          "endLine": 29,
           "endColumn": 6
         }
       ],
@@ -2703,6 +2703,70 @@
             "nullable": false
           },
           "arguments": []
+        },
+        {
+          "type": {
+            "kind": "named",
+            "type": "T:vision.noesis.annotations.Actor+Actors",
+            "typeArguments": [],
+            "unbound": false,
+            "nullable": false
+          },
+          "arguments": [
+            {
+              "name": "value",
+              "positional": false,
+              "value": {
+                "kind": "array",
+                "items": [
+                  {
+                    "kind": "annotation",
+                    "annotation": {
+                      "type": {
+                        "kind": "named",
+                        "type": "T:vision.noesis.annotations.Actor",
+                        "typeArguments": [],
+                        "unbound": false,
+                        "nullable": false
+                      },
+                      "arguments": [
+                        {
+                          "name": "value",
+                          "positional": true,
+                          "value": {
+                            "kind": "literal",
+                            "text": "\"Customer\""
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "kind": "annotation",
+                    "annotation": {
+                      "type": {
+                        "kind": "named",
+                        "type": "T:vision.noesis.annotations.Actor",
+                        "typeArguments": [],
+                        "unbound": false,
+                        "nullable": false
+                      },
+                      "arguments": [
+                        {
+                          "name": "value",
+                          "positional": true,
+                          "value": {
+                            "kind": "literal",
+                            "text": "\"Sales rep\""
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }
       ],
       "documentation": null,
@@ -2747,9 +2811,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 28,
+          "startLine": 31,
           "startColumn": 5,
-          "endLine": 30,
+          "endLine": 33,
           "endColumn": 6
         }
       ],
@@ -4081,9 +4145,9 @@
       "locations": [
         {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 8,
+          "startLine": 9,
           "startColumn": 1,
-          "endLine": 31,
+          "endLine": 34,
           "endColumn": 2
         }
       ],
@@ -4677,9 +4741,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 16,
+          "startLine": 17,
           "startColumn": 9,
-          "endLine": 16,
+          "endLine": 17,
           "endColumn": 21
         },
         "viaClosure": false,
@@ -4695,9 +4759,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 15,
+          "startLine": 16,
           "startColumn": 9,
-          "endLine": 15,
+          "endLine": 16,
           "endColumn": 24
         },
         "viaClosure": false,
@@ -4713,9 +4777,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 24,
+          "startLine": 27,
           "startColumn": 9,
-          "endLine": 24,
+          "endLine": 27,
           "endColumn": 16
         },
         "viaClosure": false,
@@ -4731,9 +4795,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 21,
+          "startLine": 24,
           "startColumn": 23,
-          "endLine": 21,
+          "endLine": 24,
           "endColumn": 33
         },
         "viaClosure": false,
@@ -4749,9 +4813,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 25,
+          "startLine": 28,
           "startColumn": 9,
-          "endLine": 25,
+          "endLine": 28,
           "endColumn": 19
         },
         "viaClosure": false,
@@ -4767,9 +4831,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 29,
+          "startLine": 32,
           "startColumn": 9,
-          "endLine": 29,
+          "endLine": 32,
           "endColumn": 19
         },
         "viaClosure": false,
@@ -6818,9 +6882,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 14,
+          "startLine": 15,
           "startColumn": 5,
-          "endLine": 14,
+          "endLine": 15,
           "endColumn": 5
         },
         "viaClosure": false,
@@ -6839,9 +6903,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 22,
+          "startLine": 25,
           "startColumn": 9,
-          "endLine": 22,
+          "endLine": 25,
           "endColumn": 27
         },
         "viaClosure": false,
@@ -6858,9 +6922,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 21,
+          "startLine": 24,
           "startColumn": 23,
-          "endLine": 21,
+          "endLine": 24,
           "endColumn": 58
         },
         "viaClosure": false,
@@ -6877,9 +6941,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 25,
+          "startLine": 28,
           "startColumn": 9,
-          "endLine": 25,
+          "endLine": 28,
           "endColumn": 31
         },
         "viaClosure": false,
@@ -6896,9 +6960,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 21,
+          "startLine": 24,
           "startColumn": 40,
-          "endLine": 21,
+          "endLine": 24,
           "endColumn": 57
         },
         "viaClosure": false,
@@ -6915,9 +6979,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 23,
+          "startLine": 26,
           "startColumn": 9,
-          "endLine": 23,
+          "endLine": 26,
           "endColumn": 24
         },
         "viaClosure": false,
@@ -6934,9 +6998,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 24,
+          "startLine": 27,
           "startColumn": 9,
-          "endLine": 24,
+          "endLine": 27,
           "endColumn": 32
         },
         "viaClosure": false,
@@ -6953,9 +7017,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 29,
+          "startLine": 32,
           "startColumn": 28,
-          "endLine": 29,
+          "endLine": 32,
           "endColumn": 41
         },
         "viaClosure": false,
@@ -6972,9 +7036,9 @@
       "site": {
         "location": {
           "file": "shop-domain/src/main/java/com/acme/shop/orders/PlaceOrderHandler.java",
-          "startLine": 29,
+          "startLine": 32,
           "startColumn": 9,
-          "endLine": 29,
+          "endLine": 32,
           "endColumn": 42
         },
         "viaClosure": false,
@@ -7829,6 +7893,20 @@
       "name": "Supplier",
       "typeKind": "interface",
       "artifact": "A:java.base@17"
+    },
+    {
+      "id": "T:vision.noesis.annotations.Actor",
+      "kind": "type",
+      "name": "Actor",
+      "typeKind": "interface",
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
+    },
+    {
+      "id": "T:vision.noesis.annotations.Actor+Actors",
+      "kind": "type",
+      "name": "Actors",
+      "typeKind": "interface",
+      "artifact": "A:vision.noesis:noesis-annotations@0.1.0-SNAPSHOT"
     },
     {
       "id": "T:vision.noesis.annotations.AggregateRoot",

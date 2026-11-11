@@ -162,6 +162,18 @@ const javaAnnotation = (short: string): Annotation => ({
   arguments: [],
 });
 
+/** Java's `@Actor("<name>")`: one string argument, named `value`. */
+const javaActor = (name: string): Annotation => ({
+  type: named('T:vision.noesis.annotations.Actor'),
+  arguments: [
+    {
+      name: 'value',
+      positional: true,
+      value: { kind: 'literal', text: JSON.stringify(name) },
+    },
+  ],
+});
+
 /* ----------------------------------------------------------- builder */
 
 interface TypeOptions {
@@ -1891,6 +1903,50 @@ describe('9. behaviors', () => {
       'performs',
     );
     expect<unknown>(model.manualProcesses).toEqual([]);
+  });
+
+  it("R9.5 reads Java's @Actor by its value, repeated ones through their Actor.Actors container", () => {
+    const { model } = buildFrom(
+      [
+        artifact('shop')
+          .type('T:shop.Order', {
+            annotations: [javaAnnotation('AggregateRoot'), javaActor('Clerk')],
+          })
+          .method('M:shop.Order#place()', {
+            annotations: [
+              {
+                type: named('T:vision.noesis.annotations.Actor+Actors'),
+                arguments: [
+                  {
+                    name: 'value',
+                    positional: true,
+                    value: {
+                      kind: 'array',
+                      items: [
+                        {
+                          kind: 'annotation',
+                          annotation: javaActor('Customer'),
+                        },
+                        {
+                          kind: 'annotation',
+                          annotation: javaActor('Sales rep'),
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    expect<unknown>(model.actors.map((a) => a.id)).toEqual([
+      'actor|Clerk',
+      'actor|Customer',
+      'actor|Sales rep',
+    ]);
   });
 
   it('R9.5 drops an actor whose name is no element name, with a diagnostic', () => {

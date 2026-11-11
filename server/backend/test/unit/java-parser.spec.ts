@@ -96,6 +96,29 @@ describe('A Java repository scanned through its Maven plugin', () => {
       ['building_block|shop.products.ProductId', 'value_object'],
     ]);
 
+    // R9.5: `@Actor`, repeated on `handle` and so inside its `Actor.Actors`
+    // container, makes an actor per name, found at the method.
+    const handle = {
+      path: `${domain}/orders/PlaceOrderHandler.java`,
+      startLine: 20,
+      endLine: 29,
+    };
+    expect<unknown>(model.actors).toEqual([
+      {
+        id: 'actor|Customer',
+        name: 'Customer',
+        description: null,
+        source: handle,
+      },
+      {
+        id: 'actor|Sales rep',
+        name: 'Sales rep',
+        description: null,
+        source: handle,
+      },
+    ]);
+    expect<unknown>(model.manualProcesses).toEqual([]);
+
     const order = model.buildingBlocks.find((b) => b.name === 'Order');
     expect<unknown>(order).toMatchObject({
       description: 'An order *placed* by a customer.',

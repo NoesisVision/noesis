@@ -29,7 +29,7 @@ import type {
   TypeNode,
   TypeRef,
 } from '../code-parsers/code-model';
-import { hasRole, rolesOf, stringArgument } from './annotations';
+import { hasRole, rolesOf, stringArgument, withRepeated } from './annotations';
 import {
   CodeModelIndex,
   type GlobalId,
@@ -635,7 +635,7 @@ class ModelAssembly {
   ): void {
     for (const node of [...hierarchy.map((method) => method.node), type]) {
       for (const { annotation } of rolesOf(
-        node.annotations,
+        withRepeated(node.annotations),
         'actor',
         this.vocabulary,
       )) {

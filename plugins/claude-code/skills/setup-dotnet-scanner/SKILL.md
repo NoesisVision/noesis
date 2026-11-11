@@ -135,4 +135,7 @@ On a member: `[DomainBehavior]` and `[EntryPoint]` (`NoesisVision.Annotations.Do
 mark behaviors (a behavior has no type, so `[EntryPoint]`'s `TriggeredBy` is
 not read), `[Scenario]` a scenario. `[ShortDescription("…")]` and
 `[ExcludeFromDocs]` (`NoesisVision.Annotations`) describe or hide an element,
-and `[Actor]` (`NoesisVision.Annotations.People`) names an actor.
+and `[Actor]` (`NoesisVision.Annotations.People`) on a method, or on a type
+for all its behaviors, names who calls it: each name becomes an actor of the
+model, joined to no behavior. Which manual process the actor performs, and
+which behaviors that process invokes, a design document says.
