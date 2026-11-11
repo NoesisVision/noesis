@@ -4,7 +4,7 @@ A design document is read today as a model and as requirements. This plan
 adds a third view, Architecture, that reads the same document on the
 assumption that the designed system has a clean, hexagonal architecture: each
 module that holds building blocks is a hexagon, its application services'
-public behaviors are its driving ports, and its repositories and external
+behaviors are its driving ports, and its repositories and external
 integrations are its driven ports. The view draws the hexagons and checks the
 design against the dependency rule, so a reviewer sees where the design keeps
 to the architecture, where it leaves it, and what it leaves undecided.
@@ -21,11 +21,11 @@ columns and the tree the requirements view reads through. The prototype is
 | What it shows | One design document, read-only, projected by the frontend from the design document. Nothing is stored for it                                                                                                   |
 | Hexagon       | A module that holds building blocks. The modules above it are the system boundary and are not drawn as hexagons                                                                                                |
 | Rings         | By building block type. Domain core: `aggregate`, `entity`, `value_object`, `domain_service`, `factory`. Application: `application_service`. Driven port: `repository`, `external_integration`                 |
-| Driving port  | A public behavior of an application service. The actors in its visibility drive it; a public behavior with no actors is called by another subsystem, which the view draws as an unknown caller                 |
+| Driving port  | Every behavior of an application service. The actors who perform the manual processes that invoke it drive it; one no process invokes is called by another subsystem, drawn as an unknown caller               |
 | Adapters      | Not in the design document. Every driving port gets an in adapter and every driven port an out adapter, drawn as placeholders marked "not designed"                                                            |
 | Edges         | Only what the document holds: actor to in adapter, in adapter to driving port, a port to the service that owns it, out adapter to driven port. Calls between services and driven ports are not in the document |
 | Flow by type  | A behavior's output type that another behavior takes as input is listed in the details as an inferred flow, marked "type match only" where the match is not a real flow. It is never drawn as an edge          |
-| Checks        | Computed from building block types, visibility and the types properties, inputs and outputs use. Each is a warning, a note or a pass, and names the elements it concerns                                       |
+| Checks        | Computed from building block types, the calls manual processes and behaviors make, and the types properties, inputs and outputs use. Each is a warning, a note or a pass, and names the elements it concerns   |
 | Needs         | Each need, and the driving ports whose behavior's rules answer it. A need no port answers says so                                                                                                              |
 | Tree          | The left pane is the pane the other views use: search, expand and collapse, rows with rails. Two groups: Checks, and Needs at the ports                                                                        |
 | Details       | Below the rows, in the tree pane, scrolling apart from them. The diagram stays whole                                                                                                                           |
@@ -90,12 +90,12 @@ Considered and left out:
 
 ## Checks
 
-| Check                                | Level   | Fails when                                                                                                      |
-| ------------------------------------ | ------- | --------------------------------------------------------------------------------------------------------------- |
-| Domain depends on no port            | Warning | A domain block's property, input or output uses a repository, an external integration or an application service |
-| Only application services are public | Warning | A behavior of any other building block is public: the core is exposed past its ports                            |
-| Type in no contract                  | Warning | A building block is used by no property, input or output                                                        |
-| Caller unknown                       | Note    | A public behavior names no actor                                                                                |
+| Check                                             | Level   | Fails when                                                                                                          |
+| ------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| Domain depends on no port                         | Warning | A domain block's property, input or output uses a repository, an external integration or an application service     |
+| Only application services are called from outside | Warning | A manual process or another module calls a behavior of any other building block: the core is exposed past its ports |
+| Type in no contract                               | Warning | A building block is used by no property, input or output                                                            |
+| Caller unknown                                    | Note    | No manual process invokes a driving port                                                                            |
 
 A check that finds nothing is a pass and lists the elements it checked. On
 the qdoc design the first two pass, `NewQDocNotification` is in no contract (only `createQDoc`'s sequence diagram
@@ -124,7 +124,8 @@ interface Hexagon {
   module: { id: ModuleId; name: string };
   drivingPorts: {
     behavior: PlacedElement;
-    actors: string[]; // empty: called by another subsystem
+    actors: string[]; // read through performs and process_invokes_behavior
+    callerKnown: boolean; // false: no manual process invokes it, so another subsystem calls it
   }[];
   applicationServices: PlacedElement[];
   domainCore: PlacedElement[];
