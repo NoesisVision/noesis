@@ -51,6 +51,9 @@ const DOMAIN_CORE = [
   'domain_service',
   'factory',
   'value_object',
+  'command',
+  'query',
+  'event',
 ] as const satisfies readonly BuildingBlockType[];
 const APPLICATION_SERVICE = 'application_service' satisfies BuildingBlockType;
 
@@ -261,7 +264,7 @@ function behaviorElement(
   return {
     id: asBehavior(behavior.id),
     name: nameOf(behavior.id),
-    pattern: valueOf(behavior.type),
+    pattern: null,
     change,
     uses: usesOf(behavior.id, typesOfBehavior(document, behavior)),
     rules: rulesOf(document, behavior.id),

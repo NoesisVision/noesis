@@ -87,14 +87,7 @@ const signatureOf = (
   return {
     key: behavior.id,
     name: `${nameOf(behavior.id)}(${input})`,
-    // A command, a query, an event — as the tree marks it.
-    icon: (
-      <KindIcon
-        kind="behavior"
-        pattern={valueOf(behavior.type)}
-        size={ICON_SIZE}
-      />
-    ),
+    icon: <KindIcon kind="behavior" pattern={null} size={ICON_SIZE} />,
     ...(output === '' ? {} : { type: output }),
   };
 };

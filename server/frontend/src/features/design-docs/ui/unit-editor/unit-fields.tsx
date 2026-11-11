@@ -214,16 +214,7 @@ function FieldInput({
         value: type,
         label: titleCase(type).replaceAll('_', ' '),
       }));
-      // A behavior's three kinds read at a glance as chips; a building
-      // block's eight patterns need a list.
-      return kind === 'behavior' ? (
-        <ChipChoice
-          label={label}
-          options={options}
-          value={fields.type!.value}
-          onChange={(type) => form.setFieldValue(path, type)}
-        />
-      ) : (
+      return (
         <Select
           {...common}
           placeholder="Choose a type"

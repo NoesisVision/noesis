@@ -8,13 +8,16 @@ export type CardShape = 'box' | 'pill' | 'bevel';
 /** The class a diagram's card takes for its shape, with `data-shape` and `data-state`. */
 export const cardShapeClass = classes.card;
 
+/** The values the domain passes around: a value object and the messages. */
+const BEVELLED = new Set(['value_object', 'command', 'event', 'query']);
+
 /**
  * The shape of an element's card, on any diagram: a behavior a pill, a
- * value object bevelled, the rest a rounded box.
+ * value object or a message bevelled, the rest a rounded box.
  */
 export function shapeOf(kind: string, pattern: string | null | undefined) {
   if (kind === 'behavior') return 'pill' as const;
-  if (pattern === 'value_object') return 'bevel' as const;
+  if (pattern != null && BEVELLED.has(pattern)) return 'bevel' as const;
   return 'box' as const;
 }
 

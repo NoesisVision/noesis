@@ -54,7 +54,7 @@
     filter 0.15s ease,
     transform 0.15s ease;
 
-  &:not([data-pattern='value_object'], [data-state='selected']) {
+  &:not([data-shape='bevel'], [data-state='selected']) {
     box-shadow: var(--card-block);
 
     &:hover {
@@ -116,7 +116,7 @@
 
 /* A value object's ring is its own bevelled layer; a box shadow would run round it square. */
 .theme[data-diagram-theme]
-  [data-part='card'][data-state='selected']:not([data-pattern='value_object']) {
+  [data-part='card'][data-state='selected']:not([data-shape='bevel']) {
   box-shadow:
     0 0 0 3px
       light-dark(var(--mantine-color-brand-1), var(--mantine-color-brand-9)),
@@ -142,7 +142,7 @@
 }
 
 /* A value object's side follows its cut corners: a drop shadow a pixel at a time. */
-.theme[data-diagram-theme] [data-part='card'][data-pattern='value_object'] {
+.theme[data-diagram-theme] [data-part='card'][data-shape='bevel'] {
   filter: drop-shadow(1px 1px 0 var(--card-side))
     drop-shadow(1px 1px 0 var(--card-side))
     drop-shadow(1px 1px 0 var(--card-side)) drop-shadow(4px 4px 4px var(--cast));

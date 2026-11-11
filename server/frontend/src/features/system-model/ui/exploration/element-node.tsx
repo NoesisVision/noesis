@@ -533,6 +533,9 @@ export function ElementNode({
   height,
 }: NodeProps<ExplorationNode>) {
   const { element, holds } = data.placed;
+  // Its shape, as every diagram draws an element (diagram-shapes.tsx).
+  const shape = holds ? undefined : shapeOf(element.kind, element.pattern);
+  const bevelled = shape === 'bevel';
   const { state, dimmed, onSelect } = useSelectionState(element.id);
   const [menu, setMenu] = useState(false);
   // Where a frame was right-clicked, on the canvas.
@@ -566,8 +569,7 @@ export function ElementNode({
       className={
         holds ? classes.containerLabel : `${classes.card} ${cardShapeClass}`
       }
-      // Its shape, as every diagram draws an element (diagram-shapes.tsx).
-      data-shape={holds ? undefined : shapeOf(element.kind, element.pattern)}
+      data-shape={shape}
       // How a diagram theme (themes/) reaches it, as it cannot name the class.
       data-part={holds ? 'frame-label' : 'card'}
       data-kind={element.kind}
@@ -580,9 +582,9 @@ export function ElementNode({
       // Ctrl, or Cmd on a Mac, adds it to the hand or takes it out.
       onClick={(event) => onSelect(element.id, event.ctrlKey || event.metaKey)}
     >
-      {/* A value object's bevelled face, drawn under its name: its edge is
-          the card's own layer, as a cut corner cannot carry a border. */}
-      {!holds && element.pattern === 'value_object' && <BevelFace />}
+      {/* A bevelled card's face, drawn under its name: its edge is the
+          card's own layer, as a cut corner cannot carry a border. */}
+      {bevelled && <BevelFace />}
       {label}
     </UnstyledButton>
   );
@@ -649,14 +651,12 @@ export function ElementNode({
           ) : (
             button
           )}
-          {!holds &&
-            element.pattern === 'value_object' &&
-            state === 'related' && (
-              <BevelRing
-                width={width ?? data.placed.width}
-                height={height ?? data.placed.height}
-              />
-            )}
+          {bevelled && state === 'related' && (
+            <BevelRing
+              width={width ?? data.placed.width}
+              height={height ?? data.placed.height}
+            />
+          )}
           <Contains element={element} holds={holds} />
           <Remove id={element.id} name={element.name} holds={holds} />
           <Handle

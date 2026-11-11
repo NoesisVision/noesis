@@ -29,11 +29,12 @@ import { isometric } from './isometric/index.ts';
  * background does not reach) and `start` (the way to start, over it),
  * `card`, `holder` (what a card sits in), `container` (a frame others are
  * drawn inside), `frame-top` and `frame-label` (its top and its name),
- * `contains` (the round plus on a border), `face` (a value object's
- * bevelled face) and `bevel-ring` (its related ring). Each part also says
- * what it draws, to be told apart: `data-kind` (module, building_block,
- * behavior), `data-pattern` (value_object, aggregate…) and `data-state`
- * (selected, related, path). Relations are React Flow's own
+ * `contains` (the round plus on a border), `face` (a bevelled card's face:
+ * a value object's or a message's) and `bevel-ring` (its related ring). Each
+ * part also says what it draws, to be told apart: `data-kind` (module,
+ * building_block, behavior), `data-pattern` (value_object, aggregate…),
+ * `data-shape` on a card (box, pill, bevel) and `data-state` (selected,
+ * related, path). Relations are React Flow's own
  * `.react-flow__edge`, reached with `:global(…)`. On the canvas too: `add`
  * (the round plus) and `visibility` (the visibility panel).
  *

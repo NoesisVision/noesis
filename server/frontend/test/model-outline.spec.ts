@@ -15,7 +15,7 @@ describe('patternLabelOf', () => {
   });
 
   it('leaves a word already written that way as it is', () => {
-    expect(patternLabelOf('Command')).toBe('Command');
+    expect(patternLabelOf('command')).toBe('Command');
   });
 });
 

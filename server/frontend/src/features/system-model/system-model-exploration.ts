@@ -1,6 +1,5 @@
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type {
-  BehaviorType,
   BuildingBlockType,
   Relation,
   SystemModel,
@@ -26,8 +25,8 @@ export interface ExploredElement {
   id: string;
   kind: ExploredKind;
   name: string;
-  /** The building block's or behavior's type; null for a module. */
-  pattern: BuildingBlockType | BehaviorType | null;
+  /** The building block's type; null for a module or a behavior. */
+  pattern: BuildingBlockType | null;
   /** The element that contains this one, if the model holds it. */
   container: string | null;
 }
@@ -157,7 +156,7 @@ export function explorationOf(model: SystemModel): Exploration {
       id: behavior.id,
       kind: 'behavior' as const,
       name: behavior.name,
-      pattern: behavior.type,
+      pattern: null,
       container: container(behavior.id),
     })),
   ];
