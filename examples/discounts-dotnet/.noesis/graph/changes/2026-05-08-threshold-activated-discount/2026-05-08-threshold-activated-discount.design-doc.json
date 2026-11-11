@@ -159,10 +159,6 @@
           "value": "ApplyOn",
           "author": "agent"
         },
-        "type": {
-          "value": "Query",
-          "author": "agent"
-        },
         "definition": {
           "value": "Gives a price the threshold discount: reduced by the percentage when the price is above the threshold, unchanged otherwise.",
           "author": "agent"
@@ -179,10 +175,6 @@
         "id": "behavior|Sales.Pricing.Discounts.Discount.Threshold",
         "name": {
           "value": "Threshold",
-          "author": "agent"
-        },
-        "type": {
-          "value": "Command",
           "author": "agent"
         },
         "definition": {
@@ -208,9 +200,6 @@
         "name": {
           "changed": false
         },
-        "type": {
-          "changed": false
-        },
         "definition": {
           "value": "Reduces a price by the discount's percentage.",
           "author": "agent"
@@ -222,9 +211,6 @@
       {
         "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
         "name": {
-          "changed": false
-        },
-        "type": {
           "changed": false
         },
         "definition": {
@@ -240,10 +226,6 @@
         "name": {
           "changed": false
         },
-        "type": {
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "value": "Makes a `Discount` that reduces prices by a given percentage.",
           "author": "agent"
@@ -257,10 +239,6 @@
         "name": {
           "changed": false
         },
-        "type": {
-          "value": "Command",
-          "author": "agent"
-        },
         "definition": {
           "value": "Makes a `Discount` that takes a fixed amount of money off prices.",
           "author": "agent"
@@ -272,9 +250,6 @@
       {
         "id": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
         "name": {
-          "changed": false
-        },
-        "type": {
           "changed": false
         },
         "definition": {
