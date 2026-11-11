@@ -1,4 +1,4 @@
-import type { BuildingBlockType } from '#backend/app/system-model/system-model.ts';
+import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 import {
   DOMAIN_CORE_NAME,
   type Hexagon,
@@ -14,7 +14,7 @@ import {
 
 export interface TypeRing {
   ring: 'Application' | typeof DOMAIN_CORE_NAME | 'Driven ports';
-  types: { pattern: BuildingBlockType; count: number }[];
+  types: { pattern: BuildingBlockKind; count: number }[];
 }
 
 const RINGS = [
@@ -29,7 +29,7 @@ const RINGS = [
 /** Every type the hexagons draw, by the ring it sits in, in the order the cards are drawn. */
 export function buildingBlockTypesOf(hexagons: Hexagon[]): TypeRing[] {
   return RINGS.map(([ring, elementsIn]) => {
-    const counts = new Map<BuildingBlockType, number>();
+    const counts = new Map<BuildingBlockKind, number>();
     for (const { pattern } of hexagons.flatMap(elementsIn))
       if (pattern !== null) counts.set(pattern, (counts.get(pattern) ?? 0) + 1);
     return {

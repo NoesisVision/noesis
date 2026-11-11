@@ -14,7 +14,7 @@ import {
 import {
   BehaviorGovernsRuleRelation,
   BehaviorInvokesBehaviorRelation,
-  BuildingBlockType,
+  BuildingBlockKind,
   Cardinality,
   ExposesRelation,
   ExtendsRelation,
@@ -145,7 +145,7 @@ export type DesignedDomainModule = z.infer<typeof DesignedDomainModule>;
 export const DesignedBuildingBlock = z.strictObject({
   id: BuildingBlockId,
   name: DesignDocField(ElementName),
-  type: DesignDocField(BuildingBlockType),
+  type: DesignDocField(BuildingBlockKind),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
 });

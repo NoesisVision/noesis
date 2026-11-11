@@ -4,7 +4,7 @@ import type {
   DesignedRelationInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BuildingBlockType,
+  BuildingBlockKind,
   Cardinality,
 } from '#backend/app/system-model/system-model.ts';
 import type { ArchitectureCheck } from '../src/features/design-docs/architecture-outline';
@@ -59,7 +59,7 @@ const slotOf = (
 
 const block = (
   address: string,
-  type: BuildingBlockType,
+  type: BuildingBlockKind,
   uses: string[] = [],
 ) => ({
   id: `building_block|${address}`,

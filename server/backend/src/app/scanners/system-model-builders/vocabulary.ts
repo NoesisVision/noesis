@@ -1,5 +1,5 @@
 import type {
-  BuildingBlockType,
+  BuildingBlockKind,
   PrimitiveName,
 } from '#backend/app/system-model/system-model';
 import type { Language, NodeId } from '../code-parsers/code-model';
@@ -14,7 +14,7 @@ import type { Language, NodeId } from '../code-parsers/code-model';
 
 export type AnnotationRole =
   /** The type is a building block of `type`; the `name` argument overrides its name. */
-  | { readonly role: 'buildingBlock'; readonly type: BuildingBlockType }
+  | { readonly role: 'buildingBlock'; readonly type: BuildingBlockKind }
   /** The method is a behavior; `name` overrides its name. */
   | { readonly role: 'behavior' }
   /** An actor who drives the behavior, named by the `actor` argument: the model gains an actor element. */
