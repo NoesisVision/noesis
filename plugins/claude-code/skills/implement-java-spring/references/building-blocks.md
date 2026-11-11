@@ -203,7 +203,8 @@ Report it as a deviation.
 An immutable fact, named in the past tense, about something that happened
 inside one aggregate.
 
-1. MUST be a `record` annotated `@Event`, carrying the aggregate's
+1. MUST be a `record` annotated `@Event`, the design's block of type
+   `event`, carrying the aggregate's
    identifier, when it happened (`Instant occurredAt`, or the time property
    the design names) and the minimum its consumers need.
 2. MUST be created by the aggregate in the behavior that caused it, never
@@ -215,8 +216,9 @@ inside one aggregate.
 4. The application service publishes it through the external integration
    the design document names for that (`PreparationEventPublisher`), in the
    same transaction as the save.
-5. A handler of an event is an `Event` behavior: an application service
-   method annotated `@EventHandler` that takes the event record as its parameter.
+5. A handler of an event is a behavior that takes the event: an
+   application service method annotated `@EventHandler` that takes the
+   event record as its parameter.
    When it changes another aggregate it MUST be idempotent: handling the
    same event twice changes nothing the second time.
 
@@ -312,9 +314,9 @@ event triggers. Orchestration only, no business rules.
 
 1. One class per `application_service` building block, one public method
    per behavior, named as the design document names them. Each carries
-   `@CommandHandler`, `@QueryHandler` or `@EventHandler` after the
-   behavior's type: application services are the only building blocks
-   whose methods do.
+   `@CommandHandler`, `@QueryHandler` or `@EventHandler` after the message
+   it takes ([mapping](mapping.md#behaviors)): application services are
+   the only building blocks whose methods do.
 2. Collaborators come through the constructor: repositories, external
    integrations, domain services, factories and a `Clock`. Fields are
    `private final`.

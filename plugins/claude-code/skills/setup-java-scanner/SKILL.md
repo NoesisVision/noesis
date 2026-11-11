@@ -316,22 +316,25 @@ On Windows the wrappers are `mvnw.cmd` and `gradlew.bat`.
 
 All in `vision.noesis.annotations`. On a type:
 
-| Annotation                     | Building block                         |
-| ------------------------------ | -------------------------------------- |
-| `@AggregateRoot`               | aggregate                              |
-| `@DomainEntity`                | entity                                 |
-| `@ValueObject`                 | value object                           |
-| `@Identifier`                  | value object (an id)                   |
-| `@DomainService`               | domain service                         |
-| `@ApplicationService`          | application service                    |
-| `@Repository`                  | repository                             |
-| `@Factory`                     | factory                                |
-| `@ExternalIntegration`         | external integration                   |
-| `@Adapter`                     | external integration (the code's side) |
-| `@Command`, `@Query`, `@Event` | value object (a message)               |
+| Annotation             | Building block                         |
+| ---------------------- | -------------------------------------- |
+| `@AggregateRoot`       | aggregate                              |
+| `@DomainEntity`        | entity                                 |
+| `@ValueObject`         | value object                           |
+| `@Identifier`          | value object (an id)                   |
+| `@DomainService`       | domain service                         |
+| `@ApplicationService`  | application service                    |
+| `@Repository`          | repository                             |
+| `@Factory`             | factory                                |
+| `@ExternalIntegration` | external integration                   |
+| `@Adapter`             | external integration (the code's side) |
+| `@Command`             | command                                |
+| `@Query`               | query                                  |
+| `@Event`               | event                                  |
 
 On a method of an application service: `@CommandHandler`, `@QueryHandler`,
-`@EventHandler`. Modules come from the package structure; the scanner does
+`@EventHandler`, which mark it as a behavior; a behavior has no type, so
+what it does is read from the messages it takes. Modules come from the package structure; the scanner does
 not read `@Module` on `package-info.java` yet.
 `${CLAUDE_PLUGIN_ROOT}/skills/implement-java-spring/references/mapping.md`
 has the full rules for how code becomes the model.

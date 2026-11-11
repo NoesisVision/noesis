@@ -13,9 +13,10 @@ domain code that the
 Noesis Java parser reads back as the same model, and into tests that prove
 every scenario. Each module becomes a package, each building block a type
 carrying its `vision.noesis.annotations` stereotype, each behavior a public
-method. An application service's behaviors also carry `@CommandHandler`,
-`@QueryHandler` or `@EventHandler` after their type, and the commands,
-queries and events they handle carry `@Command`, `@Query` or `@Event`.
+method. The messages, blocks of type `command`, `query` and `event`, carry
+`@Command`, `@Query` or `@Event`, and an application service's behaviors
+also carry `@CommandHandler`, `@QueryHandler` or `@EventHandler` after the
+message they take.
 Each scenario becomes exactly one test.
 
 The scope is the domain: value objects, entities, aggregates, domain
@@ -150,10 +151,10 @@ Read all three at step 5, before planning:
       `has_output` the return type, each typed by its `to` and
       `cardinality`;
     - every application service behavior carries `@CommandHandler`,
-      `@QueryHandler` or `@EventHandler` after its type, and no other
-      method does;
-    - every command, query and event carries `@Command`, `@Query` or
-      `@Event`;
+      `@QueryHandler` or `@EventHandler` after the message it takes, and
+      no other method does;
+    - every block of type `command`, `query` or `event` carries
+      `@Command`, `@Query` or `@Event`;
     - an annotated type has no public method the design document does not
       name, except the ones Java writes itself
       ([mapping](references/mapping.md#the-public-surface));

@@ -75,8 +75,9 @@ rules, scenarios. Read it at step 5.
      module by a command, event or query is a public behavior. Its actors
      are the human personas that trigger it; reuse the actor names the
      system model already uses, verbatim.
-   - **Building blocks and behaviors**, with their types, the state of
-     each block, the inputs and output of each behavior, and the calls
+   - **Building blocks and behaviors**, with each block's type (a
+     message is a block of type `command`, `query` or `event`; a behavior
+     has no type), the state of each block, the inputs and output of each behavior, and the calls
      between them. Take ready solutions from the sources, diagrams
      especially.
    - **Rules**, one per requirement statement, each with its kind, the

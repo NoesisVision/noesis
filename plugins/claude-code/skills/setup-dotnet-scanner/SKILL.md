@@ -115,20 +115,24 @@ The Noesis repository is `https://github.com/NoesisVision/noesis`.
 
 From the `NoesisVision.Annotations` package. On a type:
 
-| Attribute                                        | Namespace                             | Building block       |
-| ------------------------------------------------ | ------------------------------------- | -------------------- |
-| `[DddAggregate]`                                 | `NoesisVision.Annotations.Domain.DDD` | aggregate            |
-| `[DddEntity]`                                    | `NoesisVision.Annotations.Domain.DDD` | entity               |
-| `[DddValueObject]`                               | `NoesisVision.Annotations.Domain.DDD` | value object         |
-| `[DddDomainService]`                             | `NoesisVision.Annotations.Domain.DDD` | domain service       |
-| `[DddApplicationService]`                        | `NoesisVision.Annotations.Domain.DDD` | application service  |
-| `[DddRepository]`                                | `NoesisVision.Annotations.Domain.DDD` | repository           |
-| `[DddFactory]`                                   | `NoesisVision.Annotations.Domain.DDD` | factory              |
-| `[DddDomainEvent]`                               | `NoesisVision.Annotations.Domain.DDD` | value object (event) |
-| `[ExternalSystemIntegration]`                    | `NoesisVision.Annotations.Domain`     | external integration |
-| `[Command]`, `[Query]`, `[Event]`, `[ReadModel]` | `NoesisVision.Annotations.Domain`     | value object         |
+| Attribute                     | Namespace                             | Building block       |
+| ----------------------------- | ------------------------------------- | -------------------- |
+| `[DddAggregate]`              | `NoesisVision.Annotations.Domain.DDD` | aggregate            |
+| `[DddEntity]`                 | `NoesisVision.Annotations.Domain.DDD` | entity               |
+| `[DddValueObject]`            | `NoesisVision.Annotations.Domain.DDD` | value object         |
+| `[DddDomainService]`          | `NoesisVision.Annotations.Domain.DDD` | domain service       |
+| `[DddApplicationService]`     | `NoesisVision.Annotations.Domain.DDD` | application service  |
+| `[DddRepository]`             | `NoesisVision.Annotations.Domain.DDD` | repository           |
+| `[DddFactory]`                | `NoesisVision.Annotations.Domain.DDD` | factory              |
+| `[DddDomainEvent]`            | `NoesisVision.Annotations.Domain.DDD` | event                |
+| `[ExternalSystemIntegration]` | `NoesisVision.Annotations.Domain`     | external integration |
+| `[Command]`                   | `NoesisVision.Annotations.Domain`     | command              |
+| `[Query]`                     | `NoesisVision.Annotations.Domain`     | query                |
+| `[Event]`                     | `NoesisVision.Annotations.Domain`     | event                |
+| `[ReadModel]`                 | `NoesisVision.Annotations.Domain`     | value object         |
 
 On a member: `[DomainBehavior]` and `[EntryPoint]` (`NoesisVision.Annotations.Domain`)
-mark behaviors, `[Scenario]` a scenario. `[ShortDescription("…")]` and
+mark behaviors (a behavior has no type, so `[EntryPoint]`'s `TriggeredBy` is
+not read), `[Scenario]` a scenario. `[ShortDescription("…")]` and
 `[ExcludeFromDocs]` (`NoesisVision.Annotations`) describe or hide an element,
 and `[Actor]` (`NoesisVision.Annotations.People`) names an actor.

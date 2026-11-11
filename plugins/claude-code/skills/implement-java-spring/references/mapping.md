@@ -7,14 +7,18 @@ classes:
 - a **module** is a package;
 - a **building block** is a type annotated with one of the
   `vision.noesis.annotations` stereotypes;
-- a **message** is a type annotated `@Command`, `@Query` or `@Event`;
+- a **message**, a building block of type `command`, `query` or `event`,
+  is a type annotated `@Command`, `@Query` or `@Event`;
 - a **behavior** is a public, non-synthetic method of a building block.
   An application service's behavior also carries `@CommandHandler`,
-  `@QueryHandler` or `@EventHandler` after the behavior's type; no other
-  building block's does.
+  `@QueryHandler` or `@EventHandler` after the message it takes; no other
+  building block's does. The handler annotation only marks the method as
+  a behavior: the scanner reads what it does from its messages, and a
+  behavior has no type.
 
-An application service's behavior handles each message of its own kind it
-takes as a parameter (an `@EventHandler` handles an event, not a command).
+An application service's behavior handles the message it takes as a
+parameter, of the kind its annotation names (an `@EventHandler` handles an
+event, not a command).
 Any behavior sends each message it constructs.
 
 Handler annotations stay on application services so that every command and
@@ -76,28 +80,22 @@ the annotation:
 | ---------------------- | ------------------------------------------------------------------ | ------------------------------------------- |
 | `aggregate`            | `public final class`, the aggregate root                           | `@AggregateRoot`                            |
 | `entity`               | `final class`, package-private when only its aggregate uses it     | `@DomainEntity`                             |
-| `value_object`         | `public record`; an `enum` for a closed set of values (below)      | `@ValueObject`, or one of the three below   |
+| `value_object`         | `public record`; an `enum` for a closed set of values (below)      | `@ValueObject`, or `@Identifier` (below)    |
 | — an identifier        | `public record` with one component                                 | `@Identifier`                               |
-| — a command or a query | `public record`                                                    | `@Command` or `@Query`                      |
-| — an event             | `public record`                                                    | `@Event`                                    |
+| `command`              | `public record`                                                    | `@Command`                                  |
+| `query`                | `public record`                                                    | `@Query`                                    |
+| `event`                | `public record`                                                    | `@Event`                                    |
 | `domain_service`       | `public final class`, or a `@FunctionalInterface` for one decision | `@DomainService`                            |
 | `application_service`  | `public class` with constructor-injected collaborators             | `@ApplicationService`                       |
 | `repository`           | `public interface`                                                 | `@Repository`                               |
 | `factory`              | `public final class`                                               | `@Factory`                                  |
 | `external_integration` | `public interface`, the port; never its implementation             | `@ExternalIntegration(Direction.SECONDARY)` |
 
-A design document types messages and identifiers as `value_object`. Tell
-them apart by their definition and their use:
+A design document types identifiers as `value_object`. Tell them apart by
+their definition and their use:
 
 - **Identifier**: the type of a piece of state named `id`, or named
   `<Something>Id` with a single `value` piece of state (`QDocId`, `UserId`).
-- **Command**: the definition calls it a command or a request to change
-  something, it is named in the imperative, and a `Command` behavior takes
-  it as input (`CreateQDoc`).
-- **Query**: a request to read, taken as input by a `Query` behavior.
-- **Event**: the definition calls it an event or says what happened, it is
-  named in the past tense, and a behavior outputs it or an `Event`
-  behavior takes it as input (`QDocCreated`).
 - **Enum**: a value object with one `value` piece of state whose `Structure`
   rule names a closed set of values ("takes exactly one of two values:
   active, archived") is an `enum` with one constant per value, in upper
@@ -194,12 +192,13 @@ method `create` of the type `QDoc`.
   block creates it, so it is a `public static` factory method
   (`Version.createFirst(...)` returns a `Version`). Every other behavior
   is an instance method.
-- **Type**: a `Command` changes state, a `Query` only reads, and an
-  `Event` reacts to an event, which it takes as its parameter. On an
-  application service, the method carries the matching handler annotation,
-  `@CommandHandler`, `@QueryHandler` or `@EventHandler`, and every overload
-  of the behavior carries the same one. On any other building block the
-  type shapes the method but has no annotation.
+- **Handler annotation**: a behavior has no type; on an application
+  service, the method carries the handler annotation of the message it
+  takes: `@CommandHandler` for a `command`, `@QueryHandler` for a `query`,
+  `@EventHandler` for an `event`. One that takes no message carries
+  `@QueryHandler` when it only reads and `@CommandHandler` otherwise.
+  Every overload of the behavior carries the same one. On any other
+  building block a behavior has no annotation.
 - **Interfaces**: on a repository or an external integration, the
   behavior is an abstract method, unannotated; no implementation is in
   scope.
