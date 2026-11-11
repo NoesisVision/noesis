@@ -96,12 +96,15 @@ export const BuildingBlockType = z
     'repository',
     'factory',
     'external_integration',
+    'in_adapter',
+    'out_adapter',
+    'technical_service',
     'command',
     'event',
     'query',
   ])
   .describe(
-    "What a building block is. The domain's values: 'aggregate', 'entity', 'value_object', and the messages 'command', 'event', 'query'. The parts that do the work: 'domain_service', 'application_service', 'repository', 'factory', 'external_integration'.",
+    "What a building block is. The domain's values: 'aggregate', 'entity', 'value_object', and the messages 'command', 'event', 'query'. The parts that do the work: 'domain_service', 'application_service', 'repository', 'factory', 'external_integration', 'in_adapter' (drives the system from outside), 'out_adapter' (the system drives something outside through it), 'technical_service'.",
   );
 export type BuildingBlockType = z.infer<typeof BuildingBlockType>;
 
@@ -320,7 +323,7 @@ export const HasCollaboratorRelation = NamedSlotRelation.extend({
   from: BuildingBlockId,
   to: BuildingBlockId,
 }).describe(
-  'A building block works with another it holds, named `name` and holding `cardinality` of it: a repository, a service or an integration, by the type of `to`. A value of the domain it holds is its state (`has_state`) instead.',
+  'A building block works with another it holds, named `name` and holding `cardinality` of it: a repository, a service, an integration or an adapter, by the type of `to`. A value of the domain it holds is its state (`has_state`) instead.',
 );
 
 export const ExposesRelation = ScannedRelation.extend({
