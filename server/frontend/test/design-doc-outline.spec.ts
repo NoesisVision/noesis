@@ -128,9 +128,9 @@ describe('outlineOf', () => {
       ...changedEverywhereFixture,
       relations: {
         added: [
-          { kind: 'governs', from: ISSUE, to: PAID_ONLY },
+          { kind: 'behavior_governs_rule', from: ISSUE, to: PAID_ONLY },
           {
-            kind: 'governs',
+            kind: 'behavior_governs_rule',
             from: 'behavior|sales.orders.Order.cancel',
             to: PAID_ONLY,
           },

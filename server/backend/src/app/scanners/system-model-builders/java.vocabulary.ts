@@ -130,8 +130,8 @@ const TECHNICAL_MEMBERS = new Set([
 export const JAVA_VOCABULARY: AnnotationVocabulary = {
   language: 'java',
   roles: ROLES,
-  // No Java annotation carries these arguments today; the names are what a future one would use.
-  arguments: { name: 'name', description: 'description' },
+  // No Java annotation carries a name or a description today; the names are what a future one would use.
+  arguments: { name: 'name', description: 'description', actor: 'value' },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,
   dictionaries: DICTIONARIES,

@@ -1,8 +1,10 @@
 import type { OutlineKind } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
+  ActorId,
   BehaviorId,
   BuildingBlockId,
   ElementId,
+  ManualProcessId,
   ModuleId,
   RuleId,
   ScenarioId,
@@ -14,7 +16,8 @@ import type {
  * it is written with, a `|`, and a dotted address; a behavior hangs under
  * its building block, a building block and a submodule under their module,
  * a root module under nothing — and a rule under the module of the behavior
- * that governs it, a scenario under its rule.
+ * that governs it, a scenario under its rule. An actor and a manual process
+ * hang under nothing: their address is their name.
  *
  * The ids are the server's own value objects, imported as types only: the
  * page may not run backend code, so an id is told by its prefix here, the
@@ -28,6 +31,8 @@ const BUILDING_BLOCK = 'building_block|';
 const BEHAVIOR = 'behavior|';
 const RULE = 'rule|';
 const SCENARIO = 'scenario|';
+const ACTOR = 'actor|';
+const MANUAL_PROCESS = 'manual_process|';
 
 /**
  * A wire string, or an id already known to be `Expected`: an id branded as
@@ -52,13 +57,21 @@ export function kindOf(
   id: string,
 ): Extract<
   OutlineKind,
-  'module' | 'building_block' | 'behavior' | 'rule' | 'scenario'
+  | 'module'
+  | 'building_block'
+  | 'behavior'
+  | 'rule'
+  | 'scenario'
+  | 'actor'
+  | 'manual_process'
 > {
   if (isBehavior(id)) return 'behavior';
   if (isBuildingBlock(id)) return 'building_block';
   if (isModule(id)) return 'module';
   if (isRule(id)) return 'rule';
   if (isScenario(id)) return 'scenario';
+  if (isActor(id)) return 'actor';
+  if (isManualProcess(id)) return 'manual_process';
   throw new Error(`Not an element id: ${id}`);
 }
 
@@ -97,11 +110,11 @@ export const behaviorIdAt = (address: string): BehaviorId =>
 export const moduleIdAt = (address: string): ModuleId =>
   asModule(`${MODULE}${address}`);
 
-/** What an element hangs under by its id; null for a root module. */
+/** What an element hangs under by its id; null for a root module, an actor or a manual process. */
 export function parentOf(
   id: string,
 ): ModuleId | BuildingBlockId | RuleId | null {
-  if (!addressOf(id).includes('.')) return null;
+  if (!addressOf(id).includes('.') || isTopLevel(id)) return null;
   if (isBehavior(id)) return ownerOf(id);
   if (isScenario(id)) return `${RULE}${parentAddressOf(id)}` as RuleId;
   return asModule(`${MODULE}${parentAddressOf(id)}`);
@@ -113,7 +126,12 @@ export const isElementId = (value: string): boolean =>
   isBuildingBlock(value) ||
   isBehavior(value) ||
   isRule(value) ||
-  isScenario(value);
+  isScenario(value) ||
+  isActor(value) ||
+  isManualProcess(value);
+
+/** Whether an element hangs under nothing whatever its name: an actor, a manual process. */
+const isTopLevel = (id: string): boolean => isActor(id) || isManualProcess(id);
 
 const PREFIX_OF = {
   module: MODULE,
@@ -121,6 +139,8 @@ const PREFIX_OF = {
   behavior: BEHAVIOR,
   rule: RULE,
   scenario: SCENARIO,
+  actor: ACTOR,
+  manual_process: MANUAL_PROCESS,
 } as const;
 
 /**
@@ -172,6 +192,14 @@ function isRule(id: string): id is RuleId {
 
 function isScenario(id: string): id is ScenarioId {
   return id.startsWith(SCENARIO);
+}
+
+function isActor(id: string): id is ActorId {
+  return id.startsWith(ACTOR);
+}
+
+function isManualProcess(id: string): id is ManualProcessId {
+  return id.startsWith(MANUAL_PROCESS);
 }
 
 function asModule(id: string): ModuleId {

@@ -6,6 +6,9 @@ const NAME = String.raw`[^.|\s](?:[^.|]*[^.|\s])?`;
 const idPattern = (kind: string, minContainers: number) =>
   new RegExp(`^${kind}\\|(?:${NAME}\\.){${minContainers},}${NAME}$`);
 
+/** `{kind}|`, then the element's own name: an element in no container. */
+const topLevelIdPattern = (kind: string) => new RegExp(`^${kind}\\|${NAME}$`);
+
 export const ElementName = z
   .string()
   .regex(new RegExp(`^${NAME}$`))
@@ -21,6 +24,8 @@ export const ElementKind = z.enum([
   'behavior',
   'rule',
   'scenario',
+  'actor',
+  'manual_process',
 ]);
 export type ElementKind = z.infer<typeof ElementKind>;
 
@@ -114,12 +119,44 @@ export const ScenarioId = Object.assign(scenarioIdSchema, {
 });
 export type ScenarioId = z.infer<typeof scenarioIdSchema>;
 
+const ACTOR_KIND = ElementKind.enum.actor;
+const actorIdSchema = z
+  .string()
+  .regex(topLevelIdPattern(ACTOR_KIND), 'Invalid ActorId')
+  .describe(
+    "An actor's id: 'actor|', then its name, e.g. 'actor|Support agent'; actors belong to no module.",
+  )
+  .brand<'ActorId'>();
+export const ActorId = Object.assign(actorIdSchema, {
+  of: (name: string) =>
+    actorIdSchema.parse(`${ACTOR_KIND}|${ElementName.parse(name)}`),
+});
+export type ActorId = z.infer<typeof actorIdSchema>;
+
+const MANUAL_PROCESS_KIND = ElementKind.enum.manual_process;
+const manualProcessIdSchema = z
+  .string()
+  .regex(topLevelIdPattern(MANUAL_PROCESS_KIND), 'Invalid ManualProcessId')
+  .describe(
+    "A manual process's id: 'manual_process|', then its name, e.g. 'manual_process|Refund a returned order'; manual processes belong to no module.",
+  )
+  .brand<'ManualProcessId'>();
+export const ManualProcessId = Object.assign(manualProcessIdSchema, {
+  of: (name: string) =>
+    manualProcessIdSchema.parse(
+      `${MANUAL_PROCESS_KIND}|${ElementName.parse(name)}`,
+    ),
+});
+export type ManualProcessId = z.infer<typeof manualProcessIdSchema>;
+
 const elementIdSchema = z.union([
   moduleIdSchema,
   buildingBlockIdSchema,
   behaviorIdSchema,
   ruleIdSchema,
   scenarioIdSchema,
+  actorIdSchema,
+  manualProcessIdSchema,
 ]);
 export const ElementId = Object.assign(elementIdSchema, {
   nameOf: (id: ElementId): ElementName => pathOf(id).split('.').at(-1)!,
@@ -131,11 +168,16 @@ export const ElementId = Object.assign(elementIdSchema, {
   isRule: (id: ElementId): id is RuleId => id.startsWith(`${RULE_KIND}|`),
   isScenario: (id: ElementId): id is ScenarioId =>
     id.startsWith(`${SCENARIO_KIND}|`),
+  isActor: (id: ElementId): id is ActorId => id.startsWith(`${ACTOR_KIND}|`),
+  isManualProcess: (id: ElementId): id is ManualProcessId =>
+    id.startsWith(`${MANUAL_PROCESS_KIND}|`),
   match: <R>(id: ElementId, on: ElementIdHandlers<R>): R => {
     if (ElementId.isModule(id)) return on.module(id);
     if (ElementId.isBuildingBlock(id)) return on.buildingBlock(id);
     if (ElementId.isRule(id)) return on.rule(id);
     if (ElementId.isScenario(id)) return on.scenario(id);
+    if (ElementId.isActor(id)) return on.actor(id);
+    if (ElementId.isManualProcess(id)) return on.manualProcess(id);
     return on.behavior(id);
   },
 });
@@ -147,6 +189,8 @@ type ElementIdHandlers<R> = {
   behavior: (id: BehaviorId) => R;
   rule: (id: RuleId) => R;
   scenario: (id: ScenarioId) => R;
+  actor: (id: ActorId) => R;
+  manualProcess: (id: ManualProcessId) => R;
 };
 
 function pathOf(id: ElementId): string {

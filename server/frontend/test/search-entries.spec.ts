@@ -48,7 +48,6 @@ const systemModel = {
       id: 'behavior|shop.Basket.checkOut',
       name: 'checkOut',
       description: null,
-      visibility: { kind: 'public', actors: [] },
       source,
     },
   ],
@@ -62,7 +61,23 @@ const systemModel = {
     },
   ],
   scenarios: [],
+  actors: [
+    { id: 'actor|Customer', name: 'Customer', description: null, source },
+  ],
+  manualProcesses: [
+    {
+      id: 'manual_process|Pay at the till',
+      name: 'Pay at the till',
+      description: null,
+      source,
+    },
+  ],
   relations: [
+    {
+      kind: 'performs',
+      from: 'actor|Customer',
+      to: 'manual_process|Pay at the till',
+    },
     {
       kind: 'module_contains_block',
       from: 'module|shop',
@@ -74,7 +89,7 @@ const systemModel = {
       to: 'building_block|shop.Price',
     },
     {
-      kind: 'governs',
+      kind: 'behavior_governs_rule',
       from: 'behavior|shop.Basket.checkOut',
       to: 'rule|shop.Paid before shipped',
     },
@@ -165,6 +180,23 @@ describe('search', () => {
       to: '/system-model',
       search: {
         node: 'behavior|shop.Basket.checkOut#rule:rule|shop.Paid before shipped',
+      },
+    });
+  });
+
+  it('finds an actor, and a manual process under the first actor that performs it', () => {
+    const [actor] = matchingGroups(groups, 'customer');
+    expect(actor?.entries.map((entry) => [entry.label, entry.context])).toEqual(
+      [['Customer', 'Actor']],
+    );
+    const [process] = matchingGroups(groups, 'till');
+    expect(
+      process?.entries.map((entry) => [entry.label, entry.context]),
+    ).toEqual([['Pay at the till', 'Manual process']]);
+    expect(process?.entries[0]?.link).toEqual({
+      to: '/system-model',
+      search: {
+        node: 'actor|Customer#manual_process:manual_process|Pay at the till',
       },
     });
   });

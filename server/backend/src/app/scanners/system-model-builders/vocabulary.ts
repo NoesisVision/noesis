@@ -17,7 +17,7 @@ export type AnnotationRole =
   | { readonly role: 'buildingBlock'; readonly type: BuildingBlockType }
   /** The method is a behavior; `name` overrides its name. */
   | { readonly role: 'behavior' }
-  /** Who calls the behavior: the `name` argument. */
+  /** An actor who drives the behavior, named by the `actor` argument: the model gains an actor element. */
   | { readonly role: 'actor' }
   /** The element's description, Markdown, in the `description` argument. */
   | { readonly role: 'description' }
@@ -28,6 +28,8 @@ export type AnnotationRole =
 interface RoleArguments {
   readonly name: string;
   readonly description: string;
+  /** The actor's name, on an actor annotation. */
+  readonly actor: string;
 }
 
 export interface AnnotationVocabulary {

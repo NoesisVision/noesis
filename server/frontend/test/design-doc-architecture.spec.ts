@@ -76,7 +76,6 @@ const block = (
 
 const behavior = (
   address: string,
-  visibility: { kind: 'private' } | { kind: 'public'; actors: string[] },
   io: { input?: Slot[]; output?: Slot[] } = {},
 ) => {
   const id = `behavior|${address}`;
@@ -94,13 +93,31 @@ const behavior = (
   });
   return {
     id,
-    visibility: agent<typeof visibility>(visibility),
     slots: [
       ...inputs,
       ...(io.output ?? []).map((slot) => slotOf('has_output', id, '', slot)),
     ],
   };
 };
+
+/** An actor performing a manual process that invokes behaviors, in order. */
+const performing = (
+  actor: string,
+  process: string,
+  ...addresses: string[]
+): DesignedRelationInput[] => [
+  {
+    kind: 'performs',
+    from: `actor|${actor}`,
+    to: `manual_process|${process}`,
+  },
+  ...addresses.map((address, index): DesignedRelationInput => ({
+    kind: 'process_invokes_behavior',
+    from: `manual_process|${process}`,
+    to: `behavior|${address}`,
+    order: agent(index + 1),
+  })),
+];
 
 /** The document with every shorthand `slots` moved to its relations. */
 function flat(document: DesignDocumentInput): DesignDocumentInput {
@@ -142,8 +159,6 @@ const inferredFlowOf: typeof inferredFlowOfDesign = (
   elementId,
 ) => inferredFlowOfDesign(flat(document), outline, elementId);
 
-const PRIVATE = { kind: 'private' } as const;
-
 /** A design of two hexagons that keeps to the architecture. */
 const clean = {
   id: '2026-01-01-orders',
@@ -161,18 +176,28 @@ const clean = {
   },
   behaviors: {
     added: [
-      behavior(
-        'sales.orders.OrderService.place',
-        { kind: 'public', actors: ['Customer'] },
-        { input: [many('building_block|sales.orders.OrderLine')] },
-      ),
-      behavior('sales.orders.Orders.save', PRIVATE, {
+      behavior('sales.orders.OrderService.place', {
+        input: [many('building_block|sales.orders.OrderLine')],
+      }),
+      behavior('sales.orders.Orders.save', {
         input: ['building_block|sales.orders.Order'],
       }),
-      behavior(
+      behavior('sales.billing.BillingService.bill', {
+        output: ['building_block|sales.billing.Invoice'],
+      }),
+    ],
+  },
+  relations: {
+    added: [
+      ...performing(
+        'Customer',
+        'Place an order',
+        'sales.orders.OrderService.place',
+      ),
+      ...performing(
+        'Clerk',
+        'Bill an order',
         'sales.billing.BillingService.bill',
-        { kind: 'public', actors: ['Clerk'] },
-        { output: ['building_block|sales.billing.Invoice'] },
       ),
     ],
   },
@@ -206,7 +231,7 @@ describe('architectureOf', () => {
     expect(orders?.drivenPorts.map(({ name }) => name)).toEqual(['Orders']);
   });
 
-  it('makes a public behavior of an application service a driving port, with its actors', () => {
+  it('makes a behavior of an application service a driving port, its actors those who perform the processes that invoke it', () => {
     expect(orders?.drivingPorts).toEqual([
       expect.objectContaining({
         behavior: expect.objectContaining({ name: 'place' }),
@@ -276,17 +301,25 @@ describe('the checks', () => {
     expect(check?.text).toStartWith('Pricing uses Orders');
   });
 
-  it('warn when a block other than an application service is public', () => {
+  it('warn when a manual process or another module calls a block other than an application service', () => {
     const check = checkOf(
       {
         ...clean,
         behaviors: {
           added: [
             ...clean.behaviors.added,
-            behavior('sales.orders.Order.cancel', {
-              kind: 'public',
-              actors: [],
-            }),
+            behavior('sales.orders.Order.cancel'),
+          ],
+        },
+        relations: {
+          added: [
+            ...clean.relations.added,
+            {
+              kind: 'behavior_invokes_behavior',
+              from: 'behavior|sales.billing.BillingService.bill',
+              to: 'behavior|sales.orders.Order.cancel',
+              order: agent(1),
+            },
           ],
         },
       },
@@ -317,17 +350,15 @@ describe('the checks', () => {
     });
   });
 
-  it('note a public behavior with no actors as called by another subsystem', () => {
+  it('note a driving port no manual process invokes as called by another subsystem', () => {
     const check = checkOf(
       {
         ...clean,
-        behaviors: {
-          added: [
-            behavior('sales.billing.BillingService.bill', {
-              kind: 'public',
-              actors: [],
-            }),
-          ],
+        relations: {
+          added: clean.relations.added.filter(
+            (relation) =>
+              relation.to !== 'behavior|sales.billing.BillingService.bill',
+          ),
         },
       },
       'caller-unknown',
@@ -355,7 +386,7 @@ describe('an element the design leaves the type of alone', () => {
     ).not.toContainEqual(expect.objectContaining({ name: 'Customer' }));
   });
 
-  it('does not take a public behavior on it for the core exposed', () => {
+  it('does not take a behavior on it a process calls for the core exposed', () => {
     const withPublic = architectureOf({
       ...clean,
       buildingBlocks: {
@@ -365,10 +396,13 @@ describe('an element the design leaves the type of alone', () => {
       behaviors: {
         added: [
           ...clean.behaviors.added,
-          behavior('sales.crm.CustomerService.refund', {
-            kind: 'public',
-            actors: ['Clerk'],
-          }),
+          behavior('sales.crm.CustomerService.refund'),
+        ],
+      },
+      relations: {
+        added: [
+          ...clean.relations.added,
+          ...performing('Clerk', 'Refund', 'sales.crm.CustomerService.refund'),
         ],
       },
     });
@@ -397,7 +431,7 @@ describe('a behavior whose building block the design leaves out', () => {
     behaviors: {
       added: clean.behaviors.added,
       modified: [
-        behavior('sales.orders.Basket.applyDiscount', PRIVATE, {
+        behavior('sales.orders.Basket.applyDiscount', {
           input: ['building_block|sales.orders.Discount'],
         }),
       ],
@@ -512,13 +546,13 @@ describe('the qdoc design', () => {
 });
 
 describe('an inferred flow', () => {
-  it('is a type match only when a private behavior of another hexagon would take it', () => {
+  it('is a type match only when a behavior of another hexagon that is no driving port would take it', () => {
     const document = {
       ...clean,
       behaviors: {
         added: [
           ...clean.behaviors.added,
-          behavior('sales.orders.Order.invoice', PRIVATE, {
+          behavior('sales.orders.Order.invoice', {
             input: ['building_block|sales.billing.Invoice'],
           }),
         ],
@@ -589,17 +623,21 @@ describe('architectureTreeOf', () => {
   });
 });
 
-describe('a public behavior off an application service', () => {
+describe('a behavior off an application service that a process calls', () => {
   const CANCEL = 'behavior|sales.orders.Order.cancel';
   const document = {
     ...clean,
     behaviors: {
+      added: [...clean.behaviors.added, behavior('sales.orders.Order.cancel')],
+    },
+    relations: {
       added: [
-        ...clean.behaviors.added,
-        behavior('sales.orders.Order.cancel', {
-          kind: 'public',
-          actors: ['Customer'],
-        }),
+        ...clean.relations.added,
+        ...performing(
+          'Customer',
+          'Cancel an order',
+          'sales.orders.Order.cancel',
+        ),
       ],
     },
   };
@@ -634,13 +672,13 @@ describe('a block whose behaviors share a type', () => {
       behaviors: {
         added: [
           ...clean.behaviors.added,
-          behavior('sales.orders.Orders.find', PRIVATE, {
+          behavior('sales.orders.Orders.find', {
             output: ['building_block|sales.orders.Order'],
           }),
-          behavior('sales.orders.Orders.all', PRIVATE, {
+          behavior('sales.orders.Orders.all', {
             output: [many('building_block|sales.orders.Order')],
           }),
-          behavior('sales.orders.OrderService.ship', PRIVATE, {
+          behavior('sales.orders.OrderService.ship', {
             input: ['building_block|sales.orders.Order'],
           }),
         ],

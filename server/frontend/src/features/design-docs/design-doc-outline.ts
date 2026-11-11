@@ -15,6 +15,7 @@ import type {
 import { type ChangeSetInput, named } from './change-set.ts';
 import { type DesignDocFieldInput, valueOf } from './design-doc-field.ts';
 import { kindOf, nameOf, parentOf } from './element-id.ts';
+import { performersOf, processPathUnder } from './people.ts';
 import { slotLabelOf } from './relations.ts';
 import {
   placesOf,
@@ -37,7 +38,9 @@ import {
  * field the writer left out is absent rather than defaulted.
  *
  * A rule is no part of what its id names: it hangs under each behavior that
- * governs it (rules.ts), its scenarios under it.
+ * governs it (rules.ts), its scenarios under it. A manual process hangs
+ * under each actor that performs it (people.ts), at the top when none does;
+ * a rule it keeps by hand hangs under each of its rows.
  */
 
 export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
@@ -45,6 +48,8 @@ export function outlineOf(document: DesignDocumentInput): OutlineNode[] {
   addModules(nodes, document.modules);
   addBuildingBlocks(nodes, document.buildingBlocks);
   addBehaviors(nodes, document.behaviors);
+  addActors(nodes, document);
+  addManualProcesses(nodes, document);
   addRules(nodes, document);
   addProperties(nodes, document.relations);
   addImpliedAncestors(nodes);
@@ -79,6 +84,48 @@ function addBehaviors(
     put(nodes, element(behavior.id, change, null, isDrawn(behavior)));
   }
   for (const id of behaviors?.removed ?? []) put(nodes, element(id, 'removed'));
+}
+
+function addActors(
+  nodes: Map<string, OutlineNode>,
+  document: DesignDocumentInput,
+): void {
+  for (const [actor, change] of named(document.actors))
+    put(nodes, element(actor.id, change));
+  for (const id of document.actors?.removed ?? [])
+    put(nodes, element(id, 'removed'));
+}
+
+function addManualProcesses(
+  nodes: Map<string, OutlineNode>,
+  document: DesignDocumentInput,
+): void {
+  for (const [process, change] of named(document.manualProcesses))
+    placeProcess(nodes, document, process.id, change);
+  for (const id of document.manualProcesses?.removed ?? [])
+    placeProcess(nodes, document, id, 'removed');
+}
+
+/**
+ * A manual process under every actor that performs it — an actor the design
+ * leaves alone is implied — or at the top; the paths of its rows.
+ */
+function placeProcess(
+  nodes: Map<string, OutlineNode>,
+  document: DesignDocumentInput,
+  id: string,
+  change: OutlineChange,
+): string[] {
+  const performers = performersOf(document, id);
+  if (performers.length === 0) {
+    put(nodes, element(id, change));
+    return [id];
+  }
+  return performers.map((actor) => {
+    const path = processPathUnder(actor, id);
+    put(nodes, { ...element(id, change), path, parentPath: actor });
+    return path;
+  });
 }
 
 /**
@@ -126,7 +173,13 @@ function addRules(
     const found = written.get(id);
     const change: OutlineChange =
       found?.change ?? (removed.has(id) ? 'removed' : 'unchanged');
-    for (const place of placesOf(document, id)) {
+    // A manual process the design leaves alone is there unchanged.
+    const rows = placesOf(document, id).flatMap((place) =>
+      kindOf(place) === 'manual_process'
+        ? placeProcess(nodes, document, place, 'unchanged')
+        : [place],
+    );
+    for (const place of rows) {
       const node = part(
         place,
         'rule',

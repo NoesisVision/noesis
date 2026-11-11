@@ -36,8 +36,9 @@ import { ruleNameOf, rulesUnder } from './rules.ts';
 /*
  * The design read on the assumption that the system it designs is built as
  * hexagons: each module that holds building blocks is one, its application
- * services' public behaviors are the ports that drive it, and its
- * repositories and external integrations are the ports it drives. Nothing
+ * services' behaviors are the ports that drive it — their actors those who
+ * perform the manual processes that invoke them — and its repositories and
+ * external integrations are the ports it drives. Nothing
  * here is stored — it is the same document, placed in rings by the building
  * block types it already names.
  *
@@ -77,10 +78,10 @@ export function architectureOf(
     return hexagon;
   };
 
+  const callers = callersOf(document);
   const ports = new Set<BehaviorId>();
   for (const [item, change] of behaviors) {
     const owner = ownerOf(item.id);
-    const visibility = valueOf(item.visibility);
     const type = typeOf.get(owner);
     // A design may change a behavior and leave its block out: nothing says
     // what the block is, and the behavior has no block here to be read with.
@@ -90,20 +91,16 @@ export function architectureOf(
     }
     if (type !== APPLICATION_SERVICE) {
       // A block whose type the design leaves alone may well be a service.
-      if (visibility?.kind === 'public' && type !== null)
+      if (type !== null && callers.reachesPast(item.id))
         hexagonOf(owner).exposed.push(behaviorElement(document, item, change));
       continue;
     }
-    if (visibility === null) {
-      unplaced.push(behaviorElement(document, item, change));
-      continue;
-    }
-    if (visibility.kind !== 'public') continue;
     ports.add(asBehavior(item.id));
     hexagonOf(owner).drivingPorts.push({
       behavior: behaviorElement(document, item, change),
       service: owner,
-      actors: visibility.actors,
+      actors: callers.actorsOf(item.id),
+      callerKnown: callers.isKnown(item.id),
     });
   }
 
@@ -135,6 +132,43 @@ export function architectureOf(
 }
 
 /**
+ * Who calls a behavior, as the design's relations say: a manual process,
+ * through `process_invokes_behavior`, whose actors drive it; or a behavior
+ * of another module, through `behavior_invokes_behavior`, reaching past that
+ * module's ports.
+ */
+function callersOf(document: DesignDocumentInput) {
+  const processes = new Map<string, string[]>();
+  const behaviors = new Map<string, string[]>();
+  const performers = new Map<string, string[]>();
+  const add = (map: Map<string, string[]>, key: string, value: string) =>
+    map.set(key, [...(map.get(key) ?? []), value]);
+  for (const relation of writtenIn(document.relations))
+    if (relation.kind === 'process_invokes_behavior')
+      add(processes, relation.to, relation.from);
+    else if (relation.kind === 'behavior_invokes_behavior')
+      add(behaviors, relation.to, relation.from);
+    else if (relation.kind === 'performs')
+      add(performers, relation.to, nameOf(relation.from));
+  return {
+    actorsOf: (id: string) =>
+      [
+        ...new Set(
+          (processes.get(id) ?? []).flatMap(
+            (process) => performers.get(process) ?? [],
+          ),
+        ),
+      ].sort((a, b) => a.localeCompare(b)),
+    isKnown: (id: string) => processes.has(id),
+    reachesPast: (id: string) =>
+      processes.has(id) ||
+      (behaviors.get(id) ?? []).some(
+        (caller) => moduleOf(caller) !== moduleOf(id),
+      ),
+  };
+}
+
+/**
  * A need and the driving ports whose own rules answer it: where a reviewer
  * finds the need at the edge of the system. A need no port answers has none.
  */
@@ -160,8 +194,8 @@ export interface InferredFlow {
   /** The behavior at the other end. */
   other: { id: BehaviorId; name: string; owner: string };
   /**
-   * The types match, but the design keeps the two apart: a private behavior
-   * in another hexagon cannot be what takes it.
+   * The types match, but the design keeps the two apart: a behavior in
+   * another hexagon that is no driving port cannot be what takes it.
    */
   typeMatchOnly: boolean;
 }

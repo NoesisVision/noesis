@@ -12,7 +12,15 @@ export type OwnerRef = {
 };
 
 export type ElementRef =
-  | { collection: 'modules' | 'buildingBlocks' | 'behaviors'; id: string }
+  | {
+      collection:
+        | 'modules'
+        | 'buildingBlocks'
+        | 'behaviors'
+        | 'actors'
+        | 'manualProcesses';
+      id: string;
+    }
   | {
       owner: OwnerRef;
       part: 'properties' | 'rules' | 'scenarios';
@@ -27,8 +35,10 @@ const KIND_OF = {
   behaviors: 'behavior',
 } as const;
 
-/** The element a section's parts are written in; none for a part's own section. */
+/** The element a section's parts are written in; none for a part's own section, an actor's or a manual process's. */
 export const partOwnerOf = (element: ElementRef): PartOwner | null =>
-  'collection' in element
+  'collection' in element &&
+  element.collection !== 'actors' &&
+  element.collection !== 'manualProcesses'
     ? { kind: KIND_OF[element.collection], id: element.id }
     : null;

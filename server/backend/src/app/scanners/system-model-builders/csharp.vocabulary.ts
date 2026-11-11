@@ -135,7 +135,7 @@ const TECHNICAL_MEMBERS = new Set([
 export const CSHARP_VOCABULARY: AnnotationVocabulary = {
   language: 'csharp',
   roles: ROLES,
-  arguments: { name: 'name', description: 'markdownText' },
+  arguments: { name: 'name', description: 'markdownText', actor: 'name' },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,
   dictionaries: DICTIONARIES,

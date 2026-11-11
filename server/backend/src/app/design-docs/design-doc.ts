@@ -1,32 +1,36 @@
 import { z } from 'zod';
 import type { Clock } from '#backend/app/clock';
 import {
+  ActorId,
   BehaviorId,
   BuildingBlockId,
   ElementId,
   ElementName,
+  ManualProcessId,
   ModuleId,
   RuleId,
   ScenarioId,
 } from '#backend/app/element-id';
 import {
+  BehaviorGovernsRuleRelation,
   BehaviorInvokesBehaviorRelation,
   BuildingBlockType,
   Cardinality,
   ExposesRelation,
   ExtendsRelation,
-  GovernsRelation,
   HasInputRelation,
   HasOutputRelation,
   HasStateRelation,
   IllustratesRelation,
   ModuleContainsBlockRelation,
   ModuleContainsModuleRelation,
+  PerformsRelation,
+  ProcessGovernsRuleRelation,
+  ProcessInvokesBehaviorRelation,
   RuleKind,
   ScenarioSteps,
   type SystemModel,
   TypeId,
-  Visibility,
 } from '#backend/app/system-model/system-model';
 import { type ChangedDesignDocField, DesignDocField } from './design-doc-field';
 import { DesignDocId } from './design-doc-id';
@@ -79,8 +83,13 @@ export const DesignedRelation = z.discriminatedUnion('kind', [
   BehaviorInvokesBehaviorRelation.extend({
     order: DesignDocField(BehaviorInvokesBehaviorRelation.shape.order),
   }),
-  GovernsRelation,
+  ProcessInvokesBehaviorRelation.extend({
+    order: DesignDocField(ProcessInvokesBehaviorRelation.shape.order),
+  }),
+  BehaviorGovernsRuleRelation,
+  ProcessGovernsRuleRelation,
   IllustratesRelation,
+  PerformsRelation,
 ]);
 export type DesignedRelation = z.infer<typeof DesignedRelation>;
 
@@ -94,8 +103,11 @@ export const DesignedRelationKey = z
     HasInputRelation.pick({ kind: true, from: true, to: true, name: true }),
     HasOutputRelation.pick({ kind: true, from: true, to: true, name: true }),
     BehaviorInvokesBehaviorRelation.pick({ kind: true, from: true, to: true }),
-    GovernsRelation.pick({ kind: true, from: true, to: true }),
+    ProcessInvokesBehaviorRelation.pick({ kind: true, from: true, to: true }),
+    BehaviorGovernsRuleRelation.pick({ kind: true, from: true, to: true }),
+    ProcessGovernsRuleRelation.pick({ kind: true, from: true, to: true }),
     IllustratesRelation.pick({ kind: true, from: true, to: true }),
+    PerformsRelation.pick({ kind: true, from: true, to: true }),
   ])
   .describe(
     "What a design removes a relation by: its kind and both ends, and for a named slot ('has_state', 'has_input', 'has_output') its name too, so the key says what was removed in full.",
@@ -118,7 +130,7 @@ export const DesignedRule = z
     rationale: DesignDocField(z.string()),
   })
   .describe(
-    "A rule a behavior follows, as the Gherkin `Rule:` it becomes: its name the `Rule:` line, its description the text under it, its kind the tag on it. Its id is the path of the module of the behavior that governs it, then its name; a 'governs' relation from each behavior that follows it joins them.",
+    "A rule a behavior follows, as the Gherkin `Rule:` it becomes: its name the `Rule:` line, its description the text under it, its kind the tag on it. Its id is the path of the module of the behavior that governs it, then its name; a 'behavior_governs_rule' relation from each behavior that follows it joins them, a 'process_governs_rule' from each manual process that does.",
   );
 export type DesignedRule = z.infer<typeof DesignedRule>;
 
@@ -144,9 +156,30 @@ export const DesignedBehavior = z.strictObject({
   name: DesignDocField(ElementName),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
-  visibility: DesignDocField(Visibility),
 });
 export type DesignedBehavior = z.infer<typeof DesignedBehavior>;
+
+export const DesignedActor = z
+  .strictObject({
+    id: ActorId,
+    name: DesignDocField(ElementName),
+    definition: DesignDocField(z.string()),
+  })
+  .describe(
+    "A person or role outside the code who drives the system: a 'performs' relation names the manual processes they carry out.",
+  );
+export type DesignedActor = z.infer<typeof DesignedActor>;
+
+export const DesignedManualProcess = z
+  .strictObject({
+    id: ManualProcessId,
+    name: DesignDocField(ElementName),
+    definition: DesignDocField(z.string()),
+  })
+  .describe(
+    "Work an actor does by hand, outside the code: its 'process_invokes_behavior' relations are the behaviors it calls, in order, its 'process_governs_rule' relations the rules the actor keeps by hand, and a 'performs' relation names who does it.",
+  );
+export type DesignedManualProcess = z.infer<typeof DesignedManualProcess>;
 
 const designDocumentSchema = z.strictObject({
   id: DesignDocId.describe(
@@ -164,8 +197,10 @@ const designDocumentSchema = z.strictObject({
   behaviors: changeSet(DesignedBehavior, BehaviorId),
   rules: changeSet(DesignedRule, RuleId),
   scenarios: changeSet(DesignedScenario, ScenarioId),
+  actors: changeSet(DesignedActor, ActorId),
+  manualProcesses: changeSet(DesignedManualProcess, ManualProcessId),
   relations: changeSet(DesignedRelation, DesignedRelationKey).describe(
-    "The relations the design adds, removes or changes between elements of the design or the model: what a module contains ('module_contains_module', 'module_contains_block'), what a block extends, holds ('has_state') and exposes, what a behavior takes ('has_input'), gives back ('has_output') and invokes, which rules a behavior follows ('governs') and which scenarios illustrate a rule ('illustrates'). Both ends of an added or modified relation exist, in the design or the model; a containment or an 'illustrates' agrees with the ids, whose paths already say what holds what; an added rule is governed by a behavior.",
+    "The relations the design adds, removes or changes between elements of the design or the model: what a module contains ('module_contains_module', 'module_contains_block'), what a block extends, holds ('has_state') and exposes, what a behavior takes ('has_input'), gives back ('has_output') and calls ('behavior_invokes_behavior'), which rules a behavior follows ('behavior_governs_rule') or a manual process keeps by hand ('process_governs_rule'), which scenarios illustrate a rule ('illustrates'), which manual processes an actor performs ('performs') and which behaviors a manual process calls, in order ('process_invokes_behavior'). Both ends of an added or modified relation exist, in the design or the model; a containment or an 'illustrates' agrees with the ids, whose paths already say what holds what; an added rule is governed by a behavior or a manual process.",
   ),
   implemented: z
     .boolean()
@@ -241,6 +276,8 @@ export function implementedAtOf(
 export type DesignedDomainModuleInput = z.input<typeof DesignedDomainModule>;
 export type DesignedBuildingBlockInput = z.input<typeof DesignedBuildingBlock>;
 export type DesignedBehaviorInput = z.input<typeof DesignedBehavior>;
+export type DesignedActorInput = z.input<typeof DesignedActor>;
+export type DesignedManualProcessInput = z.input<typeof DesignedManualProcess>;
 export type DesignedRelationInput = z.input<typeof DesignedRelation>;
 export type DesignedRelationKeyInput = z.input<typeof DesignedRelationKey>;
 export type DesignedRuleInput = z.input<typeof DesignedRule>;
@@ -395,7 +432,13 @@ function rulesOfEveryDesign(
 const ELEMENT_COLLECTIONS = ['modules', 'buildingBlocks', 'behaviors'] as const;
 
 /** Every list of elements, those a relation may end at. */
-const ELEMENT_LISTS = [...ELEMENT_COLLECTIONS, 'rules', 'scenarios'] as const;
+const ELEMENT_LISTS = [
+  ...ELEMENT_COLLECTIONS,
+  'rules',
+  'scenarios',
+  'actors',
+  'manualProcesses',
+] as const;
 
 /** The relations that place an element under another: the tree of modules, blocks and behaviors. */
 const CONTAINMENT_KINDS: ReadonlySet<string> = new Set([
@@ -489,7 +532,7 @@ function containmentsOutsideIdPaths(
     }));
 }
 
-/** The element an element is under by its id; null for a root module. */
+/** The element an element is under by its id; null for a root module, an actor or a manual process. */
 const parentOf = (id: ElementId): ElementId | null =>
   ElementId.match<ElementId | null>(id, {
     module: (module) => ModuleId.parentOf(module),
@@ -498,6 +541,8 @@ const parentOf = (id: ElementId): ElementId | null =>
     // A rule is in the module of the behavior that governs it, a scenario in its rule.
     rule: (rule) => ModuleId.parse(`module|${parentPathOf(rule)}`),
     scenario: (scenario) => RuleId.parse(`rule|${parentPathOf(scenario)}`),
+    actor: () => null,
+    manualProcess: () => null,
   });
 
 /** `id`'s path without its own name. */
@@ -508,13 +553,16 @@ const parentPathOf = (id: string): string =>
     .slice(0, -1)
     .join('.');
 
-/** A rule enters the model only through a behavior: an added rule is governed by one the design names. */
+/** A rule enters the model only through a behavior or a manual process: an added rule is governed by one the design names. */
 function ungovernedRules(
   document: DesignDocumentContent,
 ): DesignDocViolation[] {
   const governed = new Set<string>(
     document.relations.added.flatMap((relation) =>
-      relation.kind === 'governs' ? [relation.to] : [],
+      relation.kind === 'behavior_governs_rule' ||
+      relation.kind === 'process_governs_rule'
+        ? [relation.to]
+        : [],
     ),
   );
   return document.rules.added

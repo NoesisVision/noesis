@@ -524,28 +524,135 @@ describe('The type of a named slot', () => {
   });
 });
 
-describe('The visibility of a behavior', () => {
-  it('names the actors that may call a public behavior', () => {
+describe('Actors and manual processes', () => {
+  const CLERK = 'actor|Clerk';
+  const REFUND_A_RETURN = 'manual_process|Refund a return';
+  const people = (relations: object[]) =>
+    design({
+      actors: {
+        added: [
+          {
+            id: CLERK,
+            name: { value: 'Clerk' },
+            definition: { value: 'Serves customers at the counter.' },
+          },
+        ],
+      },
+      manualProcesses: {
+        added: [
+          {
+            id: REFUND_A_RETURN,
+            name: { value: 'Refund a return' },
+            definition: { value: 'The clerk refunds what came back.' },
+          },
+        ],
+      },
+      relations: { added: relations },
+    });
+
+  it('lets an actor perform a manual process that invokes behaviors in order', () => {
     expect(
       isValid(
-        addingIssue({
-          visibility: { value: { kind: 'public', actors: ['Clerk'] } },
-        }),
+        people([
+          { kind: 'performs', from: CLERK, to: REFUND_A_RETURN },
+          {
+            kind: 'process_invokes_behavior',
+            from: REFUND_A_RETURN,
+            to: ISSUE,
+            order: { value: 1 },
+          },
+        ]),
       ),
     ).toBe(true);
   });
 
-  it('names no actor for a private behavior', () => {
-    expect(
-      isValid(addingIssue({ visibility: { value: { kind: 'private' } } })),
-    ).toBe(true);
+  it('names an actor and a manual process by their name alone', () => {
     expect(
       isValid(
-        addingIssue({
-          visibility: { value: { kind: 'private', actors: ['Clerk'] } },
+        design({
+          actors: {
+            added: [
+              {
+                id: 'actor|sales.Clerk',
+                name: { value: 'Clerk' },
+                definition: { value: '' },
+              },
+            ],
+          },
         }),
       ),
     ).toBe(false);
+  });
+
+  it('lets only an actor perform, and only a manual process', () => {
+    expect(
+      isValid(people([{ kind: 'performs', from: ISSUE, to: REFUND_A_RETURN }])),
+    ).toBe(false);
+    expect(
+      isValid(people([{ kind: 'performs', from: CLERK, to: ISSUE }])),
+    ).toBe(false);
+    expect(
+      isValid(
+        people([
+          {
+            kind: 'process_invokes_behavior',
+            from: CLERK,
+            to: ISSUE,
+            order: { value: 1 },
+          },
+        ]),
+      ),
+    ).toBe(false);
+  });
+
+  it('says nothing of who may call a behavior on the behavior', () => {
+    expect(
+      isValid(
+        addingIssue({
+          definition: { value: 'Issues a refund.' },
+          diagram: { value: '' },
+          visibility: { value: { kind: 'public', actors: ['Clerk'] } },
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('refuses a performs or a step whose end neither the design nor the model has', () => {
+    const violations = DesignDocument.validateAgentGenerated(
+      DesignDocument.parse(
+        design({
+          relations: {
+            added: [
+              { kind: 'performs', from: CLERK, to: REFUND_A_RETURN },
+              {
+                kind: 'process_invokes_behavior',
+                from: REFUND_A_RETURN,
+                to: ISSUE,
+                order: { value: 1 },
+              },
+            ],
+          },
+        }),
+      ),
+    );
+    expect(violations).toEqual([
+      {
+        path: `relations.added[performs|${CLERK}|${REFUND_A_RETURN}].from`,
+        reason: 'unknownRelationEnd',
+      },
+      {
+        path: `relations.added[performs|${CLERK}|${REFUND_A_RETURN}].to`,
+        reason: 'unknownRelationEnd',
+      },
+      {
+        path: `relations.added[process_invokes_behavior|${REFUND_A_RETURN}|${ISSUE}].from`,
+        reason: 'unknownRelationEnd',
+      },
+      {
+        path: `relations.added[process_invokes_behavior|${REFUND_A_RETURN}|${ISSUE}].to`,
+        reason: 'unknownRelationEnd',
+      },
+    ]);
   });
 });
 
@@ -602,7 +709,6 @@ describe('A design document an agent wrote', () => {
       {
         id: CANCEL,
         name: 'cancel',
-        visibility: { kind: 'private' },
         source,
       },
     ],
@@ -617,7 +723,7 @@ describe('A design document an agent wrote', () => {
         cardinality: '1',
       },
       { kind: 'exposes', from: ORDER, to: CANCEL },
-      { kind: 'governs', from: CANCEL, to: PAID_ONLY },
+      { kind: 'behavior_governs_rule', from: CANCEL, to: PAID_ONLY },
       { kind: 'illustrates', from: CANCELLING_PAID, to: PAID_ONLY },
       {
         kind: 'has_input',
@@ -958,7 +1064,6 @@ describe('A design document an agent wrote', () => {
         validate(
           addingIssue({
             definition: { value: 'Issues a refund.' },
-            visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([]);
@@ -1036,7 +1141,6 @@ describe('A design document an agent wrote', () => {
         validate(
           addingIssue({
             definition: { value: fenced },
-            visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([
@@ -1051,7 +1155,6 @@ describe('A design document an agent wrote', () => {
           DesignDocument.parse(
             addingIssue({
               definition: { value: fenced },
-              visibility: { value: { kind: 'private' } },
             }),
           ),
         ),
@@ -1061,7 +1164,6 @@ describe('A design document an agent wrote', () => {
           addingIssue({
             definition: { value: 'Issues a refund.' },
             diagram: { value: 'sequenceDiagram\n  A->>B: issue' },
-            visibility: { value: { kind: 'private' } },
           }),
         ),
       ).toEqual([]);
@@ -1209,14 +1311,13 @@ describe('A rule of a design', () => {
       {
         id: CANCEL,
         name: 'cancel',
-        visibility: { kind: 'private' },
         source,
       },
     ],
     rules: [
       { id: PAID_ONLY, name: 'Paid orders only', kind: 'state_change', source },
     ],
-    relations: [{ kind: 'governs', from: CANCEL, to: PAID_ONLY }],
+    relations: [{ kind: 'behavior_governs_rule', from: CANCEL, to: PAID_ONLY }],
   });
 
   /** A design adding `rules`, each governed by Order.cancel unless `governed` says otherwise. */
@@ -1232,7 +1333,11 @@ describe('A rule of a design', () => {
       rules: { added: rules },
       relations: {
         added: governed
-          ? rules.map(({ id }) => ({ kind: 'governs', from: CANCEL, to: id }))
+          ? rules.map(({ id }) => ({
+              kind: 'behavior_governs_rule',
+              from: CANCEL,
+              to: id,
+            }))
           : [],
       },
     });
@@ -1315,11 +1420,30 @@ describe('A rule of a design', () => {
     ]);
   });
 
-  it('enters the design only through a behavior that governs it', () => {
+  it('enters the design only through a behavior or a manual process that governs it', () => {
     const NEW = 'rule|sales.orders.Paid first';
     expect(
       validate(addingRules([{ ...rule, id: NEW }], { governed: false })),
     ).toEqual([{ path: `rules.added[${NEW}]`, reason: 'ungovernedRule' }]);
+    const RETURN = 'manual_process|Take a return';
+    const keptByHand = addingRules([{ ...rule, id: NEW }], { governed: false });
+    expect(
+      validate({
+        ...keptByHand,
+        manualProcesses: {
+          added: [
+            {
+              id: RETURN,
+              name: { value: 'Take a return' },
+              definition: { value: 'The clerk takes the goods back.' },
+            },
+          ],
+        },
+        relations: {
+          added: [{ kind: 'process_governs_rule', from: RETURN, to: NEW }],
+        },
+      }),
+    ).toEqual([]);
   });
 
   it('is illustrated by a scenario named under it', () => {
@@ -1361,7 +1485,7 @@ describe('A rule of a design', () => {
           relations: {
             added: [
               {
-                kind: 'governs',
+                kind: 'behavior_governs_rule',
                 from: 'behavior|sales.orders.Order.ship',
                 to: PAID_ONLY,
               },
@@ -1371,7 +1495,7 @@ describe('A rule of a design', () => {
       ),
     ).toEqual([
       {
-        path: `relations.added[governs|behavior|sales.orders.Order.ship|${PAID_ONLY}].from`,
+        path: `relations.added[behavior_governs_rule|behavior|sales.orders.Order.ship|${PAID_ONLY}].from`,
         reason: 'unknownRelationEnd',
       },
     ]);

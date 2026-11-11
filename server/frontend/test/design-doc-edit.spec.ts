@@ -66,7 +66,6 @@ const doc = (): DesignDocumentInput => ({
         id: SETTLE,
         name: agent('settle'),
         definition: agent('Settles.'),
-        visibility: agent({ kind: 'private' }),
       },
     ],
   },
@@ -90,7 +89,7 @@ const doc = (): DesignDocumentInput => ({
         to: agent(HOLD),
         cardinality: agent('1'),
       },
-      { kind: 'governs', from: SETTLE, to: HELD_ONCE },
+      { kind: 'behavior_governs_rule', from: SETTLE, to: HELD_ONCE },
     ],
   },
 });
@@ -282,6 +281,36 @@ describe('a draft', () => {
     ).toEqual([]);
   });
 
+  it('adds an actor and a manual process by their name and definition alone, in no module', () => {
+    for (const [kind, name, collection] of [
+      ['actor', 'Clerk', 'actors'],
+      ['manual_process', 'Refund a return', 'manualProcesses'],
+    ] as const) {
+      const target = { mode: 'add', kind, parent: null } as const;
+      const draft = draftOfUnit(kind, null, 'added');
+      expect(Object.keys(draft.fields)).toEqual(['name', 'definition']);
+      draft.fields.name = { written: true, value: ` ${name} ` };
+      draft.fields.definition = { written: true, value: 'By hand.' };
+      expect(draftErrors(doc(), target, draft)).toEqual({});
+      const id = idOfDraft(doc(), target, draft);
+      expect(id).toBe(`${kind}|${name}`);
+      const next = applyEdit(doc(), {
+        op: 'add',
+        ref: { kind, id },
+        unit: unitFromDraft(kind, draft, null, id),
+      });
+      expect(next[collection]?.added).toEqual([
+        {
+          id,
+          name: { changed: true, value: name, author: 'human' },
+          definition: { changed: true, value: 'By hand.', author: 'human' },
+        },
+      ]);
+      // An element of no module is contained by nothing.
+      expect(next.relations).toEqual(doc().relations);
+    }
+  });
+
   it('writes the diagram a new element is given, and drops a blank one', () => {
     const draft = draftOfUnit('module', null, 'added');
     draft.fields.name = { written: true, value: 'billing' };
@@ -449,7 +478,7 @@ describe('a part', () => {
       rationale: { changed: false },
     });
     expect(next.relations?.added).toContainEqual({
-      kind: 'governs',
+      kind: 'behavior_governs_rule',
       from: owner.id,
       to: id,
     });
@@ -513,7 +542,7 @@ describe('a part', () => {
     expect(unitStateOf(next, { ...holdRule, id })).toBe('added');
     expect(unitStateOf(next, holdRule)).toBe('unchanged');
     expect(next.relations?.added).toContainEqual({
-      kind: 'governs',
+      kind: 'behavior_governs_rule',
       from: SETTLE,
       to: id,
     });
@@ -581,7 +610,6 @@ describe('a part', () => {
           id: 'behavior|pay.Hold.release',
           name: agent('release'),
           definition: agent('Releases.'),
-          visibility: agent({ kind: 'private' }),
         },
       }),
       { op: 'move', ref: settle, to: LEDGER },

@@ -38,7 +38,7 @@ const DESIGN_DOC = {
     modified: [
       {
         id: 'behavior|sales.Order.refund',
-        visibility: byHuman({ kind: 'public', actors: ['Support agent'] }),
+        definition: byHuman('Refunds what the customer sent back.'),
         output: {
           added: [{ type: 'primitive|boolean', description: byHuman('Done.') }],
           removed: [],
@@ -56,8 +56,8 @@ const HUMAN_FIELDS = [
     value: 'Selling to customers.',
   },
   {
-    path: 'behaviors.modified[behavior|sales.Order.refund].visibility',
-    value: { kind: 'public', actors: ['Support agent'] },
+    path: 'behaviors.modified[behavior|sales.Order.refund].definition',
+    value: 'Refunds what the customer sent back.',
   },
   {
     path: 'behaviors.modified[behavior|sales.Order.refund].output.added[primitive|boolean].description',

@@ -84,7 +84,7 @@ const FIXES: Record<DesignDocViolation['reason'], string> = {
   unknownNeed:
     'the design document states no such need; add it to "needs", or leave it out of the rule\'s "needs"',
   ungovernedRule:
-    "a rule enters the model only through a behavior that follows it; add a 'governs' relation from that behavior to the rule",
+    "a rule enters the model only through a behavior or a manual process that follows it; add a 'behavior_governs_rule' relation from that behavior, or a 'process_governs_rule' from that process, to the rule",
   uncontained:
     'the element its id places this one under has no relation to it; add { "kind": "module_contains_module" | "module_contains_block" | "exposes", "from": <that element\'s id>, "to": <this id> } to the design\'s "relations.added"',
   unknownRelationEnd:

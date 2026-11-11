@@ -31,7 +31,7 @@ export interface Hexagon {
   applicationServices: PlacedBlock[];
   domainCore: PlacedBlock[];
   drivenPorts: PlacedBlock[];
-  /** Public behaviors of any block but an application service: the core reached past its ports. */
+  /** Behaviors of any block but an application service that a manual process or another module calls: the core reached past its ports. */
   exposed: PlacedBehavior[];
 }
 
@@ -39,8 +39,10 @@ interface DrivingPort {
   behavior: PlacedBehavior;
   /** The application service the behavior is on. */
   service: BuildingBlockId;
-  /** Empty when another subsystem calls it. */
+  /** Who performs the manual processes that invoke it, by name. */
   actors: string[];
+  /** Whether a manual process invokes it; when none does, another subsystem calls it. */
+  callerKnown: boolean;
 }
 
 export interface PlacedElement<
@@ -174,7 +176,7 @@ export const ARCHITECTURE_KIND_META: Record<
     about: {
       eyebrow: 'Actor',
       text: () =>
-        'Named on a public behavior as the actor that calls it, through an in adapter.',
+        'Performs a manual process that invokes this port, through an in adapter.',
     },
   },
   caller: {
@@ -184,7 +186,7 @@ export const ARCHITECTURE_KIND_META: Record<
     about: {
       eyebrow: 'Caller · unknown',
       text: (port) =>
-        `${port} is public and names no actor, so another subsystem calls it. Which one is not in the design document.`,
+        `${port} is invoked by no manual process, so another subsystem calls it. Which one is not in the design document.`,
       port: 'Calls',
     },
   },
@@ -227,4 +229,6 @@ export const UNDRAWN_NAME: Record<ReturnType<typeof kindOf>, string> = {
   behavior: 'Behavior',
   rule: 'Rule',
   scenario: 'Scenario',
+  actor: 'Actor',
+  manual_process: 'Manual process',
 };

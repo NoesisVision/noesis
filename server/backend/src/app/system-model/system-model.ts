@@ -1,8 +1,10 @@
 import { z } from 'zod';
 import {
+  ActorId,
   BehaviorId,
   BuildingBlockId,
   ElementName,
+  ManualProcessId,
   ModuleId,
   RuleId,
   ScenarioId,
@@ -106,21 +108,10 @@ export const ScannedBuildingBlock = ScannedElement.extend({
 );
 export type ScannedBuildingBlock = z.infer<typeof ScannedBuildingBlock>;
 
-export const Visibility = z
-  .discriminatedUnion('kind', [
-    z.strictObject({ kind: z.literal('private') }),
-    z.strictObject({ kind: z.literal('public'), actors: z.array(z.string()) }),
-  ])
-  .describe(
-    "Who may call a behavior: 'private' nobody outside the code, 'public' the actors it names.",
-  );
-export type Visibility = z.infer<typeof Visibility>;
-
 export const ScannedBehavior = ScannedElement.extend({
   id: BehaviorId,
-  visibility: Visibility,
 }).describe(
-  "A behavior: a public method of a building block, named by the block's id path and its own name; its inputs, output, the behaviors it invokes ('behavior_invokes_behavior') and the rules it governs ('governs') are relations.",
+  "A behavior: a public method of a building block, named by the block's id path and its own name; its inputs, output, the behaviors it invokes ('behavior_invokes_behavior') and the rules it governs ('behavior_governs_rule') are relations.",
 );
 export type ScannedBehavior = z.infer<typeof ScannedBehavior>;
 
@@ -142,7 +133,7 @@ export const ScannedRule = ScannedElement.extend({
   id: RuleId,
   kind: RuleKind,
 }).describe(
-  'A rule: a `Rule:` of a feature file, its kind the tag on it; behaviors govern it, scenarios illustrate it.',
+  "A rule: a `Rule:` of a feature file, its kind the tag on it; behaviors ('behavior_governs_rule') and manual processes ('process_governs_rule') govern it, scenarios illustrate it.",
 );
 export type ScannedRule = z.infer<typeof ScannedRule>;
 
@@ -172,6 +163,18 @@ export const ScannedScenario = ScannedElement.extend({
   "A scenario: a `Scenario:` of a feature file under the `Rule:` it illustrates, its steps as written there, the feature's and the rule's `Background:` first.",
 );
 export type ScannedScenario = z.infer<typeof ScannedScenario>;
+
+export const ScannedActor = ScannedElement.extend({ id: ActorId }).describe(
+  "A person or role outside the code who drives the system: named by an actor annotation on a behavior, found where it is first named; 'performs' relations name the manual processes they carry out.",
+);
+export type ScannedActor = z.infer<typeof ScannedActor>;
+
+export const ScannedManualProcess = ScannedElement.extend({
+  id: ManualProcessId,
+}).describe(
+  "Work an actor performs that is not automated, calling behaviors in order through 'process_invokes_behavior' relations and following rules through 'process_governs_rule' relations; found in the file that encodes it, such as the test that walks through it.",
+);
+export type ScannedManualProcess = z.infer<typeof ScannedManualProcess>;
 
 /* What types a slot — a piece of state, an input, an output — and how many values it holds. */
 
@@ -304,12 +307,32 @@ export const BehaviorInvokesBehaviorRelation = ScannedRelation.extend({
   'A behavior calls another behavior, as its `order`th call; a behavior never calls itself.',
 );
 
-export const GovernsRelation = ScannedRelation.extend({
-  kind: z.literal('governs'),
+export const ProcessInvokesBehaviorRelation = ScannedRelation.extend({
+  kind: z.literal('process_invokes_behavior'),
+  from: ManualProcessId,
+  to: BehaviorId,
+  order: z
+    .int()
+    .min(1)
+    .describe(
+      'The position of the step within the manual process, counting from 1.',
+    ),
+}).describe('A manual process calls a behavior, as its `order`th step.');
+
+export const BehaviorGovernsRuleRelation = ScannedRelation.extend({
+  kind: z.literal('behavior_governs_rule'),
   from: BehaviorId,
   to: RuleId,
 }).describe(
   "A behavior enforces or follows a rule: the behavior the `When` steps of the rule's scenarios invoke.",
+);
+
+export const ProcessGovernsRuleRelation = ScannedRelation.extend({
+  kind: z.literal('process_governs_rule'),
+  from: ManualProcessId,
+  to: RuleId,
+}).describe(
+  'A manual process follows a rule: one the actor keeps by hand, which no behavior enforces for them.',
 );
 
 export const IllustratesRelation = ScannedRelation.extend({
@@ -320,6 +343,12 @@ export const IllustratesRelation = ScannedRelation.extend({
   "A scenario is an example of a rule; the scenario's id path is the rule's path and its own name.",
 );
 
+export const PerformsRelation = ScannedRelation.extend({
+  kind: z.literal('performs'),
+  from: ActorId,
+  to: ManualProcessId,
+}).describe('An actor carries out a manual process.');
+
 export const Relation = z.discriminatedUnion('kind', [
   ModuleContainsModuleRelation,
   ModuleContainsBlockRelation,
@@ -329,8 +358,11 @@ export const Relation = z.discriminatedUnion('kind', [
   HasInputRelation,
   HasOutputRelation,
   BehaviorInvokesBehaviorRelation,
-  GovernsRelation,
+  ProcessInvokesBehaviorRelation,
+  BehaviorGovernsRuleRelation,
+  ProcessGovernsRuleRelation,
   IllustratesRelation,
+  PerformsRelation,
 ]);
 export type Relation = z.infer<typeof Relation>;
 
@@ -352,6 +384,8 @@ export const SystemModel = z
     behaviors: z.array(ScannedBehavior).default([]),
     rules: z.array(ScannedRule).default([]),
     scenarios: z.array(ScannedScenario).default([]),
+    actors: z.array(ScannedActor).default([]),
+    manualProcesses: z.array(ScannedManualProcess).default([]),
     relations: z.array(Relation).default([]),
   })
   .describe(

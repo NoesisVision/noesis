@@ -156,9 +156,10 @@ function changeEntries(change: ChangeWithEntries): SearchEntry[] {
 }
 
 /**
- * The scanned model's modules, building blocks, behaviors and rules, each
- * opening the model tree at its row — a rule at the first behavior that
- * governs it. Properties and scenarios are left to the tree. Too many to
+ * The scanned model's modules, building blocks, behaviors, rules, actors
+ * and manual processes, each opening the model tree at its row — a rule at
+ * the first behavior that governs it, a manual process under the first
+ * actor that performs it. Properties and scenarios are left to the tree. Too many to
  * list unasked, so each waits for a query.
  */
 function modelElements(model: SystemModel): SearchEntry[] {
@@ -173,7 +174,7 @@ function modelElements(model: SystemModel): SearchEntry[] {
       {
         id: `element:${node.path}`,
         label: node.name,
-        context: [node.patternLabel ?? titleCase(node.kind), owner]
+        context: [node.patternLabel ?? kindLabelOf(node.kind), owner]
           .filter(Boolean)
           .join(' · '),
         icon: kindIconOf(node.kind, node.pattern),
@@ -183,6 +184,12 @@ function modelElements(model: SystemModel): SearchEntry[] {
     ];
   });
 }
+
+/** What a row with no pattern is, as a reader says it: `Manual process`. */
+const kindLabelOf = (kind: string) => {
+  const words = kind.replaceAll('_', ' ');
+  return `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
+};
 
 /**
  * The groups holding what matches the query, by name or by kind, without

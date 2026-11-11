@@ -37,7 +37,6 @@ const block = {
 const behavior = {
   id: PLACE,
   name: 'place',
-  visibility: { kind: 'public', actors: ['Customer'] },
   source: { path: 'src/sales/orders/order.ts', startLine: 30 },
 };
 
@@ -183,25 +182,98 @@ describe('A scanned behavior', () => {
     expect(isValid(withBehavior({ type: 'Query' }))).toBe(false);
   });
 
-  it('says nothing about a public behavior beyond the actors it names', () => {
+  it('says nothing about who calls it: that is read from the relations that end at it', () => {
     expect(
-      isValid(
-        withBehavior({
-          visibility: { kind: 'public', actors: ['Clerk'], roles: ['admin'] },
-        }),
-      ),
+      isValid(withBehavior({ visibility: { kind: 'public', actors: [] } })),
+    ).toBe(false);
+    expect(isValid(withBehavior({ visibility: { kind: 'private' } }))).toBe(
+      false,
+    );
+  });
+});
+
+const ACTOR = 'actor|Support agent';
+const PROCESS = 'manual_process|Refund a returned order';
+const actor = {
+  id: ACTOR,
+  name: 'Support agent',
+  source: { path: 'src/sales/orders/order.ts', startLine: 29 },
+};
+const manualProcess = {
+  id: PROCESS,
+  name: 'Refund a returned order',
+  source: { path: 'test/refunds/refund-a-return.spec.ts' },
+};
+
+describe('An actor and a manual process', () => {
+  it('are elements of their own, in no module, none until found', () => {
+    const parsed = SystemModel.parse(
+      model({ actors: [actor], manualProcesses: [manualProcess] }),
+    );
+    expect<unknown>(parsed.actors.map((a) => a.id)).toEqual([ACTOR]);
+    expect<unknown>(parsed.manualProcesses.map((p) => p.id)).toEqual([PROCESS]);
+    expect(SystemModel.parse(model()).actors).toEqual([]);
+    expect(SystemModel.parse(model()).manualProcesses).toEqual([]);
+    expect(
+      isValid(model({ actors: [{ ...actor, id: 'actor|sales.Clerk' }] })),
     ).toBe(false);
   });
 
-  it('is either private, or public to the actors it names', () => {
-    expect(isValid(withBehavior({ visibility: { kind: 'private' } }))).toBe(
-      true,
-    );
-    expect(isValid(withBehavior({ visibility: undefined }))).toBe(false);
+  it('say where they were found, a manual process too', () => {
     expect(
       isValid(
-        withBehavior({ visibility: { kind: 'private', actors: ['Clerk'] } }),
+        model({ manualProcesses: [{ ...manualProcess, source: undefined }] }),
       ),
+    ).toBe(false);
+    expect(isValid(model({ actors: [{ ...actor, source: undefined }] }))).toBe(
+      false,
+    );
+  });
+
+  it.each([
+    { kind: 'performs', from: ACTOR, to: PROCESS },
+    { kind: 'process_invokes_behavior', from: PROCESS, to: PLACE, order: 1 },
+    { kind: 'process_governs_rule', from: PROCESS, to: 'rule|sales.Paid' },
+  ])('join by $kind', (relation) => {
+    expect(isRelation(relation)).toBe(true);
+  });
+
+  it('join only ends of the kinds each relation allows', () => {
+    expect(isRelation({ kind: 'performs', from: PROCESS, to: ACTOR })).toBe(
+      false,
+    );
+    expect(isRelation({ kind: 'performs', from: ACTOR, to: PLACE })).toBe(
+      false,
+    );
+    expect(
+      isRelation({
+        kind: 'process_invokes_behavior',
+        from: ACTOR,
+        to: PLACE,
+        order: 1,
+      }),
+    ).toBe(false);
+    expect(
+      isRelation({
+        kind: 'process_invokes_behavior',
+        from: PROCESS,
+        to: PLACE,
+      }),
+    ).toBe(false);
+    expect(
+      isRelation({
+        kind: 'behavior_invokes_behavior',
+        from: PROCESS,
+        to: PLACE,
+        order: 1,
+      }),
+    ).toBe(false);
+    expect(
+      isRelation({
+        kind: 'process_governs_rule',
+        from: PLACE,
+        to: 'rule|sales.Paid',
+      }),
     ).toBe(false);
   });
 });
@@ -380,7 +452,7 @@ describe('A scanned rule', () => {
         rules: [rule],
         scenarios: [scenario],
         relations: [
-          { kind: 'governs', from: PLACE, to: RULE },
+          { kind: 'behavior_governs_rule', from: PLACE, to: RULE },
           { kind: 'illustrates', from: SCENARIO, to: RULE },
         ],
       }),
@@ -388,7 +460,7 @@ describe('A scanned rule', () => {
 
     expect<unknown>(parsed.rules.map((r) => r.id)).toEqual([RULE]);
     expect(parsed.relations.map((r) => r.kind)).toEqual([
-      'governs',
+      'behavior_governs_rule',
       'illustrates',
     ]);
   });
@@ -434,12 +506,23 @@ describe('A scanned rule', () => {
     ).toBe(null);
   });
 
-  it('is governed only by a behavior and illustrated only by a scenario', () => {
+  it('is governed only by a behavior or a manual process, and illustrated only by a scenario', () => {
     expect(
-      isValid(withRelation({ kind: 'governs', from: ORDER, to: RULE })),
+      isValid(
+        withRelation({ kind: 'behavior_governs_rule', from: ORDER, to: RULE }),
+      ),
     ).toBe(false);
     expect(
-      isValid(withRelation({ kind: 'governs', from: PLACE, to: SCENARIO })),
+      isValid(
+        withRelation({
+          kind: 'behavior_governs_rule',
+          from: PLACE,
+          to: SCENARIO,
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      isValid(withRelation({ kind: 'governs', from: PLACE, to: RULE })),
     ).toBe(false);
     expect(
       isValid(withRelation({ kind: 'illustrates', from: PLACE, to: RULE })),
