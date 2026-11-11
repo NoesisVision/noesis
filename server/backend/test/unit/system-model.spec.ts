@@ -37,7 +37,6 @@ const block = {
 const behavior = {
   id: PLACE,
   name: 'place',
-  type: 'Command',
   visibility: { kind: 'public', actors: ['Customer'] },
   source: { path: 'src/sales/orders/order.ts', startLine: 30 },
 };
@@ -170,13 +169,18 @@ describe('A scanned building block', () => {
     expect(isValid(withBlock({ type: undefined }))).toBe(false);
     expect(isValid(withBlock({ type: 'controller' }))).toBe(false);
   });
+
+  it('may be a message: a command, an event or a query', () => {
+    expect(isValid(withBlock({ type: 'command' }))).toBe(true);
+    expect(isValid(withBlock({ type: 'event' }))).toBe(true);
+    expect(isValid(withBlock({ type: 'query' }))).toBe(true);
+  });
 });
 
 describe('A scanned behavior', () => {
-  it('is always classified as a command, an event or a query', () => {
-    expect(isValid(withBehavior({ type: 'Query' }))).toBe(true);
-    expect(isValid(withBehavior({ type: undefined }))).toBe(false);
-    expect(isValid(withBehavior({ type: 'Request' }))).toBe(false);
+  it('has no type: what it does is read from the messages it takes and gives back', () => {
+    expect(isValid(withBehavior({}))).toBe(true);
+    expect(isValid(withBehavior({ type: 'Query' }))).toBe(false);
   });
 
   it('says nothing about a public behavior beyond the actors it names', () => {

@@ -25,10 +25,9 @@ const BUILDING_BLOCKS: Record<string, BuildingBlockType> = {
   [`${ANNOTATIONS}.ExternalIntegration`]: 'external_integration',
   // An adapter is the code's side of an external integration.
   [`${ANNOTATIONS}.Adapter`]: 'external_integration',
-  // Messages: the model has no message types, so they are value objects.
-  [`${ANNOTATIONS}.Command`]: 'value_object',
-  [`${ANNOTATIONS}.Query`]: 'value_object',
-  [`${ANNOTATIONS}.Event`]: 'value_object',
+  [`${ANNOTATIONS}.Command`]: 'command',
+  [`${ANNOTATIONS}.Query`]: 'query',
+  [`${ANNOTATIONS}.Event`]: 'event',
 };
 
 const ROLES = new Map<string, AnnotationRole>([
@@ -38,10 +37,10 @@ const ROLES = new Map<string, AnnotationRole>([
       { role: 'buildingBlock', type },
     ],
   ),
-  // The handler annotations carry no argument: the annotation itself fixes the type.
-  [`${ANNOTATIONS}.CommandHandler`, { role: 'behavior', type: 'Command' }],
-  [`${ANNOTATIONS}.QueryHandler`, { role: 'behavior', type: 'Query' }],
-  [`${ANNOTATIONS}.EventHandler`, { role: 'behavior', type: 'Event' }],
+  // What a handler handles is read from the message it takes, not from its annotation.
+  [`${ANNOTATIONS}.CommandHandler`, { role: 'behavior' }],
+  [`${ANNOTATIONS}.QueryHandler`, { role: 'behavior' }],
+  [`${ANNOTATIONS}.EventHandler`, { role: 'behavior' }],
   // `Module` is a package annotation: no namespace-wide annotations yet (section 12).
 ]);
 
@@ -132,11 +131,7 @@ export const JAVA_VOCABULARY: AnnotationVocabulary = {
   language: 'java',
   roles: ROLES,
   // No Java annotation carries these arguments today; the names are what a future one would use.
-  arguments: {
-    name: 'name',
-    description: 'description',
-    triggeredBy: 'triggeredBy',
-  },
+  arguments: { name: 'name', description: 'description' },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,
   dictionaries: DICTIONARIES,

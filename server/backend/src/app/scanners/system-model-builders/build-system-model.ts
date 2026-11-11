@@ -6,7 +6,6 @@ import {
   ModuleId,
 } from '#backend/app/element-id';
 import {
-  type BehaviorType,
   OUTPUT_NAME,
   type Relation,
   type ScannedBehavior,
@@ -28,7 +27,7 @@ import type {
   TypeNode,
   TypeRef,
 } from '../code-parsers/code-model';
-import { enumArgument, hasRole, rolesOf, stringArgument } from './annotations';
+import { hasRole, rolesOf, stringArgument } from './annotations';
 import {
   CodeModelIndex,
   type GlobalId,
@@ -565,7 +564,6 @@ class ModelAssembly {
     return {
       id: behavior.id,
       name: behavior.name,
-      type: this.behaviorTypeOf(hierarchy),
       description:
         this.descriptionOf(chosen.node) ??
         behavior.overloads
@@ -619,33 +617,6 @@ class ModelAssembly {
         cardinality: returned.cardinality,
       });
     }
-  }
-
-  /** R9.4: `TriggeredBy` of a behavior role, or the type the role itself fixes, nearest member first; a Command without one. */
-  private behaviorTypeOf(
-    hierarchy: readonly Located<MethodNode>[],
-  ): BehaviorType {
-    for (const member of hierarchy) {
-      for (const { annotation, role } of rolesOf(
-        member.node.annotations,
-        'behavior',
-        this.vocabulary,
-      )) {
-        const triggeredBy = enumArgument(
-          annotation,
-          this.vocabulary.arguments.triggeredBy,
-        );
-        if (
-          triggeredBy === 'Command' ||
-          triggeredBy === 'Query' ||
-          triggeredBy === 'Event'
-        ) {
-          return triggeredBy;
-        }
-        if (role.type !== undefined) return role.type;
-      }
-    }
-    return 'Command';
   }
 
   /** R9.5: the actor roles on the method, the members it stands in for, and its type. */

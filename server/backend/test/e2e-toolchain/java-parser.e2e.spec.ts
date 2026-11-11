@@ -101,9 +101,10 @@ describe('test/fixtures/java/shop through the Java parser (e2e)', () => {
       expect<unknown>(model.behaviors).toEqual(committed.behaviors);
       expect<unknown>(model.relations).toEqual(committed.relations);
       expect<unknown>(
-        model.behaviors.find((b) => b.id === 'behavior|shop.orders.Order.total')
-          ?.type,
-      ).toBe('Query');
+        model.buildingBlocks.find(
+          (b) => b.id === 'building_block|shop.orders.PlaceOrder',
+        )?.type,
+      ).toBe('command');
     },
     SCAN_BUDGET_MS,
   );

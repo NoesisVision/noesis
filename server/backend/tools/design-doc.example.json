@@ -65,7 +65,7 @@
           "value": "RefundIssued"
         },
         "type": {
-          "value": "value_object"
+          "value": "event"
         },
         "definition": {
           "value": "Tells the ledger a refund went out."
@@ -97,10 +97,6 @@
         "id": "behavior|sales.refunds.Refund.issue",
         "name": {
           "value": "issue"
-        },
-        "type": {
-          "value": "Command",
-          "author": "human"
         },
         "definition": {
           "value": "Issues a refund for the chosen lines of an order."

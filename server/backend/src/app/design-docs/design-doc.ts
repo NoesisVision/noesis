@@ -11,7 +11,6 @@ import {
 } from '#backend/app/element-id';
 import {
   BehaviorInvokesBehaviorRelation,
-  BehaviorType,
   BuildingBlockType,
   Cardinality,
   ExposesRelation,
@@ -143,7 +142,6 @@ export type DesignedBuildingBlock = z.infer<typeof DesignedBuildingBlock>;
 export const DesignedBehavior = z.strictObject({
   id: BehaviorId,
   name: DesignDocField(ElementName),
-  type: DesignDocField(BehaviorType),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
   visibility: DesignDocField(Visibility),
