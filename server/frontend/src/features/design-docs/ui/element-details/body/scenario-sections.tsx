@@ -8,14 +8,14 @@ import { ScenarioStepsSection } from './sections/scenario-steps-section.tsx';
 export const scenarioSections = (
   owner: OwnerRef,
   scenario: DesignedScenarioInput,
-  /** The rule the scenario belongs to, when it is one of a rule's own. */
-  rule?: string,
+  /** The id of the rule the scenario illustrates. */
+  rule: string,
 ): ReactElement[] => {
   const element: ElementRef = {
     owner,
     part: 'scenarios',
-    name: scenario.name,
-    ...(rule === undefined ? {} : { rule }),
+    name: scenario.id,
+    rule,
   };
   return [
     ...section(ScenarioStepsSection, 'steps', {

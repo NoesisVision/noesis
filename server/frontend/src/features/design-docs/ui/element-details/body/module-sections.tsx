@@ -17,14 +17,18 @@ export const moduleSections = (
   doc: DesignDocumentInput,
 ): ReactElement[] => {
   const element: ElementRef = { collection: 'modules', id: module.id };
+  // Only the rules of the module the design names no behavior for.
+  const rules = ruleItems(doc, module.id);
   return [
     ...childSections(element, 'module', module.id, tree, doc),
-    ...section(ChangeListSection, 'rules', {
-      element,
-      title: 'Rules',
-      kind: 'rule',
-      items: ruleItems(module.id, module.rules, doc.needs),
-    }),
+    ...(rules.length === 0
+      ? []
+      : section(ChangeListSection, 'rules', {
+          element,
+          title: 'Rules',
+          kind: 'rule',
+          items: rules,
+        })),
     ...section(DiagramSection, 'diagram', {
       element,
       field: module.diagram,

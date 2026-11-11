@@ -43,7 +43,6 @@ const ROLES = new Map<string, AnnotationRole>([
   [`${DOMAIN}.EntryPointAttribute`, { role: 'behavior' }],
   [`${ANNOTATIONS}.People.ActorAttribute`, { role: 'actor' }],
   [`${ANNOTATIONS}.ShortDescriptionAttribute`, { role: 'description' }],
-  [`${DOMAIN}.ScenarioAttribute`, { role: 'scenario' }],
   [`${ANNOTATIONS}.ExcludeFromDocsAttribute`, { role: 'exclude' }],
 ]);
 

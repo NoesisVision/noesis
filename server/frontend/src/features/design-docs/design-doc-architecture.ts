@@ -3,7 +3,6 @@ import type {
   DesignDocumentInput,
   DesignedBehaviorInput,
   DesignedBuildingBlockInput,
-  DesignedRuleInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BehaviorId,
@@ -21,12 +20,7 @@ import {
   type PlacedElement,
   type PlacedRule,
 } from './architecture-outline.ts';
-import {
-  type ChangeSetInput,
-  findById,
-  named,
-  writtenIn,
-} from './change-set.ts';
+import { findById, named, writtenIn } from './change-set.ts';
 import { type DesignDocFieldInput, valueOf } from './design-doc-field.ts';
 import {
   asBehavior,
@@ -37,6 +31,7 @@ import {
   ownerOf,
 } from './element-id.ts';
 import { relationsFrom } from './relations.ts';
+import { ruleNameOf, rulesUnder } from './rules.ts';
 
 /*
  * The design read on the assumption that the system it designs is built as
@@ -254,7 +249,7 @@ function blockElement(
       ...slotTypesOf(document, 'property', block.id),
       ...behaviors.flatMap((behavior) => typesOfBehavior(document, behavior)),
     ]),
-    rules: [block, ...behaviors].flatMap(rulesOf),
+    rules: behaviors.flatMap((behavior) => rulesOf(document, behavior.id)),
   };
 }
 
@@ -269,7 +264,7 @@ function behaviorElement(
     pattern: valueOf(behavior.type),
     change,
     uses: usesOf(behavior.id, typesOfBehavior(document, behavior)),
-    rules: rulesOf(behavior),
+    rules: rulesOf(document, behavior.id),
   };
 }
 
@@ -303,13 +298,15 @@ const typesOfBehavior = (
 
 const blocksOf = (types: (string | null)[]) => new Set(usesOf('', types));
 
-function rulesOf(owner: {
-  rules?: ChangeSetInput<DesignedRuleInput, string> | undefined;
-}): PlacedRule[] {
-  return writtenIn(owner.rules).map((rule) => ({
-    name: rule.name,
-    category: valueOf(rule.category),
-    ruleType: valueOf(rule.ruleType),
+/** The rules the design shows under an element, each once. */
+function rulesOf(
+  document: DesignDocumentInput,
+  elementId: string,
+): PlacedRule[] {
+  return writtenIn(rulesUnder(document, elementId)).map((rule) => ({
+    id: rule.id,
+    name: ruleNameOf(rule),
+    kind: valueOf(rule.kind),
     needs: valueOf(rule.needs) ?? [],
   }));
 }

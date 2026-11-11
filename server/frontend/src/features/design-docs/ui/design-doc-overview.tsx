@@ -18,8 +18,10 @@ import {
   readableDescription,
   targetOfHref,
 } from '../design-doc-description.ts';
+import { partKeyOf } from '../design-doc-outline.ts';
 import type { DesignDocDetail } from '../design-docs.api.ts';
 import { DESIGN_DOC_VIEW_ICONS } from '../design-docs.model.ts';
+import type { OutlineNode } from './model-tree/model-outline.ts';
 import prose from '#/shared/ui/prose.module.css';
 import classes from './design-doc-overview.module.css';
 
@@ -41,12 +43,9 @@ export function DesignDocOverview({
   onOpen: (target: DescriptionTarget) => void;
 }) {
   const { document: doc, outline } = detail;
-  const rows = useMemo(
-    () => new Set(outline.map(({ path }) => path)),
-    [outline],
-  );
-  const has = useCallback((path: string) => rows.has(path), [rows]);
-  const resolve = useMemo(() => descriptionTargets(has, doc), [has, doc]);
+  const rows = useMemo(() => rowsById(outline), [outline]);
+  const rowOf = useCallback((id: string) => rows.get(id) ?? null, [rows]);
+  const resolve = useMemo(() => descriptionTargets(rowOf, doc), [rowOf, doc]);
   const page = pageAddress();
   const markdown = useMemo(
     () => readableDescription(doc.description, resolve, page),
@@ -185,4 +184,17 @@ function pageAddress(): string {
   return location
     ? `${location.origin}${location.pathname}`
     : 'http://localhost/';
+}
+
+/** Each element's first row in the outline, by its id: a rule's or a scenario's under the first behavior it is shown at. */
+function rowsById(outline: readonly OutlineNode[]): Map<string, string> {
+  const rows = new Map<string, string>();
+  for (const node of outline) {
+    const id =
+      node.kind === 'rule' || node.kind === 'scenario'
+        ? partKeyOf(node)
+        : node.elementId;
+    if (id !== null && !rows.has(id)) rows.set(id, node.path);
+  }
+  return rows;
 }

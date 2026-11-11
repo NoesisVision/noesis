@@ -149,8 +149,6 @@ const entryPoint = (triggeredBy: string, name: string | null = null) =>
 const actor = (name: string) => attr('People.ActorAttribute', { name });
 const description = (markdownText: string) =>
   attr('ShortDescriptionAttribute', { markdownText });
-const scenario = (name: string | null) =>
-  attr('Domain.ScenarioAttribute', { name });
 const exclude = () => attr('ExcludeFromDocsAttribute');
 const domainModel = () => attr('Domain.DomainModelAttribute');
 
@@ -941,24 +939,6 @@ describe('4. building blocks', () => {
       { path: '', startLine: null, endLine: null },
     );
   });
-
-  it('R4.7 takes the Scenario annotations on a type as its scenarios, by title only, and has no rules', () => {
-    const built = buildFrom([
-      artifact('Sales').type('T:Sales.Order', {
-        annotations: [
-          aggregate(),
-          scenario('Order is placed'),
-          scenario('With.Dots'),
-          scenario(null),
-        ],
-      }),
-    ]);
-    expect<unknown>(built.model.buildingBlocks[0]).toMatchObject({
-      rules: [],
-      scenarios: [{ name: 'Order is placed', description: null, steps: [] }],
-    });
-    expect<unknown>(messages(built, 'info')).toHaveLength(2);
-  });
 });
 
 /* ======================================================= 5 properties */
@@ -1412,13 +1392,12 @@ describe('6. modules', () => {
     ]);
   });
 
-  it('R6.5 gives a module no description and no rules', () => {
+  it('R6.5 gives a module no description', () => {
     const { model } = buildFrom([
       artifact('Sales').type('T:Sales.Order', { annotations: [aggregate()] }),
     ]);
     expect<unknown>(model.modules[0]).toMatchObject({
       description: null,
-      rules: [],
     });
   });
 });
@@ -1987,26 +1966,6 @@ describe('9. behaviors', () => {
     ]);
   });
 
-  it("R9.9 takes the Scenario annotations on every overload as the behavior's scenarios, by title only", () => {
-    const built = buildFrom([
-      sales()
-        .method('M:Sales.Orders.Order#Place()', {
-          annotations: [scenario('Placed empty')],
-        })
-        .method('M:Sales.Orders.Order#Place(int)', {
-          parameters: [{ name: 'n', type: prim('int') }],
-          annotations: [scenario('Placed with lines'), scenario(null)],
-        }),
-    ]);
-    expect<unknown>(built.model.behaviors[0]?.scenarios).toEqual([
-      { name: 'Placed empty', description: null, steps: [] },
-      { name: 'Placed with lines', description: null, steps: [] },
-    ]);
-    expect<unknown>(messages(built, 'info')).toEqual([
-      expect.stringContaining('without a name'),
-    ]);
-  });
-
   it('R9.10 points a behavior at the chosen overload', () => {
     const { model } = buildFrom([
       sales()
@@ -2288,5 +2247,17 @@ describe('11. relations derived from invocations', () => {
       'behavior|Sales.Order.Mid',
       'behavior|Sales.Order.Last',
     ]);
+  });
+});
+
+/* ================================================ 12 rules and scenarios */
+
+describe('12. rules and scenarios', () => {
+  it('builds none: they come from feature files, which no parser reads yet', () => {
+    const { model } = buildFrom([
+      sales().method('M:Sales.Orders.Order#Place()'),
+    ]);
+    expect<unknown>(model.rules).toEqual([]);
+    expect<unknown>(model.scenarios).toEqual([]);
   });
 });

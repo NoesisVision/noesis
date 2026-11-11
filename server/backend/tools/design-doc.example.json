@@ -26,25 +26,6 @@
         },
         "definition": {
           "value": "Everything about giving money back to a customer."
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "A refund is issued within a second",
-              "category": {
-                "value": "Quality"
-              },
-              "ruleType": {
-                "value": "Performance"
-              },
-              "description": {
-                "value": "Issuing a refund answers within one second for an order of up to 100 lines."
-              },
-              "needs": {
-                "value": ["refund-single-lines"]
-              }
-            }
-          ]
         }
       }
     ],
@@ -76,56 +57,6 @@
         },
         "definition": {
           "value": "A refund of one or more lines of a single order."
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Refund never exceeds paid amount",
-              "category": {
-                "value": "Business"
-              },
-              "ruleType": {
-                "value": "Consistency"
-              },
-              "description": {
-                "value": "The sum of all refunds of an order is at most what the customer paid for it.",
-                "author": "human"
-              },
-              "needs": {
-                "value": ["refund-single-lines"]
-              },
-              "rationale": {
-                "value": "Support may never pay out more than the order brought in."
-              }
-            }
-          ]
-        },
-        "scenarios": {
-          "added": [
-            {
-              "name": "Refunding one line of a paid order",
-              "description": {
-                "value": "The happy path of a partial refund."
-              },
-              "steps": {
-                "value": [
-                  {
-                    "kind": "given",
-                    "text": "a paid order with two lines"
-                  },
-                  {
-                    "kind": "when",
-                    "text": "support refunds the first line"
-                  },
-                  {
-                    "kind": "then",
-                    "text": "a refund for that line's amount is issued and the second line stays refundable"
-                  }
-                ],
-                "author": "agent"
-              }
-            }
-          ]
         }
       },
       {
@@ -183,25 +114,6 @@
             "actors": ["Support agent"]
           },
           "author": "human"
-        },
-        "rules": {
-          "added": [
-            {
-              "name": "Only paid orders are refundable",
-              "category": {
-                "value": "Business"
-              },
-              "ruleType": {
-                "value": "State change"
-              },
-              "description": {
-                "value": "An unpaid order has nothing to refund."
-              },
-              "needs": {
-                "value": []
-              }
-            }
-          ]
         }
       }
     ],
@@ -213,6 +125,74 @@
           "value": {
             "kind": "private"
           }
+        }
+      }
+    ]
+  },
+  "rules": {
+    "added": [
+      {
+        "id": "rule|sales.refunds.Refund never exceeds paid amount",
+        "name": {
+          "value": "Refund never exceeds paid amount"
+        },
+        "kind": {
+          "value": "validation"
+        },
+        "description": {
+          "value": "The sum of all refunds of an order is at most what the customer paid for it.",
+          "author": "human"
+        },
+        "needs": {
+          "value": ["refund-single-lines"]
+        },
+        "rationale": {
+          "value": "Support may never pay out more than the order brought in."
+        }
+      },
+      {
+        "id": "rule|sales.refunds.Only paid orders are refundable",
+        "name": {
+          "value": "Only paid orders are refundable"
+        },
+        "kind": {
+          "value": "state_change"
+        },
+        "description": {
+          "value": "An unpaid order has nothing to refund."
+        },
+        "needs": {
+          "value": []
+        }
+      }
+    ]
+  },
+  "scenarios": {
+    "added": [
+      {
+        "id": "scenario|sales.refunds.Refund never exceeds paid amount.Refunding one line of a paid order",
+        "name": {
+          "value": "Refunding one line of a paid order"
+        },
+        "description": {
+          "value": "The happy path of a partial refund."
+        },
+        "steps": {
+          "value": [
+            {
+              "kind": "given",
+              "text": "a paid order with two lines"
+            },
+            {
+              "kind": "when",
+              "text": "support refunds the first line"
+            },
+            {
+              "kind": "then",
+              "text": "a refund for that line's amount is issued and the second line stays refundable"
+            }
+          ],
+          "author": "agent"
         }
       }
     ]
@@ -357,6 +337,21 @@
         "kind": "module_contains_module",
         "from": "module|sales",
         "to": "module|sales.refunds"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "to": "rule|sales.refunds.Refund never exceeds paid amount"
+      },
+      {
+        "kind": "governs",
+        "from": "behavior|sales.refunds.Refund.issue",
+        "to": "rule|sales.refunds.Only paid orders are refundable"
+      },
+      {
+        "kind": "illustrates",
+        "from": "scenario|sales.refunds.Refund never exceeds paid amount.Refunding one line of a paid order",
+        "to": "rule|sales.refunds.Refund never exceeds paid amount"
       }
     ],
     "removed": [

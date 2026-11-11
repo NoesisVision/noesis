@@ -4,6 +4,8 @@ import type {
   BuildingBlockId,
   ElementId,
   ModuleId,
+  RuleId,
+  ScenarioId,
 } from '#backend/app/element-id.ts';
 
 /*
@@ -11,7 +13,8 @@ import type {
  * the server, read back off the strings the wire carries. An id is the kind
  * it is written with, a `|`, and a dotted address; a behavior hangs under
  * its building block, a building block and a submodule under their module,
- * and a root module under nothing.
+ * a root module under nothing — and a rule under the module of the behavior
+ * that governs it, a scenario under its rule.
  *
  * The ids are the server's own value objects, imported as types only: the
  * page may not run backend code, so an id is told by its prefix here, the
@@ -23,6 +26,8 @@ import type {
 const MODULE = 'module|';
 const BUILDING_BLOCK = 'building_block|';
 const BEHAVIOR = 'behavior|';
+const RULE = 'rule|';
+const SCENARIO = 'scenario|';
 
 /**
  * A wire string, or an id already known to be `Expected`: an id branded as
@@ -45,10 +50,15 @@ export const blockOfRef = (type: string): BuildingBlockId | null =>
 /** What an id names. An id of no element kind is a fault in the data, and says so. */
 export function kindOf(
   id: string,
-): Extract<OutlineKind, 'module' | 'building_block' | 'behavior'> {
+): Extract<
+  OutlineKind,
+  'module' | 'building_block' | 'behavior' | 'rule' | 'scenario'
+> {
   if (isBehavior(id)) return 'behavior';
   if (isBuildingBlock(id)) return 'building_block';
   if (isModule(id)) return 'module';
+  if (isRule(id)) return 'rule';
+  if (isScenario(id)) return 'scenario';
   throw new Error(`Not an element id: ${id}`);
 }
 
@@ -68,7 +78,9 @@ export const ownerOf = <Given extends string>(
 export function moduleOf(elementId: string): ModuleId {
   if (isModule(elementId)) return elementId;
   if (isBehavior(elementId)) return moduleOf(ownerOf(elementId));
-  if (isBuildingBlock(elementId))
+  if (isScenario(elementId))
+    return moduleOf(`${RULE}${parentAddressOf(elementId)}`);
+  if (isBuildingBlock(elementId) || isRule(elementId))
     return asModule(`${MODULE}${parentAddressOf(elementId)}`);
   throw new Error(`Not an element id: ${elementId}`);
 }
@@ -85,22 +97,30 @@ export const behaviorIdAt = (address: string): BehaviorId =>
 export const moduleIdAt = (address: string): ModuleId =>
   asModule(`${MODULE}${address}`);
 
-/** What an element hangs under; null for a root module. */
-export function parentOf(id: string): ModuleId | BuildingBlockId | null {
+/** What an element hangs under by its id; null for a root module. */
+export function parentOf(
+  id: string,
+): ModuleId | BuildingBlockId | RuleId | null {
   if (!addressOf(id).includes('.')) return null;
-  return isBehavior(id)
-    ? ownerOf(id)
-    : asModule(`${MODULE}${parentAddressOf(id)}`);
+  if (isBehavior(id)) return ownerOf(id);
+  if (isScenario(id)) return `${RULE}${parentAddressOf(id)}` as RuleId;
+  return asModule(`${MODULE}${parentAddressOf(id)}`);
 }
 
 /** Whether a string is an element id of any kind, rather than a name or a primitive. */
 export const isElementId = (value: string): boolean =>
-  isModule(value) || isBuildingBlock(value) || isBehavior(value);
+  isModule(value) ||
+  isBuildingBlock(value) ||
+  isBehavior(value) ||
+  isRule(value) ||
+  isScenario(value);
 
 const PREFIX_OF = {
   module: MODULE,
   building_block: BUILDING_BLOCK,
   behavior: BEHAVIOR,
+  rule: RULE,
+  scenario: SCENARIO,
 } as const;
 
 /**
@@ -117,12 +137,16 @@ export const childIdOf = (
 
 /**
  * Whether `id` is `ancestor` itself or sits under it: a module holds every
- * kind, a building block only its behaviors.
+ * kind, a building block only its behaviors, a rule only its scenarios.
  */
 export function isWithin(id: string, ancestor: string): boolean {
   if (id === ancestor) return true;
   if (!addressOf(id).startsWith(`${addressOf(ancestor)}.`)) return false;
-  return isModule(ancestor) || (isBuildingBlock(ancestor) && isBehavior(id));
+  return (
+    isModule(ancestor) ||
+    (isBuildingBlock(ancestor) && isBehavior(id)) ||
+    (isRule(ancestor) && isScenario(id))
+  );
 }
 
 function parentAddressOf(id: string): string {
@@ -140,6 +164,14 @@ function isBuildingBlock(id: string): id is BuildingBlockId {
 
 function isBehavior(id: string): id is BehaviorId {
   return id.startsWith(BEHAVIOR);
+}
+
+function isRule(id: string): id is RuleId {
+  return id.startsWith(RULE);
+}
+
+function isScenario(id: string): id is ScenarioId {
+  return id.startsWith(SCENARIO);
 }
 
 function asModule(id: string): ModuleId {

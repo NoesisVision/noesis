@@ -155,7 +155,9 @@ describe('ArchitectureView', () => {
   });
 
   it("folds a rule's description in the panel, and only there", () => {
-    const TITLE = 'building_block|qdocmanagement.preparation.QDocTitle';
+    // The rule is the creation's, which governs it.
+    const TITLE =
+      'behavior|qdocmanagement.preparation.QDocCreationService.createQDoc';
     const BLANK = 'a blank title cannot be created';
     const glance = read(TITLE);
     expect(glance).toMatch(/aria-expanded="false"[^>]*>Show description</);

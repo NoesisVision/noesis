@@ -29,7 +29,7 @@ export const behaviorSections = (
       element,
       title: 'Rules',
       kind: 'rule',
-      items: ruleItems(behavior.id, behavior.rules, doc.needs),
+      items: ruleItems(doc, behavior.id),
     }),
     ...section(DiagramSection, 'diagram', {
       element,

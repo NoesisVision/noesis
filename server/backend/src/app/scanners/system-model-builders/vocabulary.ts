@@ -22,8 +22,6 @@ export type AnnotationRole =
   | { readonly role: 'actor' }
   /** The element's description, Markdown, in the `description` argument. */
   | { readonly role: 'description' }
-  /** A scenario of the block or behavior, by its `name` only. */
-  | { readonly role: 'scenario' }
   /** The element is not in the system model. */
   | { readonly role: 'exclude' };
 

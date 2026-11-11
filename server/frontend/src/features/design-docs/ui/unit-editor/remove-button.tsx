@@ -2,6 +2,7 @@ import { IconTrash } from '@tabler/icons-react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { UNIT_LABEL, type UnitRef } from '../../design-doc-edit.ts';
+import { nameOf } from '../../element-id.ts';
 import { useUnitEditing } from './unit-editing.ts';
 import { useWritableUnit } from './writable-unit.ts';
 import quiet from './icon-button.module.css';
@@ -22,7 +23,7 @@ export function RemoveButton({ unit }: { unit: UnitRef }) {
         variant="subtle"
         color="red"
         size="md"
-        aria-label={`Delete the ${UNIT_LABEL[unit.kind]} ${unit.id}`}
+        aria-label={`Delete the ${UNIT_LABEL[unit.kind]} ${labelOf(unit)}`}
         onClick={() => editing.remove(unit)}
       >
         <IconTrash size={18} aria-hidden />
@@ -30,3 +31,7 @@ export function RemoveButton({ unit }: { unit: UnitRef }) {
     </Tooltip>
   );
 }
+
+/** A rule or a scenario by its name, which its id ends in; anything else by its key. */
+const labelOf = (unit: UnitRef): string =>
+  unit.kind === 'rule' || unit.kind === 'scenario' ? nameOf(unit.id) : unit.id;

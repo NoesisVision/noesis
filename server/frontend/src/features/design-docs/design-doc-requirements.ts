@@ -2,29 +2,23 @@ import {
   BARE_ROW,
   type OutlineKind,
   type OutlineNode,
-  patternLabelOf,
 } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   DesignDocumentInput,
   DesignedNeedInput,
   DesignedRuleInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import {
-  type ChangeSetInput,
-  designedOf,
-  findById,
-  findByName,
-  writtenIn,
-} from './change-set.ts';
+import { type ChangeSetInput, findById, writtenIn } from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
-import { outlineOf } from './design-doc-outline.ts';
+import { outlineOf, partKeyOf } from './design-doc-outline.ts';
+import { ruleKindLabelOf, type ScenarioSet, scenariosUnder } from './rules.ts';
 
 /*
  * The design read as a requirements document: each need, the rules that
  * answer it, the rules no need asks for, and the needs nothing answers. A
  * rule is a requirement — its name the title, its description the statement,
- * its own scenarios the verification — so nothing here is stored: it is the
- * same document laid out another way.
+ * its scenarios the verification — so nothing here is stored: it is the same
+ * document laid out another way.
  */
 
 export interface RequirementsOutline {
@@ -43,9 +37,13 @@ export interface RequirementsSummary {
   rulesWithoutVerification: number;
 }
 
-/** The element a rule is on, and the module that element sits in. */
+/** The behavior a rule is first shown under, and the module that behavior sits in. */
 interface RulePlace {
+  /** The rule's id. */
+  id: string;
   name: string;
+  /** The scenarios the design writes for it. */
+  scenarios: ScenarioSet;
   element: { id: string; name: string; kind: OutlineKind };
   module: { id: string; name: string };
 }
@@ -105,13 +103,9 @@ export const DESIGN_DECISION_REASON = 'no need asks for it';
 export const tracedTo = (needs: string[]): string =>
   needs.length === 0 ? DESIGN_DECISION : `Answers ${needs.join(', ')}`;
 
-/** A rule's category and type in one phrase, `Quality · Performance`. */
-export const classificationOf = (rule: DesignedRuleInput): string | null => {
-  const words = [valueOf(rule.category), valueOf(rule.ruleType)].filter(
-    (word) => word !== null,
-  );
-  return words.length > 0 ? words.join(' · ') : null;
-};
+/** A rule's kind in words, `State change`. */
+export const classificationOf = (rule: DesignedRuleInput): string | null =>
+  ruleKindLabelOf(valueOf(rule.kind));
 
 /** What a rule can be on, in words: the kind of element it constrains. */
 export const RULE_PLACE_KIND: Partial<Record<OutlineKind, string>> = {
@@ -182,30 +176,39 @@ export function requirementsOf(
 }
 
 /**
- * A rule the design adds with no scenario of its own. A modified rule that
- * leaves its scenarios alone keeps the ones the model has, which the design
- * does not say, so it is not counted as unverified.
+ * A rule the design adds with no scenario. A modified rule that leaves its
+ * scenarios alone keeps the ones the model has, which the design does not
+ * say, so it is not counted as unverified.
  */
 const isUnverified = (traced: TracedRule): boolean =>
-  traced.change === 'added' && writtenIn(traced.rule.scenarios).length === 0;
+  traced.change === 'added' && writtenIn(traced.scenarios).length === 0;
 
-/** Every rule the design touches, in the order the model view's outline lists them. */
+/**
+ * Every rule the design touches, once, in the order the model view's outline
+ * lists them, at the first behavior it is shown under.
+ */
 function* tracedRules(
   document: DesignDocumentInput,
   outline: readonly OutlineNode[],
 ): Generator<TracedRule> {
   const byPath = new Map(outline.map((node) => [node.path, node]));
+  const seen = new Set<string>();
 
   for (const node of outline) {
     if (node.kind !== 'rule' || node.parentPath === null) continue;
     const owner = byPath.get(node.parentPath);
-    if (owner === undefined) continue;
-    const place = placeOf(node.name, owner, byPath);
+    const id = partKeyOf(node);
+    if (owner === undefined || seen.has(id)) continue;
+    seen.add(id);
+    const place = {
+      ...placeOf(id, node.name, owner, byPath),
+      scenarios: scenariosUnder(document, id),
+    };
     if (node.change === 'removed') {
       yield { ...place, change: 'removed', rule: null, trace: null };
       continue;
     }
-    const rule = findByName(designedOf(document, owner.path)?.rules, node.name);
+    const rule = findById(document.rules, id);
     if (rule === null) continue;
     const traced = valueOf(rule.needs);
     yield {
@@ -219,15 +222,17 @@ function* tracedRules(
 
 /** The element a rule is on and the module it sits in, as the outline names them. */
 function placeOf(
+  id: string,
   name: string,
   owner: OutlineNode,
   byPath: Map<string, OutlineNode>,
-): RulePlace {
+): Omit<RulePlace, 'scenarios'> {
   let module: OutlineNode | undefined = owner;
   while (module !== undefined && module.kind !== 'module')
     module =
       module.parentPath === null ? undefined : byPath.get(module.parentPath);
   return {
+    id,
     name,
     element: { id: owner.path, name: owner.name, kind: owner.kind },
     module: {
@@ -274,7 +279,7 @@ export const needRow = (
 });
 
 export const rulePath = (traced: TracedRule, under: string): string =>
-  `${under}/rule:${traced.element.id}:${traced.name}`;
+  `${under}/rule:${traced.id}`;
 
 export function requirementsTreeOf(
   requirements: RequirementsOutline,
@@ -286,7 +291,7 @@ export function requirementsTreeOf(
     nodes.push(needRow(need, added, under));
   };
   const ruleNode = (traced: TracedRule, under: string) => {
-    const pattern = traced.rule === null ? null : valueOf(traced.rule.ruleType);
+    const pattern = traced.rule === null ? null : valueOf(traced.rule.kind);
     nodes.push({
       ...BARE_ROW,
       path: rulePath(traced, under),
@@ -296,7 +301,7 @@ export function requirementsTreeOf(
       depth: 1,
       change: traced.change,
       pattern,
-      patternLabel: patternLabelOf(pattern),
+      patternLabel: ruleKindLabelOf(pattern),
     });
   };
   const groupNode = (path: string, name: string) => {

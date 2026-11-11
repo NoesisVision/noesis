@@ -6,6 +6,8 @@ import {
   ElementId,
   ElementName,
   ModuleId,
+  RuleId,
+  ScenarioId,
 } from '#backend/app/element-id';
 
 const BAD_NAMES = ['', ' ', ' a', 'a ', 'a.b', '.', 'a\tb ', 'a|b', '|'];
@@ -135,9 +137,47 @@ describe('BehaviorId', () => {
   });
 });
 
+describe('RuleId', () => {
+  it('needs a module before its name', () => {
+    expect(RuleId.safeParse('rule|sales.Non-empty order').success).toBe(true);
+    expect(RuleId.safeParse('rule|Non-empty order').success).toBe(false);
+  });
+
+  it('is built on the module of the behavior that governs it', () => {
+    const rule = RuleId.within(
+      ModuleId.parse('module|sales.orders'),
+      'Non-empty order',
+    );
+    expect(rule).toBe(RuleId.parse('rule|sales.orders.Non-empty order'));
+    expect(ElementId.nameOf(rule)).toBe('Non-empty order');
+  });
+});
+
+describe('ScenarioId', () => {
+  it('needs a rule before its name', () => {
+    expect(
+      ScenarioId.safeParse('scenario|sales.Non-empty order.Refused').success,
+    ).toBe(true);
+    expect(ScenarioId.safeParse('scenario|sales.Refused').success).toBe(false);
+  });
+
+  it('is built on its rule', () => {
+    const rule = RuleId.parse('rule|sales.Non-empty order');
+    expect(ScenarioId.within(rule, 'Refused')).toBe(
+      ScenarioId.parse('scenario|sales.Non-empty order.Refused'),
+    );
+  });
+});
+
 describe('ElementId', () => {
   it('accepts each kind and rejects an unknown kind or a value too shallow for its kind', () => {
-    for (const value of ['module|a', 'building_block|a.b', 'behavior|a.b.c']) {
+    for (const value of [
+      'module|a',
+      'building_block|a.b',
+      'behavior|a.b.c',
+      'rule|a.b',
+      'scenario|a.b.c',
+    ]) {
       expect(ElementId.parse(value)).toBe(value as ElementId);
     }
     for (const value of ['thing|a', 'a', '|a', 'module|', 'behavior|a.b']) {
@@ -146,21 +186,30 @@ describe('ElementId', () => {
   });
 
   it('tells the kinds apart', () => {
-    const ids = ['module|a', 'building_block|a.b', 'behavior|a.b.c'].map((v) =>
-      ElementId.parse(v),
-    );
-    expect(ids.map(ElementId.isModule)).toEqual([true, false, false]);
-    expect(ids.map(ElementId.isBuildingBlock)).toEqual([false, true, false]);
-    expect(ids.map(ElementId.isBehavior)).toEqual([false, false, true]);
+    const ids = [
+      'module|a',
+      'building_block|a.b',
+      'behavior|a.b.c',
+      'rule|a.b',
+      'scenario|a.b.c',
+    ].map((v) => ElementId.parse(v));
+    const only = (index: number) => ids.map((_, i) => i === index);
+    expect(ids.map(ElementId.isModule)).toEqual(only(0));
+    expect(ids.map(ElementId.isBuildingBlock)).toEqual(only(1));
+    expect(ids.map(ElementId.isBehavior)).toEqual(only(2));
+    expect(ids.map(ElementId.isRule)).toEqual(only(3));
+    expect(ids.map(ElementId.isScenario)).toEqual(only(4));
     expect(
       ids.map((id) =>
         ElementId.match(id, {
           module: () => 'module',
           buildingBlock: () => 'building block',
           behavior: () => 'behavior',
+          rule: () => 'rule',
+          scenario: () => 'scenario',
         }),
       ),
-    ).toEqual(['module', 'building block', 'behavior']);
+    ).toEqual(['module', 'building block', 'behavior', 'rule', 'scenario']);
   });
 
   it('reports a bad element at its path', () => {

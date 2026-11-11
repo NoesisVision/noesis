@@ -13,7 +13,12 @@ const PAGE = 'http://localhost:3000/changes/c/design-docs/d';
 const document = {
   needs: { added: [{ id: 'refund-lines' }] },
 } as unknown as DesignDocumentInput;
-const resolve = descriptionTargets((path) => path === OFFER, document);
+const RULE = 'rule|sales.offer.Paid offers only';
+const RULE_ROW = `behavior|sales.offer.Offer.accept#rule:${RULE}`;
+const resolve = descriptionTargets(
+  (id) => (id === OFFER ? OFFER : id === RULE ? RULE_ROW : null),
+  document,
+);
 const read = (markdown: string) => readableDescription(markdown, resolve, PAGE);
 const hrefIn = (markdown: string) =>
   /\]\((\S*) /.exec(read(markdown))?.[1] ?? '';
@@ -36,6 +41,17 @@ describe('readableDescription', () => {
       'as Order does',
     );
     expect(read('[Gone](noesis:need|gone)')).toBe('Gone');
+  });
+
+  it('reads an id with spaces in angle brackets, or percent-encoded, and opens a rule at its row', () => {
+    const opened = `[Paid](${PAGE}?view=model&node=${encodeURIComponent(RULE_ROW).replaceAll('%20', '+')} "Opens in Model")`;
+    expect(read(`[Paid](<noesis:${RULE}>)`)).toBe(opened);
+    expect(read(`[Paid](noesis:${RULE.replaceAll(' ', '%20')})`)).toBe(opened);
+    expect(read(`[Paid](noesis:${RULE})`)).toBe(`[Paid](noesis:${RULE})`);
+  });
+
+  it('leaves a percent sign that escapes nothing as it is written', () => {
+    expect(read('[Odd](noesis:building_block|sales.100%)')).toBe('Odd');
   });
 
   it('leaves every other link alone', () => {

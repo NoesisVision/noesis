@@ -136,7 +136,7 @@ describe('RequirementsView', () => {
     const rule = ruleNamed('Refund never exceeds paid amount');
     const text = rule.replace(/<[^>]+>/g, '');
     // Its kind, its module and its element, in one line under its name.
-    expect(text).toContain('Business · refunds › Refund');
+    expect(text).toContain('Validation · refunds › issue');
     expect(text).toContain('Support never pays out more than came in.');
     // Nothing folded away behind a toggle.
     expect(rule).not.toContain('aria-expanded="false"');
@@ -151,8 +151,8 @@ describe('RequirementsView', () => {
     // neither repeat the need nor read as changed.
     expect(rule).not.toContain('>changed<');
     expect(rule).not.toMatch(/<dt[^>]*>Needs<\/dt>/);
-    // It writes no category, so none is shown, and its scenarios stay the model's.
-    expect(rule).not.toMatch(/<dt[^>]*>Category<\/dt>/);
+    // It writes no kind, so none is shown, and its scenarios stay the model's.
+    expect(rule).not.toMatch(/<dt[^>]*>Kind<\/dt>/);
     expect(rule).toContain('Scenarios unchanged');
     expect(rule).not.toContain('No scenario verifies this rule');
   });
@@ -166,7 +166,7 @@ describe('RequirementsView', () => {
 
   it('links a rule to its element in the model view', () => {
     expect(ruleNamed('Refund never exceeds paid amount')).toContain(
-      'href="/changes/2026-01-01-refunds/design-docs/2026-01-01-partial-refunds?node=building_block%7Csales.refunds.Refund"',
+      'href="/changes/2026-01-01-refunds/design-docs/2026-01-01-partial-refunds?node=behavior%7Csales.refunds.Refund.issue"',
     );
   });
 
@@ -176,33 +176,31 @@ describe('RequirementsView', () => {
       '/?view=requirements&entry=there&arch=here',
     );
     expect(elsewhere).toContain(
-      '?entry=there&amp;arch=here&amp;node=building_block%7Csales.refunds.Refund"',
+      '?entry=there&amp;arch=here&amp;node=behavior%7Csales.refunds.Refund.issue"',
     );
   });
 
   it('names the module where a rule lives and marks a changed rationale, needs left out', () => {
     const traced: Parameters<typeof Location>[0]['traced'] = {
+      id: 'rule|a.A rule',
       name: 'A rule',
-      element: {
-        id: 'building_block|a.B',
-        name: 'B',
-        kind: 'building_block',
-      },
+      element: { id: 'behavior|a.B.do', name: 'do', kind: 'behavior' },
       module: { id: 'module|a', name: 'a' },
+      scenarios: {},
       change: 'modified',
       rule: {
-        name: 'A rule',
+        id: 'rule|a.A rule',
         rationale: { value: 'Because.', author: 'agent' },
       },
       trace: [],
     };
     const html = renderToStaticMarkup(
       <MantineProvider>
-        <Location traced={traced} element="B" />
+        <Location traced={traced} element="do" />
         <RuleBody rule={traced.rule} />
       </MantineProvider>,
     );
-    expect(html.replace(/<[^>]+>/g, '')).toContain('a › B');
+    expect(html.replace(/<[^>]+>/g, '')).toContain('a › do');
     expect(html).toContain('>changed<');
     expect(html).toMatch(/<dt[^>]*>Rationale<\/dt><dd[^>]*>Because\.<\/dd>/);
     expect(html).not.toMatch(/<dt[^>]*>Needs<\/dt>/);
@@ -213,7 +211,7 @@ describe('RequirementsView', () => {
       <MantineProvider>
         <RuleBody
           rule={{
-            name: 'A rule',
+            id: 'rule|a.A rule',
             description: {
               value:
                 'Trigger: a refund is asked. Algorithm: 1. Sum what was paid. 2. Refuse the excess.',
@@ -242,13 +240,12 @@ describe('RequirementsView', () => {
   it('marks each entry with the path of its row in the tree', () => {
     expect(page).toContain('data-entry="need:refund-single-lines"');
     expect(page).toContain(
-      'data-entry="need:refund-single-lines/rule:building_block|sales.refunds.Refund:Refund never exceeds paid amount"',
+      'data-entry="need:refund-single-lines/rule:rule|sales.refunds.Refund never exceeds paid amount"',
     );
   });
 
   it('marks the entry the address names as the reader’s place, and the row of it in the tree', async () => {
-    const path =
-      'decisions/rule:building_block|sales.orders.Order:Paid orders are final';
+    const path = 'decisions/rule:rule|sales.orders.Paid orders are final';
     const at = await render(path);
     expect(at).toMatch(
       new RegExp(

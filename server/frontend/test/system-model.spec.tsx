@@ -13,11 +13,11 @@ const model = SystemModel.parse(scanned);
 const document = designOf(model);
 const OFFER = 'building_block|discounts.calculation.DiscountedOffer';
 
-const reading = (selected: string | null) =>
+const reading = (selected: string | null, read = document) =>
   renderToStaticMarkup(
     <MantineProvider>
       <ModelReader
-        document={document}
+        document={read}
         selected={selected}
         query=""
         onSelect={() => {}}
@@ -52,6 +52,53 @@ describe('ModelReader', () => {
   it('marks nothing as a change: the model is as it stands', () => {
     expect(page).not.toMatch(/>added</);
     expect(page).not.toMatch(/>modified</);
+  });
+
+  it("marks no rule or scenario as a change either, though the scan's come in as added", () => {
+    const APPLY =
+      'behavior|discounts.calculation.DiscountedOffer.applyDiscount';
+    const RULE = 'rule|discounts.calculation.Discounts never go below zero';
+    const ruled = designOf(
+      SystemModel.parse({
+        ...scanned,
+        rules: [
+          {
+            id: RULE,
+            name: 'Discounts never go below zero',
+            kind: 'validation',
+            source: { path: 'a.feature', startLine: 3 },
+          },
+        ],
+        scenarios: [
+          {
+            id: `scenario|${RULE.slice(5)}.A big discount`,
+            name: 'A big discount',
+            steps: [
+              {
+                kind: 'when',
+                text: 'a discount bigger than the price is applied',
+              },
+            ],
+            source: { path: 'a.feature', startLine: 4 },
+          },
+        ],
+        relations: [
+          ...model.relations,
+          { kind: 'governs', from: APPLY, to: RULE },
+          {
+            kind: 'illustrates',
+            from: `scenario|${RULE.slice(5)}.A big discount`,
+            to: RULE,
+          },
+        ],
+      }),
+    );
+
+    const page = reading(APPLY, ruled);
+
+    expect(page).toContain('Discounts never go below zero');
+    expect(page).toContain('A big discount');
+    expect(page).not.toMatch(/>added</);
   });
 
   it('offers nothing to move or write', () => {

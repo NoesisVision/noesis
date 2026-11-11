@@ -12,7 +12,6 @@ import {
   type ScannedBehavior,
   type ScannedBuildingBlock,
   type ScannedDomainModule,
-  type ScannedScenario,
   type SourceLocation,
   type SystemModel,
 } from '#backend/app/system-model/system-model';
@@ -72,7 +71,12 @@ export interface BuildDiagnostic {
 
 type BuiltModel = Pick<
   SystemModel,
-  'modules' | 'buildingBlocks' | 'behaviors' | 'relations'
+  | 'modules'
+  | 'buildingBlocks'
+  | 'behaviors'
+  | 'rules'
+  | 'scenarios'
+  | 'relations'
 >;
 
 export interface BuiltSystemModel {
@@ -145,6 +149,9 @@ class ModelAssembly {
       behaviors: [...this.behaviors.values()]
         .map((behavior) => this.toBehavior(behavior))
         .sort(byId),
+      // Rules and scenarios come from feature files, which no parser reads yet.
+      rules: [],
+      scenarios: [],
       relations: this.relations.sort(byRelation),
     };
     return { model, diagnostics: this.diagnostics };
@@ -274,8 +281,6 @@ class ModelAssembly {
       name: block.name,
       type: block.type,
       description: this.descriptionOf(node),
-      rules: [],
-      scenarios: this.scenariosOf([node]),
       source: locationOf(node),
     };
   }
@@ -294,36 +299,6 @@ class ModelAssembly {
       if (text !== null) return text;
     }
     return node.documentation;
-  }
-
-  /** R4.7, R9.9: one scenario per scenario role, by name only. */
-  private scenariosOf(nodes: readonly DeclarationNode[]): ScannedScenario[] {
-    const scenarios = new Map<string, ScannedScenario>();
-    for (const node of nodes) {
-      for (const { annotation } of rolesOf(
-        node.annotations,
-        'scenario',
-        this.vocabulary,
-      )) {
-        const name = stringArgument(annotation, this.vocabulary.arguments.name);
-        const parsed = ElementName.safeParse(name);
-        if (!parsed.success) {
-          this.info(
-            `${node.id}: a scenario ${name === null ? 'without a name' : `named "${name}"`} is no element name; dropped`,
-            node,
-          );
-          continue;
-        }
-        if (!scenarios.has(parsed.data)) {
-          scenarios.set(parsed.data, {
-            name: parsed.data,
-            description: null,
-            steps: [],
-          });
-        }
-      }
-    }
-    return [...scenarios.values()];
   }
 
   /* ------------------------------------------------------------- state */
@@ -601,10 +576,6 @@ class ModelAssembly {
         chosen.node.visibility === 'public'
           ? { kind: 'public', actors: this.actorsOf(hierarchy, block.node) }
           : { kind: 'private' },
-      rules: [],
-      scenarios: this.scenariosOf(
-        behavior.overloads.map((overload) => overload.node),
-      ),
       source: locationOf(chosen.node),
     };
   }
@@ -786,7 +757,6 @@ class ModelAssembly {
           id,
           name: ElementName.parse(path.at(-1)),
           description: null,
-          rules: [],
           source:
             namespaceLocations.get(path.join('.')) ??
             this.directoryAbove(block, block.modulePath.length - depth),

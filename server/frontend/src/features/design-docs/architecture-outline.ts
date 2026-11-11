@@ -9,8 +9,7 @@ import type {
 import type {
   BehaviorType,
   BuildingBlockType,
-  RuleCategory,
-  RuleType,
+  RuleKind,
 } from '#backend/app/system-model/system-model.ts';
 import type { kindOf } from './element-id.ts';
 
@@ -57,7 +56,7 @@ export interface PlacedElement<
   change: OutlineChange;
   /** The building blocks its properties, inputs and outputs are typed by, whatever their cardinality; itself left out. */
   uses: BuildingBlockId[];
-  /** Its own rules and those of its behaviors the view does not draw apart from it. */
+  /** The rules it governs, and for a block those its behaviors govern, which the view does not draw apart from it. */
   rules: PlacedRule[];
 }
 
@@ -65,9 +64,9 @@ export type PlacedBlock = PlacedElement<BuildingBlockType>;
 export type PlacedBehavior = PlacedElement<BehaviorType>;
 
 export interface PlacedRule {
+  id: string;
   name: string;
-  category: RuleCategory | null;
-  ruleType: RuleType | null;
+  kind: RuleKind | null;
   needs: string[];
 }
 
@@ -229,4 +228,6 @@ export const UNDRAWN_NAME: Record<ReturnType<typeof kindOf>, string> = {
   module: 'Module',
   building_block: 'Building block',
   behavior: 'Behavior',
+  rule: 'Rule',
+  scenario: 'Scenario',
 };

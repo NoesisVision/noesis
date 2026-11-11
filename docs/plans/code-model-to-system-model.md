@@ -49,7 +49,6 @@ with an annotation goes through a role, so Java's
 | `behavior`      | The method is a behavior; `name` overrides its name; `TriggeredBy`, or a type the role itself fixes, sets its type | `DomainBehavior`, `EntryPoint` (`TriggeredBy`: `Command`, `Query`, `Event`; `Unspecified` says nothing)                                                                                                                                                                                                                                                                                                                                      |
 | `actor`         | Who calls: `name` goes to the behavior's `visibility.actors`                                                       | `Actor`                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `description`   | The element's description, Markdown                                                                                | `ShortDescription` (`markdownText`)                                                                                                                                                                                                                                                                                                                                                                                                          |
-| `scenario`      | A scenario of the block or behavior, by title only (section 9.9)                                                   | `Scenario` (`name`)                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `exclude`       | The element is not in the system model (section 3)                                                                 | `ExcludeFromDocs`                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ignored         | Read for nothing in this iteration                                                                                 | `DomainModel`, `NotDomainModel`, `DomainModule`, `DddBoundedContext`, `SkipNamespaceInDomainModulesHierarchy` (section 12: no namespace-wide annotations yet), `DomainObject` alone, `CoreConcept`, `Exemplary`, `PublicContract`, `ExternalContract`, `Process`, everything under `People` except `Actor`, everything under `Technology`                                                                                                    |
 
@@ -64,7 +63,7 @@ The Java vocabulary (`vision.noesis.annotations`, in
 `Command`, `Query`, `Event` → value_object; `CommandHandler`,
 `QueryHandler` and `EventHandler` are `behavior` roles that carry no
 argument and fix the type themselves (R9.4). No Java annotation has a
-description, actor, scenario or exclude role yet, and `Module` is a
+description, actor or exclude role yet, and `Module` is a
 package annotation (decision 13). Primitives are the eight keywords and the
 `java.lang` boxes, `String`, `BigDecimal`, `UUID` and the `java.time` types;
 collections are the `java.util` collection interfaces and classes and
@@ -137,8 +136,8 @@ attribute.
   `startLine` and `endLine` from its span. A line below 1 is null, and so
   is an end before the start. A node with no location has `path: ''` and
   both lines null.
-- **R4.7 `rules`**: empty; nothing in the annotation package expresses a
-  rule. **`scenarios`**: one per `scenario` role on the type (section 9.9).
+- **R4.7 Rules and scenarios** are no part of a block: they are elements
+  of their own (R12).
 
 ## 5. Properties of a building block
 
@@ -210,7 +209,7 @@ block or primitive its type resolves to, and `cardinality` (R5.4).
   skipping) takes the directory of the nearest descendant module's file,
   `startLine` and `endLine` null, as the Java parser does today.
 - **R6.5 `description`**: null; the annotation package has no description
-  for a namespace. `rules`: empty.
+  for a namespace.
 - **R6.6 Containment.** A `module_contains_module` relation from each
   module to every module one level below it, and a `module_contains_block`
   from each block's module to the block. They repeat what the ids say, so
@@ -330,12 +329,7 @@ projects is one module.
 - **R9.8 Description.** The `description` role on the method, else its
   `documentation`, else the first either of the other overloads has, else
   null.
-- **R9.9 Scenarios.** One `ScannedScenario` per `scenario` role on the
-  chosen overload and its siblings, with the role's `name` as its name,
-  no description and no steps (the annotation carries a title only; the
-  contract now allows that, section 12). A role without a name, or with one
-  that is no `ElementName`, is dropped with a diagnostic. The same for a
-  block's scenarios (R4.7).
+- **R9.9 Scenarios** are elements of their own (R12), not read from annotations.
 - **R9.10 Source.** The chosen overload's first location, as R4.6.
 - **R9.11 A `behavior` role on a method of a type that is no block** has no
   home (`BehaviorId` needs a block) and is dropped with a diagnostic; so is
@@ -343,7 +337,8 @@ projects is one module.
 
 ## 10. Order, determinism, diagnostics
 
-- **R10.1** `modules`, `buildingBlocks` and `behaviors` are sorted by id
+- **R10.1** `modules`, `buildingBlocks`, `behaviors`, `rules` and
+  `scenarios` are sorted by id
   (code unit order), `actors` by name. `relations` are sorted by kind,
   holder (`from`), `position`, target (`to`), `name`, then `order`, so a
   signature reads in its order. Two builds from one code model give one
@@ -413,9 +408,9 @@ them.
    many); until it can, a dictionary resolves to nothing. Open: a pair type
    (a key and a value) a slot can point at.
 8. **Looking through unmapped generics** (R7.6) stays.
-9. **Scenarios** are mapped by title only. `ScannedScenario` is relaxed for
-   that: `description` nullable, `steps` may be empty. `DesignedScenario`
-   keeps its steps.
+9. **Scenarios** were mapped by title only, from a `Scenario` annotation;
+   since step 2 of the new model (section 14) they are elements of their
+   own, and the annotation is not read.
 10. **`[assembly: DomainModule]`** and a `DomainModule` without
     `ApplyOnNamespace` are ignored, without a log line.
 11. **Running the first stage.** The C# adapter runs `noesis-parse-csharp`
@@ -468,3 +463,22 @@ parser, scans the same fixture through `CSharpParser` and asserts the model
 and the time each stage took. The expected `behavior_invokes_behavior`
 relations of every chain in the fixture are in
 `test/support/csharp-fixture-expectations.ts`, shared by both.
+
+## 14. Rules and scenarios (November 2026)
+
+Rules and scenarios stopped being values nested in modules, building blocks
+and behaviors (step 2 of `new-system-model.md` on the
+`feat/system-model-relations` branch). What changed, in short:
+
+| Was                                                           | Is                                                                                 |
+| ------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `rules` on modules, blocks, behaviors, `category`, `ruleType` | a `rules` list of its own, `kind` the one classification, `governs` from behaviors |
+| `scenarios` on blocks, behaviors, rules, from `[Scenario]`    | a `scenarios` list of its own, `illustrates` to their rule                         |
+| the `scenario` role                                           | no role                                                                            |
+
+**R12 Rules and scenarios are not built yet.** The builder leaves `rules`
+and `scenarios` empty and adds no `governs` or `illustrates`. The system
+model is a projection of the code model alone: the scan reads no file on
+the side. Rules and scenarios will come from feature files once a parser
+reads them into the code model; `rules-and-scenarios-from-feature-files.md`
+keeps the design of reading and binding them.

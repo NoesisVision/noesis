@@ -4,7 +4,6 @@ import {
   Cardinality,
   PrimitiveId,
   PrimitiveName,
-  RULE_TYPES_OF,
   Relation,
   ScannedScenario,
   SourceLocation,
@@ -121,7 +120,6 @@ describe('A system model', () => {
     expect(written.modules?.[0]).toEqual({
       ...module,
       description: null,
-      rules: [],
       source: { path: 'src/sales/orders', startLine: null, endLine: null },
     });
     expect(written.relations).toEqual([]);
@@ -351,7 +349,16 @@ describe('A primitive', () => {
   });
 });
 
+const RULE = 'rule|sales.orders.Paid orders only';
+const SCENARIO = 'scenario|sales.orders.Paid orders only.Placing an order';
+const rule = {
+  id: RULE,
+  name: 'Paid orders only',
+  kind: 'state_change',
+  source: { path: 'features/orders.feature', startLine: 4, endLine: null },
+};
 const scenario = {
+  id: SCENARIO,
   name: 'Placing an order',
   description: 'The happy path.',
   steps: [
@@ -359,100 +366,84 @@ const scenario = {
     { kind: 'when', text: 'the customer places the order' },
     { kind: 'then', text: 'the order is placed' },
   ],
+  source: { path: 'features/orders.feature', startLine: 7, endLine: null },
 };
-const rule = { name: 'Paid orders only', ruleType: 'State change' };
 
 describe('A scanned rule', () => {
-  it('belongs to a module, a building block or a behavior', () => {
+  it('is an element of its own, which a behavior governs and a scenario illustrates', () => {
     const parsed = SystemModel.parse(
       model({
-        modules: [{ ...module, rules: [rule] }],
-        buildingBlocks: [{ ...block, rules: [rule] }],
-        behaviors: [{ ...behavior, rules: [rule] }],
+        rules: [rule],
+        scenarios: [scenario],
+        relations: [
+          { kind: 'governs', from: PLACE, to: RULE },
+          { kind: 'illustrates', from: SCENARIO, to: RULE },
+        ],
       }),
     );
 
-    expect(parsed.modules[0]?.rules.map((r) => r.name)).toEqual([
-      'Paid orders only',
-    ]);
-    expect(parsed.buildingBlocks[0]?.rules.map((r) => r.name)).toEqual([
-      'Paid orders only',
-    ]);
-    expect(parsed.behaviors[0]?.rules.map((r) => r.name)).toEqual([
-      'Paid orders only',
+    expect<unknown>(parsed.rules.map((r) => r.id)).toEqual([RULE]);
+    expect(parsed.relations.map((r) => r.kind)).toEqual([
+      'governs',
+      'illustrates',
     ]);
   });
 
   it('is none until the scanner finds one', () => {
     const parsed = SystemModel.parse(model());
 
-    expect(parsed.modules[0]?.rules).toEqual([]);
-    expect(parsed.buildingBlocks[0]?.rules).toEqual([]);
-    expect(parsed.behaviors[0]?.rules).toEqual([]);
+    expect(parsed.rules).toEqual([]);
+    expect(parsed.scenarios).toEqual([]);
   });
 
-  it('is a business rule unless the scanner says otherwise', () => {
-    const parsed = SystemModel.parse(withBlock({ rules: [rule] }));
-
-    expect(parsed.buildingBlocks[0]?.rules[0]?.category).toBe('Business');
-    expect(
-      isValid(
-        withBlock({
-          rules: [{ ...rule, category: 'Quality', ruleType: 'Performance' }],
-        }),
-      ),
-    ).toBe(true);
-    expect(
-      isValid(withBlock({ rules: [{ ...rule, category: 'Technical' }] })),
-    ).toBe(false);
-  });
-
-  it('allows the rule types of every category', () => {
-    for (const [category, types] of Object.entries(RULE_TYPES_OF)) {
-      for (const ruleType of types) {
-        expect(
-          isValid(withBlock({ rules: [{ ...rule, category, ruleType }] })),
-        ).toBe(true);
-      }
+  it('is classified by its kind alone', () => {
+    for (const kind of [
+      'validation',
+      'state_change',
+      'post',
+      'computation',
+      'coordination',
+      'configuration',
+    ]) {
+      expect(isValid(model({ rules: [{ ...rule, kind }] }))).toBe(true);
     }
+    expect(isValid(model({ rules: [{ ...rule, kind: undefined }] }))).toBe(
+      false,
+    );
+    expect(isValid(model({ rules: [{ ...rule, kind: 'Business' }] }))).toBe(
+      false,
+    );
+    expect(isValid(model({ rules: [{ ...rule, category: 'Business' }] }))).toBe(
+      false,
+    );
   });
 
-  it('is always classified, by one of the known types', () => {
-    expect(
-      isValid(withBlock({ rules: [{ ...rule, ruleType: undefined }] })),
-    ).toBe(false);
-    expect(
-      isValid(withBlock({ rules: [{ ...rule, ruleType: 'Validation' }] })),
-    ).toBe(false);
+  it('is on no module, building block or behavior', () => {
+    expect(isValid(withBlock({ rules: [] }))).toBe(false);
+    expect(isValid(withBehavior({ rules: [] }))).toBe(false);
+    expect(isValid(model({ modules: [{ ...module, rules: [] }] }))).toBe(false);
   });
 
-  it('has a description only when the code gives one', () => {
-    const parsed = SystemModel.parse(withBlock({ rules: [rule] }));
+  it('has a description only when the feature file gives one', () => {
+    expect(
+      SystemModel.parse(model({ rules: [rule] })).rules[0]?.description,
+    ).toBe(null);
+  });
 
-    expect(parsed.buildingBlocks[0]?.rules[0]?.description).toBe(null);
+  it('is governed only by a behavior and illustrated only by a scenario', () => {
+    expect(
+      isValid(withRelation({ kind: 'governs', from: ORDER, to: RULE })),
+    ).toBe(false);
+    expect(
+      isValid(withRelation({ kind: 'governs', from: PLACE, to: SCENARIO })),
+    ).toBe(false);
+    expect(
+      isValid(withRelation({ kind: 'illustrates', from: PLACE, to: RULE })),
+    ).toBe(false);
   });
 });
 
 describe('A scanned scenario', () => {
-  it('tests the one building block, behavior or rule that holds it', () => {
-    const parsed = SystemModel.parse(
-      model({
-        buildingBlocks: [
-          {
-            ...block,
-            scenarios: [scenario],
-            rules: [{ ...rule, scenarios: [scenario] }],
-          },
-        ],
-        behaviors: [{ ...behavior, scenarios: [scenario] }],
-      }),
-    );
-
-    expect(parsed.buildingBlocks[0]?.scenarios).toHaveLength(1);
-    expect(parsed.buildingBlocks[0]?.rules[0]?.scenarios).toHaveLength(1);
-    expect(parsed.behaviors[0]?.scenarios).toHaveLength(1);
-  });
-
   it('refuses a key it does not know', () => {
     expect(ScannedScenario.safeParse(scenario).success).toBe(true);
     expect(
@@ -461,13 +452,19 @@ describe('A scanned scenario', () => {
     ).toBe(false);
   });
 
-  it('may carry a title alone: code annotates a scenario by name, without steps', () => {
-    const parsed = ScannedScenario.parse({ name: 'Placing an order' });
+  it('always has its steps and where the feature file states it', () => {
+    expect(ScannedScenario.safeParse({ ...scenario, steps: [] }).success).toBe(
+      false,
+    );
+    expect(
+      ScannedScenario.safeParse({ ...scenario, source: undefined }).success,
+    ).toBe(false);
+  });
 
-    expect(parsed).toEqual({
-      name: 'Placing an order',
-      description: null,
-      steps: [],
-    });
+  it('is named under its rule', () => {
+    expect(
+      ScannedScenario.safeParse({ ...scenario, id: 'scenario|sales.Placing' })
+        .success,
+    ).toBe(false);
   });
 });

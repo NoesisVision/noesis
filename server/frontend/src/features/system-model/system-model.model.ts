@@ -32,11 +32,10 @@ const added = <T>(items: T[]) => ({ added: items, removed: [], modified: [] });
 function scenarios(found: ScannedScenario[]) {
   return added(
     found.map((scenario) => ({
-      name: scenario.name,
-      // Code may name a scenario and say no more: the description and the
-      // steps are then unset, as a designed scenario needs at least one step.
+      id: scenario.id,
+      name: field(scenario.name),
       description: optional(scenario.description),
-      steps: scenario.steps.length === 0 ? UNSET : field(scenario.steps),
+      steps: field(scenario.steps),
     })),
   );
 }
@@ -44,13 +43,12 @@ function scenarios(found: ScannedScenario[]) {
 function rules(found: ScannedRule[]) {
   return added(
     found.map((rule) => ({
-      name: rule.name,
-      category: field(rule.category),
-      ruleType: field(rule.ruleType),
+      id: rule.id,
+      name: field(rule.name),
+      kind: field(rule.kind),
       description: optional(rule.description),
       needs: field([]),
       rationale: UNSET,
-      scenarios: scenarios(rule.scenarios),
     })),
   );
 }
@@ -92,7 +90,6 @@ export function designOf(model: SystemModel): DesignDocument {
         name: field(module.name),
         definition: optional(module.description),
         diagram: UNSET,
-        rules: rules(module.rules),
       })),
     ),
     buildingBlocks: added(
@@ -102,8 +99,6 @@ export function designOf(model: SystemModel): DesignDocument {
         type: field(block.type),
         definition: optional(block.description),
         diagram: UNSET,
-        rules: rules(block.rules),
-        scenarios: scenarios(block.scenarios),
       })),
     ),
     behaviors: added(
@@ -114,10 +109,10 @@ export function designOf(model: SystemModel): DesignDocument {
         definition: optional(behavior.description),
         diagram: UNSET,
         visibility: field(behavior.visibility),
-        rules: rules(behavior.rules),
-        scenarios: scenarios(behavior.scenarios),
       })),
     ),
+    rules: rules(model.rules),
+    scenarios: scenarios(model.scenarios),
     relations: added(model.relations.map(relation)),
     implemented: true,
     implementedAt: model.scanned_at,

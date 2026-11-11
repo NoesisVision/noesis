@@ -10,6 +10,7 @@ import type { ElementKind } from '../../design-doc-edit.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import {
   changesDetails,
+  classificationOf,
   type TracedRule,
 } from '../../design-doc-requirements.ts';
 import { ruleParts } from '../../rule-sections.ts';
@@ -79,7 +80,7 @@ export function RuleEntry({
         }
       />
       <RuleBody rule={rule} />
-      <Verification traced={traced} rule={rule} change={change} />
+      <Verification traced={traced} change={change} />
     </Box>
   );
 }
@@ -122,10 +123,10 @@ export function Location({
   traced: Extract<TracedRule, { change: 'added' | 'modified' }>;
   element: ReactNode;
 }) {
-  const category = valueOf(traced.rule.category);
+  const kind = classificationOf(traced.rule);
   return (
     <Text className={classes.location}>
-      {category !== null && `${category} · `}
+      {kind !== null && `${kind} · `}
       {traced.module.name} › {element}
       {changesDetails(traced) && (
         <ChangeBadge change="modified" inline>
@@ -145,9 +146,8 @@ export function RuleBody({ rule }: { rule: DesignedRuleInput }) {
   const description = valueOf(rule.description)?.trim() ?? '';
   const rationale = valueOf(rule.rationale);
   const parts = ruleParts(description);
-  const kind = [valueOf(rule.ruleType)].filter((word) => word !== null);
-  if (description === '' && rationale === null && kind.length === 0)
-    return null;
+  const kind = classificationOf(rule);
+  if (description === '' && rationale === null && kind === null) return null;
   return (
     <Box component="dl" className={classes.parts}>
       {parts !== null ? (
@@ -177,10 +177,10 @@ export function RuleBody({ rule }: { rule: DesignedRuleInput }) {
           </dd>
         </>
       ) : null}
-      {kind.length > 0 && (
+      {kind !== null && (
         <>
-          <dt>Type</dt>
-          <dd>{kind.join(' · ')}</dd>
+          <dt>Kind</dt>
+          <dd>{kind}</dd>
         </>
       )}
       {rationale !== null && (
@@ -201,14 +201,12 @@ export function RuleBody({ rule }: { rule: DesignedRuleInput }) {
  */
 function Verification({
   traced,
-  rule,
   change,
 }: {
   traced: TracedRule;
-  rule: DesignedRuleInput;
   change: 'added' | 'modified';
 }) {
-  const scenarios = scenarioEntriesOf(rule.scenarios);
+  const scenarios = scenarioEntriesOf(traced.scenarios, { id: traced.id });
   if (scenarios.length === 0)
     return change === 'added' ? (
       <Box className={classes.unverified}>
@@ -237,7 +235,7 @@ function AddScenario({ traced }: { traced: TracedRule }) {
   const editing = useUnitEditing();
   const { kind, id } = traced.element;
   const preset = useNewScenarioOwner(
-    isElementKind(kind) ? { kind, id, rule: traced.name } : undefined,
+    isElementKind(kind) ? { kind, id, rule: traced.id } : undefined,
   );
   if (editing === null || preset === null) return null;
   return (
