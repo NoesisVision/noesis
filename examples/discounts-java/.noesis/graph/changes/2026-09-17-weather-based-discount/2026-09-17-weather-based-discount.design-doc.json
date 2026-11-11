@@ -186,12 +186,6 @@
         "definition": {
           "value": "Tells the current weather at the shop's location, or that it is unknown.",
           "author": "agent"
-        },
-        "visibility": {
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -202,12 +196,6 @@
         },
         "definition": {
           "value": "Tells the current weather at the shop's location as the Open-Meteo forecast service reports it.",
-          "author": "agent"
-        },
-        "visibility": {
-          "value": {
-            "kind": "private"
-          },
           "author": "agent"
         }
       },
@@ -220,12 +208,6 @@
         "definition": {
           "value": "Grants the percentage discount on an offer.",
           "author": "agent"
-        },
-        "visibility": {
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -236,12 +218,6 @@
         },
         "definition": {
           "value": "Tells whether the weather in the given conditions earns the precipitation discount: it does while it rains or snows.",
-          "author": "agent"
-        },
-        "visibility": {
-          "value": {
-            "kind": "private"
-          },
           "author": "agent"
         }
       },
@@ -254,12 +230,6 @@
         "definition": {
           "value": "Gives the discount granted while it rains or snows.",
           "author": "agent"
-        },
-        "visibility": {
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       }
     ],
@@ -270,9 +240,6 @@
           "value": "sequenceDiagram\n  DiscountPolicyFactory->>UserStatusProvider: getFor(userId)\n  UserStatusProvider-->>DiscountPolicyFactory: UserStatus\n  DiscountPolicyFactory->>WeatherProvider: getCurrent()\n  WeatherProvider-->>DiscountPolicyFactory: Option<Weather>\n  DiscountPolicyFactory->>DiscountsConfigProvider: getDiscountsConfig()\n  DiscountsConfigProvider-->>DiscountPolicyFactory: DiscountConfig\n  DiscountPolicyFactory->>Conditions: build(userStatus, weather)\n  DiscountPolicyFactory->>DiscountConfig: getDiscountsForConditions(conditions)\n  DiscountConfig->>PotentialPrecipitationDiscount: isApplicableFor(conditions)\n  DiscountConfig-->>DiscountPolicyFactory: List<Discount>",
           "author": "agent"
         }
-      },
-      {
-        "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig"
       }
     ]
   },
@@ -807,22 +774,22 @@
         "to": "module|discounts.weather.openmeteo"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
         "to": "rule|discounts.weather.Weather snapshot carries precipitation in millimetres"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|discounts.calculation.PercentageDiscount.apply",
         "to": "rule|discounts.calculation.Percentage discount is an offer-level discount recorded as a discount amount"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|discounts.calculation.PercentageDiscount.apply",
         "to": "rule|discounts.calculation.Weather discounts stack with other discounts"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|discounts.weather.openmeteo.OpenMeteoWeatherProvider.getCurrent",
         "to": "rule|discounts.weather.openmeteo.Provider failure means unknown weather"
       },
@@ -837,12 +804,12 @@
         "to": "rule|discounts.weather.openmeteo.Provider failure means unknown weather"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
         "to": "rule|discounts.calculation.Precipitation above zero makes the precipitation discount applicable"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|discounts.calculation.PotentialPrecipitationDiscount.isApplicableFor",
         "to": "rule|discounts.calculation.Unknown weather never grants a weather discount"
       },
@@ -862,7 +829,7 @@
         "to": "rule|discounts.calculation.Precipitation above zero makes the precipitation discount applicable"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|discounts.calculation.DiscountPolicyFactory.get",
         "to": "rule|discounts.calculation.Weather is read once per policy resolution"
       },

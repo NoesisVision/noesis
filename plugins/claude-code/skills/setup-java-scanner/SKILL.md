@@ -334,7 +334,15 @@ All in `vision.noesis.annotations`. On a type:
 
 On a method of an application service: `@CommandHandler`, `@QueryHandler`,
 `@EventHandler`, which mark it as a behavior; a behavior has no type, so
-what it does is read from the messages it takes. Modules come from the package structure; the scanner does
-not read `@Module` on `package-info.java` yet.
+what it does is read from the messages it takes.
+
+`@Actor("<name>")` on a method, or on a type for all its behaviors, names
+who calls it, e.g. `@Actor("Quality manager")`; repeat it for several. Each
+name becomes an actor of the model; which manual process the actor performs
+and which behaviors that process invokes, a design document says. `@Actor`
+is in the annotations after 0.1.0.
+
+Modules come from the package structure; the scanner does not read
+`@Module` on `package-info.java` yet.
 `${CLAUDE_PLUGIN_ROOT}/skills/implement-java-spring/references/mapping.md`
 has the full rules for how code becomes the model.

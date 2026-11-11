@@ -27,7 +27,7 @@ Both are JSON Schema. Read them at step 6, not from memory.
 
 `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/modelling.md`:
 definitions, needs, modules, building block types (messages among them),
-use cases and actors,
+use cases, actors and manual processes,
 rules, scenarios. A revision follows it as a new design does. Read it at
 step 6.
 
@@ -103,7 +103,8 @@ step 6.
      `"*"` for any collection. An input's `position` counts from 1; adding,
      removing or moving one renumbers the inputs after it. A call's `order`
      (`behavior_invokes_behavior`) is its place among the behavior's calls,
-     counting from 1.
+     counting from 1, and a step's (`process_invokes_behavior`) its place
+     among the manual process's steps.
    - **Ids and names.** Ids spell the path (`building_block|sales.refunds.Refund`),
      so moving or renaming a module or a building block renames every
      element beneath it, and a name is always the last segment of its id.
@@ -120,10 +121,17 @@ step 6.
      dropped, a rule with its scenarios and relations. A new requirement is
      a new rule, of the kind that fits, governed by the behaviors that
      follow it, with at least one scenario. A removed or renamed behavior
-     takes its `governs` with it: a rule no behavior governs any more moves
-     to the behavior that now follows it, or is dropped. A scenario's
+     takes its `behavior_governs_rule` with it: a rule nothing governs any
+     more moves to the behavior that now follows it, or is dropped. A scenario's
      `when` calls the behavior that governs its rule; when that behavior
      changes, so does the step.
+   - **Actors and manual processes.** A behavior says nothing about who
+     calls it. When the revision changes what a person does by hand, it
+     changes the manual process (`manualProcesses`), its steps
+     (`process_invokes_behavior`) and who performs it (`performs`); a
+     removed or renamed behavior takes the steps that call it with it. A
+     rule the actor keeps by hand is governed by the process
+     (`process_governs_rule`).
    - **The description.** The design document's `description` says what
      the design covers and why, including why each element it modifies
      changes. Revise it to match.
@@ -172,8 +180,11 @@ step 6.
      the model is a removal of the old id and an addition of the new one.
 
    Rules and scenarios are lists of their own, `rules` and `scenarios`,
-   joined to behaviors and rules by `governs` and `illustrates` in
-   `relations`; every added rule has an added `governs` to it.
+   joined to behaviors and rules by `behavior_governs_rule` and
+   `illustrates` in `relations`; every added rule has an added
+   `behavior_governs_rule` or `process_governs_rule` to it. Actors and
+   manual processes are lists of their own too, `actors` and
+   `manualProcesses`, in no module.
 
    Write a field you change as `{ "value": … }`, without `author`: the
    service records it as the agent's. That holds for an accepted field the
@@ -216,9 +227,10 @@ step 6.
     list shows it, and ask before changing it.
   - _the design document states no such need_: add the need to `needs`, or
     take its id out of the rule's `needs`.
-  - _a rule enters the model only through a behavior that follows it_: add
-    a `governs` relation from that behavior to the rule, or drop a rule no
-    behavior follows.
+  - _a rule enters the model only through a behavior or a manual process
+    that follows it_: add a `behavior_governs_rule` relation from that
+    behavior, or a `process_governs_rule` from that process, to the rule,
+    or drop a rule nothing follows.
   - _the element its id places this one under has no relation to it_: add
     its `module_contains_module`, `module_contains_block` or `exposes` to
     `relations.added`.

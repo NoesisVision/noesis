@@ -260,10 +260,6 @@
       "id": "behavior|discounts.calculation.Discount.apply",
       "name": "apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "startLine": 9,
@@ -274,10 +270,6 @@
       "id": "behavior|discounts.calculation.DiscountCalculation.calculate",
       "name": "calculate",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountCalculation.java",
         "startLine": 16,
@@ -288,10 +280,6 @@
       "id": "behavior|discounts.calculation.DiscountsConfigProvider.getDiscountsConfig",
       "name": "getDiscountsConfig",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/DiscountsConfigProvider.java",
         "startLine": 10,
@@ -302,10 +290,6 @@
       "id": "behavior|discounts.calculation.ExclusiveOfferLevelDiscount.apply",
       "name": "apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "startLine": 43,
@@ -316,10 +300,6 @@
       "id": "behavior|discounts.calculation.FixedDiscount.apply",
       "name": "apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "startLine": 29,
@@ -330,10 +310,6 @@
       "id": "behavior|discounts.calculation.PotentialDiscount.getDiscount",
       "name": "getDiscount",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "startLine": 10,
@@ -344,10 +320,6 @@
       "id": "behavior|discounts.calculation.PotentialDiscount.isApplicableFor",
       "name": "isApplicableFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "startLine": 9,
@@ -358,10 +330,6 @@
       "id": "behavior|discounts.calculation.PotentialVipUserDiscount.getDiscount",
       "name": "getDiscount",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "startLine": 22,
@@ -372,10 +340,6 @@
       "id": "behavior|discounts.calculation.PotentialVipUserDiscount.isApplicableFor",
       "name": "isApplicableFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/PotentialDiscount.java",
         "startLine": 18,
@@ -386,10 +350,6 @@
       "id": "behavior|discounts.calculation.ProductDiscount.apply",
       "name": "apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/calculation/Discount.java",
         "startLine": 15,
@@ -400,10 +360,6 @@
       "id": "behavior|discounts.users.UserStatusProvider.getFor",
       "name": "getFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "app/src/main/java/com/itlibrium/discounts/users/UserStatusProvider.java",
         "startLine": 9,
@@ -413,6 +369,8 @@
   ],
   "rules": [],
   "scenarios": [],
+  "actors": [],
+  "manualProcesses": [],
   "relations": [
     {
       "kind": "behavior_invokes_behavior",

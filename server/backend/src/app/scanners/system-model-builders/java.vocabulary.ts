@@ -41,6 +41,8 @@ const ROLES = new Map<string, AnnotationRole>([
   [`${ANNOTATIONS}.CommandHandler`, { role: 'behavior' }],
   [`${ANNOTATIONS}.QueryHandler`, { role: 'behavior' }],
   [`${ANNOTATIONS}.EventHandler`, { role: 'behavior' }],
+  // Repeatable: two or more on one element come inside its `Actor.Actors` container.
+  [`${ANNOTATIONS}.Actor`, { role: 'actor' }],
   // `Module` is a package annotation: no namespace-wide annotations yet (section 12).
 ]);
 
@@ -130,8 +132,8 @@ const TECHNICAL_MEMBERS = new Set([
 export const JAVA_VOCABULARY: AnnotationVocabulary = {
   language: 'java',
   roles: ROLES,
-  // No Java annotation carries these arguments today; the names are what a future one would use.
-  arguments: { name: 'name', description: 'description' },
+  // No Java annotation carries a name or a description today; the names are what a future one would use.
+  arguments: { name: 'name', description: 'description', actor: 'value' },
   primitives: PRIMITIVES,
   collections: COLLECTIONS,
   dictionaries: DICTIONARIES,

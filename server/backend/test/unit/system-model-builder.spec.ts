@@ -162,6 +162,18 @@ const javaAnnotation = (short: string): Annotation => ({
   arguments: [],
 });
 
+/** Java's `@Actor("<name>")`: one string argument, named `value`. */
+const javaActor = (name: string): Annotation => ({
+  type: named('T:vision.noesis.annotations.Actor'),
+  arguments: [
+    {
+      name: 'value',
+      positional: true,
+      value: { kind: 'literal', text: JSON.stringify(name) },
+    },
+  ],
+});
+
 /* ----------------------------------------------------------- builder */
 
 interface TypeOptions {
@@ -1711,7 +1723,7 @@ describe('9. behaviors', () => {
     ]);
   });
 
-  it('R9.1 takes a method with a behavior annotation whatever its visibility or name, as a private behavior when not public', () => {
+  it('R9.1 takes a method with a behavior annotation whatever its visibility or name', () => {
     const { model } = buildFrom([
       sales()
         .method('M:Sales.Orders.Order#Audit()', {
@@ -1722,12 +1734,10 @@ describe('9. behaviors', () => {
           annotations: [behavior('Describe')],
         }),
     ]);
-    expect<unknown>(model.behaviors.map((b) => [b.name, b.visibility])).toEqual(
-      [
-        ['Audit', { kind: 'private' }],
-        ['Describe', { kind: 'public', actors: [] }],
-      ],
-    );
+    expect<unknown>(model.behaviors.map((b) => b.name)).toEqual([
+      'Audit',
+      'Describe',
+    ]);
   });
 
   it('R9.2 names a behavior by the annotation on the method, else on the member it implements or overrides, else the code', () => {
@@ -1844,7 +1854,7 @@ describe('9. behaviors', () => {
     ]);
   });
 
-  it('R9.5 collects the actors of the method, the members it implements and its type, sorted and unique', () => {
+  it('R9.5 makes an actor of each name on the method, the members it implements and its type, once, where it is first named, and nothing on the behavior', () => {
     const { model } = buildFrom([
       artifact('Sales')
         .type('T:Sales.IOrder', {
@@ -1861,11 +1871,96 @@ describe('9. behaviors', () => {
         })
         .method('M:Sales.Order#Cancel()'),
     ]);
-    expect<unknown>(model.behaviors.map((b) => b.visibility)).toEqual([
-      { kind: 'public', actors: ['Sales rep'] },
-      { kind: 'public', actors: ['Customer'] },
-      { kind: 'public', actors: ['Admin', 'Customer', 'Sales rep'] },
+    // Behaviors are taken in id order: `IOrder.Place` names the sales rep,
+    // `Order.Cancel` the customer through its type, `Order.Place` the admin.
+    const sourceOf = (id: string) =>
+      [...model.behaviors, ...model.buildingBlocks].find((e) => e.id === id)
+        ?.source;
+    expect<unknown>(model.actors).toEqual([
+      {
+        id: 'actor|Admin',
+        name: 'Admin',
+        description: null,
+        source: sourceOf('behavior|Sales.Order.Place'),
+      },
+      {
+        id: 'actor|Customer',
+        name: 'Customer',
+        description: null,
+        source: sourceOf('building_block|Sales.Order'),
+      },
+      {
+        id: 'actor|Sales rep',
+        name: 'Sales rep',
+        description: null,
+        source: sourceOf('behavior|Sales.IOrder.Place'),
+      },
     ]);
+    expect<unknown>(model.behaviors.every((b) => !('visibility' in b))).toBe(
+      true,
+    );
+    expect<unknown>(model.relations.map((r) => r.kind)).not.toContain(
+      'performs',
+    );
+    expect<unknown>(model.manualProcesses).toEqual([]);
+  });
+
+  it("R9.5 reads Java's @Actor by its value, repeated ones through their Actor.Actors container", () => {
+    const { model } = buildFrom(
+      [
+        artifact('shop')
+          .type('T:shop.Order', {
+            annotations: [javaAnnotation('AggregateRoot'), javaActor('Clerk')],
+          })
+          .method('M:shop.Order#place()', {
+            annotations: [
+              {
+                type: named('T:vision.noesis.annotations.Actor+Actors'),
+                arguments: [
+                  {
+                    name: 'value',
+                    positional: true,
+                    value: {
+                      kind: 'array',
+                      items: [
+                        {
+                          kind: 'annotation',
+                          annotation: javaActor('Customer'),
+                        },
+                        {
+                          kind: 'annotation',
+                          annotation: javaActor('Sales rep'),
+                        },
+                      ],
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+      ],
+      {},
+      JAVA_VOCABULARY,
+    );
+    expect<unknown>(model.actors.map((a) => a.id)).toEqual([
+      'actor|Clerk',
+      'actor|Customer',
+      'actor|Sales rep',
+    ]);
+  });
+
+  it('R9.5 drops an actor whose name is no element name, with a diagnostic', () => {
+    const { model, diagnostics } = buildFrom([
+      artifact('Sales')
+        .type('T:Sales.Order', { annotations: [aggregate()] })
+        .method('M:Sales.Order#Place()', {
+          annotations: [actor('Sales.rep'), actor('Customer')],
+        }),
+    ]);
+    expect<unknown>(model.actors.map((a) => a.name)).toEqual(['Customer']);
+    expect<unknown>(diagnostics.map((d) => d.message)).toContainEqual(
+      expect.stringContaining('the actor name "Sales.rep" is no element name'),
+    );
   });
 
   it("R9.6 gives each parameter a has_input at its position in the signature, counting from 1; 0..1 for a default or a nullable type, a collection '*' even with a default; what has no word is left out, its position with it", () => {
@@ -2058,10 +2153,10 @@ describe('10. order and determinism', () => {
       'behavior|Sales.Alpha.Zip',
       'behavior|Sales.Zed.Make',
     ]);
-    expect<unknown>(first.model.behaviors[1]?.visibility).toEqual({
-      kind: 'public',
-      actors: ['Adam', 'Zoe'],
-    });
+    expect<unknown>(first.model.actors.map((a) => a.id)).toEqual([
+      'actor|Adam',
+      'actor|Zoe',
+    ]);
     expect<unknown>(first.model.relations).toEqual(
       [...first.model.relations].sort(byRelation),
     );

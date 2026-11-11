@@ -31,8 +31,8 @@ Both are JSON Schema. Read them at step 6, not from memory.
 ## Modelling guidance
 
 `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/modelling.md`:
-definitions, needs, modules, building block types, use cases and actors,
-rules, scenarios. Read it at step 5.
+definitions, needs, modules, building block types, use cases, actors and
+manual processes, rules, scenarios. Read it at step 5.
 
 ## Steps
 
@@ -71,10 +71,13 @@ rules, scenarios. Read it at step 5.
    - **Modules.** Place the work in existing modules first. A new module
      only for a cohesive group of building blocks, under the module closest
      to it in meaning. A new root module needs the user's approval, always.
-   - **Use cases and actors.** Every action triggered from outside the
-     module by a command, event or query is a public behavior. Its actors
-     are the human personas that trigger it; reuse the actor names the
-     system model already uses, verbatim.
+   - **Actors and manual processes.** Every goal a person reaches by
+     driving the system is a manual process (`manualProcesses`): the work
+     they do by hand, whose `process_invokes_behavior` relations call the
+     system's behaviors in order. The actor who does it (`actors`)
+     `performs` it; reuse the actor names the system model already uses,
+     verbatim. The behaviors a process invokes are those of application
+     services. A behavior says nothing about who calls it.
    - **Building blocks and behaviors**, with each block's type (a
      message is a block of type `command`, `query` or `event`; a behavior
      has no type), the state of each block, the inputs and output of each behavior, and the calls
@@ -82,8 +85,11 @@ rules, scenarios. Read it at step 5.
      especially.
    - **Rules**, one per requirement statement, each with its kind, the
      needs it answers (none for a design decision) and, when a source gives
-     one, its rationale, and the behaviors that follow it (`governs`). A
-     quality or a constraint no behavior follows is no rule.
+     one, its rationale, and the behaviors that follow it
+     (`behavior_governs_rule`). A rule the actor keeps by hand, which no
+     behavior enforces for them, is governed by the manual process instead
+     (`process_governs_rule`). A quality or a constraint nothing follows is
+     no rule.
    - **Scenarios**, at least one per rule, each illustrating one rule
      (`illustrates`), as the Gherkin steps of given, when and then they
      become, the `when` calling the behavior that governs the rule. A
@@ -103,7 +109,7 @@ rules, scenarios. Read it at step 5.
 
 6. **Diff against the baseline.** Read both contracts now. A design has
    two halves: the elements (`modules`, `buildingBlocks`, `behaviors`,
-   `rules`, `scenarios`), each carrying only what is its own, and
+   `rules`, `scenarios`, `actors`, `manualProcesses`), each carrying only what is its own, and
    `relations`, one list beside them of every tie between two elements. For
    every element and every relation, ask whether the system model has it:
    - **Not in the model:** `added`, with every field given a value except
@@ -141,19 +147,24 @@ rules, scenarios. Read it at step 5.
      behavior has at most one.
    - `behavior_invokes_behavior`: a behavior calls another, with its
      `order` among the behavior's calls, counting from 1.
-   - `governs`: a behavior follows a rule. `illustrates`: a scenario is an
-     example of a rule, its id the rule's path and its own name.
+   - `behavior_governs_rule`: a behavior follows a rule.
+     `process_governs_rule`: a manual process keeps a rule by hand.
+     `illustrates`: a scenario is an example of a rule, its id the rule's
+     path and its own name.
+   - `performs`: an actor carries out a manual process.
+     `process_invokes_behavior`: a manual process calls a behavior, with
+     its `order` among the process's steps, counting from 1.
 
    The three `has_*` relations are slots: `to` is the building block or
    primitive the slot is typed by, never a collection, and `cardinality` how
    many values it holds: `"1"`, `"0..1"` when it may be absent (an optional
    parameter, a nullable value) or `"*"` for any collection, empty or not.
    A collection of collections is `"*"` of its innermost element. A slot's
-   `to`, `cardinality` and `position`, and a call's `order`, are fields,
+   `to`, `cardinality` and `position`, and a call's or a step's `order`, are fields,
    written `{ "value": … }`; its `kind`, `from` and `name` are not, nor is
    any part of another relation. A slot is known by its holder and name,
    so `modified` changes its type, cardinality or position in place; a call
-   by its two ends, so `modified` changes its order. Any other relation that
+   or a step by its two ends, so `modified` changes its order. Any other relation that
    changes is one removed and one added. `removed` names a relation by its
    key: `kind`, `from` and `to`, and a slot's `name` too, as the system
    model holds them.
@@ -163,9 +174,12 @@ rules, scenarios. Read it at step 5.
    `module_contains_block` from its module, `exposes` from its building
    block. Only a root module has none. When the design removes an element
    whose holder stays, it removes that relation too. Every added rule has an
-   added `governs` from a behavior that follows it, and every added scenario
-   an `illustrates` to the rule its id is under. Needs are only ever
-   `added`: no scan holds one, so there is nothing to modify or remove. A
+   added `behavior_governs_rule` from a behavior that follows it, or a
+   `process_governs_rule` from a manual process that does, and every added
+   scenario an `illustrates` to the rule its id is under. Actors and manual
+   processes belong to no module and need no containment. Needs are only
+   ever `added`: no scan holds one, so there is nothing to modify or
+   remove; nor are manual processes, which no scan finds. A
    rename of an element in the model is a removal of the old id and an
    addition of the new one, and every reference to the old id, in the
    relations too, moves to the new one.
@@ -180,13 +194,15 @@ rules, scenarios. Read it at step 5.
    read
    `${CLAUDE_PLUGIN_ROOT}/skills/create-design-doc/references/description.md`
    before writing it), `needs`, `modules`, `buildingBlocks`, `behaviors`,
-   `rules`, `scenarios` and `relations`. No `id`, no `implemented`. Write every field as
+   `rules`, `scenarios`, `actors`, `manualProcesses` and `relations`. No
+   `id`, no `implemented`. Write every field as
    `{ "value": … }` and never with `author`: you are the agent. Leave out a
    change set with nothing in it.
    Before saving, check that both ends of every relation name an element
    this design adds or modifies, one the system model has, or, for a slot's
    `to`, a primitive; that every element added under another has its
-   containment added; that every added rule has a `governs` and every added
+   containment added; that every added rule has a `behavior_governs_rule`
+   or a `process_governs_rule` and every added
    scenario an `illustrates` to the rule its id is under; that nothing refers to an id the design removes; that
    every input of a behavior has its own `position`; that every rule's `needs`
    names only needs the design adds, and that every `noesis:` link in
@@ -236,7 +252,8 @@ results.
   `building_block|sales.refunds.Refund`,
   `behavior|sales.refunds.Refund.issue`. A building block always sits in a
   module and a behavior in a building block; its `name` is the last
-  segment of its id.
+  segment of its id. An actor and a manual process belong to no module:
+  `actor|Support agent`, `manual_process|Refund a returned order`.
 - A rule's id is the path of the module of the behavior that governs it,
   then its name: `rule|sales.refunds.Refund never exceeds paid amount`. A
   scenario's is its rule's path, then its name:
@@ -268,9 +285,10 @@ results.
   - _write every field as the agent_: remove `author` from the field.
   - _the design document states no such need_: add the need to `needs`, or
     take its id out of the rule's `needs`.
-  - _a rule enters the model only through a behavior that follows it_: add
-    a `governs` relation from that behavior to the rule, or drop a rule no
-    behavior follows.
+  - _a rule enters the model only through a behavior or a manual process
+    that follows it_: add a `behavior_governs_rule` relation from that
+    behavior, or a `process_governs_rule` from that process, to the rule,
+    or drop a rule nothing follows.
   - _the element its id places this one under has no relation to it_: add
     its `module_contains_module`, `module_contains_block` or `exposes` to
     `relations.added`.

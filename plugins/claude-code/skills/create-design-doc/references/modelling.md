@@ -1,13 +1,15 @@
 # Modelling guidance
 
 How to turn source material into the elements of a design — modules,
-building blocks, behaviors, rules and scenarios — and the relations between
+building blocks, behaviors, rules, scenarios, actors and manual processes —
+and the relations between
 them. The design document contract says how to write them down; this says
 how to choose them.
 
 ## Definitions
 
-A module, a building block and a behavior each have a `definition`: what
+A module, a building block, a behavior, an actor and a manual process each
+have a `definition`: what
 the concept is, in the language of the domain, as an entry in the system's
 glossary. A sentence or two a reader who knows no code understands. It
 defines the concept, never the change to it and never how it is built, so
@@ -122,11 +124,13 @@ Decide what a table stands for before modelling its rows:
   and gives back: a behavior that takes a `command` changes state, one
   that takes a `query` reads it, one that takes an `event` reacts to
   something that happened.
-- A use case is a public behavior: an action triggered from outside its
-  module by a command, event or query. Group cohesive use cases as the
-  behaviors of one `application_service`; do not give every use case a
-  service of its own.
-- Everything else is private.
+- A use case is a behavior that drives its module: an action triggered
+  from outside it by a manual process, a command, an event or a query.
+  Group cohesive use cases as the behaviors of one `application_service`;
+  do not give every use case a service of its own.
+- A behavior says nothing about who may call it: the relations that end at
+  it do, a `process_invokes_behavior` from each manual process that calls
+  it and a `behavior_invokes_behavior` from each behavior.
 - Inputs and outputs are building blocks or primitives. Prefer the value
   object that gives a primitive its meaning (`Money`, not `decimal`) when
   the model has one.
@@ -173,15 +177,38 @@ Decide what a table stands for before modelling its rows:
   than its definition: the states of an entity (`stateDiagram-v2`), the
   collaborators of a module (`flowchart`).
 
-## Actors
+## Actors and manual processes
+
+Who drives the system is not said on a behavior. A person does some work by
+hand — a manual process — and that work calls the system's behaviors.
 
 - An actor is always a human persona or role: _Customer_, _Warehouse
-  operator_, _Approving manager_.
+  operator_, _Approving manager_. Its id is its name alone, in no module:
+  `actor|Warehouse operator`.
 - Never another system, another module, a scheduler or a technical layer.
-  A behavior such a trigger starts is public with no actors, reached by a
-  command or an event.
+  A behavior such a trigger starts is invoked by no manual process,
+  reached by a command or an event.
 - Reuse the actor names the system model already uses, verbatim. Introduce
   a new name only when no existing persona fits.
+- A manual process is one goal an actor reaches, named as the work, in no
+  module: `manual_process|Refund a returned order`. Author one for each
+  goal a person reaches by driving the system. Its
+  `process_invokes_behavior` relations are the behaviors it calls, `order`
+  counting from 1 in the order the actor calls them; a `performs` relation
+  joins each actor who does it. A process that calls a single behavior is
+  fine.
+- A process invokes the behaviors that drive the system: those of
+  application services, never an aggregate's or a repository's.
+- A rule the actor keeps by hand, which no behavior enforces for them
+  ("the agent checks the goods before refunding"), is governed by the
+  process: a `process_governs_rule` from the process to the rule.
+- No scan finds a manual process yet: a design adds every one it needs,
+  even one an earlier design added.
+
+```json
+{ "kind": "performs", "from": "actor|Support agent", "to": "manual_process|Refund a returned order" },
+{ "kind": "process_invokes_behavior", "from": "manual_process|Refund a returned order", "to": "behavior|sales.refunds.RefundService.issue", "order": { "value": 1 } }
+```
 
 ## Rules
 
@@ -252,9 +279,11 @@ the documents. Never force it into a kind.
 
 ### Which behavior governs a rule
 
-- Rules attach only to behaviors, never to a module or a building block. A
-  `governs` relation, from a behavior to the rule, joins a rule to each
-  behavior that follows it. An added rule needs at least one; the service
+- Rules attach only to behaviors and manual processes, never to a module or
+  a building block. A `behavior_governs_rule` relation, from a behavior to
+  the rule, joins a rule to each behavior that follows it; a
+  `process_governs_rule`, from a manual process, to each process that keeps
+  it by hand. An added rule needs at least one of either; the service
   refuses one without (`ungovernedRule`).
 - The behavior that governs a rule is the one a scenario's `when` calls to
   see the rule hold: the behavior that refuses the input, makes the
@@ -339,7 +368,7 @@ only", which `behavior|billing.subscriptions.Subscription.cancel` governs:
 with its relations:
 
 ```json
-{ "kind": "governs", "from": "behavior|billing.subscriptions.Subscription.cancel", "to": "rule|billing.subscriptions.Cancellation after the minimum period only" },
+{ "kind": "behavior_governs_rule", "from": "behavior|billing.subscriptions.Subscription.cancel", "to": "rule|billing.subscriptions.Cancellation after the minimum period only" },
 { "kind": "illustrates", "from": "scenario|billing.subscriptions.Cancellation after the minimum period only.Cancelling within the minimum period", "to": "rule|billing.subscriptions.Cancellation after the minimum period only" }
 ```
 

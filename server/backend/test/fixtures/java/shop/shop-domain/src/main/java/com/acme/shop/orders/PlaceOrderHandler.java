@@ -1,6 +1,7 @@
 package com.acme.shop.orders;
 
 import com.acme.shop.pricing.PricingService;
+import vision.noesis.annotations.Actor;
 import vision.noesis.annotations.ApplicationService;
 import vision.noesis.annotations.CommandHandler;
 
@@ -17,6 +18,8 @@ public class PlaceOrderHandler {
     }
 
     @CommandHandler
+    @Actor("Customer")
+    @Actor("Sales rep")
     public void handle(PlaceOrder command) {
         Order order = repository.getBy(command.orderId());
         order.placeOrder();

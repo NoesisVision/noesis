@@ -309,8 +309,8 @@ public interface IdentityProvider {
 
 ## Application services
 
-The entry point of the use cases: a public behavior with actors, or one an
-event triggers. Orchestration only, no business rules.
+The entry point of the use cases: a behavior a manual process of the
+design document invokes, or one an event triggers. Orchestration only, no business rules.
 
 1. One class per `application_service` building block, one public method
    per behavior, named as the design document names them. Each carries
@@ -356,12 +356,11 @@ public class QDocCreationService {
     /**
      * Creates a QDoc on a quality manager's request.
      *
-     * <p>Actors: Quality manager.
-     *
      * @param command the creation request
      * @return the identity of the created QDoc
      */
     @CommandHandler
+    @Actor("Quality manager")
     @Transactional
     public QDocId createQDoc(CreateQDoc command) {
         if (!identities.isQualityManager(command.requestedBy())) {

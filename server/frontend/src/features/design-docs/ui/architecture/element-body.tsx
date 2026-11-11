@@ -26,7 +26,10 @@ export function ElementBody({
   /** The model's own tree, which the body sections read through. */
   modelTree: OutlineTree;
 }) {
-  const node = modelTree.byPath.get(id);
+  // A manual process is a row under each actor that performs it.
+  const node =
+    modelTree.byPath.get(id) ??
+    modelTree.nodes.find(({ elementId }) => elementId === id);
   if (node === undefined) return null;
   const scenarios = scenariosOf(node, doc);
   return (

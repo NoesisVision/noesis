@@ -152,8 +152,8 @@ export const changedEverywhereFixture = {
   },
   relations: {
     added: [
-      { kind: 'governs', from: ISSUE, to: NOT_EXCEEDING },
-      { kind: 'governs', from: ISSUE, to: PAID_ONLY },
+      { kind: 'behavior_governs_rule', from: ISSUE, to: NOT_EXCEEDING },
+      { kind: 'behavior_governs_rule', from: ISSUE, to: PAID_ONLY },
       { kind: 'illustrates', from: MORE_THAN_PAID, to: NOT_EXCEEDING },
       { kind: 'illustrates', from: ONE_LINE, to: NOT_EXCEEDING },
       {

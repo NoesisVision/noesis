@@ -243,7 +243,7 @@ const parts: DesignDocumentInput = {
         to: { value: 'primitive|decimal' },
         cardinality: { value: '1' },
       },
-      { kind: 'governs', from: SETTLE, to: RULE },
+      { kind: 'behavior_governs_rule', from: SETTLE, to: RULE },
       { kind: 'illustrates', from: SCENARIO, to: RULE },
     ],
     modified: [
@@ -398,7 +398,7 @@ describe('a new rule', () => {
   it('is governed by the behavior it is added under', () => {
     const next = applyEdit(parts, newRuleOf(parts, settle));
     expect(next.relations?.added).toContainEqual({
-      kind: 'governs',
+      kind: 'behavior_governs_rule',
       from: SETTLE,
       to: 'rule|pay.New rule',
     });

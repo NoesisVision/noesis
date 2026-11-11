@@ -47,7 +47,7 @@ with an annotation goes through a role, so Java's
 | --------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `buildingBlock` | The type is a building block of the given `BuildingBlockType`; `name` overrides its name | `DddAggregate` → aggregate, `DddEntity` → entity, `DddValueObject` → value_object, `DddDomainService` → domain_service, `DddApplicationService` → application_service, `DddRepository` → repository, `DddFactory` → factory, `ExternalSystemIntegration` → external_integration; the messages `Command` → command, `Query` → query, `Event` and `DddDomainEvent` → event; `ReadModel` → value_object |
 | `behavior`      | The method is a behavior; `name` overrides its name                                      | `DomainBehavior`, `EntryPoint` (its `TriggeredBy` is not read: a behavior has no type)                                                                                                                                                                                                                                                                                                               |
-| `actor`         | Who calls: `name` goes to the behavior's `visibility.actors`                             | `Actor`                                                                                                                                                                                                                                                                                                                                                                                              |
+| `actor`         | Who drives the system: `name` becomes an `actors` element (R9.5)                         | `Actor`                                                                                                                                                                                                                                                                                                                                                                                              |
 | `description`   | The element's description, Markdown                                                      | `ShortDescription` (`markdownText`)                                                                                                                                                                                                                                                                                                                                                                  |
 | `exclude`       | The element is not in the system model (section 3)                                       | `ExcludeFromDocs`                                                                                                                                                                                                                                                                                                                                                                                    |
 | ignored         | Read for nothing in this iteration                                                       | `DomainModel`, `NotDomainModel`, `DomainModule`, `DddBoundedContext`, `SkipNamespaceInDomainModulesHierarchy` (section 12: no namespace-wide annotations yet), `DomainObject` alone, `CoreConcept`, `Exemplary`, `PublicContract`, `ExternalContract`, `Process`, everything under `People` except `Actor`, everything under `Technology`                                                            |
@@ -62,8 +62,10 @@ The Java vocabulary (`vision.noesis.annotations`, in
 `ExternalIntegration` and `Adapter` → external_integration, the messages
 `Command` → command, `Query` → query, `Event` → event; `CommandHandler`,
 `QueryHandler` and `EventHandler` are plain `behavior` roles, which carry
-no argument. No Java annotation has a
-description, actor or exclude role yet, and `Module` is a
+no argument. `Actor` is the `actor` role, its name the `value` argument,
+repeatable (two or more on one element come in its `Actor.Actors`
+container). No Java annotation has a description or exclude role yet, and
+`Module` is a
 package annotation (decision 13). Primitives are the eight keywords and the
 `java.lang` boxes, `String`, `BigDecimal`, `UUID` and the `java.time` types;
 collections are the `java.util` collection interfaces and classes and
@@ -305,10 +307,15 @@ projects is one module.
 - **R9.4 Type.** Removed: a behavior has no type; what it does is read
   from the `command`, `query` and `event` blocks it takes and gives back
   (`docs/plans/message-blocks.md`).
-- **R9.5 Visibility.** `public` with its actors when the node is `public`,
-  else `private` (a `behavior` role on a non-public method). Actors: the
-  `actor` roles on the method, on the members it overrides or implements,
-  and on the containing type, as names, sorted and unique.
+- **R9.5 Actors.** A behavior says nothing of who may call it, and one a
+  `behavior` role makes of a non-public method has nothing on it to say
+  so. The `actor` roles on the method, on the members it overrides or
+  implements, and on the containing type each name an `actors` element,
+  `actor|<name>`, one per distinct name, its `source` where the name is
+  first seen, behaviors taken in id order; no relation joins it to the
+  behavior. A name that is no `ElementName` is dropped with a diagnostic.
+  Manual processes are never scanned: a design document authors them, and
+  `manualProcesses` is empty. Was the behavior's `visibility`; section 15.
 - **R9.6 Input.** One `has_input` relation from the behavior per parameter
   of the chosen overload whose type resolves (section 7): `name`, `to`,
   `cardinality` by R5.4, `0..1` too when the parameter is `optional` (has
@@ -333,9 +340,9 @@ projects is one module.
 
 ## 10. Order, determinism, diagnostics
 
-- **R10.1** `modules`, `buildingBlocks`, `behaviors`, `rules` and
-  `scenarios` are sorted by id
-  (code unit order), `actors` by name. `relations` are sorted by kind,
+- **R10.1** `modules`, `buildingBlocks`, `behaviors`, `rules`,
+  `scenarios` and `actors` are sorted by id
+  (code unit order). `relations` are sorted by kind,
   holder (`from`), `position`, target (`to`), `name`, then `order`, so a
   signature reads in its order. Two builds from one code model give one
   output.
@@ -467,15 +474,31 @@ Rules and scenarios stopped being values nested in modules, building blocks
 and behaviors (step 2 of `new-system-model.md` on the
 `feat/system-model-relations` branch). What changed, in short:
 
-| Was                                                           | Is                                                                                 |
-| ------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `rules` on modules, blocks, behaviors, `category`, `ruleType` | a `rules` list of its own, `kind` the one classification, `governs` from behaviors |
-| `scenarios` on blocks, behaviors, rules, from `[Scenario]`    | a `scenarios` list of its own, `illustrates` to their rule                         |
-| the `scenario` role                                           | no role                                                                            |
+| Was                                                           | Is                                                                                               |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `rules` on modules, blocks, behaviors, `category`, `ruleType` | a `rules` list of its own, `kind` the one classification, `behavior_governs_rule` from behaviors |
+| `scenarios` on blocks, behaviors, rules, from `[Scenario]`    | a `scenarios` list of its own, `illustrates` to their rule                                       |
+| the `scenario` role                                           | no role                                                                                          |
 
 **R12 Rules and scenarios are not built yet.** The builder leaves `rules`
-and `scenarios` empty and adds no `governs` or `illustrates`. The system
+and `scenarios` empty and adds no `behavior_governs_rule` or `illustrates`. The system
 model is a projection of the code model alone: the scan reads no file on
 the side. Rules and scenarios will come from feature files once a parser
 reads them into the code model; `rules-and-scenarios-from-feature-files.md`
 keeps the design of reading and binding them.
+
+## 15. Actors and manual processes (November 2026)
+
+A behavior no longer says who may call it
+(`docs/plans/actors-and-manual-processes.md`). An actor and a manual
+process are elements of their own: an actor `performs` a manual process,
+which invokes behaviors in order. What changed, in short:
+
+| Was                                                 | Is                                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------------- |
+| `ScannedBehavior.visibility`, `public` or `private` | gone, from the design document too                                  |
+| actors as names in `visibility.actors`              | an `actors` list of its own, one element per name (R9.5)            |
+| nothing                                             | a `manualProcesses` list, never scanned yet: a design authors it    |
+| nothing                                             | `performs` (actor to process), `process_invokes_behavior` (`order`) |
+| `governs` from a behavior                           | `behavior_governs_rule`, and `process_governs_rule` from a process  |
+| Java: an "Actors:" line in a Javadoc                | `@Actor("<name>")`, repeatable                                      |

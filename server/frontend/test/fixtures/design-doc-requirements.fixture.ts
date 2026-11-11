@@ -122,16 +122,20 @@ export const requirementsFixture = {
   },
   relations: {
     added: [
-      { kind: 'governs', from: ISSUE, to: NOT_EXCEEDING },
-      { kind: 'governs', from: ISSUE, to: PAID_ONLY },
+      { kind: 'behavior_governs_rule', from: ISSUE, to: NOT_EXCEEDING },
+      { kind: 'behavior_governs_rule', from: ISSUE, to: PAID_ONLY },
       {
-        kind: 'governs',
+        kind: 'behavior_governs_rule',
         from: 'behavior|sales.orders.Order.total',
         to: COUNTS_REFUNDS,
       },
     ],
     removed: [
-      { kind: 'governs', from: 'behavior|sales.orders.Order.pay', to: FINAL },
+      {
+        kind: 'behavior_governs_rule',
+        from: 'behavior|sales.orders.Order.pay',
+        to: FINAL,
+      },
     ],
   },
 } satisfies DesignDocumentInput;

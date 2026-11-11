@@ -9,8 +9,9 @@ import { moduleOf, nameOf, parentOf } from './element-id.ts';
 
 /*
  * Where a design's rules and scenarios are read. A rule is an element of its
- * own, attached to the behaviors that follow it by `governs` relations; it
- * is shown under each of them. A rule the design names no behavior for — one
+ * own, attached to the behaviors that follow it by `behavior_governs_rule`
+ * relations and to the manual processes that keep it by hand by
+ * `process_governs_rule` relations; it is shown under each of them. A rule the design names no behavior for — one
  * the model has, whose governors the design leaves alone — is shown under
  * the module its id names. A scenario is shown under the rule its id names.
  */
@@ -18,7 +19,7 @@ import { moduleOf, nameOf, parentOf } from './element-id.ts';
 export type RuleSet = ChangeSetInput<DesignedRuleInput, string>;
 export type ScenarioSet = ChangeSetInput<DesignedScenarioInput, string>;
 
-/** The behaviors the design says follow a rule, in the order it writes them. */
+/** The behaviors and manual processes the design says follow a rule, in the order it writes them. */
 export function governorsOf(
   doc: DesignDocumentInput,
   ruleId: string,
@@ -28,7 +29,9 @@ export function governorsOf(
     ...(relations?.added ?? []),
     ...(relations?.removed ?? []),
   ].flatMap((relation) =>
-    relation.kind === 'governs' && relation.to === ruleId
+    (relation.kind === 'behavior_governs_rule' ||
+      relation.kind === 'process_governs_rule') &&
+    relation.to === ruleId
       ? [relation.from]
       : [],
   );

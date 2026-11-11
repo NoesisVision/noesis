@@ -9,7 +9,8 @@ import {
  * the specs rely on: an element added, modified and removed at every level,
  * rules and scenarios added, modified and removed, a relation of each kind,
  * named slots added, modified and removed, unchanged fields and changed
- * fields of both authors, every cardinality, a public behavior.
+ * fields of both authors, every cardinality, an actor performing a manual
+ * process that invokes a behavior and keeps a rule by hand.
  */
 
 const byHuman = <const T>(value: T) => ({
@@ -38,6 +39,8 @@ const NOT_EXCEEDING = 'rule|sales.refunds.Refund never exceeds paid amount';
 const PAID_ONLY = 'rule|sales.refunds.Only paid orders are refundable';
 const ONE_LINE = `scenario|sales.refunds.Refund never exceeds paid amount.Refunding one line of a paid order`;
 const STAYS_CANCELLED = 'rule|sales.orders.Cancelled orders stay cancelled';
+const SUPPORT_AGENT = 'actor|Support agent';
+const REFUND_A_RETURN = 'manual_process|Refund a returned order';
 
 /** The root module, which gains the refunds module: added in a green field, modified once scanned. */
 const salesRoot = {
@@ -86,9 +89,17 @@ const relationsWithinTheDesign = [
     to: byAgent(REFUND_ISSUED),
     cardinality: byAgent('1'),
   },
-  { kind: 'governs', from: ISSUE, to: NOT_EXCEEDING },
-  { kind: 'governs', from: ISSUE, to: PAID_ONLY },
+  { kind: 'behavior_governs_rule', from: ISSUE, to: NOT_EXCEEDING },
+  { kind: 'behavior_governs_rule', from: ISSUE, to: PAID_ONLY },
   { kind: 'illustrates', from: ONE_LINE, to: NOT_EXCEEDING },
+  { kind: 'performs', from: SUPPORT_AGENT, to: REFUND_A_RETURN },
+  {
+    kind: 'process_invokes_behavior',
+    from: REFUND_A_RETURN,
+    to: ISSUE,
+    order: byAgent(1),
+  },
+  { kind: 'process_governs_rule', from: REFUND_A_RETURN, to: PAID_ONLY },
 ] as const;
 
 /** The relations the design adds that reach elements the model has. */
@@ -217,7 +228,6 @@ export const designDocFixture = {
         diagram: byAgent(
           'sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund-->>Support agent: RefundIssued',
         ),
-        visibility: byHuman({ kind: 'public', actors: ['Support agent'] }),
       },
     ],
     removed: ['behavior|sales.credit-notes.CreditNote.issue'],
@@ -227,7 +237,6 @@ export const designDocFixture = {
         name: unchanged,
         definition: unchanged,
         diagram: unchanged,
-        visibility: byAgent({ kind: 'private' }),
       },
     ],
   },
@@ -284,11 +293,35 @@ export const designDocFixture = {
     ],
     modified: [],
   },
+  actors: {
+    added: [
+      {
+        id: SUPPORT_AGENT,
+        name: byAgent('Support agent'),
+        definition: byHuman('Answers customers who return goods.'),
+      },
+    ],
+    removed: ['actor|Clerk'],
+    modified: [],
+  },
+  manualProcesses: {
+    added: [
+      {
+        id: REFUND_A_RETURN,
+        name: byAgent('Refund a returned order'),
+        definition: byAgent(
+          'The support agent checks the returned lines and refunds them.',
+        ),
+      },
+    ],
+    removed: [],
+    modified: [],
+  },
   relations: {
     added: [...relationsWithinTheDesign, ...relationsToTheModel],
     removed: [
       {
-        kind: 'governs',
+        kind: 'behavior_governs_rule',
         from: 'behavior|sales.credit-notes.CreditNote.issue',
         to: 'rule|sales.credit-notes.Credit notes are numbered',
       },
@@ -355,6 +388,8 @@ export const greenFieldDesignDocFixture: DesignDocumentInput = {
   behaviors: { added: byAgentOnly.behaviors.added },
   rules: { added: byAgentOnly.rules.added },
   scenarios: { added: byAgentOnly.scenarios.added },
+  actors: { added: byAgentOnly.actors.added },
+  manualProcesses: { added: byAgentOnly.manualProcesses.added },
   relations: {
     added: [...byAgentOnly.relations.added].slice(
       0,
@@ -375,6 +410,8 @@ export const humanEditedDesignDocFixture: DesignDocumentInput = {
   behaviors: { added: designDocFixture.behaviors.added },
   rules: { added: designDocFixture.rules.added },
   scenarios: { added: designDocFixture.scenarios.added },
+  actors: { added: designDocFixture.actors.added },
+  manualProcesses: { added: designDocFixture.manualProcesses.added },
   relations: { added: [...relationsWithinTheDesign] },
 };
 

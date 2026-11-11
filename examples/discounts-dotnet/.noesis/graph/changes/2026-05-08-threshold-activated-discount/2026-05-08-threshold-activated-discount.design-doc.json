@@ -162,13 +162,6 @@
         "definition": {
           "value": "Gives a price the threshold discount: reduced by the percentage when the price is above the threshold, unchanged otherwise.",
           "author": "agent"
-        },
-        "visibility": {
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -184,13 +177,6 @@
         "diagram": {
           "value": "sequenceDiagram\n    participant Caller\n    participant Discount\n    participant ThresholdDiscount\n    participant Percentage\n    Caller->>Discount: Threshold(value, threshold)\n    Discount->>ThresholdDiscount: Of(value, threshold)\n    ThresholdDiscount->>Percentage: validate value (range [0%, 100%])\n    Percentage-->>ThresholdDiscount: ok / domain error\n    ThresholdDiscount->>ThresholdDiscount: assert threshold > 0\n    ThresholdDiscount-->>Discount: ThresholdDiscount instance\n    Discount->>Discount: assemble Discount{ discriminator = Threshold, _thresholdDiscount = instance }\n    Discount-->>Caller: Discount",
           "author": "agent"
-        },
-        "visibility": {
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       }
     ],
@@ -203,9 +189,6 @@
         "definition": {
           "value": "Reduces a price by the discount's percentage.",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": false
         }
       },
       {
@@ -216,9 +199,6 @@
         "definition": {
           "value": "Takes the discount's amount off a price, never going below zero.",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": false
         }
       },
       {
@@ -229,9 +209,6 @@
         "definition": {
           "value": "Makes a `Discount` that reduces prices by a given percentage.",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": false
         }
       },
       {
@@ -242,9 +219,6 @@
         "definition": {
           "value": "Makes a `Discount` that takes a fixed amount of money off prices.",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": false
         }
       },
       {
@@ -259,9 +233,6 @@
         "diagram": {
           "value": "sequenceDiagram\n    participant Caller\n    participant Discount\n    participant Variant as Active variant<br/>(PercentageDiscount /<br/>ValueDiscount /<br/>ThresholdDiscount)\n    Caller->>Discount: ApplyOn(price)\n    Discount->>Discount: inspect discriminator\n    Discount->>Variant: ApplyOn(price)\n    Variant-->>Discount: modified Money\n    Discount-->>Caller: Money",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": false
         }
       }
     ]
@@ -1220,12 +1191,12 @@
         "to": "building_block|Sales.Pricing.Discounts.ThresholdDiscount"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|Sales.Pricing.Discounts.ThresholdDiscount.ApplyOn",
         "to": "rule|Sales.Pricing.Discounts.ThresholdDiscountIsOnlyConstructibleWhenInputsAreValid"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|Sales.Pricing.Discounts.ThresholdDiscount.ApplyOn",
         "to": "rule|Sales.Pricing.Discounts.DiscountActivatesOnlyAboveThreshold"
       },
@@ -1265,17 +1236,17 @@
         "to": "rule|Sales.Pricing.Discounts.ThresholdDiscountIsOnlyConstructibleWhenInputsAreValid"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|Sales.Pricing.Discounts.Discount.Threshold",
         "to": "rule|Sales.Pricing.Discounts.DiscountUnionDispatchIsExhaustiveAcrossThreeVariants"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|Sales.Pricing.Discounts.Discount.Threshold",
         "to": "rule|Sales.Pricing.Discounts.ExistingDiscountFactorySignaturesAreStable"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|Sales.Pricing.Discounts.Discount.Threshold",
         "to": "rule|Sales.Pricing.Discounts.A Discount always holds exactly one valid discount"
       },
@@ -1310,7 +1281,7 @@
         "to": "rule|Sales.Pricing.Discounts.DiscountUnionDispatchIsExhaustiveAcrossThreeVariants"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
         "to": "rule|Sales.Pricing.Discounts.Percentage discount takes its percentage off the price"
       },
@@ -1330,7 +1301,7 @@
         "to": "rule|Sales.Pricing.Discounts.Percentage discount takes its percentage off the price"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
         "to": "rule|Sales.Pricing.Discounts.Value discount never takes a price below zero"
       },

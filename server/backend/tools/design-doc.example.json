@@ -103,27 +103,11 @@
         },
         "diagram": {
           "value": "sequenceDiagram\n  Support agent->>Refund: issue(orderId, lines)\n  Refund->>RefundRepository: save(refund)\n  Refund-->>Support agent: RefundIssued"
-        },
-        "visibility": {
-          "value": {
-            "kind": "public",
-            "actors": ["Support agent"]
-          },
-          "author": "human"
         }
       }
     ],
     "removed": ["behavior|sales.credit-notes.CreditNote.issue"],
-    "modified": [
-      {
-        "id": "behavior|sales.orders.Order.cancel",
-        "visibility": {
-          "value": {
-            "kind": "private"
-          }
-        }
-      }
-    ]
+    "modified": []
   },
   "rules": {
     "added": [
@@ -189,6 +173,33 @@
             }
           ],
           "author": "agent"
+        }
+      }
+    ]
+  },
+  "actors": {
+    "added": [
+      {
+        "id": "actor|Support agent",
+        "name": {
+          "value": "Support agent"
+        },
+        "definition": {
+          "value": "Answers customers by phone and email, and refunds what they return.",
+          "author": "human"
+        }
+      }
+    ]
+  },
+  "manualProcesses": {
+    "added": [
+      {
+        "id": "manual_process|Refund a returned order",
+        "name": {
+          "value": "Refund a returned order"
+        },
+        "definition": {
+          "value": "The support agent checks the lines the customer sent back and refunds them."
         }
       }
     ]
@@ -335,12 +346,12 @@
         "to": "module|sales.refunds"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|sales.refunds.Refund.issue",
         "to": "rule|sales.refunds.Refund never exceeds paid amount"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|sales.refunds.Refund.issue",
         "to": "rule|sales.refunds.Only paid orders are refundable"
       },
@@ -348,6 +359,19 @@
         "kind": "illustrates",
         "from": "scenario|sales.refunds.Refund never exceeds paid amount.Refunding one line of a paid order",
         "to": "rule|sales.refunds.Refund never exceeds paid amount"
+      },
+      {
+        "kind": "performs",
+        "from": "actor|Support agent",
+        "to": "manual_process|Refund a returned order"
+      },
+      {
+        "kind": "process_invokes_behavior",
+        "from": "manual_process|Refund a returned order",
+        "to": "behavior|sales.refunds.Refund.issue",
+        "order": {
+          "value": 1
+        }
       }
     ],
     "removed": [

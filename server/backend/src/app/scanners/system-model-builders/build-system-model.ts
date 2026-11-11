@@ -1,5 +1,6 @@
 import { posix } from 'node:path';
 import {
+  ActorId,
   BehaviorId,
   BuildingBlockId,
   ElementName,
@@ -8,6 +9,7 @@ import {
 import {
   OUTPUT_NAME,
   type Relation,
+  type ScannedActor,
   type ScannedBehavior,
   type ScannedBuildingBlock,
   type ScannedDomainModule,
@@ -27,7 +29,7 @@ import type {
   TypeNode,
   TypeRef,
 } from '../code-parsers/code-model';
-import { hasRole, rolesOf, stringArgument } from './annotations';
+import { hasRole, rolesOf, stringArgument, withRepeated } from './annotations';
 import {
   CodeModelIndex,
   type GlobalId,
@@ -75,6 +77,8 @@ type BuiltModel = Pick<
   | 'behaviors'
   | 'rules'
   | 'scenarios'
+  | 'actors'
+  | 'manualProcesses'
   | 'relations'
 >;
 
@@ -123,6 +127,8 @@ class ModelAssembly {
   private readonly relations: Relation[] = [];
   private readonly blocks = new Map<GlobalId, Block>();
   private readonly behaviors = new Map<BehaviorId, Behavior>();
+  /** R9.5: each actor a behavior names, where it is first named. */
+  private readonly actors = new Map<ActorId, ScannedActor>();
   /** Every overload's behavior, by the method's global id. */
   private readonly behaviorOfMethod = new Map<GlobalId, BehaviorId>();
   private readonly memberBehaviors = new Map<GlobalId, Set<BehaviorId>>();
@@ -145,12 +151,16 @@ class ModelAssembly {
       buildingBlocks: [...this.blocks.values()]
         .map((block) => this.toBuildingBlock(block))
         .sort(byId),
+      // In id order, so an actor's source is where the first behavior names it.
       behaviors: [...this.behaviors.values()]
-        .map((behavior) => this.toBehavior(behavior))
-        .sort(byId),
+        .sort(byId)
+        .map((behavior) => this.toBehavior(behavior)),
       // Rules and scenarios come from feature files, which no parser reads yet.
       rules: [],
       scenarios: [],
+      actors: [...this.actors.values()].sort(byId),
+      // A design document authors a manual process; no scan finds one.
+      manualProcesses: [],
       relations: this.relations.sort(byRelation),
     };
     return { model, diagnostics: this.diagnostics };
@@ -557,7 +567,7 @@ class ModelAssembly {
   /** The behavior's element, and its `exposes`, `has_input` and `has_output` relations. */
   private toBehavior(behavior: Behavior): ScannedBehavior {
     const { chosen, block } = behavior;
-    const hierarchy = this.memberHierarchy(chosen);
+    this.collectActors(this.memberHierarchy(chosen), block.node);
     // R9.3: a block exposes each of its behaviors.
     this.relations.push({ kind: 'exposes', from: block.id, to: behavior.id });
     this.collectSignature(behavior);
@@ -570,10 +580,6 @@ class ModelAssembly {
           .map((overload) => this.descriptionOf(overload.node))
           .find((text) => text !== null) ??
         null,
-      visibility:
-        chosen.node.visibility === 'public'
-          ? { kind: 'public', actors: this.actorsOf(hierarchy, block.node) }
-          : { kind: 'private' },
       source: locationOf(chosen.node),
     };
   }
@@ -619,26 +625,43 @@ class ModelAssembly {
     }
   }
 
-  /** R9.5: the actor roles on the method, the members it stands in for, and its type. */
-  private actorsOf(
+  /**
+   * R9.5: one actor per name the actor roles on the method, the members it
+   * stands in for, and its type give, found where the name is first seen.
+   */
+  private collectActors(
     hierarchy: readonly Located<MethodNode>[],
     type: TypeNode,
-  ): string[] {
-    const annotations = [
-      ...hierarchy.map((m) => m.node.annotations),
-      type.annotations,
-    ].flat();
-    return sortedUnique(
-      rolesOf(annotations, 'actor', this.vocabulary).flatMap(
-        ({ annotation }) => {
-          const name = stringArgument(
-            annotation,
-            this.vocabulary.arguments.name,
+  ): void {
+    for (const node of [...hierarchy.map((method) => method.node), type]) {
+      for (const { annotation } of rolesOf(
+        withRepeated(node.annotations),
+        'actor',
+        this.vocabulary,
+      )) {
+        const name = stringArgument(
+          annotation,
+          this.vocabulary.arguments.actor,
+        );
+        if (name === null) continue;
+        const parsed = ElementName.safeParse(name);
+        if (!parsed.success) {
+          this.info(
+            `${node.id}: the actor name "${name}" is no element name; dropped`,
+            node,
           );
-          return name === null ? [] : [name];
-        },
-      ),
-    );
+          continue;
+        }
+        const id = ActorId.of(parsed.data);
+        if (this.actors.has(id)) continue;
+        this.actors.set(id, {
+          id,
+          name: parsed.data,
+          description: null,
+          source: locationOf(node),
+        });
+      }
+    }
   }
 
   /* ------------------------------------------------------- invocations */

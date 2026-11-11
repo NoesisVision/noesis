@@ -71,6 +71,7 @@ function relation(found: Relation): DesignedRelation {
         position: field(found.position),
       };
     case 'behavior_invokes_behavior':
+    case 'process_invokes_behavior':
       return { ...found, order: field(found.order) };
     default:
       return found;
@@ -107,11 +108,24 @@ export function designOf(model: SystemModel): DesignDocument {
         name: field(behavior.name),
         definition: optional(behavior.description),
         diagram: UNSET,
-        visibility: field(behavior.visibility),
       })),
     ),
     rules: rules(model.rules),
     scenarios: scenarios(model.scenarios),
+    actors: added(
+      model.actors.map((actor) => ({
+        id: actor.id,
+        name: field(actor.name),
+        definition: optional(actor.description),
+      })),
+    ),
+    manualProcesses: added(
+      model.manualProcesses.map((process) => ({
+        id: process.id,
+        name: field(process.name),
+        definition: optional(process.description),
+      })),
+    ),
     relations: added(model.relations.map(relation)),
     implemented: true,
     implementedAt: model.scanned_at,

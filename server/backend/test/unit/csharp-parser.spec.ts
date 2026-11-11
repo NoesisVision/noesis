@@ -207,52 +207,25 @@ describe('Scanning through the C# parser', () => {
     expect<unknown>(
       model.behaviors
         .filter((b) => b.id.startsWith('behavior|Projection.Behaviors.'))
-        .map((b) => [
-          b.id,
-          b.visibility,
-          inputOf(model, b.id),
-          outputOf(model, b.id),
-        ]),
+        .map((b) => [b.id, inputOf(model, b.id), outputOf(model, b.id)]),
     ).toEqual([
-      [
-        form('ArrayOutput'),
-        { kind: 'public', actors: [] },
-        [],
-        [[block('ValueObjectBlock'), '*']],
-      ],
-      [
-        form('CollectionOutput'),
-        { kind: 'public', actors: [] },
-        [],
-        [[block('ValueObjectBlock'), '*']],
-      ],
-      [form('EntryPointCommand'), { kind: 'public', actors: [] }, [], []],
-      [
-        form('EntryPointQuery'),
-        { kind: 'public', actors: [] },
-        [],
-        [[block('ValueObjectBlock'), '1']],
-      ],
-      [form('InputWithoutWord'), { kind: 'public', actors: [] }, [], []],
-      [form('Named behavior'), { kind: 'public', actors: [] }, [], []],
+      [form('ArrayOutput'), [], [[block('ValueObjectBlock'), '*']]],
+      [form('CollectionOutput'), [], [[block('ValueObjectBlock'), '*']]],
+      [form('EntryPointCommand'), [], []],
+      [form('EntryPointQuery'), [], [[block('ValueObjectBlock'), '1']]],
+      [form('InputWithoutWord'), [], []],
+      [form('Named behavior'), [], []],
       [
         form('OptionalInputs'),
-        { kind: 'public', actors: [] },
         [
           ['nullable', block('ValueObjectBlock'), '0..1'],
           ['withDefault', 'primitive|integer', '0..1'],
         ],
         [],
       ],
-      [
-        form('OptionalOutput'),
-        { kind: 'public', actors: [] },
-        [],
-        [[block('ValueObjectBlock'), '0..1']],
-      ],
+      [form('OptionalOutput'), [], [[block('ValueObjectBlock'), '0..1']]],
       [
         form('Overloaded'),
-        { kind: 'public', actors: [] },
         [
           ['first', 'primitive|integer', '1'],
           ['second', 'primitive|integer', '1'],
@@ -261,18 +234,12 @@ describe('Scanning through the C# parser', () => {
       ],
       [
         form('StaticFactory'),
-        { kind: 'public', actors: [] },
         [],
         [['building_block|Projection.Behaviors.BehaviorForms', '1']],
       ],
-      [form('TaskOutputIsVoid'), { kind: 'public', actors: [] }, [], []],
-      [
-        form('TaskOutputUnwrapped'),
-        { kind: 'public', actors: [] },
-        [],
-        [[block('ValueObjectBlock'), '1']],
-      ],
-      [form('WithActor'), { kind: 'public', actors: ['Customer'] }, [], []],
+      [form('TaskOutputIsVoid'), [], []],
+      [form('TaskOutputUnwrapped'), [], [[block('ValueObjectBlock'), '1']]],
+      [form('WithActor'), [], []],
     ]);
     expect<unknown>(
       model.behaviors.find((b) => b.id === form('Named behavior')),
@@ -284,14 +251,25 @@ describe('Scanning through the C# parser', () => {
         endLine: 25,
       },
     });
-    // An annotated private method is a private behavior; an explicit
-    // interface implementation and a member inherited from a non-block base
-    // give the block no behavior of their own.
-    expect<unknown>(
-      model.behaviors.find(
-        (b) => b.id === invocation('CallChains.Private behavior'),
-      )?.visibility,
-    ).toEqual({ kind: 'private' });
+    // An actor annotation names an actor element where it is first seen, and
+    // no relation joins it to the behavior. An annotated private method is a
+    // behavior with nothing on it to say so; an explicit interface
+    // implementation and a member inherited from a non-block base give the
+    // block no behavior of their own.
+    expect<unknown>(model.actors).toEqual([
+      {
+        id: 'actor|Customer',
+        name: 'Customer',
+        description: null,
+        source: expect.objectContaining({
+          path: `${SOURCES}/Behaviors/BehaviorForms.cs`,
+        }),
+      },
+    ]);
+    expect<unknown>(model.manualProcesses).toEqual([]);
+    expect<unknown>(ids(model.behaviors)).toContain(
+      invocation('CallChains.Private behavior'),
+    );
     expect<unknown>(ids(model.behaviors)).not.toContain(
       invocation('ExplicitBlockImplementor.Contract'),
     );

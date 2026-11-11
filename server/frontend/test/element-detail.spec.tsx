@@ -115,8 +115,8 @@ const document = {
   },
   relations: {
     added: [
-      { kind: 'governs', from: PLACE, to: EXPIRES },
-      { kind: 'governs', from: PLACE, to: ONCE },
+      { kind: 'behavior_governs_rule', from: PLACE, to: EXPIRES },
+      { kind: 'behavior_governs_rule', from: PLACE, to: ONCE },
       { kind: 'illustrates', from: LAPSES, to: EXPIRES },
       { kind: 'illustrates', from: SETTLES, to: EXPIRES },
       {

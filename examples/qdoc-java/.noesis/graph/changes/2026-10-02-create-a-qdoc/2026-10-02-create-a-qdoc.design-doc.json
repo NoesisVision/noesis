@@ -690,16 +690,6 @@
           "changed": true,
           "value": "sequenceDiagram\n  accTitle: Creating a QDoc\n  actor QM as Quality manager\n  QM->>QDocCreationService: createQDoc(command)\n  QDocCreationService->>IdentityProvider: isQualityManager(requestedBy)\n  QDocCreationService->>DocumentNumberGenerator: next()\n  QDocCreationService->>QDoc: create(command, number)\n  QDoc->>Version: createFirst(authors, reviewers, approvers)\n  QDocCreationService->>QDocRepository: save(qdoc)\n  QDocCreationService->>PreparationEventPublisher: publish(QDocCreated)\n  QDocCreationService->>IdentityProvider: findQualityManagers()\n  QDocCreationService->>NotificationService: notifyUsers(NewQDocNotification for the quality managers)\n  QDocCreationService-->>QM: QDocId",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": [
-              "Quality manager"
-            ]
-          },
-          "author": "agent"
         }
       },
       {
@@ -716,13 +706,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -739,13 +722,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -762,13 +738,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -785,13 +754,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -808,13 +770,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -831,13 +786,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -856,14 +804,6 @@
           "changed": true,
           "value": "sequenceDiagram\n  accTitle: Notifying users on another subsystem's request\n  participant Caller as Calling subsystem\n  Caller->>NotificationService: notifyUsers(command)\n  loop each recipient\n    NotificationService->>NotificationSender: send(Notification)\n  end",
           "author": "agent"
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "public",
-            "actors": []
-          },
-          "author": "agent"
         }
       },
       {
@@ -880,13 +820,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       },
       {
@@ -903,13 +836,6 @@
         },
         "diagram": {
           "changed": false
-        },
-        "visibility": {
-          "changed": true,
-          "value": {
-            "kind": "private"
-          },
-          "author": "agent"
         }
       }
     ],
@@ -2303,6 +2229,44 @@
     "removed": [],
     "modified": []
   },
+  "actors": {
+    "added": [
+      {
+        "id": "actor|Quality manager",
+        "name": {
+          "changed": true,
+          "value": "Quality manager",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "Prepares and approves quality documents.",
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
+  "manualProcesses": {
+    "added": [
+      {
+        "id": "manual_process|Create a QDoc",
+        "name": {
+          "changed": true,
+          "value": "Create a QDoc",
+          "author": "agent"
+        },
+        "definition": {
+          "changed": true,
+          "value": "The quality manager starts a new quality document.",
+          "author": "agent"
+        }
+      }
+    ],
+    "removed": [],
+    "modified": []
+  },
   "relations": {
     "added": [
       {
@@ -3236,12 +3200,12 @@
         "to": "module|qdocmanagement.preparation"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
         "to": "rule|qdocmanagement.notifications.Notifications depends on no other subsystem"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
         "to": "rule|qdocmanagement.preparation.A title is never blank"
       },
@@ -3251,7 +3215,7 @@
         "to": "rule|qdocmanagement.preparation.A title is never blank"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.DocumentNumberGenerator.next",
         "to": "rule|qdocmanagement.preparation.A document type comes from the list of document types"
       },
@@ -3266,22 +3230,22 @@
         "to": "rule|qdocmanagement.preparation.A document type comes from the list of document types"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.QDoc.create",
         "to": "rule|qdocmanagement.preparation.A QDoc is either active or archived"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.Version.createFirst",
         "to": "rule|qdocmanagement.preparation.A version status comes from the workflow statuses"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.Version.createFirst",
         "to": "rule|qdocmanagement.preparation.An assignment role is author, reviewer or approver"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
         "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
       },
@@ -3306,7 +3270,7 @@
         "to": "rule|qdocmanagement.preparation.A creation request names a title, a document type and at least one author"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.QDoc.create",
         "to": "rule|qdocmanagement.preparation.A QDoc keeps at least one version"
       },
@@ -3316,7 +3280,7 @@
         "to": "rule|qdocmanagement.preparation.A QDoc keeps at least one version"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
         "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
       },
@@ -3331,7 +3295,7 @@
         "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
         "to": "rule|qdocmanagement.preparation.A new QDoc carries a document number"
       },
@@ -3341,7 +3305,7 @@
         "to": "rule|qdocmanagement.preparation.A new QDoc carries a document number"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
         "to": "rule|qdocmanagement.preparation.A QDoc is saved and announced together"
       },
@@ -3351,7 +3315,7 @@
         "to": "rule|qdocmanagement.preparation.A QDoc is saved and announced together"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
         "to": "rule|qdocmanagement.preparation.Each quality manager learns of a new QDoc"
       },
@@ -3371,7 +3335,7 @@
         "to": "rule|qdocmanagement.preparation.Only quality managers create QDocs"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.QDoc.create",
         "to": "rule|qdocmanagement.preparation.A new QDoc is active"
       },
@@ -3381,7 +3345,7 @@
         "to": "rule|qdocmanagement.preparation.A new QDoc is active"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.Version.createFirst",
         "to": "rule|qdocmanagement.preparation.Version 1 starts with the status new"
       },
@@ -3391,7 +3355,7 @@
         "to": "rule|qdocmanagement.preparation.Version 1 starts with the status new"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.Version.createFirst",
         "to": "rule|qdocmanagement.preparation.Version 1 holds one empty content file"
       },
@@ -3401,7 +3365,7 @@
         "to": "rule|qdocmanagement.preparation.Version 1 holds one empty content file"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.Version.createFirst",
         "to": "rule|qdocmanagement.preparation.The named authors are assigned to version 1"
       },
@@ -3411,7 +3375,7 @@
         "to": "rule|qdocmanagement.preparation.The named authors are assigned to version 1"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.Version.createFirst",
         "to": "rule|qdocmanagement.preparation.The named reviewers are assigned to version 1"
       },
@@ -3426,7 +3390,7 @@
         "to": "rule|qdocmanagement.preparation.The named reviewers are assigned to version 1"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.preparation.Version.createFirst",
         "to": "rule|qdocmanagement.preparation.The named approvers are assigned to version 1"
       },
@@ -3441,7 +3405,7 @@
         "to": "rule|qdocmanagement.preparation.The named approvers are assigned to version 1"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
         "to": "rule|qdocmanagement.notifications.Each named recipient receives the notification"
       },
@@ -3451,12 +3415,12 @@
         "to": "rule|qdocmanagement.notifications.Each named recipient receives the notification"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
         "to": "rule|qdocmanagement.notifications.A notification arrives within the maximum delay"
       },
       {
-        "kind": "governs",
+        "kind": "behavior_governs_rule",
         "from": "behavior|qdocmanagement.notifications.NotificationService.notifyUsers",
         "to": "rule|qdocmanagement.notifications.A failed delivery stops no other"
       },
@@ -3464,6 +3428,21 @@
         "kind": "illustrates",
         "from": "scenario|qdocmanagement.notifications.A failed delivery stops no other.One delivery fails",
         "to": "rule|qdocmanagement.notifications.A failed delivery stops no other"
+      },
+      {
+        "kind": "performs",
+        "from": "actor|Quality manager",
+        "to": "manual_process|Create a QDoc"
+      },
+      {
+        "kind": "process_invokes_behavior",
+        "from": "manual_process|Create a QDoc",
+        "to": "behavior|qdocmanagement.preparation.QDocCreationService.createQDoc",
+        "order": {
+          "changed": true,
+          "value": 1,
+          "author": "agent"
+        }
       }
     ],
     "removed": []

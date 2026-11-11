@@ -1,9 +1,11 @@
 import type {
   DesignDocumentInput,
   DesignDocViolation,
+  DesignedActorInput,
   DesignedBehaviorInput,
   DesignedBuildingBlockInput,
   DesignedDomainModuleInput,
+  DesignedManualProcessInput,
   DesignedNeedInput,
   DesignedRelationKeyInput,
   DesignedRuleInput,
@@ -15,7 +17,6 @@ import type {
   PrimitiveName,
   RuleKind,
   ScenarioStep,
-  Visibility,
 } from '#backend/app/system-model/system-model.ts';
 import { writtenIn } from './change-set.ts';
 import {
@@ -63,14 +64,16 @@ import { rulesUnder } from './rules.ts';
  * output or an extended type among the relations, from the element that
  * owns it — and every operation is the same wherever it is, once it has
  * found that set. A rule is written under the behavior that governs it and
- * a scenario under its rule: adding one writes the `governs` or
- * `illustrates` relation that joins them.
+ * a scenario under its rule: adding one writes the `behavior_governs_rule`
+ * or `illustrates` relation that joins them.
  */
 
 export type ElementKind = 'module' | 'building_block' | 'behavior';
+/** Who drives the system and the work they do: elements of no module. */
+type PeopleKind = 'actor' | 'manual_process';
 type OwnedPartKind = 'rule' | 'scenario';
 type PartKind = OwnedPartKind | RelationPartKind;
-export type UnitKind = 'need' | ElementKind | PartKind;
+export type UnitKind = 'need' | ElementKind | PeopleKind | PartKind;
 
 /** The element a part is written under — a rule's behavior — and the rule for a scenario. */
 export interface PartOwner {
@@ -85,7 +88,7 @@ export interface PartOwner {
  * always `result` — or an extended type's id.
  */
 export type UnitRef =
-  | { kind: 'need' | ElementKind; id: string }
+  | { kind: 'need' | ElementKind | PeopleKind; id: string }
   | { kind: PartKind; id: string; owner: PartOwner };
 
 /** What the design does to a unit: its place in the unit's change set. */
@@ -96,6 +99,8 @@ interface UnitOf {
   module: DesignedDomainModuleInput;
   building_block: DesignedBuildingBlockInput;
   behavior: DesignedBehaviorInput;
+  actor: DesignedActorInput;
+  manual_process: DesignedManualProcessInput;
   rule: DesignedRuleInput;
   scenario: DesignedScenarioInput;
   property: DesignedStateInput;
@@ -110,6 +115,8 @@ export const UNIT_LABEL: Record<UnitKind, string> = {
   module: 'module',
   building_block: 'building block',
   behavior: 'behavior',
+  actor: 'actor',
+  manual_process: 'manual process',
   rule: 'rule',
   scenario: 'scenario',
   property: 'property',
@@ -123,7 +130,12 @@ const COLLECTION_OF = {
   module: 'modules',
   building_block: 'buildingBlocks',
   behavior: 'behaviors',
-} as const satisfies Record<'need' | ElementKind, keyof DesignDocumentInput>;
+  actor: 'actors',
+  manual_process: 'manualProcesses',
+} as const satisfies Record<
+  'need' | ElementKind | PeopleKind,
+  keyof DesignDocumentInput
+>;
 
 const PART_SET: Record<OwnedPartKind, string> = {
   rule: 'rules',
@@ -151,7 +163,11 @@ function matchesRef(ref: UnitRef, item: unknown): boolean {
 
 /** Where a new unit goes, or the unit a form revises. */
 export type UnitTarget =
-  | { mode: 'add'; kind: 'need' | ElementKind; parent: string | null }
+  | {
+      mode: 'add';
+      kind: 'need' | ElementKind | PeopleKind;
+      parent: string | null;
+    }
   | { mode: 'add'; kind: PartKind; owner: PartOwner }
   | { mode: 'edit'; ref: UnitRef };
 
@@ -247,6 +263,8 @@ export function unitNameOf(doc: DesignDocumentInput, ref: UnitRef): string {
     case 'module':
     case 'building_block':
     case 'behavior':
+    case 'actor':
+    case 'manual_process':
     case 'extends':
       return nameOf(ref.id);
     case 'result': {
@@ -379,7 +397,9 @@ function uncontained<Doc extends DesignDocumentInput>(
 }
 
 const isRemoved = (doc: DesignDocumentInput, id: string) =>
-  topSetOf(doc, kindOf(id)).removed?.some((key) => keyOf(key) === id) ?? false;
+  topSetOf(doc, kindOf(id) as 'need' | ContainedKind).removed?.some(
+    (key) => keyOf(key) === id,
+  ) ?? false;
 
 const relationsOf = (doc: DesignDocumentInput) =>
   (doc.relations ?? {}) as LooseSet;
@@ -422,7 +442,7 @@ function joined<Doc extends DesignDocumentInput>(doc: Doc, ref: UnitRef): Doc {
   const relation =
     ref.kind === 'rule'
       ? owner.kind === 'behavior'
-        ? { kind: 'governs', from: owner.id, to: ref.id }
+        ? { kind: 'behavior_governs_rule', from: owner.id, to: ref.id }
         : null
       : owner.rule === undefined
         ? null
@@ -556,7 +576,6 @@ interface UnitFieldValues {
   definition: string;
   diagram: string;
   type: string;
-  visibility: Visibility;
   /** A rule's kind. */
   kind: string;
   description: string;
@@ -603,12 +622,9 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
     field('definition'),
     field('diagram'),
   ],
-  behavior: [
-    field('name'),
-    field('visibility'),
-    field('definition'),
-    field('diagram'),
-  ],
+  behavior: [field('name'), field('definition'), field('diagram')],
+  actor: [field('name'), field('definition')],
+  manual_process: [field('name'), field('definition')],
   rule: [
     field('name'),
     field('kind'),
@@ -672,7 +688,6 @@ const BLANK: UnitFieldValues = {
   definition: '',
   diagram: '',
   type: '',
-  visibility: { kind: 'private' },
   kind: '',
   description: '',
   needs: [],
@@ -1082,7 +1097,7 @@ function serverPathOf(ref: UnitRef, state: UnitState): string {
     return `relations.${state}[${relationKeyOfPart(ref.kind, ref.owner.id, ref.id)}]`;
   const at = `[${ref.id}]`;
   if (isOwnedPart(ref.kind)) return `${PART_SET[ref.kind]}.${state}${at}`;
-  return `${COLLECTION_OF[ref.kind as 'need' | ElementKind]}.${state}${at}`;
+  return `${COLLECTION_OF[ref.kind as 'need' | ElementKind | PeopleKind]}.${state}${at}`;
 }
 
 // --- The document's change sets, read loosely: every unit is known by its key ---
@@ -1333,13 +1348,15 @@ function withoutWithin<Doc extends DesignDocumentInput>(
   }, kept);
 }
 
-/** The document without the rules it adds that no behavior it adds governs any longer. */
+/** The document without the rules it adds that no behavior or manual process it adds governs any longer. */
 function withoutUngoverned<Doc extends DesignDocumentInput>(doc: Doc): Doc {
   const governed = new Set(
     ((doc.relations ?? {}) as LooseSet).added
       ?.filter(isRelation)
       .flatMap((relation) =>
-        relation.kind === 'governs' && typeof relation.to === 'string'
+        (relation.kind === 'behavior_governs_rule' ||
+          relation.kind === 'process_governs_rule') &&
+        typeof relation.to === 'string'
           ? [relation.to]
           : [],
       ),

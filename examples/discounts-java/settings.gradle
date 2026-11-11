@@ -9,6 +9,9 @@
 
 pluginManagement {
     repositories {
+        // The snapshot comes from the local repository: ./gradlew publishToMavenLocal in code-parsers/java/gradle-plugin,
+        // after mvn install in code-parsers/java.
+        mavenLocal()
         // The Noesis parser plugin (vision.noesis.parser) is published to Maven Central, not the Plugin Portal.
         mavenCentral()
         gradlePluginPortal()

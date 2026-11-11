@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
 import {
+  ActorId,
   BehaviorId,
   BuildingBlockId,
   ElementId,
   ElementName,
+  ManualProcessId,
   ModuleId,
   RuleId,
   ScenarioId,
@@ -169,6 +171,34 @@ describe('ScenarioId', () => {
   });
 });
 
+describe('ActorId', () => {
+  it('is its kind, then its name, in no module', () => {
+    expect(ActorId.of('Support agent')).toBe(
+      ActorId.parse('actor|Support agent'),
+    );
+    for (const value of ['actor|', 'actor|sales.Clerk', 'actor| Clerk']) {
+      expect(ActorId.safeParse(value).success).toBe(false);
+    }
+    expect(() => ActorId.of('sales.Clerk')).toThrow();
+  });
+});
+
+describe('ManualProcessId', () => {
+  it('is its kind, then its name, in no module', () => {
+    expect(ManualProcessId.of('Refund a returned order')).toBe(
+      ManualProcessId.parse('manual_process|Refund a returned order'),
+    );
+    for (const value of [
+      'manual_process|',
+      'manual_process|sales.Refund',
+      'actor|Refund',
+    ]) {
+      expect(ManualProcessId.safeParse(value).success).toBe(false);
+    }
+    expect(() => ManualProcessId.of('a|b')).toThrow();
+  });
+});
+
 describe('ElementId', () => {
   it('accepts each kind and rejects an unknown kind or a value too shallow for its kind', () => {
     for (const value of [
@@ -177,10 +207,20 @@ describe('ElementId', () => {
       'behavior|a.b.c',
       'rule|a.b',
       'scenario|a.b.c',
+      'actor|Support agent',
+      'manual_process|Refund a returned order',
     ]) {
       expect(ElementId.parse(value)).toBe(value as ElementId);
     }
-    for (const value of ['thing|a', 'a', '|a', 'module|', 'behavior|a.b']) {
+    for (const value of [
+      'thing|a',
+      'a',
+      '|a',
+      'module|',
+      'behavior|a.b',
+      'actor|a.b',
+      'manual_process|',
+    ]) {
       expect(ElementId.safeParse(value).success).toBe(false);
     }
   });
@@ -192,6 +232,8 @@ describe('ElementId', () => {
       'behavior|a.b.c',
       'rule|a.b',
       'scenario|a.b.c',
+      'actor|a',
+      'manual_process|a',
     ].map((v) => ElementId.parse(v));
     const only = (index: number) => ids.map((_, i) => i === index);
     expect(ids.map(ElementId.isModule)).toEqual(only(0));
@@ -199,6 +241,8 @@ describe('ElementId', () => {
     expect(ids.map(ElementId.isBehavior)).toEqual(only(2));
     expect(ids.map(ElementId.isRule)).toEqual(only(3));
     expect(ids.map(ElementId.isScenario)).toEqual(only(4));
+    expect(ids.map(ElementId.isActor)).toEqual(only(5));
+    expect(ids.map(ElementId.isManualProcess)).toEqual(only(6));
     expect(
       ids.map((id) =>
         ElementId.match(id, {
@@ -207,9 +251,19 @@ describe('ElementId', () => {
           behavior: () => 'behavior',
           rule: () => 'rule',
           scenario: () => 'scenario',
+          actor: () => 'actor',
+          manualProcess: () => 'manual process',
         }),
       ),
-    ).toEqual(['module', 'building block', 'behavior', 'rule', 'scenario']);
+    ).toEqual([
+      'module',
+      'building block',
+      'behavior',
+      'rule',
+      'scenario',
+      'actor',
+      'manual process',
+    ]);
   });
 
   it('reports a bad element at its path', () => {

@@ -84,7 +84,7 @@ describe('ModelReader', () => {
         ],
         relations: [
           ...model.relations,
-          { kind: 'governs', from: APPLY, to: RULE },
+          { kind: 'behavior_governs_rule', from: APPLY, to: RULE },
           {
             kind: 'illustrates',
             from: `scenario|${RULE.slice(5)}.A big discount`,

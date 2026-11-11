@@ -9,7 +9,7 @@ import { Title } from '#/shared/design-system/title.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../change-set.ts';
 import type { PartOwner, UnitRef } from '../../design-doc-edit.ts';
-import { type DesignDocFieldInput, valueOf } from '../../design-doc-field.ts';
+import type { DesignDocFieldInput } from '../../design-doc-field.ts';
 import { InlineText } from '../unit-editor/inline-text.tsx';
 import { useNewScenarioOwner } from '../unit-editor/new-buttons.tsx';
 import { useWritableUnit } from '../unit-editor/writable-unit.ts';
@@ -18,7 +18,13 @@ import { SCENARIO_COLUMN_ID, ScenarioColumn } from './body/scenario-column.tsx';
 import { ScenarioFocusProvider } from './body/scenario-focus.tsx';
 import { scenariosOf } from './body/scenarios-of.ts';
 import { ChangeBadge } from './change-badge.tsx';
-import { extendedItems, extenderItems } from './change-list-items.ts';
+import {
+  extendedItems,
+  extenderItems,
+  invokerItems,
+  performedItems,
+  performerItems,
+} from './change-list-items.ts';
 import { DesignDocumentContext } from './design-document-context.ts';
 import { DetailBreadcrumb } from './detail-breadcrumb.tsx';
 import { ElementColumns } from './element-columns.tsx';
@@ -26,7 +32,6 @@ import { ElementDefinition } from './element-definition.tsx';
 import { ElementNavigationContext } from './element-navigation.ts';
 import { ElementRelations } from './element-relations.tsx';
 import { humanText, WrittenBy, writtenByHuman } from './human-mark.tsx';
-import { VisibilityBadge } from './visibility-badge.tsx';
 import classes from './element-detail.module.css';
 
 /*
@@ -55,11 +60,6 @@ export function ElementDetail({
     () => ({ has: (path: string) => tree.byPath.has(path), select: onSelect }),
     [tree, onSelect],
   );
-  // Only a behavior says who may call it.
-  const visibility =
-    node.kind === 'behavior' && node.elementId
-      ? valueOf(findById(doc.behaviors, node.elementId)?.visibility)
-      : null;
   // Only a building block extends anything, or is extended.
   const extended =
     node.kind === 'building_block' && node.elementId
@@ -71,6 +71,9 @@ export function ElementDetail({
     node.kind === 'building_block' && node.elementId
       ? extenderItems(doc, node.elementId)
       : [];
+  // Who drives the system: what an actor performs, who performs a manual
+  // process, and the processes that invoke a behavior.
+  const people = peopleRelationsOf(doc, node);
   // What the element is, under its name: a module's, a block's, a behavior's.
   const designed = designedOf(doc, node);
   // An element the design leaves alone is still shown: its definition is too.
@@ -88,7 +91,6 @@ export function ElementDetail({
   const { ref: bodyRef, width: bodyWidth } = useElementSize();
   const badges = (
     <Group gap="xs" className={classes.badges}>
-      <VisibilityBadge visibility={visibility} />
       <ChangeBadge change={node.change} />
     </Group>
   );
@@ -123,6 +125,7 @@ export function ElementDetail({
         relations={[
           { label: 'Extends', items: extended },
           { label: 'Extended by', items: extenders },
+          ...people,
         ]}
         tree={tree}
       />
@@ -168,9 +171,27 @@ function elementRefOf(node: OutlineNode): UnitRef | null {
   if (node.elementId === null) return null;
   return node.kind === 'module' ||
     node.kind === 'building_block' ||
-    node.kind === 'behavior'
+    node.kind === 'behavior' ||
+    node.kind === 'actor' ||
+    node.kind === 'manual_process'
     ? { kind: node.kind, id: node.elementId }
     : null;
+}
+
+/** The rows of who drives the system the element is one end of. */
+function peopleRelationsOf(doc: DesignDocumentInput, node: OutlineNode) {
+  const id = node.elementId;
+  if (id === null) return [];
+  switch (node.kind) {
+    case 'actor':
+      return [{ label: 'Performs', items: performedItems(doc, id) }];
+    case 'manual_process':
+      return [{ label: 'Performed by', items: performerItems(doc, id) }];
+    case 'behavior':
+      return [{ label: 'Invoked by', items: invokerItems(doc, id) }];
+    default:
+      return [];
+  }
 }
 
 /** The element's name, written in place where the document may be written. */
@@ -207,6 +228,10 @@ function designedOf(doc: DesignDocumentInput, node: OutlineNode) {
       return findById(doc.buildingBlocks, node.elementId) ?? null;
     case 'behavior':
       return findById(doc.behaviors, node.elementId) ?? null;
+    case 'actor':
+      return findById(doc.actors, node.elementId) ?? null;
+    case 'manual_process':
+      return findById(doc.manualProcesses, node.elementId) ?? null;
     default:
       return undefined;
   }
@@ -214,7 +239,7 @@ function designedOf(doc: DesignDocumentInput, node: OutlineNode) {
 
 function ownerOfScenarios(node: OutlineNode): PartOwner | undefined {
   const ref = elementRefOf(node);
-  return ref === null
+  return ref === null || ref.kind === 'actor' || ref.kind === 'manual_process'
     ? undefined
     : { kind: ref.kind as PartOwner['kind'], id: ref.id };
 }

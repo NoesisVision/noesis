@@ -10,10 +10,11 @@ import { nameOf } from './element-id.ts';
 
 /*
  * What a hexagonal architecture asks of a design, checked against what the
- * document holds: building block types, visibility, and the types its
- * `has_state`, `has_input` and `has_output` relations name. No check reads
- * the calls, so nothing here says which service uses which port — only what
- * the types already give away.
+ * document holds: building block types, the calls its manual processes and
+ * behaviors make, and the types its `has_state`, `has_input` and
+ * `has_output` relations name. A design holds only the calls it changes, so
+ * nothing here says which service uses which port beyond them and what the
+ * types give away.
  *
  * Each check names the elements it concerns, or, when it passes, the ones it
  * looked at, so a reviewer can see what a pass covers.
@@ -68,7 +69,7 @@ function onlyApplicationServicesArePublic({
   hexagons,
 }: Placed): ArchitectureCheck {
   const exposed = hexagons.flatMap((hexagon) => hexagon.exposed);
-  const title = 'Only application services are public';
+  const title = 'Only application services are called from outside';
   if (exposed.length === 0) {
     const ports = hexagons.flatMap(({ drivingPorts }) =>
       drivingPorts.map(({ behavior }) => behavior),
@@ -77,8 +78,8 @@ function onlyApplicationServicesArePublic({
       'only-application-services-are-public',
       title,
       ports.length === 0
-        ? 'The design makes no behavior public.'
-        : `Every public behavior, ${list(ports)}, is on an application service.`,
+        ? 'The design has no behavior of an application service.'
+        : `No manual process and no other module calls a behavior of a block other than an application service; the driving ports are ${list(ports)}.`,
       ports.map(({ id }) => id),
     );
   }
@@ -86,7 +87,7 @@ function onlyApplicationServicesArePublic({
     id: 'only-application-services-are-public',
     level: 'warning',
     title,
-    text: `${list(exposed)} ${plural(exposed.length, 'is', 'are')} public on a block that is not an application service: the core is exposed past its ports.`,
+    text: `${list(exposed)} ${plural(exposed.length, 'is', 'are')} called by a manual process or from another module, on a block that is not an application service: the core is exposed past its ports.`,
     elementIds: exposed.map(({ id }) => id),
   };
 }
@@ -128,13 +129,13 @@ function typeInNoContract({ hexagons, unplaced }: Placed): ArchitectureCheck {
 
 function callerUnknown({ hexagons }: Placed): ArchitectureCheck {
   const ports = hexagons.flatMap(({ drivingPorts }) => drivingPorts);
-  const unknown = ports.filter(({ actors }) => actors.length === 0);
+  const unknown = ports.filter(({ callerKnown }) => !callerKnown);
   const title = 'Caller unknown';
   if (unknown.length === 0)
     return pass(
       'caller-unknown',
       title,
-      'Every public behavior names the actors that call it.',
+      'Every driving port is invoked by a manual process.',
       ports.map(({ behavior }) => behavior.id),
     );
   const behaviors = unknown.map(({ behavior }) => behavior);
@@ -142,7 +143,7 @@ function callerUnknown({ hexagons }: Placed): ArchitectureCheck {
     id: 'caller-unknown',
     level: 'note',
     title,
-    text: `${list(behaviors)} ${plural(behaviors.length, 'is', 'are')} public and ${plural(behaviors.length, 'names', 'name')} no actor, so another subsystem calls ${plural(behaviors.length, 'it', 'them')}. Which one is not in the design document.`,
+    text: `${list(behaviors)} ${plural(behaviors.length, 'is', 'are')} invoked by no manual process, so another subsystem calls ${plural(behaviors.length, 'it', 'them')}. Which one is not in the design document.`,
     elementIds: behaviors.map(({ id }) => id),
   };
 }

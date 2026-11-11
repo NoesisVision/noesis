@@ -224,12 +224,13 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * orange, in the same short dots, the two sides of a signature told apart
  * by colour alone; what a block extends as a kinship standing: a grey in
  * longer dashes, slower still; what a behavior invokes as a call going:
- * violet in long dashes moving fast. A quiet line may have a word of a
+ * violet in long dashes moving fast; what an actor performs as work done
+ * by hand: green in middling dashes at an easy pace. A quiet line may have a word of a
  * stronger ink. Its arrow's shape is the canvas's to draw (EDGE_ARROW in
  * relation-colors.ts).
  */
 function relationEdges({
-  colors: { brand, gray, violet, teal, orange },
+  colors: { brand, gray, violet, teal, orange, green },
 }: MantineThemeOf) {
   return {
     state: {
@@ -266,6 +267,13 @@ function relationEdges({
       dash: 10,
       gap: 5,
       seconds: 0.35,
+    },
+    performs: {
+      line: { light: green[6], dark: green[4] },
+      word: { light: green[8], dark: green[2] },
+      dash: 4,
+      gap: 3,
+      seconds: 0.7,
     },
   };
 }
