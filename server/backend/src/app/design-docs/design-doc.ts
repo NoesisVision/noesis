@@ -14,7 +14,7 @@ import {
 import {
   BehaviorGovernsRuleRelation,
   BehaviorInvokesBehaviorRelation,
-  BuildingBlockType,
+  BuildingBlockKind,
   Cardinality,
   ExposesRelation,
   ExtendsRelation,
@@ -145,7 +145,7 @@ export type DesignedDomainModule = z.infer<typeof DesignedDomainModule>;
 export const DesignedBuildingBlock = z.strictObject({
   id: BuildingBlockId,
   name: DesignDocField(ElementName),
-  type: DesignDocField(BuildingBlockType),
+  type: DesignDocField(BuildingBlockKind),
   definition: DesignDocField(z.string()),
   diagram: DesignDocField(MermaidSource),
 });
@@ -532,7 +532,7 @@ function containmentsOutsideIdPaths(
     }));
 }
 
-/** The element an element is under by its id; null for a root module, an actor or a manual process. */
+/** The element an element is under by its id; null for a root module and for elements in no module (actors, manual processes, deployable units, libraries, layers, deployment containers). */
 const parentOf = (id: ElementId): ElementId | null =>
   ElementId.match<ElementId | null>(id, {
     module: (module) => ModuleId.parentOf(module),
@@ -543,6 +543,10 @@ const parentOf = (id: ElementId): ElementId | null =>
     scenario: (scenario) => RuleId.parse(`rule|${parentPathOf(scenario)}`),
     actor: () => null,
     manualProcess: () => null,
+    deployableUnit: () => null,
+    library: () => null,
+    layer: () => null,
+    deploymentContainer: () => null,
   });
 
 /** `id`'s path without its own name. */

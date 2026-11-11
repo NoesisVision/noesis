@@ -1,6 +1,6 @@
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type {
-  BuildingBlockType,
+  BuildingBlockKind,
   Relation,
   SystemModel,
 } from '#backend/app/system-model/system-model.ts';
@@ -34,7 +34,7 @@ export interface ExploredElement {
   kind: ExploredKind;
   name: string;
   /** The building block's type; null for any other element. */
-  pattern: BuildingBlockType | null;
+  pattern: BuildingBlockKind | null;
   /** The element that contains this one, if the model holds it. */
   container: string | null;
 }

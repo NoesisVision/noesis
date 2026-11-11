@@ -9,7 +9,7 @@ import type {
   BuildingBlockId,
   ModuleId,
 } from '#backend/app/element-id.ts';
-import type { BuildingBlockType } from '#backend/app/system-model/system-model.ts';
+import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 import { architectureChecks } from './architecture-checks.ts';
 import {
   type ArchitectureOutline,
@@ -55,8 +55,8 @@ const DOMAIN_CORE = [
   'command',
   'query',
   'event',
-] as const satisfies readonly BuildingBlockType[];
-const APPLICATION_SERVICE = 'application_service' satisfies BuildingBlockType;
+] as const satisfies readonly BuildingBlockKind[];
+const APPLICATION_SERVICE = 'application_service' satisfies BuildingBlockKind;
 
 export function architectureOf(
   document: DesignDocumentInput,
@@ -260,16 +260,16 @@ export function inferredFlowOf(
 
 type Ring = 'applicationServices' | 'domainCore' | 'drivenPorts';
 
-function ringOf(pattern: BuildingBlockType | null): Ring | null {
+function ringOf(pattern: BuildingBlockKind | null): Ring | null {
   if (pattern === APPLICATION_SERVICE) return 'applicationServices';
   if (isDrivenPort(pattern)) return 'drivenPorts';
-  if ((DOMAIN_CORE as readonly (BuildingBlockType | null)[]).includes(pattern))
+  if ((DOMAIN_CORE as readonly (BuildingBlockKind | null)[]).includes(pattern))
     return 'domainCore';
   return null;
 }
 
-const coreRank = (pattern: BuildingBlockType | null) =>
-  (DOMAIN_CORE as readonly (BuildingBlockType | null)[]).indexOf(pattern);
+const coreRank = (pattern: BuildingBlockKind | null) =>
+  (DOMAIN_CORE as readonly (BuildingBlockKind | null)[]).indexOf(pattern);
 
 function blockElement(
   document: DesignDocumentInput,

@@ -51,6 +51,11 @@ export class Scanner {
       name: this.repository.name,
       scanned_at: scannedAt,
       commit,
+      // Kinds no builder finds yet.
+      deployableUnits: [],
+      libraries: [],
+      layers: [],
+      deploymentContainers: [],
       ...built.result.model,
     };
   }

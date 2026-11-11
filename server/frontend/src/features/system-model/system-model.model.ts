@@ -53,9 +53,18 @@ function rules(found: ScannedRule[]) {
   );
 }
 
-/** A relation as a design document holds one: what may change in place as a field. */
-function relation(found: Relation): DesignedRelation {
+/**
+ * A relation as a design document holds one: what may change in place as a
+ * field. Null for a kind a design document does not hold yet.
+ */
+function relation(found: Relation): DesignedRelation | null {
   switch (found.kind) {
+    case 'unit_contains_module':
+    case 'library_contains_block':
+    case 'layer_contains_block':
+    case 'container_contains_unit':
+    case 'has_collaborator':
+      return null;
     case 'has_state':
     case 'has_output':
       return {
@@ -126,7 +135,7 @@ export function designOf(model: SystemModel): DesignDocument {
         definition: optional(process.description),
       })),
     ),
-    relations: added(model.relations.map(relation)),
+    relations: added(model.relations.flatMap((found) => relation(found) ?? [])),
     implemented: true,
     implementedAt: model.scanned_at,
   };

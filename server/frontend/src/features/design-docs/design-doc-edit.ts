@@ -12,7 +12,7 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BuildingBlockType,
+  BuildingBlockKind,
   Cardinality,
   PrimitiveName,
   RuleKind,
@@ -653,7 +653,7 @@ export const TYPES_OF: Partial<Record<UnitKind, readonly string[]>> = {
     'command',
     'event',
     'query',
-  ] satisfies BuildingBlockType[],
+  ] satisfies BuildingBlockKind[],
 };
 
 /** The kinds a rule may be, as the model spells them. */

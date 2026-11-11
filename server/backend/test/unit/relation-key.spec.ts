@@ -10,6 +10,7 @@ const PLACE = 'behavior|sales.orders.Order.place';
 describe('The key of a relation', () => {
   it('knows the named slots from the schemas', () => {
     expect([...NAMED_SLOT_KINDS].sort()).toEqual([
+      'has_collaborator',
       'has_input',
       'has_output',
       'has_state',
