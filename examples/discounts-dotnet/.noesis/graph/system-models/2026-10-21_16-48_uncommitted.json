@@ -724,10 +724,6 @@
       "id": "behavior|Sales.Clients.ClientId.From",
       "name": "From",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
         "startLine": 11,
@@ -738,10 +734,6 @@
       "id": "behavior|Sales.Clients.ClientId.New",
       "name": "New",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientId.cs",
         "startLine": 10,
@@ -752,10 +744,6 @@
       "id": "behavior|Sales.Clients.ClientRepository.GetStatusFor",
       "name": "GetStatusFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Clients/ClientRepository.cs",
         "startLine": 8,
@@ -766,10 +754,6 @@
       "id": "behavior|Sales.Commons.Money.Max",
       "name": "Max",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
         "startLine": 39,
@@ -780,10 +764,6 @@
       "id": "behavior|Sales.Commons.Money.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
         "startLine": 12,
@@ -794,10 +774,6 @@
       "id": "behavior|Sales.Commons.Money.Zero",
       "name": "Zero",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Money.cs",
         "startLine": 11,
@@ -808,10 +784,6 @@
       "id": "behavior|Sales.Commons.Percentage.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Commons/Percentage.cs",
         "startLine": 13,
@@ -822,10 +794,6 @@
       "id": "behavior|Sales.ExchangeRates.ExchangeRate.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
         "startLine": 23,
@@ -836,10 +804,6 @@
       "id": "behavior|Sales.ExchangeRates.ExchangeRate.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRate.cs",
         "startLine": 15,
@@ -850,10 +814,6 @@
       "id": "behavior|Sales.ExchangeRates.ExchangeRateProvider.GetFor",
       "name": "GetFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/ExchangeRates/ExchangeRateProvider.cs",
         "startLine": 9,
@@ -864,10 +824,6 @@
       "id": "behavior|Sales.Orders.Order CreatedFromOffer.Apply",
       "name": "Apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 29,
@@ -878,10 +834,6 @@
       "id": "behavior|Sales.Orders.Order Factory.ImmediatelyPlacedBasedOn",
       "name": "ImmediatelyPlacedBasedOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
         "startLine": 27,
@@ -892,10 +844,6 @@
       "id": "behavior|Sales.Orders.Order Factory.NewWith",
       "name": "NewWith",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
         "startLine": 20,
@@ -906,10 +854,6 @@
       "id": "behavior|Sales.Orders.Order Factory.NewWithMaxTotalCostFor",
       "name": "NewWithMaxTotalCostFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Factory.cs",
         "startLine": 14,
@@ -920,10 +864,6 @@
       "id": "behavior|Sales.Orders.Order Placed.Apply",
       "name": "Apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 80,
@@ -934,10 +874,6 @@
       "id": "behavior|Sales.Orders.Order PriceAgreement.CanChangePrice",
       "name": "CanChangePrice",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 37,
@@ -948,10 +884,6 @@
       "id": "behavior|Sales.Orders.Order PriceAgreement.Final",
       "name": "Final",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 23,
@@ -962,10 +894,6 @@
       "id": "behavior|Sales.Orders.Order PriceAgreement.IsValidOn",
       "name": "IsValidOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 45,
@@ -976,10 +904,6 @@
       "id": "behavior|Sales.Orders.Order PriceAgreement.Non",
       "name": "Non",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 18,
@@ -990,10 +914,6 @@
       "id": "behavior|Sales.Orders.Order PriceAgreement.Temporary",
       "name": "Temporary",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.PriceAgreement.cs",
         "startLine": 20,
@@ -1004,10 +924,6 @@
       "id": "behavior|Sales.Orders.Order PricesConfirmed.Apply",
       "name": "Apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 74,
@@ -1018,10 +934,6 @@
       "id": "behavior|Sales.Orders.Order ProductAmountAdded.Apply",
       "name": "Apply",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Events.cs",
         "startLine": 41,
@@ -1032,10 +944,6 @@
       "id": "behavior|Sales.Orders.Order Repository.GetBy",
       "name": "GetBy",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Repository.cs",
         "startLine": 10,
@@ -1046,10 +954,6 @@
       "id": "behavior|Sales.Orders.Order Repository.Save",
       "name": "Save",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Repository.cs",
         "startLine": 11,
@@ -1060,10 +964,6 @@
       "id": "behavior|Sales.Orders.Order.Add",
       "name": "Add",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
         "startLine": 21,
@@ -1074,10 +974,6 @@
       "id": "behavior|Sales.Orders.Order.ConfirmPrices",
       "name": "ConfirmPrices",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
         "startLine": 43,
@@ -1088,10 +984,6 @@
       "id": "behavior|Sales.Orders.Order.HasSameDataAs",
       "name": "HasSameDataAs",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
         "startLine": 118,
@@ -1102,10 +994,6 @@
       "id": "behavior|Sales.Orders.Order.Place",
       "name": "Place",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.cs",
         "startLine": 101,
@@ -1116,10 +1004,6 @@
       "id": "behavior|Sales.Orders.Order.RestoreFrom",
       "name": "RestoreFrom",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/Order.Data.cs",
         "startLine": 13,
@@ -1130,10 +1014,6 @@
       "id": "behavior|Sales.Orders.PriceChanges.AllowAnyPriceChanges.CanChangePrices",
       "name": "CanChangePrices",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowAnyPriceChanges.cs",
         "startLine": 10,
@@ -1144,10 +1024,6 @@
       "id": "behavior|Sales.Orders.PriceChanges.AllowPriceChangesIfTotalPriceIsLower.CanChangePrices",
       "name": "CanChangePrices",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/AllowPriceChangesIfTotalPriceIsLower.cs",
         "startLine": 11,
@@ -1158,10 +1034,6 @@
       "id": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicies.ChooseFor",
       "name": "ChooseFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/PriceChangesPolicies.cs",
         "startLine": 12,
@@ -1172,10 +1044,6 @@
       "id": "behavior|Sales.Orders.PriceChanges.PriceChangesPolicy.CanChangePrices",
       "name": "CanChangePrices",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Orders/PriceChanges/PriceChangesPolicy.cs",
         "startLine": 10,
@@ -1186,10 +1054,6 @@
       "id": "behavior|Sales.Pricing.CalculatePrices.For",
       "name": "For",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/CalculatePrices.cs",
         "startLine": 18,
@@ -1200,10 +1064,6 @@
       "id": "behavior|Sales.Pricing.Discounts.ClientLevelDiscounts.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ClientLevelDiscounts.cs",
         "startLine": 16,
@@ -1214,10 +1074,6 @@
       "id": "behavior|Sales.Pricing.Discounts.Discount.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
         "startLine": 24,
@@ -1228,10 +1084,6 @@
       "id": "behavior|Sales.Pricing.Discounts.Discount.Percentage",
       "name": "Percentage",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
         "startLine": 13,
@@ -1242,10 +1094,6 @@
       "id": "behavior|Sales.Pricing.Discounts.Discount.Value",
       "name": "Value",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/Discount.cs",
         "startLine": 15,
@@ -1256,10 +1104,6 @@
       "id": "behavior|Sales.Pricing.Discounts.DiscountsRepository.GetFor",
       "name": "GetFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/DiscountsRepository.cs",
         "startLine": 11,
@@ -1270,10 +1114,6 @@
       "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/PercentageDiscount.cs",
         "startLine": 15,
@@ -1284,10 +1124,6 @@
       "id": "behavior|Sales.Pricing.Discounts.PercentageDiscount.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/PercentageDiscount.cs",
         "startLine": 11,
@@ -1298,10 +1134,6 @@
       "id": "behavior|Sales.Pricing.Discounts.ProductDiscount.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductDiscount.cs",
         "startLine": 12,
@@ -1312,10 +1144,6 @@
       "id": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductLevelDiscounts.cs",
         "startLine": 20,
@@ -1326,10 +1154,6 @@
       "id": "behavior|Sales.Pricing.Discounts.ProductLevelDiscounts.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ProductLevelDiscounts.cs",
         "startLine": 12,
@@ -1340,10 +1164,6 @@
       "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ValueDiscount.cs",
         "startLine": 15,
@@ -1354,10 +1174,6 @@
       "id": "behavior|Sales.Pricing.Discounts.ValueDiscount.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Discounts/ValueDiscount.cs",
         "startLine": 11,
@@ -1368,10 +1184,6 @@
       "id": "behavior|Sales.Pricing.IndividualSalesConditions.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/IndividualSalesConditions.cs",
         "startLine": 12,
@@ -1382,10 +1194,6 @@
       "id": "behavior|Sales.Pricing.Offer.Compare",
       "name": "Compare",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Offer.cs",
         "startLine": 56,
@@ -1396,10 +1204,6 @@
       "id": "behavior|Sales.Pricing.Offer.FromQuotes",
       "name": "FromQuotes",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Offer.cs",
         "startLine": 27,
@@ -1410,10 +1214,6 @@
       "id": "behavior|Sales.Pricing.OfferModifier.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferModifier.cs",
         "startLine": 9,
@@ -1424,10 +1224,6 @@
       "id": "behavior|Sales.Pricing.OfferModifiers.ChooseFor",
       "name": "ChooseFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferModifiers.cs",
         "startLine": 11,
@@ -1438,10 +1234,6 @@
       "id": "behavior|Sales.Pricing.OfferRequest.For",
       "name": "For",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/OfferRequest.cs",
         "startLine": 17,
@@ -1452,10 +1244,6 @@
       "id": "behavior|Sales.Pricing.PriceLists.BasePrice.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrice.cs",
         "startLine": 13,
@@ -1466,10 +1254,6 @@
       "id": "behavior|Sales.Pricing.PriceLists.BasePrices.GetFor",
       "name": "GetFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrices.cs",
         "startLine": 21,
@@ -1480,10 +1264,6 @@
       "id": "behavior|Sales.Pricing.PriceLists.BasePrices.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/BasePrices.cs",
         "startLine": 14,
@@ -1494,10 +1274,6 @@
       "id": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePriceFor",
       "name": "GetBasePriceFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/PriceListRepository.cs",
         "startLine": 12,
@@ -1508,10 +1284,6 @@
       "id": "behavior|Sales.Pricing.PriceLists.PriceListRepository.GetBasePricesFor",
       "name": "GetBasePricesFor",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/PriceLists/PriceListRepository.cs",
         "startLine": 13,
@@ -1522,10 +1294,6 @@
       "id": "behavior|Sales.Pricing.Quote.ChangePrice",
       "name": "ChangePrice",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Quote.cs",
         "startLine": 22,
@@ -1536,10 +1304,6 @@
       "id": "behavior|Sales.Pricing.Quote.For",
       "name": "For",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/Quote.cs",
         "startLine": 15,
@@ -1550,10 +1314,6 @@
       "id": "behavior|Sales.Pricing.QuoteModifier.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/QuoteModifier.cs",
         "startLine": 9,
@@ -1564,10 +1324,6 @@
       "id": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
         "startLine": 14,
@@ -1578,10 +1334,6 @@
       "id": "behavior|Sales.Pricing.SpecialOffers.EverySecondBoxForHalfPrice.Or",
       "name": "Or",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/EverySecondBoxForHalfPrice.cs",
         "startLine": 8,
@@ -1592,10 +1344,6 @@
       "id": "behavior|Sales.Pricing.SpecialOffers.SpecialOffer.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/SpecialOffer.cs",
         "startLine": 12,
@@ -1606,10 +1354,6 @@
       "id": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.ApplyOn",
       "name": "ApplyOn",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/ThreeForTwo.cs",
         "startLine": 14,
@@ -1620,10 +1364,6 @@
       "id": "behavior|Sales.Pricing.SpecialOffers.ThreeForTwo.Or",
       "name": "Or",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Pricing/SpecialOffers/ThreeForTwo.cs",
         "startLine": 8,
@@ -1634,10 +1374,6 @@
       "id": "behavior|Sales.Products.Amount.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/Amount.cs",
         "startLine": 9,
@@ -1648,10 +1384,6 @@
       "id": "behavior|Sales.Products.ProductAmount.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductAmount.cs",
         "startLine": 12,
@@ -1662,10 +1394,6 @@
       "id": "behavior|Sales.Products.ProductId.From",
       "name": "From",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductId.cs",
         "startLine": 12,
@@ -1676,10 +1404,6 @@
       "id": "behavior|Sales.Products.ProductId.New",
       "name": "New",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductId.cs",
         "startLine": 11,
@@ -1690,10 +1414,6 @@
       "id": "behavior|Sales.Products.ProductUnit.Of",
       "name": "Of",
       "description": null,
-      "visibility": {
-        "kind": "public",
-        "actors": []
-      },
       "source": {
         "path": "Sources/Sales/Sales.DeepModel/Products/ProductUnit.cs",
         "startLine": 12,
@@ -1703,6 +1423,8 @@
   ],
   "rules": [],
   "scenarios": [],
+  "actors": [],
+  "manualProcesses": [],
   "relations": [
     {
       "kind": "behavior_invokes_behavior",
