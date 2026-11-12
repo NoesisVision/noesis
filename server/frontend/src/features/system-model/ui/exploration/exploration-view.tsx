@@ -20,22 +20,26 @@ import {
 import {
   ChangeMarksContext,
   DesignDocumentContext,
-  DetailsDock,
   ElementPanel,
 } from '#/features/design-docs/element-reader.ts';
 import { byIdOf } from '#/shared/collections.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
-import '@xyflow/react/dist/base.css';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
+import '@xyflow/react/dist/base.css';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
 import {
+  CANVAS_FLOW,
+  useCanvasZoom,
+} from '#/shared/ui/diagram-canvas/canvas-flow.ts';
+import {
   isElsewhere,
   useLetGoOnEscape,
 } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
+import { DetailsDock } from '#/shared/ui/diagram-canvas/details-dock.tsx';
 import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
 import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
@@ -238,6 +242,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     flow,
     setFlow,
   } = usePlacement(graph, ALGORITHM, direction, opening);
+  const zoom = useCanvasZoom(flow);
 
   // Every step the diagram took — what is drawn, how, and where each card
   // stands — once its cards have landed or been moved by hand, to go back
@@ -348,7 +353,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [nodes, veiled, raised],
   );
   const scheme = useComputedColorScheme('light');
-  const [zoom, setZoom] = useState(1);
   const document = useMemo(() => designOf(model), [model]);
   // In hand, in the order taken; the last is the one the panel reads.
   const [selection, setSelection] = useState<readonly string[]>([]);
@@ -636,17 +640,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         onDrawing={setDrawing}
         onAutoPlace={autoPlace}
       >
-        <ZoomControls
-          quiet
-          zoom={zoom}
-          disabled={flow === null}
-          onZoomOut={() => void flow?.zoomOut()}
-          onZoomIn={() => void flow?.zoomIn()}
-          onFit={() => void flow?.fitView(FIT)}
-        />
+        <ZoomControls quiet {...zoom.controls} />
       </ExplorationToolbar>
     ),
-    [stepAt, undo, redo, seeing, veiled, drawing, autoPlace, zoom, flow],
+    [stepAt, undo, redo, seeing, veiled, drawing, autoPlace, zoom],
   );
   const selectionPanel = useMemo(
     () =>
@@ -790,18 +787,14 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                     colorMode={scheme}
                     fitView
                     fitViewOptions={FIT}
-                    attributionPosition="bottom-right"
+                    {...CANVAS_FLOW}
                     minZoom={0.1}
                     maxZoom={2}
-                    nodesConnectable={false}
-                    nodesFocusable={false}
-                    edgesFocusable={false}
-                    elementsSelectable={false}
                     onInit={(instance) => {
                       setFlow(instance);
-                      setZoom(instance.getZoom());
+                      zoom.readZoom(instance);
                     }}
-                    onMove={(_, viewport) => setZoom(viewport.zoom)}
+                    onMove={zoom.onMove}
                     onPaneClick={() => {
                       letGo();
                       setQuick(null);

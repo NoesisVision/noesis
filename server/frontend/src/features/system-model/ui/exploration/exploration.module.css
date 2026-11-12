@@ -211,10 +211,6 @@
   transform: translateY(-50%);
 }
 
-.handle {
-  visibility: hidden;
-}
-
 /* Each relation in its own colour (relationEdges in theme.ts), as well as its word. */
 .edge :global(.react-flow__edge-path) {
   stroke: var(--relation-color, var(--noesis-architecture-edge));

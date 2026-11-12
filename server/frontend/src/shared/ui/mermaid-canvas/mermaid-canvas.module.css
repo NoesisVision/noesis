@@ -50,10 +50,6 @@
   stroke-width: 1.5;
 }
 
-.handle {
-  visibility: hidden;
-}
-
 /* The corner: the toolbar, and under it the words of the step being played. */
 .corner {
   display: flex;

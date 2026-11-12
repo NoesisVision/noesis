@@ -1,0 +1,4 @@
+/* Where React Flow has an edge start and end: never seen, the edge meets the card itself. */
+.handle {
+  visibility: hidden;
+}

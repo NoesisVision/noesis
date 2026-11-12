@@ -14,7 +14,6 @@ import {
   type Edge,
   type EdgeProps,
   EdgeLabelRenderer,
-  Handle,
   type Node,
   type NodeProps,
   Panel,
@@ -37,14 +36,19 @@ import {
   useRef,
   useState,
 } from 'react';
-import '@xyflow/react/dist/base.css';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
+import '@xyflow/react/dist/base.css';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
+import {
+  CANVAS_FLOW,
+  useCanvasZoom,
+} from '#/shared/ui/diagram-canvas/canvas-flow.ts';
 import { useLetGoOnEscape } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
+import { HiddenHandle } from '#/shared/ui/diagram-canvas/hidden-handle.tsx';
 import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { cardShapeClass } from '#/shared/ui/diagram-shapes.tsx';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
@@ -126,12 +130,8 @@ function useBoxState(id: string) {
 /** Where a line meets a box: React Flow needs a handle there to draw it. */
 const Handles = () => (
   <>
-    <Handle type="target" position={Position.Top} className={classes.handle} />
-    <Handle
-      type="source"
-      position={Position.Bottom}
-      className={classes.handle}
-    />
+    <HiddenHandle type="target" position={Position.Top} />
+    <HiddenHandle type="source" position={Position.Bottom} />
   </>
 );
 
@@ -551,7 +551,6 @@ export function MermaidCanvas({
   const scheme = useComputedColorScheme('light');
   const markers = `mermaid-${useId().replaceAll(':', '')}`;
   const [flow, setFlow] = useState<ReactFlowInstance | null>(null);
-  const [zoom, setZoom] = useState(1);
   // Ctrl or Cmd held: the wheel zooms an inline diagram as it does full screen.
   const ctrlHeld = useKeyPress('Control');
   const cmdHeld = useKeyPress('Meta');
@@ -816,6 +815,7 @@ export function MermaidCanvas({
 
   const top = ROOM.top + (steps.length > 0 ? CAPTION_ROOM : 0);
   const fit = useMemo(() => fitOf(top), [top]);
+  const zoom = useCanvasZoom(flow, fit);
   const { ref: frame, width: across } = useWidth();
   useEvenCtrlZoom(frame);
   const scale =
@@ -872,10 +872,7 @@ export function MermaidCanvas({
           minZoom={0.2}
           maxZoom={3}
           nodesDraggable={false}
-          nodesConnectable={false}
-          nodesFocusable={false}
-          edgesFocusable={false}
-          elementsSelectable={false}
+          {...CANVAS_FLOW}
           // Inline, the wheel scrolls the page; a pinch, or Ctrl/Cmd and the
           // wheel, zooms. Full screen, the wheel zooms.
           zoomOnScroll={wheelZooms}
@@ -885,10 +882,9 @@ export function MermaidCanvas({
           onPaneClick={letGo}
           onInit={(instance) => {
             setFlow(instance as unknown as ReactFlowInstance);
-            setZoom(instance.getZoom());
+            zoom.readZoom(instance);
           }}
-          onMove={(_, viewport) => setZoom(viewport.zoom)}
-          attributionPosition="bottom-right"
+          onMove={zoom.onMove}
         >
           <Background {...DOT_GRID} />
           <Panel position="top-right" className={classes.corner}>
@@ -969,14 +965,7 @@ export function MermaidCanvas({
                   <span className={classes.divider} aria-hidden />
                 </>
               )}
-              <ZoomControls
-                quiet
-                zoom={zoom}
-                disabled={flow === null}
-                onZoomOut={() => void flow?.zoomOut()}
-                onZoomIn={() => void flow?.zoomIn()}
-                onFit={() => void flow?.fitView(fit)}
-              />
+              <ZoomControls quiet {...zoom.controls} />
               {onFullScreen !== undefined && (
                 <ActionIcon
                   variant="subtle"

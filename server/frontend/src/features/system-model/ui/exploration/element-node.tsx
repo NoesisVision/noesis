@@ -1,6 +1,5 @@
 import { IconDots, IconPlus, IconX } from '@tabler/icons-react';
 import {
-  Handle,
   type Node,
   type NodeProps,
   Position,
@@ -15,6 +14,7 @@ import { Menu } from '#/shared/design-system/menu.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { addressOf } from '#/shared/model/element-id.ts';
+import { HiddenHandle } from '#/shared/ui/diagram-canvas/hidden-handle.tsx';
 import {
   BevelFace,
   BevelRing,
@@ -624,12 +624,7 @@ export function ElementNode({
           {/* Where React Flow has an edge start and end; the edge itself
               meets the card wherever the line between them crosses its
               border (relation-edge.tsx). */}
-          <Handle
-            type="target"
-            position={into}
-            isConnectable={false}
-            className={classes.handle}
-          />
+          <HiddenHandle type="target" position={into} />
           {/* A frame is taken by its top, where its name is: the rest is
               room for what it holds. */}
           {holds ? (
@@ -671,12 +666,7 @@ export function ElementNode({
           )}
           <Contains element={element} holds={holds} />
           <Remove id={element.id} name={element.name} holds={holds} />
-          <Handle
-            type="source"
-            position={outOf}
-            isConnectable={false}
-            className={classes.handle}
-          />
+          <HiddenHandle type="source" position={outOf} />
         </Box>
       </Menu.ContextMenu>
       <NodeMenuDropdown

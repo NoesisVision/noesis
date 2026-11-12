@@ -9,11 +9,15 @@ import { clsx } from 'clsx';
 import { type ReactNode, useMemo, useRef, useState } from 'react';
 import { useChangeColour } from '#/features/design-docs/ui/model-tree/use-change-colour.ts';
 import { Box } from '#/shared/design-system/box.tsx';
-import '@xyflow/react/dist/base.css';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
+import '@xyflow/react/dist/base.css';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
+import {
+  CANVAS_FLOW,
+  useCanvasZoom,
+} from '#/shared/ui/diagram-canvas/canvas-flow.ts';
 import { useLetGoOnEscape } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
 import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
 import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
@@ -101,7 +105,7 @@ export function ArchitectureDiagram({
   /* Held from `onInit` rather than read from a provider around the toolbar:
      React Flow's own provider is what seeds the nodes before the first paint. */
   const [flow, setFlow] = useState<ReactFlowInstance<DiagramNode> | null>(null);
-  const [zoom, setZoom] = useState(1);
+  const zoom = useCanvasZoom(flow);
   // Ctrl and the wheel zoom as gently as on every diagram.
   const frame = useRef<HTMLElement>(null);
   useEvenCtrlZoom(frame);
@@ -187,14 +191,7 @@ export function ArchitectureDiagram({
         onOverlays={setOverlays}
         unplaced={outline.unplaced}
       >
-        <ZoomControls
-          quiet
-          zoom={zoom}
-          disabled={flow === null}
-          onZoomOut={() => void flow?.zoomOut()}
-          onZoomIn={() => void flow?.zoomIn()}
-          onFit={() => void flow?.fitView(FIT)}
-        />
+        <ZoomControls quiet {...zoom.controls} />
       </DiagramToolbar>
       <Box
         ref={frame}
@@ -218,20 +215,16 @@ export function ArchitectureDiagram({
               fitView
               fitViewOptions={FIT}
               // The bottom left corner is the legend's.
-              attributionPosition="bottom-right"
+              {...CANVAS_FLOW}
               minZoom={0.2}
               maxZoom={2}
               nodesDraggable={false}
-              nodesConnectable={false}
-              nodesFocusable={false}
-              edgesFocusable={false}
-              elementsSelectable={false}
               onPaneClick={onClear}
               onInit={(instance) => {
                 setFlow(instance);
-                setZoom(instance.getZoom());
+                zoom.readZoom(instance);
               }}
-              onMove={(_, viewport) => setZoom(viewport.zoom)}
+              onMove={zoom.onMove}
             >
               {selection}
               {/* The dot grid the Mermaid diagrams are drawn on, moving with the cards. */}

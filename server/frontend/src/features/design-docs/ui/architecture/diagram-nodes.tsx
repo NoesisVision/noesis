@@ -1,4 +1,4 @@
-import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
+import { type Node, type NodeProps, Position } from '@xyflow/react';
 import { clsx } from 'clsx';
 import { createContext, type ReactElement, useContext } from 'react';
 import { ChangeMark } from '#/features/design-docs/ui/model-tree/change-mark.tsx';
@@ -13,6 +13,7 @@ import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { addressOf, kindOf } from '#/shared/model/element-id.ts';
+import { HiddenHandle } from '#/shared/ui/diagram-canvas/hidden-handle.tsx';
 import {
   BevelFace,
   BevelRing,
@@ -258,11 +259,7 @@ export function CardNode({
     .join(', ');
   return (
     <>
-      <Handle
-        type="target"
-        position={Position.Top}
-        className={classes.handle}
-      />
+      <HiddenHandle type="target" position={Position.Top} />
       <Details id={element === null ? null : element.id}>
         <UnstyledButton
           className={clsx(classes.card, cardShapeClass, faded && classes.faded)}
@@ -334,11 +331,7 @@ export function CardNode({
           )}
         </UnstyledButton>
       </Details>
-      <Handle
-        type="source"
-        position={Position.Bottom}
-        className={classes.handle}
-      />
+      <HiddenHandle type="source" position={Position.Bottom} />
     </>
   );
 }
