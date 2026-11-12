@@ -1,6 +1,6 @@
 # Plan: the frontend, shared and split
 
-Status: proposed (November 2026).
+Status: built in part (November 2026), on `refactor/frontend-shared-and-split`; section 8 says what is done and what is left.
 
 The SPA (`server/frontend/src`, 331 modules, about 33,000 lines) grew one
 feature at a time. The same pieces now exist in several places: the
@@ -376,3 +376,72 @@ go last.
 
 After each step: the largest module's line count, SonarCloud's duplication
 for the pull request, and `knip` showing no re-export left unused.
+
+## 8. What was built, and what is left
+
+Built, each step a commit with `bun run ci` green:
+
+- **Foundations (section 2).** All of it, with three exceptions:
+  - Element ids: `shared/model/element-id.ts`.
+  - Words: `shared/model/element-words.ts` and `modelWordOf`.
+  - Vocabulary: `shared/model/building-block-kinds.ts`, `cardinality.ts`,
+    and the relation sets in `relations.ts`.
+  - Utilities: `shared/collections.ts` and the change-set helpers.
+  - The rule icons fixed.
+
+  The exceptions:
+  - `KIND_OF` (`element-ref.ts`) stays written out. It is three entries,
+    and deriving it from `COLLECTION_OF` would cost more types than it
+    saves.
+  - `design-doc-outline.ts`'s five loops and `scenarios-of.ts` keep their
+    own walks. Each treats a removal differently from a named item, and
+    `changed()` made them harder to read.
+
+- **The diagram kit (section 3),** in `shared/ui/diagram-canvas/`: keys,
+  zoom and flow props, fit, dot grid, Ctrl-wheel zoom, ELK, hidden handle,
+  floating edge, selection rule, geometry, `DetailsDock`.
+- **Decisions 1, 2, 3, 4 and 7 (section 6):**
+  1. Title case for the model's words.
+  2. The exploration's Escape.
+  3. Ctrl-wheel zoom on every canvas.
+  4. The architecture's floating, highlighted edges.
+  5. The listed colours made tokens.
+
+  Decisions 5 and 6 leave things as they are.
+
+- **The splits (section 4):**
+
+  | File                          | Before      | After                    |
+  | ----------------------------- | ----------- | ------------------------ |
+  | `design-doc-edit.ts`          | 1,388 lines | 160 lines over 9 modules |
+  | `system-model-exploration.ts` | 688 lines   | a barrel over 6 modules  |
+  | `place-locally.ts`            | 665 lines   | 4 modules                |
+  | `element-node.tsx`            | 680 lines   | 7 modules                |
+  | `unit-fields.tsx`             | 382 lines   | 5 modules                |
+  | `mermaid-canvas.tsx`          | 986 lines   | 543 lines                |
+  | `exploration-view.tsx`        | 1,505 lines | 807 lines                |
+
+- **The link component (section 5):** `ElementLinkOrText`, used for the
+  four plain copies.
+
+Left, each for a change of its own:
+
+- **The kit's look-sharing parts.** These change how a canvas renders,
+  and nothing tests them, so each wants a check by eye in both schemes:
+  - a shared selection-reading base (`diagram-reading.ts`)
+  - shared arrow markers
+  - the dimming, edge-highlight, label, card-hover and frame-title CSS
+    in one stylesheet
+- **Hooks inside a component's body.** The exploration's undo history
+  (`use-diagram-steps.ts`) and its shortcuts, and the mermaid canvas's
+  step playback. Each is tied to the component's own state, which no test
+  renders.
+- **The anchor-styled link copies.** `TypeLink`, `ElementLink`, the change
+  list's link and the rule cards' link each set their own Mantine text
+  props.
+- **The other `light-dark()` uses in `exploration.module.css`,** beyond
+  the ones decision 7 listed.
+
+The new tokens in `theme.ts` (the canvas, its dots, the toolbar, the
+divider, the note, the frame-title hover and the ring label) need
+`/design-sync` once this is merged.
