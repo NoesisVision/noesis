@@ -55,109 +55,72 @@ export interface ExploredElement {
 type Pair = [string, string];
 
 /**
- * Each relation drawn as an edge, as the view knows it: the model's relations
- * it reads, how the filter names it, the word its edges carry, and its two
- * ways of reaching — from the source, and read back from the target.
- * Containment is drawn as cards inside cards, never as an edge, and reads
- * `CONTAINMENT`.
+ * Each relation drawn as an edge, as the view knows it, keyed by how the
+ * filter names it: the model's relations it reads, the word its edges carry,
+ * and its two ways of reaching — from the source, and read back from the
+ * target. Its label is its key, titled. Containment is drawn as cards inside
+ * cards, never as an edge, and reads `CONTAINMENT`.
  */
-export const DRAWN_RELATIONS = [
-  {
-    kind: 'state',
-    models: ['has_state'],
-    label: 'State',
-    word: 'has state',
-    reach: 'hasState',
-    back: 'stateOf',
-  },
-  {
-    kind: 'input',
-    models: ['has_input'],
-    label: 'Input',
-    word: 'has input',
-    reach: 'hasInput',
-    back: 'inputOf',
-  },
-  {
-    kind: 'output',
-    models: ['has_output'],
-    label: 'Output',
-    word: 'has output',
-    reach: 'hasOutput',
-    back: 'outputOf',
-  },
-  {
-    kind: 'extends',
-    models: ['extends'],
-    label: 'Extends',
-    word: 'extends',
-    reach: 'extends',
-    back: 'extendedBy',
-  },
-  {
-    kind: 'collaborator',
-    models: ['has_collaborator'],
-    label: 'Collaborator',
-    word: 'works with',
-    reach: 'worksWith',
-    back: 'collaboratorOf',
-  },
-  {
-    kind: 'invokes',
-    models: ['behavior_invokes_behavior', 'process_invokes_behavior'],
-    label: 'Invokes',
-    word: 'invokes',
-    reach: 'invokes',
-    back: 'invokedBy',
-  },
-  {
-    kind: 'performs',
-    models: ['performs'],
-    label: 'Performs',
-    word: 'performs',
-    reach: 'performs',
-    back: 'performedBy',
-  },
-  {
-    kind: 'ships',
-    models: ['unit_contains_module'],
-    label: 'Ships',
-    word: 'ships',
-    reach: 'ships',
-    back: 'shippedIn',
-  },
-  {
-    kind: 'provides',
-    models: ['library_contains_block'],
-    label: 'Provides',
-    word: 'provides',
-    reach: 'provides',
-    back: 'providedBy',
-  },
-  {
-    kind: 'places',
-    models: ['layer_contains_block'],
-    label: 'Places',
-    word: 'places',
-    reach: 'places',
-    back: 'placedIn',
-  },
-  {
-    kind: 'runs',
-    models: ['container_contains_unit'],
-    label: 'Runs',
-    word: 'runs',
-    reach: 'runs',
-    back: 'runsOn',
-  },
-] as const satisfies readonly {
-  kind: string;
-  models: readonly Relation['kind'][];
-  label: string;
-  word: string;
-  reach: string;
-  back: string;
-}[];
+const DRAWN = {
+  state: [['has_state'], 'has state', 'hasState', 'stateOf'],
+  input: [['has_input'], 'has input', 'hasInput', 'inputOf'],
+  output: [['has_output'], 'has output', 'hasOutput', 'outputOf'],
+  extends: [['extends'], 'extends', 'extends', 'extendedBy'],
+  collaborator: [
+    ['has_collaborator'],
+    'works with',
+    'worksWith',
+    'collaboratorOf',
+  ],
+  invokes: [
+    ['behavior_invokes_behavior', 'process_invokes_behavior'],
+    'invokes',
+    'invokes',
+    'invokedBy',
+  ],
+  performs: [['performs'], 'performs', 'performs', 'performedBy'],
+  ships: [['unit_contains_module'], 'ships', 'ships', 'shippedIn'],
+  provides: [['library_contains_block'], 'provides', 'provides', 'providedBy'],
+  places: [['layer_contains_block'], 'places', 'places', 'placedIn'],
+  runs: [['container_contains_unit'], 'runs', 'runs', 'runsOn'],
+} as const satisfies Record<
+  string,
+  readonly [
+    models: readonly Relation['kind'][],
+    word: string,
+    reach: string,
+    back: string,
+  ]
+>;
+
+export type DrawnRelationKind = keyof typeof DRAWN;
+
+/** One drawn relation, each field as narrow as its entry in `DRAWN`. */
+type DrawnRelationEntry = {
+  [Kind in DrawnRelationKind]: {
+    kind: Kind;
+    models: (typeof DRAWN)[Kind][0];
+    label: string;
+    word: (typeof DRAWN)[Kind][1];
+    reach: (typeof DRAWN)[Kind][2];
+    back: (typeof DRAWN)[Kind][3];
+  };
+}[DrawnRelationKind];
+
+/** The drawn relations, in the order the filter lists them. */
+export const DRAWN_RELATIONS: readonly DrawnRelationEntry[] = (
+  Object.keys(DRAWN) as DrawnRelationKind[]
+).map((kind): DrawnRelationEntry => {
+  const [models, word, reach, back] = DRAWN[kind];
+  return {
+    kind,
+    models,
+    label: titleCase(kind),
+    word,
+    reach,
+    back,
+  } as DrawnRelationEntry;
+});
 
 /** The model's relations that place an element inside another: what "Contains" and "Is part of" read. */
 const CONTAINMENT: ReadonlySet<string> = new Set([
@@ -165,9 +128,6 @@ const CONTAINMENT: ReadonlySet<string> = new Set([
   'module_contains_block',
   'exposes',
 ] satisfies Relation['kind'][]);
-
-type DrawnRelationEntry = (typeof DRAWN_RELATIONS)[number];
-export type DrawnRelationKind = DrawnRelationEntry['kind'];
 
 export interface Exploration {
   elements: ExploredElement[];
