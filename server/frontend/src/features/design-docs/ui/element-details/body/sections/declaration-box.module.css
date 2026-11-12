@@ -103,13 +103,24 @@
   padding-left: 0;
   overflow: hidden;
 
-  /* On the blue tag, the mark is the tag's solid end: brand blue, the icon white. */
+  /*
+   * On the blue tag, the mark is the tag's own end, set apart: in the light,
+   * solid brand blue with the icon white; in the dark, the tag's blue a
+   * shade darker — a little black over the tag behind it — the icon in the
+   * tag's own pale ink.
+   */
   & [data-cardinality] {
     height: auto;
     border-radius: 0;
     margin-right: 7px;
-    color: var(--mantine-color-white);
-    background: var(--mantine-color-brand-filled);
+    color: light-dark(
+      var(--mantine-color-white),
+      var(--mantine-color-brand-light-color)
+    );
+    background: light-dark(
+      var(--mantine-color-brand-filled),
+      color-mix(in srgb, var(--mantine-color-black) 14%, transparent)
+    );
   }
 }
 
