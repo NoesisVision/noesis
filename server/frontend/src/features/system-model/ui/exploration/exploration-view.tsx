@@ -26,8 +26,8 @@ import { byIdOf } from '#/shared/collections.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
-import '@xyflow/react/dist/base.css';
 import { Stack } from '#/shared/design-system/stack.tsx';
+import '@xyflow/react/dist/base.css';
 import { Text } from '#/shared/design-system/text.tsx';
 import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
@@ -39,6 +39,7 @@ import {
   isElsewhere,
   useLetGoOnEscape,
 } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
+import { selectionAfterClick } from '#/shared/ui/diagram-canvas/canvas-selection.ts';
 import { DetailsDock } from '#/shared/ui/diagram-canvas/details-dock.tsx';
 import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
 import {
@@ -361,18 +362,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const [selection, setSelection] = useState<readonly string[]>([]);
   const selected = selection.at(-1) ?? null;
   const inHandSet = useMemo(() => new Set(selection), [selection]);
-  // A card clicked is taken in hand alone; clicked again, alone in hand, it
-  // is let go of. With Ctrl or Cmd it joins the hand, or leaves it.
+  // A card clicked is taken in hand, as on every canvas.
   const select = useCallback((id: string, adding: boolean) => {
-    setSelection((held) =>
-      !adding
-        ? held.length === 1 && held[0] === id
-          ? []
-          : [id]
-        : held.includes(id)
-          ? held.filter((each) => each !== id)
-          : [...held, id],
-    );
+    setSelection((held) => selectionAfterClick(held, id, adding));
   }, []);
   const letGo = useCallback(() => setSelection([]), []);
   // The panel a lone card is read in, minimized: it shrinks into its corner,

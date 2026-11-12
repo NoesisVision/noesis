@@ -9,6 +9,7 @@ import {
   Position,
   useInternalNode,
 } from '@xyflow/react';
+import type { Point } from './geometry.ts';
 
 /*
  * One line between two cards, floating, as every diagram draws them: it
@@ -24,11 +25,6 @@ export type FloatingEdge = Edge<{
   /** A straight line, for a diagram whose cards stand where a rule puts them. */
   straight?: boolean;
 }>;
-
-interface Point {
-  x: number;
-  y: number;
-}
 
 /** Where the line from this card's centre towards the other's crosses its border. */
 export function borderTowards(card: InternalNode, other: InternalNode): Point {

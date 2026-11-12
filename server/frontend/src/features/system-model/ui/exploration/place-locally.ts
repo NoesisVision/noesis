@@ -1,4 +1,9 @@
 import { byIdOf } from '#/shared/collections.ts';
+import {
+  encloses,
+  type Point,
+  type Rect,
+} from '#/shared/ui/diagram-canvas/geometry.ts';
 import type {
   DrawnElement,
   ExplorationGraph,
@@ -24,13 +29,6 @@ import {
  * Positions are worked out on the canvas, then made relative to each
  * element's container, as React Flow reads them.
  */
-
-interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
 
 /** How close two cards may come without one standing on the other. */
 const MARGIN = SPACING / 2;
@@ -336,10 +334,7 @@ function workspaceOf(
 }
 
 /** A point on the canvas, for an element to be set down at. */
-export interface CanvasPoint {
-  x: number;
-  y: number;
-}
+export type CanvasPoint = Point;
 
 export function placeLocally(
   previous: readonly PlacedElement[],
@@ -585,13 +580,6 @@ export function arrangeWithin(
 
 /** A card's place on the canvas, for the frames it may not land in. */
 export type CanvasRect = Rect;
-
-/** Whether a point falls inside a rect. */
-const encloses = (rect: Rect, { x, y }: CanvasPoint) =>
-  x >= rect.x &&
-  x <= rect.x + rect.width &&
-  y >= rect.y &&
-  y <= rect.y + rect.height;
 
 /*
  * The frames a card may not land in, where they stand on the canvas: those

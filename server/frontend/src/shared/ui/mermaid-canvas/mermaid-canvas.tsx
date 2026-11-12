@@ -38,8 +38,8 @@ import {
 } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
-import '@xyflow/react/dist/base.css';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
+import '@xyflow/react/dist/base.css';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
@@ -48,6 +48,7 @@ import {
   useCanvasZoom,
 } from '#/shared/ui/diagram-canvas/canvas-flow.ts';
 import { useLetGoOnEscape } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
+import { selectionAfterClick } from '#/shared/ui/diagram-canvas/canvas-selection.ts';
 import { HiddenHandle } from '#/shared/ui/diagram-canvas/hidden-handle.tsx';
 import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { cardShapeClass } from '#/shared/ui/diagram-shapes.tsx';
@@ -571,15 +572,7 @@ export function MermaidCanvas({
   const onClick = useCallback((id: string, adding: boolean) => {
     setPlaying(false);
     setStep(null);
-    setSelection((held) =>
-      !adding
-        ? held.length === 1 && held[0] === id
-          ? []
-          : [id]
-        : held.includes(id)
-          ? held.filter((each) => each !== id)
-          : [...held, id],
-    );
+    setSelection((held) => selectionAfterClick(held, id, adding));
   }, []);
   const letGo = useCallback(() => {
     setSelection([]);
