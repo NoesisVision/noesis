@@ -16,6 +16,8 @@ import {
   IconId,
   IconInfoCircle,
   IconListCheck,
+  IconLogin2,
+  IconLogout2,
   IconMathFunction,
   IconPackageExport,
   IconPoint,
@@ -25,10 +27,12 @@ import {
   IconShield,
   IconSitemap,
   IconStatusChange,
+  IconTool,
   IconTarget,
   IconUser,
   IconWorld,
 } from '@tabler/icons-react';
+import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 import type { OutlineKind, OutlineNode } from './model-outline.ts';
 import classes from './model-tree.module.css';
 
@@ -57,6 +61,9 @@ const PATTERNS = [
   'repository',
   'factory',
   'external_integration',
+  'in_adapter',
+  'out_adapter',
+  'technical_service',
   'command',
   'event',
   'query',
@@ -77,6 +84,9 @@ const PATTERN_ICONS = {
   repository: IconDatabase,
   factory: IconAssembly,
   external_integration: IconWorld,
+  in_adapter: IconLogin2,
+  out_adapter: IconLogout2,
+  technical_service: IconTool,
   command: IconCircleLetterC,
   event: IconCircleLetterE,
   query: IconCircleLetterQ,
@@ -84,7 +94,9 @@ const PATTERN_ICONS = {
   Structure: IconSitemap,
   Computation: IconMathFunction,
   'State change': IconStatusChange,
-} as const satisfies Record<Pattern, unknown>;
+} as const satisfies Record<Pattern, unknown> &
+  // A building block kind the model gains fails here until it has an icon.
+  Record<BuildingBlockKind, unknown>;
 
 /*
  * The three kinds of message, told apart at a glance: what happened, what is

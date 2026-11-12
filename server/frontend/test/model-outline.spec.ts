@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 import {
   compareSiblings,
   drawsDiagram,
@@ -74,5 +75,29 @@ describe('compareSiblings', () => {
     expect(
       [aggregate, service].sort(compareSiblings).map((n) => n.name),
     ).toEqual(['Alpha', 'Zeta']);
+  });
+
+  it('ranks every kind of building block, adapters round the boundary', () => {
+    const blocks = BuildingBlockKind.options
+      .toReversed()
+      .map((pattern) =>
+        node({ kind: 'building_block', name: pattern, pattern }),
+      );
+    expect(blocks.sort(compareSiblings).map((n) => n.pattern)).toEqual([
+      'in_adapter',
+      'application_service',
+      'domain_service',
+      'repository',
+      'factory',
+      'external_integration',
+      'out_adapter',
+      'technical_service',
+      'aggregate',
+      'entity',
+      'value_object',
+      'command',
+      'query',
+      'event',
+    ]);
   });
 });

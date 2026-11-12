@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 import {
   applyEdit,
   draftOfUnit,
@@ -154,6 +155,12 @@ describe('the fields of a unit', () => {
       expect.arrayContaining(['command', 'event', 'query']),
     );
     expect(TYPES_OF.behavior).toBeUndefined();
+  });
+
+  it('offers every kind of building block the model knows', () => {
+    expect([...(TYPES_OF.building_block ?? [])].sort()).toEqual(
+      [...BuildingBlockKind.options].sort(),
+    );
   });
 
   it('give a new need an id to choose', () => {

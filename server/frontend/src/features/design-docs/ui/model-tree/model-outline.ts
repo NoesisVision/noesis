@@ -1,4 +1,5 @@
 import { titleCase } from '#/shared/ui/title-case.ts';
+import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 
 /*
  * The shape a reader wants a model in: one tree, whatever it was rebuilt from.
@@ -70,9 +71,10 @@ export const BARE_ROW = {
 } as const satisfies Partial<OutlineNode>;
 
 /**
- * The order a reader meets a module's building blocks in: what the outside
- * calls, then how instances come and go, then the boundary, then the model
- * itself. Deliberately not alphabetical — the sequence is
+ * The order a reader meets a module's building blocks in: the adapters the
+ * outside comes in through, what they call, then how instances come and go,
+ * then the boundary and what stands behind it — the adapters out and the
+ * technical services — then the model itself. Deliberately not alphabetical — the sequence is
  * how the design is taught, so it belongs with the model rather than with the
  * view that draws it.
  *
@@ -80,18 +82,21 @@ export const BARE_ROW = {
  * port of its own.
  */
 const BUILDING_BLOCK_READING_ORDER = [
+  'in_adapter',
   'application_service',
   'domain_service',
   'repository',
   'factory',
   'external_integration',
+  'out_adapter',
+  'technical_service',
   'aggregate',
   'entity',
   'value_object',
   'command',
   'query',
   'event',
-] as const;
+] as const satisfies readonly BuildingBlockKind[];
 
 /** Submodules above the blocks they hold; rules and scenarios last of all. */
 const KIND_ORDER: readonly OutlineKind[] = [
