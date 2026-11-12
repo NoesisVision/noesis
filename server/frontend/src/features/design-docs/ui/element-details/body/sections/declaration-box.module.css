@@ -22,11 +22,14 @@
   font-family: var(--mantine-font-family-monospace);
   list-style: none;
 
-  /* What it gives back, in the brand's tint. */
+  /*
+   * What it gives back has no name, only a type: the tag alone, as an
+   * input's type reads, with no card round it.
+   */
   &[data-output] {
-    padding: 6px 14px;
-    border: 1.5px solid var(--mantine-color-brand-3);
-    background: var(--mantine-color-brand-light);
+    min-height: 0;
+    padding: 0;
+    background: none;
   }
 }
 
@@ -82,6 +85,29 @@
 
 [data-glance] .box .name {
   font-size: 11px;
+}
+
+/*
+ * A type that starts with a cardinality mark (cardinality-mark.tsx): the
+ * mark centred on the name beside it; in a tag, filling the tag's left
+ * end, flush with its edge and radius.
+ */
+.box .name[data-marked] {
+  display: inline-flex;
+  align-items: center;
+}
+
+.box .type[data-marked] {
+  display: inline-flex;
+  align-items: stretch;
+  padding-left: 0;
+  overflow: hidden;
+
+  & [data-cardinality] {
+    height: auto;
+    border-radius: 0;
+    margin-right: 7px;
+  }
 }
 
 [data-glance] .box .type {

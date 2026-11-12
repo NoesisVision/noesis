@@ -75,9 +75,9 @@ export function WritableDeclarationBox({
       {item.type !== undefined && (
         <DeclarationType
           type={item.type}
-          suffix={item.cardinality}
+          cardinality={item.cardinality}
           path={typePath}
-          named
+          tagged
         />
       )}
     </Component>

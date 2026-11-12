@@ -18,6 +18,12 @@ import {
   ownerOf,
   parentOf,
 } from '../../element-id.ts';
+import { cardinalitySuffixOf } from '../../relations.ts';
+import {
+  CardinalityMark,
+  CardinalityNote,
+  type MarkedCardinality,
+} from './cardinality-mark.tsx';
 import {
   type ChangeListItem,
   parameterItems,
@@ -35,6 +41,8 @@ interface Line {
   key: string;
   name?: string;
   type?: string;
+  /** How many of the type it holds, marked before the type, when not exactly one. */
+  cardinality?: MarkedCardinality;
   icon?: ReactNode;
 }
 
@@ -66,10 +74,8 @@ const lines = (items: ChangeListItem[]): Line[] =>
         : {
             key: label,
             name,
-            type:
-              type === undefined
-                ? undefined
-                : `${shortName(type).type}${cardinality ?? ''}`,
+            type: type === undefined ? undefined : shortName(type).type,
+            ...(cardinality === undefined ? {} : { cardinality }),
           },
     );
 
@@ -78,12 +84,15 @@ const signatureOf = (
   doc: DesignDocumentInput,
   behavior: DesignedBehaviorInput,
 ): Line => {
+  // One line of text: how many each holds is said after its type.
+  const typed = ({ type, cardinality }: Line) =>
+    `${type}${cardinalitySuffixOf(cardinality ?? null)}`;
   const input = lines(parameterItems(doc, behavior.id))
-    .map(({ name, type }) => (type === undefined ? name : `${name}: ${type}`))
+    .map((line) =>
+      line.type === undefined ? line.name : `${line.name}: ${typed(line)}`,
+    )
     .join(', ');
-  const output = lines(resultItems(doc, behavior.id))
-    .map(({ type }) => type)
-    .join(', ');
+  const output = lines(resultItems(doc, behavior.id)).map(typed).join(', ');
   return {
     key: behavior.id,
     name: `${nameOf(behavior.id)}(${input})`,
@@ -159,9 +168,15 @@ export function ElementTooltip({
   openDelay = 300,
   opened,
   tooltipProps,
+  cardinality,
   children,
 }: {
   name: string;
+  /**
+   * How many of the named type a slot holds, when not exactly one: said
+   * under the name with its mark, so even a primitive gets a tooltip.
+   */
+  cardinality?: MarkedCardinality | undefined;
   /**
    * What the child shows of the name, its short label by default. An input
    * shown by its name alone still has its type to say, even a primitive's.
@@ -188,7 +203,7 @@ export function ElementTooltip({
   const doc = useDesignDocument();
   const address = addressOf(name);
   const shape = doc === null ? null : shapeOf(doc, address);
-  if (shape === null && shown === name.trim()) {
+  if (shape === null && shown === name.trim() && cardinality === undefined) {
     return children;
   }
   return (
@@ -198,7 +213,9 @@ export function ElementTooltip({
       multiline
       disabled={disabled}
       opened={opened}
-      label={<Details address={address} shape={shape} />}
+      label={
+        <Details address={address} shape={shape} cardinality={cardinality} />
+      }
     >
       {hint
         ? cloneElement(children, {
@@ -209,10 +226,18 @@ export function ElementTooltip({
   );
 }
 
-function Details({ address, shape }: { address: string; shape: Shape | null }) {
+function Details({
+  address,
+  shape,
+  cardinality,
+}: {
+  address: string;
+  shape: Shape | null;
+  cardinality: MarkedCardinality | undefined;
+}) {
   return (
     <span className={classes.details}>
-      <Address address={address} />
+      <Address address={address} cardinality={cardinality} />
       <Lines label="Behaviors" lines={shape?.behaviors} />
       <Lines label="Properties" lines={shape?.properties} />
       <Lines label="Input" lines={shape?.input} />
@@ -223,14 +248,26 @@ function Details({ address, shape }: { address: string; shape: Shape | null }) {
 }
 
 /**
- * The element's address, read as a heading: its name, over where it sits,
- * small and gray. A root module has no place to say.
+ * The element's address, read as a heading: its name — and after it, for a
+ * slot that holds many or may hold none, its mark and word — over where it
+ * sits, small and gray. A root module has no place to say.
  */
-function Address({ address }: { address: string }) {
+function Address({
+  address,
+  cardinality,
+}: {
+  address: string;
+  cardinality: MarkedCardinality | undefined;
+}) {
   const dot = address.lastIndexOf('.');
   return (
     <span className={classes.address}>
-      <span className={classes.name}>{address.slice(dot + 1)}</span>
+      <span className={classes.heading}>
+        <span className={classes.name}>{address.slice(dot + 1)}</span>
+        {cardinality !== undefined && (
+          <CardinalityNote cardinality={cardinality} />
+        )}
+      </span>
       {dot !== -1 && (
         <span className={classes.place}>{address.slice(0, dot)}</span>
       )}
@@ -244,7 +281,7 @@ function Lines({ label, lines }: { label: string; lines: Line[] | undefined }) {
   return (
     <span className={classes.group}>
       <span className={classes.label}>{label}</span>
-      {lines.map(({ key, name, type, icon }) => (
+      {lines.map(({ key, name, type, cardinality, icon }) => (
         // `name: Type`, the type in the colour a declaration box gives it.
         <span
           key={key}
@@ -254,7 +291,14 @@ function Lines({ label, lines }: { label: string; lines: Line[] | undefined }) {
           {icon !== undefined && <span className={classes.icon}>{icon}</span>}
           {name}
           {name !== undefined && type !== undefined && ': '}
-          {type !== undefined && <span className={classes.type}>{type}</span>}
+          {type !== undefined && (
+            <span className={classes.type}>
+              {cardinality !== undefined && (
+                <CardinalityMark cardinality={cardinality} />
+              )}
+              {type}
+            </span>
+          )}
         </span>
       ))}
     </span>

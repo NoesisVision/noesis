@@ -528,9 +528,14 @@ describe('ElementDetail', () => {
     // A property reads as its declaration, name and type apart, and has no
     // row in the tree to open, so it is only text.
     expect(html).toContain('>amount<');
-    // Its type by its last segment, as inputs and outputs read one, and how
-    // many it holds after it.
-    expect(html).toMatch(/Money(<\/span>)* \[0..1\]/);
+    // Its type by its last segment, as inputs and outputs read one; how many
+    // it holds marks the tag's start, a question mark for optional, said
+    // aloud, never as a bracketed suffix.
+    expect(html).toMatch(
+      /data-cardinality="0\.\.1"(.(?!<\/span>))*tabler-icon-question-mark/,
+    );
+    expect(html).toMatch(/>optional: <\/span>(<[^>]+>)*Money</);
+    expect(html).not.toContain('[0..1]');
     expect(html).not.toContain('>pay.Money<');
     expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount</);
   });
@@ -575,7 +580,7 @@ describe('ElementDetail', () => {
     expect(lines).toMatchObject({
       label: 'lines: pay.HoldLine [*]',
       type: 'pay.HoldLine',
-      cardinality: ' [*]',
+      cardinality: '*',
       typePath: 'building_block|pay.HoldLine',
     });
     expect(note).toMatchObject({ label: 'note: string', type: 'string' });
@@ -595,7 +600,13 @@ describe('ElementDetail', () => {
         />
       </MantineProvider>,
     );
-    expect(html).toMatch(/HoldLine(<\/span>)* \[\*\]/);
+    // Many: an asterisk at the tag's start, said aloud; exactly one, unmarked.
+    expect(html).toMatch(
+      /data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
+    );
+    expect(html).toMatch(/>many: <\/span>(<[^>]+>)*HoldLine</);
+    expect(html).not.toContain('[*]');
+    expect(html.match(/data-cardinality=/g)).toHaveLength(1);
   });
 
   it('points every listed part at the row the tree has for it', () => {
@@ -692,6 +703,26 @@ describe('ElementDetail', () => {
     expect(html).toContain('Holds a card for a booking.');
     // What each input is for is on the behavior's own page.
     expect(html).not.toContain('What to hold.');
+  });
+
+  it('marks what a signature gives back when it is many, as its boxes do', () => {
+    const many = {
+      ...document,
+      relations: {
+        ...document.relations,
+        added: document.relations.added.map((relation) =>
+          relation.kind === 'has_output'
+            ? { ...relation, cardinality: plain('*' as const) }
+            : relation,
+        ),
+      },
+    } satisfies DesignDocumentInput;
+    const html = show('building_block|pay.Hold', tree, many);
+    expect(html).toMatch(
+      /→ <\/span><button[^>]*data-link[^>]*><span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
+    );
+    expect(html).toMatch(/>many: <\/span>Hold<\/button>/);
+    expect(html).not.toContain('[*]');
   });
 
   it('lists a behavior the design only removes by its name alone', () => {

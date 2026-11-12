@@ -118,11 +118,16 @@ describe('ElementTooltip', () => {
     // Over the element it is given, not a name of its own.
     expect(html).toMatch(/<div class="target[^"]*"[^>]*>a whole card<\/div>/);
     // Its name, then where it sits under it.
-    expect(html).toMatch(/>Hold<\/span><span[^>]*>pay</);
+    expect(html).toMatch(/>Hold<\/span><\/span><span[^>]*>pay</);
     expect(html).toContain('>Properties<');
-    // The type apart from the name, coloured as a declaration box colours it.
-    expect(html).toMatch(/>amount: <span[^>]*>Money \[0..1\]<\/span>/);
-    expect(html).toMatch(/>lines: <span[^>]*>HoldLine \[\*\]<\/span>/);
+    // The type apart from the name, coloured as a declaration box colours
+    // it, and marked with how many it holds, as the box marks it.
+    expect(html).toMatch(
+      />amount: <span[^>]*><span data-cardinality="0\.\.1"(.(?!<\/span>))*tabler-icon-question-mark/,
+    );
+    expect(html).toMatch(/>optional: <\/span>Money<\/span>/);
+    expect(html).toMatch(/>many: <\/span>HoldLine<\/span>/);
+    expect(html).not.toMatch(/\[0\.\.1\]|\[\*\]/);
     // What the design removes is not part of what the block is.
     expect(html).not.toContain('legacyId');
   });
@@ -162,7 +167,9 @@ describe('ElementTooltip', () => {
   });
 
   it('reads a slot by its type, whatever it holds', () => {
-    expect(render('pay.Hold [*]')).toMatch(/>Hold<\/span><span[^>]*>pay</);
+    expect(render('pay.Hold [*]')).toMatch(
+      />Hold<\/span><\/span><span[^>]*>pay</,
+    );
   });
 
   it("reads a behavior's input and output even where the document leaves the behavior alone", () => {
@@ -183,7 +190,7 @@ describe('ElementTooltip', () => {
 
   it('gives an element the document does not shape its address alone', () => {
     const html = render('pay.Money');
-    expect(html).toMatch(/>Money<\/span><span[^>]*>pay</);
+    expect(html).toMatch(/>Money<\/span><\/span><span[^>]*>pay</);
     expect(html).not.toContain('>Properties<');
   });
 
@@ -199,6 +206,31 @@ describe('ElementTooltip', () => {
     );
     expect(html).toContain('role="tooltip"');
     expect(html).toContain('>integer<');
+  });
+
+  it('says after the name whether a marked slot holds many or is optional, a primitive too', () => {
+    const tooltip = (name: string, cardinality: '*' | '0..1') =>
+      renderToStaticMarkup(
+        <MantineProvider theme={theme}>
+          <DesignDocumentContext.Provider value={document}>
+            <ElementTooltip name={name} cardinality={cardinality}>
+              <span>type</span>
+            </ElementTooltip>
+          </DesignDocumentContext.Provider>
+        </MantineProvider>,
+      );
+    const many = tooltip('pay.HoldLine', '*');
+    // After the name, on its line: the mark and its word, nothing longer.
+    expect(many).toMatch(
+      />HoldLine<\/span><span[^>]*><span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
+    );
+    expect(many).toMatch(/<\/svg><\/span><span[^>]*>Many<\/span>/);
+    expect(many).not.toContain('holds any number');
+    const optional = tooltip('string', '0..1');
+    expect(optional).toContain('role="tooltip"');
+    expect(optional).toMatch(
+      />string<\/span><span[^>]*>(<[^>]+>)*<\/svg><\/span><span[^>]*>Optional</,
+    );
   });
 
   it('gives a name with nothing to cut and nothing to say no tooltip', () => {
