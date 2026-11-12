@@ -143,6 +143,9 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       // Every diagram's surfaces, the exploration's and the architecture's:
       // white cards on a hairline; a module a frame of the faintest blue, a
       // building block (or a domain core) a shade more, so the two read apart.
+      // Every diagram's canvas: the faintest grey, dotted a shade darker.
+      '--noesis-diagram-canvas': gray[0],
+      '--noesis-diagram-dots': gray[3],
       '--noesis-diagram-card': current.white,
       '--noesis-diagram-card-border': gray[3],
       '--noesis-diagram-card-border-hover': gray[4],
@@ -186,6 +189,8 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       // building block in grey, what is not designed a flat grey; the
       // accent the same pale blue. A frame's edge holds 3:1 against what it
       // bounds.
+      '--noesis-diagram-canvas': dark[7],
+      '--noesis-diagram-dots': dark[4],
       '--noesis-diagram-card': dark[6],
       '--noesis-diagram-card-border': dark[4],
       '--noesis-diagram-card-border-hover': dark[3],

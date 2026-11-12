@@ -107,6 +107,14 @@
           "description": "Lines and borders of the architecture diagram: its edges and adapter cards. Gray 6 / dark 2, from `cssVariablesResolver` in `theme.ts`."
         },
         {
+          "name": "--noesis-diagram-canvas",
+          "description": "Every diagram's canvas: gray 0 / dark 7, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-dots",
+          "description": "The dots on every diagram's canvas: gray 3 / dark 4, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
           "name": "--noesis-diagram-card",
           "description": "A card on any diagram, the exploration's and the architecture's. White / dark 6 (a grey over its darkened frame), from `cssVariablesResolver` in `theme.ts`."
         },

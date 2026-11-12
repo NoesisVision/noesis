@@ -1,7 +1,5 @@
 import {
   Background,
-  type BackgroundProps,
-  BackgroundVariant,
   type FitViewOptions,
   type NodeChange,
   type OnNodeDrag,
@@ -10,7 +8,6 @@ import {
   useNodesState,
   ViewportPortal,
 } from '@xyflow/react';
-import '@xyflow/react/dist/base.css';
 import {
   type CSSProperties,
   useCallback,
@@ -28,11 +25,19 @@ import {
 } from '#/features/design-docs/element-reader.ts';
 import { byIdOf } from '#/shared/collections.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
+import '@xyflow/react/dist/base.css';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
+import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
+import {
+  isElsewhere,
+  useLetGoOnEscape,
+} from '#/shared/ui/diagram-canvas/canvas-keys.ts';
+import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
+import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
@@ -113,7 +118,6 @@ import classes from './exploration.module.css';
 
 const NODE_TYPES = { element: ElementNode };
 const EDGE_TYPES = { relation: RelationEdgeView };
-const FIT = { padding: 0.08 };
 /** What the panel a card in hand is read in covers of the canvas, from its right: 360px, 16px in, and a gap. */
 const PANEL_ROOM = 420;
 /**
@@ -376,6 +380,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     at: CanvasPoint;
   } | null>(null);
   const canvas = useRef<HTMLElement>(null);
+  // Ctrl and the wheel zoom as gently as on every diagram.
+  useEvenCtrlZoom(canvas);
   // Space opens the picker from anywhere but a field, a control of its own
   // outside the canvas, or the picker itself.
   const pickable = exploration.elements.length > 0;
@@ -576,17 +582,15 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [graph, veiled]);
+  // Escape lets go of the cards in hand, as on every diagram.
+  useLetGoOnEscape(selection.length > 0, letGo);
   // Delete or Backspace takes every card in hand off the diagram, as their
-  // crosses do; Escape lets go of them.
+  // crosses do.
   useEffect(() => {
     if (selection.length === 0) return;
     const onKey = (event: globalThis.KeyboardEvent) => {
       if (event.altKey || event.ctrlKey || event.metaKey) return;
       if (isElsewhere(event.target)) return;
-      if (event.key === 'Escape') {
-        letGo();
-        return;
-      }
       if (event.key !== 'Delete' && event.key !== 'Backspace') return;
       const held = selection.filter((id) => drawn.has(id));
       const [first] = held;
@@ -846,7 +850,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                         />
                       </ViewportPortal>
                     )}
-                    <Background {...(theme.background ?? DOTS)} />
+                    <Background {...(theme.background ?? DOT_GRID)} />
                   </ReactFlow>
                   <CanvasTooltips within={canvas} dragging={dragging} />
                 </ExplorationReadingContext.Provider>
@@ -1371,19 +1375,6 @@ function usePlacement(
   };
 }
 
-/**
- * Whether a key pressed there is meant for something else than the canvas:
- * typed into a field, or pressed in the picker, whose rows and boxes are
- * its own to tick.
- */
-const isElsewhere = (target: EventTarget | null): boolean =>
-  target instanceof HTMLElement &&
-  (target.isContentEditable ||
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement ||
-    target.closest('[role="tree"], [role="dialog"]') !== null);
-
 /** A card being dragged: what is greyed, and the outline's size and start. */
 interface HeldCard {
   id: string;
@@ -1438,15 +1429,6 @@ const standingOf = (nodes: ExplorationNode[]): PlacedElement[] =>
 
 /** Where a frame is taken to be dragged: its top, by its name. */
 /** The canvas behind the diagram, unless its theme draws its own. */
-const DOTS: BackgroundProps = {
-  variant: BackgroundVariant.Dots,
-  gap: 20,
-  size: 1,
-  color: 'light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))',
-  bgColor:
-    'light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))',
-};
-
 const FRAME_HANDLE = `.${classes.frameTop}`;
 
 /** A node dragged as its kind is: a frame by its top, a card anywhere. */

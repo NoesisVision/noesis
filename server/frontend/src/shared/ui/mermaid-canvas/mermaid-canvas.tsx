@@ -8,10 +8,8 @@ import {
   IconPlayerTrackPrev,
   IconUser,
 } from '@tabler/icons-react';
-import '@xyflow/react/dist/base.css';
 import {
   Background,
-  BackgroundVariant,
   BaseEdge,
   type Edge,
   type EdgeProps,
@@ -30,7 +28,6 @@ import {
   type CSSProperties,
   type MouseEvent,
   type ReactNode,
-  type RefObject,
   createContext,
   useCallback,
   useContext,
@@ -40,11 +37,15 @@ import {
   useRef,
   useState,
 } from 'react';
+import '@xyflow/react/dist/base.css';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
+import { useLetGoOnEscape } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
+import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { cardShapeClass } from '#/shared/ui/diagram-shapes.tsx';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type {
@@ -408,6 +409,9 @@ function LineEdgeView({ data }: EdgeProps<LineEdge>) {
   );
 }
 
+/** What counts as somewhere else for the canvas's keys: a menu, not the dialog it may sit in. */
+const IN_A_DIALOG = ['tree', 'menu'] as const;
+
 const NODE_TYPES = { box: BoxNodeView, frame: FrameNodeView };
 /** How long a step of a playing diagram stays before the next. */
 const STEP_MS = 1500;
@@ -508,49 +512,6 @@ function useWidth() {
 }
 
 /**
- * Ctrl and the wheel zooming as slowly as Cmd and the wheel. React Flow takes
- * every wheel with Ctrl for a trackpad's pinch, which it speeds up tenfold on
- * a Mac; a pinch presses no key, so while the Ctrl key itself is down the
- * wheel is handed on without it.
- */
-function useEvenCtrlZoom(
-  ref: RefObject<HTMLElement | null>,
-  ctrlHeld: boolean,
-) {
-  useEffect(() => {
-    const element = ref.current;
-    if (element === null || !ctrlHeld) return;
-    const onWheel = (event: WheelEvent) => {
-      if (!event.ctrlKey || !event.isTrusted) return;
-      event.preventDefault();
-      event.stopPropagation();
-      event.target?.dispatchEvent(
-        new WheelEvent('wheel', {
-          bubbles: true,
-          cancelable: true,
-          deltaX: event.deltaX,
-          deltaY: event.deltaY,
-          deltaMode: event.deltaMode,
-          clientX: event.clientX,
-          clientY: event.clientY,
-          screenX: event.screenX,
-          screenY: event.screenY,
-          shiftKey: event.shiftKey,
-          altKey: event.altKey,
-          metaKey: true,
-        }),
-      );
-    };
-    element.addEventListener('wheel', onWheel, {
-      capture: true,
-      passive: false,
-    });
-    return () =>
-      element.removeEventListener('wheel', onWheel, { capture: true });
-  }, [ref, ctrlHeld]);
-}
-
-/**
  * How tall the canvas stands inline: the diagram at the scale that fits it
  * across the column (never larger than its size), within reason.
  */
@@ -626,26 +587,9 @@ export function MermaidCanvas({
     stop();
   }, [stop]);
 
-  // Escape lets go, as on the other diagrams; in a field or a dialog's own
-  // controls it is theirs. Heard on its way down.
-  useEffect(() => {
-    if (selection.length === 0 && step === null) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      const target = event.target;
-      if (
-        target instanceof HTMLElement &&
-        (target.isContentEditable ||
-          target instanceof HTMLInputElement ||
-          target instanceof HTMLTextAreaElement ||
-          target.closest('[role="menu"]') !== null)
-      )
-        return;
-      letGo();
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [selection, step, letGo]);
+  // Escape lets go, as on the other diagrams. In full screen the canvas sits
+  // in a dialog, so a dialog's keys are the canvas's own; a menu's are not.
+  useLetGoOnEscape(selection.length > 0 || step !== null, letGo, IN_A_DIALOG);
 
   /*
    * Playing, the diagram moves on a step each STEP_MS, and stops on the last;
@@ -873,7 +817,7 @@ export function MermaidCanvas({
   const top = ROOM.top + (steps.length > 0 ? CAPTION_ROOM : 0);
   const fit = useMemo(() => fitOf(top), [top]);
   const { ref: frame, width: across } = useWidth();
-  useEvenCtrlZoom(frame, ctrlHeld);
+  useEvenCtrlZoom(frame);
   const scale =
     across > 0
       ? Math.min(1, (across - 2 * ROOM.side) / Math.max(1, layout.width))
@@ -946,13 +890,7 @@ export function MermaidCanvas({
           onMove={(_, viewport) => setZoom(viewport.zoom)}
           attributionPosition="bottom-right"
         >
-          <Background
-            variant={BackgroundVariant.Dots}
-            gap={20}
-            size={1}
-            color="light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4))"
-            bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
-          />
+          <Background {...DOT_GRID} />
           <Panel position="top-right" className={classes.corner}>
             <Box className={classes.toolbar}>
               {steps.length > 0 && (

@@ -3,6 +3,7 @@ import type {
   ElkLabel,
   ElkNode,
 } from 'elkjs/lib/elk.bundled.js';
+import { elkOf } from '#/shared/ui/diagram-canvas/elk.ts';
 import type { DiagramBox, DiagramGraph } from './mermaid-graph.ts';
 
 /*
@@ -150,14 +151,6 @@ function sizeOf(
       };
   }
 }
-
-type Elk = { layout: (graph: ElkNode) => Promise<ElkNode> };
-let elk: Promise<Elk> | null = null;
-/** ELK is large, so it is loaded the first time a diagram is laid out. */
-const elkOf = () =>
-  (elk ??= import('elkjs/lib/elk.bundled.js').then(
-    ({ default: ELK }) => new ELK(),
-  ));
 
 const labelOf = (
   id: string,

@@ -1,19 +1,22 @@
 import {
   Background,
-  BackgroundVariant,
   type Edge,
   MarkerType,
   ReactFlow,
   type ReactFlowInstance,
 } from '@xyflow/react';
-import '@xyflow/react/dist/base.css';
 import { clsx } from 'clsx';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useRef, useState } from 'react';
 import { useChangeColour } from '#/features/design-docs/ui/model-tree/use-change-colour.ts';
 import { Box } from '#/shared/design-system/box.tsx';
+import '@xyflow/react/dist/base.css';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
+import { useLetGoOnEscape } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
+import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
+import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { ArchitectureOutline } from '../../architecture-outline.ts';
 import type { TypeRing } from '../../building-block-types.ts';
@@ -86,18 +89,8 @@ export function ArchitectureDiagram({
   hiddenTypes,
   onHideTypes,
 }: ArchitectureDiagramProps) {
-  // Escape lets go of what is in hand, as on the exploration; in a field, the
-  // outline, a dialog or a menu it is theirs. Heard on its way down, as a
-  // card's tooltip stops it on its way back up.
-  useEffect(() => {
-    if (onClear === undefined) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || isElsewhere(event.target)) return;
-      onClear();
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [onClear]);
+  // Escape lets go of what is in hand, as on the exploration.
+  useLetGoOnEscape(onClear !== undefined, onClear ?? NOTHING);
   const [overlays, setOverlays] = useState<Overlays>({
     checks: true,
     rules: false,
@@ -109,6 +102,9 @@ export function ArchitectureDiagram({
      React Flow's own provider is what seeds the nodes before the first paint. */
   const [flow, setFlow] = useState<ReactFlowInstance<DiagramNode> | null>(null);
   const [zoom, setZoom] = useState(1);
+  // Ctrl and the wheel zoom as gently as on every diagram.
+  const frame = useRef<HTMLElement>(null);
+  useEvenCtrlZoom(frame);
   /* The legend entry the reader picked out, by its name: the rest fade. */
   const [picked, setPicked] = useState<string | null>(null);
   const findings = useMemo(
@@ -201,6 +197,7 @@ export function ArchitectureDiagram({
         />
       </DiagramToolbar>
       <Box
+        ref={frame}
         component="section"
         pos="relative"
         flex={1}
@@ -238,13 +235,7 @@ export function ArchitectureDiagram({
             >
               {selection}
               {/* The dot grid the Mermaid diagrams are drawn on, moving with the cards. */}
-              <Background
-                variant={BackgroundVariant.Dots}
-                gap={16}
-                size={1}
-                color="light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))"
-                bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
-              />
+              <Background {...DOT_GRID} />
               <Legend entries={legend} picked={picked} onPick={setPicked} />
             </ReactFlow>
           </DiagramReadingContext.Provider>
@@ -253,8 +244,6 @@ export function ArchitectureDiagram({
     </Stack>
   );
 }
-
-const FIT = { padding: 0.08 };
 
 /** How many warnings and notes name each card's element, or a behavior found on it. */
 function findingsOf(
@@ -307,11 +296,4 @@ function edgeOf(edge: LaidOutEdge, faded: boolean, dimmed: boolean): Edge {
 
 const DASHED = new Set<LaidOutEdge['kind']>(['adapts', 'implements']);
 
-/** Whether a key pressed there is meant for something else than the canvas. */
-const isElsewhere = (target: EventTarget | null): boolean =>
-  target instanceof HTMLElement &&
-  (target.isContentEditable ||
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement ||
-    target.closest('[role="tree"], [role="dialog"], [role="menu"]') !== null);
+const NOTHING = () => {};
