@@ -33,8 +33,10 @@ import {
 import { layoutExploration } from '../src/features/system-model/ui/exploration/layout-exploration';
 import {
   arrangeWithin,
+  landsIn,
   movedTo,
   placeLocally,
+  refusingFrames,
 } from '../src/features/system-model/ui/exploration/place-locally';
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
 import { MantineProvider } from '../src/shared/design-system/provider';
@@ -1381,6 +1383,24 @@ describe('placing a change from one card', () => {
       // Its own module, fitted round it, stands clear of the other.
       const a = placed.find(({ element }) => element.id === 'A')!;
       expect(apart(a, b)).toBe(true);
+    });
+
+    it('refuses the other module while a card is dragged, never its own', () => {
+      const home = frameAt('A', 0, 0, 236, 140);
+      const other = frameAt('B', 400, 0, 300, 200);
+      const frames = refusingFrames(
+        [...home.placed, ...other.placed],
+        graphOf(...home.elements, ...other.elements),
+        'A.kid',
+      );
+      expect(frames).toEqual([{ x: 400, y: 0, width: 300, height: 200 }]);
+      // A card lands in a frame when its centre is inside it.
+      expect(landsIn(frames, { x: 450, y: 60, width: 150, height: 56 })).toBe(
+        true,
+      );
+      expect(landsIn(frames, { x: 16, y: 60, width: 150, height: 56 })).toBe(
+        false,
+      );
     });
 
     it('lands beside it with no side free, the modules round it pushed aside', () => {
