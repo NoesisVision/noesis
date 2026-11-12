@@ -1,3 +1,4 @@
+import { CONTAINMENT_KINDS } from '#/features/design-docs/relations.ts';
 import { kindLabelOf, kindsLabelOf } from '#/shared/model/element-words.ts';
 import { modelWordOf, titleCase } from '#/shared/ui/title-case.ts';
 import type {
@@ -124,11 +125,7 @@ export const DRAWN_RELATIONS: readonly DrawnRelationEntry[] = (
 });
 
 /** The model's relations that place an element inside another: what "Contains" and "Is part of" read. */
-const CONTAINMENT: ReadonlySet<string> = new Set([
-  'module_contains_module',
-  'module_contains_block',
-  'exposes',
-] satisfies Relation['kind'][]);
+const CONTAINMENT = CONTAINMENT_KINDS;
 
 export interface Exploration {
   elements: ExploredElement[];

@@ -8,13 +8,13 @@ import {
   parentAddressOf,
 } from '#/shared/model/element-id.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { cardinalitySuffixOf } from '../../cardinality.ts';
 import type { ChangeSetInput } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
 import { needNamesOf } from '../../design-doc-requirements.ts';
 import { processPathOf, processPathUnder, stepsOf } from '../../people.ts';
 import {
-  cardinalitySuffixOf,
   OUTPUT_NAME,
   type RelationLike,
   relationsFrom,

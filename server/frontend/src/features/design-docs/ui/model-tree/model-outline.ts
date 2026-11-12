@@ -99,19 +99,7 @@ const BUILDING_BLOCK_READING_ORDER = [
 ] as const satisfies readonly BuildingBlockKind[];
 
 /** Submodules above the blocks they hold; rules and scenarios last of all. */
-const KIND_ORDER: readonly OutlineKind[] = [
-  'module',
-  'actor',
-  'manual_process',
-  'building_block',
-  'behavior',
-  'property',
-  'rule',
-  'scenario',
-  'group',
-  'need',
-  'check',
-];
+const KIND_ORDER: readonly OutlineKind[] = OUTLINE_KINDS;
 
 /** Past the end of both orders, so anything unplaced sorts after everything placed. */
 const UNPLACED = Number.MAX_SAFE_INTEGER;

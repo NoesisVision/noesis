@@ -7,6 +7,7 @@ import type {
 } from '#backend/app/design-docs/design-doc.ts';
 import type { ChangeSetInput } from './change-set.ts';
 import { type DesignDocFieldInput, valueOf } from './design-doc-field.ts';
+import { GOVERNING_KINDS } from './relations.ts';
 
 /*
  * Where a design's rules and scenarios are read. A rule is an element of its
@@ -30,9 +31,7 @@ export function governorsOf(
     ...(relations?.added ?? []),
     ...(relations?.removed ?? []),
   ].flatMap((relation) =>
-    (relation.kind === 'behavior_governs_rule' ||
-      relation.kind === 'process_governs_rule') &&
-    relation.to === ruleId
+    GOVERNING_KINDS.has(relation.kind) && relation.to === ruleId
       ? [relation.from]
       : [],
   );

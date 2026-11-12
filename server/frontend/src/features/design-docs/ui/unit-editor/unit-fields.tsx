@@ -17,7 +17,7 @@ import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { MermaidDiagram } from '#/shared/ui/mermaid-diagram.tsx';
 import { modelWordOf } from '#/shared/ui/title-case.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import type { Cardinality } from '#backend/app/system-model/system-model.ts';
+import { CARDINALITIES, cardinalityChoiceOf } from '../../cardinality.ts';
 import { writtenIn } from '../../change-set.ts';
 import {
   blocksNamedIn,
@@ -36,7 +36,6 @@ import {
   type UnitState,
 } from '../../design-doc-edit.ts';
 import { authorOf, fieldFrom, valueOf } from '../../design-doc-field.ts';
-import { CARDINALITIES } from '../../relations.ts';
 import { ruleKindLabelOf } from '../../rules.ts';
 import { DesignedField } from './designed-field.tsx';
 import { ScenarioStepsInput } from './scenario-fields.tsx';
@@ -289,7 +288,7 @@ function FieldInput({
           allowDeselect={false}
           data={CARDINALITIES.map((cardinality) => ({
             value: cardinality,
-            label: CARDINALITY_LABEL[cardinality],
+            label: cardinalityChoiceOf(cardinality),
           }))}
           value={fields.cardinality!.value || null}
           onChange={(cardinality) =>
@@ -301,11 +300,6 @@ function FieldInput({
 }
 
 /** How many a slot holds, as it reads after the type, and in words. */
-const CARDINALITY_LABEL: Record<Cardinality, string> = {
-  '1': '1 — exactly one',
-  '0..1': '[0..1] — one or none',
-  '*': '[*] — any number',
-};
 
 /**
  * A type: a primitive or a building block the design names. How many of it

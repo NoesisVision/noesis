@@ -4,7 +4,7 @@ import type {
   DesignedRelationInput,
   DesignedRelationKeyInput,
 } from '#backend/app/design-docs/design-doc.ts';
-import type { Cardinality } from '#backend/app/system-model/system-model.ts';
+import { cardinalitySuffixOf } from './cardinality.ts';
 import type { ChangeSetInput } from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
 
@@ -63,11 +63,22 @@ const NAMED_SLOT_KINDS: ReadonlySet<string> = new Set([
   'has_output',
 ] satisfies DesignedRelationInput['kind'][]);
 
-/** The relations that place an element under another: the tree of modules, blocks and behaviors. */
-export const CONTAINMENT_KINDS: ReadonlySet<string> = new Set([
-  'module_contains_module',
-  'module_contains_block',
-  'exposes',
+/** The relation that places each kind of element under its parent: the tree of modules, blocks and behaviors. */
+export const CONTAINING_RELATION = {
+  module: 'module_contains_module',
+  building_block: 'module_contains_block',
+  behavior: 'exposes',
+} as const satisfies Record<string, DesignedRelationInput['kind']>;
+
+/** The relations that place an element under another. */
+export const CONTAINMENT_KINDS: ReadonlySet<string> = new Set(
+  Object.values(CONTAINING_RELATION),
+);
+
+/** The relations that tie a rule to what follows it: a behavior, or a manual process. */
+export const GOVERNING_KINDS: ReadonlySet<string> = new Set([
+  'behavior_governs_rule',
+  'process_governs_rule',
 ] satisfies DesignedRelationInput['kind'][]);
 
 /** The key the server knows a relation by, as its `relationKeyOf`: `kind|from|#name` for a named slot, `kind|from|to` otherwise. */
@@ -166,17 +177,6 @@ const positionOf = ({ position }: RelationLike): number => {
   const value = valueOf(position as { value: unknown } | undefined);
   return typeof value === 'number' ? value : Number.MAX_SAFE_INTEGER;
 };
-
-/** How many values a slot may hold, in the order a select offers them. */
-export const CARDINALITIES = [
-  '1',
-  '0..1',
-  '*',
-] as const satisfies readonly Cardinality[];
-
-/** How a cardinality reads after a type: nothing for exactly one, `[*]` or `[0..1]` otherwise. */
-export const cardinalitySuffixOf = (cardinality: string | null): string =>
-  cardinality === null || cardinality === '1' ? '' : ` [${cardinality}]`;
 
 /**
  * A slot's type in words — a building block by its own name, a primitive by

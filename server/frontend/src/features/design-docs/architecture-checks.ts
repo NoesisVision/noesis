@@ -1,7 +1,7 @@
 import { plural } from '#/features/design-docs/ui/plural.ts';
+import { DOMAIN_TYPES } from '#/shared/model/building-block-kinds.ts';
 import { nameOf } from '#/shared/model/element-id.ts';
 import type { ElementId } from '#backend/app/element-id.ts';
-import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 import {
   type ArchitectureCheck,
   type ArchitectureOutline,
@@ -93,14 +93,7 @@ function onlyApplicationServicesArePublic({
 }
 
 /** Types: the blocks a property, an input or an output can be of. */
-const TYPES: readonly BuildingBlockKind[] = [
-  'aggregate',
-  'entity',
-  'value_object',
-  'command',
-  'event',
-  'query',
-];
+const TYPES = DOMAIN_TYPES;
 
 function typeInNoContract({ hexagons, unplaced }: Placed): ArchitectureCheck {
   const used = new Set(

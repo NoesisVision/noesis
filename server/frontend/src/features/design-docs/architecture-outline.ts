@@ -1,4 +1,5 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { DRIVEN_PORTS } from '#/shared/model/building-block-kinds.ts';
 import type { DesignedNeedInput } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BehaviorId,
@@ -89,11 +90,6 @@ export const CHECK_LEVEL_META: Record<
   note: { label: 'Note', color: 'gray', elements: 'Concerns' },
   pass: { label: 'Pass', color: 'green', elements: 'Checked' },
 };
-
-const DRIVEN_PORTS = [
-  'repository',
-  'external_integration',
-] as const satisfies readonly BuildingBlockKind[];
 
 /** Every element in a hexagon, in the order the rings are drawn. */
 export const elementsOf = (hexagon: Hexagon): PlacedElement[] => [

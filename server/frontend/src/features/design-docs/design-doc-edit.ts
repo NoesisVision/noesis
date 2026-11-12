@@ -1,3 +1,4 @@
+import { BUILDING_BLOCK_KINDS } from '#/shared/model/building-block-kinds.ts';
 import {
   addressOf,
   childIdOf,
@@ -26,7 +27,6 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type {
-  BuildingBlockKind,
   Cardinality,
   PrimitiveName,
   RuleKind,
@@ -41,11 +41,13 @@ import {
   valueOf,
 } from './design-doc-field.ts';
 import {
+  CONTAINING_RELATION,
   CONTAINMENT_KINDS,
   type DesignedExtendsInput,
   type DesignedInputInput,
   type DesignedOutputInput,
   type DesignedStateInput,
+  GOVERNING_KINDS,
   isRelation,
   OUTPUT_NAME,
   RELATION_KIND_OF,
@@ -344,14 +346,9 @@ export function applyEdit<Doc extends DesignDocumentInput>(
 }
 
 const isElement = (kind: UnitKind): kind is ElementKind =>
-  kind === 'module' || kind === 'building_block' || kind === 'behavior';
+  (ELEMENT_KINDS as readonly UnitKind[]).includes(kind);
 
 /** The relation by which an element's parent contains it, by the element's kind. */
-const CONTAINS = {
-  module: 'module_contains_module',
-  building_block: 'module_contains_block',
-  behavior: 'exposes',
-} as const;
 
 /**
  * The document with the relation that places `id` under its parent among
@@ -366,7 +363,7 @@ function contained<Doc extends DesignDocumentInput>(
   const parent = parentOf(id);
   if (parent === null || isRemoved(doc, parent)) return doc;
   const relation = {
-    kind: CONTAINS[kindOf(id) as ElementKind],
+    kind: CONTAINING_RELATION[kindOf(id) as ElementKind],
     from: parent,
     to: id,
   };
@@ -645,22 +642,7 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
 
 /** The types an element may be, as the model spells them. */
 export const TYPES_OF: Partial<Record<UnitKind, readonly string[]>> = {
-  building_block: [
-    'aggregate',
-    'entity',
-    'value_object',
-    'domain_service',
-    'application_service',
-    'repository',
-    'factory',
-    'external_integration',
-    'in_adapter',
-    'out_adapter',
-    'technical_service',
-    'command',
-    'event',
-    'query',
-  ] satisfies BuildingBlockKind[],
+  building_block: BUILDING_BLOCK_KINDS,
 };
 
 /** The kinds a rule may be, as the model spells them. */
@@ -1361,9 +1343,7 @@ function withoutUngoverned<Doc extends DesignDocumentInput>(doc: Doc): Doc {
     ((doc.relations ?? {}) as LooseSet).added
       ?.filter(isRelation)
       .flatMap((relation) =>
-        (relation.kind === 'behavior_governs_rule' ||
-          relation.kind === 'process_governs_rule') &&
-        typeof relation.to === 'string'
+        GOVERNING_KINDS.has(relation.kind) && typeof relation.to === 'string'
           ? [relation.to]
           : [],
       ),
