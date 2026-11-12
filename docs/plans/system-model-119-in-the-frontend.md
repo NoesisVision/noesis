@@ -54,8 +54,8 @@ So the work splits in two:
    no module (`container: null`), as actors are. They join `joinable`, so
    relations to and from them are drawn. Each gets a section of its own in
    the element filter, as actors and manual processes do: Deployable units,
-   Libraries, Layers, Deployment containers. _(Built that way; the design
-   pass may still group them.)_ Modules join `joinable` too, since `ships`
+   Libraries, Layers, Deployment containers. _(Built that way, and approved
+   over grouping units, libraries and containers under one "Deployment".)_ Modules join `joinable` too, since `ships`
    is the first drawn relation that ends at a module.
 
 2. **The four new containments are drawn as edges, not as nesting.** In
@@ -93,8 +93,9 @@ So the work splits in two:
    from the picker or a card's menu still draws its edges, as the reach
    menu does for any hidden kind. A saved view keeps what it saved.
 
-5. **How it looks** _(proposed; goes through the `design-system` skill's
-   proposal step, then `/design-sync`)_. Every value is a token in
+5. **How it looks** _(approved November 2026 as proposed, over indigo or
+   pink for collaborators, grey dots for the build, and lime or grape for
+   layers)_. Every value is a token in
    `relationEdges` in `theme.ts`, the one place for diagram looks, and is
    declared in `web-types.json`. The cyberarch theme gets `--edge-<kind>`
    for each.
@@ -258,7 +259,8 @@ Each step leaves `bun run ci` green.
    explorer`**: decisions 1 and 2, the rest of 4, 5 and 6, the rest of the
    fixture, and tests. _(Done.)_
 4. The design proposal and `/design-sync` for decision 5 and for the filter
-   sections. A change in look lands in `theme.ts` only.
+   sections. A change in look lands in `theme.ts` only. _(Approved as built;
+   `/design-sync` follows, as `theme.ts` changed.)_
 
 Screenshots of steps 2 and 3 go in the pull request (the `pull-request`
 skill).
