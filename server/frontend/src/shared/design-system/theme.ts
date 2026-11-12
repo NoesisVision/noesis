@@ -117,7 +117,7 @@ const DIAGRAM_ACCENT_DARK = 'var(--mantine-color-brand-light-color)';
  * is for. Every one is declared in `web-types.json` too.
  */
 export const cssVariablesResolver: CSSVariablesResolver = (current) => {
-  const { gray, dark, brand, red } = current.colors;
+  const { gray, dark, brand, red, yellow } = current.colors;
   const edges = relationEdgeTokens(current);
   return {
     variables: {
@@ -146,6 +146,14 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       // Every diagram's canvas: the faintest grey, dotted a shade darker.
       '--noesis-diagram-canvas': gray[0],
       '--noesis-diagram-dots': gray[3],
+      // A canvas's own toolbar and the rule between its groups.
+      '--noesis-diagram-toolbar': gray[0],
+      '--noesis-diagram-divider': gray[3],
+      // A note on a diagram: a box of its own words, a warm paper.
+      '--noesis-diagram-note': yellow[0],
+      // A frame's title under the pointer, and the name a ring is labelled with.
+      '--noesis-diagram-frame-title-hover': alpha(current.white, 0.9),
+      '--noesis-diagram-ring-label': brand[8],
       '--noesis-diagram-card': current.white,
       '--noesis-diagram-card-border': gray[3],
       '--noesis-diagram-card-border-hover': gray[4],
@@ -191,6 +199,11 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       // bounds.
       '--noesis-diagram-canvas': dark[7],
       '--noesis-diagram-dots': dark[4],
+      '--noesis-diagram-toolbar': dark[6],
+      '--noesis-diagram-divider': dark[4],
+      '--noesis-diagram-note': dark[6],
+      '--noesis-diagram-frame-title-hover': dark[5],
+      '--noesis-diagram-ring-label': dark[1],
       '--noesis-diagram-card': dark[6],
       '--noesis-diagram-card-border': dark[4],
       '--noesis-diagram-card-border-hover': dark[3],

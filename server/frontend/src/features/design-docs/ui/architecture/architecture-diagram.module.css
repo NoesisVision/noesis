@@ -182,7 +182,7 @@
   transform: translateX(-50%);
   white-space: nowrap;
   /* In the dark, in the grey of the frame it names. */
-  color: light-dark(var(--mantine-color-brand-8), var(--mantine-color-dark-1));
+  color: var(--noesis-diagram-ring-label);
 }
 
 .edge :global(.react-flow__edge-path) {
