@@ -334,20 +334,20 @@ behaviour, passed in as a parameter.
 
 1. **Casing for the model's words.** Patterns are title case ("Value
    Object"), while rule kinds and element kinds are sentence case ("State
-   change"). Pick one.
+   change"). Pick one. → title case
 2. **Escape on the exploration.** It doesn't listen in the capture phase,
    and it misses menus, both of which the skill asks for. Bringing it in
-   line is a behaviour fix.
+   line is a behaviour fix. → fix it
 3. **Ctrl-wheel zoom.** Only the mermaid canvas fixes the Mac's tenfold
-   Ctrl-wheel zoom. Should all three canvases have it?
+   Ctrl-wheel zoom. Should all three canvases have it? → yes
 4. **The architecture's edges.** They are straight lines between fixed
    handles. They neither meet the card's border nor highlight with the
-   selection, unlike the exploration's. Should they become floating edges?
+   selection, unlike the exploration's. Should they become floating edges? → yes
 5. **The mermaid canvas's chrome.** It has no `DetailsDock`, and it
    builds its own toolbar instead of using `CanvasToolbar`. That may be
-   deliberate, since the canvas also sits inline in documents.
+   deliberate, since the canvas also sits inline in documents. → do nothing - inline has different requirements
 6. **Tooltips.** The three canvases work three ways: one delegated
-   tooltip, one tooltip per card, and `title` attributes.
+   tooltip, one tooltip per card, and `title` attributes. → it's ok
 7. **Literal colours in the diagram stylesheets.** The skill allows
    tokens only. These become tokens in `theme.ts`, which needs
    `/design-sync`:
@@ -355,7 +355,7 @@ behaviour, passed in as a parameter.
    - the exploration's empty canvas
    - the architecture's ring label
    - the frame-title hover
-   - the three dot grids
+   - the three dot grids → fix
 
 ## 7. Steps
 
