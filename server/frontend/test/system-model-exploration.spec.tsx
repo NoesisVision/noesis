@@ -193,6 +193,31 @@ describe('the exploration of a system model', () => {
     expect(exploration.edges.output).toEqual([]);
   });
 
+  it('reads each cardinality a pair holds once, in the order the model lists them', () => {
+    expect(
+      exploration.cardinalities.get(
+        'state:building_block|shop.orders.Order->building_block|shop.orders.Line',
+      ),
+    ).toEqual(['*']);
+    const ORDER = 'building_block|shop.orders.Order';
+    const LINE = 'building_block|shop.orders.Line';
+    const read = explorationOf({
+      ...model,
+      relations: [
+        ...model.relations,
+        slot('has_state', ORDER, 'first', LINE),
+        slot('has_state', ORDER, 'spare', LINE, '0..1'),
+        slot('has_state', ORDER, 'more', LINE, '*'),
+      ],
+    } as unknown as SystemModel);
+    expect(read.edges.state).toEqual([[ORDER, LINE]]);
+    expect(read.cardinalities.get(`state:${ORDER}->${LINE}`)).toEqual([
+      '*',
+      '1',
+      '0..1',
+    ]);
+  });
+
   it('draws what a block extends as an edge of its own, and the calls in their order', () => {
     const [order] = model.buildingBlocks;
     const place = model.behaviors[0]!;

@@ -1,6 +1,7 @@
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type {
   BuildingBlockKind,
+  Cardinality,
   Relation,
   SystemModel,
 } from '#backend/app/system-model/system-model.ts';
@@ -175,6 +176,13 @@ export interface Exploration {
    * order of the calls, caller by caller.
    */
   edges: Record<DrawnRelationKind, Pair[]>;
+  /**
+   * How many each pair's slots hold — its state, inputs, output, what it
+   * works with — by the drawn relation's id, in the order the model lists
+   * them, each once. A pair joined by no slot has none. Read, not drawn:
+   * the edges do not show it yet.
+   */
+  cardinalities: ReadonlyMap<string, readonly Cardinality[]>;
 }
 
 export type RelationKind = 'contains' | 'isPartOf' | DrawnRelationKind;
@@ -267,6 +275,7 @@ export function explorationOf(model: SystemModel): Exploration {
     DRAWN_RELATIONS.map(({ kind }) => [kind, new Map()]),
   );
   const calls: { from: string; to: string; order: number }[] = [];
+  const cardinalities = new Map<string, Cardinality[]>();
   for (const relation of model.relations) {
     const { from, to } = relation;
     const kind = DRAWN_OF_MODEL.get(relation.kind);
@@ -278,6 +287,12 @@ export function explorationOf(model: SystemModel): Exploration {
     )
       calls.push({ from, to, order: relation.order });
     else pairs.get(kind)?.set(`${from}->${to}`, [from, to]);
+    if ('cardinality' in relation) {
+      const id = drawnIdOf(kind, from, to);
+      const found = cardinalities.get(id) ?? [];
+      if (!found.includes(relation.cardinality))
+        cardinalities.set(id, [...found, relation.cardinality]);
+    }
   }
   const edges = Object.fromEntries(
     [...pairs].map(([kind, found]) => [kind, [...found.values()]]),
@@ -285,8 +300,12 @@ export function explorationOf(model: SystemModel): Exploration {
   edges.invokes = calls
     .sort((a, b) => byCodeUnit(a.from, b.from) || a.order - b.order)
     .map(({ from, to }): Pair => [from, to]);
-  return { elements, edges };
+  return { elements, edges, cardinalities };
 }
+
+/** A drawn relation's id: its kind and its two ends. */
+const drawnIdOf = (kind: DrawnRelationKind, from: string, to: string) =>
+  `${kind}:${from}->${to}`;
 
 /** What the code is built into and runs on, and the layers it is cut in: elements in no module. */
 const artifactsOf = (model: SystemModel) => [
@@ -548,7 +567,7 @@ export function graphOf(
     for (const [source, target] of exploration.edges[kind])
       if (isShown.has(source) && isShown.has(target) && apart(source, target))
         drawn.push({
-          id: `${kind}:${source}->${target}`,
+          id: drawnIdOf(kind, source, target),
           kind,
           source,
           target,
