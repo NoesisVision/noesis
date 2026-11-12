@@ -5,7 +5,6 @@ import type {
 } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import { CHANGE_COLOUR } from '#/features/design-docs/ui/model-tree/outline-change.ts';
 import { Box } from '#/shared/design-system/box.tsx';
-import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { addressOf } from '#/shared/model/element-id.ts';
 import { kindLabelOf } from '#/shared/model/element-words.ts';
@@ -13,6 +12,7 @@ import { titleCase } from '#/shared/ui/title-case.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../../../change-set.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
+import { ElementLinkOrText } from '../../element-link-or-text.tsx';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
@@ -118,8 +118,7 @@ function ElementCard({
   node: OutlineNode;
   description: string | null;
 }) {
-  const { has, select } = useElementNavigation();
-  const removed = node.change === 'removed' || undefined;
+  const { has } = useElementNavigation();
   const colour = CHANGE_COLOUR[node.change];
   const opens = has(node.path);
   return (
@@ -130,22 +129,15 @@ function ElementCard({
           <KindIcon kind={node.kind} pattern={node.pattern} size={18} />
         </span>
         <div className={classes.text}>
-          {opens ? (
-            // The name is the card's one link; it stretches over the card,
-            // so the whole card opens the row.
-            <UnstyledButton
-              className={classes.name}
-              data-link
-              data-removed={removed}
-              onClick={() => select(node.path)}
-            >
-              {node.name}
-            </UnstyledButton>
-          ) : (
-            <span className={classes.name} data-removed={removed}>
-              {node.name}
-            </span>
-          )}
+          {/* The name is the card's one link; it stretches over the card,
+              so the whole card opens the row. */}
+          <ElementLinkOrText
+            path={node.path}
+            className={classes.name}
+            removed={node.change === 'removed'}
+          >
+            {node.name}
+          </ElementLinkOrText>
           {/* What it is, unless its group's caption already says so. */}
           {node.patternLabel === null && (
             <span className={classes.kind}>
