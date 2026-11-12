@@ -223,14 +223,16 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * slowly; what a behavior takes as input, teal, and gives back as output,
  * orange, in the same short dots, the two sides of a signature told apart
  * by colour alone; what a block extends as a kinship standing: a grey in
- * longer dashes, slower still; what a behavior invokes as a call going:
+ * longer dashes, slower still; what a block works with as a dependency
+ * resting too, but held to work with rather than to be: cyan, in middling
+ * dashes a little slower than state's; what a behavior invokes as a call going:
  * violet in long dashes moving fast; what an actor performs as work done
  * by hand: green in middling dashes at an easy pace. A quiet line may have a word of a
  * stronger ink. Its arrow's shape is the canvas's to draw (EDGE_ARROW in
  * relation-colors.ts).
  */
 function relationEdges({
-  colors: { brand, gray, violet, teal, orange, green },
+  colors: { brand, gray, violet, teal, orange, green, cyan },
 }: MantineThemeOf) {
   return {
     state: {
@@ -260,6 +262,13 @@ function relationEdges({
       dash: 8,
       gap: 4,
       seconds: 1,
+    },
+    collaborator: {
+      line: { light: cyan[6], dark: cyan[4] },
+      word: { light: cyan[8], dark: cyan[2] },
+      dash: 6,
+      gap: 4,
+      seconds: 0.9,
     },
     invokes: {
       line: { light: violet[6], dark: violet[2] },

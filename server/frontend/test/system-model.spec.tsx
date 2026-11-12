@@ -31,6 +31,17 @@ describe('The scanned model as a design', () => {
     expect(DesignDocument.safeParse(document).success).toBeTrue();
   });
 
+  it('leaves out what a block works with, which a design does not hold yet', () => {
+    expect(
+      model.relations.some(({ kind }) => kind === 'has_collaborator'),
+    ).toBeTrue();
+    expect(
+      document.relations.added.some(
+        ({ kind }) => (kind as string) === 'has_collaborator',
+      ),
+    ).toBeFalse();
+  });
+
   it('holds every element the scan found', () => {
     expect(document.modules.added).toHaveLength(model.modules.length);
     expect(document.buildingBlocks.added).toHaveLength(

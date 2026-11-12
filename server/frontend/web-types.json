@@ -223,6 +223,26 @@
           "description": "The time a invokes line's dash and gap take to move one length along: 0.35s, from `relationEdges` in `theme.ts`."
         },
         {
+          "name": "--noesis-diagram-edge-collaborator",
+          "description": "The line and arrow of a relation one block works with (`has_collaborator`) on the exploration. Cyan 6 / cyan 4, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-collaborator-word",
+          "description": "The word on a works-with line. Cyan 8 / cyan 2, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-collaborator-dash",
+          "description": "The dash of a works-with line when the edges run, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-collaborator-gap",
+          "description": "The gap between a works-with line's dashes, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-collaborator-time",
+          "description": "How long a works-with line's dashes take to move one length along, from `relationEdges` in `theme.ts`."
+        },
+        {
           "name": "--noesis-diagram-edge-label",
           "description": "The pill a relation's word sits on. White / dark 7, from `cssVariablesResolver` in `theme.ts`."
         },

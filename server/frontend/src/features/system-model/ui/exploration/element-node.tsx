@@ -265,6 +265,8 @@ const REACH_ACTION = {
   outputOf: 'Output of',
   extends: 'Extends',
   extendedBy: 'Extended by',
+  worksWith: 'Works with',
+  collaboratorOf: 'Collaborator of',
   invokes: 'Invokes',
   invokedBy: 'Invoked by',
   performs: 'Performs',

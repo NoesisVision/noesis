@@ -263,7 +263,7 @@ Each step leaves `bun run ci` green.
    architecture view`**: decision 8, after its design is approved.
 2. **`feat(frontend): draw collaborators in the explorer`**: decision 3,
    its default from 4, the collaborator token in its proposed value, the
-   fixture's collaborators, and tests.
+   fixture's collaborators, and tests. _(Done.)_
 3. **`feat(frontend): draw units, libraries, layers and containers in the
    explorer`**: decisions 1 and 2, the rest of 4, 5 and 6, the rest of the
    fixture, and tests.

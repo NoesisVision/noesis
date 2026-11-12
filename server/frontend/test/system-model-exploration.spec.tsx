@@ -240,6 +240,47 @@ describe('the exploration of a system model', () => {
     ).toEqual(['building_block|shop.orders.Line']);
   });
 
+  it('draws what a block works with, once a pair, only between blocks it knows', () => {
+    const repository = {
+      id: 'building_block|shop.orders.Orders',
+      name: 'Orders',
+      type: 'repository',
+      description: null,
+      source,
+    };
+    const collaborator = (name: string, to: string) => ({
+      ...slot('has_state', 'building_block|shop.orders.Order', name, to),
+      kind: 'has_collaborator',
+    });
+    const read = explorationOf({
+      ...model,
+      buildingBlocks: [...model.buildingBlocks, repository],
+      relations: [
+        ...model.relations,
+        collaborator('orders', repository.id),
+        collaborator('archive', repository.id),
+        collaborator('payments', 'building_block|shop.payments.Payments'),
+      ],
+    } as unknown as SystemModel);
+    expect(read.edges.collaborator).toEqual([
+      ['building_block|shop.orders.Order', repository.id],
+    ]);
+    const graph = graphOf(read, {
+      hidden: new Set(),
+      relations: new Set(['collaborator']),
+    });
+    expect(graph.relations.map(({ id }) => id)).toEqual([
+      `collaborator:building_block|shop.orders.Order->${repository.id}`,
+    ]);
+    const neighbours = neighboursOf(read);
+    expect(
+      neighbours.get('building_block|shop.orders.Order')!.worksWith,
+    ).toEqual([repository.id]);
+    expect(neighbours.get(repository.id)!.collaboratorOf).toEqual([
+      'building_block|shop.orders.Order',
+    ]);
+  });
+
   it('nests elements in their nearest shown container', () => {
     const graph = draw(['contains', 'state', 'input'], ['module']);
     expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
@@ -410,6 +451,7 @@ it('lays out every relation and every kind in the visibility panel', () => {
     'input',
     'output',
     'extends',
+    'collaborator',
     'invokes',
     'performs',
   ]);

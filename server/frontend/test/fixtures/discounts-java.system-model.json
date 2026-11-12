@@ -438,6 +438,13 @@
       "to": "behavior|discounts.calculation.Discount.apply"
     },
     {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.DiscountCalculation",
+      "to": "building_block|discounts.calculation.DiscountPolicyFactory",
+      "name": "discountsFactory",
+      "cardinality": "1"
+    },
+    {
       "kind": "exposes",
       "from": "building_block|discounts.calculation.DiscountCalculation",
       "to": "behavior|discounts.calculation.DiscountCalculation.calculate"
@@ -446,6 +453,20 @@
       "kind": "exposes",
       "from": "building_block|discounts.calculation.DiscountConfig",
       "to": "behavior|discounts.calculation.DiscountConfig.getDiscountsForConditions"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+      "to": "building_block|discounts.calculation.DiscountsConfigProvider",
+      "name": "discountsConfigProvider",
+      "cardinality": "1"
+    },
+    {
+      "kind": "has_collaborator",
+      "from": "building_block|discounts.calculation.DiscountPolicyFactory",
+      "to": "building_block|discounts.users.UserStatusProvider",
+      "name": "userStatusProvider",
+      "cardinality": "1"
     },
     {
       "kind": "exposes",

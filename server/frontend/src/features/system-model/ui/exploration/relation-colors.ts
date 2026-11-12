@@ -38,8 +38,8 @@ export const edgeDashOf = (kind: DrawnRelationKind) => ({
 
 /*
  * The shape of each relation's arrow, so they read apart without their
- * colour: what an element holds, takes or gives back, an open arrowhead, as
- * a dependency is drawn; what it extends, an open one too, as inheritance
+ * colour: what an element holds, takes or gives back, and what it works
+ * with, an open arrowhead, as a dependency is drawn; what it extends, an open one too, as inheritance
  * is; what it invokes, a solid one, as a call is, and what an actor
  * performs, a solid one too. The canvas draws it from a
  * name, not a style, so it cannot be a token.
@@ -49,6 +49,7 @@ export const EDGE_ARROW = {
   input: MarkerType.Arrow,
   output: MarkerType.Arrow,
   extends: MarkerType.Arrow,
+  collaborator: MarkerType.Arrow,
   invokes: MarkerType.ArrowClosed,
   performs: MarkerType.ArrowClosed,
 } as const satisfies Record<DrawnRelationKind, MarkerType>;

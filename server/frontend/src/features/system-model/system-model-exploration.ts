@@ -12,7 +12,9 @@ import type {
  * 'module_contains_block'); a building block contains the behaviors it
  * exposes. A building block has as state the blocks its state is typed by
  * ('has_state'), a behavior has as input the blocks it takes ('has_input')
- * and as output the block it gives back ('has_output'); a block extends the
+ * and as output the block it gives back ('has_output'); a block works with
+ * the blocks it holds to do its work — a repository, a service, an
+ * integration ('has_collaborator'); a block extends the
  * blocks it extends or implements. "Is part of" is containment read from the
  * inside. A behavior invokes the behaviors the scan found it calls, in the
  * order of the calls — where the scanner records calls; one that does not
@@ -81,6 +83,14 @@ export const DRAWN_RELATIONS = [
     word: 'extends',
     reach: 'extends',
     back: 'extendedBy',
+  },
+  {
+    kind: 'collaborator',
+    models: ['has_collaborator'],
+    label: 'Collaborator',
+    word: 'works with',
+    reach: 'worksWith',
+    back: 'collaboratorOf',
   },
   {
     kind: 'invokes',
