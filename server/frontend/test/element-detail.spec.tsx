@@ -5,6 +5,7 @@ import { valueOf } from '../src/features/design-docs/design-doc-field';
 import { ElementBody } from '../src/features/design-docs/ui/architecture/element-body';
 import { scenariosOf } from '../src/features/design-docs/ui/element-details/body/scenarios-of';
 import { ChangeListSection } from '../src/features/design-docs/ui/element-details/body/sections/change-list-section';
+import { PropertySignatureSection } from '../src/features/design-docs/ui/element-details/body/sections/property-signature-section';
 import {
   ruleItems,
   propertyItems,
@@ -487,17 +488,21 @@ describe('ElementDetail', () => {
       withProperties,
       kept,
     );
-    expect(html).toContain('>amount: unchanged [*];<');
+    expect(html).toMatch(
+      />amount: <span data-cardinality="\*"(.(?!<\/pre>))*>many: <\/span>unchanged;</,
+    );
   });
 
-  it('reads a property as the field it declares, how many it holds after its type', () => {
+  it('reads a property as the field it declares, how many it holds marked before its type', () => {
     const html = show(
       'building_block|pay.Hold#property:amount',
       withProperties,
     );
     expect(html).toContain('Money');
-    expect(html).toContain('amount:');
-    expect(html).toContain(' [0..1];');
+    expect(html).toMatch(
+      /amount: <span data-cardinality="0\.\.1"(.(?!<\/pre>))*>optional: <\/span>(<[^>]+>)*Money(<\/span>)*;/,
+    );
+    expect(html).not.toContain('[0..1]');
   });
 
   it('reads a scenario as the three things it says', () => {
@@ -607,6 +612,41 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/>many: <\/span>(<[^>]+>)*HoldLine</);
     expect(html).not.toContain('[*]');
     expect(html.match(/data-cardinality=/g)).toHaveLength(1);
+  });
+
+  it('declares a property with the gray mark before its type, not a suffix', () => {
+    const html = renderToStaticMarkup(
+      <MantineProvider>
+        <PropertySignatureSection
+          element={{
+            collection: 'buildingBlocks',
+            id: 'building_block|pay.Hold',
+          }}
+          name="lines"
+          type={plain('building_block|pay.HoldLine')}
+          cardinality={plain('*')}
+        />
+      </MantineProvider>,
+    );
+    expect(html).toMatch(
+      /lines:\s*<span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
+    );
+    expect(html).toMatch(/>many: <\/span>(<[^>]+>)*HoldLine</);
+    expect(html).not.toContain('[*]');
+    const one = renderToStaticMarkup(
+      <MantineProvider>
+        <PropertySignatureSection
+          element={{
+            collection: 'buildingBlocks',
+            id: 'building_block|pay.Hold',
+          }}
+          name="note"
+          type={plain('primitive|string')}
+          cardinality={plain('1')}
+        />
+      </MantineProvider>,
+    );
+    expect(one).not.toContain('data-cardinality');
   });
 
   it('points every listed part at the row the tree has for it', () => {
