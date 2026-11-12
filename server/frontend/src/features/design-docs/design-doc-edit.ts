@@ -29,7 +29,6 @@ import type {
 import type {
   Cardinality,
   PrimitiveName,
-  RuleKind,
   ScenarioStep,
 } from '#backend/app/system-model/system-model.ts';
 import { writtenIn } from './change-set.ts';
@@ -644,16 +643,6 @@ export const UNIT_FIELDS: Record<UnitKind, readonly FieldSpec[]> = {
 export const TYPES_OF: Partial<Record<UnitKind, readonly string[]>> = {
   building_block: BUILDING_BLOCK_KINDS,
 };
-
-/** The kinds a rule may be, as the model spells them. */
-export const RULE_KINDS = [
-  'validation',
-  'state_change',
-  'post',
-  'computation',
-  'coordination',
-  'configuration',
-] as const satisfies readonly RuleKind[];
 
 export const PRIMITIVES = [
   'primitive|string',

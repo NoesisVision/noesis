@@ -5,9 +5,20 @@ import type {
   DesignedRuleInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
+import type { RuleKind } from '#backend/app/system-model/system-model.ts';
 import type { ChangeSetInput } from './change-set.ts';
 import { type DesignDocFieldInput, valueOf } from './design-doc-field.ts';
 import { GOVERNING_KINDS } from './relations.ts';
+
+/** The kinds a rule may be, as the model spells them. */
+export const RULE_KINDS = [
+  'validation',
+  'state_change',
+  'post',
+  'computation',
+  'coordination',
+  'configuration',
+] as const satisfies readonly RuleKind[];
 
 /*
  * Where a design's rules and scenarios are read. A rule is an element of its

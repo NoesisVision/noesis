@@ -48,7 +48,7 @@ export interface OutlineNode {
   /** 0 at the top. */
   depth: number;
   change: OutlineChange;
-  /** The pattern as the model spells it: `application_service`, `command`, `Consistency`. */
+  /** The pattern as the model spells it: `application_service`, `command`, `state_change`. */
   pattern: string | null;
   /** The pattern as a reader reads it: `Application Service`, `OrderId`. */
   patternLabel: string | null;

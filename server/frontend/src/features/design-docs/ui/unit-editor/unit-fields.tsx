@@ -26,7 +26,6 @@ import {
   isEditableField,
   needIdOf,
   PRIMITIVES,
-  RULE_KINDS,
   TYPES_OF,
   UNIT_FIELDS,
   type Unit,
@@ -36,7 +35,7 @@ import {
   type UnitState,
 } from '../../design-doc-edit.ts';
 import { authorOf, fieldFrom, valueOf } from '../../design-doc-field.ts';
-import { ruleKindLabelOf } from '../../rules.ts';
+import { ruleKindLabelOf, RULE_KINDS } from '../../rules.ts';
 import { DesignedField } from './designed-field.tsx';
 import { ScenarioStepsInput } from './scenario-fields.tsx';
 

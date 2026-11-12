@@ -1,11 +1,13 @@
 import {
   IconActivity,
+  IconAdjustments,
   IconAlertTriangle,
   IconAssembly,
   IconBlocks,
   IconBooks,
   IconCategory,
   IconChecklist,
+  IconChecks,
   IconCircleCheck,
   IconCircleLetterC,
   IconCircleLetterE,
@@ -36,8 +38,13 @@ import {
   IconUser,
   IconWorld,
 } from '@tabler/icons-react';
+import { BUILDING_BLOCK_KINDS } from '#/shared/model/building-block-kinds.ts';
 import type { ElementKind } from '#backend/app/element-id.ts';
-import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
+import type {
+  BuildingBlockKind,
+  RuleKind,
+} from '#backend/app/system-model/system-model.ts';
+import { RULE_KINDS } from '../../rules.ts';
 import type { OutlineKind, OutlineNode } from './model-outline.ts';
 import classes from './model-tree.module.css';
 
@@ -63,30 +70,9 @@ const KIND_ICONS = {
   deployment_container: IconServer,
 } as const satisfies Record<IconKind, unknown>;
 
-/** Every pattern the model knows, spelled as the model spells it. */
-const PATTERNS = [
-  // building blocks
-  'aggregate',
-  'entity',
-  'value_object',
-  'domain_service',
-  'application_service',
-  'repository',
-  'factory',
-  'external_integration',
-  'in_adapter',
-  'out_adapter',
-  'technical_service',
-  'command',
-  'event',
-  'query',
-  // rules
-  'Consistency',
-  'Structure',
-  'Computation',
-  'State change',
-] as const;
-type Pattern = (typeof PATTERNS)[number];
+/** Every pattern the model knows, spelled as the model spells it: a building block's kind, a rule's kind. */
+const PATTERNS: readonly string[] = [...BUILDING_BLOCK_KINDS, ...RULE_KINDS];
+type Pattern = BuildingBlockKind | RuleKind;
 
 const PATTERN_ICONS = {
   aggregate: IconPackageExport,
@@ -103,13 +89,14 @@ const PATTERN_ICONS = {
   command: IconCircleLetterC,
   event: IconCircleLetterE,
   query: IconCircleLetterQ,
-  Consistency: IconShield,
-  Structure: IconSitemap,
-  Computation: IconMathFunction,
-  'State change': IconStatusChange,
-} as const satisfies Record<Pattern, unknown> &
-  // A building block kind the model gains fails here until it has an icon.
-  Record<BuildingBlockKind, unknown>;
+  validation: IconShield,
+  state_change: IconStatusChange,
+  post: IconChecks,
+  computation: IconMathFunction,
+  coordination: IconSitemap,
+  configuration: IconAdjustments,
+  // A kind the model gains fails here until it has an icon.
+} as const satisfies Record<Pattern, unknown>;
 
 /*
  * The three kinds of message, told apart at a glance: what happened, what is
@@ -142,8 +129,7 @@ const CHECK_TONES: Partial<Record<CheckLevel, 'warning' | 'pass'>> = {
 const isCheckLevel = (value: string): value is CheckLevel =>
   Object.hasOwn(CHECK_ICONS, value);
 
-const isPattern = (value: string): value is Pattern =>
-  (PATTERNS as readonly string[]).includes(value);
+const isPattern = (value: string): value is Pattern => PATTERNS.includes(value);
 
 /*
  * The pattern first, since it says more than the kind does; the kind when
