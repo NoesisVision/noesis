@@ -14,6 +14,7 @@ import { Box } from '#/shared/design-system/box.tsx';
 import { Menu } from '#/shared/design-system/menu.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { addressOf } from '#/shared/model/element-id.ts';
 import {
   BevelFace,
   BevelRing,
@@ -22,7 +23,6 @@ import {
 } from '#/shared/ui/diagram-shapes.tsx';
 import { IconFrameX } from '#/shared/ui/icons/icons.ts';
 import {
-  addressOf,
   CHAIN_DEPTH,
   CHAIN_REACHES,
   type ChainReach,

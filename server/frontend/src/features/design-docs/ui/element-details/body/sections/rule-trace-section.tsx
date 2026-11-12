@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { DataList } from '#/shared/design-system/data-list.tsx';
 import { List } from '#/shared/design-system/list.tsx';
+import { behaviorLabelOf } from '#/shared/model/element-id.ts';
 import type { DesignDocFieldInput } from '../../../../design-doc-field.ts';
-import { nameOf, ownerOf } from '../../../../element-id.ts';
 import { ruleKindLabelOf } from '../../../../rules.ts';
 import { TracedNeeds } from '../../../traced-needs.tsx';
 import type { ElementRef } from '../../element-ref.ts';
@@ -67,7 +67,3 @@ function TraceField({ name, children }: { name: string; children: ReactNode }) {
     </DataList.Item>
   );
 }
-
-/** A behavior as a reader names it: `Order.place`. */
-const behaviorLabelOf = (id: string): string =>
-  `${nameOf(ownerOf(id))}.${nameOf(id)}`;

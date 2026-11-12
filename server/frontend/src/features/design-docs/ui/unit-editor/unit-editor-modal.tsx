@@ -9,6 +9,7 @@ import { useForm } from '#/shared/design-system/form.ts';
 import { Select } from '#/shared/design-system/select.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { nameOf } from '#/shared/model/element-id.ts';
 import {
   ModalBody,
   ModalFooter,
@@ -34,7 +35,6 @@ import {
   violationsOf,
 } from '../../design-doc-edit.ts';
 import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
-import { nameOf } from '../../element-id.ts';
 import { ChangeBadge } from '../element-details/change-badge.tsx';
 import { ScenarioFields } from './scenario-fields.tsx';
 import { UnitFields } from './unit-fields.tsx';
@@ -68,7 +68,7 @@ export function UnitEditorModal({
   const [problems, setProblems] = useState<string[]>([]);
   // A scenario's rule is picked in the form; a new one, or one the design
   // adds, may go to another — the model knows one it has by where it is.
-  const opened = ownerOf(target);
+  const opened = ownerOfTarget(target);
   const [owner, setOwner] = useState(opened);
   const relocates =
     kind === 'scenario' &&
@@ -88,7 +88,13 @@ export function UnitEditorModal({
       return;
     }
     const id = idOfDraft(doc, placed, draft);
-    const unit = unitFromDraft(kind, draft, original, id, ownerOf(target));
+    const unit = unitFromDraft(
+      kind,
+      draft,
+      original,
+      id,
+      ownerOfTarget(target),
+    );
     const edit: DesignDocEdit =
       target.mode === 'edit' && relocates
         ? {
@@ -225,7 +231,7 @@ const ICON_KIND: Record<UnitKind, OutlineKind> = {
   extends: 'building_block',
 };
 
-const ownerOf = (target: UnitTarget): PartOwner | null => {
+const ownerOfTarget = (target: UnitTarget): PartOwner | null => {
   if (target.mode === 'add') return 'owner' in target ? target.owner : null;
   return 'owner' in target.ref ? target.ref.owner : null;
 };

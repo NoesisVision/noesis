@@ -1,3 +1,4 @@
+import { moduleOf, nameOf, parentOf } from '#/shared/model/element-id.ts';
 import type {
   DesignDocumentInput,
   DesignedRuleInput,
@@ -5,7 +6,6 @@ import type {
 } from '#backend/app/design-docs/design-doc.ts';
 import type { ChangeSetInput } from './change-set.ts';
 import { type DesignDocFieldInput, valueOf } from './design-doc-field.ts';
-import { moduleOf, nameOf, parentOf } from './element-id.ts';
 
 /*
  * Where a design's rules and scenarios are read. A rule is an element of its

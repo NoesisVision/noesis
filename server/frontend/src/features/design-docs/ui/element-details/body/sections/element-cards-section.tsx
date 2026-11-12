@@ -7,11 +7,11 @@ import { CHANGE_COLOUR } from '#/features/design-docs/ui/model-tree/outline-chan
 import { Box } from '#/shared/design-system/box.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
+import { addressOf } from '#/shared/model/element-id.ts';
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from '../../../../change-set.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
-import { addressOf } from '../../../../element-id.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';

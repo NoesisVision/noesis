@@ -13,9 +13,9 @@ import {
   DESIGN_DOC_VIEWS,
   DesignDocsIcon,
 } from '#/features/design-docs/design-docs.model.ts';
-import { addressOf } from '#/features/design-docs/element-id.ts';
 import { kindIconOf } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import { designOf } from '#/features/system-model/system-model.model.ts';
+import { parentAddressOf } from '#/shared/model/element-id.ts';
 import type { IconComponent } from '#/shared/ui/icon-heading.tsx';
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type { ChangeWithEntries } from '#backend/app/changes/change-entry.ts';
@@ -168,8 +168,7 @@ function modelElements(model: SystemModel): SearchEntry[] {
     const id = node.kind === 'rule' ? partKeyOf(node) : node.elementId;
     if (id === null || seen.has(id)) return [];
     seen.add(id);
-    const address = addressOf(id);
-    const owner = address.slice(0, Math.max(address.lastIndexOf('.'), 0));
+    const owner = parentAddressOf(id);
     return [
       {
         id: `element:${node.path}`,

@@ -1,3 +1,16 @@
+import {
+  addressOf,
+  childIdOf,
+  idPrefixOf,
+  isBuildingBlock,
+  isElementId,
+  isWithin,
+  kindOf,
+  moduleOf,
+  nameOf,
+  parentOf,
+  prefixOf,
+} from '#/shared/model/element-id.ts';
 import type {
   DesignDocumentInput,
   DesignDocViolation,
@@ -26,16 +39,6 @@ import {
   fieldFrom,
   valueOf,
 } from './design-doc-field.ts';
-import {
-  addressOf,
-  childIdOf,
-  isElementId,
-  isWithin,
-  kindOf,
-  moduleOf,
-  nameOf,
-  parentOf,
-} from './element-id.ts';
 import {
   CONTAINMENT_KINDS,
   type DesignedExtendsInput,
@@ -535,7 +538,7 @@ function parentsNamedIn(
   kind: 'module' | 'building_block',
 ): string[] {
   const found = new Set<string>();
-  const prefix = kind === 'module' ? 'module|' : 'building_block|';
+  const prefix = prefixOf(kind);
   const take = (id: string) => {
     for (let at: string | null = id; at !== null; at = parentOf(at))
       if (at.startsWith(prefix)) found.add(at);
@@ -558,7 +561,7 @@ export function blocksNamedIn(doc: DesignDocumentInput): string[] {
   const found = new Set<string>();
   const walk = (node: unknown): void => {
     if (typeof node === 'string') {
-      if (node.startsWith('building_block|')) found.add(node);
+      if (isBuildingBlock(node)) found.add(node);
     } else if (Array.isArray(node)) node.forEach(walk);
     else if (typeof node === 'object' && node !== null)
       Object.values(node).forEach(walk);
@@ -1405,7 +1408,7 @@ function untraced<Doc extends DesignDocumentInput>(
 function renamed<Node>(node: Node, from: string, to: string): Node {
   if (typeof node === 'string') {
     if (!isElementId(node) || !isWithin(node, from)) return node;
-    const kind = node.slice(0, node.indexOf('|') + 1);
+    const kind = idPrefixOf(node);
     return `${kind}${addressOf(to)}${addressOf(node).slice(addressOf(from).length)}` as Node;
   }
   if (Array.isArray(node))

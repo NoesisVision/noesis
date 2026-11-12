@@ -18,13 +18,13 @@ import {
   architectureOf as architectureOfDesign,
   inferredFlowOf as inferredFlowOfDesign,
 } from '../src/features/design-docs/design-doc-architecture';
+import { focusOf } from '../src/features/design-docs/ui/architecture/architecture-selection';
+import { layoutArchitecture } from '../src/features/design-docs/ui/architecture/layout-architecture';
 import {
   behaviorIdAt,
   blockIdAt,
   moduleOf,
-} from '../src/features/design-docs/element-id';
-import { focusOf } from '../src/features/design-docs/ui/architecture/architecture-selection';
-import { layoutArchitecture } from '../src/features/design-docs/ui/architecture/layout-architecture';
+} from '../src/shared/model/element-id';
 import { qdocArchitectureFixture } from './fixtures/design-doc-architecture.fixture';
 
 const agent = <const T>(value: T) => ({ value, author: 'agent' as const });

@@ -1,7 +1,7 @@
+import { ownerOf } from '#/shared/model/element-id.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { writtenIn } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
-import { ownerOf } from '../../element-id.ts';
 import type { OutlineNode } from './model-outline.ts';
 
 /** How much of the model the tree shows: all of it, or the face it turns outward. */

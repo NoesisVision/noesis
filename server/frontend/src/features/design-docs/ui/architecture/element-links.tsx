@@ -1,5 +1,5 @@
 import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
-import { addressOf } from '../../element-id.ts';
+import { addressOf } from '#/shared/model/element-id.ts';
 import { NoteSection } from '../element-details/body/sections/note-section.tsx';
 import { ElementRelations } from '../element-details/element-relations.tsx';
 

@@ -1,3 +1,4 @@
+import { NEED } from '#/shared/model/element-id.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from './change-set.ts';
 import { needPath } from './design-doc-requirements.ts';
@@ -19,7 +20,6 @@ import { needPath } from './design-doc-requirements.ts';
 
 const DESCRIPTION_LINK =
   /\[([^\]]*)\]\((?:<noesis:([^>\n]+)>|noesis:([^)\s]+))\)/g;
-const NEED = 'need|';
 
 /** A link of the description: the words it is written with and the id it names. */
 interface DescriptionLink {

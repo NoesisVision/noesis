@@ -1,11 +1,11 @@
 import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
+import { kindOf, ownerOf } from '#/shared/model/element-id.ts';
 import type {
   ArchitectureCheck,
   ArchitectureOutline,
 } from '../../architecture-outline.ts';
 import { checkPath, needAtPortsPath } from '../../architecture-tree.ts';
-import { kindOf, ownerOf } from '../../element-id.ts';
 import { isFrame } from './architecture-kinds.ts';
 import type { LaidOutNode } from './layout-architecture.ts';
 

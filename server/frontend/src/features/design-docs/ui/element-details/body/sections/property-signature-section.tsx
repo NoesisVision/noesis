@@ -1,4 +1,5 @@
 import { Code } from '#/shared/design-system/code.tsx';
+import { addressOf } from '#/shared/model/element-id.ts';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { Cardinality } from '#backend/app/system-model/system-model.ts';
 import {
@@ -9,7 +10,6 @@ import { CardinalityMark, isMarked } from '../../cardinality-mark.tsx';
 import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
 import { Field } from '../../field.tsx';
-import { refAddressOf } from '../../ref-address.ts';
 import { DetailSection } from './detail-section.tsx';
 
 interface PropertySignatureSectionProps {
@@ -36,7 +36,7 @@ export function PropertySignatureSection({
         {name}: {isMarked(holds) && <CardinalityMark cardinality={holds} />}
         <Field
           field={type}
-          format={refAddressOf}
+          format={addressOf}
           render={(address) => (
             <ElementTooltip
               name={address}

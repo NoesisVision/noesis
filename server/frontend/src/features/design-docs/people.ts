@@ -1,8 +1,8 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { nameOf } from '#/shared/model/element-id.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { named } from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
-import { nameOf } from './element-id.ts';
 
 /*
  * Who drives the system, as a design reads it. An actor performs manual

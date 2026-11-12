@@ -1,4 +1,5 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import type { kindOf } from '#/shared/model/element-id.ts';
 import type { DesignedNeedInput } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BehaviorId,
@@ -10,7 +11,6 @@ import type {
   BuildingBlockKind,
   RuleKind,
 } from '#backend/app/system-model/system-model.ts';
-import type { kindOf } from './element-id.ts';
 
 /*
  * The design placed in hexagons, as the architecture view and its checks read

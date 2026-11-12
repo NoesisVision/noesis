@@ -27,7 +27,7 @@ export interface RulePart {
 const LABEL =
   /(?:^|\s)\**(Trigger|Pre-?conditions?|Algorithm|Post-?conditions?|Edge cases?)\**\s*:\**\s*/gi;
 
-const nameOf = (label: string): RulePartName => {
+const partNameOf = (label: string): RulePartName => {
   const word = label.toLowerCase().replace('-', '');
   if (word.startsWith('trigger')) return 'Trigger';
   if (word.startsWith('precondition')) return 'Pre-conditions';
@@ -60,7 +60,7 @@ export function ruleParts(description: string): RulePart[] | null {
     const start = label.index + label[0].length;
     const end = labels[index + 1]?.index ?? text.length;
     const part = text.slice(start, end).trim();
-    const name = nameOf(label[1]!);
+    const name = partNameOf(label[1]!);
     return {
       name,
       text: part,

@@ -543,9 +543,6 @@ export function graphOf(
   };
 }
 
-/** An element's id without its kind, as the model's tooltips address it. */
-export const addressOf = (id: string): string => id.slice(id.indexOf('|') + 1);
-
 const KIND_WORD = {
   module: 'Module',
   building_block: 'Building block',

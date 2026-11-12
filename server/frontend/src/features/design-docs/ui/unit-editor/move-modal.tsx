@@ -13,6 +13,12 @@ import {
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import {
+  addressOf,
+  kindOf,
+  nameOf,
+  parentAddressOf,
+} from '#/shared/model/element-id.ts';
+import {
   ModalBody,
   ModalFooter,
   ModalFrame,
@@ -28,7 +34,6 @@ import {
 } from '../../design-doc-edit.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { useDesignDocEdit, violationsIn } from '../../design-docs.api.ts';
-import { addressOf, kindOf } from '../../element-id.ts';
 import { KindIcon } from '../model-tree/kind-icon.tsx';
 import classes from './move-modal.module.css';
 
@@ -46,11 +51,10 @@ function choicesOf(destinations: readonly (string | null)[]) {
   const groups = new Map<string, { value: string; label: string }[]>();
   for (const destination of destinations) {
     if (destination === null) continue;
-    const steps = addressOf(destination).split('.');
-    const group = steps.slice(0, -1).join('.') || 'Top level';
+    const group = parentAddressOf(destination) || 'Top level';
     groups.set(group, [
       ...(groups.get(group) ?? []),
-      { value: destination, label: steps.at(-1) ?? destination },
+      { value: destination, label: nameOf(destination) },
     ]);
   }
   return [...top, ...[...groups].map(([group, items]) => ({ group, items }))];

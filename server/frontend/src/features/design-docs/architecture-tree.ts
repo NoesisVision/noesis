@@ -3,6 +3,7 @@ import {
   type OutlineNode,
   patternLabelOf,
 } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { kindOf, nameOf } from '#/shared/model/element-id.ts';
 import type { ElementId } from '#backend/app/element-id.ts';
 import {
   type ArchitectureCheck,
@@ -11,7 +12,6 @@ import {
   placedById,
 } from './architecture-outline.ts';
 import { needPath, needRow } from './design-doc-requirements.ts';
-import { kindOf, nameOf } from './element-id.ts';
 
 /*
  * The architecture as a tree beside the hexagons: the checks with the

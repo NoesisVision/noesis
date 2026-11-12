@@ -1,4 +1,5 @@
 import { plural } from '#/features/design-docs/ui/plural.ts';
+import { nameOf } from '#/shared/model/element-id.ts';
 import type { ElementId } from '#backend/app/element-id.ts';
 import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 import {
@@ -6,7 +7,6 @@ import {
   type ArchitectureOutline,
   elementsOf,
 } from './architecture-outline.ts';
-import { nameOf } from './element-id.ts';
 
 /*
  * What a hexagonal architecture asks of a design, checked against what the

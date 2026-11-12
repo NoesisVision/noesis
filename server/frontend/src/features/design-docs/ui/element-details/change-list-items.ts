@@ -1,10 +1,17 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import {
+  addressOf,
+  behaviorLabelOf,
+  blockOfRef,
+  nameOf,
+  ownerOf,
+  parentAddressOf,
+} from '#/shared/model/element-id.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type { ChangeSetInput } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
 import { needNamesOf } from '../../design-doc-requirements.ts';
-import { addressOf, blockOfRef, nameOf } from '../../element-id.ts';
 import { processPathOf, processPathUnder, stepsOf } from '../../people.ts';
 import {
   cardinalitySuffixOf,
@@ -21,7 +28,6 @@ import {
   scenariosUnder,
 } from '../../rules.ts';
 import { isMarked, type MarkedCardinality } from './cardinality-mark.tsx';
-import { refAddressOf } from './ref-address.ts';
 
 /*
  * What a list section shows, one line per thing the design touches: what it
@@ -65,7 +71,7 @@ function* changed<Item, Key>(
 /** A declaration's name and type, apart, for a reader that sets them apart. */
 const declared = (name: string, type: string, cardinality: string | null) => ({
   name,
-  type: refAddressOf(type),
+  type: addressOf(type),
   ...withCardinality(cardinality),
   ...(blockOfRef(type) === null ? {} : { typePath: type }),
 });
@@ -87,7 +93,7 @@ export const extendedItems = (
   [...changed(relationsFrom(doc, 'extends', blockId))].map(
     ([relation, change]) => ({
       change,
-      label: refAddressOf(relation.to),
+      label: addressOf(relation.to),
       path: relation.to,
     }),
   );
@@ -102,7 +108,7 @@ export const extenderItems = (
 ): ChangeListItem[] =>
   [...changed(relationsTo(doc, 'extends', id))].map(([relation, change]) => ({
     change,
-    label: refAddressOf(relation.from),
+    label: addressOf(relation.from),
     path: relation.from,
   }));
 
@@ -119,7 +125,7 @@ function slotItem(
   return {
     change,
     key: slot.name,
-    label: `${slot.name}: ${refAddressOf(type)}${cardinalitySuffixOf(cardinality)}`,
+    label: `${slot.name}: ${addressOf(type)}${cardinalitySuffixOf(cardinality)}`,
     path: path ?? type,
     ...declared(slot.name, type, cardinality),
   };
@@ -145,7 +151,7 @@ export const resultItems = (
       if (type === null)
         return { change, key: OUTPUT_NAME, label: OUTPUT_NAME, path: null };
       const cardinality = cardinalityOf(result);
-      const address = refAddressOf(type);
+      const address = addressOf(type);
       return {
         change,
         key: OUTPUT_NAME,
@@ -264,12 +270,9 @@ export const stepItems = (
   doc: DesignDocumentInput,
   processId: string,
 ): ChangeListItem[] =>
-  stepsOf(doc, processId).map(({ behavior, order, change }) => {
-    const address = addressOf(behavior).split('.');
-    return {
-      change,
-      label: `${order === null ? '–' : order}. ${address.slice(-2).join('.')}`,
-      path: behavior,
-      description: address.slice(0, -2).join('.'),
-    };
-  });
+  stepsOf(doc, processId).map(({ behavior, order, change }) => ({
+    change,
+    label: `${order === null ? '–' : order}. ${behaviorLabelOf(behavior)}`,
+    path: behavior,
+    description: parentAddressOf(ownerOf(behavior)),
+  }));

@@ -159,9 +159,9 @@ export function ArchitectureDiagram({
     ],
   );
   const edges = useMemo(() => {
-    const kindOf = new Map(layout.nodes.map(({ id, kind }) => [id, kind]));
+    const kindAt = new Map(layout.nodes.map(({ id, kind }) => [id, kind]));
     const fadesAt = (id: string) => {
-      const kind = kindOf.get(id);
+      const kind = kindAt.get(id);
       return kind !== undefined && fades(kind, pickedKinds);
     };
     // With something in hand, a line stays clear between two cards that do,

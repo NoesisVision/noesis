@@ -1,3 +1,4 @@
+import { nameOf } from '#/shared/model/element-id.ts';
 import type {
   DesignDocumentInput,
   DesignedRelationInput,
@@ -6,7 +7,6 @@ import type {
 import type { Cardinality } from '#backend/app/system-model/system-model.ts';
 import type { ChangeSetInput } from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
-import { nameOf } from './element-id.ts';
 
 /*
  * The relations of a design document, read from one end. The document keeps

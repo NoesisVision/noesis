@@ -8,6 +8,11 @@ import { Stack } from '#/shared/design-system/stack.tsx';
 import { TextInput } from '#/shared/design-system/text-input.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Textarea } from '#/shared/design-system/textarea.tsx';
+import {
+  addressOf,
+  isBuildingBlock,
+  nameOf,
+} from '#/shared/model/element-id.ts';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { MermaidDiagram } from '#/shared/ui/mermaid-diagram.tsx';
 import { titleCase } from '#/shared/ui/title-case.ts';
@@ -31,7 +36,6 @@ import {
   type UnitState,
 } from '../../design-doc-edit.ts';
 import { authorOf, fieldFrom, valueOf } from '../../design-doc-field.ts';
-import { addressOf, nameOf } from '../../element-id.ts';
 import { CARDINALITIES } from '../../relations.ts';
 import { ruleKindLabelOf } from '../../rules.ts';
 import { DesignedField } from './designed-field.tsx';
@@ -324,8 +328,8 @@ function RefInput({
 }) {
   const blocks = blocksNamedIn(doc);
   const current = value !== '' ? [value] : [];
-  const blockIds = [...new Set([...blocks, ...current])].filter((id) =>
-    id.startsWith('building_block|'),
+  const blockIds = [...new Set([...blocks, ...current])].filter(
+    isBuildingBlock,
   );
   const data = [
     ...(blocksOnly

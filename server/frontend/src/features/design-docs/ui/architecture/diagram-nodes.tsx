@@ -12,6 +12,7 @@ import { Box } from '#/shared/design-system/box.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { addressOf, kindOf } from '#/shared/model/element-id.ts';
 import {
   BevelFace,
   BevelRing,
@@ -19,7 +20,6 @@ import {
   cardShapeClass,
   shapeOf,
 } from '#/shared/ui/diagram-shapes.tsx';
-import { addressOf, kindOf } from '../../element-id.ts';
 import { ElementTooltip } from '../element-details/element-tooltip.tsx';
 import { fades, KINDS } from './architecture-kinds.ts';
 import type { DiagramFocus } from './architecture-selection.ts';

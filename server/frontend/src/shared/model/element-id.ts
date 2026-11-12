@@ -1,4 +1,3 @@
-import type { OutlineKind } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type {
   ActorId,
   BehaviorId,
@@ -33,6 +32,18 @@ const RULE = 'rule|';
 const SCENARIO = 'scenario|';
 const ACTOR = 'actor|';
 const MANUAL_PROCESS = 'manual_process|';
+/** A need's id: `need|`, then its own id. A need is no element of the model, but its id is written the same way. */
+export const NEED = 'need|';
+
+/** The kinds an element id is written with. */
+export type IdKind =
+  | 'module'
+  | 'building_block'
+  | 'behavior'
+  | 'rule'
+  | 'scenario'
+  | 'actor'
+  | 'manual_process';
 
 /**
  * A wire string, or an id already known to be `Expected`: an id branded as
@@ -53,18 +64,7 @@ export const blockOfRef = (type: string): BuildingBlockId | null =>
   isBuildingBlock(type) ? type : null;
 
 /** What an id names. An id of no element kind is a fault in the data, and says so. */
-export function kindOf(
-  id: string,
-): Extract<
-  OutlineKind,
-  | 'module'
-  | 'building_block'
-  | 'behavior'
-  | 'rule'
-  | 'scenario'
-  | 'actor'
-  | 'manual_process'
-> {
+export function kindOf(id: string): IdKind {
   if (isBehavior(id)) return 'behavior';
   if (isBuildingBlock(id)) return 'building_block';
   if (isModule(id)) return 'module';
@@ -141,7 +141,14 @@ const PREFIX_OF = {
   scenario: SCENARIO,
   actor: ACTOR,
   manual_process: MANUAL_PROCESS,
-} as const;
+} as const satisfies Record<IdKind, string>;
+
+/** What an id of a kind starts with: `building_block|`. */
+export const prefixOf = (kind: IdKind): string => PREFIX_OF[kind];
+
+/** What an id starts with, its kind and `|`: `building_block|` of `building_block|a.B`. */
+export const idPrefixOf = (id: string): string =>
+  id.slice(0, id.indexOf('|') + 1);
 
 /**
  * The id an element named `name` takes under `parent`: a root module under
@@ -169,16 +176,21 @@ export function isWithin(id: string, ancestor: string): boolean {
   );
 }
 
-function parentAddressOf(id: string): string {
+/** Where an element sits: its address without its own name, `a.b` of `a.b.C`; empty at the top. */
+export function parentAddressOf(id: string): string {
   const address = addressOf(id);
   return address.slice(0, Math.max(0, address.lastIndexOf('.')));
 }
+
+/** A behavior as a reader names it apart from its module: `Order.place`. */
+export const behaviorLabelOf = (behaviorId: string): string =>
+  `${nameOf(ownerOf(behaviorId))}.${nameOf(behaviorId)}`;
 
 function isModule(id: string): id is ModuleId {
   return id.startsWith(MODULE);
 }
 
-function isBuildingBlock(id: string): id is BuildingBlockId {
+export function isBuildingBlock(id: string): id is BuildingBlockId {
   return id.startsWith(BUILDING_BLOCK);
 }
 
