@@ -15,7 +15,7 @@ import {
 } from '#/shared/model/element-id.ts';
 import { MarkdownEditor } from '#/shared/ui/markdown-editor.tsx';
 import { MermaidDiagram } from '#/shared/ui/mermaid-diagram.tsx';
-import { titleCase } from '#/shared/ui/title-case.ts';
+import { modelWordOf } from '#/shared/ui/title-case.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type { Cardinality } from '#backend/app/system-model/system-model.ts';
 import { writtenIn } from '../../change-set.ts';
@@ -211,7 +211,7 @@ function FieldInput({
     case 'type': {
       const options = (TYPES_OF[kind] ?? []).map((type) => ({
         value: type,
-        label: titleCase(type).replaceAll('_', ' '),
+        label: modelWordOf(type),
       }));
       return (
         <Select

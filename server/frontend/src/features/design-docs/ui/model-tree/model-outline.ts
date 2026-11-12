@@ -1,4 +1,4 @@
-import { titleCase } from '#/shared/ui/title-case.ts';
+import { modelWordOf } from '#/shared/ui/title-case.ts';
 import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 
 /*
@@ -132,7 +132,7 @@ const indexIn = (order: readonly string[], value: string | null): number => {
  * own spelling.
  */
 export function patternLabelOf(pattern: string | null): string | null {
-  return pattern === null ? null : titleCase(pattern.replaceAll('_', ' '));
+  return pattern === null ? null : modelWordOf(pattern);
 }
 
 /** The fence a diagram is written in, the one the reader draws. */

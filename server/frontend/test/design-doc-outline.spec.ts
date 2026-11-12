@@ -222,7 +222,7 @@ describe('outlineOf', () => {
     expect(labelAt(`${refund}#property:lines`)).toBe('RefundLine [*]');
     expect(labelAt(`${refund}#property:issuedAt`)).toBe('date');
     // A rule's is its kind, written out.
-    expect(labelAt(`${ISSUE}#rule:${PAID_ONLY}`)).toBe('State change');
+    expect(labelAt(`${ISSUE}#rule:${PAID_ONLY}`)).toBe('State Change');
     // An element's pattern is the model's own word, and is written out.
     expect(labelAt(refund)).toBe('Aggregate');
   });

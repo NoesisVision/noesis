@@ -1,5 +1,4 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
-import type { kindOf } from '#/shared/model/element-id.ts';
 import type { DesignedNeedInput } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BehaviorId,
@@ -220,15 +219,4 @@ export const ARCHITECTURE_KIND_META: Record<
   service: { word: 'application service', name: 'Application service' },
   element: { word: 'domain core', name: DOMAIN_CORE_NAME },
   drivenPort: { word: 'driven port', name: 'Driven port' },
-};
-
-/** What an element no card draws is called: by what it is, as no ring says more. */
-export const UNDRAWN_NAME: Record<ReturnType<typeof kindOf>, string> = {
-  module: 'Module',
-  building_block: 'Building block',
-  behavior: 'Behavior',
-  rule: 'Rule',
-  scenario: 'Scenario',
-  actor: 'Actor',
-  manual_process: 'Manual process',
 };

@@ -364,10 +364,10 @@ describe('the exploration of a system model', () => {
       expect(
         drawn.map((each) => [each.name, kindWordOf(each), each.container]),
       ).toEqual([
-        ['Shop.Api', 'Deployable unit', null],
+        ['Shop.Api', 'Deployable Unit', null],
         ['shop-domain', 'Library', null],
         ['domain', 'Layer', null],
-        ['Orders cluster', 'Deployment container', null],
+        ['Orders cluster', 'Deployment Container', null],
       ]);
     });
 
@@ -403,10 +403,10 @@ describe('the exploration of a system model', () => {
     it('lists their kinds in the filter only when the model holds them', () => {
       expect(elementSectionsOf(read).map(({ title }) => title)).toEqual(
         expect.arrayContaining([
-          'Deployable units',
+          'Deployable Units',
           'Libraries',
           'Layers',
-          'Deployment containers',
+          'Deployment Containers',
         ]),
       );
       expect(
@@ -517,10 +517,10 @@ describe('the exploration of a system model', () => {
     expect(people.edges.invokes).toEqual([[PROCESS, PLACE]]);
     expect(elementSectionsOf(people).map(({ title }) => title)).toEqual([
       'Modules',
-      'Building blocks',
+      'Building Blocks',
       'Behaviors',
       'Actors',
-      'Manual processes',
+      'Manual Processes',
     ]);
     expect(neighboursOf(people).get(PROCESS)!.performedBy).toEqual([ACTOR]);
     expect(
@@ -566,7 +566,7 @@ describe('the exploration of a system model', () => {
     expect(elementSectionsOf(exploration)).toEqual([
       { title: 'Modules', groups: [{ group: 'module', count: 2 }] },
       {
-        title: 'Building blocks',
+        title: 'Building Blocks',
         groups: [
           { group: 'aggregate', count: 1 },
           { group: 'value_object', count: 1 },
@@ -724,7 +724,7 @@ describe('the selection', () => {
     const [module, , order, , behavior] = exploration.elements;
     expect([module, order, behavior].map((each) => kindWordOf(each!))).toEqual([
       'Module',
-      'Building block · Aggregate',
+      'Building Block · Aggregate',
       'Behavior',
     ]);
   });
@@ -781,7 +781,7 @@ describe('the selection', () => {
     );
     expect(html).toMatch(/<button[^>]*data-state="related"/);
     expect(html).toContain(
-      'aria-label="Line, Building block · Value Object, related to the selection"',
+      'aria-label="Line, Building Block · Value Object, related to the selection"',
     );
     expect(html).toContain('aria-pressed="false"');
     // Its buttons are there whether or not it is in hand.

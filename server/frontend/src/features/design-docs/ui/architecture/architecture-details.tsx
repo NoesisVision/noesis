@@ -3,12 +3,12 @@ import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-t
 import { counted } from '#/features/design-docs/ui/plural.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { kindOf, NEED, nameOf } from '#/shared/model/element-id.ts';
+import { kindLabelOf } from '#/shared/model/element-words.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   type ArchitectureCheck,
   type ArchitectureOutline,
   CHECK_LEVEL_META,
-  UNDRAWN_NAME,
 } from '../../architecture-outline.ts';
 import { CHECKS_PATH } from '../../architecture-tree.ts';
 import { valueOf } from '../../design-doc-field.ts';
@@ -156,7 +156,8 @@ function bodyOf({
       const drawn = card ?? cards.get(hexagonId(subject.id));
       return {
         eyebrow:
-          (drawn && KINDS[drawn.kind].name) ?? UNDRAWN_NAME[kindOf(subject.id)],
+          // An element no card draws is called by what it is.
+          (drawn && KINDS[drawn.kind].name) ?? kindLabelOf(kindOf(subject.id)),
         title: drawn?.label ?? node?.name ?? nameOf(subject.id),
         address: subject.id,
         content: (

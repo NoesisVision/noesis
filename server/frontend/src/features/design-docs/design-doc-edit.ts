@@ -11,6 +11,7 @@ import {
   parentOf,
   prefixOf,
 } from '#/shared/model/element-id.ts';
+import { kindInProseOf } from '#/shared/model/element-words.ts';
 import type {
   DesignDocumentInput,
   DesignDocViolation,
@@ -114,14 +115,14 @@ interface UnitOf {
 export type Unit = UnitOf[UnitKind];
 
 export const UNIT_LABEL: Record<UnitKind, string> = {
-  need: 'need',
-  module: 'module',
-  building_block: 'building block',
-  behavior: 'behavior',
-  actor: 'actor',
-  manual_process: 'manual process',
-  rule: 'rule',
-  scenario: 'scenario',
+  need: kindInProseOf('need'),
+  module: kindInProseOf('module'),
+  building_block: kindInProseOf('building_block'),
+  behavior: kindInProseOf('behavior'),
+  actor: kindInProseOf('actor'),
+  manual_process: kindInProseOf('manual_process'),
+  rule: kindInProseOf('rule'),
+  scenario: kindInProseOf('scenario'),
   property: 'property',
   parameter: 'input',
   result: 'output',

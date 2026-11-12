@@ -84,14 +84,18 @@ export const readableDescription = (
       const opens = resolve(decoded(bracketed ?? bare ?? ''));
       return opens === null
         ? label
-        : `[${label}](${hrefOf(page, opens)} "${OPENS_IN[opens.view]}")`;
+        : `[${label}](${hrefOf(page, opens)} "${capitalised(OPENS_IN[opens.view])}")`;
     },
   );
 
 /** What a link says it does, for whoever cannot see the icon before it. */
-const OPENS_IN: Record<DescriptionTarget['view'], string> = {
-  model: 'Opens in Model',
-  requirements: 'Opens in Requirements',
+const capitalised = (text: string): string =>
+  `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+
+/** Where a link opens, said after its words: `opens in Model`. A link's title starts it in upper case. */
+export const OPENS_IN: Record<DescriptionTarget['view'], string> = {
+  model: 'opens in Model',
+  requirements: 'opens in Requirements',
 };
 
 /** The views the description's links open, in the order the tabs show them. */

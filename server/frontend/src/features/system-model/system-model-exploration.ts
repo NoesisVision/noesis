@@ -1,4 +1,5 @@
-import { titleCase } from '#/shared/ui/title-case.ts';
+import { kindLabelOf, kindsLabelOf } from '#/shared/model/element-words.ts';
+import { modelWordOf, titleCase } from '#/shared/ui/title-case.ts';
 import type {
   BuildingBlockKind,
   Cardinality,
@@ -288,44 +289,36 @@ const byCodeUnit = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 export const groupOf = (element: ExploredElement): string =>
   element.pattern ?? element.kind;
 
-export const groupLabelOf = (group: string): string =>
-  titleCase(group.replaceAll('_', ' '));
+export const groupLabelOf = (group: string): string => modelWordOf(group);
 
 export interface ElementSection {
-  title:
-    | 'Modules'
-    | 'Building blocks'
-    | 'Behaviors'
-    | 'Actors'
-    | 'Manual processes'
-    | 'Deployable units'
-    | 'Libraries'
-    | 'Layers'
-    | 'Deployment containers';
+  /** Its kind, many of it, as a label: `Building Blocks`. */
+  title: string;
   groups: { group: string; count: number }[];
 }
 
+/** The filter's sections, one a kind, in the order it lists them. */
 const SECTIONS = [
-  ['Modules', 'module'],
-  ['Building blocks', 'building_block'],
-  ['Behaviors', 'behavior'],
-  ['Actors', 'actor'],
-  ['Manual processes', 'manual_process'],
-  ['Deployable units', 'deployable_unit'],
-  ['Libraries', 'library'],
-  ['Layers', 'layer'],
-  ['Deployment containers', 'deployment_container'],
-] as const satisfies readonly [ElementSection['title'], ExploredKind][];
+  'module',
+  'building_block',
+  'behavior',
+  'actor',
+  'manual_process',
+  'deployable_unit',
+  'library',
+  'layer',
+  'deployment_container',
+] as const satisfies readonly ExploredKind[];
 
 /** The groups a reader may hide, by kind of element, as many as the model holds. */
 export function elementSectionsOf(exploration: Exploration): ElementSection[] {
-  return SECTIONS.map(([title, kind]) => {
+  return SECTIONS.map((kind) => {
     const counts = new Map<string, number>();
     for (const element of exploration.elements)
       if (element.kind === kind)
         counts.set(groupOf(element), (counts.get(groupOf(element)) ?? 0) + 1);
     return {
-      title,
+      title: kindsLabelOf(kind),
       groups: [...counts].map(([group, count]) => ({ group, count })),
     };
   }).filter(({ groups }) => groups.length > 0);
@@ -543,23 +536,11 @@ export function graphOf(
   };
 }
 
-const KIND_WORD = {
-  module: 'Module',
-  building_block: 'Building block',
-  behavior: 'Behavior',
-  actor: 'Actor',
-  manual_process: 'Manual process',
-  deployable_unit: 'Deployable unit',
-  library: 'Library',
-  layer: 'Layer',
-  deployment_container: 'Deployment container',
-} as const satisfies Record<ExploredKind, string>;
-
-/** What an element is, in words: "Building block · Value Object". */
+/** What an element is, in words: "Building Block · Value Object". */
 export const kindWordOf = (element: ExploredElement): string =>
   element.pattern === null
-    ? KIND_WORD[element.kind]
-    : `${KIND_WORD[element.kind]} · ${groupLabelOf(element.pattern)}`;
+    ? kindLabelOf(element.kind)
+    : `${kindLabelOf(element.kind)} · ${groupLabelOf(element.pattern)}`;
 
 /** The relations drawn from or to an element, and what they join it to. */
 export function relatedTo(graph: ExplorationGraph, id: string | null) {

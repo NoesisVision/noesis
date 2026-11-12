@@ -192,7 +192,7 @@ describe('search', () => {
     const [process] = matchingGroups(groups, 'till');
     expect(
       process?.entries.map((entry) => [entry.label, entry.context]),
-    ).toEqual([['Pay at the till', 'Manual process']]);
+    ).toEqual([['Pay at the till', 'Manual Process']]);
     expect(process?.entries[0]?.link).toEqual({
       to: '/system-model',
       search: {

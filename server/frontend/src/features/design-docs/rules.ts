@@ -1,4 +1,5 @@
 import { moduleOf, nameOf, parentOf } from '#/shared/model/element-id.ts';
+import { modelWordOf } from '#/shared/ui/title-case.ts';
 import type {
   DesignDocumentInput,
   DesignedRuleInput,
@@ -99,6 +100,4 @@ export const ruleNameOf = (unit: {
 
 /** A rule's kind as a reader reads it: `State change`, never `state_change`. */
 export const ruleKindLabelOf = (kind: string | null): string | null =>
-  kind === null
-    ? null
-    : `${kind.charAt(0).toUpperCase()}${kind.slice(1).replaceAll('_', ' ')}`;
+  kind === null ? null : modelWordOf(kind);
