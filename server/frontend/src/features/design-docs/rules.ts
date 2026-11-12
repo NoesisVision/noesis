@@ -6,7 +6,7 @@ import type {
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import type { RuleKind } from '#backend/app/system-model/system-model.ts';
-import type { ChangeSetInput } from './change-set.ts';
+import { type ChangeSetInput, idsIn, pointingRelations } from './change-set.ts';
 import { type DesignDocFieldInput, valueOf } from './design-doc-field.ts';
 import { GOVERNING_KINDS } from './relations.ts';
 
@@ -37,11 +37,7 @@ export function governorsOf(
   doc: DesignDocumentInput,
   ruleId: string,
 ): string[] {
-  const relations = doc.relations;
-  const governing = [
-    ...(relations?.added ?? []),
-    ...(relations?.removed ?? []),
-  ].flatMap((relation) =>
+  const governing = pointingRelations(doc).flatMap((relation) =>
     GOVERNING_KINDS.has(relation.kind) && relation.to === ruleId
       ? [relation.from]
       : [],
@@ -86,16 +82,8 @@ export function scenariosUnder(
  * writes or removes belongs to, which it otherwise leaves alone.
  */
 export function rulesNamedIn(doc: DesignDocumentInput): string[] {
-  const ids = new Set<string>([
-    ...(doc.rules?.added ?? []).map(({ id }) => id),
-    ...(doc.rules?.modified ?? []).map(({ id }) => id),
-    ...(doc.rules?.removed ?? []),
-  ]);
-  for (const id of [
-    ...(doc.scenarios?.added ?? []).map((scenario) => scenario.id),
-    ...(doc.scenarios?.modified ?? []).map((scenario) => scenario.id),
-    ...(doc.scenarios?.removed ?? []),
-  ]) {
+  const ids = new Set<string>(idsIn(doc.rules));
+  for (const id of idsIn(doc.scenarios)) {
     const rule = parentOf(id);
     if (rule !== null) ids.add(rule);
   }

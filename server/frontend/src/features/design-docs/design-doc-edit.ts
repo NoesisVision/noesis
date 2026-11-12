@@ -474,14 +474,9 @@ export function rulesTracing(
 export function unitsWithin(doc: DesignDocumentInput, ref: UnitRef): number {
   if (!isElementId(ref.id) || (isPart(ref.kind) && ref.kind !== 'rule'))
     return 0;
-  return CONTAINED_KINDS.flatMap((kind) => {
-    const set = topSetOf(doc, kind);
-    return [
-      ...(set.added ?? []).map(keyOf),
-      ...(set.modified ?? []).map(keyOf),
-      ...(set.removed ?? []).map(keyOf),
-    ];
-  }).filter((id) => id !== ref.id && isWithin(id, ref.id)).length;
+  return CONTAINED_KINDS.flatMap((kind) => keysOf(topSetOf(doc, kind))).filter(
+    (id) => id !== ref.id && isWithin(id, ref.id),
+  ).length;
 }
 
 /**
@@ -540,15 +535,8 @@ function parentsNamedIn(
     for (let at: string | null = id; at !== null; at = parentOf(at))
       if (at.startsWith(prefix)) found.add(at);
   };
-  for (const elementKind of ELEMENT_KINDS) {
-    const set = topSetOf(doc, elementKind);
-    for (const item of [
-      ...(set.added ?? []),
-      ...(set.modified ?? []),
-      ...(set.removed ?? []),
-    ])
-      take(keyOf(item));
-  }
+  for (const elementKind of ELEMENT_KINDS)
+    keysOf(topSetOf(doc, elementKind)).forEach(take);
   if (kind === 'building_block') blocksNamedIn(doc).forEach(take);
   return [...found].sort((a, b) => addressOf(a).localeCompare(addressOf(b)));
 }
@@ -1094,6 +1082,12 @@ interface RuleInput {
 }
 
 /** The key a change set knows an item by, as the server reads it. */
+/** The key of everything a loose set names: added, modified and removed. */
+const keysOf = (set: LooseSet): string[] =>
+  [...(set.added ?? []), ...(set.modified ?? []), ...(set.removed ?? [])].map(
+    keyOf,
+  );
+
 function keyOf(item: unknown): string {
   if (typeof item === 'string') return item;
   if (typeof item === 'object' && item !== null) {

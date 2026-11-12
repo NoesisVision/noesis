@@ -29,6 +29,25 @@ export function* named<Item>(
   for (const item of set?.modified ?? []) yield [item, 'modified'];
 }
 
+/** Every item and every removal's key, each with what the design does to it. */
+export function* changed<Item, Key>(
+  set: ChangeSetInput<Item, Key> | undefined,
+): Generator<[Item | Key, OutlineChange]> {
+  yield* named(set);
+  for (const key of set?.removed ?? []) yield [key, 'removed'];
+}
+
+/** The id of every element a set names: the ones it adds, changes and removes. */
+export const idsIn = <Item extends { id: string }>(
+  set: ChangeSetInput<Item, string> | undefined,
+): string[] => [...writtenIn(set).map(({ id }) => id), ...(set?.removed ?? [])];
+
+/** The relations of a design that point at something: those it adds, and the keys of those it removes. */
+export const pointingRelations = (doc: DesignDocumentInput) => [
+  ...(doc.relations?.added ?? []),
+  ...(doc.relations?.removed ?? []),
+];
+
 export function findById<Item extends { id: string }>(
   set: ChangeSetInput<Item, string> | undefined,
   id: string,

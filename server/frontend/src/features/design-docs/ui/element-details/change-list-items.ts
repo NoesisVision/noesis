@@ -9,7 +9,7 @@ import {
 } from '#/shared/model/element-id.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { cardinalitySuffixOf } from '../../cardinality.ts';
-import type { ChangeSetInput } from '../../change-set.ts';
+import { changed } from '../../change-set.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { partPathOf } from '../../design-doc-outline.ts';
 import { needNamesOf } from '../../design-doc-requirements.ts';
@@ -57,15 +57,6 @@ export interface ChangeListItem {
   classification?: string;
   /** The needs a rule answers, by name; none for a design decision. */
   needs?: string[];
-}
-
-/** Every item of a change set, each with what the design does to it. */
-function* changed<Item, Key>(
-  set: ChangeSetInput<Item, Key> | undefined,
-): Generator<[Item | Key, OutlineChange]> {
-  for (const item of set?.added ?? []) yield [item, 'added'];
-  for (const item of set?.modified ?? []) yield [item, 'modified'];
-  for (const key of set?.removed ?? []) yield [key, 'removed'];
 }
 
 /** A declaration's name and type, apart, for a reader that sets them apart. */

@@ -1,4 +1,6 @@
 import { CONTAINMENT_KINDS } from '#/features/design-docs/relations.ts';
+import { recordOf } from '#/shared/collections.ts';
+import { byIdOf } from '#/shared/collections.ts';
 import { kindLabelOf, kindsLabelOf } from '#/shared/model/element-words.ts';
 import { modelWordOf, titleCase } from '#/shared/ui/title-case.ts';
 import type {
@@ -110,19 +112,22 @@ type DrawnRelationEntry = {
 }[DrawnRelationKind];
 
 /** The drawn relations, in the order the filter lists them. */
-export const DRAWN_RELATIONS: readonly DrawnRelationEntry[] = (
-  Object.keys(DRAWN) as DrawnRelationKind[]
-).map((kind): DrawnRelationEntry => {
-  const [models, word, reach, back] = DRAWN[kind];
-  return {
-    kind,
-    models,
-    label: titleCase(kind),
-    word,
-    reach,
-    back,
-  } as DrawnRelationEntry;
-});
+/** The drawn relations' kinds, in the order the filter lists them. */
+const DRAWN_KINDS = Object.keys(DRAWN) as DrawnRelationKind[];
+
+export const DRAWN_RELATIONS: readonly DrawnRelationEntry[] = DRAWN_KINDS.map(
+  (kind): DrawnRelationEntry => {
+    const [models, word, reach, back] = DRAWN[kind];
+    return {
+      kind,
+      models,
+      label: titleCase(kind),
+      word,
+      reach,
+      back,
+    } as DrawnRelationEntry;
+  },
+);
 
 /** The model's relations that place an element inside another: what "Contains" and "Is part of" read. */
 const CONTAINMENT = CONTAINMENT_KINDS;
@@ -153,9 +158,10 @@ export const RELATIONS: readonly { kind: RelationKind; label: string }[] = [
 ];
 
 /** The word an edge of each drawn relation carries. */
-export const RELATION_WORD = Object.fromEntries(
-  DRAWN_RELATIONS.map(({ kind, word }) => [kind, word]),
-) as Record<DrawnRelationKind, string>;
+export const RELATION_WORD: Record<DrawnRelationKind, string> = recordOf(
+  DRAWN_KINDS,
+  (kind) => DRAWN[kind][1],
+);
 
 const DRAWN_OF_MODEL = new Map<string, DrawnRelationKind>(
   DRAWN_RELATIONS.flatMap(({ models, kind }) =>
@@ -252,9 +258,9 @@ export function explorationOf(model: SystemModel): Exploration {
         cardinalities.set(id, [...found, relation.cardinality]);
     }
   }
-  const edges = Object.fromEntries(
-    [...pairs].map(([kind, found]) => [kind, [...found.values()]]),
-  ) as Record<DrawnRelationKind, Pair[]>;
+  const edges = recordOf(DRAWN_KINDS, (kind): Pair[] => [
+    ...(pairs.get(kind)?.values() ?? []),
+  ]);
   edges.invokes = calls
     .sort((a, b) => byCodeUnit(a.from, b.from) || a.order - b.order)
     .map(({ from, to }): Pair => [from, to]);
@@ -347,9 +353,7 @@ export function neighboursOf(
   const map = new Map<string, Neighbours>(
     exploration.elements.map(({ id }) => [
       id,
-      Object.fromEntries(
-        REACHES.map((reach): [Reach, string[]] => [reach, []]),
-      ) as Neighbours,
+      recordOf(REACHES, (): string[] => []),
     ]),
   );
   for (const { id, container } of exploration.elements) {
@@ -480,7 +484,7 @@ export function graphOf(
     picks?: ElementPicks;
   },
 ): ExplorationGraph {
-  const byId = new Map(exploration.elements.map((each) => [each.id, each]));
+  const byId = byIdOf(exploration.elements);
   const shown = exploration.elements.filter(
     (element) =>
       picks.added.has(element.id) ||

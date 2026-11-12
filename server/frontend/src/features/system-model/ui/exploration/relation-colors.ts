@@ -1,4 +1,5 @@
 import { MarkerType } from '@xyflow/react';
+import { recordOf } from '#/shared/collections.ts';
 import {
   DRAWN_RELATIONS,
   type DrawnRelationKind,
@@ -21,9 +22,10 @@ const themedOf = (kind: DrawnRelationKind, part = '') =>
   `var(--edge-${kind}, ${tokenOf(kind, part)})`;
 
 const forEachKind = <T>(valueOf: (kind: DrawnRelationKind) => T) =>
-  Object.fromEntries(
-    DRAWN_RELATIONS.map(({ kind }) => [kind, valueOf(kind)]),
-  ) as Record<DrawnRelationKind, T>;
+  recordOf(
+    DRAWN_RELATIONS.map(({ kind }) => kind),
+    valueOf,
+  );
 
 export const EDGE_COLOR = forEachKind((kind) => themedOf(kind));
 

@@ -1,4 +1,3 @@
-import '@xyflow/react/dist/base.css';
 import {
   Background,
   type BackgroundProps,
@@ -11,6 +10,7 @@ import {
   useNodesState,
   ViewportPortal,
 } from '@xyflow/react';
+import '@xyflow/react/dist/base.css';
 import {
   type CSSProperties,
   useCallback,
@@ -26,6 +26,7 @@ import {
   DetailsDock,
   ElementPanel,
 } from '#/features/design-docs/element-reader.ts';
+import { byIdOf } from '#/shared/collections.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
@@ -158,7 +159,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const modelId = model.id;
   const neighbours = useMemo(() => neighboursOf(exploration), [exploration]);
   const elementsById = useMemo(
-    () => new Map(exploration.elements.map((each) => [each.id, each])),
+    () => byIdOf(exploration.elements),
     [exploration],
   );
   const sections = useMemo(() => elementSectionsOf(exploration), [exploration]);
@@ -969,7 +970,7 @@ function usePlacement(
           .map((node) => ({ ...node, data: { ...node.data, leaving: true } }));
         // A card that stands as it stood stays the same node, so React Flow
         // draws only those that moved.
-        const before = new Map(shown.map((node) => [node.id, node]));
+        const before = byIdOf(shown);
         const landed = next.map((given) => {
           // A frame, saved before frames were taken by their top, is too.
           const node = withHandle(given);
@@ -996,7 +997,7 @@ function usePlacement(
   const dropNodes = useCallback(
     (next: ExplorationNode[], letGo: { id: string; at: CanvasPoint }) => {
       stopDropGlide();
-      const from = new Map(latest.current.nodes.map((node) => [node.id, node]));
+      const from = byIdOf(latest.current.nodes);
       const was = from.get(letGo.id);
       if (was !== undefined) from.set(letGo.id, { ...was, position: letGo.at });
       // Each with its size measured already, as the canvas draws no edge to
@@ -1406,7 +1407,7 @@ const standsAsBefore = (was: ExplorationNode, node: ExplorationNode) =>
 
 /** Where a card stands on the canvas, through each container round it. */
 function absoluteOf(nodes: ExplorationNode[], id: string): CanvasPoint {
-  const byId = new Map(nodes.map((node) => [node.id, node]));
+  const byId = byIdOf(nodes);
   let x = 0;
   let y = 0;
   for (let node = byId.get(id); node !== undefined;) {

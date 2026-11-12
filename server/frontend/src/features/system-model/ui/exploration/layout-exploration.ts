@@ -1,4 +1,5 @@
 import type { ElkNode, LayoutOptions } from 'elkjs/lib/elk.bundled.js';
+import { byIdOf } from '#/shared/collections.ts';
 import type {
   DrawnElement,
   ExplorationGraph,
@@ -154,7 +155,7 @@ export async function layoutExploration(
     })),
   });
 
-  const byId = new Map(graph.elements.map((element) => [element.id, element]));
+  const byId = byIdOf(graph.elements);
   const out: PlacedElement[] = [];
   const walk = (nodes: ElkNode[] = []) => {
     for (const node of nodes) {

@@ -1,3 +1,4 @@
+import { byIdOf } from '#/shared/collections.ts';
 import type {
   DrawnElement,
   ExplorationGraph,
@@ -89,7 +90,7 @@ function workspaceOf(
     return rect;
   };
 
-  const byId = new Map(graph.elements.map((each) => [each.id, each]));
+  const byId = byIdOf(graph.elements);
   const children = new Map<string | null, DrawnElement[]>();
   for (const element of graph.elements)
     children.set(element.parent, [

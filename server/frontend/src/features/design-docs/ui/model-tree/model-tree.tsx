@@ -1,4 +1,5 @@
 import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { recordOf } from '#/shared/collections.ts';
 import type { OutlineChange, OutlineNode } from './model-outline.ts';
 import { CHANGE_COLOUR } from './outline-change.ts';
 import { TreeItem } from './tree-item.tsx';
@@ -165,10 +166,7 @@ export function ModelTree({
   // Four colours for the whole tree, not one lookup a row.
   const changeColour = useChangeColour();
   const colours = useMemo(
-    () =>
-      Object.fromEntries(
-        CHANGES.map((change) => [change, changeColour(change)?.color]),
-      ) as Record<OutlineChange, string | undefined>,
+    () => recordOf(CHANGES, (change) => changeColour(change)?.color),
     [changeColour],
   );
 
