@@ -41,6 +41,10 @@
   --edge-collaborator: var(--cy-cyan);
   --edge-invokes: var(--cy-magenta);
   --edge-performs: var(--cy-magenta);
+  --edge-ships: var(--cy-muted);
+  --edge-provides: var(--cy-muted);
+  --edge-places: var(--cy-signal);
+  --edge-runs: var(--cy-muted);
   --edge-highlight: var(--cy-signal);
 }
 

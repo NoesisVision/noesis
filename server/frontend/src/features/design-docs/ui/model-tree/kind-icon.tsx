@@ -3,6 +3,7 @@ import {
   IconAlertTriangle,
   IconAssembly,
   IconBlocks,
+  IconBooks,
   IconCategory,
   IconChecklist,
   IconCircleCheck,
@@ -19,11 +20,14 @@ import {
   IconLogin2,
   IconLogout2,
   IconMathFunction,
+  IconPackage,
   IconPackageExport,
   IconPoint,
   IconRoute,
   IconScale,
+  IconServer,
   IconSettings,
+  IconStack2,
   IconShield,
   IconSitemap,
   IconStatusChange,
@@ -32,9 +36,13 @@ import {
   IconUser,
   IconWorld,
 } from '@tabler/icons-react';
+import type { ElementKind } from '#backend/app/element-id.ts';
 import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 import type { OutlineKind, OutlineNode } from './model-outline.ts';
 import classes from './model-tree.module.css';
+
+/** A row of the tree, or any element of the model a diagram draws. */
+type IconKind = OutlineKind | ElementKind;
 
 const KIND_ICONS = {
   module: IconFolder,
@@ -48,7 +56,12 @@ const KIND_ICONS = {
   group: IconCategory,
   need: IconTarget,
   check: IconChecklist,
-} as const satisfies Record<OutlineKind, unknown>;
+  // Elements the tree does not hold yet, but a diagram draws.
+  deployable_unit: IconPackage,
+  library: IconBooks,
+  layer: IconStack2,
+  deployment_container: IconServer,
+} as const satisfies Record<IconKind, unknown>;
 
 /** Every pattern the model knows, spelled as the model spells it. */
 const PATTERNS = [
@@ -138,7 +151,7 @@ const isPattern = (value: string): value is Pattern =>
  * which only happens to share the vocabulary, so a property always reads as
  * a property.
  */
-function drawingOf(kind: OutlineKind, pattern: string | null | undefined) {
+function drawingOf(kind: IconKind, pattern: string | null | undefined) {
   if (pattern != null) {
     if (kind === 'check' && isCheckLevel(pattern))
       return { Icon: CHECK_ICONS[pattern], tone: CHECK_TONES[pattern] };
@@ -160,7 +173,7 @@ export function KindIcon({
   pattern,
   size = 20,
 }: {
-  kind: OutlineKind;
+  kind: IconKind;
   pattern: OutlineNode['pattern'] | undefined;
   size?: number;
 }) {

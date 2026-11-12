@@ -103,6 +103,10 @@ const model = contained({
   scenarios: [],
   actors: [],
   manualProcesses: [],
+  deployableUnits: [],
+  libraries: [],
+  layers: [],
+  deploymentContainers: [],
   modules: [
     { id: 'module|shop', name: 'shop', description: null, source },
     {
@@ -281,6 +285,111 @@ describe('the exploration of a system model', () => {
     ]);
   });
 
+  describe('what the code is built into, runs on and is cut in', () => {
+    const ORDER = 'building_block|shop.orders.Order';
+    const LINE = 'building_block|shop.orders.Line';
+    const element = (id: string) => ({
+      id,
+      name: id.slice(id.indexOf('|') + 1),
+      description: null,
+      source,
+    });
+    const read = explorationOf({
+      ...model,
+      deployableUnits: [element('deployable_unit|Shop.Api')],
+      libraries: [element('library|shop-domain')],
+      layers: [element('layer|domain')],
+      deploymentContainers: [element('deployment_container|Orders cluster')],
+      relations: [
+        ...model.relations,
+        {
+          kind: 'unit_contains_module',
+          from: 'deployable_unit|Shop.Api',
+          to: 'module|shop.orders',
+        },
+        {
+          kind: 'library_contains_block',
+          from: 'library|shop-domain',
+          to: LINE,
+        },
+        { kind: 'layer_contains_block', from: 'layer|domain', to: ORDER },
+        { kind: 'layer_contains_block', from: 'layer|domain', to: LINE },
+        {
+          kind: 'layer_contains_block',
+          from: 'layer|domain',
+          to: 'building_block|shop.payments.Payment',
+        },
+        {
+          kind: 'container_contains_unit',
+          from: 'deployment_container|Orders cluster',
+          to: 'deployable_unit|Shop.Api',
+        },
+      ],
+    } as unknown as SystemModel);
+
+    it('draws each as a card in no module, named as the build names it', () => {
+      const drawn = read.elements.filter(({ kind }) =>
+        [
+          'deployable_unit',
+          'library',
+          'layer',
+          'deployment_container',
+        ].includes(kind),
+      );
+      expect(
+        drawn.map((each) => [each.name, kindWordOf(each), each.container]),
+      ).toEqual([
+        ['Shop.Api', 'Deployable unit', null],
+        ['shop-domain', 'Library', null],
+        ['domain', 'Layer', null],
+        ['Orders cluster', 'Deployment container', null],
+      ]);
+    });
+
+    it('joins them by edges, never by nesting, only to what the model lists', () => {
+      expect(read.edges.ships).toEqual([
+        ['deployable_unit|Shop.Api', 'module|shop.orders'],
+      ]);
+      expect(read.edges.provides).toEqual([['library|shop-domain', LINE]]);
+      expect(read.edges.places).toEqual([
+        ['layer|domain', ORDER],
+        ['layer|domain', LINE],
+      ]);
+      expect(read.edges.runs).toEqual([
+        ['deployment_container|Orders cluster', 'deployable_unit|Shop.Api'],
+      ]);
+      const block = read.elements.find(({ id }) => id === ORDER)!;
+      expect(block.container).toBe('module|shop.orders');
+    });
+
+    it('reaches each way', () => {
+      const neighbours = neighboursOf(read);
+      expect(neighbours.get(ORDER)!.placedIn).toEqual(['layer|domain']);
+      expect(neighbours.get(LINE)!.providedBy).toEqual(['library|shop-domain']);
+      expect(neighbours.get('module|shop.orders')!.shippedIn).toEqual([
+        'deployable_unit|Shop.Api',
+      ]);
+      expect(neighbours.get('deployable_unit|Shop.Api')!.runsOn).toEqual([
+        'deployment_container|Orders cluster',
+      ]);
+      expect(neighbours.get('layer|domain')!.places).toEqual([ORDER, LINE]);
+    });
+
+    it('lists their kinds in the filter only when the model holds them', () => {
+      expect(elementSectionsOf(read).map(({ title }) => title)).toEqual(
+        expect.arrayContaining([
+          'Deployable units',
+          'Libraries',
+          'Layers',
+          'Deployment containers',
+        ]),
+      );
+      expect(
+        elementSectionsOf(exploration).map(({ title }) => title),
+      ).not.toContain('Layers');
+    });
+  });
+
   it('nests elements in their nearest shown container', () => {
     const graph = draw(['contains', 'state', 'input'], ['module']);
     expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
@@ -454,6 +563,10 @@ it('lays out every relation and every kind in the visibility panel', () => {
     'collaborator',
     'invokes',
     'performs',
+    'ships',
+    'provides',
+    'places',
+    'runs',
   ]);
   const html = renderToStaticMarkup(
     <MantineProvider>

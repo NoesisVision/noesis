@@ -227,12 +227,15 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * resting too, but held to work with rather than to be: cyan, in middling
  * dashes a little slower than state's; what a behavior invokes as a call going:
  * violet in long dashes moving fast; what an actor performs as work done
- * by hand: green in middling dashes at an easy pace. A quiet line may have a word of a
+ * by hand: green in middling dashes at an easy pace; what the build ships,
+ * provides and runs as its structure, quiet: grape in fine dots, slow; what
+ * a layer places as a slice of the code, not an artifact: yellow in sparse
+ * dots, slower still. A quiet line may have a word of a
  * stronger ink. Its arrow's shape is the canvas's to draw (EDGE_ARROW in
  * relation-colors.ts).
  */
 function relationEdges({
-  colors: { brand, gray, violet, teal, orange, green, cyan },
+  colors: { brand, gray, violet, teal, orange, green, cyan, grape, yellow },
 }: MantineThemeOf) {
   return {
     state: {
@@ -283,6 +286,34 @@ function relationEdges({
       dash: 4,
       gap: 3,
       seconds: 0.7,
+    },
+    ships: {
+      line: { light: grape[5], dark: grape[4] },
+      word: { light: grape[8], dark: grape[2] },
+      dash: 2,
+      gap: 3,
+      seconds: 1.2,
+    },
+    provides: {
+      line: { light: grape[5], dark: grape[4] },
+      word: { light: grape[8], dark: grape[2] },
+      dash: 2,
+      gap: 3,
+      seconds: 1.2,
+    },
+    places: {
+      line: { light: yellow[7], dark: yellow[5] },
+      word: { light: yellow[9], dark: yellow[3] },
+      dash: 2,
+      gap: 6,
+      seconds: 1.5,
+    },
+    runs: {
+      line: { light: grape[5], dark: grape[4] },
+      word: { light: grape[8], dark: grape[2] },
+      dash: 2,
+      gap: 3,
+      seconds: 1.2,
     },
   };
 }

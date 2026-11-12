@@ -52,17 +52,11 @@ So the work splits in two:
 
    `explorationOf` reads them from the model's four new lists as cards in
    no module (`container: null`), as actors are. They join `joinable`, so
-   relations to and from them are drawn. They get a new section in the
-   element filter:
-
-   ```ts
-   ['Deployment', ['deployable_unit', 'library', 'deployment_container']],
-   ['Layers', ['layer']],
-   ```
-
-   `SECTIONS` today maps one title to one kind. It becomes a title to a
-   list of kinds, or one row per kind if that reads better in
-   `kind-list.tsx`. The design proposal decides which.
+   relations to and from them are drawn. Each gets a section of its own in
+   the element filter, as actors and manual processes do: Deployable units,
+   Libraries, Layers, Deployment containers. _(Built that way; the design
+   pass may still group them.)_ Modules join `joinable` too, since `ships`
+   is the first drawn relation that ends at a module.
 
 2. **The four new containments are drawn as edges, not as nesting.** In
    the explorer, containment is cards inside cards, and an element has one
@@ -215,15 +209,11 @@ really have:
   - `DiscountPolicyFactory` → `DiscountsConfigProvider`
     (`discountsConfigProvider`)
   - `DiscountPolicyFactory` → `UserStatusProvider` (`userStatusProvider`)
-- **A deployable unit and a container:** `deployable_unit|discounts-app`
-  ships `module|discounts`, and `deployment_container|Local JVM` runs it.
-- **A library:** `library|discounts-domain` provides the calculation's
-  value objects.
-- **Two layers:**
-  - `layer|domain` places the aggregates and value objects
-  - `layer|application` places `DiscountCalculation`
-
-A smaller, explicit model in the spec covers the edge cases (section 4).
+    The fixture is a copy of the example's real scan, and discounts-java has no
+    libraries, layers or containers, so only the collaborators went into it.
+    The four new elements and their relations are covered by a model in the
+    spec, and by one test that runs `designOf` on the fixture with a unit and a
+    layer added.
 
 ## 4. Tests
 
@@ -266,7 +256,7 @@ Each step leaves `bun run ci` green.
    fixture's collaborators, and tests. _(Done.)_
 3. **`feat(frontend): draw units, libraries, layers and containers in the
    explorer`**: decisions 1 and 2, the rest of 4, 5 and 6, the rest of the
-   fixture, and tests.
+   fixture, and tests. _(Done.)_
 4. The design proposal and `/design-sync` for decision 5 and for the filter
    sections. A change in look lands in `theme.ts` only.
 

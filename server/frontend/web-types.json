@@ -243,6 +243,86 @@
           "description": "How long a works-with line's dashes take to move one length along, from `relationEdges` in `theme.ts`."
         },
         {
+          "name": "--noesis-diagram-edge-ships",
+          "description": "The line and arrow where a deployable unit ships a module (`unit_contains_module`) on the exploration. Grape 5 / grape 4, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-ships-word",
+          "description": "The word on a ships line. Grape 8 / grape 2, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-ships-dash",
+          "description": "The dash of a ships line when the edges run, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-ships-gap",
+          "description": "The gap between a ships line's dashes, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-ships-time",
+          "description": "How long a ships line's dashes take to move one length along, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-provides",
+          "description": "The line and arrow where a library provides a building block (`library_contains_block`) on the exploration. Grape 5 / grape 4, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-provides-word",
+          "description": "The word on a provides line. Grape 8 / grape 2, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-provides-dash",
+          "description": "The dash of a provides line when the edges run, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-provides-gap",
+          "description": "The gap between a provides line's dashes, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-provides-time",
+          "description": "How long a provides line's dashes take to move one length along, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-places",
+          "description": "The line and arrow where a layer places a building block (`layer_contains_block`) on the exploration. Yellow 7 / yellow 5, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-places-word",
+          "description": "The word on a places line. Yellow 9 / yellow 3, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-places-dash",
+          "description": "The dash of a places line when the edges run, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-places-gap",
+          "description": "The gap between a places line's dashes, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-places-time",
+          "description": "How long a places line's dashes take to move one length along, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-runs",
+          "description": "The line and arrow where a deployment container runs a deployable unit (`container_contains_unit`) on the exploration. Grape 5 / grape 4, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-runs-word",
+          "description": "The word on a runs line. Grape 8 / grape 2, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-runs-dash",
+          "description": "The dash of a runs line when the edges run, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-runs-gap",
+          "description": "The gap between a runs line's dashes, from `relationEdges` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-edge-runs-time",
+          "description": "How long a runs line's dashes take to move one length along, from `relationEdges` in `theme.ts`."
+        },
+        {
           "name": "--noesis-diagram-edge-label",
           "description": "The pill a relation's word sits on. White / dark 7, from `cssVariablesResolver` in `theme.ts`."
         },

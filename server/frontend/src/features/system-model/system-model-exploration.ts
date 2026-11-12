@@ -21,7 +21,12 @@ import type {
  * leaves the model without any. An actor performs manual processes
  * ('performs'), and a manual process invokes behaviors in order
  * ('process_invokes_behavior'), as a behavior does; neither is contained by
- * anything.
+ * anything. What the code is built into and runs on cuts across the modules,
+ * so none of it contains anything either: a deployable unit ships modules
+ * ('unit_contains_module'), a library provides blocks
+ * ('library_contains_block'), a layer places blocks in its slice of the
+ * code ('layer_contains_block'), and a deployment container runs units
+ * ('container_contains_unit'), each an edge.
  */
 
 type ExploredKind =
@@ -29,7 +34,11 @@ type ExploredKind =
   | 'building_block'
   | 'behavior'
   | 'actor'
-  | 'manual_process';
+  | 'manual_process'
+  | 'deployable_unit'
+  | 'library'
+  | 'layer'
+  | 'deployment_container';
 
 export interface ExploredElement {
   id: string;
@@ -107,6 +116,38 @@ export const DRAWN_RELATIONS = [
     word: 'performs',
     reach: 'performs',
     back: 'performedBy',
+  },
+  {
+    kind: 'ships',
+    models: ['unit_contains_module'],
+    label: 'Ships',
+    word: 'ships',
+    reach: 'ships',
+    back: 'shippedIn',
+  },
+  {
+    kind: 'provides',
+    models: ['library_contains_block'],
+    label: 'Provides',
+    word: 'provides',
+    reach: 'provides',
+    back: 'providedBy',
+  },
+  {
+    kind: 'places',
+    models: ['layer_contains_block'],
+    label: 'Places',
+    word: 'places',
+    reach: 'places',
+    back: 'placedIn',
+  },
+  {
+    kind: 'runs',
+    models: ['container_contains_unit'],
+    label: 'Runs',
+    word: 'runs',
+    reach: 'runs',
+    back: 'runsOn',
   },
 ] as const satisfies readonly {
   kind: string;
@@ -199,16 +240,26 @@ export function explorationOf(model: SystemModel): Exploration {
       pattern: null,
       container: null,
     })),
+    ...artifactsOf(model).map(({ kind, element }) => ({
+      id: element.id,
+      kind,
+      name: element.name,
+      pattern: null,
+      container: null,
+    })),
   ];
 
   // A slot typed by a primitive, or a relation of an element the model does
   // not list, joins nothing drawn; a relation to oneself is no edge either.
   const joinable = new Set<string>(
     [
+      // A module is joined only by what ships it; containment is no edge.
+      ...model.modules,
       ...model.buildingBlocks,
       ...model.behaviors,
       ...model.actors,
       ...model.manualProcesses,
+      ...artifactsOf(model).map(({ element }) => element),
     ].map(({ id }) => id),
   );
   const known = (id: string) => joinable.has(id);
@@ -237,6 +288,20 @@ export function explorationOf(model: SystemModel): Exploration {
   return { elements, edges };
 }
 
+/** What the code is built into and runs on, and the layers it is cut in: elements in no module. */
+const artifactsOf = (model: SystemModel) => [
+  ...model.deployableUnits.map((element) => ({
+    kind: 'deployable_unit' as const,
+    element,
+  })),
+  ...model.libraries.map((element) => ({ kind: 'library' as const, element })),
+  ...model.layers.map((element) => ({ kind: 'layer' as const, element })),
+  ...model.deploymentContainers.map((element) => ({
+    kind: 'deployment_container' as const,
+    element,
+  })),
+];
+
 /** Ids are ASCII, so code-unit order is alphabetical without a locale. */
 const byCodeUnit = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
@@ -253,7 +318,11 @@ export interface ElementSection {
     | 'Building blocks'
     | 'Behaviors'
     | 'Actors'
-    | 'Manual processes';
+    | 'Manual processes'
+    | 'Deployable units'
+    | 'Libraries'
+    | 'Layers'
+    | 'Deployment containers';
   groups: { group: string; count: number }[];
 }
 
@@ -263,6 +332,10 @@ const SECTIONS = [
   ['Behaviors', 'behavior'],
   ['Actors', 'actor'],
   ['Manual processes', 'manual_process'],
+  ['Deployable units', 'deployable_unit'],
+  ['Libraries', 'library'],
+  ['Layers', 'layer'],
+  ['Deployment containers', 'deployment_container'],
 ] as const satisfies readonly [ElementSection['title'], ExploredKind][];
 
 /** The groups a reader may hide, by kind of element, as many as the model holds. */
@@ -500,6 +573,10 @@ const KIND_WORD = {
   behavior: 'Behavior',
   actor: 'Actor',
   manual_process: 'Manual process',
+  deployable_unit: 'Deployable unit',
+  library: 'Library',
+  layer: 'Layer',
+  deployment_container: 'Deployment container',
 } as const satisfies Record<ExploredKind, string>;
 
 /** What an element is, in words: "Building block · Value Object". */
