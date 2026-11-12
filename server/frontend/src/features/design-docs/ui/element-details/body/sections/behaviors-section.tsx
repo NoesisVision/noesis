@@ -7,6 +7,10 @@ import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignedBehaviorInput } from '#backend/app/design-docs/design-doc.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
+import {
+  CardinalityMark,
+  type MarkedCardinality,
+} from '../../cardinality-mark.tsx';
 import { parameterItems, resultItems } from '../../change-list-items.ts';
 import { useDesignDocument } from '../../design-document-context.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
@@ -117,7 +121,7 @@ function Shape({ behavior }: { behavior: DesignedBehaviorInput }) {
             {name ?? label}:{' '}
             <OutputType
               label={type ?? name ?? 'unknown'}
-              suffix={cardinality}
+              cardinality={cardinality}
               path={path}
             />
           </span>
@@ -132,7 +136,7 @@ function Shape({ behavior }: { behavior: DesignedBehaviorInput }) {
               {index > 0 && <span className={classes.punctuation}>, </span>}
               <OutputType
                 label={type ?? label}
-                suffix={cardinality}
+                cardinality={cardinality}
                 path={path}
               />
             </Fragment>
@@ -149,30 +153,33 @@ function Shape({ behavior }: { behavior: DesignedBehaviorInput }) {
  */
 function OutputType({
   label,
-  suffix = '',
+  cardinality,
   path,
 }: {
   label: string;
-  /** How many of the type it holds, after the type, when not exactly one. */
-  suffix?: string | undefined;
+  /** How many of the type it holds, marked before the type, when not exactly one. */
+  cardinality?: MarkedCardinality | undefined;
   path: string | null;
 }) {
   const { has, select } = useElementNavigation();
+  const mark = cardinality !== undefined && (
+    <CardinalityMark cardinality={cardinality} />
+  );
   return (
-    <ElementTooltip name={label} hint>
+    <ElementTooltip name={label} hint cardinality={cardinality}>
       {path !== null && has(path) ? (
         <UnstyledButton
           className={classes.output}
           data-link
           onClick={() => select(path)}
         >
+          {mark}
           <QualifiedName name={label} />
-          {suffix}
         </UnstyledButton>
       ) : (
         <span className={classes.output}>
+          {mark}
           <QualifiedName name={label} />
-          {suffix}
         </span>
       )}
     </ElementTooltip>

@@ -8,6 +8,13 @@ describe('KindIcon', () => {
   it.each([
     ['building_block', 'repository', 'database'],
     ['building_block', 'query', 'circle-letter-q'],
+    ['building_block', 'in_adapter', 'login-2'],
+    ['building_block', 'out_adapter', 'logout-2'],
+    ['building_block', 'technical_service', 'tool'],
+    ['deployable_unit', null, 'package'],
+    ['library', null, 'books'],
+    ['layer', null, 'stack-2'],
+    ['deployment_container', null, 'server'],
     ['rule', 'State change', 'status-change'],
   ] as const)('draws a %s by its pattern %s', (kind, pattern, icon) => {
     expect(

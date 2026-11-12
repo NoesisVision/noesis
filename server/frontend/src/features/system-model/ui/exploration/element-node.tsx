@@ -265,10 +265,20 @@ const REACH_ACTION = {
   outputOf: 'Output of',
   extends: 'Extends',
   extendedBy: 'Extended by',
+  worksWith: 'Works with',
+  collaboratorOf: 'Collaborator of',
   invokes: 'Invokes',
   invokedBy: 'Invoked by',
   performs: 'Performs',
   performedBy: 'Performed by',
+  ships: 'Ships',
+  shippedIn: 'Shipped in',
+  provides: 'Provides',
+  providedBy: 'Provided by',
+  places: 'Places',
+  placedIn: 'Placed in',
+  runs: 'Runs',
+  runsOn: 'Runs on',
 } as const satisfies Record<Reach, string>;
 
 /*

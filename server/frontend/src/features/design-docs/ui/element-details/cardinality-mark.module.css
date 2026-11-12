@@ -1,0 +1,56 @@
+/*
+ * The block a type starts with when the slot holds many or may hold none:
+ * quiet, light gray with a gray icon, beside text as plain as a signature's.
+ * Only on a type's blue tag is it solid blue, filling the tag's left end
+ * (declaration-box.module.css). Sized by the text it stands before — a
+ * square as tall as the line, the icon three quarters of the letters' size
+ * — and centred on it.
+ */
+.mark {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 1.45em;
+  min-width: 1.45em;
+  margin-right: 0.45em;
+  padding: 0 0.2em;
+  border-radius: 5px;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+  background: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-5)
+  );
+  vertical-align: middle;
+  line-height: 1;
+
+  & svg {
+    width: 0.75em;
+    height: 0.75em;
+  }
+}
+
+/*
+ * The mark beside its word, quiet: a note on the title, not a second title.
+ * The word in the mark's gray.
+ */
+.note {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--mantine-font-size-xs);
+  line-height: 1;
+  white-space: nowrap;
+  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
+
+  & .mark {
+    height: 1.6em;
+    min-width: 1.6em;
+    margin-right: 0.4em;
+    border-radius: 4px;
+  }
+}
+
+.label {
+  font-weight: 500;
+}

@@ -223,14 +223,19 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
  * slowly; what a behavior takes as input, teal, and gives back as output,
  * orange, in the same short dots, the two sides of a signature told apart
  * by colour alone; what a block extends as a kinship standing: a grey in
- * longer dashes, slower still; what a behavior invokes as a call going:
+ * longer dashes, slower still; what a block works with as a dependency
+ * resting too, but held to work with rather than to be: cyan, in middling
+ * dashes a little slower than state's; what a behavior invokes as a call going:
  * violet in long dashes moving fast; what an actor performs as work done
- * by hand: green in middling dashes at an easy pace. A quiet line may have a word of a
+ * by hand: green in middling dashes at an easy pace; what the build ships,
+ * provides and runs as its structure, quiet: grape in fine dots, slow; what
+ * a layer places as a slice of the code, not an artifact: yellow in sparse
+ * dots, slower still. A quiet line may have a word of a
  * stronger ink. Its arrow's shape is the canvas's to draw (EDGE_ARROW in
  * relation-colors.ts).
  */
 function relationEdges({
-  colors: { brand, gray, violet, teal, orange, green },
+  colors: { brand, gray, violet, teal, orange, green, cyan, grape, yellow },
 }: MantineThemeOf) {
   return {
     state: {
@@ -261,6 +266,13 @@ function relationEdges({
       gap: 4,
       seconds: 1,
     },
+    collaborator: {
+      line: { light: cyan[6], dark: cyan[4] },
+      word: { light: cyan[8], dark: cyan[2] },
+      dash: 6,
+      gap: 4,
+      seconds: 0.9,
+    },
     invokes: {
       line: { light: violet[6], dark: violet[2] },
       word: { light: violet[6], dark: violet[2] },
@@ -274,6 +286,34 @@ function relationEdges({
       dash: 4,
       gap: 3,
       seconds: 0.7,
+    },
+    ships: {
+      line: { light: grape[5], dark: grape[4] },
+      word: { light: grape[8], dark: grape[2] },
+      dash: 2,
+      gap: 3,
+      seconds: 1.2,
+    },
+    provides: {
+      line: { light: grape[5], dark: grape[4] },
+      word: { light: grape[8], dark: grape[2] },
+      dash: 2,
+      gap: 3,
+      seconds: 1.2,
+    },
+    places: {
+      line: { light: yellow[7], dark: yellow[5] },
+      word: { light: yellow[9], dark: yellow[3] },
+      dash: 2,
+      gap: 6,
+      seconds: 1.5,
+    },
+    runs: {
+      line: { light: grape[5], dark: grape[4] },
+      word: { light: grape[8], dark: grape[2] },
+      dash: 2,
+      gap: 3,
+      seconds: 1.2,
     },
   };
 }

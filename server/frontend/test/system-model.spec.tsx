@@ -31,6 +31,38 @@ describe('The scanned model as a design', () => {
     expect(DesignDocument.safeParse(document).success).toBeTrue();
   });
 
+  it('leaves out the units, libraries, layers and containers, which a design does not hold yet', () => {
+    const source = { path: 'build.gradle', startLine: null, endLine: null };
+    const built = SystemModel.parse({
+      ...scanned,
+      deployableUnits: [
+        { id: 'deployable_unit|discounts-app', name: 'discounts-app', source },
+      ],
+      layers: [{ id: 'layer|domain', name: 'domain', source }],
+      relations: [
+        ...scanned.relations,
+        {
+          kind: 'unit_contains_module',
+          from: 'deployable_unit|discounts-app',
+          to: 'module|discounts',
+        },
+        { kind: 'layer_contains_block', from: 'layer|domain', to: OFFER },
+      ],
+    });
+    expect(DesignDocument.safeParse(designOf(built)).success).toBeTrue();
+  });
+
+  it('leaves out what a block works with, which a design does not hold yet', () => {
+    expect(
+      model.relations.some(({ kind }) => kind === 'has_collaborator'),
+    ).toBeTrue();
+    expect(
+      document.relations.added.some(
+        ({ kind }) => (kind as string) === 'has_collaborator',
+      ),
+    ).toBeFalse();
+  });
+
   it('holds every element the scan found', () => {
     expect(document.modules.added).toHaveLength(model.modules.length);
     expect(document.buildingBlocks.added).toHaveLength(

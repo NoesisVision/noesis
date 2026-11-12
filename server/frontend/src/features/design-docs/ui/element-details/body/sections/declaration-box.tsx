@@ -1,6 +1,10 @@
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignDocFieldInput } from '../../../../design-doc-field.ts';
+import {
+  CardinalityMark,
+  type MarkedCardinality,
+} from '../../cardinality-mark.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
 import { useElementNavigation } from '../../element-navigation.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
@@ -9,8 +13,9 @@ import classes from './declaration-box.module.css';
 
 /**
  * One declaration — a property, an input, an output — as a box: its name, if
- * it has one, over its type read short and how many it holds. The type opens
- * its row when the tree has one, and hovering it says what that type is.
+ * it has one, over its type as a tag, marked with how many it holds. An
+ * output's name is always `result`, so its box holds the tag alone. The type
+ * opens its row when the tree has one, and hovering it says what that type is.
  */
 export function DeclarationBox({
   item,
@@ -43,9 +48,9 @@ export function DeclarationBox({
       {type !== undefined && (
         <DeclarationType
           type={type}
-          suffix={cardinality}
+          cardinality={cardinality}
           path={typePath}
-          named={name !== undefined}
+          tagged={name !== undefined || output === true}
         />
       )}
       {name === undefined && type === undefined && (
@@ -61,35 +66,38 @@ export function DeclarationBox({
 /** The type by its last segment, how many it holds after it; a link to its row when the tree has one. */
 export function DeclarationType({
   type,
-  suffix = '',
+  cardinality,
   path,
-  named,
+  tagged,
 }: {
   type: string;
-  /** What follows the type: how many of it the slot holds, when not exactly one. */
-  suffix?: string | undefined;
+  /** How many of it the slot holds, marked at the tag's start, when not exactly one. */
+  cardinality?: MarkedCardinality | undefined;
   path: string | null | undefined;
-  /** Under a name it is the second line; alone it heads the box. */
-  named: boolean;
+  /** A tag, as under a name or as an output; otherwise it heads the box as text. */
+  tagged: boolean;
 }) {
   const { has, select } = useElementNavigation();
-  const className = named ? classes.type : classes.name;
+  const className = tagged ? classes.type : classes.name;
+  const marked = cardinality !== undefined;
+  const mark = marked && <CardinalityMark cardinality={cardinality} />;
   // Hovering the type says what it is: what it holds, or takes and gives.
   return (
-    <ElementTooltip name={type}>
+    <ElementTooltip name={type} cardinality={cardinality}>
       {path != null && has(path) ? (
         <UnstyledButton
           className={className}
           data-link
           onClick={() => select(path)}
+          data-marked={marked || undefined}
         >
+          {mark}
           <QualifiedName name={type} />
-          {suffix}
         </UnstyledButton>
       ) : (
-        <span className={className}>
+        <span className={className} data-marked={marked || undefined}>
+          {mark}
           <QualifiedName name={type} />
-          {suffix}
         </span>
       )}
     </ElementTooltip>

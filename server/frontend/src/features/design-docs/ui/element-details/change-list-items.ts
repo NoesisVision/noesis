@@ -20,6 +20,7 @@ import {
   rulesUnder,
   scenariosUnder,
 } from '../../rules.ts';
+import { isMarked, type MarkedCardinality } from './cardinality-mark.tsx';
 import { refAddressOf } from './ref-address.ts';
 
 /*
@@ -38,8 +39,8 @@ export interface ChangeListItem {
   name?: string;
   /** The type it is declared with, by address. */
   type?: string;
-  /** How many of the type it holds, as read after the type: ` [*]`; nothing for exactly one. */
-  cardinality?: string;
+  /** How many of the type it holds, when not exactly one: `*` or `0..1` (`CardinalityMark`). */
+  cardinality?: MarkedCardinality;
   /** The row that type has in the tree, when it is a building block. */
   typePath?: string;
   /** How many scenarios a rule has, to point at them. */
@@ -69,10 +70,8 @@ const declared = (name: string, type: string, cardinality: string | null) => ({
   ...(blockOfRef(type) === null ? {} : { typePath: type }),
 });
 
-const withCardinality = (cardinality: string | null) => {
-  const suffix = cardinalitySuffixOf(cardinality);
-  return suffix === '' ? {} : { cardinality: suffix };
-};
+const withCardinality = (cardinality: string | null) =>
+  isMarked(cardinality) ? { cardinality } : {};
 
 /** How many a slot holds as the design writes it; a removal's key says nothing of it. */
 const cardinalityOf = (slot: RelationLike): string | null =>
