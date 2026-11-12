@@ -103,10 +103,13 @@
   padding-left: 0;
   overflow: hidden;
 
+  /* On the blue tag, the mark is the tag's solid end: brand blue, the icon white. */
   & [data-cardinality] {
     height: auto;
     border-radius: 0;
     margin-right: 7px;
+    color: var(--mantine-color-white);
+    background: var(--mantine-color-brand-filled);
   }
 }
 
