@@ -623,7 +623,7 @@ export function ElementNode({
         >
           {/* Where React Flow has an edge start and end; the edge itself
               meets the card wherever the line between them crosses its
-              border (relation-edge.tsx). */}
+              border (shared/ui/diagram-canvas/floating-edge.tsx). */}
           <HiddenHandle type="target" position={into} />
           {/* A frame is taken by its top, where its name is: the rest is
               room for what it holds. */}

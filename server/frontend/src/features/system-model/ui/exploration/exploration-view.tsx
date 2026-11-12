@@ -41,6 +41,10 @@ import {
 } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
 import { DetailsDock } from '#/shared/ui/diagram-canvas/details-dock.tsx';
 import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
+import {
+  type FloatingEdge,
+  FloatingEdgeView,
+} from '#/shared/ui/diagram-canvas/floating-edge.tsx';
 import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
@@ -103,7 +107,6 @@ import {
   EDGE_WORD,
   edgeDashOf,
 } from './relation-colors.ts';
-import { type RelationEdge, RelationEdgeView } from './relation-edge.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
 import { DiagramThemeContext } from './themes/diagram-theme-context.ts';
 import { useDiagramTheme } from './themes/use-diagram-theme.ts';
@@ -121,7 +124,7 @@ import classes from './exploration.module.css';
  */
 
 const NODE_TYPES = { element: ElementNode };
-const EDGE_TYPES = { relation: RelationEdgeView };
+const EDGE_TYPES = { relation: FloatingEdgeView };
 /** What the panel a card in hand is read in covers of the canvas, from its right: 360px, 16px in, and a gap. */
 const PANEL_ROOM = 420;
 /**
@@ -921,7 +924,7 @@ function usePlacement(
   const [placements, setPlacements] = useState(0);
   const [flow, setFlow] = useState<ReactFlowInstance<
     ExplorationNode,
-    RelationEdge
+    FloatingEdge
   > | null>(null);
   // Cards glide to a new placing only just after it lands, never while one
   // is dragged — what a frame holds would trail behind it.
@@ -1463,12 +1466,12 @@ function edgeOf(
     orthogonal,
     animated,
     highlight,
-  }: Pick<Required<RelationEdge>['data'], 'orthogonal'> & {
+  }: Pick<Required<FloatingEdge>['data'], 'orthogonal'> & {
     animated: boolean;
     /** Where the edge stands to the selection; nothing with none in hand. */
     highlight: 'highlighted' | 'faded' | undefined;
   },
-): RelationEdge {
+): FloatingEdge {
   return {
     id: relation.id,
     type: 'relation',

@@ -36,9 +36,9 @@ import {
   movedTo,
   placeLocally,
 } from '../src/features/system-model/ui/exploration/place-locally';
-import { borderTowards } from '../src/features/system-model/ui/exploration/relation-edge';
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
 import { MantineProvider } from '../src/shared/design-system/provider';
+import { borderTowards } from '../src/shared/ui/diagram-canvas/floating-edge';
 
 const source = { path: 'X.java', startLine: null, endLine: null };
 

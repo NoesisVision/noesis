@@ -1,6 +1,5 @@
 import {
   Background,
-  type Edge,
   MarkerType,
   ReactFlow,
   type ReactFlowInstance,
@@ -10,8 +9,8 @@ import { type ReactNode, useMemo, useRef, useState } from 'react';
 import { useChangeColour } from '#/features/design-docs/ui/model-tree/use-change-colour.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
-import '@xyflow/react/dist/base.css';
 import { Stack } from '#/shared/design-system/stack.tsx';
+import '@xyflow/react/dist/base.css';
 import { Text } from '#/shared/design-system/text.tsx';
 import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
 import {
@@ -20,6 +19,10 @@ import {
 } from '#/shared/ui/diagram-canvas/canvas-flow.ts';
 import { useLetGoOnEscape } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
 import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
+import {
+  type FloatingEdge,
+  FloatingEdgeView,
+} from '#/shared/ui/diagram-canvas/floating-edge.tsx';
 import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { ArchitectureOutline } from '../../architecture-outline.ts';
@@ -82,6 +85,9 @@ const NODE_TYPES = {
   card: CardNode,
 } satisfies Record<Kind['type'], unknown>;
 
+/** Every line floats, meeting each card at its border, as on the exploration. */
+const EDGE_TYPES = { floating: FloatingEdgeView };
+
 export function ArchitectureDiagram({
   outline,
   layout,
@@ -104,7 +110,10 @@ export function ArchitectureDiagram({
   const scheme = useComputedColorScheme('light');
   /* Held from `onInit` rather than read from a provider around the toolbar:
      React Flow's own provider is what seeds the nodes before the first paint. */
-  const [flow, setFlow] = useState<ReactFlowInstance<DiagramNode> | null>(null);
+  const [flow, setFlow] = useState<ReactFlowInstance<
+    DiagramNode,
+    FloatingEdge
+  > | null>(null);
   const zoom = useCanvasZoom(flow);
   // Ctrl and the wheel zoom as gently as on every diagram.
   const frame = useRef<HTMLElement>(null);
@@ -171,12 +180,16 @@ export function ArchitectureDiagram({
       !(clear.has(edge.source) && clear.has(edge.target)) &&
       !focus.selected.has(edge.source) &&
       !focus.selected.has(edge.target);
+    // The selection's own lines stand out, as on the exploration.
+    const highlightedAt = (edge: LaidOutEdge) =>
+      focus.selected.has(edge.source) || focus.selected.has(edge.target);
     // A line fades only when both its ends do.
     return layout.edges.map((edge) =>
       edgeOf(
         edge,
         fadesAt(edge.source) && fadesAt(edge.target),
         dimmedAt(edge),
+        highlightedAt(edge),
       ),
     );
   }, [layout, pickedKinds, clear, focus]);
@@ -211,6 +224,7 @@ export function ArchitectureDiagram({
               nodes={nodes}
               edges={edges}
               nodeTypes={NODE_TYPES}
+              edgeTypes={EDGE_TYPES}
               colorMode={scheme}
               fitView
               fitViewOptions={FIT}
@@ -259,31 +273,44 @@ function findingsOf(
   return found;
 }
 
-const ARROW = {
+const arrowOf = (highlighted: boolean) => ({
   type: MarkerType.ArrowClosed,
-  color: 'var(--noesis-architecture-edge)',
+  color: highlighted
+    ? 'var(--noesis-diagram-highlight)'
+    : 'var(--noesis-architecture-edge)',
   width: 16,
   height: 16,
-};
+});
 
-function edgeOf(edge: LaidOutEdge, faded: boolean, dimmed: boolean): Edge {
+function edgeOf(
+  edge: LaidOutEdge,
+  faded: boolean,
+  dimmed: boolean,
+  highlighted: boolean,
+): FloatingEdge {
+  const arrow = arrowOf(highlighted);
   return {
     id: edge.id,
     source: edge.source,
     target: edge.target,
-    type: 'straight',
+    type: 'floating',
+    // Straight: the cards stand where the hexagon's rings put them.
+    data: { orthogonal: false, straight: true },
+    // The selection's lines are drawn over the rest.
+    zIndex: highlighted ? 1 : 0,
     className: clsx(
       classes.edge,
       faded && classes.faded,
       dimmed && classes.dimmedEdge,
+      highlighted && classes.highlighted,
     ),
     // The adapters are not designed, so the lines to them are not either.
     style: { strokeDasharray: DASHED.has(edge.kind) ? '6 6' : undefined },
     ...(edge.kind === 'owns'
       ? {}
       : edge.kind === 'implements'
-        ? { markerStart: ARROW }
-        : { markerEnd: ARROW }),
+        ? { markerStart: arrow }
+        : { markerEnd: arrow }),
   };
 }
 
