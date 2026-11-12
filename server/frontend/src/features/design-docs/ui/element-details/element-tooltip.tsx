@@ -1,6 +1,11 @@
 import { IconBraces } from '@tabler/icons-react';
 import { clsx } from 'clsx';
-import { cloneElement, type ReactElement, type ReactNode } from 'react';
+import {
+  cloneElement,
+  Fragment,
+  type ReactElement,
+  type ReactNode,
+} from 'react';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import { CardTooltip } from '#/shared/design-system/card-tooltip.tsx';
 import { shortLabel, shortName } from '#/shared/ui/qualified-name.tsx';
@@ -18,7 +23,6 @@ import {
   ownerOf,
   parentOf,
 } from '../../element-id.ts';
-import { cardinalitySuffixOf } from '../../relations.ts';
 import {
   CardinalityMark,
   CardinalityNote,
@@ -39,7 +43,8 @@ import classes from './element-tooltip.module.css';
  */
 interface Line {
   key: string;
-  name?: string;
+  /** A declaration's name, or a behavior's signature with its inputs' marks. */
+  name?: ReactNode;
   type?: string;
   /** How many of the type it holds, marked before the type, when not exactly one. */
   cardinality?: MarkedCardinality;
@@ -79,25 +84,46 @@ const lines = (items: ChangeListItem[]): Line[] =>
           },
     );
 
-/** A behavior as a signature: `place(order: Order): Receipt`, its types read short. */
+/**
+ * A behavior as a signature: `place(order: Order): Receipt`, its types read
+ * short, each input's and the output's gray mark before its type when it
+ * holds many or may hold none.
+ */
 const signatureOf = (
   doc: DesignDocumentInput,
   behavior: DesignedBehaviorInput,
 ): Line => {
-  // One line of text: how many each holds is said after its type.
-  const typed = ({ type, cardinality }: Line) =>
-    `${type}${cardinalitySuffixOf(cardinality ?? null)}`;
-  const input = lines(parameterItems(doc, behavior.id))
-    .map((line) =>
-      line.type === undefined ? line.name : `${line.name}: ${typed(line)}`,
-    )
-    .join(', ');
-  const output = lines(resultItems(doc, behavior.id)).map(typed).join(', ');
+  const inputs = lines(parameterItems(doc, behavior.id));
+  // A behavior gives back one thing at most.
+  const [output] = lines(resultItems(doc, behavior.id));
   return {
     key: behavior.id,
-    name: `${nameOf(behavior.id)}(${input})`,
+    name: (
+      <>
+        {nameOf(behavior.id)}(
+        {inputs.map(({ key, name, type, cardinality }, index) => (
+          <Fragment key={key}>
+            {index > 0 && ', '}
+            {name}
+            {type !== undefined && ': '}
+            {cardinality !== undefined && (
+              <CardinalityMark cardinality={cardinality} />
+            )}
+            {type}
+          </Fragment>
+        ))}
+        )
+      </>
+    ),
     icon: <KindIcon kind="behavior" pattern={null} size={ICON_SIZE} />,
-    ...(output === '' ? {} : { type: output }),
+    ...(output?.type === undefined
+      ? {}
+      : {
+          type: output.type,
+          ...(output.cardinality === undefined
+            ? {}
+            : { cardinality: output.cardinality }),
+        }),
   };
 };
 

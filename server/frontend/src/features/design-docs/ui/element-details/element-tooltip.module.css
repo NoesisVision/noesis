@@ -89,14 +89,14 @@
 /* The type, coloured as a declaration box colours it. */
 .type {
   color: var(--mantine-color-anchor);
+}
 
-  /* Its cardinality mark, a size down to sit in a line of small type. */
-  & [data-cardinality] {
-    height: 1.3em;
-    min-width: 1.3em;
-    margin-right: 0.35em;
-    border-radius: 4px;
-  }
+/* A cardinality mark in a line — a type's, a signature input's — a size down to sit in small type. */
+.line [data-cardinality] {
+  height: 1.3em;
+  min-width: 1.3em;
+  margin-right: 0.35em;
+  border-radius: 4px;
 }
 
 /* A word with a tooltip, which nothing else marks as one. */

@@ -152,6 +152,33 @@ describe('ElementTooltip', () => {
     expect(html).toMatch(/>place\(amount: Money\): <span[^>]*>Hold<\/span>/);
   });
 
+  it("marks a signature's inputs and output that hold many or may hold none, never as text", () => {
+    const marked = {
+      ...document,
+      relations: {
+        ...document.relations,
+        added: document.relations.added.map((relation) =>
+          relation.from === 'behavior|pay.Hold.place' &&
+          relation.kind === 'has_input'
+            ? { ...relation, cardinality: plain('*' as const) }
+            : relation.from === 'behavior|pay.Hold.place' &&
+                relation.kind === 'has_output'
+              ? { ...relation, cardinality: plain('0..1' as const) }
+              : relation,
+        ),
+      },
+    } satisfies DesignDocumentInput;
+    const html = render('pay.Hold', marked);
+    expect(html).toMatch(
+      />place\(amount: <span data-cardinality="\*"(.(?!<\/svg>))*tabler-icon-asterisk/,
+    );
+    expect(html).toMatch(
+      />many: <\/span>Money\): <span[^>]*><span data-cardinality="0\.\.1"/,
+    );
+    expect(html).toMatch(/>optional: <\/span>Hold<\/span>/);
+    expect(html).not.toMatch(/\[\*\]|\[0\.\.1\]/);
+  });
+
   it('marks each behavior with the plain behavior icon and each property with braces', () => {
     const html = render('pay.Hold');
     expect(html).not.toContain('tabler-icon-circle-letter-c');
