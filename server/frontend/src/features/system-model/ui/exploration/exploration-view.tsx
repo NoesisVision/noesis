@@ -157,16 +157,19 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
   const [drawing, setDrawing] = useState<Drawing>({
     direction: opening?.direction ?? 'vertical',
+    // Where the diagram was left drawing its slots; a new one as nodes,
+    // until the cards carry them.
+    slots: opening?.slots ?? 'nodes',
     // How the edges were drawn when the diagram was left, as it is restored.
     orthogonal: opened?.edges?.orthogonal ?? true,
     animated: opened?.edges?.animated ?? true,
   });
-  const { direction, orthogonal, animated } = drawing;
+  const { direction, slots, orthogonal, animated } = drawing;
   // Chosen on the Dev Tools page; the exploration only draws in it.
   const theme = useDiagramTheme();
   const graph = useMemo(
-    () => graphOf(exploration, { hidden, relations, picks }),
-    [exploration, hidden, relations, picks],
+    () => graphOf(exploration, { hidden, relations, picks, slots }),
+    [exploration, hidden, relations, picks, slots],
   );
 
   const {
@@ -223,6 +226,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       choice: choiceNow,
       relations: drawnRelations,
       direction: how.direction,
+      slots: how.slots,
       nodes: now.current.nodes.filter(({ data }) => !data.leaving),
     };
     const held = steps.current;
@@ -247,7 +251,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       const changes =
         !sameChoice(step.choice, choiceNow) ||
         !sameSet(step.relations, drawnRelations) ||
-        step.direction !== how.direction;
+        step.direction !== how.direction ||
+        step.slots !== how.slots;
       stepping.current = true;
       restore(step.nodes, changes);
       if (!changes) return;
@@ -256,6 +261,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       setDrawing((was) => ({
         ...was,
         direction: step.direction,
+        slots: step.slots,
       }));
     },
     [restore, modelId],

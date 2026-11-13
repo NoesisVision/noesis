@@ -22,12 +22,15 @@ import {
   ToolbarOptions,
   ToolbarPill,
 } from '#/shared/ui/canvas-toolbar.tsx';
+import type { SlotDrawing } from '../../system-model-exploration.ts';
 import type { LayoutDirection } from './layout-exploration.ts';
 import classes from './exploration.module.css';
 
 /** How the exploration is drawn, as the reader set it. */
 export interface Drawing {
   direction: LayoutDirection;
+  /** Slots — state, inputs, output — on the cards that hold them, or as edges to cards of their types. */
+  slots: SlotDrawing;
   /** Edges at right angles rather than in curves. */
   orthogonal: boolean;
   /** Edges as dashes running towards their target. */
@@ -60,11 +63,18 @@ const DIRECTIONS = [
   },
 ] satisfies { value: LayoutDirection; label: ReactNode }[];
 
+/** Where slots are drawn, for the whole diagram at once. */
+const SLOTS = [
+  { value: 'cards', label: 'On cards' },
+  { value: 'nodes', label: 'As nodes' },
+] satisfies { value: SlotDrawing; label: string }[];
+
 /*
  * How the reader draws the exploration — what is drawn is chosen in the
  * picker on the canvas, and what shows of it in the visibility panel this
- * opens: steps back and forward, which way the layout runs, how the edges
- * run, placing everything afresh, and — at the far end — how close.
+ * opens: steps back and forward, which way the layout runs, where slots are
+ * drawn, how the edges run, placing everything afresh, and — at the far
+ * end — how close.
  */
 export function ExplorationToolbar({
   canUndo,
@@ -157,6 +167,14 @@ export function ExplorationToolbar({
           set({
             direction: value === 'horizontal' ? 'horizontal' : 'vertical',
           })
+        }
+      />
+      <SegmentedControl
+        aria-label="Slots"
+        data={SLOTS}
+        value={drawing.slots}
+        onChange={(value) =>
+          set({ slots: value === 'nodes' ? 'nodes' : 'cards' })
         }
       />
       <ToolbarOptions

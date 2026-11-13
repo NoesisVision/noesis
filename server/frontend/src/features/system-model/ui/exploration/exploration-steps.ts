@@ -2,6 +2,7 @@ import {
   type ElementChoice,
   RELATIONS,
   type RelationKind,
+  type SlotDrawing,
 } from '../../system-model-exploration.ts';
 import type { ExplorationNode } from './exploration-node.ts';
 import type { LayoutDirection } from './layout-exploration.ts';
@@ -11,6 +12,8 @@ export interface DiagramStep {
   choice: ElementChoice;
   relations: ReadonlySet<RelationKind>;
   direction: LayoutDirection;
+  /** Slots on the cards that hold them, or as edges to cards of their types. */
+  slots: SlotDrawing;
   nodes: ExplorationNode[];
 }
 
@@ -75,6 +78,8 @@ interface StoredStep {
   removed: string[];
   relations: RelationKind[];
   direction: LayoutDirection;
+  /** Absent from a step saved before slots could be drawn on cards: it was drawn as nodes. */
+  slots?: SlotDrawing;
   nodes: ExplorationNode[];
 }
 
@@ -82,12 +87,14 @@ const storedOf = ({
   choice,
   relations,
   direction,
+  slots,
   nodes,
 }: DiagramStep): StoredStep => ({
   added: [...choice.picks.added],
   removed: [...choice.picks.removed],
   relations: [...relations],
   direction,
+  slots,
   nodes,
 });
 
@@ -141,6 +148,7 @@ export function recallSteps(modelId: string): DiagramSteps | null {
       },
       relations: new Set(step.relations),
       direction: step.direction,
+      slots: step.slots ?? 'nodes',
       nodes: step.nodes,
     })),
   };
@@ -193,12 +201,14 @@ function isStep(value: unknown): value is StoredStep {
   // A step saved with the routes edges once ran is read without them.
   const nodes = field(value, 'nodes');
   const direction = field(value, 'direction');
+  const slots = field(value, 'slots');
   return (
     isNames(field(value, 'added')) &&
     isNames(field(value, 'removed')) &&
     Array.isArray(relations) &&
     relations.every(isRelation) &&
     (direction === 'vertical' || direction === 'horizontal') &&
+    (slots === undefined || slots === 'cards' || slots === 'nodes') &&
     Array.isArray(nodes) &&
     nodes.every(isNode)
   );

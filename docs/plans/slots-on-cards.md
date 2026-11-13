@@ -106,7 +106,8 @@ One green commit each (`bun run ci`).
    toolbar control, undo and redo. Tested: storage round trip, an old step
    without `slots` opens as nodes, a flip then undo restores the edges and
    the cards' places.
-4. **Badges on cards.** `slot-badges.tsx`, card sizing in the layout,
+4. **Badges on cards.** `slot-badges.tsx`, card sizing in the layout, the
+   default for a new diagram turned to on cards (as nodes until then),
    selection and dimming. Render-to-markup test for a behavior card and a
    value object card: rows, order, `[*]`, ↗, no caret on a primitive.
 5. **The popup.** `slot-explorer.tsx`: header, path, columns, ↺, keyboard.
