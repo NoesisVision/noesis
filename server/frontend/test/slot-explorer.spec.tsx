@@ -129,11 +129,14 @@ describe('the columns a walk leaves', () => {
 });
 
 describe('the walk drawn from a badge', () => {
-  it('heads it with the badge’s slot, what it is, and the path as dotted steps', () => {
+  it('heads it with its type as a card names it, what it is, and the path as dotted steps', () => {
     const html = explorer(round);
-    expect(html).toMatch(/result: <b><span[^>]*>DiscountedOffer<\/span><\/b>/);
-    // What its type is, alone: what the slot is to its card the badge says.
-    expect(html).toMatch(/<\/b><\/span><span[^>]*>Value Object<\/span>/);
+    // Its kind's icon, then its name: not the slot, which the badge says.
+    expect(html).toMatch(
+      /<svg[^>]*aria-hidden="true"[^>]*>.*?<\/svg><span[^>]*><span[^>]*>DiscountedOffer<\/span><\/span>/s,
+    );
+    expect(html).not.toMatch(/>result: </);
+    expect(html).toMatch(/<\/div><span[^>]*>Value Object<\/span>/);
     expect(html).not.toContain('Output ·');
     expect(html).toMatch(/<nav[^>]*aria-label="Path"/);
     // Every step but the last goes back to it.
@@ -146,9 +149,11 @@ describe('the walk drawn from a badge', () => {
 
   it('offers the way to the type’s own card when it has one, and says where it goes', () => {
     const html = explorer(round, () => {});
+    // An icon after the type, named for where it goes; no words beside it.
     expect(html).toMatch(
-      /<button[^>]*>.*tabler-icon-arrow-up-right.*Go to DiscountedOffer on the diagram<\/button>/s,
+      /DiscountedOffer<\/span><\/span><button[^>]*aria-label="Go to DiscountedOffer on the diagram"[^>]*>.*?tabler-icon-arrow-up-right/s,
     );
+    expect(html).not.toMatch(/>Go to DiscountedOffer on the diagram</);
     expect(explorer(round)).not.toContain('on the diagram');
   });
 

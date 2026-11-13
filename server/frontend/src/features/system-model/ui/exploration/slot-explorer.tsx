@@ -9,10 +9,13 @@ import {
 import {
   CardinalityMark,
   isMarked,
+  KindIcon,
   markWordOf,
 } from '#/features/design-docs/element-reader.ts';
+import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { ScrollArea } from '#/shared/design-system/scroll-area.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import {
   type ExploredElement,
@@ -105,6 +108,8 @@ export function SlotExplorer({
 }) {
   const [root] = path;
   const columns = walkOf(slots, path);
+  const rootElement = root === undefined ? undefined : elements.get(root.type);
+  const goToLabel = `Go to ${root?.typeName ?? ''} on the diagram`;
   // The walk last drawn, to tell which columns a new one leaves.
   const [drawn, setDrawn] = useState(path);
   const [leaving, setLeaving] = useState<readonly Leaving[]>([]);
@@ -196,22 +201,35 @@ export function SlotExplorer({
   return (
     <div className={classes.explorer}>
       <div className={classes.head}>
-        <Text component="span" ff="monospace" fz="sm">
-          {root.name}:{' '}
-          <b>
+        {/* The type, as a card names it: its kind's icon, its name, how
+            many; then, when it has a card of its own, the way to it. */}
+        <div className={classes.title}>
+          {rootElement !== undefined && (
+            <KindIcon
+              kind={rootElement.kind}
+              pattern={rootElement.pattern}
+              size={16}
+            />
+          )}
+          <span className={classes.titleType}>
             <TypeWords step={root} />
-          </b>
-        </Text>
+          </span>
+          {onGoTo !== undefined && (
+            <Tooltip label={goToLabel}>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                aria-label={goToLabel}
+                onClick={onGoTo}
+              >
+                <IconArrowUpRight size={14} stroke={2} aria-hidden />
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </div>
         <Text component="span" fz="xs" c="dimmed">
           {kindOf(root.type, elements)}
         </Text>
-        {/* The badge's ↗ said in words, and the way to the card it means. */}
-        {onGoTo !== undefined && (
-          <UnstyledButton className={classes.goTo} onClick={onGoTo}>
-            <IconArrowUpRight size={14} stroke={2} aria-hidden />
-            {`Go to ${root.typeName} on the diagram`}
-          </UnstyledButton>
-        )}
       </div>
       <nav className={classes.path} aria-label="Path">
         <span className={classes.steps}>

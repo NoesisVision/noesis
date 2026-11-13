@@ -20,27 +20,20 @@
   padding-inline: var(--mantine-spacing-sm);
 }
 
-/*
- * The way to the type's own card, read as a link under the title. Named
- * with its head, to win over the unstyled button's own reset.
- */
-.head .goTo {
-  display: inline-flex;
-  gap: 4px;
+/* The type as a card names it, and the way to its own card after it. */
+.title {
+  display: flex;
+  gap: 6px;
   align-items: center;
-  margin-top: 4px;
-  color: var(--mantine-color-anchor);
-  font-size: var(--mantine-font-size-xs);
-  font-weight: 500;
+  min-width: 0;
+}
 
-  &:hover {
-    text-decoration: underline;
-  }
-
-  &:focus-visible {
-    outline: var(--noesis-focus-ring);
-    outline-offset: 2px;
-  }
+.titleType {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
 }
 
 /*
