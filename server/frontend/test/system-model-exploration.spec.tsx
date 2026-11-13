@@ -754,50 +754,54 @@ describe('the selection', () => {
       id: string;
       data: unknown;
     }) => React.ReactNode;
-    const html = renderToStaticMarkup(
-      <MantineProvider>
-        <ReactFlowProvider>
-          <DesignDocumentContext.Provider value={designOf(model)}>
-            <ExplorationReadingContext.Provider
-              value={{
-                selected: new Set(['building_block|shop.orders.Order']),
-                related: new Set([line.id]),
-                path: new Set(),
-                badges: graph.badges,
-                slots: exploration.slots,
-                onGoTo: () => {},
-                onSelect: () => {},
-                onLetGo: () => {},
-                drawn: new Set([line.id]),
-                neighbours: neighboursOf(exploration),
-                elements: new Map(
-                  exploration.elements.map((each) => [each.id, each]),
-                ),
-                onShow: () => {},
-                onDraw: () => {},
-                onArrange: () => {},
-                onRemoveAlone: () => {},
-              }}
-            >
-              <Node
-                id={line.id}
-                data={{
-                  placed: {
-                    element: line,
-                    holds: false,
-                    x: 0,
-                    y: 0,
-                    width: 150,
-                    height: 52,
-                  },
-                  direction: 'vertical',
+    const render = (
+      neighbours: ReturnType<typeof neighboursOf> = neighboursOf(exploration),
+    ) =>
+      renderToStaticMarkup(
+        <MantineProvider>
+          <ReactFlowProvider>
+            <DesignDocumentContext.Provider value={designOf(model)}>
+              <ExplorationReadingContext.Provider
+                value={{
+                  selected: new Set(['building_block|shop.orders.Order']),
+                  related: new Set([line.id]),
+                  path: new Set(),
+                  badges: graph.badges,
+                  slots: exploration.slots,
+                  onGoTo: () => {},
+                  onSelect: () => {},
+                  onLetGo: () => {},
+                  drawn: new Set([line.id]),
+                  neighbours,
+                  elements: new Map(
+                    exploration.elements.map((each) => [each.id, each]),
+                  ),
+                  onShow: () => {},
+                  onDraw: () => {},
+                  onArrange: () => {},
+                  onRemoveAlone: () => {},
                 }}
-              />
-            </ExplorationReadingContext.Provider>
-          </DesignDocumentContext.Provider>
-        </ReactFlowProvider>
-      </MantineProvider>,
-    );
+              >
+                <Node
+                  id={line.id}
+                  data={{
+                    placed: {
+                      element: line,
+                      holds: false,
+                      x: 0,
+                      y: 0,
+                      width: 150,
+                      height: 52,
+                    },
+                    direction: 'vertical',
+                  }}
+                />
+              </ExplorationReadingContext.Provider>
+            </DesignDocumentContext.Provider>
+          </ReactFlowProvider>
+        </MantineProvider>,
+      );
+    const html = render();
     expect(html).toMatch(/<button[^>]*data-state="related"/);
     expect(html).toContain(
       'aria-label="Line, Building Block · Value Object, related to the selection"',
@@ -808,6 +812,11 @@ describe('the selection', () => {
     // What it can bring is in its menu, not on the card.
     expect(html).not.toContain('aria-label="Show what Line is part of"');
     expect(html).toContain('aria-label="Remove Line from the view"');
+    // With nothing to bring in, and no frame to tidy, its menu has nothing
+    // to offer: no dots, only the way off.
+    const bare = render(new Map());
+    expect(bare).not.toContain('aria-label="More for Line"');
+    expect(bare).toContain('aria-label="Remove Line from the view"');
   });
 });
 
@@ -1193,6 +1202,40 @@ describe('slots drawn on the cards that hold them', () => {
         ).top
       }px`,
     );
+  });
+
+  it('gives a row of badges that just fits its card one line, not two', () => {
+    // As qdoc's Notification: a card exactly as wide as its row of badges.
+    const slot = (name: string, typeName: string, type: string) => ({
+      relation: 'state' as const,
+      holder: ORDER,
+      name,
+      type: type as never,
+      typeName,
+      cardinality: '1' as const,
+      position: null,
+      onDiagram: false,
+    });
+    const order = draw(['contains']).elements.find(({ id }) => id === ORDER)!;
+    const one = cardSizeOf(
+      order,
+      new Map([[ORDER, [slot('recipient', 'Recipient', LINE)]]]),
+    );
+    const row = cardSizeOf(
+      order,
+      new Map([
+        [
+          ORDER,
+          [
+            slot('recipient', 'Recipient', LINE),
+            slot('body', 'string', 'primitive|string'),
+            slot('subject', 'string', 'primitive|string'),
+          ],
+        ],
+      ]),
+    );
+    expect(row.width).toBeGreaterThan(one.width);
+    expect(row.height).toBe(one.height);
   });
 
   it('wraps a row of badges too wide for the widest card onto more lines', () => {

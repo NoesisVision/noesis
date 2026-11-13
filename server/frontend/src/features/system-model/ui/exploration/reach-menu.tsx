@@ -211,6 +211,17 @@ function NodeMenuEntry({
   );
 }
 
+/**
+ * Whether the card's own menu has anything to offer: a frame's setting out
+ * again of what it holds, or others it reaches to bring in. With nothing,
+ * a card shows no dots and opens no menu.
+ */
+export function useHasNodeMenu(id: string, holds: boolean) {
+  const missing = useMissing(id) ?? [];
+  const chains = useChains(id);
+  return holds || missing.length > 0 || chains.length > 0;
+}
+
 /** Where the card's own menu opens: at the pointer, or under its dots. */
 export const NODE_MENU = {
   shadow: 'md',
@@ -231,6 +242,7 @@ export function NodeMenuButton({
   holds: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  if (!useHasNodeMenu(id, holds)) return null;
   return (
     <Menu opened={open} onChange={setOpen} {...NODE_MENU}>
       <Menu.Target>
