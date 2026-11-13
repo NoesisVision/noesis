@@ -104,6 +104,8 @@ export const theme = createTheme({
  */
 export const DIAGRAM_SHAPE = {
   cardRadius: 12,
+  /** A behavior's pill: round ends on a card of one line, rounded corners on a taller one. */
+  pillRadius: 28,
   frameRadius: 16,
   bevel: 12,
   ringOut: 4,
@@ -129,6 +131,7 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       '--noesis-diagram-edge-dimmed': '0.2',
       // Their shapes (DIAGRAM_SHAPE), and a card's lift, more under the pointer.
       '--noesis-diagram-card-radius': `${DIAGRAM_SHAPE.cardRadius}px`,
+      '--noesis-diagram-pill-radius': `${DIAGRAM_SHAPE.pillRadius}px`,
       '--noesis-diagram-frame-radius': `${DIAGRAM_SHAPE.frameRadius}px`,
       '--noesis-diagram-bevel': `${DIAGRAM_SHAPE.bevel}px`,
       '--noesis-diagram-card-shadow': '0 1px 3px rgba(16, 24, 40, 0.06)',

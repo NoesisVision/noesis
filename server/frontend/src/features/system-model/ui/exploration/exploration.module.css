@@ -119,7 +119,7 @@
   flex-direction: column;
   align-items: flex-start;
   box-sizing: border-box;
-  height: 60px;
+  height: var(--frame-top, 60px);
   cursor: grab;
 }
 
@@ -206,6 +206,20 @@
   top: 50%;
   right: 14px;
   transform: translateY(-50%);
+}
+
+/*
+ * A card carrying badges keeps its name and what it is at the top, its
+ * badges under them (slot-badges.module.css); a behavior's menu and cross
+ * stay beside its name.
+ */
+.exploration .holder[data-badged] .card {
+  justify-content: flex-start;
+  padding-top: 6px;
+}
+
+.holder[data-kind='behavior'][data-badged] .corner {
+  top: 28px;
 }
 
 /* Each relation in its own colour (relationEdges in theme.ts), as well as its word. */

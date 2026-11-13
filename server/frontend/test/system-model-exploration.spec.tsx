@@ -24,13 +24,26 @@ import {
   removalOf,
 } from '../src/features/system-model/system-model-exploration';
 import { designOf } from '../src/features/system-model/system-model.model';
+import {
+  badgeRowsOf,
+  badgeTipOf,
+} from '../src/features/system-model/ui/exploration/badge-rows';
 import { ElementNode } from '../src/features/system-model/ui/exploration/element-node';
 import { ExplorationPicker } from '../src/features/system-model/ui/exploration/exploration-picker';
 import {
   ExplorationReadingContext,
   pathTo,
 } from '../src/features/system-model/ui/exploration/exploration-reading';
-import { layoutExploration } from '../src/features/system-model/ui/exploration/layout-exploration';
+import {
+  BADGE_LINE,
+  cardSizeOf,
+  frameLeastWidthOf,
+  HEIGHT,
+  layoutExploration,
+  PADDING,
+  paddingOf,
+  widthOf,
+} from '../src/features/system-model/ui/exploration/layout-exploration';
 import {
   arrangeWithin,
   landsIn,
@@ -749,6 +762,7 @@ describe('the selection', () => {
                 selected: new Set(['building_block|shop.orders.Order']),
                 related: new Set([line.id]),
                 path: new Set(),
+                badges: graph.badges,
                 onSelect: () => {},
                 onLetGo: () => {},
                 drawn: new Set([line.id]),
@@ -967,6 +981,147 @@ describe('slots drawn on the cards that hold them', () => {
     const none = onCards(['contains']);
     expect(none.badges.size).toBe(0);
     expect(ids(none)).toContain(LINE);
+  });
+
+  it('reads a card’s badges in rows, inputs, output, then state, each saying what it is to the card', () => {
+    const graph = onCards(['contains', 'state', 'input']);
+    const rows = badgeRowsOf(graph.badges.get(ORDER) ?? []);
+    expect(rows.map(({ relation }) => relation)).toEqual(['state']);
+    const [line] = graph.badges.get(PLACE) ?? [];
+    expect(badgeTipOf(line!)).toBe('line: Line · input 1');
+    expect(badgeTipOf(rows[0]!.badges[0]!)).toBe('lines: Line [*] · state');
+  });
+
+  it('relates a card to the types its badges name, when they have cards of their own', () => {
+    const graph = onCards(['contains', 'state', 'input'], {
+      picks: picked(NO_PICKS, LINE, true),
+    });
+    expect([...relatedTo(graph, LINE).elements]).toEqual(
+      expect.arrayContaining([ORDER, PLACE]),
+    );
+    expect([...relatedTo(graph, ORDER).elements]).toContain(LINE);
+    // A type with no card of its own is related to nothing on the diagram.
+    const folded = onCards(['contains', 'state', 'input']);
+    expect([...relatedTo(folded, ORDER).elements]).not.toContain(LINE);
+  });
+
+  it('leaves a card carrying badges room for them, and a frame room under its name', () => {
+    const graph = onCards(['contains', 'state', 'input']);
+    const element = (id: string) =>
+      graph.elements.find((each) => each.id === id)!;
+    const order = element(ORDER);
+    const place = element(PLACE);
+    // A card with no badges is as it was.
+    const bare = draw(['contains']).elements.find(({ id }) => id === PLACE)!;
+    expect(cardSizeOf(bare, new Map())).toEqual({
+      width: widthOf('place'),
+      height: HEIGHT,
+    });
+    // One row of one badge: a line taller than its name and what it is.
+    const sized = cardSizeOf(place, graph.badges);
+    expect(sized.height).toBeGreaterThan(HEIGHT);
+    expect(sized.width).toBeGreaterThanOrEqual(widthOf('place'));
+    // Order holds place, so it is a frame: its top grows for its badges.
+    expect(paddingOf(order, graph.badges).top).toBeGreaterThan(PADDING.top);
+    expect(frameLeastWidthOf(order, graph.badges)).toBeGreaterThan(0);
+    expect(paddingOf(order, new Map())).toEqual(PADDING);
+  });
+
+  it('draws a card’s badges beside its button, as lists a reader can name', () => {
+    const graph = onCards(['contains', 'state', 'input'], {
+      picks: picked(NO_PICKS, LINE, true),
+    });
+    const Node = ElementNode as unknown as (props: {
+      id: string;
+      data: unknown;
+    }) => React.ReactNode;
+    const render = (id: string, holds: boolean) => {
+      const element = graph.elements.find((each) => each.id === id)!;
+      return renderToStaticMarkup(
+        <MantineProvider>
+          <ReactFlowProvider>
+            <DesignDocumentContext.Provider value={designOf(model)}>
+              <ExplorationReadingContext.Provider
+                value={{
+                  selected: new Set([LINE]),
+                  related: new Set([ORDER, PLACE]),
+                  path: new Set(),
+                  badges: graph.badges,
+                  onSelect: () => {},
+                  onLetGo: () => {},
+                  drawn: new Set(graph.elements.map((each) => each.id)),
+                  neighbours: neighboursOf(exploration),
+                  elements: new Map(
+                    exploration.elements.map((each) => [each.id, each]),
+                  ),
+                  onShow: () => {},
+                  onDraw: () => {},
+                  onArrange: () => {},
+                  onRemoveAlone: () => {},
+                }}
+              >
+                <Node
+                  id={id}
+                  data={{
+                    placed: {
+                      element,
+                      holds,
+                      x: 0,
+                      y: 0,
+                      width: 220,
+                      height: 90,
+                    },
+                    direction: 'vertical',
+                  }}
+                />
+              </ExplorationReadingContext.Provider>
+            </DesignDocumentContext.Provider>
+          </ReactFlowProvider>
+        </MantineProvider>,
+      );
+    };
+
+    const place = render(PLACE, false);
+    expect(place).toContain('data-badged="true"');
+    expect(place).toMatch(/<ul[^>]*aria-label="input"/);
+    // The badge is no part of the card's button.
+    expect(place).not.toMatch(/<button[^>]*>(?:(?!<\/button>).)*line: Line/s);
+    expect(place).toMatch(
+      /<li[^>]*data-relation="input"[^>]*data-related="true"[^>]*data-tip="line: Line · input 1"[^>]*>line: Line/,
+    );
+    expect(place).toContain('also on the diagram');
+
+    // Order holds place: a frame, its top as tall as its name and badges.
+    const order = render(ORDER, true);
+    expect(order).toMatch(/<ul[^>]*aria-label="state"/);
+    expect(order).toContain('lines: Line [*]');
+    expect(order).toContain('id: uuid');
+    expect(order).toContain(
+      `--frame-top:${
+        paddingOf(
+          graph.elements.find(({ id }) => id === ORDER)!,
+          graph.badges,
+        ).top
+      }px`,
+    );
+  });
+
+  it('wraps a row of badges too wide for the widest card onto more lines', () => {
+    const many = Array.from({ length: 8 }, (_, index) => ({
+      relation: 'state' as const,
+      holder: ORDER,
+      name: `pieceOfStateNumber${index}`,
+      type: 'primitive|string' as never,
+      typeName: 'string',
+      cardinality: '1' as const,
+      position: null,
+      onDiagram: false,
+    }));
+    const order = draw(['contains']).elements.find(({ id }) => id === ORDER)!;
+    const one = cardSizeOf(order, new Map([[ORDER, many.slice(0, 1)]]));
+    const all = cardSizeOf(order, new Map([[ORDER, many]]));
+    expect(all.height - one.height).toBeGreaterThanOrEqual(3 * BADGE_LINE);
+    expect(all.width).toBeLessThanOrEqual(380);
   });
 });
 

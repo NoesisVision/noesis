@@ -31,7 +31,7 @@ export interface DrawnRelation {
 }
 
 /** A slot as a card carries it, drawn on the card rather than as an edge. */
-interface Badge extends Slot {
+export interface Badge extends Slot {
   /** Its type is a card still on the diagram, kept there for its own sake. */
   onDiagram: boolean;
 }
@@ -180,6 +180,13 @@ export function relatedTo(graph: ExplorationGraph, id: string | null) {
     if (element.id === id && element.parent !== null)
       elements.add(element.parent);
   }
+  // A slot drawn on a card joins the card to its type, when the type has a
+  // card of its own too.
+  for (const [holder, carried] of graph.badges)
+    for (const { type, onDiagram } of carried) {
+      if (type === id) elements.add(holder);
+      if (holder === id && onDiagram) elements.add(type);
+    }
   return { relations, elements };
 }
 

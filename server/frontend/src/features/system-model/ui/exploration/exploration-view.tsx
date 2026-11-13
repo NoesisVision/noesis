@@ -157,9 +157,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
   const [drawing, setDrawing] = useState<Drawing>({
     direction: opening?.direction ?? 'vertical',
-    // Where the diagram was left drawing its slots; a new one as nodes,
-    // until the cards carry them.
-    slots: opening?.slots ?? 'nodes',
+    // A new diagram draws slots on cards; one left as nodes opens so.
+    slots: opening?.slots ?? 'cards',
     // How the edges were drawn when the diagram was left, as it is restored.
     orthogonal: opened?.edges?.orthogonal ?? true,
     animated: opened?.edges?.animated ?? true,
@@ -468,6 +467,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       selected: inHandSet,
       related: related.elements,
       path: pathTo(inHandSet, elementsById),
+      badges: graph.badges,
       onSelect: select,
       onLetGo: () => {
         letGo();
@@ -498,6 +498,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [
       inHandSet,
       related,
+      graph.badges,
       select,
       letGo,
       drawn,

@@ -2,9 +2,11 @@ import type { ElkNode, LayoutOptions } from 'elkjs/lib/elk.bundled.js';
 import { byIdOf } from '#/shared/collections.ts';
 import { elkOf } from '#/shared/ui/diagram-canvas/elk.ts';
 import type {
+  Badge,
   DrawnElement,
   ExplorationGraph,
 } from '../../system-model-exploration.ts';
+import { badgeLabelOf, badgeRowsOf } from './badge-rows.ts';
 
 /*
  * Where each element of the exploration stands, placed by one of ELK's
@@ -48,7 +50,7 @@ export const widthOf = (name: string) =>
   Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, name.length * 7.5 + 116));
 
 /** A frame's least width: its name, inset in the frame, and its menu and two ways off the diagram beside it. */
-export const frameWidthOf = (name: string) => widthOf(name) + 56;
+const frameWidthOf = (name: string) => widthOf(name) + 56;
 
 /**
  * A frame's least size as ELK reads it. Laying out downwards, ELK takes the
@@ -66,8 +68,118 @@ const minimumOf = (
  * at the bottom enough that the plus on a card's border there and the one
  * on the container's own stand apart.
  */
-export const PADDING = { top: 60, left: 16, bottom: 40, right: 16 } as const;
-const CONTAINER_PADDING = `[top=${PADDING.top},left=${PADDING.left},bottom=${PADDING.bottom},right=${PADDING.right}]`;
+export interface Padding {
+  top: number;
+  left: number;
+  bottom: number;
+  right: number;
+}
+export const PADDING: Readonly<Padding> = {
+  top: 60,
+  left: 16,
+  bottom: 40,
+  right: 16,
+};
+
+/*
+ * A card that carries badges (slot-badges.module.css): its name and what it
+ * is at the top, then its rows of badges, each row a label and as many
+ * lines of badges as its width wraps them into. The sizes here are what
+ * the stylesheet draws, so ELK leaves each card the room it needs.
+ */
+/** Where a card's badges start, below its name and what it is. */
+const BADGES_TOP = 50;
+/** Where a frame's badges start, below its name. */
+const FRAME_BADGES_TOP = 52;
+/** One line of badges: a badge and the gap under it. */
+export const BADGE_LINE = 22;
+/** Room under a card's last line of badges, clear of its rounded corners. */
+const BADGES_BOTTOM = 10;
+/** A row's label, and the gap after it. */
+const ROW_LABEL = 52;
+/** Room either side of the badges, inside the card. */
+const BADGES_INSET = 16;
+const BADGE_GAP = 4;
+/** About one character of a badge, with its padding and border. */
+const badgeWidthOf = (badge: Badge) => badgeLabelOf(badge).length * 6.6 + 20;
+/** The widest a card grows for its badges before they wrap. */
+const MAX_BADGED_WIDTH = 380;
+const NO_BADGES: readonly Badge[] = [];
+
+/** How many lines a card's badges take at a width: each row wrapped on its own. */
+function badgeLinesOf(badges: readonly Badge[], width: number) {
+  const room = width - 2 * BADGES_INSET - ROW_LABEL;
+  let lines = 0;
+  for (const { badges: row } of badgeRowsOf(badges)) {
+    let used = Infinity;
+    for (const badge of row) {
+      const each = Math.min(badgeWidthOf(badge), room);
+      if (used + BADGE_GAP + each > room) {
+        lines += 1;
+        used = each;
+      } else used += BADGE_GAP + each;
+    }
+  }
+  return lines;
+}
+
+/** As wide as the name needs, and as its longest row of badges would, up to the most. */
+const badgedWidthOf = (least: number, badges: readonly Badge[]) =>
+  Math.max(
+    least,
+    Math.min(
+      MAX_BADGED_WIDTH,
+      Math.max(
+        0,
+        ...badgeRowsOf(badges).map(
+          ({ badges: row }) =>
+            2 * BADGES_INSET +
+            ROW_LABEL +
+            row.reduce((all, badge) => all + badgeWidthOf(badge), 0) +
+            BADGE_GAP * (row.length - 1),
+        ),
+      ),
+    ),
+  );
+
+type Badges = ExplorationGraph['badges'];
+const badgesOf = (badges: Badges, id: string) => badges.get(id) ?? NO_BADGES;
+
+/** A card's size: its name and what it is, and room for its badges under them. */
+export function cardSizeOf(element: DrawnElement, badges: Badges) {
+  const carried = badgesOf(badges, element.id);
+  const width = badgedWidthOf(widthOf(element.name), carried);
+  if (carried.length === 0) return { width, height: HEIGHT };
+  return {
+    width,
+    height:
+      BADGES_TOP +
+      badgeLinesOf(carried, width) * BADGE_LINE -
+      BADGE_GAP +
+      BADGES_BOTTOM,
+  };
+}
+
+/** A frame's least width: its name, and its longest row of badges. */
+export const frameLeastWidthOf = (element: DrawnElement, badges: Badges) =>
+  badgedWidthOf(frameWidthOf(element.name), badgesOf(badges, element.id));
+
+/** A frame's room round what it holds: at the top, its name and its badges. */
+export function paddingOf(
+  element: DrawnElement,
+  badges: Badges,
+): Readonly<Padding> {
+  const carried = badgesOf(badges, element.id);
+  if (carried.length === 0) return PADDING;
+  const lines = badgeLinesOf(carried, frameLeastWidthOf(element, badges));
+  return {
+    ...PADDING,
+    top: FRAME_BADGES_TOP + lines * BADGE_LINE - BADGE_GAP + BADGES_BOTTOM,
+  };
+}
+
+const elkPaddingOf = ({ top, left, bottom, right }: Readonly<Padding>) =>
+  `[top=${top},left=${left},bottom=${bottom},right=${right}]`;
 /** The room between two cards side by side. */
 export const SPACING = 32;
 
@@ -108,18 +220,14 @@ export async function layoutExploration(
   const nodeOf = (element: DrawnElement): ElkNode => {
     const inside = children.get(element.id) ?? [];
     return inside.length === 0
-      ? {
-          id: element.id,
-          width: widthOf(element.name),
-          height: HEIGHT,
-        }
+      ? { id: element.id, ...cardSizeOf(element, graph.badges) }
       : {
           id: element.id,
           layoutOptions: {
             ...optionsOf(algorithm, direction),
-            'elk.padding': CONTAINER_PADDING,
+            'elk.padding': elkPaddingOf(paddingOf(element, graph.badges)),
             'elk.nodeSize.minimum': minimumOf(
-              frameWidthOf(element.name),
+              frameLeastWidthOf(element, graph.badges),
               HEIGHT,
               direction,
             ),
@@ -158,8 +266,8 @@ export async function layoutExploration(
         holds: (node.children?.length ?? 0) > 0,
         x: node.x ?? 0,
         y: node.y ?? 0,
-        width: node.width ?? widthOf(element.name),
-        height: node.height ?? HEIGHT,
+        width: node.width ?? cardSizeOf(element, graph.badges).width,
+        height: node.height ?? cardSizeOf(element, graph.badges).height,
       });
       walk(node.children);
     }

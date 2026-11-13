@@ -11,12 +11,11 @@ import {
   workspaceOf,
 } from './canvas-workspace.ts';
 import {
-  frameWidthOf,
-  HEIGHT,
-  PADDING,
+  cardSizeOf,
+  frameLeastWidthOf,
+  paddingOf,
   type PlacedElement,
   SPACING,
-  widthOf,
 } from './layout-exploration.ts';
 
 /*
@@ -125,12 +124,12 @@ export function placeLocally(
     if (first !== undefined) {
       // A container round what is already drawn of it.
       const box = others.reduce((all, rect) => union(all, rect), first);
-      const padding = PADDING;
+      const padding = paddingOf(element, graph.badges);
       const rect = {
         x: box.x - padding.left,
         y: box.y - padding.top,
         width: Math.max(
-          frameWidthOf(element.name),
+          frameLeastWidthOf(element, graph.badges),
           box.width + padding.left + padding.right,
         ),
         height: box.height + padding.top + padding.bottom,
@@ -144,13 +143,12 @@ export function placeLocally(
       rects.set(element.id, rect);
       return fit(parent);
     }
-    const width = widthOf(element.name);
-    const height = HEIGHT;
+    const { width, height } = cardSizeOf(element, graph.badges);
     if (parent !== null) {
       const container = rects.get(parent);
       const holder = byId.get(parent);
       if (container === undefined || holder === undefined) return false;
-      const padding = PADDING;
+      const padding = paddingOf(holder, graph.badges);
       const siblings = placedKids(parent)
         .filter(({ id }) => id !== element.id)
         .map(({ id }) => rects.get(id)!);

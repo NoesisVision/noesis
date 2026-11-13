@@ -76,8 +76,16 @@ read from the scan once, beside the exploration.
 
 No new Mantine component is needed: `Popover`, `ScrollArea`,
 `SegmentedControl`, `UnstyledButton`, `Tooltip` and `Text` are already
-wrapped. If that holds, nothing in `design-system/` changes and there is
-nothing to `/design-sync`.
+wrapped. One token changes in `design-system/theme.ts`: a behavior's pill
+is `--noesis-diagram-pill-radius` (28px, half a card's height) instead of
+999px, so a card of one line keeps its round ends and a taller one, with
+badges, has rounded corners. That is a `/design-sync`.
+
+A card's badges sit beside its button, laid over the card as its corner
+controls are, since a button holds no other control. A frame carries its
+own state under its name, its top as tall as they need (`--frame-top`).
+In step 4 a badge is a list item with a tooltip; step 5 makes the ones
+with a type to walk into buttons.
 
 ### Keyboard and readers
 

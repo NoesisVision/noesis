@@ -1,0 +1,94 @@
+/*
+ * A card's badges, laid over the card under its name and what it is — or
+ * under a frame's name — as its corner controls are. Their sizes are the
+ * ones the layout leaves room for (BADGES_TOP, BADGE_LINE and the rest in
+ * layout-exploration.ts): a badge 18px tall with 4px under it, a 48px label
+ * and 4px after it, 16px in from either side of the card.
+ *
+ * The rows let a click between the badges through, to the card under them.
+ */
+.badges {
+  position: absolute;
+  top: 50px;
+  inset-inline: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+
+  &[data-frame='true'] {
+    top: 52px;
+  }
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.label {
+  flex: none;
+  width: 48px;
+  margin-inline-end: 4px;
+  color: var(--mantine-color-dimmed);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each relation's badge in the colours its edge has (relationEdges in theme.ts). */
+.badge {
+  --badge-line: var(--noesis-diagram-edge-state);
+  --badge-word: var(--noesis-diagram-edge-state-word);
+
+  overflow: hidden;
+  box-sizing: border-box;
+  max-width: 100%;
+  height: 18px;
+  padding-inline: 8px;
+  border: 1px solid color-mix(in srgb, var(--badge-line) 55%, transparent);
+  border-radius: var(--mantine-radius-xl);
+  background: color-mix(in srgb, var(--badge-line) 12%, transparent);
+  color: var(--badge-word);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: auto;
+
+  &[data-relation='input'] {
+    --badge-line: var(--noesis-diagram-edge-input);
+    --badge-word: var(--noesis-diagram-edge-input-word);
+  }
+
+  &[data-relation='output'] {
+    --badge-line: var(--noesis-diagram-edge-output);
+    --badge-word: var(--noesis-diagram-edge-output-word);
+  }
+
+  /* Its type in hand: ringed as a card related to the selection is. */
+  &[data-related] {
+    outline: 2px dashed var(--noesis-diagram-related);
+    outline-offset: 1px;
+  }
+}
+
+/* Its type still has a card on the diagram. */
+.onDiagram {
+  margin-inline-start: 3px;
+  color: var(--noesis-diagram-selection);
+}
