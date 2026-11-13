@@ -67,20 +67,21 @@ const kindOf = (type: string, elements: Elements) => {
   return groupLabelOf(element.pattern ?? element.kind);
 };
 
-/** A step's type as it is said: `many DiscountedProduct`. */
+/** A step's type as it is said: `DiscountedProduct, many`. */
 const typeSaidOf = (step: WalkStep) => {
   const word = markWordOf(step.cardinality);
-  return word === null ? step.typeName : `${word} ${step.typeName}`;
+  return word === null ? step.typeName : `${step.typeName}, ${word}`;
 };
 
-/** A step's type as it is drawn: its cardinality's mark, then its name. */
+/** A step's type as it is drawn: its name, then its cardinality's mark. */
 function TypeWords({ step }: { step: WalkStep }) {
   return (
     <>
+      {/* Its name is what a short line cuts; the mark stays whole. */}
+      <span className={classes.typeText}>{step.typeName}</span>
       {isMarked(step.cardinality) && (
         <CardinalityMark cardinality={step.cardinality} />
       )}
-      {step.typeName}
     </>
   );
 }
@@ -375,9 +376,9 @@ function Column({
                 : `${step.behavior.name} · ${step.name}`}
             </span>
           )}
-          <Text component="span" fz="sm" fw={600} truncate>
+          <span className={classes.columnType}>
             <TypeWords step={step} />
-          </Text>
+          </span>
           <Text component="span" fz="xs" c="dimmed">
             {groups.length === 0 ? `${kind} · nothing inside` : kind}
           </Text>

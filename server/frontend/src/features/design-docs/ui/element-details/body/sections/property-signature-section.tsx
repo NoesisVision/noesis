@@ -33,7 +33,7 @@ export function PropertySignatureSection({
   return (
     <DetailSection>
       <Code block>
-        {name}: {isMarked(holds) && <CardinalityMark cardinality={holds} />}
+        {name}:{' '}
         <Field
           field={type}
           format={addressOf}
@@ -48,7 +48,7 @@ export function PropertySignatureSection({
             </ElementTooltip>
           )}
         />
-        ;
+        {isMarked(holds) && <CardinalityMark cardinality={holds} />};
       </Code>
     </DetailSection>
   );

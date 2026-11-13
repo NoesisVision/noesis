@@ -22,10 +22,10 @@ export const isMarked = (
   cardinality != null && Object.hasOwn(MARKS, cardinality);
 
 /**
- * How many of its type a slot holds, as the start of the type's tag: a
- * solid segment with an asterisk for many, as the model and UML write it,
- * and a question mark for optional, as code writes a value that may be
- * missing. A screen reader hears the word.
+ * How many of its type a slot holds, after the type, as the end of its
+ * tag: a solid segment with an asterisk for many, as the model and UML
+ * write it, and a question mark for optional, as code writes a value that
+ * may be missing. A screen reader hears the word after the type: `, many`.
  */
 export function CardinalityMark({
   cardinality,
@@ -35,8 +35,8 @@ export function CardinalityMark({
   const { word } = MARKS[cardinality];
   return (
     <>
+      <VisuallyHidden>{`, ${word}`}</VisuallyHidden>
       <MarkIcon cardinality={cardinality} />
-      <VisuallyHidden>{`${word}: `}</VisuallyHidden>
     </>
   );
 }

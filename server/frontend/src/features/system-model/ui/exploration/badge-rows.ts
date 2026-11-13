@@ -28,10 +28,10 @@ export const badgeRowsOf = (badges: readonly Badge[]): BadgeRow[] =>
 const badgeTypeOf = ({ typeName, cardinality }: Badge) =>
   `${typeName}${cardinalitySuffixOf(cardinality)}`;
 
-/** A badge as it is said: `products: many DiscountedProduct`. */
+/** A badge as it is said: `products: DiscountedProduct, many`. */
 export const badgeSaidOf = (badge: Badge) => {
   const word = markWordOf(badge.cardinality);
-  return `${badge.name}: ${word === null ? '' : `${word} `}${badge.typeName}`;
+  return `${badge.name}: ${badge.typeName}${word === null ? '' : `, ${word}`}`;
 };
 
 /** A badge's words, for its tooltip: its slot as written, `name: Type [*]`. */

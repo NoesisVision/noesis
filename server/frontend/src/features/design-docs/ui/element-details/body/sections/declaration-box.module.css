@@ -88,8 +88,8 @@
 }
 
 /*
- * A type that starts with a cardinality mark (cardinality-mark.tsx): the
- * mark centred on the name beside it; in a tag, filling the tag's left
+ * A type that ends with a cardinality mark (cardinality-mark.tsx): the
+ * mark centred on the name beside it; in a tag, filling the tag's right
  * end, flush with its edge and radius.
  */
 .box .name[data-marked] {
@@ -100,7 +100,7 @@
 .box .type[data-marked] {
   display: inline-flex;
   align-items: stretch;
-  padding-left: 0;
+  padding-right: 0;
   overflow: hidden;
 
   /*
@@ -112,7 +112,7 @@
   & [data-cardinality] {
     height: auto;
     border-radius: 0;
-    margin-right: 7px;
+    margin-left: 7px;
     color: light-dark(
       var(--mantine-color-white),
       var(--mantine-color-brand-light-color)

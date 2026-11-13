@@ -107,7 +107,7 @@ const badgeWidthOf = (badge: Badge) =>
     // Its type, in bold, and the marks after it: a card of its own, and
     // the chevron of a type to walk into — any but a primitive.
     badge.typeName.length * 6.8 +
-      // Its cardinality's mark, before the type.
+      // Its cardinality's mark, after the type.
       (badge.cardinality === '1' ? 0 : 22) +
       (badge.onDiagram ? 13 : 0) +
       (badge.type.startsWith('primitive|') ? 0 : 13),

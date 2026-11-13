@@ -131,7 +131,7 @@ describe('the columns a walk leaves', () => {
 describe('the walk drawn from a badge', () => {
   it('heads it with the badge’s slot, what it is, and the path as dotted steps', () => {
     const html = explorer(round);
-    expect(html).toMatch(/result: <b>DiscountedOffer<\/b>/);
+    expect(html).toMatch(/result: <b><span[^>]*>DiscountedOffer<\/span><\/b>/);
     expect(html).toContain('Output · Value Object');
     expect(html).toMatch(/<nav[^>]*aria-label="Path"/);
     // Every step but the last goes back to it.
@@ -155,7 +155,7 @@ describe('the walk drawn from a badge', () => {
     expect(html.match(/data-column="/g)).toHaveLength(5);
     expect(html).toContain('aria-label="DiscountedProduct, Value Object"');
     expect(html).toMatch(
-      /<button[^>]*aria-current="true"[^>]*aria-label="state products: many DiscountedProduct"/,
+      /<button[^>]*aria-current="true"[^>]*aria-label="state products: DiscountedProduct, many"/,
     );
   });
 
@@ -184,7 +184,7 @@ describe('the walk drawn from a badge', () => {
   it('draws a slot as a card, its name over its type, and a primitive as one that leads nowhere', () => {
     const html = explorer(round);
     expect(html).toMatch(
-      /<button[^>]*aria-label="state products: many DiscountedProduct"[^>]*>.*?>products<\/span><span[^>]*><span[^>]*data-cardinality="\*"[^>]*>.*?tabler-icon-asterisk.*?<\/span><span[^>]*>many: <\/span>DiscountedProduct<\/span>/s,
+      /<button[^>]*aria-label="state products: DiscountedProduct, many"[^>]*>.*?>products<\/span><span[^>]*><span[^>]*>DiscountedProduct<\/span><span[^>]*>, many<\/span><span[^>]*data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/s,
     );
     // Many is its mark, never `[*]` written after the type.
     expect(html).not.toContain('[*]');

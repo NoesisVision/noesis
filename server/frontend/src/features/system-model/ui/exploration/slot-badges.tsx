@@ -59,12 +59,11 @@ export function SlotBadges({
                   <span className={classes.name}>{badge.name}</span>
                   <VisuallyHidden>: </VisuallyHidden>
                   <span className={classes.type}>
-                    <span className={classes.typeName}>
-                      {isMarked(badge.cardinality) && (
-                        <CardinalityMark cardinality={badge.cardinality} />
-                      )}
-                      {badge.typeName}
-                    </span>
+                    <span className={classes.typeName}>{badge.typeName}</span>
+                    {/* After the type, whole however short the type is cut. */}
+                    {isMarked(badge.cardinality) && (
+                      <CardinalityMark cardinality={badge.cardinality} />
+                    )}
                     {badge.onDiagram && (
                       <>
                         <span className={classes.mark} aria-hidden>

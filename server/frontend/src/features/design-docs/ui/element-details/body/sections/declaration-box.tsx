@@ -85,8 +85,8 @@ export function DeclarationType({
         className={tagged ? classes.type : classes.name}
         data-marked={marked || undefined}
       >
-        {marked && <CardinalityMark cardinality={cardinality} />}
         <QualifiedName name={type} />
+        {marked && <CardinalityMark cardinality={cardinality} />}
       </ElementLinkOrText>
     </ElementTooltip>
   );
