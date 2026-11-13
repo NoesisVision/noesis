@@ -25,7 +25,20 @@
   display: flex;
   gap: 6px;
   align-items: center;
+  align-self: stretch;
   min-width: 0;
+}
+
+/* How the walk is drawn, at the title's far end. */
+.views {
+  flex: none;
+  margin-inline-start: auto;
+}
+
+.viewIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .titleType {

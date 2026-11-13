@@ -1,4 +1,10 @@
-import { IconArrowUpRight, IconChevronRight } from '@tabler/icons-react';
+import {
+  IconArrowBarRight,
+  IconArrowUpRight,
+  IconBoxMultiple,
+  IconLayoutColumns,
+  IconListTree,
+} from '@tabler/icons-react';
 import {
   type KeyboardEvent,
   type TransitionEvent,
@@ -6,20 +12,15 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  CardinalityMark,
-  isMarked,
-  KindIcon,
-  markWordOf,
-} from '#/features/design-docs/element-reader.ts';
+import { KindIcon } from '#/features/design-docs/element-reader.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { ScrollArea } from '#/shared/design-system/scroll-area.tsx';
+import { SegmentedControl } from '#/shared/design-system/segmented-control.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import {
-  type ExploredElement,
-  groupLabelOf,
   type ModelSlots,
   slotKeyOf,
   type WalkColumn,
@@ -28,6 +29,17 @@ import {
   walkChange,
   walkOf,
 } from '../../system-model-exploration.ts';
+import {
+  type Elements,
+  kindOf,
+  RelationGroups,
+  relatesToAnything,
+  SlotCard,
+  slotNameOf,
+  TypeWords,
+} from './slot-card.tsx';
+import { SLOT_VIEWS, type SlotView } from './slot-view.ts';
+import { SlotDrill, SlotNested, SlotTree } from './slot-views.tsx';
 import classes from './slot-explorer.module.css';
 
 /*
@@ -61,35 +73,13 @@ interface Leaving {
   column: WalkColumn;
 }
 
-type Elements = ReadonlyMap<string, ExploredElement>;
-
-/** What a type is, in words: its block's kind, or "Primitive". */
-const kindOf = (type: string, elements: Elements) => {
-  const element = elements.get(type);
-  if (element === undefined) return 'Primitive';
-  return groupLabelOf(element.pattern ?? element.kind);
-};
-
-/** A step's type as it is said: `DiscountedProduct, many`. */
-const typeSaidOf = (step: WalkStep) => {
-  const word = markWordOf(step.cardinality);
-  return word === null ? step.typeName : `${step.typeName}, ${word}`;
-};
-
-/** A step's type as it is drawn: its name, then its cardinality's mark. */
-function TypeWords({ step }: { step: WalkStep }) {
-  return (
-    <>
-      {/* Its name is what a short line cuts; the mark stays whole. */}
-      <span className={classes.typeText}>{step.typeName}</span>
-      {isMarked(step.cardinality) && (
-        <CardinalityMark cardinality={step.cardinality} />
-      )}
-    </>
-  );
-}
-
-const opens = (step: WalkStep, elements: Elements) => elements.has(step.type);
+/** The views a reader can walk in, by the icon and words of each. */
+const VIEWS = [
+  { value: 'columns', label: 'Columns', Icon: IconLayoutColumns },
+  { value: 'tree', label: 'Tree', Icon: IconListTree },
+  { value: 'drill', label: 'One at a time', Icon: IconArrowBarRight },
+  { value: 'nested', label: 'Nested cards', Icon: IconBoxMultiple },
+] satisfies { value: SlotView; label: string; Icon: typeof IconListTree }[];
 
 export function SlotExplorer({
   path,
@@ -97,6 +87,8 @@ export function SlotExplorer({
   slots,
   elements,
   onGoTo,
+  view = 'columns',
+  onView,
 }: {
   /** The walk so far: the badge's own slot first. */
   path: readonly WalkStep[];
@@ -105,11 +97,151 @@ export function SlotExplorer({
   elements: Elements;
   /** Given when the badge's type has a card of its own: goes to it. */
   onGoTo?: () => void;
+  /** How the walk is drawn, and the way to change it. */
+  view?: SlotView;
+  onView?: (view: SlotView) => void;
 }) {
   const [root] = path;
+  if (root === undefined) return null;
+  const rootElement = elements.get(root.type);
+  const goToLabel = `Go to ${root.typeName} on the diagram`;
+  return (
+    <div className={classes.explorer}>
+      <div className={classes.head}>
+        {/* The type, as a card names it: its kind's icon, its name, how
+            many; then, when it has a card of its own, the way to it; and
+            at the far end, how the walk is drawn. */}
+        <div className={classes.title}>
+          {rootElement !== undefined && (
+            <KindIcon
+              kind={rootElement.kind}
+              pattern={rootElement.pattern}
+              size={16}
+            />
+          )}
+          <span className={classes.titleType}>
+            <TypeWords step={root} />
+          </span>
+          {onGoTo !== undefined && (
+            <Tooltip label={goToLabel}>
+              <ActionIcon
+                variant="subtle"
+                size="sm"
+                aria-label={goToLabel}
+                onClick={onGoTo}
+              >
+                <IconArrowUpRight size={14} stroke={2} aria-hidden />
+              </ActionIcon>
+            </Tooltip>
+          )}
+          {onView !== undefined && (
+            <SegmentedControl
+              className={classes.views}
+              size="xs"
+              aria-label="Walk as"
+              value={view}
+              onChange={(value) => {
+                const next = SLOT_VIEWS.find((each) => each === value);
+                if (next !== undefined) onView(next);
+              }}
+              data={VIEWS.map(({ value, label, Icon }) => ({
+                value,
+                label: (
+                  <Tooltip label={label} openDelay={300}>
+                    <span className={classes.viewIcon}>
+                      <Icon size={14} stroke={1.8} aria-hidden />
+                      <VisuallyHidden>{label}</VisuallyHidden>
+                    </span>
+                  </Tooltip>
+                ),
+              }))}
+            />
+          )}
+        </div>
+        <Text component="span" fz="xs" c="dimmed">
+          {kindOf(root.type, elements)}
+        </Text>
+      </div>
+      {view === 'columns' && (
+        <SlotColumns
+          path={path}
+          onPath={onPath}
+          slots={slots}
+          elements={elements}
+        />
+      )}
+      {view === 'drill' && (
+        <>
+          <SlotPath path={path} onPath={onPath} />
+          <SlotDrill
+            path={path}
+            onPath={onPath}
+            slots={slots}
+            elements={elements}
+          />
+        </>
+      )}
+      {view === 'tree' && (
+        <SlotTree path={path} slots={slots} elements={elements} />
+      )}
+      {view === 'nested' && (
+        <SlotNested path={path} slots={slots} elements={elements} />
+      )}
+    </div>
+  );
+}
+
+/** The walk so far as a dotted path, each step but the last a way back to it. */
+function SlotPath({
+  path,
+  onPath,
+}: {
+  path: readonly WalkStep[];
+  onPath: (path: readonly WalkStep[]) => void;
+}) {
+  return (
+    <nav className={classes.path} aria-label="Path">
+      <span className={classes.steps}>
+        {path.map((step, index) => (
+          <span key={index} className={classes.step}>
+            {index > 0 && (
+              <span className={classes.dot} aria-hidden>
+                .
+              </span>
+            )}
+            {index === path.length - 1 ? (
+              <span className={classes.token} aria-current="location">
+                {step.name}
+              </span>
+            ) : (
+              <UnstyledButton
+                className={classes.token}
+                onClick={() => onPath(path.slice(0, index + 1))}
+                aria-label={`Back to ${step.name}: ${step.typeName}`}
+              >
+                {step.name}
+              </UnstyledButton>
+            )}
+          </span>
+        ))}
+      </span>
+    </nav>
+  );
+}
+
+/** The walk as columns, one a step, as a file browser has. */
+function SlotColumns({
+  path,
+  onPath,
+  slots,
+  elements,
+}: {
+  path: readonly WalkStep[];
+  onPath: (path: readonly WalkStep[]) => void;
+  slots: ModelSlots;
+  elements: Elements;
+}) {
   const columns = walkOf(slots, path);
-  const rootElement = root === undefined ? undefined : elements.get(root.type);
-  const goToLabel = `Go to ${root?.typeName ?? ''} on the diagram`;
   // The walk last drawn, to tell which columns a new one leaves.
   const [drawn, setDrawn] = useState(path);
   const [leaving, setLeaving] = useState<readonly Leaving[]>([]);
@@ -165,8 +297,6 @@ export function SlotExplorer({
     (rows.find((row) => row.dataset.row === wanted.key) ?? rows[0])?.focus();
   }, [path]);
 
-  if (root === undefined) return null;
-
   const goOn = (column: number, step: WalkStep, byKey: boolean) => {
     if (byKey) focusNext.current = { column: column + 1, key: null };
     onPath([...path.slice(0, column + 1), step]);
@@ -199,64 +329,8 @@ export function SlotExplorer({
   };
 
   return (
-    <div className={classes.explorer}>
-      <div className={classes.head}>
-        {/* The type, as a card names it: its kind's icon, its name, how
-            many; then, when it has a card of its own, the way to it. */}
-        <div className={classes.title}>
-          {rootElement !== undefined && (
-            <KindIcon
-              kind={rootElement.kind}
-              pattern={rootElement.pattern}
-              size={16}
-            />
-          )}
-          <span className={classes.titleType}>
-            <TypeWords step={root} />
-          </span>
-          {onGoTo !== undefined && (
-            <Tooltip label={goToLabel}>
-              <ActionIcon
-                variant="subtle"
-                size="sm"
-                aria-label={goToLabel}
-                onClick={onGoTo}
-              >
-                <IconArrowUpRight size={14} stroke={2} aria-hidden />
-              </ActionIcon>
-            </Tooltip>
-          )}
-        </div>
-        <Text component="span" fz="xs" c="dimmed">
-          {kindOf(root.type, elements)}
-        </Text>
-      </div>
-      <nav className={classes.path} aria-label="Path">
-        <span className={classes.steps}>
-          {path.map((step, index) => (
-            <span key={index} className={classes.step}>
-              {index > 0 && (
-                <span className={classes.dot} aria-hidden>
-                  .
-                </span>
-              )}
-              {index === path.length - 1 ? (
-                <span className={classes.token} aria-current="location">
-                  {step.name}
-                </span>
-              ) : (
-                <UnstyledButton
-                  className={classes.token}
-                  onClick={() => onPath(path.slice(0, index + 1))}
-                  aria-label={`Back to ${step.name}: ${step.typeName}`}
-                >
-                  {step.name}
-                </UnstyledButton>
-              )}
-            </span>
-          ))}
-        </span>
-      </nav>
+    <>
+      <SlotPath path={path} onPath={onPath} />
       <ScrollArea
         className={classes.strip}
         type="auto"
@@ -317,7 +391,7 @@ export function SlotExplorer({
           ]}
         </div>
       </ScrollArea>
-    </div>
+    </>
   );
 }
 
@@ -346,13 +420,6 @@ function Column({
   onKeyDown: (event: KeyboardEvent<HTMLElement>, step: WalkStep) => void;
 }) {
   const { step, relations, through, next } = column;
-  // Only the relations the type has slots of: none is drawn empty.
-  const all: { relation: WalkStep['relation']; rows: readonly WalkStep[] }[] = [
-    { relation: 'state', rows: relations.state },
-    { relation: 'input', rows: relations.input },
-    { relation: 'output', rows: relations.output },
-  ];
-  const groups = all.filter(({ rows }) => rows.length > 0);
   const kind = kindOf(step.type, elements);
   // A column left before it had grown at all has no width to fold through,
   // so no end of folding comes: seen still a frame later, it goes at once.
@@ -380,90 +447,27 @@ function Column({
       <div className={classes.columnBody}>
         <div className={classes.columnHead} aria-hidden>
           {index > 0 && (
-            <span className={classes.columnSlot}>
-              {step.behavior === undefined
-                ? step.name
-                : `${step.behavior.name} · ${step.name}`}
-            </span>
+            <span className={classes.columnSlot}>{slotNameOf(step)}</span>
           )}
           <span className={classes.columnType}>
             <TypeWords step={step} />
           </span>
           <Text component="span" fz="xs" c="dimmed">
-            {groups.length === 0 ? `${kind} · nothing inside` : kind}
+            {relatesToAnything(relations) ? kind : `${kind} · nothing inside`}
           </Text>
         </div>
-        {groups.map(({ relation, rows }) => (
-          <div
-            key={relation}
-            className={classes.group}
-            data-relation={relation}
-          >
-            <span className={classes.groupHead} aria-hidden>
-              {relation}
-            </span>
-            <ul className={classes.rows} aria-label={relation}>
-              {rows.map((row) => {
-                const key = slotKeyOf(row);
-                const leads = opens(row, elements);
-                const round = leads && through.has(row.type);
-                // A slot card, as the badge on the canvas is: its name,
-                // quiet, over its type in bold, and a way on after them.
-                const words = (
-                  <>
-                    <span className={classes.rowWords}>
-                      <span className={classes.name}>
-                        {row.behavior === undefined
-                          ? row.name
-                          : `${row.behavior.name} · ${row.name}`}
-                      </span>
-                      <span className={classes.type}>
-                        <TypeWords step={row} />
-                      </span>
-                    </span>
-                    {round && (
-                      <span className={classes.round} aria-hidden>
-                        ↺
-                      </span>
-                    )}
-                    {leads && (
-                      <IconChevronRight
-                        className={classes.go}
-                        size={14}
-                        stroke={2.2}
-                        aria-hidden
-                      />
-                    )}
-                  </>
-                );
-                const label = `${relation} ${row.behavior === undefined ? '' : `${row.behavior.name} `}${row.name}: ${typeSaidOf(row)}${round ? ', already on the path' : ''}`;
-                return (
-                  <li key={key}>
-                    {leads ? (
-                      <UnstyledButton
-                        className={classes.row}
-                        data-row={key}
-                        aria-current={next === key || undefined}
-                        aria-label={label}
-                        onClick={(event) => onGoOn(row, event.detail === 0)}
-                        onKeyDown={(event: KeyboardEvent<HTMLElement>) =>
-                          onKeyDown(event, row)
-                        }
-                      >
-                        {words}
-                      </UnstyledButton>
-                    ) : (
-                      // A primitive leads nowhere: words, not a way on.
-                      <span className={classes.row} data-leaf>
-                        {words}
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
+        <RelationGroups relations={relations}>
+          {(row) => (
+            <SlotCard
+              step={row}
+              elements={elements}
+              round={through.has(row.type)}
+              current={next === slotKeyOf(row)}
+              onOpen={(byKey) => onGoOn(row, byKey)}
+              onKeyDown={(event) => onKeyDown(event, row)}
+            />
+          )}
+        </RelationGroups>
       </div>
     </section>
   );

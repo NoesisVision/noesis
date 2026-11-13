@@ -11,6 +11,11 @@ import {
   walkOf,
 } from '../src/features/system-model/system-model-exploration';
 import { SlotExplorer } from '../src/features/system-model/ui/exploration/slot-explorer';
+import {
+  recallSlotView,
+  rememberSlotView,
+  type SlotView,
+} from '../src/features/system-model/ui/exploration/slot-view';
 import { MantineProvider } from '../src/shared/design-system/provider';
 // A copy of the discounts example's committed scan, kept with the specs.
 import scanned from './fixtures/discounts-java.system-model.json';
@@ -49,7 +54,11 @@ const round = walk(
   'result',
 );
 
-const explorer = (path: readonly WalkStep[], onGoTo?: () => void) =>
+const explorer = (
+  path: readonly WalkStep[],
+  onGoTo?: () => void,
+  view?: SlotView,
+) =>
   renderToStaticMarkup(
     <MantineProvider>
       <SlotExplorer
@@ -58,6 +67,8 @@ const explorer = (path: readonly WalkStep[], onGoTo?: () => void) =>
         slots={slots}
         elements={elements}
         onGoTo={onGoTo}
+        view={view}
+        onView={view === undefined ? undefined : () => {}}
       />
     </MantineProvider>,
   );
@@ -201,5 +212,96 @@ describe('the walk drawn from a badge', () => {
     const user = explorer([slotOf(CALCULATE, 'user')]);
     expect(user).toMatch(/<li><span[^>]*data-leaf[^>]*>/);
     expect(user).not.toMatch(/<button[^>]*aria-label="state id: uuid"/);
+  });
+});
+
+describe('the views the walk is drawn in', () => {
+  it('offers its four views at the title’s end, the one in use chosen', () => {
+    const html = explorer(round, undefined, 'tree');
+    expect(html).toMatch(/aria-label="Walk as" role="radiogroup"/);
+    for (const view of ['Columns', 'Tree', 'One at a time', 'Nested cards'])
+      expect(html).toContain(view);
+    expect(html).toMatch(/<input[^>]*checked=""[^>]*value="tree"/);
+  });
+
+  it('draws a tree open along the walk so far, each slot a row that opens in place', () => {
+    const html = explorer(round, undefined, 'tree');
+    expect(html).not.toContain('data-column=');
+    expect(html).toMatch(
+      /<ul[^>]*aria-label="What DiscountedOffer relates to"/,
+    );
+    // Open along result › products › discountAmounts › appliedDiscount › result.
+    expect(html).toMatch(
+      /<button[^>]*aria-expanded="true"[^>]*aria-label="state products: DiscountedProduct, many"/,
+    );
+    expect(html).toMatch(
+      /<button[^>]*aria-expanded="true"[^>]*aria-label="state appliedDiscount: Discount"/,
+    );
+    // A slot not on the walk is shut.
+    expect(html).toMatch(
+      /<button[^>]*aria-expanded="false"[^>]*aria-label="state offerLevelDiscounts: DiscountAmount, many"/,
+    );
+  });
+
+  it('draws one type at a time under the path, its slots as cards', () => {
+    const html = explorer(round.slice(0, 2), undefined, 'drill');
+    expect(html).toMatch(/<nav[^>]*aria-label="Path"/);
+    expect(html).toMatch(
+      /<section[^>]*aria-label="DiscountedProduct, Value Object"/,
+    );
+    expect(html).toContain(
+      'aria-label="state discountAmounts: DiscountAmount, many"',
+    );
+    // Only the type the walk is at: none of DiscountedOffer's own slots.
+    expect(html).not.toContain('offerLevelDiscounts');
+  });
+
+  it('draws cards nested in cards, open along the walk so far', () => {
+    const html = explorer(round.slice(0, 3), undefined, 'nested');
+    expect(html).toMatch(
+      /<div[^>]*data-open="true"[^>]*><button[^>]*aria-expanded="true"[^>]*aria-label="state products: DiscountedProduct, many"/,
+    );
+    expect(html).toMatch(
+      /<button[^>]*aria-expanded="false"[^>]*aria-label="state offerLevelDiscounts: DiscountAmount, many"/,
+    );
+    // Inside products, its own discountAmounts, opened too.
+    expect(html).toMatch(
+      /<button[^>]*aria-expanded="true"[^>]*aria-label="state discountAmounts: DiscountAmount, many"/,
+    );
+  });
+});
+
+describe('the view kept for the session', () => {
+  const kept = new Map<string, string>();
+  const before: unknown = Reflect.get(globalThis, 'window');
+  const had = 'window' in globalThis;
+  const storage = {
+    getItem: (key: string) => kept.get(key) ?? null,
+    setItem: (key: string, value: string) => void kept.set(key, value),
+  };
+
+  it('opens in columns until another view is chosen, then in the one chosen', () => {
+    Reflect.set(globalThis, 'window', { sessionStorage: storage });
+    try {
+      expect(recallSlotView()).toBe('columns');
+      rememberSlotView('nested');
+      expect(recallSlotView()).toBe('nested');
+      kept.set('noesis.systemModel.exploration.slotView', 'sideways');
+      expect(recallSlotView()).toBe('columns');
+    } finally {
+      if (had) Reflect.set(globalThis, 'window', before);
+      else Reflect.deleteProperty(globalThis, 'window');
+    }
+  });
+
+  it('opens in columns where there is no storage', () => {
+    Reflect.set(globalThis, 'window', {});
+    try {
+      expect(recallSlotView()).toBe('columns');
+      expect(() => rememberSlotView('tree')).not.toThrow();
+    } finally {
+      if (had) Reflect.set(globalThis, 'window', before);
+      else Reflect.deleteProperty(globalThis, 'window');
+    }
   });
 });

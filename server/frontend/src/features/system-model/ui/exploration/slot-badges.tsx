@@ -11,6 +11,11 @@ import type { Badge, WalkStep } from '../../system-model-exploration.ts';
 import { badgeRowsOf, badgeSaidOf, badgeTipOf } from './badge-rows.ts';
 import { ExplorationReadingContext } from './exploration-reading.ts';
 import { SlotExplorer } from './slot-explorer.tsx';
+import {
+  recallSlotView,
+  rememberSlotView,
+  type SlotView,
+} from './slot-view.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import classes from './slot-badges.module.css';
 
@@ -121,6 +126,8 @@ function Walked({
 }) {
   const { slots, elements, onGoTo } = useContext(ExplorationReadingContext);
   const [path, setPath] = useState<readonly WalkStep[] | null>(null);
+  // How the walk is drawn: as the reader last chose this session.
+  const [view, setView] = useState<SlotView>('columns');
   const surface = useThemedSurface('slot-explorer');
   const opened = path !== null;
   return (
@@ -146,7 +153,10 @@ function Walked({
           aria-label={`${badgeSaidOf(badge)}${badge.onDiagram ? ', also on the diagram' : ''}`}
           aria-haspopup="dialog"
           aria-expanded={opened}
-          onClick={() => setPath(opened ? null : [badge])}
+          onClick={() => {
+            if (!opened) setView(recallSlotView());
+            setPath(opened ? null : [badge]);
+          }}
         >
           {children}
         </UnstyledButton>
@@ -160,6 +170,11 @@ function Walked({
           <SlotExplorer
             path={path}
             onPath={setPath}
+            view={view}
+            onView={(next) => {
+              setView(next);
+              rememberSlotView(next);
+            }}
             slots={slots}
             elements={elements}
             onGoTo={
