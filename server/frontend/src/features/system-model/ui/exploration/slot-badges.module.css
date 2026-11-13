@@ -55,8 +55,12 @@
   max-width: 100%;
 }
 
-/* Each relation's badge in the colours its edge has (relationEdges in theme.ts). */
-.badge {
+/*
+ * Each relation's badge in the colours its edge has (relationEdges in
+ * theme.ts). Named with its list, to win over the unstyled button's own
+ * reset, which loads later.
+ */
+.list .badge {
   --badge-line: var(--noesis-diagram-edge-state);
   --badge-word: var(--noesis-diagram-edge-state-word);
 
