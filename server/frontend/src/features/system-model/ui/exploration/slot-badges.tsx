@@ -38,12 +38,9 @@ import classes from './slot-badges.module.css';
  */
 export function SlotBadges({
   badges,
-  holder,
   frame,
 }: {
   badges: readonly Badge[];
-  /** The name of the card that holds them, which a signature starts with. */
-  holder: string;
   /** Under a frame's name, rather than a card's name and what it is. */
   frame: boolean;
 }) {
@@ -70,7 +67,7 @@ export function SlotBadges({
     return (
       <div className={classes.badges} data-part="badges" data-frame={frame}>
         <div className={classes.signature}>
-          {signatureLinesOf(holder, badges).map((line, at) => (
+          {signatureLinesOf(badges).map((line, at) => (
             <div key={at} className={classes.signatureLine}>
               {line.map((part, index) =>
                 typeof part === 'string' ? (
@@ -80,12 +77,21 @@ export function SlotBadges({
                 ) : (
                   <span key={index} className={classes.signatureItem}>
                     {slot(
-                      part,
+                      part.badge,
                       classes.token!,
                       <>
-                        <span className={classes.tokenName}>{part.name}</span>
-                        <span className={classes.punctuation}>: </span>
-                        <TypeOf badge={part} chevron={false} />
+                        {/* An output by its type alone, as code returns it. */}
+                        {part.named ? (
+                          <>
+                            <span className={classes.tokenName}>
+                              {part.badge.name}
+                            </span>
+                            <span className={classes.punctuation}>: </span>
+                          </>
+                        ) : (
+                          <VisuallyHidden>{part.badge.name}: </VisuallyHidden>
+                        )}
+                        <TypeOf badge={part.badge} chevron={false} />
                       </>,
                     )}
                   </span>

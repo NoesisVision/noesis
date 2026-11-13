@@ -200,7 +200,7 @@ export function ElementNode({
           ) : (
             button
           )}
-          <SlotBadges badges={carried} holder={element.name} frame={holds} />
+          <SlotBadges badges={carried} frame={holds} />
           {bevelled && state === 'related' && (
             <BevelRing
               width={width ?? data.placed.width}

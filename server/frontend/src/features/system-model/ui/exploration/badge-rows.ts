@@ -50,24 +50,37 @@ export const chipsOf = (badges: readonly Badge[]): Badge[] =>
   badgeRowsOf(badges).flatMap(({ badges: row }) => row);
 
 /*
- * A card's badges as its signature, the way the code declares it:
- * `calculate(offer: Offer, user: UserId)`, then `→ result: DiscountedOffer`
- * for its output, then each field of its state on a line of its own. The
- * inputs go on one line while it fits; past that, one to a line. The card's
- * layout and its drawing both read the lines from here, so they agree.
+ * A card's badges as its signature, the way the code declares it, without
+ * the name its card already shows: `(offer: Offer, user: UserId) →
+ * DiscountedOffer`, its output by type alone, then each field of its state,
+ * `name: Type`, on a line of its own. The inputs go on one line while it
+ * fits; past that, one to a line, and the output after the closing
+ * bracket. The card's layout and its drawing both read the lines from
+ * here, so they agree.
  */
 
+/** A slot in a signature: named, `offer: Offer`, or an output, by its type alone. */
+export interface SignatureSlot {
+  badge: Badge;
+  named: boolean;
+}
+
 /** A piece of a signature's line: its punctuation, or a slot. */
-export type SignaturePart = string | Badge;
+export type SignaturePart = string | SignatureSlot;
 
 /** One character of a signature, in its monospace face (slot-badges.module.css). */
 const SIGNATURE_CHAR = 7.3;
-/** The widest a signature's line runs before its inputs go one to a line. */
-const SIGNATURE_ROOM = 330;
+/**
+ * The widest a signature's line runs before its inputs go one to a line:
+ * the widest card a signature makes (layout-exploration.ts), less the
+ * card's insets and the box round the lines.
+ */
+const SIGNATURE_ROOM = 370;
 
-/** A slot in a signature, `offer: Offer`, with the marks after its type. */
-const signatureSlotWidthOf = (badge: Badge) =>
-  (badge.name.length + 2 + badge.typeName.length) * SIGNATURE_CHAR +
+/** A slot in a signature, with the marks after its type. */
+const signatureSlotWidthOf = ({ badge, named }: SignatureSlot) =>
+  ((named ? badge.name.length + 2 : 0) + badge.typeName.length) *
+    SIGNATURE_CHAR +
   (badge.cardinality === '1' ? 0 : 22) +
   (badge.onDiagram ? 13 : 0) +
   4;
@@ -85,33 +98,34 @@ export const signatureLineWidthOf = (line: readonly SignaturePart[]) =>
     ),
   );
 
-export function signatureLinesOf(
-  holder: string,
-  badges: readonly Badge[],
-): SignaturePart[][] {
+export function signatureLinesOf(badges: readonly Badge[]): SignaturePart[][] {
   const of = (relation: SlotRelation) =>
     badges.filter((badge) => badge.relation === relation);
-  const inputs = of('input');
-  const outputs = of('output');
+  const inputs = of('input').map((badge) => ({ badge, named: true }));
+  const outputs: SignaturePart[] = of('output').flatMap((badge, at) => [
+    ...(at === 0 ? [] : [', ']),
+    { badge, named: false },
+  ]);
+  const gives: SignaturePart[] =
+    outputs.length === 0 ? [')'] : [') → ', ...outputs];
   const lines: SignaturePart[][] = [];
   if (inputs.length + outputs.length > 0) {
     const one: SignaturePart[] = [
-      `${holder}(`,
-      ...inputs.flatMap((badge, at) => (at === 0 ? [badge] : [', ', badge])),
-      ')',
+      '(',
+      ...inputs.flatMap((slot, at) => (at === 0 ? [slot] : [', ', slot])),
+      ...gives,
     ];
     if (signatureLineWidthOf(one) <= SIGNATURE_ROOM) lines.push(one);
     else
       lines.push(
-        [`${holder}(`],
-        ...inputs.map((badge, at) =>
-          at < inputs.length - 1 ? ['  ', badge, ','] : ['  ', badge],
+        ['('],
+        ...inputs.map((slot, at) =>
+          at < inputs.length - 1 ? ['  ', slot, ','] : ['  ', slot],
         ),
-        [')'],
+        gives,
       );
   }
-  for (const badge of outputs) lines.push(['→ ', badge]);
-  for (const badge of of('state')) lines.push([badge]);
+  for (const badge of of('state')) lines.push([{ badge, named: true }]);
   return lines;
 }
 

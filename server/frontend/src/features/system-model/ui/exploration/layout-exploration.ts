@@ -204,7 +204,7 @@ function badgeBlockOf(
   const badges = badgesOf({ ...carrying, look }, element.id);
   if (badges.length === 0) return { width: least, height: 0 };
   if (look === 'signature') {
-    const lines = signatureLinesOf(element.name, badges);
+    const lines = signatureLinesOf(badges);
     return {
       width: Math.max(
         least,
