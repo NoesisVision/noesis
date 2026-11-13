@@ -6,7 +6,7 @@ import type {
   DrawnElement,
   ExplorationGraph,
 } from '../../system-model-exploration.ts';
-import { badgeRowsOf, badgeTypeOf } from './badge-rows.ts';
+import { badgeRowsOf } from './badge-rows.ts';
 
 /*
  * Where each element of the exploration stands, placed by one of ELK's
@@ -106,7 +106,9 @@ const badgeWidthOf = (badge: Badge) =>
     badge.name.length * 6.2,
     // Its type, in bold, and the marks after it: a card of its own, and
     // the chevron of a type to walk into — any but a primitive.
-    badgeTypeOf(badge).length * 6.8 +
+    badge.typeName.length * 6.8 +
+      // Its cardinality's mark, before the type.
+      (badge.cardinality === '1' ? 0 : 22) +
       (badge.onDiagram ? 13 : 0) +
       (badge.type.startsWith('primitive|') ? 0 : 13),
   ) + 20;

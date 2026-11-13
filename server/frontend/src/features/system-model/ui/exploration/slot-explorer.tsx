@@ -6,7 +6,11 @@ import {
   useRef,
   useState,
 } from 'react';
-import { cardinalitySuffixOf } from '#/features/design-docs/cardinality.ts';
+import {
+  CardinalityMark,
+  isMarked,
+  markWordOf,
+} from '#/features/design-docs/element-reader.ts';
 import { ScrollArea } from '#/shared/design-system/scroll-area.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
@@ -63,8 +67,23 @@ const kindOf = (type: string, elements: Elements) => {
   return groupLabelOf(element.pattern ?? element.kind);
 };
 
-const typeWordsOf = (step: WalkStep) =>
-  `${step.typeName}${cardinalitySuffixOf(step.cardinality)}`;
+/** A step's type as it is said: `many DiscountedProduct`. */
+const typeSaidOf = (step: WalkStep) => {
+  const word = markWordOf(step.cardinality);
+  return word === null ? step.typeName : `${word} ${step.typeName}`;
+};
+
+/** A step's type as it is drawn: its cardinality's mark, then its name. */
+function TypeWords({ step }: { step: WalkStep }) {
+  return (
+    <>
+      {isMarked(step.cardinality) && (
+        <CardinalityMark cardinality={step.cardinality} />
+      )}
+      {step.typeName}
+    </>
+  );
+}
 
 /** What a step is to what holds it: `Input 1`, `Output`, `State`. */
 const roleOf = (step: WalkStep) =>
@@ -185,8 +204,10 @@ export function SlotExplorer({
     <div className={classes.explorer}>
       <div className={classes.head}>
         <Text component="span" ff="monospace" fz="sm">
-          {root.name}: <b>{root.typeName}</b>
-          {cardinalitySuffixOf(root.cardinality)}
+          {root.name}:{' '}
+          <b>
+            <TypeWords step={root} />
+          </b>
         </Text>
         <Text component="span" fz="xs" c="dimmed">
           {`${roleOf(root)} · ${kindOf(root.type, elements)}`}
@@ -355,7 +376,7 @@ function Column({
             </span>
           )}
           <Text component="span" fz="sm" fw={600} truncate>
-            {typeWordsOf(step)}
+            <TypeWords step={step} />
           </Text>
           <Text component="span" fz="xs" c="dimmed">
             {groups.length === 0 ? `${kind} · nothing inside` : kind}
@@ -385,7 +406,9 @@ function Column({
                           ? row.name
                           : `${row.behavior.name} · ${row.name}`}
                       </span>
-                      <span className={classes.type}>{typeWordsOf(row)}</span>
+                      <span className={classes.type}>
+                        <TypeWords step={row} />
+                      </span>
                     </span>
                     {round && (
                       <span className={classes.round} aria-hidden>
@@ -402,7 +425,7 @@ function Column({
                     )}
                   </>
                 );
-                const label = `${relation} ${row.behavior === undefined ? '' : `${row.behavior.name} `}${row.name}: ${typeWordsOf(row)}${round ? ', already on the path' : ''}`;
+                const label = `${relation} ${row.behavior === undefined ? '' : `${row.behavior.name} `}${row.name}: ${typeSaidOf(row)}${round ? ', already on the path' : ''}`;
                 return (
                   <li key={key}>
                     {leads ? (

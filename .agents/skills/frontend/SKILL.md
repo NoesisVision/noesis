@@ -203,6 +203,29 @@ in the same change, or the PR says why it is not.
   `useEvenCtrlZoom` (Ctrl and the wheel zoom as gently as Cmd), `elkOf`,
   `HiddenHandle` and `DetailsDock`.
 
+## Cardinality is a mark, never `[*]`
+
+Wherever a type is shown with how many values its slot holds — a property
+in the details, a badge on a diagram card, a row of the slot popup, any
+new place — draw it with `CardinalityMark` (`ui/element-details/cardinality-mark.tsx`,
+re-exported for other features from `features/design-docs/element-reader.ts`):
+the small rounded block with ✱ for many or ? for optional, **before** the
+type's name. Exactly one has no mark.
+
+```tsx
+{isMarked(cardinality) && <CardinalityMark cardinality={cardinality} />}
+{typeName}
+```
+
+- Never write `[*]` or `[0..1]` after a type in the UI. The bracket form
+  (`cardinalitySuffixOf`) is only for plain text that cannot hold an icon:
+  a `title` or `data-tip` tooltip, a select's options, a commit message.
+- An `aria-label` says it in words, the type after it: `products: many
+  DiscountedProduct` (`markWordOf`). The mark itself carries a hidden
+  `many: ` for content that is read as it stands.
+- Sizing that estimates a width (a diagram layout) counts the mark as one
+  more glyph block, not as the bracket text.
+
 ## Every modal uses `ModalFrame`
 
 A dialog is built from `ModalFrame`, `ModalBody` and `ModalFooter` in

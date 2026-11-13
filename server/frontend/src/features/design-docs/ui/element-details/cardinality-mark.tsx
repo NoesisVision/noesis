@@ -12,6 +12,10 @@ const MARKS = {
 /** The cardinality a slot is marked with: any but exactly one, which goes unmarked. */
 export type MarkedCardinality = keyof typeof MARKS;
 
+/** How a marked cardinality is said, `many` or `optional`; nothing for exactly one. */
+export const markWordOf = (cardinality: string | null | undefined) =>
+  isMarked(cardinality) ? MARKS[cardinality].word : null;
+
 export const isMarked = (
   cardinality: string | null | undefined,
 ): cardinality is MarkedCardinality =>

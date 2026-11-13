@@ -1,15 +1,14 @@
 import { IconChevronDown } from '@tabler/icons-react';
 import { type ReactNode, useContext, useState } from 'react';
+import {
+  CardinalityMark,
+  isMarked,
+} from '#/features/design-docs/element-reader.ts';
 import { Popover } from '#/shared/design-system/popover.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import type { Badge, WalkStep } from '../../system-model-exploration.ts';
-import {
-  badgeLabelOf,
-  badgeRowsOf,
-  badgeTipOf,
-  badgeTypeOf,
-} from './badge-rows.ts';
+import { badgeRowsOf, badgeSaidOf, badgeTipOf } from './badge-rows.ts';
 import { ExplorationReadingContext } from './exploration-reading.ts';
 import { SlotExplorer } from './slot-explorer.tsx';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
@@ -61,7 +60,10 @@ export function SlotBadges({
                   <VisuallyHidden>: </VisuallyHidden>
                   <span className={classes.type}>
                     <span className={classes.typeName}>
-                      {badgeTypeOf(badge)}
+                      {isMarked(badge.cardinality) && (
+                        <CardinalityMark cardinality={badge.cardinality} />
+                      )}
+                      {badge.typeName}
                     </span>
                     {badge.onDiagram && (
                       <>
@@ -142,7 +144,7 @@ function Walked({
           // A press on it is for the badge, not a drag or pan of the canvas.
           className={`nodrag nopan ${shared.className}`}
           // Named as the slot is written: its two lines would be read apart.
-          aria-label={`${badgeLabelOf(badge)}${badge.onDiagram ? ', also on the diagram' : ''}`}
+          aria-label={`${badgeSaidOf(badge)}${badge.onDiagram ? ', also on the diagram' : ''}`}
           aria-haspopup="dialog"
           aria-expanded={opened}
           onClick={() => setPath(opened ? null : [badge])}

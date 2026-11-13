@@ -155,7 +155,7 @@ describe('the walk drawn from a badge', () => {
     expect(html.match(/data-column="/g)).toHaveLength(5);
     expect(html).toContain('aria-label="DiscountedProduct, Value Object"');
     expect(html).toMatch(
-      /<button[^>]*aria-current="true"[^>]*aria-label="state products: DiscountedProduct \[\*\]"/,
+      /<button[^>]*aria-current="true"[^>]*aria-label="state products: many DiscountedProduct"/,
     );
   });
 
@@ -184,8 +184,10 @@ describe('the walk drawn from a badge', () => {
   it('draws a slot as a card, its name over its type, and a primitive as one that leads nowhere', () => {
     const html = explorer(round);
     expect(html).toMatch(
-      /<button[^>]*aria-label="state products: DiscountedProduct \[\*\]"[^>]*>.*?>products<\/span><span[^>]*>DiscountedProduct \[\*\]<\/span>/s,
+      /<button[^>]*aria-label="state products: many DiscountedProduct"[^>]*>.*?>products<\/span><span[^>]*><span[^>]*data-cardinality="\*"[^>]*>.*?tabler-icon-asterisk.*?<\/span><span[^>]*>many: <\/span>DiscountedProduct<\/span>/s,
     );
+    // Many is its mark, never `[*]` written after the type.
+    expect(html).not.toContain('[*]');
     // A behavior's slot is named with its behavior.
     expect(html).toContain('>apply · result<');
 

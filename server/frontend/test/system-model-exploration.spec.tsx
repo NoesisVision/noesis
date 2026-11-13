@@ -1178,7 +1178,7 @@ describe('slots drawn on the cards that hold them', () => {
     const order = render(ORDER, true);
     expect(order).toMatch(/<ul[^>]*aria-label="state"/);
     expect(order).toMatch(
-      />lines<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*>Line \[\*\]</,
+      />lines<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*><span[^>]*data-cardinality="\*"[^>]*>.*?<\/span><span[^>]*>many: <\/span>Line</,
     );
     // A primitive leads nowhere: its badge is words, not a button.
     expect(order).toMatch(
