@@ -413,6 +413,32 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     },
     [drawn],
   );
+  // These cards brought into view, unless all are in sight already, the
+  // panel a lone one is read in not over it.
+  const showInSight = useCallback(
+    (ids: readonly string[], alone: boolean) => {
+      if (flow === null) return;
+      const box = canvas.current?.getBoundingClientRect();
+      const bounds = flow.getNodesBounds([...ids]);
+      const start = flow.flowToScreenPosition(bounds);
+      const end = flow.flowToScreenPosition({
+        x: bounds.x + bounds.width,
+        y: bounds.y + bounds.height,
+      });
+      const inSight =
+        box !== undefined &&
+        start.x >= box.left &&
+        start.y >= box.top &&
+        end.x <= box.right - (alone ? PANEL_ROOM : 0) &&
+        end.y <= box.bottom;
+      if (inSight) return;
+      void flow.fitView({
+        ...focusOn(alone),
+        nodes: ids.map((id) => ({ id })),
+      });
+    },
+    [flow],
+  );
   useEffect(() => {
     const focus = focusAfter.current;
     if (focus === null || gliding || flow === null) return;
@@ -421,26 +447,17 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     const landed = new Set(nodes.map(({ id }) => id));
     if (!ids.every((id) => landed.has(id))) return;
     focusAfter.current = null;
-    const alone = focus.ids.length === 1;
-    const box = canvas.current?.getBoundingClientRect();
-    const bounds = flow.getNodesBounds(ids);
-    const start = flow.flowToScreenPosition(bounds);
-    const end = flow.flowToScreenPosition({
-      x: bounds.x + bounds.width,
-      y: bounds.y + bounds.height,
-    });
-    const inSight =
-      box !== undefined &&
-      start.x >= box.left &&
-      start.y >= box.top &&
-      end.x <= box.right - (alone ? PANEL_ROOM : 0) &&
-      end.y <= box.bottom;
-    if (inSight) return;
-    void flow.fitView({
-      ...focusOn(alone),
-      nodes: ids.map((id) => ({ id })),
-    });
-  }, [gliding, nodes, flow]);
+    showInSight(ids, focus.ids.length === 1);
+  }, [gliding, nodes, flow, showInSight]);
+  // A card already drawn, gone to from elsewhere — a badge naming its type:
+  // in hand alone, and in sight.
+  const goToCard = useCallback(
+    (id: string) => {
+      setSelection([id]);
+      showInSight([id], true);
+    },
+    [showInSight],
+  );
   // A row of the picker, clicked again and again: the element alone, then
   // it and all inside it, then none of them.
   const onPick = useCallback(
@@ -479,6 +496,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       path: pathTo(inHandSet, elementsById),
       badges: graph.badges,
       slots: exploration.slots,
+      onGoTo: goToCard,
       onSelect: select,
       onLetGo: () => {
         letGo();
@@ -512,6 +530,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       related,
       graph.badges,
       exploration.slots,
+      goToCard,
       select,
       letGo,
       present,

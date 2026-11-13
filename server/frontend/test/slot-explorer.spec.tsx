@@ -49,7 +49,7 @@ const round = walk(
   'result',
 );
 
-const explorer = (path: readonly WalkStep[]) =>
+const explorer = (path: readonly WalkStep[], onGoTo?: () => void) =>
   renderToStaticMarkup(
     <MantineProvider>
       <SlotExplorer
@@ -57,6 +57,7 @@ const explorer = (path: readonly WalkStep[]) =>
         onPath={() => {}}
         slots={slots}
         elements={elements}
+        onGoTo={onGoTo}
       />
     </MantineProvider>,
   );
@@ -123,6 +124,14 @@ describe('the walk drawn from a badge', () => {
     expect(html).toMatch(
       /<span[^>]*aria-current="location"[^>]*>result<\/span>/,
     );
+  });
+
+  it('offers the way to the type’s own card when it has one, and says where it goes', () => {
+    const html = explorer(round, () => {});
+    expect(html).toMatch(
+      /<button[^>]*>.*tabler-icon-arrow-up-right.*Go to DiscountedOffer on the diagram<\/button>/s,
+    );
+    expect(explorer(round)).not.toContain('on the diagram');
   });
 
   it('draws a column a step, the row it went on by marked', () => {

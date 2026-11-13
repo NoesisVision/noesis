@@ -1,4 +1,4 @@
-import { IconChevronRight } from '@tabler/icons-react';
+import { IconArrowUpRight, IconChevronRight } from '@tabler/icons-react';
 import {
   type AnimationEvent,
   type KeyboardEvent,
@@ -75,12 +75,15 @@ export function SlotExplorer({
   onPath,
   slots,
   elements,
+  onGoTo,
 }: {
   /** The walk so far: the badge's own slot first. */
   path: readonly WalkStep[];
   onPath: (path: readonly WalkStep[]) => void;
   slots: ModelSlots;
   elements: Elements;
+  /** Given when the badge's type has a card of its own: goes to it. */
+  onGoTo?: () => void;
 }) {
   const [root] = path;
   const columns = walkOf(slots, path);
@@ -168,6 +171,13 @@ export function SlotExplorer({
         <Text component="span" fz="xs" c="dimmed">
           {`${roleOf(root)} · ${kindOf(root.type, elements)}`}
         </Text>
+        {/* The badge's ↗ said in words, and the way to the card it means. */}
+        {onGoTo !== undefined && (
+          <UnstyledButton className={classes.goTo} onClick={onGoTo}>
+            <IconArrowUpRight size={14} stroke={2} aria-hidden />
+            {`Go to ${root.typeName} on the diagram`}
+          </UnstyledButton>
+        )}
       </div>
       <nav className={classes.path} aria-label="Path">
         <span className={classes.steps}>

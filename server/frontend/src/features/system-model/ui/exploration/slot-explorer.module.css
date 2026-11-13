@@ -15,7 +15,31 @@
 .head {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   padding-inline: var(--mantine-spacing-sm);
+}
+
+/*
+ * The way to the type's own card, read as a link under the title. Named
+ * with its head, to win over the unstyled button's own reset.
+ */
+.head .goTo {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-top: 4px;
+  color: var(--mantine-color-anchor);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 2px;
+  }
 }
 
 /*
@@ -29,6 +53,7 @@
  * right; the steps in it read left to right.
  */
 .path {
+  display: flex;
   overflow-x: auto;
   direction: rtl;
   margin-inline: var(--mantine-spacing-xs);
@@ -43,6 +68,9 @@
 
 .steps {
   display: inline-flex;
+  flex: none;
+  /* A short path stands at the left; a long one leaves no room for it. */
+  margin-inline-end: auto;
   align-items: center;
   gap: 2px;
   direction: ltr;

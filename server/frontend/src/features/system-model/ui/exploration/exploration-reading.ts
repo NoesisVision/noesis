@@ -25,6 +25,8 @@ export interface ExplorationReading {
   badges: ReadonlyMap<string, readonly Badge[]>;
   /** Every slot of the model, for a badge to walk from its type on. */
   slots: ModelSlots;
+  /** Takes a card already drawn in hand alone and brings it into sight. */
+  onGoTo: (id: string) => void;
   /** Takes an element in hand alone, or — adding — into the hand or out of it. */
   onSelect: (id: string, adding: boolean) => void;
   /** Lets go of everything in hand, as a click on the empty canvas does. */
@@ -62,6 +64,7 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   path: new Set(),
   badges: new Map(),
   slots: { of: new Map(), behaviors: new Map() },
+  onGoTo: () => {},
   onSelect: () => {},
   onLetGo: () => {},
   drawn: new Set(),

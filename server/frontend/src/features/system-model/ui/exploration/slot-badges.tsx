@@ -118,7 +118,7 @@ function Walked({
   'data-related': true | undefined;
   'data-tip': string;
 }) {
-  const { slots, elements } = useContext(ExplorationReadingContext);
+  const { slots, elements, onGoTo } = useContext(ExplorationReadingContext);
   const [path, setPath] = useState<readonly WalkStep[] | null>(null);
   const surface = useThemedSurface('slot-explorer');
   const opened = path !== null;
@@ -161,6 +161,14 @@ function Walked({
             onPath={setPath}
             slots={slots}
             elements={elements}
+            onGoTo={
+              badge.onDiagram
+                ? () => {
+                    setPath(null);
+                    onGoTo(badge.type);
+                  }
+                : undefined
+            }
           />
         )}
       </Popover.Dropdown>
