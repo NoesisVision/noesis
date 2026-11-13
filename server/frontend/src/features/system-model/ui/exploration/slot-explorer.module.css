@@ -230,6 +230,13 @@
 .group {
   --slot-line: var(--noesis-diagram-edge-state);
   --slot-word: var(--noesis-diagram-edge-state-word);
+  /* A cardinality's mark in the slot card's own colour, a tint deeper. */
+  --cardinality-mark-ink: var(--slot-word);
+  --cardinality-mark-fill: color-mix(
+    in srgb,
+    var(--slot-line) 24%,
+    transparent
+  );
 
   display: flex;
   flex-direction: column;

@@ -66,6 +66,13 @@
 .list .badge {
   --badge-line: var(--noesis-diagram-edge-state);
   --badge-word: var(--noesis-diagram-edge-state-word);
+  /* Its cardinality's mark in the badge's own colour, a tint deeper. */
+  --cardinality-mark-ink: var(--badge-word);
+  --cardinality-mark-fill: color-mix(
+    in srgb,
+    var(--badge-line) 24%,
+    transparent
+  );
 
   display: flex;
   flex-direction: column;

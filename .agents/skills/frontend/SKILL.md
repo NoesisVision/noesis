@@ -228,6 +228,12 @@ beside it, outside the truncating span, so it is always whole.
   `, many` before its icon, for content that is read as it stands.
 - Sizing that estimates a width (a diagram layout) counts the mark as one
   more glyph block, not as the bracket text.
+- The mark takes the colours of what it stands in. Beside plain text it is
+  quiet gray; inside anything coloured — a relation's badge or slot card,
+  a tag — that thing sets `--cardinality-mark-ink` (its own word colour)
+  and `--cardinality-mark-fill` (a deeper tint of its own line colour), so
+  the mark is blue on blue, green on green, orange on orange. Never a gray
+  block on a coloured badge.
 
 ## Every modal uses `ModalFrame`
 
