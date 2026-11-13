@@ -1,3 +1,4 @@
+import { IconChevronDown } from '@tabler/icons-react';
 import { type ReactNode, useContext, useState } from 'react';
 import { Popover } from '#/shared/design-system/popover.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
@@ -51,21 +52,33 @@ export function SlotBadges({
                 // Said by the canvas's one tooltip, as a card's controls are.
                 'data-tip': badgeTipOf(badge),
               };
+              const opens = elements.has(badge.type);
               const words = (
                 <>
-                  {/* Its name over its type, each a line of its own; read
-                      out as the slot is written, `offer: Offer`. */}
+                  {/* Its name, quiet, over its type, each a line of its
+                      own; read out as the slot is written, `offer: Offer`. */}
                   <span className={classes.name}>{badge.name}</span>
                   <VisuallyHidden>: </VisuallyHidden>
                   <span className={classes.type}>
-                    {badgeTypeOf(badge)}
+                    <span className={classes.typeName}>
+                      {badgeTypeOf(badge)}
+                    </span>
                     {badge.onDiagram && (
                       <>
-                        <span className={classes.onDiagram} aria-hidden>
+                        <span className={classes.mark} aria-hidden>
                           ↗
                         </span>
                         <VisuallyHidden>, also on the diagram</VisuallyHidden>
                       </>
+                    )}
+                    {/* A type to walk into says so, faintly. */}
+                    {opens && (
+                      <IconChevronDown
+                        className={classes.mark}
+                        size={10}
+                        stroke={2.4}
+                        aria-hidden
+                      />
                     )}
                   </span>
                 </>
@@ -75,7 +88,7 @@ export function SlotBadges({
                   key={`${badge.holder}#${badge.name}`}
                   className={classes.item}
                 >
-                  {elements.has(badge.type) ? (
+                  {opens ? (
                     <Walked badge={badge} {...shared}>
                       {words}
                     </Walked>

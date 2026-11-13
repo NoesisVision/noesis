@@ -103,9 +103,12 @@ const BADGE_GAP = 4;
 /** About one character of a badge, with its padding and border. */
 const badgeWidthOf = (badge: Badge) =>
   Math.max(
-    badge.name.length * 6.6,
-    // Its type, and the mark after it of a type with a card of its own.
-    badgeTypeOf(badge).length * 6.4 + (badge.onDiagram ? 14 : 0),
+    badge.name.length * 6.2,
+    // Its type, in bold, and the marks after it: a card of its own, and
+    // the chevron of a type to walk into — any but a primitive.
+    badgeTypeOf(badge).length * 6.8 +
+      (badge.onDiagram ? 13 : 0) +
+      (badge.type.startsWith('primitive|') ? 0 : 13),
   ) + 20;
 /** The widest a card grows for its badges before they wrap. */
 const MAX_BADGED_WIDTH = 380;

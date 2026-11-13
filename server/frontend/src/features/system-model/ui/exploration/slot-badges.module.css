@@ -120,28 +120,40 @@
 
 /* Each line its own: cut short at the badge's edge, never wrapped. */
 .name,
-.type {
+.typeName {
   overflow: hidden;
+  min-width: 0;
   max-width: 100%;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
+/* The slot's name, quiet: what it holds is the type under it. */
 .name {
-  font-size: var(--mantine-font-size-xs);
-  font-weight: 600;
-  line-height: 15px;
-}
-
-.type {
   font-size: 11px;
   font-weight: 500;
   line-height: 14px;
-  opacity: 0.8;
+  opacity: 0.75;
 }
 
-/* Its type still has a card on the diagram. */
-.onDiagram {
-  margin-inline-start: 3px;
-  color: var(--noesis-diagram-selection);
+/* Its type, in bold, then its marks, which stay whole as it is cut short. */
+.type {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  max-width: 100%;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 650;
+  line-height: 15px;
+}
+
+/*
+ * A mark after the type — a card of its own on the diagram (↗), a type to
+ * walk into (a chevron) — in the badge's own colour, faint.
+ */
+.mark {
+  flex: none;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.55;
 }

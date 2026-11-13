@@ -1165,19 +1165,23 @@ describe('slots drawn on the cards that hold them', () => {
     );
     // Its name over its type, each a line, read out as `line: Line`.
     expect(place).toMatch(
-      /<span[^>]*>line<\/span><span[^>]*>: <\/span><span[^>]*>Line<span/,
+      /<span[^>]*>line<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*>Line<\/span>/,
     );
+    // A type to walk into says so with a chevron; one with a card, with ↗.
+    expect(place).toContain('tabler-icon-chevron-down');
+    expect(place).toMatch(/<span[^>]*>↗<\/span>/);
     expect(place).toContain('also on the diagram');
 
     // Order holds place: a frame, its top as tall as its name and badges.
     const order = render(ORDER, true);
     expect(order).toMatch(/<ul[^>]*aria-label="state"/);
     expect(order).toMatch(
-      />lines<\/span><span[^>]*>: <\/span><span[^>]*>Line \[\*\]</,
+      />lines<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*>Line \[\*\]</,
     );
     // A primitive leads nowhere: its badge is words, not a button.
     expect(order).toMatch(
-      /<li[^>]*><span[^>]*data-relation="state"[^>]*><span[^>]*>id<\/span><span[^>]*>: <\/span><span[^>]*>uuid</,
+      // …and no chevron: it opens nothing.
+      /<li[^>]*><span[^>]*data-relation="state"[^>]*><span[^>]*>id<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*>uuid<\/span><\/span><\/span><\/li>/,
     );
     expect(order).toContain(
       `--frame-top:${
