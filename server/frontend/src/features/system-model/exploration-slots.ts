@@ -4,7 +4,11 @@ import type {
   SystemModel,
   TypeId,
 } from '#backend/app/system-model/system-model.ts';
-import type { DrawnRelationKind } from './exploration-relations.ts';
+import {
+  type DrawnRelationKind,
+  type Reach,
+  RELATION_OF_REACH,
+} from './exploration-relations.ts';
 
 /*
  * The model's slots, read whole: a building block's pieces of state, and a
@@ -180,3 +184,12 @@ export function walkOf(
     next: index + 1 < path.length ? slotKeyOf(path[index + 1]!) : null,
   }));
 }
+
+/** Whether a way of reaching others from a card follows a slot: a state, an input, an output, either way. */
+export const isSlotReach = (reach: Reach): boolean => {
+  const kind =
+    reach === 'contains' || reach === 'isPartOf'
+      ? undefined
+      : RELATION_OF_REACH.get(reach);
+  return kind === 'state' || kind === 'input' || kind === 'output';
+};

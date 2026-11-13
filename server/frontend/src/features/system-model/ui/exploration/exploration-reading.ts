@@ -45,6 +45,8 @@ export interface ExplorationReading {
     arrange?: boolean,
     /** Where on the canvas they were asked for, to stand round, if anywhere. */
     at?: CanvasPoint,
+    /** Brought in by following a slot from the card: badges, with slots on cards. */
+    bySlot?: boolean,
   ) => void;
   /** Draws a relation's edges, if they are not drawn already. */
   onDraw: (relation: DrawnRelationKind) => void;

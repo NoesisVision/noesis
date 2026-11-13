@@ -8,6 +8,7 @@ import {
   CHAIN_DEPTH,
   type ChainReach,
   groupLabelOf,
+  isSlotReach,
   type Reach,
   relationOfChain,
 } from '../../system-model-exploration.ts';
@@ -112,7 +113,7 @@ function ChainEntry({
     <Menu.Item
       onClick={() => {
         onDraw(relationOfChain(reach));
-        onShow(missing, true, id);
+        onShow(missing, true, id, false, undefined, isSlotReach(reach));
       }}
     >
       {`${REACH_ACTION[reach]}: ${missing.length}`}

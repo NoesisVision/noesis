@@ -18,6 +18,7 @@ import {
   NO_PICKS,
   NOTHING_CHOSEN,
   picked,
+  isSlotReach,
   RELATIONS,
   type RelationKind,
   relatedTo,
@@ -984,6 +985,72 @@ describe('slots drawn on the cards that hold them', () => {
     expect(ids(none)).toContain(LINE);
   });
 
+  describe('drawn as the app draws them, every card put in by the reader', () => {
+    /** The diagram with every kind hidden, as the app has it, and these picks. */
+    const asTheAppDraws = (picks: ReturnType<typeof picked>) =>
+      graphOf(exploration, {
+        hidden: hiddenBy(NOTHING_CHOSEN, exploration),
+        relations: new Set(['contains', 'state', 'input']),
+        picks,
+        slots: 'cards',
+      });
+    const byName = [ORDER, PLACE].reduce(
+      (picks, id) => picked(picks, id, true),
+      NO_PICKS,
+    );
+
+    it('keeps a type put in by name as a card of its own', () => {
+      const graph = asTheAppDraws(picked(byName, LINE, true));
+      expect(ids(graph)).toContain(LINE);
+      expect(graph.folded.size).toBe(0);
+    });
+
+    it('folds a type brought in by following a slot from a card into its badges', () => {
+      const graph = asTheAppDraws(picked(byName, LINE, true, true));
+      expect(ids(graph)).not.toContain(LINE);
+      expect([...graph.folded]).toEqual([LINE]);
+      expect(badges(graph, PLACE)).toEqual(['input line: Line 1']);
+    });
+
+    it('brings a folded type out as a card once it is put in by name', () => {
+      const slotted = picked(byName, LINE, true, true);
+      const named = picked(slotted, LINE, true);
+      expect([...(named.bySlot ?? [])]).toEqual([]);
+      expect(ids(asTheAppDraws(named))).toContain(LINE);
+    });
+
+    it('forgets how a type came once it is taken off', () => {
+      const gone = picked(picked(byName, LINE, true, true), LINE, false);
+      expect([...(gone.bySlot ?? [])]).toEqual([]);
+    });
+
+    it('keeps how each type came across a later scan', () => {
+      const kept = choiceWithin(
+        { shown: new Set(), picks: picked(byName, LINE, true, true) },
+        exploration,
+      );
+      expect([...(kept.picks.bySlot ?? [])]).toEqual([LINE]);
+    });
+
+    it('tells a slot followed from a card from any other way of reaching', () => {
+      expect(
+        [
+          'hasInput',
+          'inputOf',
+          'hasState',
+          'stateOf',
+          'hasOutput',
+          'outputOf',
+        ].every((reach) => isSlotReach(reach as never)),
+      ).toBeTrue();
+      expect(
+        ['invokes', 'worksWith', 'extends', 'contains', 'isPartOf'].some(
+          (reach) => isSlotReach(reach as never),
+        ),
+      ).toBeFalse();
+    });
+  });
+
   it('reads a card’s badges in rows, inputs, output, then state, each saying what it is to the card', () => {
     const graph = onCards(['contains', 'state', 'input']);
     const rows = badgeRowsOf(graph.badges.get(ORDER) ?? []);
@@ -1344,6 +1411,7 @@ describe('placing a change from one card', () => {
     elements,
     relations: [],
     badges: new Map(),
+    folded: new Set<string>(),
   });
   const apart = (
     a: { x: number; y: number; width: number; height: number },

@@ -59,6 +59,24 @@ describe('the steps the diagram took, kept on the machine', () => {
     expect(recalled?.at).toBe(1);
   });
 
+  it('keeps which types came by following a slot, and reads none from a step saved before', () => {
+    const slotted: DiagramStep = {
+      ...step('cards'),
+      choice: {
+        shown: new Set(),
+        picks: {
+          added: new Set(['a', 'b']),
+          removed: new Set(),
+          bySlot: new Set(['b']),
+        },
+      },
+    };
+    rememberSteps(MODEL, { list: [slotted], at: 0 });
+    expect([
+      ...(recallSteps(MODEL)?.list[0]?.choice.picks.bySlot ?? []),
+    ]).toEqual(['b']);
+  });
+
   it('opens a step saved before slots could be on cards as it was drawn, as nodes', () => {
     storage.setItem(
       KEY,
@@ -77,10 +95,9 @@ describe('the steps the diagram took, kept on the machine', () => {
         ],
       }),
     );
-    expect(recallSteps(MODEL)?.list[0]).toMatchObject({
-      slots: 'nodes',
-      direction: 'horizontal',
-    });
+    const old = recallSteps(MODEL)?.list[0];
+    expect(old).toMatchObject({ slots: 'nodes', direction: 'horizontal' });
+    expect(old?.choice.picks.bySlot?.size).toBe(0);
   });
 
   it('forgets steps that say slots are drawn somewhere it does not know', () => {

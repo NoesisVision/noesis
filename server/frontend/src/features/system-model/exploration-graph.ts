@@ -44,6 +44,8 @@ export interface ExplorationGraph {
   relations: DrawnRelation[];
   /** Each drawn element's badges, with slots on cards; none with slots as nodes. */
   badges: ReadonlyMap<string, readonly Badge[]>;
+  /** What is on the diagram as badges only, with slots on cards: shown, but no card. */
+  folded: ReadonlySet<string>;
 }
 
 /** The relations that are slots, drawn on cards when slots are. */
@@ -53,6 +55,7 @@ const SLOT_RELATIONS: ReadonlySet<DrawnRelationKind> = new Set<SlotRelation>([
   'output',
 ]);
 const NO_BADGES: ReadonlyMap<string, readonly Badge[]> = new Map();
+const NONE_FOLDED: ReadonlySet<string> = new Set();
 
 /**
  * What is drawn: the elements of the groups shown, with those added one by
@@ -62,9 +65,10 @@ const NO_BADGES: ReadonlyMap<string, readonly Badge[]> = new Map();
  *
  * With slots on cards, the slot relations asked for are not edges but the
  * badges of the cards that hold them, and a card that is on the diagram
- * only as a slot's type leaves it: one the reader did not add, joined by no
- * other relation drawn, with nothing drawn inside it. A type that stays is
- * still not joined by its slots' edges; its badges say it is there.
+ * only as a slot's type leaves it: one the reader did not add by name —
+ * only by following a slot from a card, or with its whole kind — joined by
+ * no other relation drawn, with nothing drawn inside it. A type that stays
+ * is still not joined by its slots' edges; its badges say it is there.
  */
 export function graphOf(
   exploration: Exploration,
@@ -129,11 +133,17 @@ export function graphOf(
     parent: nested ? containerOf(element) : null,
   }));
   if (slots === 'nodes')
-    return { elements, relations: drawn, badges: NO_BADGES };
+    return {
+      elements,
+      relations: drawn,
+      badges: NO_BADGES,
+      folded: NONE_FOLDED,
+    };
 
-  // On the diagram for its own sake: added by hand, joined by a relation
+  // On the diagram for its own sake: added by name, joined by a relation
   // that is no slot, or drawn round something.
-  const kept = new Set(picks.added);
+  const bySlot = picks.bySlot ?? NONE_FOLDED;
+  const kept = new Set([...picks.added].filter((id) => !bySlot.has(id)));
   for (const relation of drawn)
     if (!SLOT_RELATIONS.has(relation.kind)) {
       kept.add(relation.source);
@@ -161,6 +171,7 @@ export function graphOf(
     elements: onCards,
     relations: drawn.filter(({ kind }) => !SLOT_RELATIONS.has(kind)),
     badges,
+    folded,
   };
 }
 

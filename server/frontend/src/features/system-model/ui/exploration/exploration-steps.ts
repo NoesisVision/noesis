@@ -76,6 +76,8 @@ function forgetOthers(modelId: string, all: boolean): void {
 interface StoredStep {
   added: string[];
   removed: string[];
+  /** Absent from a step saved before slots could be drawn on cards. */
+  bySlot?: string[];
   relations: RelationKind[];
   direction: LayoutDirection;
   /** Absent from a step saved before slots could be drawn on cards: it was drawn as nodes. */
@@ -92,6 +94,7 @@ const storedOf = ({
 }: DiagramStep): StoredStep => ({
   added: [...choice.picks.added],
   removed: [...choice.picks.removed],
+  bySlot: [...(choice.picks.bySlot ?? [])],
   relations: [...relations],
   direction,
   slots,
@@ -144,7 +147,11 @@ export function recallSteps(modelId: string): DiagramSteps | null {
     list: stored.list.map((step) => ({
       choice: {
         shown: new Set(),
-        picks: { added: new Set(step.added), removed: new Set(step.removed) },
+        picks: {
+          added: new Set(step.added),
+          removed: new Set(step.removed),
+          bySlot: new Set(step.bySlot),
+        },
       },
       relations: new Set(step.relations),
       direction: step.direction,
@@ -205,6 +212,7 @@ function isStep(value: unknown): value is StoredStep {
   return (
     isNames(field(value, 'added')) &&
     isNames(field(value, 'removed')) &&
+    (field(value, 'bySlot') === undefined || isNames(field(value, 'bySlot'))) &&
     Array.isArray(relations) &&
     relations.every(isRelation) &&
     (direction === 'vertical' || direction === 'horizontal') &&

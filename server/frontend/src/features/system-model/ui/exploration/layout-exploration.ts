@@ -308,6 +308,7 @@ export async function layoutWithin(
         ({ source, target }) => inside.has(source) && inside.has(target),
       ),
       badges: graph.badges,
+      folded: graph.folded,
     },
     algorithm,
     direction,

@@ -14,6 +14,8 @@ interface Stored {
   shown: string[];
   added: string[];
   removed: string[];
+  /** Absent from a choice kept before slots could be drawn on cards. */
+  bySlot?: string[];
 }
 
 export function recallChoice(): ElementChoice {
@@ -22,7 +24,11 @@ export function recallChoice(): ElementChoice {
   return {
     // Whole kinds are no longer drawn by choice, so none kept from before is.
     shown: new Set(),
-    picks: { added: new Set(stored.added), removed: new Set(stored.removed) },
+    picks: {
+      added: new Set(stored.added),
+      removed: new Set(stored.removed),
+      bySlot: new Set(stored.bySlot),
+    },
   };
 }
 
@@ -31,6 +37,7 @@ export function rememberChoice({ shown, picks }: ElementChoice): void {
     shown: [...shown],
     added: [...picks.added],
     removed: [...picks.removed],
+    bySlot: [...(picks.bySlot ?? [])],
   };
   try {
     window.localStorage.setItem(KEY, JSON.stringify(stored));
@@ -52,8 +59,12 @@ function readStored(): Stored | null {
     const shown: unknown = Reflect.get(parsed, 'shown');
     const added: unknown = Reflect.get(parsed, 'added');
     const removed: unknown = Reflect.get(parsed, 'removed');
-    return isNames(shown) && isNames(added) && isNames(removed)
-      ? { shown, added, removed }
+    const bySlot: unknown = Reflect.get(parsed, 'bySlot');
+    return isNames(shown) &&
+      isNames(added) &&
+      isNames(removed) &&
+      (bySlot === undefined || isNames(bySlot))
+      ? { shown, added, removed, bySlot }
       : null;
   } catch {
     return null;

@@ -100,10 +100,13 @@ const STEPS = 100;
 const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) =>
   a.size === b.size && [...a].every((each) => b.has(each));
 
+const NONE: ReadonlySet<string> = new Set();
+
 const sameChoice = (a: ElementChoice, b: ElementChoice) =>
   sameSet(a.shown, b.shown) &&
   sameSet(a.picks.added, b.picks.added) &&
-  sameSet(a.picks.removed, b.picks.removed);
+  sameSet(a.picks.removed, b.picks.removed) &&
+  sameSet(a.picks.bySlot ?? NONE, b.picks.bySlot ?? NONE);
 
 /** The one layout the reader is offered. */
 const ALGORITHM = 'layered';
@@ -368,11 +371,18 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [graph],
   );
   const isShown = useCallback((id: string) => drawn.has(id), [drawn]);
+  // On the diagram, as a card or as badges only: what a card's menu need
+  // not offer to bring in. The picker offers a type drawn as badges only,
+  // to bring out as a card of its own.
+  const present = useMemo(
+    () => new Set([...drawn, ...graph.folded]),
+    [drawn, graph.folded],
+  );
   const onShowAll = useCallback(
-    (ids: readonly string[], shown: boolean) =>
+    (ids: readonly string[], shown: boolean, bySlot = false) =>
       setChoice((current) => {
         const kept = choiceWithin(current, exploration);
-        return { ...kept, picks: pickedAll(kept.picks, ids, shown) };
+        return { ...kept, picks: pickedAll(kept.picks, ids, shown, bySlot) };
       }),
     [exploration],
   );
@@ -474,7 +484,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         letGo();
         setQuick(null);
       },
-      drawn,
+      drawn: present,
       neighbours,
       elements: elementsById,
       onShow: (
@@ -483,10 +493,11 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         from: string,
         thenArrange = false,
         at?: CanvasPoint,
+        bySlot = false,
       ) => {
         if (!shown) return remove(ids, from);
         placeBeside(at ?? from, thenArrange ? [from] : []);
-        onShowAll(ids, shown);
+        onShowAll(ids, shown, bySlot);
         bringIn(ids, from);
       },
       onDraw: (relation) =>
@@ -503,7 +514,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       exploration.slots,
       select,
       letGo,
-      drawn,
+      present,
       neighbours,
       elementsById,
       remove,
