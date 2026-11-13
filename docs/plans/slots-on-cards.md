@@ -55,12 +55,12 @@ read from the scan once, beside the exploration.
 - `relationsOfType(slots, type)`: the popup's column for one type,
   `{ state, input, output }`, where input and output are the slots of the
   behaviors the block exposes (`exposes`), each naming its behavior.
-- `foldedBy(graph, picks)`: the elements that leave with slots on cards, by
-  the rule in Decisions.
-
-`graphOf` takes `slots: 'cards' | 'nodes'`. On cards it leaves out the slot
-relations and the folded elements, and returns each drawn element's badges:
-its slots, each marked when its type is still on the diagram.
+  `explorationOf` carries the slots (`Exploration.slots`), and `graphOf` takes
+  `slots: 'cards' | 'nodes'`, `'nodes'` when not given. On cards it leaves out
+  the slot relations and, by the rule in Decisions, the elements that are on
+  the diagram only as a slot's type, and returns each drawn element's badges
+  (`ExplorationGraph.badges`): its slots of the relations asked for, each
+  marked when its type is still on the diagram.
 
 ## The view
 
@@ -97,7 +97,7 @@ One green commit each (`bun run ci`).
 1. **Slots from the model.** `exploration-slots.ts` with `slotsOf` and
    `relationsOfType`, tested on the discounts-java fixture: positions,
    primitives, behaviors' slots under their block, a type with no state.
-2. **The fold.** `foldedBy` and `graphOf({ slots })`: slot edges out, folded
+2. **The fold.** `graphOf({ slots })`: slot edges out, folded
    elements out, badges per element. Tested: a type added by hand stays, one
    with an `extends` or `works with` edge stays, a frame stays, a value
    object shown only as an output leaves, the relation filter hides a badge

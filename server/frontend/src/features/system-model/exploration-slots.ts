@@ -16,9 +16,12 @@ import type { DrawnRelationKind } from './exploration-relations.ts';
  */
 
 /** The relations that are slots, as the explorer names them. */
-type SlotRelation = Extract<DrawnRelationKind, 'state' | 'input' | 'output'>;
+export type SlotRelation = Extract<
+  DrawnRelationKind,
+  'state' | 'input' | 'output'
+>;
 
-interface Slot {
+export interface Slot {
   relation: SlotRelation;
   /** The block whose state it is, or the behavior whose input or output it is. */
   holder: string;

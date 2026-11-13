@@ -15,6 +15,7 @@ import {
   type DrawnRelationKind,
   type Pair,
 } from './exploration-relations.ts';
+import { type ModelSlots, slotsOf } from './exploration-slots.ts';
 
 /*
  * The scanned model read as a graph of explored elements, and how an
@@ -56,6 +57,8 @@ export interface Exploration {
    * the edges do not show it yet.
    */
   cardinalities: ReadonlyMap<string, readonly Cardinality[]>;
+  /** Every slot of the model, primitives included, and what each block exposes: what a card carries when slots are drawn on it. */
+  slots: ModelSlots;
 }
 
 export function explorationOf(model: SystemModel): Exploration {
@@ -153,7 +156,7 @@ export function explorationOf(model: SystemModel): Exploration {
   edges.invokes = calls
     .sort((a, b) => byCodeUnit(a.from, b.from) || a.order - b.order)
     .map(({ from, to }): Pair => [from, to]);
-  return { elements, edges, cardinalities };
+  return { elements, edges, cardinalities, slots: slotsOf(model) };
 }
 
 /** What the code is built into and runs on, and the layers it is cut in: elements in no module. */

@@ -199,6 +199,7 @@ export async function layoutWithin(
       relations: graph.relations.filter(
         ({ source, target }) => inside.has(source) && inside.has(target),
       ),
+      badges: graph.badges,
     },
     algorithm,
     direction,

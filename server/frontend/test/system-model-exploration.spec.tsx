@@ -867,6 +867,109 @@ describe('elements put in or taken out one by one', () => {
   });
 });
 
+describe('slots drawn on the cards that hold them', () => {
+  const ORDER = 'building_block|shop.orders.Order';
+  const LINE = 'building_block|shop.orders.Line';
+  const PLACE = 'behavior|shop.orders.Order.place';
+  const onCards = (
+    relations: RelationKind[],
+    { from = exploration, picks = NO_PICKS } = {},
+  ) =>
+    graphOf(from, {
+      hidden: new Set(),
+      relations: new Set(relations),
+      picks,
+      slots: 'cards',
+    });
+  const ids = (graph: ReturnType<typeof onCards>) =>
+    graph.elements.map(({ id }) => id);
+  const kinds = (graph: ReturnType<typeof onCards>) =>
+    graph.relations.map(({ kind }) => kind);
+  /** A card's badges as a reader sees them, ↗ for a type still on the diagram. */
+  const badges = (graph: ReturnType<typeof onCards>, id: string) =>
+    (graph.badges.get(id) ?? []).map(
+      ({ relation, name, typeName, cardinality, onDiagram }) =>
+        `${relation} ${name}: ${typeName} ${cardinality}${onDiagram ? ' ↗' : ''}`,
+    );
+  /** The shop with these relations besides its own. */
+  const shopWith = (...relations: object[]) =>
+    explorationOf({
+      ...model,
+      relations: [...model.relations, ...relations],
+    } as SystemModel);
+
+  it('draws slots as edges, with no badges, unless asked otherwise', () => {
+    const graph = draw(['contains', 'state', 'input']);
+    expect(ids(graph)).toContain(LINE);
+    expect(kinds(graph)).toEqual(['state', 'input']);
+    expect(graph.badges.size).toBe(0);
+  });
+
+  it('takes off a card that is there only as a slot’s type, and its edges', () => {
+    const graph = onCards(['contains', 'state', 'input', 'output']);
+    expect(ids(graph)).not.toContain(LINE);
+    expect(ids(graph)).toEqual(expect.arrayContaining([ORDER, PLACE]));
+    expect(kinds(graph)).toEqual([]);
+  });
+
+  it('puts every slot on the card that holds it, a primitive’s too', () => {
+    const graph = onCards(['contains', 'state', 'input', 'output']);
+    expect(badges(graph, ORDER)).toEqual([
+      'state lines: Line *',
+      'state id: uuid 1',
+    ]);
+    expect(badges(graph, PLACE)).toEqual(['input line: Line 1']);
+  });
+
+  it('keeps a type the reader added, with no edge to it, and marks its badges', () => {
+    const graph = onCards(['contains', 'state', 'input'], {
+      picks: picked(NO_PICKS, LINE, true),
+    });
+    expect(ids(graph)).toContain(LINE);
+    expect(kinds(graph)).toEqual([]);
+    expect(badges(graph, ORDER)[0]).toBe('state lines: Line * ↗');
+    expect(badges(graph, PLACE)).toEqual(['input line: Line 1 ↗']);
+  });
+
+  it('keeps a type joined by a relation that is no slot', () => {
+    const graph = onCards(['contains', 'state', 'input', 'extends'], {
+      from: shopWith({ kind: 'extends', from: LINE, to: ORDER }),
+    });
+    expect(ids(graph)).toContain(LINE);
+    expect(kinds(graph)).toEqual(['extends']);
+  });
+
+  it('keeps a type drawn round what it holds, and takes it off when nothing is drawn inside', () => {
+    const total = 'behavior|shop.orders.Line.total';
+    const from = explorationOf({
+      ...model,
+      behaviors: [
+        ...model.behaviors,
+        { id: total, name: 'total', description: null, source },
+      ],
+      relations: [
+        ...model.relations,
+        { kind: 'exposes', from: LINE, to: total },
+      ],
+    } as SystemModel);
+    expect(ids(onCards(['contains', 'state', 'input'], { from }))).toContain(
+      LINE,
+    );
+    expect(ids(onCards(['state', 'input'], { from }))).not.toContain(LINE);
+  });
+
+  it('carries only the slots of the relations asked for, and keeps a type no slot drawn names', () => {
+    const inputs = onCards(['contains', 'input']);
+    expect(badges(inputs, ORDER)).toEqual([]);
+    expect(badges(inputs, PLACE)).toEqual(['input line: Line 1']);
+    expect(ids(inputs)).not.toContain(LINE);
+
+    const none = onCards(['contains']);
+    expect(none.badges.size).toBe(0);
+    expect(ids(none)).toContain(LINE);
+  });
+});
+
 describe('what the reader chose to draw', () => {
   it('hides every group until some are chosen', () => {
     const groups = elementSectionsOf(exploration).flatMap(({ groups }) =>
@@ -1075,6 +1178,7 @@ describe('placing a change from one card', () => {
   const graphOf = (...elements: ReturnType<typeof element>[]) => ({
     elements,
     relations: [],
+    badges: new Map(),
   });
   const apart = (
     a: { x: number; y: number; width: number; height: number },
