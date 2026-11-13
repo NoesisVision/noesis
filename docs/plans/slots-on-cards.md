@@ -52,7 +52,7 @@ read from the scan once, beside the exploration.
   input then output, inputs by `position`. Read from `has_state`,
   `has_input`, `has_output`, so primitives are kept. `explorationOf` drops
   them today because they join nothing drawn.
-- `relationsOfType(slots, model, type)`: the popup's column for one type,
+- `relationsOfType(slots, type)`: the popup's column for one type,
   `{ state, input, output }`, where input and output are the slots of the
   behaviors the block exposes (`exposes`), each naming its behavior.
 - `foldedBy(graph, picks)`: the elements that leave with slots on cards, by

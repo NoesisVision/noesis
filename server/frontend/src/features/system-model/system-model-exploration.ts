@@ -28,3 +28,4 @@ export * from './exploration-sections.ts';
 export * from './exploration-choice.ts';
 export * from './exploration-graph.ts';
 export * from './exploration-reach.ts';
+export * from './exploration-slots.ts';
