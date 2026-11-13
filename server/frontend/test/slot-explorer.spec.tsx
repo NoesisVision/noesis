@@ -2,10 +2,12 @@ import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
+  columnsLeftBy,
   explorationOf,
   relationsOfType,
   slotKeyOf,
   type WalkStep,
+  walkKeyOf,
   walkOf,
 } from '../src/features/system-model/system-model-exploration';
 import { SlotExplorer } from '../src/features/system-model/ui/exploration/slot-explorer';
@@ -80,6 +82,32 @@ describe('a walk through the types a slot leads to', () => {
       type: DISCOUNTED_OFFER,
     });
     expect(discount.through.has(DISCOUNTED_OFFER)).toBeTrue();
+  });
+});
+
+describe('the columns a walk leaves', () => {
+  const [root, products, amounts, applied] = round;
+  const offer = walk(root!, 'offerLevelDiscounts');
+
+  it('leaves the columns past a step gone back to', () => {
+    expect(columnsLeftBy(round, round.slice(0, 2))).toEqual([2, 3, 4]);
+  });
+
+  it('leaves the columns past where it goes on by another slot', () => {
+    expect(columnsLeftBy(round, offer)).toEqual([1, 2, 3, 4]);
+  });
+
+  it('leaves none as it goes on further', () => {
+    expect(columnsLeftBy(round.slice(0, 2), round)).toEqual([]);
+  });
+
+  it('keys a column by the way to it, the same whichever walk reaches it so', () => {
+    expect(walkKeyOf(round, 1)).toBe(walkKeyOf([root!, products!], 1));
+    expect(walkKeyOf(round, 2)).not.toBe(walkKeyOf(offer, 1));
+    // The same type reached by another way is another column.
+    expect(walkKeyOf([root!, products!, amounts!, applied!], 3)).not.toBe(
+      walkKeyOf(round, 4),
+    );
   });
 });
 

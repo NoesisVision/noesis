@@ -193,3 +193,24 @@ export const isSlotReach = (reach: Reach): boolean => {
       : RELATION_OF_REACH.get(reach);
   return kind === 'state' || kind === 'input' || kind === 'output';
 };
+
+/** A column's key in a walk: the steps that lead to it, so a column keeps its key while the walk keeps its way to it. */
+export const walkKeyOf = (path: readonly WalkStep[], index: number) =>
+  path
+    .slice(0, index + 1)
+    .map(slotKeyOf)
+    .join(' › ');
+
+/**
+ * The columns of the walk before that the walk after no longer has: those
+ * past where the two part, whether it went back or on by another slot.
+ */
+export function columnsLeftBy(
+  before: readonly WalkStep[],
+  after: readonly WalkStep[],
+): number[] {
+  const kept = new Set(after.map((_, index) => walkKeyOf(after, index)));
+  return before
+    .map((_, index) => index)
+    .filter((index) => !kept.has(walkKeyOf(before, index)));
+}

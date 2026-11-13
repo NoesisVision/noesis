@@ -1,16 +1,24 @@
 import { IconChevronRight } from '@tabler/icons-react';
-import { type KeyboardEvent, useEffect, useRef } from 'react';
+import {
+  type AnimationEvent,
+  type KeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { cardinalitySuffixOf } from '#/features/design-docs/cardinality.ts';
 import { ScrollArea } from '#/shared/design-system/scroll-area.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import {
+  columnsLeftBy,
   type ExploredElement,
   groupLabelOf,
   type ModelSlots,
   slotKeyOf,
   type WalkColumn,
   type WalkStep,
+  walkKeyOf,
   walkOf,
 } from '../../system-model-exploration.ts';
 import classes from './slot-explorer.module.css';
@@ -26,7 +34,19 @@ import classes from './slot-explorer.module.css';
  *
  * Keys: ↑ and ↓ move along a column, → goes on into the next, ← back to
  * the one before; Escape closes it (the popover's own).
+ *
+ * A column opened grows out from the one before it; columns the walk leaves
+ * — gone back from, or gone on from by another slot — fold away. A column
+ * keeps its key while the walk keeps its way to it, so leaving only marks
+ * it: drawn a moment longer, out of reach, until its folding ends.
  */
+
+/** A column the walk has left, drawn until it has folded away. */
+interface Leaving {
+  key: string;
+  index: number;
+  column: WalkColumn;
+}
 
 type Elements = ReadonlyMap<string, ExploredElement>;
 
@@ -64,18 +84,36 @@ export function SlotExplorer({
 }) {
   const [root] = path;
   const columns = walkOf(slots, path);
+  // The walk last drawn, to tell which columns a new one leaves.
+  const [drawn, setDrawn] = useState(path);
+  const [leaving, setLeaving] = useState<readonly Leaving[]>([]);
+  if (drawn !== path) {
+    const before = walkOf(slots, drawn);
+    const now = new Set(path.map((_, index) => walkKeyOf(path, index)));
+    const left = columnsLeftBy(drawn, path).map((index) => ({
+      key: walkKeyOf(drawn, index),
+      index,
+      column: before[index]!,
+    }));
+    setDrawn(path);
+    setLeaving((was) => [
+      // A column the walk comes back to before it has folded is its own again.
+      ...was.filter(
+        ({ key }) => !now.has(key) && !left.some((each) => each.key === key),
+      ),
+      ...left,
+    ]);
+  }
+  const folded = (key: string) =>
+    setLeaving((was) => was.filter((each) => each.key !== key));
   const strip = useRef<HTMLDivElement>(null);
   // Where the keys asked the focus to go once the columns are drawn anew.
   const focusNext = useRef<{ column: number; key: string | null } | null>(null);
 
-  // The newest column brought into view, and the focus where it was sent.
+  // The focus where the keys sent it, once the columns are drawn anew.
   useEffect(() => {
     const at = strip.current;
     if (at === null) return;
-    at.querySelector(`[data-column="${path.length - 1}"]`)?.scrollIntoView({
-      block: 'nearest',
-      inline: 'nearest',
-    });
     const wanted = focusNext.current;
     focusNext.current = null;
     if (wanted === null) return;
@@ -159,14 +197,40 @@ export function SlotExplorer({
         <div className={classes.columns} ref={strip}>
           {columns.map((column, index) => (
             <Column
-              key={index}
+              key={walkKeyOf(path, index)}
               index={index}
               column={column}
               elements={elements}
               onGoOn={(step, byKey) => goOn(index, step, byKey)}
               onKeyDown={(event, step) => onKeyDown(event, index, step)}
+              // Grown out, the newest column is brought into view.
+              onAnimationEnd={(event) => {
+                if (event.target !== event.currentTarget) return;
+                if (index === path.length - 1)
+                  event.currentTarget.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'nearest',
+                  });
+              }}
             />
           ))}
+          {leaving
+            .toSorted((a, b) => a.index - b.index)
+            .map(({ key, index, column }) => (
+              <Column
+                key={key}
+                index={index}
+                column={column}
+                elements={elements}
+                leaving
+                onGoOn={() => {}}
+                onKeyDown={() => {}}
+                onAnimationEnd={(event) => {
+                  if (event.target === event.currentTarget) folded(key);
+                }}
+              />
+            ))}
         </div>
       </ScrollArea>
     </div>
@@ -177,11 +241,16 @@ function Column({
   index,
   column,
   elements,
+  leaving = false,
   onGoOn,
   onKeyDown,
+  onAnimationEnd,
 }: {
   index: number;
   column: WalkColumn;
+  /** Left by the walk: folding away, out of reach of the pointer, the keys and a reader. */
+  leaving?: boolean;
+  onAnimationEnd: (event: AnimationEvent<HTMLElement>) => void;
   elements: Elements;
   onGoOn: (step: WalkStep, byKey: boolean) => void;
   onKeyDown: (event: KeyboardEvent<HTMLElement>, step: WalkStep) => void;
@@ -199,83 +268,92 @@ function Column({
   return (
     <section
       className={classes.column}
-      data-column={index}
+      data-column={leaving ? undefined : index}
+      data-leaving={leaving || undefined}
+      inert={leaving || undefined}
+      aria-hidden={leaving || undefined}
       aria-label={`${step.typeName}, ${kindOf(step.type, elements)}`}
+      onAnimationEnd={onAnimationEnd}
     >
-      <div className={classes.columnHead} aria-hidden>
-        <Text component="span" fz="sm" fw={600} truncate>
-          {index > 0 ? `${step.name}: ${typeWordsOf(step)}` : typeWordsOf(step)}
-        </Text>
-        <Text component="span" fz="xs" c="dimmed">
-          {kindOf(step.type, elements)}
-        </Text>
-      </div>
-      {groups.map(({ relation, rows }) => (
-        <div key={relation} className={classes.group}>
-          <span
-            className={classes.groupHead}
-            data-relation={relation}
-            aria-hidden
-          >
-            {relation}
-            {rows.length === 0 && <span className={classes.none}>—</span>}
-          </span>
-          <ul className={classes.rows} aria-label={relation}>
-            {rows.map((row) => {
-              const key = slotKeyOf(row);
-              const round = opens(row, elements) && through.has(row.type);
-              const words = (
-                <>
-                  <span className={classes.go} aria-hidden>
-                    {opens(row, elements) && (
-                      <IconChevronRight size={12} stroke={2.2} />
-                    )}
-                  </span>
-                  {row.behavior !== undefined && (
-                    <span className={classes.via}>{row.behavior.name} ·</span>
-                  )}
-                  <span className={classes.name}>{row.name}</span>
-                  {round && (
-                    <span className={classes.round} aria-hidden>
-                      ↺
-                    </span>
-                  )}
-                  <span
-                    className={classes.type}
-                    data-primitive={!opens(row, elements) || undefined}
-                  >
-                    {typeWordsOf(row)}
-                  </span>
-                </>
-              );
-              const label = `${relation} ${row.behavior === undefined ? '' : `${row.behavior.name} `}${row.name}: ${typeWordsOf(row)}${round ? ', already on the path' : ''}`;
-              return (
-                <li key={key}>
-                  {opens(row, elements) ? (
-                    <UnstyledButton
-                      className={classes.row}
-                      data-row={key}
-                      aria-current={next === key || undefined}
-                      aria-label={label}
-                      onClick={(event) => onGoOn(row, event.detail === 0)}
-                      onKeyDown={(event: KeyboardEvent<HTMLElement>) =>
-                        onKeyDown(event, row)
-                      }
-                    >
-                      {words}
-                    </UnstyledButton>
-                  ) : (
-                    // A primitive leads nowhere: words, not a way on.
-                    <span className={classes.row} data-leaf>
-                      {words}
-                    </span>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+      {/* As wide as a column, whatever width it is growing or folding through. */}
+      <div className={classes.columnBody}>
+        <div className={classes.columnHead} aria-hidden>
+          <Text component="span" fz="sm" fw={600} truncate>
+            {index > 0
+              ? `${step.name}: ${typeWordsOf(step)}`
+              : typeWordsOf(step)}
+          </Text>
+          <Text component="span" fz="xs" c="dimmed">
+            {kindOf(step.type, elements)}
+          </Text>
         </div>
-      ))}
+        {groups.map(({ relation, rows }) => (
+          <div key={relation} className={classes.group}>
+            <span
+              className={classes.groupHead}
+              data-relation={relation}
+              aria-hidden
+            >
+              {relation}
+              {rows.length === 0 && <span className={classes.none}>—</span>}
+            </span>
+            <ul className={classes.rows} aria-label={relation}>
+              {rows.map((row) => {
+                const key = slotKeyOf(row);
+                const round = opens(row, elements) && through.has(row.type);
+                const words = (
+                  <>
+                    <span className={classes.go} aria-hidden>
+                      {opens(row, elements) && (
+                        <IconChevronRight size={12} stroke={2.2} />
+                      )}
+                    </span>
+                    {row.behavior !== undefined && (
+                      <span className={classes.via}>{row.behavior.name} ·</span>
+                    )}
+                    <span className={classes.name}>{row.name}</span>
+                    {round && (
+                      <span className={classes.round} aria-hidden>
+                        ↺
+                      </span>
+                    )}
+                    <span
+                      className={classes.type}
+                      data-primitive={!opens(row, elements) || undefined}
+                    >
+                      {typeWordsOf(row)}
+                    </span>
+                  </>
+                );
+                const label = `${relation} ${row.behavior === undefined ? '' : `${row.behavior.name} `}${row.name}: ${typeWordsOf(row)}${round ? ', already on the path' : ''}`;
+                return (
+                  <li key={key}>
+                    {opens(row, elements) ? (
+                      <UnstyledButton
+                        className={classes.row}
+                        data-row={key}
+                        aria-current={next === key || undefined}
+                        aria-label={label}
+                        onClick={(event) => onGoOn(row, event.detail === 0)}
+                        onKeyDown={(event: KeyboardEvent<HTMLElement>) =>
+                          onKeyDown(event, row)
+                        }
+                      >
+                        {words}
+                      </UnstyledButton>
+                    ) : (
+                      // A primitive leads nowhere: words, not a way on.
+                      <span className={classes.row} data-leaf>
+                        {words}
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

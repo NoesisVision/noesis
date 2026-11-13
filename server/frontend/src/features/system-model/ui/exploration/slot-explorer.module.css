@@ -73,18 +73,65 @@
   border-top: 1px solid var(--noesis-diagram-card-border);
 }
 
+/*
+ * A column grows out from the one before it as the walk goes on, and folds
+ * away as the walk leaves it; the first, the badge's own type, is there
+ * from the start. Its body keeps a column's width all the while, so nothing
+ * in it reflows: the column only shows more or less of it.
+ */
 .column {
-  display: flex;
   flex: none;
-  flex-direction: column;
+  box-sizing: border-box;
   width: 280px;
   max-height: 320px;
-  padding: 6px;
-  overflow-y: auto;
+  overflow: hidden auto;
   border-inline-end: 1px solid var(--noesis-diagram-card-border);
+  animation: columnOpens 220ms ease-out;
 
   &:last-child {
     border-inline-end: 0;
+  }
+
+  &[data-column='0'] {
+    animation: none;
+  }
+
+  &[data-leaving] {
+    animation: columnFolds 180ms ease-in forwards;
+  }
+}
+
+.columnBody {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 280px;
+  padding: 6px;
+}
+
+@keyframes columnOpens {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes columnFolds {
+  to {
+    width: 0;
+    opacity: 0;
+    border-inline-end-width: 0;
+  }
+}
+
+/*
+ * Without motion a column still opens and folds, in a moment, so the end
+ * of its folding still comes and takes it off.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .column,
+  .column[data-leaving] {
+    animation-duration: 1ms;
   }
 }
 
