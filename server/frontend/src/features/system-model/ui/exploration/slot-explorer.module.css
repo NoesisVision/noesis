@@ -8,7 +8,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-xs);
-  width: min(700px, calc(100vw - 32px));
+  /* Two columns wide, and the line between them; a longer walk scrolls across. */
+  width: min(calc(2 * 280px + 1px), calc(100vw - 32px));
   padding-top: var(--mantine-spacing-xs);
 }
 
