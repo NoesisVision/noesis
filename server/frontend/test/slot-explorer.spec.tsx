@@ -132,7 +132,9 @@ describe('the walk drawn from a badge', () => {
   it('heads it with the badge’s slot, what it is, and the path as dotted steps', () => {
     const html = explorer(round);
     expect(html).toMatch(/result: <b><span[^>]*>DiscountedOffer<\/span><\/b>/);
-    expect(html).toContain('Output · Value Object');
+    // What its type is, alone: what the slot is to its card the badge says.
+    expect(html).toMatch(/<\/b><\/span><span[^>]*>Value Object<\/span>/);
+    expect(html).not.toContain('Output ·');
     expect(html).toMatch(/<nav[^>]*aria-label="Path"/);
     // Every step but the last goes back to it.
     expect(html).toContain('aria-label="Back to products: DiscountedProduct"');

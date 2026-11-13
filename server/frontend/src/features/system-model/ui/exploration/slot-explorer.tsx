@@ -86,14 +86,6 @@ function TypeWords({ step }: { step: WalkStep }) {
   );
 }
 
-/** What a step is to what holds it: `Input 1`, `Output`, `State`. */
-const roleOf = (step: WalkStep) =>
-  step.relation === 'input' && step.position !== null
-    ? `Input ${step.position}`
-    : step.relation === 'output'
-      ? 'Output'
-      : 'State';
-
 const opens = (step: WalkStep, elements: Elements) => elements.has(step.type);
 
 export function SlotExplorer({
@@ -211,7 +203,7 @@ export function SlotExplorer({
           </b>
         </Text>
         <Text component="span" fz="xs" c="dimmed">
-          {`${roleOf(root)} · ${kindOf(root.type, elements)}`}
+          {kindOf(root.type, elements)}
         </Text>
         {/* The badge's ↗ said in words, and the way to the card it means. */}
         {onGoTo !== undefined && (
