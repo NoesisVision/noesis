@@ -110,58 +110,53 @@
 
 .columns {
   display: flex;
+  /* Its line runs the popup's width, however few columns stand on it. */
+  min-width: 100%;
   border-top: 1px solid var(--noesis-diagram-card-border);
 }
 
 /*
  * A column grows out from the one before it as the walk goes on, and folds
  * away as the walk leaves it; the first, the badge's own type, is there
- * from the start. Its body keeps a column's width all the while, so nothing
- * in it reflows: the column only shows more or less of it.
+ * from the start. Both are transitions of its width, so one turned round
+ * halfway — the walk coming back to a column folding away, or leaving one
+ * still growing — goes back from where it is. Its body keeps a column's
+ * width all the while, so nothing in it reflows: the column only shows more
+ * or less of it. It is as tall whatever it holds, so the popup keeps its
+ * size from step to step. Its ground is the canvas's, so its cards lift off
+ * it.
  */
 .column {
   flex: none;
   box-sizing: border-box;
   width: 280px;
-  /* As tall whatever it holds, so the popup keeps its size from step to step. */
   height: 320px;
   overflow: hidden auto;
   border-inline-end: 1px solid var(--noesis-diagram-card-border);
-  animation: columnOpens 220ms ease-out;
+  background: var(--noesis-diagram-canvas);
+  opacity: 1;
+  transition:
+    width 220ms ease-out,
+    opacity 220ms ease-out,
+    border-inline-end-width 220ms ease-out;
 
   &:last-child {
     border-inline-end: 0;
   }
 
-  &[data-column='0'] {
-    animation: none;
+  &[data-column]:not([data-column='0']) {
+    @starting-style {
+      width: 0;
+      opacity: 0;
+    }
   }
 
   &[data-leaving] {
-    animation: columnFolds 180ms ease-in forwards;
-  }
-}
-
-.columnBody {
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  width: 280px;
-  padding: 6px;
-}
-
-@keyframes columnOpens {
-  from {
-    width: 0;
-    opacity: 0;
-  }
-}
-
-@keyframes columnFolds {
-  to {
     width: 0;
     opacity: 0;
     border-inline-end-width: 0;
+    transition-duration: 180ms;
+    transition-timing-function: ease-in;
   }
 }
 
@@ -172,113 +167,174 @@
 @media (prefers-reduced-motion: reduce) {
   .column,
   .column[data-leaving] {
-    animation-duration: 1ms;
+    transition-duration: 1ms;
   }
+}
+
+.columnBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 280px;
+  padding: 10px 10px 14px;
 }
 
 .columnHead {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: 2px 8px 4px;
+  padding: 2px 4px;
 }
 
+/* The slot the walk came in by, over the type it leads to. */
+.columnSlot {
+  overflow: hidden;
+  color: var(--mantine-color-dimmed);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Each relation in the colours its edge has (relationEdges in theme.ts). */
 .group {
+  --slot-line: var(--noesis-diagram-edge-state);
+  --slot-word: var(--noesis-diagram-edge-state-word);
+
   display: flex;
   flex-direction: column;
-}
-
-.groupHead {
-  display: flex;
   gap: 6px;
-  align-items: baseline;
-  padding: 6px 8px 2px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--noesis-diagram-edge-state-word);
 
   &[data-relation='input'] {
-    color: var(--noesis-diagram-edge-input-word);
+    --slot-line: var(--noesis-diagram-edge-input);
+    --slot-word: var(--noesis-diagram-edge-input-word);
   }
 
   &[data-relation='output'] {
-    color: var(--noesis-diagram-edge-output-word);
+    --slot-line: var(--noesis-diagram-edge-output);
+    --slot-word: var(--noesis-diagram-edge-output-word);
   }
 }
 
-.none {
-  color: var(--mantine-color-dimmed);
-  font-weight: 500;
-  letter-spacing: 0;
-  text-transform: none;
+.groupHead {
+  padding-inline: 4px;
+  color: var(--slot-word);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
 .rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/*
+ * A slot card, as the badge on the canvas is: tinted in its relation's
+ * colour, its name quiet over its type in bold. Named with its list, to win
+ * over the unstyled button's own reset, which loads later.
+ */
 .rows .row {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
   box-sizing: border-box;
   width: 100%;
-  min-height: 28px;
-  padding: 4px 8px;
-  border-radius: var(--mantine-radius-sm);
-  font-size: var(--mantine-font-size-sm);
-  white-space: nowrap;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--slot-line) 40%, transparent);
+  border-radius: var(--mantine-radius-md);
+  background: color-mix(
+    in srgb,
+    var(--slot-line) 9%,
+    var(--noesis-diagram-card)
+  );
+  color: var(--slot-word);
+  text-align: start;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
 }
 
 .rows button.row:hover {
-  background: var(--mantine-color-default-hover);
+  border-color: color-mix(in srgb, var(--slot-line) 75%, transparent);
+  transform: translateX(2px);
 }
 
 .rows button.row:focus-visible {
   outline: var(--noesis-focus-ring);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
-/* The row the walk went on by, into the next column. */
+/* The slot the walk went on by, into the next column: ringed. */
 .rows .row[aria-current] {
-  background: var(--mantine-primary-color-light);
+  border-color: var(--slot-line);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--slot-line) 22%, transparent);
 }
 
-.go {
-  display: inline-flex;
-  flex: none;
-  justify-content: center;
-  width: 14px;
-  color: var(--mantine-color-dimmed);
+/* A primitive leads nowhere: drawn in outline only. */
+.rows .row[data-leaf] {
+  border-style: dashed;
+  background: transparent;
 }
 
-.via {
-  color: var(--mantine-color-dimmed);
+@media (prefers-reduced-motion: reduce) {
+  .rows .row {
+    transition: none;
+  }
+
+  .rows button.row:hover {
+    transform: none;
+  }
+}
+
+.rowWords {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name,
+.type {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .name {
-  overflow: hidden;
+  font-size: 11.5px;
   font-weight: 500;
-  text-overflow: ellipsis;
+  line-height: 15px;
+  opacity: 0.75;
+}
+
+.type {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 650;
+  line-height: 18px;
+
+  .row[data-leaf] & {
+    font-family: var(--mantine-font-family-monospace);
+    font-size: var(--mantine-font-size-xs);
+    font-weight: 500;
+  }
+}
+
+.go {
+  flex: none;
+  opacity: 0.55;
 }
 
 /* A type already passed through: on from here, the walk goes round. */
 .round {
+  flex: none;
   color: var(--noesis-diagram-edge-output);
   font-size: var(--mantine-font-size-xs);
-}
-
-.type {
-  margin-inline-start: auto;
-  padding-inline-start: 12px;
-  color: var(--mantine-color-dimmed);
-  font-size: var(--mantine-font-size-xs);
-
-  &[data-primitive] {
-    font-family: var(--mantine-font-family-monospace);
-  }
 }

@@ -152,11 +152,26 @@ describe('the walk drawn from a badge', () => {
     expect(html).toContain('apply ·');
   });
 
-  it('shows an empty state as a dash, and a primitive as words that lead nowhere', () => {
-    const offer = walk(slotOf(CALCULATE, 'offer'), 'products');
-    const empty = explorer(offer);
-    expect(empty).toContain('aria-label="Product, Value Object"');
-    expect(empty).toMatch(/state<span[^>]*>—<\/span>/);
+  it('draws no relation the type has no slot of, and says a type holds nothing', () => {
+    // Offer has state but exposes no behavior: no input or output is drawn.
+    const offer = explorer(walk(slotOf(CALCULATE, 'offer')));
+    expect(offer).toMatch(/<ul[^>]*aria-label="state"/);
+    expect(offer).not.toMatch(/aria-label="(input|output)"/);
+
+    // Product holds nothing: its column is its header alone.
+    const product = explorer(walk(slotOf(CALCULATE, 'offer'), 'products'));
+    expect(product).toContain('aria-label="Product, Value Object"');
+    expect(product).toContain('Value Object · nothing inside');
+    expect(product).not.toContain('—');
+  });
+
+  it('draws a slot as a card, its name over its type, and a primitive as one that leads nowhere', () => {
+    const html = explorer(round);
+    expect(html).toMatch(
+      /<button[^>]*aria-label="state products: DiscountedProduct \[\*\]"[^>]*>.*?>products<\/span><span[^>]*>DiscountedProduct \[\*\]<\/span>/s,
+    );
+    // A behavior's slot is named with its behavior.
+    expect(html).toContain('>apply · result<');
 
     const user = explorer([slotOf(CALCULATE, 'user')]);
     expect(user).toMatch(/<li><span[^>]*data-leaf[^>]*>/);

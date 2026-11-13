@@ -1,7 +1,7 @@
 import { IconArrowUpRight, IconChevronRight } from '@tabler/icons-react';
 import {
-  type AnimationEvent,
   type KeyboardEvent,
+  type TransitionEvent,
   useEffect,
   useRef,
   useState,
@@ -38,7 +38,13 @@ import classes from './slot-explorer.module.css';
  * A column opened grows out from the one before it; columns the walk leaves
  * — gone back from, or gone on from by another slot — fold away. A column
  * keeps its key while the walk keeps its way to it, so leaving only marks
- * it: drawn a moment longer, out of reach, until its folding ends.
+ * it: drawn a moment longer, out of reach, until its folding ends. Both are
+ * transitions, so a column the walk comes back to while it folds — or
+ * leaves while it grows — turns round from where it is, never from scratch.
+ *
+ * Each row is a slot card, as the badge on the canvas is; a relation the
+ * type has no slot of is not drawn, and a type with none says so under its
+ * name.
  */
 
 /** A column the walk has left, drawn until it has folded away. */
@@ -207,42 +213,56 @@ export function SlotExplorer({
       </nav>
       <ScrollArea type="auto" scrollbars="x" offsetScrollbars="x">
         <div className={classes.columns} ref={strip}>
-          {columns.map((column, index) => (
-            <Column
-              key={walkKeyOf(path, index)}
-              index={index}
-              column={column}
-              elements={elements}
-              onGoOn={(step, byKey) => goOn(index, step, byKey)}
-              onKeyDown={(event, step) => onKeyDown(event, index, step)}
-              // Grown out, the newest column is brought into view.
-              onAnimationEnd={(event) => {
-                if (event.target !== event.currentTarget) return;
-                if (index === path.length - 1)
-                  event.currentTarget.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest',
-                    inline: 'nearest',
-                  });
-              }}
-            />
-          ))}
-          {leaving
-            .toSorted((a, b) => a.index - b.index)
-            .map(({ key, index, column }) => (
+          {/* One list, the columns the walk has and then those it left,
+              so a column keeps its element as it goes from one to the other
+              and its transition turns round rather than starting anew. */}
+          {[
+            ...columns.map((column, index) => (
               <Column
-                key={key}
+                key={walkKeyOf(path, index)}
                 index={index}
                 column={column}
                 elements={elements}
-                leaving
-                onGoOn={() => {}}
-                onKeyDown={() => {}}
-                onAnimationEnd={(event) => {
-                  if (event.target === event.currentTarget) folded(key);
+                onGoOn={(step, byKey) => goOn(index, step, byKey)}
+                onKeyDown={(event, step) => onKeyDown(event, index, step)}
+                // Grown out, the newest column is brought into view.
+                onTransitionEnd={(event) => {
+                  if (
+                    event.target !== event.currentTarget ||
+                    event.propertyName !== 'width'
+                  )
+                    return;
+                  if (index === path.length - 1)
+                    event.currentTarget.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'nearest',
+                      inline: 'nearest',
+                    });
                 }}
               />
-            ))}
+            )),
+            ...leaving
+              .toSorted((a, b) => a.index - b.index)
+              .map(({ key, index, column }) => (
+                <Column
+                  key={key}
+                  index={index}
+                  column={column}
+                  elements={elements}
+                  leaving
+                  onFolded={() => folded(key)}
+                  onGoOn={() => {}}
+                  onKeyDown={() => {}}
+                  onTransitionEnd={(event) => {
+                    if (
+                      event.target === event.currentTarget &&
+                      event.propertyName === 'width'
+                    )
+                      folded(key);
+                  }}
+                />
+              )),
+          ]}
         </div>
       </ScrollArea>
     </div>
@@ -254,93 +274,114 @@ function Column({
   column,
   elements,
   leaving = false,
+  onFolded,
   onGoOn,
   onKeyDown,
-  onAnimationEnd,
+  onTransitionEnd,
 }: {
   index: number;
   column: WalkColumn;
   /** Left by the walk: folding away, out of reach of the pointer, the keys and a reader. */
   leaving?: boolean;
-  onAnimationEnd: (event: AnimationEvent<HTMLElement>) => void;
+  /** Folded with nothing to fold: left before it had grown at all. */
+  onFolded?: () => void;
+  onTransitionEnd: (event: TransitionEvent<HTMLElement>) => void;
   elements: Elements;
   onGoOn: (step: WalkStep, byKey: boolean) => void;
   onKeyDown: (event: KeyboardEvent<HTMLElement>, step: WalkStep) => void;
 }) {
   const { step, relations, through, next } = column;
-  const groups: {
-    relation: WalkStep['relation'];
-    rows: readonly WalkStep[];
-  }[] = [{ relation: 'state', rows: relations.state }];
-  if (relations.behaves)
-    groups.push(
-      { relation: 'input', rows: relations.input },
-      { relation: 'output', rows: relations.output },
-    );
+  // Only the relations the type has slots of: none is drawn empty.
+  const all: { relation: WalkStep['relation']; rows: readonly WalkStep[] }[] = [
+    { relation: 'state', rows: relations.state },
+    { relation: 'input', rows: relations.input },
+    { relation: 'output', rows: relations.output },
+  ];
+  const groups = all.filter(({ rows }) => rows.length > 0);
+  const kind = kindOf(step.type, elements);
+  // A column left before it had grown at all has no width to fold through,
+  // so no end of folding comes: seen still a frame later, it goes at once.
+  const section = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!leaving) return;
+    const frame = requestAnimationFrame(() => {
+      if (section.current?.getAnimations().length === 0) onFolded?.();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [leaving, onFolded]);
   return (
     <section
+      ref={section}
       className={classes.column}
       data-column={leaving ? undefined : index}
       data-leaving={leaving || undefined}
       inert={leaving || undefined}
       aria-hidden={leaving || undefined}
-      aria-label={`${step.typeName}, ${kindOf(step.type, elements)}`}
-      onAnimationEnd={onAnimationEnd}
+      aria-label={`${step.typeName}, ${kind}`}
+      onTransitionEnd={onTransitionEnd}
     >
       {/* As wide as a column, whatever width it is growing or folding through. */}
       <div className={classes.columnBody}>
         <div className={classes.columnHead} aria-hidden>
+          {index > 0 && (
+            <span className={classes.columnSlot}>
+              {step.behavior === undefined
+                ? step.name
+                : `${step.behavior.name} · ${step.name}`}
+            </span>
+          )}
           <Text component="span" fz="sm" fw={600} truncate>
-            {index > 0
-              ? `${step.name}: ${typeWordsOf(step)}`
-              : typeWordsOf(step)}
+            {typeWordsOf(step)}
           </Text>
           <Text component="span" fz="xs" c="dimmed">
-            {kindOf(step.type, elements)}
+            {groups.length === 0 ? `${kind} · nothing inside` : kind}
           </Text>
         </div>
         {groups.map(({ relation, rows }) => (
-          <div key={relation} className={classes.group}>
-            <span
-              className={classes.groupHead}
-              data-relation={relation}
-              aria-hidden
-            >
+          <div
+            key={relation}
+            className={classes.group}
+            data-relation={relation}
+          >
+            <span className={classes.groupHead} aria-hidden>
               {relation}
-              {rows.length === 0 && <span className={classes.none}>—</span>}
             </span>
             <ul className={classes.rows} aria-label={relation}>
               {rows.map((row) => {
                 const key = slotKeyOf(row);
-                const round = opens(row, elements) && through.has(row.type);
+                const leads = opens(row, elements);
+                const round = leads && through.has(row.type);
+                // A slot card, as the badge on the canvas is: its name,
+                // quiet, over its type in bold, and a way on after them.
                 const words = (
                   <>
-                    <span className={classes.go} aria-hidden>
-                      {opens(row, elements) && (
-                        <IconChevronRight size={12} stroke={2.2} />
-                      )}
+                    <span className={classes.rowWords}>
+                      <span className={classes.name}>
+                        {row.behavior === undefined
+                          ? row.name
+                          : `${row.behavior.name} · ${row.name}`}
+                      </span>
+                      <span className={classes.type}>{typeWordsOf(row)}</span>
                     </span>
-                    {row.behavior !== undefined && (
-                      <span className={classes.via}>{row.behavior.name} ·</span>
-                    )}
-                    <span className={classes.name}>{row.name}</span>
                     {round && (
                       <span className={classes.round} aria-hidden>
                         ↺
                       </span>
                     )}
-                    <span
-                      className={classes.type}
-                      data-primitive={!opens(row, elements) || undefined}
-                    >
-                      {typeWordsOf(row)}
-                    </span>
+                    {leads && (
+                      <IconChevronRight
+                        className={classes.go}
+                        size={14}
+                        stroke={2.2}
+                        aria-hidden
+                      />
+                    )}
                   </>
                 );
                 const label = `${relation} ${row.behavior === undefined ? '' : `${row.behavior.name} `}${row.name}: ${typeWordsOf(row)}${round ? ', already on the path' : ''}`;
                 return (
                   <li key={key}>
-                    {opens(row, elements) ? (
+                    {leads ? (
                       <UnstyledButton
                         className={classes.row}
                         data-row={key}
