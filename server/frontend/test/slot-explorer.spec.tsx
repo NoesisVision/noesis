@@ -224,23 +224,29 @@ describe('the views the walk is drawn in', () => {
     expect(html).toMatch(/<input[^>]*checked=""[^>]*value="tree"/);
   });
 
-  it('draws a tree open along the walk so far, each slot a row that opens in place', () => {
+  it('draws a tree as the model tree does, open along the walk so far', () => {
     const html = explorer(round, undefined, 'tree');
     expect(html).not.toContain('data-column=');
     expect(html).toMatch(
-      /<ul[^>]*aria-label="What DiscountedOffer relates to"/,
+      /<ul role="tree"[^>]*aria-label="What DiscountedOffer relates to"/,
+    );
+    // A relation is an item of its own, open, its slots in a group under it.
+    expect(html).toMatch(
+      /<li role="treeitem"[^>]*aria-expanded="true"[^>]*aria-label="state, 2"/,
     );
     // Open along result › products › discountAmounts › appliedDiscount › result.
     expect(html).toMatch(
-      /<button[^>]*aria-expanded="true"[^>]*aria-label="state products: DiscountedProduct, many"/,
+      /<li role="treeitem"[^>]*aria-expanded="true"[^>]*aria-label="state products: DiscountedProduct, many"/,
     );
     expect(html).toMatch(
-      /<button[^>]*aria-expanded="true"[^>]*aria-label="state appliedDiscount: Discount"/,
+      /<li role="treeitem"[^>]*aria-expanded="true"[^>]*aria-label="state appliedDiscount: Discount"/,
     );
     // A slot not on the walk is shut.
     expect(html).toMatch(
-      /<button[^>]*aria-expanded="false"[^>]*aria-label="state offerLevelDiscounts: DiscountAmount, many"/,
+      /<li role="treeitem"[^>]*aria-expanded="false"[^>]*aria-label="state offerLevelDiscounts: DiscountAmount, many"/,
     );
+    // Only the first row is reached by Tab; the keys move along the rest.
+    expect(html.match(/tabindex="0"/g)).toHaveLength(1);
   });
 
   it('draws one type at a time under the path, its slots as cards', () => {

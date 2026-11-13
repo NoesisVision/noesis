@@ -1,0 +1,187 @@
+/*
+ * A tree as the app draws one: rows a step in per level, one rail per
+ * level, each row contributing its own segment, so the line runs down a
+ * branch and stops where the branch does, with a quarter turn into each
+ * row. The rails along the way to the row in hand (`data-selected`,
+ * `data-ancestor` on an item) take the page's colour (`page-tone.css`). A
+ * chevron before each name opens what is under it. The model tree and the
+ * popup a slot badge opens both draw theirs with these.
+ *
+ * Lists: `.tree` the outermost, `.group` each one under an item; `.item`
+ * each entry, its `.row` the line it is drawn on.
+ */
+
+.tree {
+  --model-tree-offset: 1.25rem;
+  --model-tree-rail: light-dark(
+    var(--mantine-color-gray-3),
+    var(--mantine-color-dark-4)
+  );
+  --model-tree-rail-lit: light-dark(var(--noesis-tone-4), var(--noesis-tone-7));
+
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group {
+  /* How far before the row's middle its elbow starts to curve. */
+  --model-tree-curve: 8px;
+
+  position: relative;
+  margin: 0;
+  padding-left: var(--model-tree-offset);
+  list-style: none;
+}
+
+/*
+ * Each row of a branch draws its own pieces of the rail, so each can be lit
+ * on its own: the run down to its elbow, the elbow curving into it, and —
+ * unless it is the last — the run past it, down beside what it holds, to the
+ * next row. Only the pieces on the way to the row in hand are lit; the rest
+ * of the branch, the elbows into the rows beside the way among them, stays
+ * grey. The row's own pieces are measured on the row, so a name that wraps
+ * still has its elbow at its middle, and drawn over the run past it.
+ */
+.group > .item {
+  position: relative;
+}
+
+/* The run past the row, on to the next. */
+.group > .item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--model-tree-offset) / -2);
+  width: 1px;
+  background-color: var(--model-tree-rail);
+}
+
+/* The run down to the elbow, from the top of the row's margin above it. */
+.group > .item > .row::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: -1px;
+  left: calc(var(--model-tree-offset) / -2);
+  width: 1px;
+  height: calc(50% - var(--model-tree-curve) + 1px);
+  background-color: var(--model-tree-rail);
+}
+
+/*
+ * The elbow: a quarter turn into the row. A grey one goes under every run,
+ * so where it shares a run's line with a lit run it never breaks it.
+ */
+.group > .item > .row::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: calc(50% - var(--model-tree-curve));
+  left: calc(var(--model-tree-offset) / -2);
+  width: calc(var(--model-tree-offset) / 2 - 2px);
+  height: var(--model-tree-curve);
+  border-left: 1px solid var(--model-tree-rail);
+  border-bottom: 1px solid var(--model-tree-rail);
+  border-bottom-left-radius: var(--model-tree-curve);
+}
+
+/*
+ * Lit: every run that passes a row above the way, the run down to the row
+ * on the way, and the elbow into that row alone.
+ */
+.group > .item:has(~ .item:is([data-selected], [data-ancestor]))::after,
+.group > .item:has(~ .item:is([data-selected], [data-ancestor])) > .row::after,
+.group > .item:is([data-selected], [data-ancestor]) > .row::after {
+  background-color: var(--model-tree-rail-lit);
+}
+
+/* A lit elbow goes over every run, grey ones included. */
+.group > .item:is([data-selected], [data-ancestor]) > .row::before {
+  z-index: 2;
+  border-color: var(--model-tree-rail-lit);
+}
+
+.item {
+  list-style: none;
+
+  &:focus-visible {
+    outline: none;
+
+    & > .row {
+      outline: var(--noesis-focus-ring);
+      outline-offset: -2px;
+    }
+  }
+}
+
+.row {
+  position: relative;
+  display: flex;
+  gap: var(--mantine-spacing-xs);
+  align-items: center;
+  min-height: 32px;
+  /* Apart from the next row, so a row's hover never runs into the one in hand. */
+  margin-block: 1px;
+  padding: 4px 8px 4px 2px;
+  border-radius: 10px;
+  /* A click reads the row, so it says it can be clicked; and a second click
+     opens it, which should not leave the name half-selected behind it. */
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    background-color: light-dark(
+      var(--mantine-color-white),
+      var(--mantine-color-dark-6)
+    );
+  }
+}
+
+/*
+ * Chrome rather than content: it keeps its own quiet colour whatever the
+ * design does to the row, and a row with nothing under it keeps the space so
+ * that every name in a branch starts at the same place.
+ */
+.chevron {
+  display: inline-flex;
+  flex: none;
+  /*
+   * As tall as the row leaves it: a glyph the pointer aims at is easier to
+   * hit over the whole height of the line than over a square in the middle
+   * of it, and the hover it draws then reads as a column rather than a dot.
+   * The row's own padding is what it stops short of.
+   */
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  /* The row's own rounding, less the 2px it sits in from the row's edge. */
+  border-radius: 8px;
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
+  transition: background-color 0.1s ease-in-out;
+
+  & svg {
+    transition: transform 0.12s ease;
+  }
+
+  &[data-expanded] svg {
+    transform: rotate(90deg);
+  }
+
+  &[data-opens]:hover {
+    background-color: light-dark(
+      var(--mantine-color-gray-2),
+      var(--mantine-color-dark-4)
+    );
+    color: light-dark(var(--mantine-color-gray-8), var(--mantine-color-dark-0));
+  }
+}
+
+/* Asked for no motion, the chevron is simply pointing the way it points. */
+@media (prefers-reduced-motion: reduce) {
+  .chevron svg {
+    transition-duration: 1ms;
+  }
+}

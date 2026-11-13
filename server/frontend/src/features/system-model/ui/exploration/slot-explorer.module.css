@@ -35,10 +35,15 @@
   margin-inline-start: auto;
 }
 
+/*
+ * Each view's icon, centred in its segment as the toolbar's direction
+ * icons are: a box of its own, not a glyph on the label's text line.
+ */
 .viewIcon {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
+  height: 18px;
 }
 
 .titleType {

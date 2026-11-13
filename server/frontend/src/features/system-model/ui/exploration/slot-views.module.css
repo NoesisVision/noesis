@@ -36,35 +36,13 @@
 
 /* ---------- Tree ---------- */
 
-.tree,
-.treeRows,
-.branch {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
+/* The model tree's own (shared/ui/tree), set in from the popup's edges. */
 .tree {
   padding: 8px 8px 14px;
 }
 
-/* What a slot's type relates to, under it, a rail down its side. */
-.branch {
-  position: relative;
-  padding-inline-start: 18px;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 6px;
-    left: 9px;
-    width: 1px;
-    background: var(--noesis-diagram-card-border);
-  }
-}
-
-.treeGroup {
+/* A relation's heading: its word in its colour, its slots on the rails under it. */
+[data-relation] {
   --slot-line: var(--noesis-diagram-edge-state);
   --slot-word: var(--noesis-diagram-edge-state-word);
   /* A cardinality's mark in the relation's colour, as on its cards. */
@@ -74,21 +52,19 @@
     var(--slot-line) 24%,
     transparent
   );
-
-  &[data-relation='input'] {
-    --slot-line: var(--noesis-diagram-edge-input);
-    --slot-word: var(--noesis-diagram-edge-input-word);
-  }
-
-  &[data-relation='output'] {
-    --slot-line: var(--noesis-diagram-edge-output);
-    --slot-word: var(--noesis-diagram-edge-output-word);
-  }
 }
 
-.treeGroupHead {
-  display: block;
-  padding: 6px 6px 2px 26px;
+[data-relation='input'] {
+  --slot-line: var(--noesis-diagram-edge-input);
+  --slot-word: var(--noesis-diagram-edge-input-word);
+}
+
+[data-relation='output'] {
+  --slot-line: var(--noesis-diagram-edge-output);
+  --slot-word: var(--noesis-diagram-edge-output-word);
+}
+
+.treeHead {
   color: var(--slot-word);
   font-size: 10.5px;
   font-weight: 700;
@@ -96,52 +72,18 @@
   text-transform: uppercase;
 }
 
-/* Named with its tree, to win over the unstyled button's own reset. */
-.tree .treeRow {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 28px;
-  padding: 2px 6px;
-  border-radius: var(--mantine-radius-sm);
-  font-size: var(--mantine-font-size-sm);
-  white-space: nowrap;
-}
-
-.tree button.treeRow:hover {
-  background: var(--mantine-color-default-hover);
-}
-
-.tree button.treeRow:focus-visible {
-  outline: var(--noesis-focus-ring);
-  outline-offset: -2px;
-}
-
-.twisty {
-  display: inline-flex;
-  flex: none;
-  justify-content: center;
-  width: 14px;
-  color: var(--mantine-color-dimmed);
-  transition: rotate 150ms ease;
-
-  [aria-expanded='true'] > & {
-    rotate: 90deg;
-  }
-}
-
 .treeName {
   overflow: hidden;
+  font-size: var(--mantine-font-size-sm);
   font-weight: 500;
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .treeType {
   display: flex;
+  flex: none;
   align-items: center;
-  min-width: 0;
   margin-inline-start: auto;
   padding-inline-start: 12px;
   color: var(--slot-word);
@@ -253,7 +195,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .twisty,
   .pane,
   .boxInside {
     transition-duration: 1ms;

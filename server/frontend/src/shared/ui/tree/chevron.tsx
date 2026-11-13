@@ -1,6 +1,6 @@
 import { IconChevronRight } from '@tabler/icons-react';
 import type { MouseEvent } from 'react';
-import classes from './model-tree.module.css';
+import classes from './tree.module.css';
 
 /**
  * A glyph the pointer can use, and nothing more: the row itself opens and
