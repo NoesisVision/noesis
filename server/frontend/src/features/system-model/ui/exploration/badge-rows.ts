@@ -130,15 +130,15 @@ export function signatureLinesOf(badges: readonly Badge[]): SignaturePart[][] {
 }
 
 /**
- * A chip: the relation's letter, `offer:`, its type and the marks after it,
- * each 5px from the last (the marks 3px), within its padding and border.
+ * A chip: the relation's letter, `offer:` (an output by its type alone),
+ * its type and the marks after it, each 5px from the last (the marks 3px),
+ * within its padding and border.
  */
 export const chipWidthOf = (badge: Badge) =>
   Math.ceil(
     18 +
       5 +
-      (badge.name.length + 1) * 6.4 +
-      5 +
+      (badge.relation === 'output' ? 0 : (badge.name.length + 1) * 6.4 + 5) +
       badge.typeName.length * 6.8 +
       (badge.cardinality === '1' ? 0 : 22) +
       (badge.onDiagram ? 13 : 0) +

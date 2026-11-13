@@ -116,7 +116,13 @@ export function SlotBadges({
                     {badge.relation[0]!.toUpperCase()}
                   </span>
                   <VisuallyHidden>{badge.relation} </VisuallyHidden>
-                  <span className={classes.chipName}>{badge.name}:</span>
+                  {/* An output by its type alone, as a signature gives it;
+                      its name is still read out. */}
+                  {badge.relation === 'output' ? (
+                    <VisuallyHidden>{badge.name}: </VisuallyHidden>
+                  ) : (
+                    <span className={classes.chipName}>{badge.name}:</span>
+                  )}
                   <TypeOf badge={badge} chevron={elements.has(badge.type)} />
                 </>,
               )}

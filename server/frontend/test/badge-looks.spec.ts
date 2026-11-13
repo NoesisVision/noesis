@@ -5,6 +5,7 @@ import type {
 } from '../src/features/system-model/system-model-exploration';
 import {
   chipsOf,
+  chipWidthOf,
   signatureLinesOf,
 } from '../src/features/system-model/ui/exploration/badge-rows';
 import { cardSizeOf } from '../src/features/system-model/ui/exploration/layout-exploration';
@@ -70,6 +71,11 @@ describe('the looks a card’s badges take', () => {
 
   it('flows chips inputs first, then output, then state', () => {
     expect(chipsOf([amounts, result, offer])).toEqual([offer, result, amounts]);
+  });
+
+  it('leaves an output’s name off its chip, and its chip the narrower', () => {
+    const named = { ...result, relation: 'input' as const };
+    expect(chipWidthOf(result)).toBeLessThan(chipWidthOf(named));
   });
 
   it('makes each card the room its look draws the badges in', () => {
