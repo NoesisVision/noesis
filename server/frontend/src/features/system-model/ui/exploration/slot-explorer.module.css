@@ -131,7 +131,7 @@
   box-sizing: border-box;
   width: 280px;
   height: 320px;
-  overflow: hidden auto;
+  overflow: hidden;
   border-inline-end: 1px solid var(--noesis-diagram-card-border);
   background: var(--noesis-diagram-canvas);
   opacity: 1;
@@ -144,7 +144,8 @@
     border-inline-end: 0;
   }
 
-  &[data-column]:not([data-column='0']) {
+  /* Grown out at the walk's end. */
+  &[data-enter='grows'] {
     @starting-style {
       width: 0;
       opacity: 0;
@@ -166,18 +167,38 @@
  */
 @media (prefers-reduced-motion: reduce) {
   .column,
-  .column[data-leaving] {
+  .column[data-leaving],
+  .columnBody {
     transition-duration: 1ms;
   }
 }
 
+/*
+ * What a column holds scrolls inside it, the room for a scrollbar kept
+ * whether one shows or not, so a card is never under one.
+ */
 .columnBody {
   display: flex;
   flex-direction: column;
   gap: 10px;
   box-sizing: border-box;
   width: 280px;
+  height: 100%;
   padding: 10px 10px 14px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  transition:
+    opacity 180ms ease-out,
+    translate 180ms ease-out;
+
+  /* Swapped in where another stood: it does not move, what it holds fades in. */
+  .column[data-enter='swaps'] & {
+    @starting-style {
+      opacity: 0;
+      translate: 0 4px;
+    }
+  }
 }
 
 .columnHead {

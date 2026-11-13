@@ -11,7 +11,6 @@ import { ScrollArea } from '#/shared/design-system/scroll-area.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import {
-  columnsLeftBy,
   type ExploredElement,
   groupLabelOf,
   type ModelSlots,
@@ -19,6 +18,7 @@ import {
   type WalkColumn,
   type WalkStep,
   walkKeyOf,
+  walkChange,
   walkOf,
 } from '../../system-model-exploration.ts';
 import classes from './slot-explorer.module.css';
@@ -96,19 +96,33 @@ export function SlotExplorer({
   // The walk last drawn, to tell which columns a new one leaves.
   const [drawn, setDrawn] = useState(path);
   const [leaving, setLeaving] = useState<readonly Leaving[]>([]);
+  // How the columns new to the walk come in, by key.
+  const [entering, setEntering] = useState<
+    ReadonlyMap<string, 'grows' | 'swaps'>
+  >(new Map());
   if (drawn !== path) {
     const before = walkOf(slots, drawn);
     const now = new Set(path.map((_, index) => walkKeyOf(path, index)));
-    const left = columnsLeftBy(drawn, path).map((index) => ({
+    const { folds, enters } = walkChange(
+      drawn,
+      path,
+      new Set(leaving.map(({ index }) => index)),
+    );
+    const left = folds.map((index) => ({
       key: walkKeyOf(drawn, index),
       index,
       column: before[index]!,
     }));
     setDrawn(path);
+    setEntering(enters);
     setLeaving((was) => [
-      // A column the walk comes back to before it has folded is its own again.
+      // A column the walk comes back to before it has folded is its own
+      // again; one another column now stands in place of goes at once.
       ...was.filter(
-        ({ key }) => !now.has(key) && !left.some((each) => each.key === key),
+        ({ key, index }) =>
+          !now.has(key) &&
+          index >= path.length &&
+          !left.some((each) => each.key === key),
       ),
       ...left,
     ]);
@@ -222,6 +236,7 @@ export function SlotExplorer({
                 key={walkKeyOf(path, index)}
                 index={index}
                 column={column}
+                enter={entering.get(walkKeyOf(path, index))}
                 elements={elements}
                 onGoOn={(step, byKey) => goOn(index, step, byKey)}
                 onKeyDown={(event, step) => onKeyDown(event, index, step)}
@@ -274,6 +289,7 @@ function Column({
   column,
   elements,
   leaving = false,
+  enter,
   onFolded,
   onGoOn,
   onKeyDown,
@@ -285,6 +301,8 @@ function Column({
   leaving?: boolean;
   /** Folded with nothing to fold: left before it had grown at all. */
   onFolded?: () => void;
+  /** New to the walk: grown out at its end, or swapped in where another stood. */
+  enter?: 'grows' | 'swaps';
   onTransitionEnd: (event: TransitionEvent<HTMLElement>) => void;
   elements: Elements;
   onGoOn: (step: WalkStep, byKey: boolean) => void;
@@ -315,6 +333,7 @@ function Column({
       className={classes.column}
       data-column={leaving ? undefined : index}
       data-leaving={leaving || undefined}
+      data-enter={enter}
       inert={leaving || undefined}
       aria-hidden={leaving || undefined}
       aria-label={`${step.typeName}, ${kind}`}

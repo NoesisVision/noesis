@@ -201,16 +201,43 @@ export const walkKeyOf = (path: readonly WalkStep[], index: number) =>
     .map(slotKeyOf)
     .join(' › ');
 
+/** How a walk's columns change as it goes on, goes back or turns off. */
+export interface WalkChange {
+  /** The columns of the walk before past the end of the walk after: they fold away. */
+  folds: number[];
+  /**
+   * How each column new to the walk after comes in, by its key: grown out at
+   * the end, or in place of the column that stood there, at once, so the
+   * columns around it stand still.
+   */
+  enters: ReadonlyMap<string, 'grows' | 'swaps'>;
+}
+
 /**
- * The columns of the walk before that the walk after no longer has: those
- * past where the two part, whether it went back or on by another slot.
+ * What changes from the walk before to the walk after. Only a change in how
+ * many columns there are moves anything: one past the end grows or folds;
+ * one taken by another slot is swapped where it stands. `foldingAt` is where
+ * columns are still folding away, which a new one takes the place of too.
  */
-export function columnsLeftBy(
+export function walkChange(
   before: readonly WalkStep[],
   after: readonly WalkStep[],
-): number[] {
-  const kept = new Set(after.map((_, index) => walkKeyOf(after, index)));
-  return before
-    .map((_, index) => index)
-    .filter((index) => !kept.has(walkKeyOf(before, index)));
+  foldingAt: ReadonlySet<number> = new Set(),
+): WalkChange {
+  const was = new Set(before.map((_, index) => walkKeyOf(before, index)));
+  const enters = new Map<string, 'grows' | 'swaps'>();
+  after.forEach((_, index) => {
+    const key = walkKeyOf(after, index);
+    if (was.has(key)) return;
+    enters.set(
+      key,
+      index < before.length || foldingAt.has(index) ? 'swaps' : 'grows',
+    );
+  });
+  return {
+    folds: before
+      .map((_, index) => index)
+      .filter((index) => index >= after.length),
+    enters,
+  };
 }

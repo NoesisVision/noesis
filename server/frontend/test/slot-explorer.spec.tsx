@@ -2,11 +2,11 @@ import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
-  columnsLeftBy,
   explorationOf,
   relationsOfType,
   slotKeyOf,
   type WalkStep,
+  walkChange,
   walkKeyOf,
   walkOf,
 } from '../src/features/system-model/system-model-exploration';
@@ -90,16 +90,32 @@ describe('the columns a walk leaves', () => {
   const [root, products, amounts, applied] = round;
   const offer = walk(root!, 'offerLevelDiscounts');
 
-  it('leaves the columns past a step gone back to', () => {
-    expect(columnsLeftBy(round, round.slice(0, 2))).toEqual([2, 3, 4]);
+  it('folds the columns past a step gone back to', () => {
+    const change = walkChange(round, round.slice(0, 2));
+    expect(change.folds).toEqual([2, 3, 4]);
+    expect(change.enters.size).toBe(0);
   });
 
-  it('leaves the columns past where it goes on by another slot', () => {
-    expect(columnsLeftBy(round, offer)).toEqual([1, 2, 3, 4]);
+  it('grows a column the walk goes on into at its end', () => {
+    const change = walkChange(round.slice(0, 2), round.slice(0, 3));
+    expect(change.folds).toEqual([]);
+    expect([...change.enters.values()]).toEqual(['grows']);
   });
 
-  it('leaves none as it goes on further', () => {
-    expect(columnsLeftBy(round.slice(0, 2), round)).toEqual([]);
+  it('swaps in place a column taken by another slot, folding only what lies past the new end', () => {
+    // From five columns to two: the second is another, the rest fold.
+    const change = walkChange(round, offer);
+    expect(change.folds).toEqual([2, 3, 4]);
+    expect(change.enters.get(walkKeyOf(offer, 1))).toBe('swaps');
+    // Two columns either side: nothing grows or folds, the strip stands still.
+    const across = walkChange(round.slice(0, 2), offer);
+    expect(across.folds).toEqual([]);
+    expect([...across.enters.values()]).toEqual(['swaps']);
+  });
+
+  it('swaps a new column in where one is still folding away', () => {
+    const change = walkChange(round.slice(0, 1), offer, new Set([1]));
+    expect([...change.enters.values()]).toEqual(['swaps']);
   });
 
   it('keys a column by the way to it, the same whichever walk reaches it so', () => {
