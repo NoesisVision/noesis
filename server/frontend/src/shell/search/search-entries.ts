@@ -13,10 +13,11 @@ import {
   DESIGN_DOC_VIEWS,
   DesignDocsIcon,
 } from '#/features/design-docs/design-docs.model.ts';
-import { addressOf } from '#/features/design-docs/element-id.ts';
 import { kindIconOf } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import { designOf } from '#/features/system-model/system-model.model.ts';
+import { parentAddressOf } from '#/shared/model/element-id.ts';
 import type { IconComponent } from '#/shared/ui/icon-heading.tsx';
+import { modelWordOf } from '#/shared/ui/title-case.ts';
 import { titleCase } from '#/shared/ui/title-case.ts';
 import type { ChangeWithEntries } from '#backend/app/changes/change-entry.ts';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
@@ -168,13 +169,12 @@ function modelElements(model: SystemModel): SearchEntry[] {
     const id = node.kind === 'rule' ? partKeyOf(node) : node.elementId;
     if (id === null || seen.has(id)) return [];
     seen.add(id);
-    const address = addressOf(id);
-    const owner = address.slice(0, Math.max(address.lastIndexOf('.'), 0));
+    const owner = parentAddressOf(id);
     return [
       {
         id: `element:${node.path}`,
         label: node.name,
-        context: [node.patternLabel ?? kindLabelOf(node.kind), owner]
+        context: [node.patternLabel ?? modelWordOf(node.kind), owner]
           .filter(Boolean)
           .join(' · '),
         icon: kindIconOf(node.kind, node.pattern),
@@ -186,10 +186,6 @@ function modelElements(model: SystemModel): SearchEntry[] {
 }
 
 /** What a row with no pattern is, as a reader says it: `Manual process`. */
-const kindLabelOf = (kind: string) => {
-  const words = kind.replaceAll('_', ' ');
-  return `${words.charAt(0).toUpperCase()}${words.slice(1)}`;
-};
 
 /**
  * The groups holding what matches the query, by name or by kind, without

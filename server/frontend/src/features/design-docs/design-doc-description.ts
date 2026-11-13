@@ -1,3 +1,4 @@
+import { NEED } from '#/shared/model/element-id.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import { findById } from './change-set.ts';
 import { needPath } from './design-doc-requirements.ts';
@@ -19,7 +20,6 @@ import { needPath } from './design-doc-requirements.ts';
 
 const DESCRIPTION_LINK =
   /\[([^\]]*)\]\((?:<noesis:([^>\n]+)>|noesis:([^)\s]+))\)/g;
-const NEED = 'need|';
 
 /** A link of the description: the words it is written with and the id it names. */
 interface DescriptionLink {
@@ -84,14 +84,18 @@ export const readableDescription = (
       const opens = resolve(decoded(bracketed ?? bare ?? ''));
       return opens === null
         ? label
-        : `[${label}](${hrefOf(page, opens)} "${OPENS_IN[opens.view]}")`;
+        : `[${label}](${hrefOf(page, opens)} "${capitalised(OPENS_IN[opens.view])}")`;
     },
   );
 
 /** What a link says it does, for whoever cannot see the icon before it. */
-const OPENS_IN: Record<DescriptionTarget['view'], string> = {
-  model: 'Opens in Model',
-  requirements: 'Opens in Requirements',
+const capitalised = (text: string): string =>
+  `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+
+/** Where a link opens, said after its words: `opens in Model`. A link's title starts it in upper case. */
+export const OPENS_IN: Record<DescriptionTarget['view'], string> = {
+  model: 'opens in Model',
+  requirements: 'opens in Requirements',
 };
 
 /** The views the description's links open, in the order the tabs show them. */

@@ -3,6 +3,7 @@ import {
   type OutlineKind,
   type OutlineNode,
 } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { kindInProseOf } from '#/shared/model/element-words.ts';
 import type {
   DesignDocumentInput,
   DesignedNeedInput,
@@ -109,9 +110,9 @@ export const classificationOf = (rule: DesignedRuleInput): string | null =>
 
 /** What a rule can be on, in words: the kind of element it constrains. */
 export const RULE_PLACE_KIND: Partial<Record<OutlineKind, string>> = {
-  module: 'module',
-  building_block: 'building block',
-  behavior: 'behavior',
+  module: kindInProseOf('module'),
+  building_block: kindInProseOf('building_block'),
+  behavior: kindInProseOf('behavior'),
 };
 
 /**

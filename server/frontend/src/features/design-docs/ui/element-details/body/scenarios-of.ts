@@ -1,11 +1,11 @@
 import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { nameOf } from '#/shared/model/element-id.ts';
 import type {
   DesignDocumentInput,
   DesignedScenarioInput,
 } from '#backend/app/design-docs/design-doc.ts';
 import { findById, writtenIn } from '../../../change-set.ts';
 import { partKeyOf } from '../../../design-doc-outline.ts';
-import { nameOf } from '../../../element-id.ts';
 import {
   ruleNameOf,
   rulesUnder,

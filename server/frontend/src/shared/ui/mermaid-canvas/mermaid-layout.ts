@@ -3,6 +3,8 @@ import type {
   ElkLabel,
   ElkNode,
 } from 'elkjs/lib/elk.bundled.js';
+import { elkOf } from '#/shared/ui/diagram-canvas/elk.ts';
+import type { Point, Rect } from '#/shared/ui/diagram-canvas/geometry.ts';
 import type { DiagramBox, DiagramGraph } from './mermaid-graph.ts';
 
 /*
@@ -13,17 +15,7 @@ import type { DiagramBox, DiagramGraph } from './mermaid-graph.ts';
  * diagram's own coordinates, its top left at 0, 0.
  */
 
-export interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface Point {
-  x: number;
-  y: number;
-}
+export type { Point, Rect } from '#/shared/ui/diagram-canvas/geometry.ts';
 
 export interface PlacedLine {
   id: string;
@@ -150,14 +142,6 @@ function sizeOf(
       };
   }
 }
-
-type Elk = { layout: (graph: ElkNode) => Promise<ElkNode> };
-let elk: Promise<Elk> | null = null;
-/** ELK is large, so it is loaded the first time a diagram is laid out. */
-const elkOf = () =>
-  (elk ??= import('elkjs/lib/elk.bundled.js').then(
-    ({ default: ELK }) => new ELK(),
-  ));
 
 const labelOf = (
   id: string,

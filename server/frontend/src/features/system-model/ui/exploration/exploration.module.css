@@ -146,10 +146,7 @@
   text-align: start;
 
   &:hover {
-    background: light-dark(
-      rgb(from var(--mantine-color-white) r g b / 0.9),
-      var(--mantine-color-dark-5)
-    );
+    background: var(--noesis-diagram-frame-title-hover);
   }
 
   &:focus-visible {
@@ -209,10 +206,6 @@
   top: 50%;
   right: 14px;
   transform: translateY(-50%);
-}
-
-.handle {
-  visibility: hidden;
 }
 
 /* Each relation in its own colour (relationEdges in theme.ts), as well as its word. */
@@ -370,15 +363,13 @@
 
 /* An empty canvas, dotted as the diagram's is, behind the way to start. */
 .blank {
-  background-color: light-dark(
-    var(--mantine-color-gray-0),
-    var(--mantine-color-dark-7)
-  );
+  /* The canvas before anything is drawn, dotted as React Flow dots it (DOT_GRID). */
+  background-color: var(--noesis-diagram-canvas);
   background-image: radial-gradient(
-    light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4)) 1px,
+    var(--noesis-diagram-dots) 1px,
     transparent 1px
   );
-  background-size: 16px 16px;
+  background-size: 20px 20px;
 }
 
 .start {

@@ -107,6 +107,34 @@
           "description": "Lines and borders of the architecture diagram: its edges and adapter cards. Gray 6 / dark 2, from `cssVariablesResolver` in `theme.ts`."
         },
         {
+          "name": "--noesis-diagram-canvas",
+          "description": "Every diagram's canvas: gray 0 / dark 7, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-dots",
+          "description": "The dots on every diagram's canvas: gray 3 / dark 4, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-toolbar",
+          "description": "A canvas's own toolbar: gray 0 / dark 6, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-divider",
+          "description": "The rule between a canvas toolbar's groups: gray 3 / dark 4, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-note",
+          "description": "A note's fill on a diagram: yellow 0 / dark 6, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-frame-title-hover",
+          "description": "A frame's title under the pointer: white at 90% / dark 5, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
+          "name": "--noesis-diagram-ring-label",
+          "description": "The name a hexagon's ring is labelled with: brand 8 / dark 1, from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
           "name": "--noesis-diagram-card",
           "description": "A card on any diagram, the exploration's and the architecture's. White / dark 6 (a grey over its darkened frame), from `cssVariablesResolver` in `theme.ts`."
         },

@@ -1,4 +1,12 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import {
+  asBehavior,
+  asBuildingBlock,
+  blockOfRef,
+  moduleOf,
+  nameOf,
+  ownerOf,
+} from '#/shared/model/element-id.ts';
 import type {
   DesignDocumentInput,
   DesignedBehaviorInput,
@@ -22,14 +30,6 @@ import {
 } from './architecture-outline.ts';
 import { findById, named, writtenIn } from './change-set.ts';
 import { type DesignDocFieldInput, valueOf } from './design-doc-field.ts';
-import {
-  asBehavior,
-  asBuildingBlock,
-  blockOfRef,
-  moduleOf,
-  nameOf,
-  ownerOf,
-} from './element-id.ts';
 import { relationsFrom } from './relations.ts';
 import { ruleNameOf, rulesUnder } from './rules.ts';
 

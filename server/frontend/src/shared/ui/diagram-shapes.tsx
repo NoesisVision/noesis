@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { DIAGRAM_SHAPE } from '#/shared/design-system/theme.ts';
+import { PASSED_VALUES } from '#/shared/model/building-block-kinds.ts';
 import classes from './diagram-shapes.module.css';
 
 /** The shape a diagram's card takes (diagram-shapes.module.css). */
@@ -8,8 +9,8 @@ export type CardShape = 'box' | 'pill' | 'bevel';
 /** The class a diagram's card takes for its shape, with `data-shape` and `data-state`. */
 export const cardShapeClass = classes.card;
 
-/** The values the domain passes around: a value object and the messages. */
-const BEVELLED = new Set(['value_object', 'command', 'event', 'query']);
+/** The values the domain passes around, bevelled: a value object and the messages. */
+const BEVELLED: ReadonlySet<string> = new Set(PASSED_VALUES);
 
 /**
  * The shape of an element's card, on any diagram: a behavior a pill, a

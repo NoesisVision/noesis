@@ -2,7 +2,6 @@ import { IconBolt } from '@tabler/icons-react';
 import { Fragment } from 'react';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
-import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignedBehaviorInput } from '#backend/app/design-docs/design-doc.ts';
@@ -13,7 +12,7 @@ import {
 } from '../../cardinality-mark.tsx';
 import { parameterItems, resultItems } from '../../change-list-items.ts';
 import { useDesignDocument } from '../../design-document-context.ts';
-import { useElementNavigation } from '../../element-navigation.ts';
+import { ElementLinkOrText } from '../../element-link-or-text.tsx';
 import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
 import { MarkdownReading } from '../../markdown-reading.tsx';
@@ -84,21 +83,14 @@ function Mark({ node }: { node: OutlineNode }) {
 }
 
 function BehaviorName({ node }: { node: OutlineNode }) {
-  const { has, select } = useElementNavigation();
-  const removed = node.change === 'removed' || undefined;
-  return has(node.path) ? (
-    <UnstyledButton
+  return (
+    <ElementLinkOrText
+      path={node.path}
       className={classes.name}
-      data-link
-      data-removed={removed}
-      onClick={() => select(node.path)}
+      removed={node.change === 'removed'}
     >
       {node.name}
-    </UnstyledButton>
-  ) : (
-    <span className={classes.name} data-removed={removed}>
-      {node.name}
-    </span>
+    </ElementLinkOrText>
   );
 }
 
@@ -161,27 +153,14 @@ function OutputType({
   cardinality?: MarkedCardinality | undefined;
   path: string | null;
 }) {
-  const { has, select } = useElementNavigation();
-  const mark = cardinality !== undefined && (
-    <CardinalityMark cardinality={cardinality} />
-  );
   return (
     <ElementTooltip name={label} hint cardinality={cardinality}>
-      {path !== null && has(path) ? (
-        <UnstyledButton
-          className={classes.output}
-          data-link
-          onClick={() => select(path)}
-        >
-          {mark}
-          <QualifiedName name={label} />
-        </UnstyledButton>
-      ) : (
-        <span className={classes.output}>
-          {mark}
-          <QualifiedName name={label} />
-        </span>
-      )}
+      <ElementLinkOrText path={path} className={classes.output}>
+        {cardinality !== undefined && (
+          <CardinalityMark cardinality={cardinality} />
+        )}
+        <QualifiedName name={label} />
+      </ElementLinkOrText>
     </ElementTooltip>
   );
 }

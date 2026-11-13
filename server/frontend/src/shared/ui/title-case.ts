@@ -34,6 +34,13 @@ export type TitleCase<S extends string> = string extends S
 /** A run of anything that is not a break, which is what a word is here. */
 const WORD = /[^ _]+/gu;
 
+/**
+ * A word of the model — a pattern, a rule's kind, a kind of element — as a
+ * label: `value_object` is `Value Object`, `state change` is `State Change`.
+ */
+export const modelWordOf = (word: string): string =>
+  titleCase(word.replaceAll('_', ' '));
+
 export function titleCase<S extends string>(text: S): TitleCase<S> {
   // No compiler reads a regular expression, so the type above is the promise
   // and this line is the one place that has to keep it.

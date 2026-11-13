@@ -3,7 +3,7 @@ import {
   RELATIONS,
   type RelationKind,
 } from '../../system-model-exploration.ts';
-import type { ExplorationNode } from './element-node.tsx';
+import type { ExplorationNode } from './exploration-node.ts';
 import type { LayoutDirection } from './layout-exploration.ts';
 
 /** The diagram as one step left it, enough to put it back as it stood. */

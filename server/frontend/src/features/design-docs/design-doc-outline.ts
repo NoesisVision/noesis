@@ -6,6 +6,7 @@ import {
   type OutlineNode,
   patternLabelOf,
 } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { kindOf, nameOf, parentOf } from '#/shared/model/element-id.ts';
 import type {
   DesignDocumentInput,
   DesignedBehaviorInput,
@@ -14,7 +15,6 @@ import type {
 } from '#backend/app/design-docs/design-doc.ts';
 import { type ChangeSetInput, named } from './change-set.ts';
 import { type DesignDocFieldInput, valueOf } from './design-doc-field.ts';
-import { kindOf, nameOf, parentOf } from './element-id.ts';
 import { performersOf, processPathUnder } from './people.ts';
 import { slotLabelOf } from './relations.ts';
 import {

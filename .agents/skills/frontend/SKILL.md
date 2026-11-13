@@ -128,8 +128,7 @@ A diagram on a React Flow canvas — the design document's architecture, the
 system model's exploration, and any diagram added later — shows what is
 selected in a panel over the canvas's top right, and that panel can always
 be minimized. Build it from `DetailsDock`
-([`src/features/design-docs/ui/architecture/details-dock.tsx`](../../../server/frontend/src/features/design-docs/ui/architecture/details-dock.tsx),
-exported to other features through `#/features/design-docs/element-reader.ts`),
+([`src/shared/ui/diagram-canvas/details-dock.tsx`](../../../server/frontend/src/shared/ui/diagram-canvas/details-dock.tsx)),
 never a bare `<Panel>` of its own:
 
 ```tsx
@@ -196,6 +195,13 @@ in the same change, or the PR says why it is not.
 - **Chrome.** The toolbar is a `CanvasToolbar` with `ZoomControls quiet`,
   the legend a `CanvasLegend` (both `src/shared/ui/`), and the selection is
   read in a `DetailsDock` (above).
+- **The kit.** What every canvas does alike is built once, in
+  [`src/shared/ui/diagram-canvas/`](../../../server/frontend/src/shared/ui/diagram-canvas/),
+  and a new canvas takes it rather than writing its own:
+  `useLetGoOnEscape` and `isElsewhere` (`canvas-keys.ts`), `CANVAS_FLOW`
+  and `useCanvasZoom` (`canvas-flow.ts`), `FIT`, `DOT_GRID`,
+  `useEvenCtrlZoom` (Ctrl and the wheel zoom as gently as Cmd), `elkOf`,
+  `HiddenHandle` and `DetailsDock`.
 
 ## Every modal uses `ModalFrame`
 

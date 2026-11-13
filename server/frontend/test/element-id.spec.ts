@@ -9,7 +9,7 @@ import {
   moduleOf,
   ownerOf,
   parentOf,
-} from '../src/features/design-docs/element-id';
+} from '../src/shared/model/element-id';
 
 const module = 'module|sales.orders';
 const block = 'building_block|sales.orders.Refund';

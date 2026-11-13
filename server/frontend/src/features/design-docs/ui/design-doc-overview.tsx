@@ -15,6 +15,7 @@ import {
   type LinkedTarget,
   linkedTargets,
   linkedViews,
+  OPENS_IN,
   readableDescription,
   targetOfHref,
 } from '../design-doc-description.ts';
@@ -115,11 +116,6 @@ export function DesignDocOverview({
   );
 }
 
-const OPENS_IN_LABEL: Record<DescriptionTarget['view'], string> = {
-  model: 'opens in Model',
-  requirements: 'opens in Requirements',
-};
-
 /** What each kind of link looks like, as the chips in the prose draw them. */
 function LinkLegend({ views }: { views: DescriptionTarget['view'][] }) {
   return (
@@ -135,7 +131,7 @@ function LinkLegend({ views }: { views: DescriptionTarget['view'][] }) {
               data-view={view}
             >
               <Icon size={12} stroke={2} aria-hidden />
-              {OPENS_IN_LABEL[view]}
+              {OPENS_IN[view]}
             </Box>
           );
         })}

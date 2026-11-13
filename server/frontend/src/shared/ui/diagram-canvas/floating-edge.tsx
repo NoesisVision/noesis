@@ -4,30 +4,27 @@ import {
   type EdgeProps,
   getBezierPath,
   getSmoothStepPath,
+  getStraightPath,
   type InternalNode,
   Position,
   useInternalNode,
 } from '@xyflow/react';
+import type { Point } from './geometry.ts';
 
 /*
- * One relation between two cards, floating: it meets each card where the
- * line between the two cards' centres crosses that card's border, wherever
- * the cards stand, so the edges between two cards go the shortest way
- * round as they are dragged. It runs in steps when the reader wants right
- * angles, in a curve when not, its arrow at the target's border.
+ * One line between two cards, floating, as every diagram draws them: it
+ * meets each card where the line between the two cards' centres crosses
+ * that card's border, wherever the cards stand, so the edges between two
+ * cards go the shortest way round as they are dragged. It runs in steps when
+ * the reader wants right angles, in a curve when not — or straight, on a
+ * diagram whose cards are placed by rule — its arrow at the target's border.
  */
 
-export type RelationEdge = Edge<
-  {
-    orthogonal: boolean;
-  },
-  'relation'
->;
-
-interface Point {
-  x: number;
-  y: number;
-}
+export type FloatingEdge = Edge<{
+  orthogonal: boolean;
+  /** A straight line, for a diagram whose cards stand where a rule puts them. */
+  straight?: boolean;
+}>;
 
 /** Where the line from this card's centre towards the other's crosses its border. */
 export function borderTowards(card: InternalNode, other: InternalNode): Point {
@@ -72,7 +69,7 @@ function sideOf(card: InternalNode, point: Point): Position {
   return Position.Top;
 }
 
-export function RelationEdgeView({
+export function FloatingEdgeView({
   data,
   source,
   target,
@@ -84,7 +81,7 @@ export function RelationEdgeView({
   labelBgBorderRadius,
   markerEnd,
   style,
-}: EdgeProps<RelationEdge>) {
+}: EdgeProps<FloatingEdge>) {
   const from = useInternalNode(source);
   const to = useInternalNode(target);
   if (from === undefined || to === undefined) return null;
@@ -98,10 +95,12 @@ export function RelationEdgeView({
     targetY: end.y,
     targetPosition: sideOf(to, end),
   };
-  const [path, labelX, labelY] = data?.orthogonal
-    ? // Turning close to the cards, so two side by side get no stubs.
-      getSmoothStepPath({ ...ends, borderRadius: 6, offset: 8 })
-    : getBezierPath(ends);
+  const [path, labelX, labelY] = data?.straight
+    ? getStraightPath(ends)
+    : data?.orthogonal
+      ? // Turning close to the cards, so two side by side get no stubs.
+        getSmoothStepPath({ ...ends, borderRadius: 6, offset: 8 })
+      : getBezierPath(ends);
   return (
     <BaseEdge
       id={id}

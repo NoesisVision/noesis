@@ -12,6 +12,13 @@ export const shortName = (ref: string): { type: string; name?: string } => {
   return colon === -1 ? { type } : { type, name: ref.slice(0, colon).trim() };
 };
 
+/** What a reference names, whole: `name: a.b.C [*]` names `a.b.C`. */
+export const qualifiedOf = (ref: string): string =>
+  ref
+    .slice(ref.indexOf(':') + 1)
+    .trim()
+    .replace(/\s*\[[^\]]*\]$/, '');
+
 /** A reference as read: `name: a.b.C` reads as `name: C`. */
 export const shortLabel = (ref: string): string => {
   const { type, name } = shortName(ref);

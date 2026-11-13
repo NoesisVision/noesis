@@ -1,4 +1,6 @@
 import type { ElkNode, LayoutOptions } from 'elkjs/lib/elk.bundled.js';
+import { byIdOf } from '#/shared/collections.ts';
+import { elkOf } from '#/shared/ui/diagram-canvas/elk.ts';
 import type {
   DrawnElement,
   ExplorationGraph,
@@ -69,15 +71,6 @@ const CONTAINER_PADDING = `[top=${PADDING.top},left=${PADDING.left},bottom=${PAD
 /** The room between two cards side by side. */
 export const SPACING = 32;
 
-let elk: Promise<{ layout: (graph: ElkNode) => Promise<ElkNode> }> | null =
-  null;
-const loadElk = () => {
-  elk ??= import('elkjs/lib/elk.bundled.js').then(
-    ({ default: ELK }) => new ELK(),
-  );
-  return elk;
-};
-
 function optionsOf(
   algorithm: LayoutAlgorithm,
   direction: LayoutDirection,
@@ -137,7 +130,7 @@ export async function layoutExploration(
   };
 
   const placed = await (
-    await loadElk()
+    await elkOf()
   ).layout({
     id: 'root',
     layoutOptions: {
@@ -154,7 +147,7 @@ export async function layoutExploration(
     })),
   });
 
-  const byId = new Map(graph.elements.map((element) => [element.id, element]));
+  const byId = byIdOf(graph.elements);
   const out: PlacedElement[] = [];
   const walk = (nodes: ElkNode[] = []) => {
     for (const node of nodes) {

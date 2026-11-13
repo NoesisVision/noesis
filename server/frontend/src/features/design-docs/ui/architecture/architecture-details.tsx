@@ -2,17 +2,17 @@ import type { ReactNode } from 'react';
 import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { counted } from '#/features/design-docs/ui/plural.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
+import { kindOf, NEED, nameOf } from '#/shared/model/element-id.ts';
+import { kindLabelOf } from '#/shared/model/element-words.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   type ArchitectureCheck,
   type ArchitectureOutline,
   CHECK_LEVEL_META,
-  UNDRAWN_NAME,
 } from '../../architecture-outline.ts';
 import { CHECKS_PATH } from '../../architecture-tree.ts';
 import { valueOf } from '../../design-doc-field.ts';
 import { needNameOf } from '../../design-doc-requirements.ts';
-import { kindOf, nameOf } from '../../element-id.ts';
 import { KINDS } from './architecture-kinds.ts';
 import type { ArchitectureSubject } from './architecture-selection.ts';
 import { DetailText } from './detail-parts.tsx';
@@ -134,7 +134,7 @@ function bodyOf({
             ? 'Need'
             : `Need · ${stakeholder}`,
         title: needNameOf(need),
-        address: `need|${need.id}`,
+        address: `${NEED}${need.id}`,
         content: (
           <>
             <DetailText>{valueOf(need.statement) ?? ''}</DetailText>
@@ -156,7 +156,8 @@ function bodyOf({
       const drawn = card ?? cards.get(hexagonId(subject.id));
       return {
         eyebrow:
-          (drawn && KINDS[drawn.kind].name) ?? UNDRAWN_NAME[kindOf(subject.id)],
+          // An element no card draws is called by what it is.
+          (drawn && KINDS[drawn.kind].name) ?? kindLabelOf(kindOf(subject.id)),
         title: drawn?.label ?? node?.name ?? nameOf(subject.id),
         address: subject.id,
         content: (

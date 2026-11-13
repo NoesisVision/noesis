@@ -5,6 +5,8 @@ import {
   outlineTree,
 } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { useFollowingTree } from '#/features/design-docs/ui/model-tree/use-following-tree.ts';
+import { byIdOf } from '#/shared/collections.ts';
+import { DetailsDock } from '#/shared/ui/diagram-canvas/details-dock.tsx';
 import {
   architectureTreeOf,
   defaultArchitectureExpansion,
@@ -32,7 +34,6 @@ import {
   rowOf,
   subjectOf,
 } from './architecture-selection.ts';
-import { DetailsDock } from './details-dock.tsx';
 import { layoutArchitecture } from './layout-architecture.ts';
 
 /*
@@ -67,10 +68,7 @@ export function ArchitectureView({
   const layout = useMemo(() => layoutArchitecture(outline.hexagons), [outline]);
   /* Every card, drawn or not: the details read an element the reader has left
      out of the diagram as they read any other. */
-  const cards = useMemo(
-    () => new Map(layout.nodes.map((node) => [node.id, node])),
-    [layout],
-  );
+  const cards = useMemo(() => byIdOf(layout.nodes), [layout]);
   const types = useMemo(
     () => buildingBlockTypesOf(outline.hexagons),
     [outline],

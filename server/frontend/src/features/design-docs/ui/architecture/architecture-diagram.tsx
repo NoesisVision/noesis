@@ -1,19 +1,29 @@
 import {
   Background,
-  BackgroundVariant,
-  type Edge,
   MarkerType,
   ReactFlow,
   type ReactFlowInstance,
 } from '@xyflow/react';
-import '@xyflow/react/dist/base.css';
 import { clsx } from 'clsx';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useMemo, useRef, useState } from 'react';
 import { useChangeColour } from '#/features/design-docs/ui/model-tree/use-change-colour.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
+import '@xyflow/react/dist/base.css';
 import { Text } from '#/shared/design-system/text.tsx';
+import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
+import {
+  CANVAS_FLOW,
+  useCanvasZoom,
+} from '#/shared/ui/diagram-canvas/canvas-flow.ts';
+import { useLetGoOnEscape } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
+import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
+import {
+  type FloatingEdge,
+  FloatingEdgeView,
+} from '#/shared/ui/diagram-canvas/floating-edge.tsx';
+import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { ArchitectureOutline } from '../../architecture-outline.ts';
 import type { TypeRing } from '../../building-block-types.ts';
@@ -75,6 +85,9 @@ const NODE_TYPES = {
   card: CardNode,
 } satisfies Record<Kind['type'], unknown>;
 
+/** Every line floats, meeting each card at its border, as on the exploration. */
+const EDGE_TYPES = { floating: FloatingEdgeView };
+
 export function ArchitectureDiagram({
   outline,
   layout,
@@ -86,18 +99,8 @@ export function ArchitectureDiagram({
   hiddenTypes,
   onHideTypes,
 }: ArchitectureDiagramProps) {
-  // Escape lets go of what is in hand, as on the exploration; in a field, the
-  // outline, a dialog or a menu it is theirs. Heard on its way down, as a
-  // card's tooltip stops it on its way back up.
-  useEffect(() => {
-    if (onClear === undefined) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || isElsewhere(event.target)) return;
-      onClear();
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [onClear]);
+  // Escape lets go of what is in hand, as on the exploration.
+  useLetGoOnEscape(onClear !== undefined, onClear ?? NOTHING);
   const [overlays, setOverlays] = useState<Overlays>({
     checks: true,
     rules: false,
@@ -107,8 +110,14 @@ export function ArchitectureDiagram({
   const scheme = useComputedColorScheme('light');
   /* Held from `onInit` rather than read from a provider around the toolbar:
      React Flow's own provider is what seeds the nodes before the first paint. */
-  const [flow, setFlow] = useState<ReactFlowInstance<DiagramNode> | null>(null);
-  const [zoom, setZoom] = useState(1);
+  const [flow, setFlow] = useState<ReactFlowInstance<
+    DiagramNode,
+    FloatingEdge
+  > | null>(null);
+  const zoom = useCanvasZoom(flow);
+  // Ctrl and the wheel zoom as gently as on every diagram.
+  const frame = useRef<HTMLElement>(null);
+  useEvenCtrlZoom(frame);
   /* The legend entry the reader picked out, by its name: the rest fade. */
   const [picked, setPicked] = useState<string | null>(null);
   const findings = useMemo(
@@ -159,9 +168,9 @@ export function ArchitectureDiagram({
     ],
   );
   const edges = useMemo(() => {
-    const kindOf = new Map(layout.nodes.map(({ id, kind }) => [id, kind]));
+    const kindAt = new Map(layout.nodes.map(({ id, kind }) => [id, kind]));
     const fadesAt = (id: string) => {
-      const kind = kindOf.get(id);
+      const kind = kindAt.get(id);
       return kind !== undefined && fades(kind, pickedKinds);
     };
     // With something in hand, a line stays clear between two cards that do,
@@ -171,12 +180,16 @@ export function ArchitectureDiagram({
       !(clear.has(edge.source) && clear.has(edge.target)) &&
       !focus.selected.has(edge.source) &&
       !focus.selected.has(edge.target);
+    // The selection's own lines stand out, as on the exploration.
+    const highlightedAt = (edge: LaidOutEdge) =>
+      focus.selected.has(edge.source) || focus.selected.has(edge.target);
     // A line fades only when both its ends do.
     return layout.edges.map((edge) =>
       edgeOf(
         edge,
         fadesAt(edge.source) && fadesAt(edge.target),
         dimmedAt(edge),
+        highlightedAt(edge),
       ),
     );
   }, [layout, pickedKinds, clear, focus]);
@@ -191,16 +204,10 @@ export function ArchitectureDiagram({
         onOverlays={setOverlays}
         unplaced={outline.unplaced}
       >
-        <ZoomControls
-          quiet
-          zoom={zoom}
-          disabled={flow === null}
-          onZoomOut={() => void flow?.zoomOut()}
-          onZoomIn={() => void flow?.zoomIn()}
-          onFit={() => void flow?.fitView(FIT)}
-        />
+        <ZoomControls quiet {...zoom.controls} />
       </DiagramToolbar>
       <Box
+        ref={frame}
         component="section"
         pos="relative"
         flex={1}
@@ -217,34 +224,25 @@ export function ArchitectureDiagram({
               nodes={nodes}
               edges={edges}
               nodeTypes={NODE_TYPES}
+              edgeTypes={EDGE_TYPES}
               colorMode={scheme}
               fitView
               fitViewOptions={FIT}
               // The bottom left corner is the legend's.
-              attributionPosition="bottom-right"
+              {...CANVAS_FLOW}
               minZoom={0.2}
               maxZoom={2}
               nodesDraggable={false}
-              nodesConnectable={false}
-              nodesFocusable={false}
-              edgesFocusable={false}
-              elementsSelectable={false}
               onPaneClick={onClear}
               onInit={(instance) => {
                 setFlow(instance);
-                setZoom(instance.getZoom());
+                zoom.readZoom(instance);
               }}
-              onMove={(_, viewport) => setZoom(viewport.zoom)}
+              onMove={zoom.onMove}
             >
               {selection}
               {/* The dot grid the Mermaid diagrams are drawn on, moving with the cards. */}
-              <Background
-                variant={BackgroundVariant.Dots}
-                gap={16}
-                size={1}
-                color="light-dark(var(--mantine-color-gray-4), var(--mantine-color-dark-4))"
-                bgColor="light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7))"
-              />
+              <Background {...DOT_GRID} />
               <Legend entries={legend} picked={picked} onPick={setPicked} />
             </ReactFlow>
           </DiagramReadingContext.Provider>
@@ -253,8 +251,6 @@ export function ArchitectureDiagram({
     </Stack>
   );
 }
-
-const FIT = { padding: 0.08 };
 
 /** How many warnings and notes name each card's element, or a behavior found on it. */
 function findingsOf(
@@ -277,41 +273,47 @@ function findingsOf(
   return found;
 }
 
-const ARROW = {
+const arrowOf = (highlighted: boolean) => ({
   type: MarkerType.ArrowClosed,
-  color: 'var(--noesis-architecture-edge)',
+  color: highlighted
+    ? 'var(--noesis-diagram-highlight)'
+    : 'var(--noesis-architecture-edge)',
   width: 16,
   height: 16,
-};
+});
 
-function edgeOf(edge: LaidOutEdge, faded: boolean, dimmed: boolean): Edge {
+function edgeOf(
+  edge: LaidOutEdge,
+  faded: boolean,
+  dimmed: boolean,
+  highlighted: boolean,
+): FloatingEdge {
+  const arrow = arrowOf(highlighted);
   return {
     id: edge.id,
     source: edge.source,
     target: edge.target,
-    type: 'straight',
+    type: 'floating',
+    // Straight: the cards stand where the hexagon's rings put them.
+    data: { orthogonal: false, straight: true },
+    // The selection's lines are drawn over the rest.
+    zIndex: highlighted ? 1 : 0,
     className: clsx(
       classes.edge,
       faded && classes.faded,
       dimmed && classes.dimmedEdge,
+      highlighted && classes.highlighted,
     ),
     // The adapters are not designed, so the lines to them are not either.
     style: { strokeDasharray: DASHED.has(edge.kind) ? '6 6' : undefined },
     ...(edge.kind === 'owns'
       ? {}
       : edge.kind === 'implements'
-        ? { markerStart: ARROW }
-        : { markerEnd: ARROW }),
+        ? { markerStart: arrow }
+        : { markerEnd: arrow }),
   };
 }
 
 const DASHED = new Set<LaidOutEdge['kind']>(['adapts', 'implements']);
 
-/** Whether a key pressed there is meant for something else than the canvas. */
-const isElsewhere = (target: EventTarget | null): boolean =>
-  target instanceof HTMLElement &&
-  (target.isContentEditable ||
-    target instanceof HTMLInputElement ||
-    target instanceof HTMLTextAreaElement ||
-    target instanceof HTMLSelectElement ||
-    target.closest('[role="tree"], [role="dialog"], [role="menu"]') !== null);
+const NOTHING = () => {};

@@ -15,7 +15,12 @@ describe('KindIcon', () => {
     ['library', null, 'books'],
     ['layer', null, 'stack-2'],
     ['deployment_container', null, 'server'],
-    ['rule', 'State change', 'status-change'],
+    ['rule', 'validation', 'shield'],
+    ['rule', 'state_change', 'status-change'],
+    ['rule', 'post', 'checks'],
+    ['rule', 'computation', 'math-function'],
+    ['rule', 'coordination', 'sitemap'],
+    ['rule', 'configuration', 'adjustments'],
   ] as const)('draws a %s by its pattern %s', (kind, pattern, icon) => {
     expect(
       iconName(

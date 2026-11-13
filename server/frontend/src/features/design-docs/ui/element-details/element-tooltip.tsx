@@ -8,13 +8,6 @@ import {
 } from 'react';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import { CardTooltip } from '#/shared/design-system/card-tooltip.tsx';
-import { shortLabel, shortName } from '#/shared/ui/qualified-name.tsx';
-import type {
-  DesignDocumentInput,
-  DesignedBehaviorInput,
-} from '#backend/app/design-docs/design-doc.ts';
-import { findById, writtenIn } from '../../change-set.ts';
-import { valueOf } from '../../design-doc-field.ts';
 import {
   behaviorIdAt,
   blockIdAt,
@@ -22,7 +15,18 @@ import {
   nameOf,
   ownerOf,
   parentOf,
-} from '../../element-id.ts';
+} from '#/shared/model/element-id.ts';
+import {
+  qualifiedOf,
+  shortLabel,
+  shortName,
+} from '#/shared/ui/qualified-name.tsx';
+import type {
+  DesignDocumentInput,
+  DesignedBehaviorInput,
+} from '#backend/app/design-docs/design-doc.ts';
+import { findById, writtenIn } from '../../change-set.ts';
+import { valueOf } from '../../design-doc-field.ts';
 import {
   CardinalityMark,
   CardinalityNote,
@@ -61,13 +65,6 @@ interface Shape {
   buildingBlocks?: Line[];
   behaviors?: Line[];
 }
-
-/** The address a name points at: `name: a.b.C [*]` points at `a.b.C`. */
-const addressOf = (name: string) =>
-  name
-    .slice(name.indexOf(':') + 1)
-    .trim()
-    .replace(/\s*\[[^\]]*\]$/, '');
 
 /** Each line as declared, its type read short; what the design removes left out. */
 const lines = (items: ChangeListItem[]): Line[] =>
@@ -227,7 +224,7 @@ export function ElementTooltip({
   children: ReactElement<{ className?: string }>;
 }) {
   const doc = useDesignDocument();
-  const address = addressOf(name);
+  const address = qualifiedOf(name);
   const shape = doc === null ? null : shapeOf(doc, address);
   if (shape === null && shown === name.trim() && cardinality === undefined) {
     return children;

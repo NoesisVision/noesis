@@ -1,4 +1,3 @@
-import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignDocFieldInput } from '../../../../design-doc-field.ts';
 import {
@@ -6,7 +5,7 @@ import {
   type MarkedCardinality,
 } from '../../cardinality-mark.tsx';
 import type { ChangeListItem } from '../../change-list-items.ts';
-import { useElementNavigation } from '../../element-navigation.ts';
+import { ElementLinkOrText } from '../../element-link-or-text.tsx';
 import { ElementTooltip } from '../../element-tooltip.tsx';
 import { WrittenBy } from '../../human-mark.tsx';
 import classes from './declaration-box.module.css';
@@ -77,29 +76,18 @@ export function DeclarationType({
   /** A tag, as under a name or as an output; otherwise it heads the box as text. */
   tagged: boolean;
 }) {
-  const { has, select } = useElementNavigation();
-  const className = tagged ? classes.type : classes.name;
   const marked = cardinality !== undefined;
-  const mark = marked && <CardinalityMark cardinality={cardinality} />;
   // Hovering the type says what it is: what it holds, or takes and gives.
   return (
     <ElementTooltip name={type} cardinality={cardinality}>
-      {path != null && has(path) ? (
-        <UnstyledButton
-          className={className}
-          data-link
-          onClick={() => select(path)}
-          data-marked={marked || undefined}
-        >
-          {mark}
-          <QualifiedName name={type} />
-        </UnstyledButton>
-      ) : (
-        <span className={className} data-marked={marked || undefined}>
-          {mark}
-          <QualifiedName name={type} />
-        </span>
-      )}
+      <ElementLinkOrText
+        path={path}
+        className={tagged ? classes.type : classes.name}
+        data-marked={marked || undefined}
+      >
+        {marked && <CardinalityMark cardinality={cardinality} />}
+        <QualifiedName name={type} />
+      </ElementLinkOrText>
     </ElementTooltip>
   );
 }

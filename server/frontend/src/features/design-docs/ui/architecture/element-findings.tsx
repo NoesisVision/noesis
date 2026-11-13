@@ -4,6 +4,7 @@ import { Badge } from '#/shared/design-system/badge.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { addressOf } from '#/shared/model/element-id.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import {
   type ArchitectureOutline,
@@ -11,7 +12,6 @@ import {
   placedById,
 } from '../../architecture-outline.ts';
 import { inferredFlowOf } from '../../design-doc-architecture.ts';
-import { addressOf } from '../../element-id.ts';
 import { DetailSection } from '../element-details/body/sections/detail-section.tsx';
 import { ElementRelations } from '../element-details/element-relations.tsx';
 import { InferredFlows } from './inferred-flows.tsx';

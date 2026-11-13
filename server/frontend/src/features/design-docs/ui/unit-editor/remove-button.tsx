@@ -1,8 +1,8 @@
 import { IconTrash } from '@tabler/icons-react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
+import { nameOf } from '#/shared/model/element-id.ts';
 import { UNIT_LABEL, type UnitRef } from '../../design-doc-edit.ts';
-import { nameOf } from '../../element-id.ts';
 import { useUnitEditing } from './unit-editing.ts';
 import { useWritableUnit } from './writable-unit.ts';
 import quiet from './icon-button.module.css';

@@ -1,4 +1,4 @@
-import { titleCase } from '#/shared/ui/title-case.ts';
+import { modelWordOf } from '#/shared/ui/title-case.ts';
 import type { BuildingBlockKind } from '#backend/app/system-model/system-model.ts';
 
 /*
@@ -48,7 +48,7 @@ export interface OutlineNode {
   /** 0 at the top. */
   depth: number;
   change: OutlineChange;
-  /** The pattern as the model spells it: `application_service`, `command`, `Consistency`. */
+  /** The pattern as the model spells it: `application_service`, `command`, `state_change`. */
   pattern: string | null;
   /** The pattern as a reader reads it: `Application Service`, `OrderId`. */
   patternLabel: string | null;
@@ -99,19 +99,7 @@ const BUILDING_BLOCK_READING_ORDER = [
 ] as const satisfies readonly BuildingBlockKind[];
 
 /** Submodules above the blocks they hold; rules and scenarios last of all. */
-const KIND_ORDER: readonly OutlineKind[] = [
-  'module',
-  'actor',
-  'manual_process',
-  'building_block',
-  'behavior',
-  'property',
-  'rule',
-  'scenario',
-  'group',
-  'need',
-  'check',
-];
+const KIND_ORDER: readonly OutlineKind[] = OUTLINE_KINDS;
 
 /** Past the end of both orders, so anything unplaced sorts after everything placed. */
 const UNPLACED = Number.MAX_SAFE_INTEGER;
@@ -132,7 +120,7 @@ const indexIn = (order: readonly string[], value: string | null): number => {
  * own spelling.
  */
 export function patternLabelOf(pattern: string | null): string | null {
-  return pattern === null ? null : titleCase(pattern.replaceAll('_', ' '));
+  return pattern === null ? null : modelWordOf(pattern);
 }
 
 /** The fence a diagram is written in, the one the reader draws. */

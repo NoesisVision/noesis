@@ -1,4 +1,5 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { DRIVEN_PORTS } from '#/shared/model/building-block-kinds.ts';
 import type { DesignedNeedInput } from '#backend/app/design-docs/design-doc.ts';
 import type {
   BehaviorId,
@@ -10,7 +11,6 @@ import type {
   BuildingBlockKind,
   RuleKind,
 } from '#backend/app/system-model/system-model.ts';
-import type { kindOf } from './element-id.ts';
 
 /*
  * The design placed in hexagons, as the architecture view and its checks read
@@ -90,11 +90,6 @@ export const CHECK_LEVEL_META: Record<
   note: { label: 'Note', color: 'gray', elements: 'Concerns' },
   pass: { label: 'Pass', color: 'green', elements: 'Checked' },
 };
-
-const DRIVEN_PORTS = [
-  'repository',
-  'external_integration',
-] as const satisfies readonly BuildingBlockKind[];
 
 /** Every element in a hexagon, in the order the rings are drawn. */
 export const elementsOf = (hexagon: Hexagon): PlacedElement[] => [
@@ -220,15 +215,4 @@ export const ARCHITECTURE_KIND_META: Record<
   service: { word: 'application service', name: 'Application service' },
   element: { word: 'domain core', name: DOMAIN_CORE_NAME },
   drivenPort: { word: 'driven port', name: 'Driven port' },
-};
-
-/** What an element no card draws is called: by what it is, as no ring says more. */
-export const UNDRAWN_NAME: Record<ReturnType<typeof kindOf>, string> = {
-  module: 'Module',
-  building_block: 'Building block',
-  behavior: 'Behavior',
-  rule: 'Rule',
-  scenario: 'Scenario',
-  actor: 'Actor',
-  manual_process: 'Manual process',
 };

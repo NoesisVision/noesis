@@ -1,8 +1,8 @@
 import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
+import { nameOf } from '#/shared/model/element-id.ts';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
-import { named } from './change-set.ts';
+import { named, pointingRelations } from './change-set.ts';
 import { valueOf } from './design-doc-field.ts';
-import { nameOf } from './element-id.ts';
 
 /*
  * Who drives the system, as a design reads it. An actor performs manual
@@ -11,19 +11,13 @@ import { nameOf } from './element-id.ts';
  * performs it, and at the top when none does.
  */
 
-/** The relations of a design that point at something, added or removed. */
-const pointing = (doc: DesignDocumentInput) => [
-  ...(doc.relations?.added ?? []),
-  ...(doc.relations?.removed ?? []),
-];
-
 /** The actors the design says perform a manual process, by name. */
 export function performersOf(
   doc: DesignDocumentInput,
   processId: string,
 ): string[] {
   return byName(
-    pointing(doc).flatMap((relation) =>
+    pointingRelations(doc).flatMap((relation) =>
       relation.kind === 'performs' && relation.to === processId
         ? [relation.from]
         : [],
@@ -37,7 +31,7 @@ export function invokersOf(
   behaviorId: string,
 ): string[] {
   return byName(
-    pointing(doc).flatMap((relation) =>
+    pointingRelations(doc).flatMap((relation) =>
       relation.kind === 'process_invokes_behavior' && relation.to === behaviorId
         ? [relation.from]
         : [],

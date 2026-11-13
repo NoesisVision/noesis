@@ -33,12 +33,14 @@ import {
 import { layoutExploration } from '../src/features/system-model/ui/exploration/layout-exploration';
 import {
   arrangeWithin,
+  landsIn,
   movedTo,
   placeLocally,
+  refusingFrames,
 } from '../src/features/system-model/ui/exploration/place-locally';
-import { borderTowards } from '../src/features/system-model/ui/exploration/relation-edge';
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
 import { MantineProvider } from '../src/shared/design-system/provider';
+import { borderTowards } from '../src/shared/ui/diagram-canvas/floating-edge';
 
 const source = { path: 'X.java', startLine: null, endLine: null };
 
@@ -364,10 +366,10 @@ describe('the exploration of a system model', () => {
       expect(
         drawn.map((each) => [each.name, kindWordOf(each), each.container]),
       ).toEqual([
-        ['Shop.Api', 'Deployable unit', null],
+        ['Shop.Api', 'Deployable Unit', null],
         ['shop-domain', 'Library', null],
         ['domain', 'Layer', null],
-        ['Orders cluster', 'Deployment container', null],
+        ['Orders cluster', 'Deployment Container', null],
       ]);
     });
 
@@ -403,10 +405,10 @@ describe('the exploration of a system model', () => {
     it('lists their kinds in the filter only when the model holds them', () => {
       expect(elementSectionsOf(read).map(({ title }) => title)).toEqual(
         expect.arrayContaining([
-          'Deployable units',
+          'Deployable Units',
           'Libraries',
           'Layers',
-          'Deployment containers',
+          'Deployment Containers',
         ]),
       );
       expect(
@@ -517,10 +519,10 @@ describe('the exploration of a system model', () => {
     expect(people.edges.invokes).toEqual([[PROCESS, PLACE]]);
     expect(elementSectionsOf(people).map(({ title }) => title)).toEqual([
       'Modules',
-      'Building blocks',
+      'Building Blocks',
       'Behaviors',
       'Actors',
-      'Manual processes',
+      'Manual Processes',
     ]);
     expect(neighboursOf(people).get(PROCESS)!.performedBy).toEqual([ACTOR]);
     expect(
@@ -566,7 +568,7 @@ describe('the exploration of a system model', () => {
     expect(elementSectionsOf(exploration)).toEqual([
       { title: 'Modules', groups: [{ group: 'module', count: 2 }] },
       {
-        title: 'Building blocks',
+        title: 'Building Blocks',
         groups: [
           { group: 'aggregate', count: 1 },
           { group: 'value_object', count: 1 },
@@ -724,7 +726,7 @@ describe('the selection', () => {
     const [module, , order, , behavior] = exploration.elements;
     expect([module, order, behavior].map((each) => kindWordOf(each!))).toEqual([
       'Module',
-      'Building block · Aggregate',
+      'Building Block · Aggregate',
       'Behavior',
     ]);
   });
@@ -781,7 +783,7 @@ describe('the selection', () => {
     );
     expect(html).toMatch(/<button[^>]*data-state="related"/);
     expect(html).toContain(
-      'aria-label="Line, Building block · Value Object, related to the selection"',
+      'aria-label="Line, Building Block · Value Object, related to the selection"',
     );
     expect(html).toContain('aria-pressed="false"');
     // Its buttons are there whether or not it is in hand.
@@ -1381,6 +1383,24 @@ describe('placing a change from one card', () => {
       // Its own module, fitted round it, stands clear of the other.
       const a = placed.find(({ element }) => element.id === 'A')!;
       expect(apart(a, b)).toBe(true);
+    });
+
+    it('refuses the other module while a card is dragged, never its own', () => {
+      const home = frameAt('A', 0, 0, 236, 140);
+      const other = frameAt('B', 400, 0, 300, 200);
+      const frames = refusingFrames(
+        [...home.placed, ...other.placed],
+        graphOf(...home.elements, ...other.elements),
+        'A.kid',
+      );
+      expect(frames).toEqual([{ x: 400, y: 0, width: 300, height: 200 }]);
+      // A card lands in a frame when its centre is inside it.
+      expect(landsIn(frames, { x: 450, y: 60, width: 150, height: 56 })).toBe(
+        true,
+      );
+      expect(landsIn(frames, { x: 16, y: 60, width: 150, height: 56 })).toBe(
+        false,
+      );
     });
 
     it('lands beside it with no side free, the modules round it pushed aside', () => {

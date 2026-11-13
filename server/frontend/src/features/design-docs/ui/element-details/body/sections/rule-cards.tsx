@@ -10,14 +10,10 @@ import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import type { DesignedRuleInput } from '#backend/app/design-docs/design-doc.ts';
 import { writtenIn } from '../../../../change-set.ts';
-import {
-  type PartOwner,
-  RULE_KINDS,
-  unitOf,
-} from '../../../../design-doc-edit.ts';
+import { type PartOwner, unitOf } from '../../../../design-doc-edit.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
 import { tracedTo } from '../../../../design-doc-requirements.ts';
-import { ruleKindLabelOf } from '../../../../rules.ts';
+import { ruleKindLabelOf, RULE_KINDS } from '../../../../rules.ts';
 import { InlineChips } from '../../../unit-editor/inline-chips.tsx';
 import { InlineChoice } from '../../../unit-editor/inline-choice.tsx';
 import { InlineMarkdown } from '../../../unit-editor/inline-markdown.tsx';
