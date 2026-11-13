@@ -6,7 +6,7 @@ import type {
   DrawnElement,
   ExplorationGraph,
 } from '../../system-model-exploration.ts';
-import { badgeLabelOf, badgeRowsOf } from './badge-rows.ts';
+import { badgeRowsOf, badgeTypeOf } from './badge-rows.ts';
 
 /*
  * Where each element of the exploration stands, placed by one of ELK's
@@ -92,7 +92,7 @@ const BADGES_TOP = 50;
 /** Where a frame's badges start, below its name. */
 const FRAME_BADGES_TOP = 52;
 /** One line of badges: a badge and the gap under it. */
-export const BADGE_LINE = 22;
+export const BADGE_LINE = 38;
 /** Room under a card's last line of badges, clear of its rounded corners. */
 const BADGES_BOTTOM = 10;
 /** A row's label, and the gap after it. */
@@ -101,7 +101,12 @@ const ROW_LABEL = 52;
 const BADGES_INSET = 16;
 const BADGE_GAP = 4;
 /** About one character of a badge, with its padding and border. */
-const badgeWidthOf = (badge: Badge) => badgeLabelOf(badge).length * 6.6 + 20;
+const badgeWidthOf = (badge: Badge) =>
+  Math.max(
+    badge.name.length * 6.6,
+    // Its type, and the mark after it of a type with a card of its own.
+    badgeTypeOf(badge).length * 6.4 + (badge.onDiagram ? 14 : 0),
+  ) + 20;
 /** The widest a card grows for its badges before they wrap. */
 const MAX_BADGED_WIDTH = 380;
 const NO_BADGES: readonly Badge[] = [];

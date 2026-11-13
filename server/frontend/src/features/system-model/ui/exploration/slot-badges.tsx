@@ -3,7 +3,12 @@ import { Popover } from '#/shared/design-system/popover.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import type { Badge, WalkStep } from '../../system-model-exploration.ts';
-import { badgeLabelOf, badgeRowsOf, badgeTipOf } from './badge-rows.ts';
+import {
+  badgeLabelOf,
+  badgeRowsOf,
+  badgeTipOf,
+  badgeTypeOf,
+} from './badge-rows.ts';
 import { ExplorationReadingContext } from './exploration-reading.ts';
 import { SlotExplorer } from './slot-explorer.tsx';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
@@ -48,15 +53,21 @@ export function SlotBadges({
               };
               const words = (
                 <>
-                  {badgeLabelOf(badge)}
-                  {badge.onDiagram && (
-                    <>
-                      <span className={classes.onDiagram} aria-hidden>
-                        ↗
-                      </span>
-                      <VisuallyHidden>, also on the diagram</VisuallyHidden>
-                    </>
-                  )}
+                  {/* Its name over its type, each a line of its own; read
+                      out as the slot is written, `offer: Offer`. */}
+                  <span className={classes.name}>{badge.name}</span>
+                  <VisuallyHidden>: </VisuallyHidden>
+                  <span className={classes.type}>
+                    {badgeTypeOf(badge)}
+                    {badge.onDiagram && (
+                      <>
+                        <span className={classes.onDiagram} aria-hidden>
+                          ↗
+                        </span>
+                        <VisuallyHidden>, also on the diagram</VisuallyHidden>
+                      </>
+                    )}
+                  </span>
                 </>
               );
               return (
@@ -117,6 +128,8 @@ function Walked({
           {...shared}
           // A press on it is for the badge, not a drag or pan of the canvas.
           className={`nodrag nopan ${shared.className}`}
+          // Named as the slot is written: its two lines would be read apart.
+          aria-label={`${badgeLabelOf(badge)}${badge.onDiagram ? ', also on the diagram' : ''}`}
           aria-haspopup="dialog"
           aria-expanded={opened}
           onClick={() => setPath(opened ? null : [badge])}

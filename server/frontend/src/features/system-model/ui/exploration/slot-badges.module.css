@@ -2,8 +2,9 @@
  * A card's badges, laid over the card under its name and what it is — or
  * under a frame's name — as its corner controls are. Their sizes are the
  * ones the layout leaves room for (BADGES_TOP, BADGE_LINE and the rest in
- * layout-exploration.ts): a badge 18px tall with 4px under it, a 48px label
- * and 4px after it, 16px in from either side of the card.
+ * layout-exploration.ts): a badge 34px tall — its name over its type — with
+ * 4px under it, a 48px label and 4px after it, 16px in from either side of
+ * the card.
  *
  * The rows let a click between the badges through, to the card under them.
  */
@@ -32,9 +33,11 @@
   width: 48px;
   margin-inline-end: 4px;
   color: var(--mantine-color-dimmed);
+  /* Level with the first line of the first badge, its name. */
+  padding-top: 3px;
   font-size: 10px;
   font-weight: 700;
-  line-height: 18px;
+  line-height: 16px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -64,20 +67,19 @@
   --badge-line: var(--noesis-diagram-edge-state);
   --badge-word: var(--noesis-diagram-edge-state-word);
 
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
   box-sizing: border-box;
   max-width: 100%;
-  height: 18px;
-  padding-inline: 8px;
+  height: 34px;
+  padding: 2px 8px;
   border: 1px solid color-mix(in srgb, var(--badge-line) 55%, transparent);
-  border-radius: var(--mantine-radius-xl);
+  border-radius: var(--mantine-radius-md);
   background: color-mix(in srgb, var(--badge-line) 12%, transparent);
   color: var(--badge-word);
-  font-size: var(--mantine-font-size-xs);
-  font-weight: 600;
-  line-height: 16px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  text-align: start;
   pointer-events: auto;
 
   &[data-relation='input'] {
@@ -114,6 +116,28 @@
     outline: 2px dashed var(--noesis-diagram-related);
     outline-offset: 1px;
   }
+}
+
+/* Each line its own: cut short at the badge's edge, never wrapped. */
+.name,
+.type {
+  overflow: hidden;
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.name {
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 600;
+  line-height: 15px;
+}
+
+.type {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+  opacity: 0.8;
 }
 
 /* Its type still has a card on the diagram. */

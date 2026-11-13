@@ -1159,19 +1159,25 @@ describe('slots drawn on the cards that hold them', () => {
       place,
     )?.[1];
     expect(card).toContain('place');
-    expect(card).not.toContain('line: Line');
+    expect(card).not.toContain('Line');
     expect(place).toMatch(
-      /<li[^>]*><button[^>]*data-relation="input"[^>]*data-related="true"[^>]*data-tip="line: Line · input 1"[^>]*aria-haspopup="dialog"[^>]*aria-expanded="false"[^>]*>line: Line/,
+      /<li[^>]*><button[^>]*data-relation="input"[^>]*data-related="true"[^>]*data-tip="line: Line · input 1"[^>]*aria-label="line: Line, also on the diagram"[^>]*aria-haspopup="dialog"[^>]*aria-expanded="false"[^>]*>/,
+    );
+    // Its name over its type, each a line, read out as `line: Line`.
+    expect(place).toMatch(
+      /<span[^>]*>line<\/span><span[^>]*>: <\/span><span[^>]*>Line<span/,
     );
     expect(place).toContain('also on the diagram');
 
     // Order holds place: a frame, its top as tall as its name and badges.
     const order = render(ORDER, true);
     expect(order).toMatch(/<ul[^>]*aria-label="state"/);
-    expect(order).toContain('lines: Line [*]');
+    expect(order).toMatch(
+      />lines<\/span><span[^>]*>: <\/span><span[^>]*>Line \[\*\]</,
+    );
     // A primitive leads nowhere: its badge is words, not a button.
     expect(order).toMatch(
-      /<li[^>]*><span[^>]*data-relation="state"[^>]*>id: uuid/,
+      /<li[^>]*><span[^>]*data-relation="state"[^>]*><span[^>]*>id<\/span><span[^>]*>: <\/span><span[^>]*>uuid</,
     );
     expect(order).toContain(
       `--frame-top:${

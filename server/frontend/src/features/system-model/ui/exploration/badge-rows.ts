@@ -3,9 +3,9 @@ import type { Badge, SlotRelation } from '../../system-model-exploration.ts';
 
 /*
  * A card's badges as it lays them out: a row for each relation it has a
- * slot of, inputs then output then state, each badge saying its slot as it
- * is written — `offer: Offer`, `products: DiscountedProduct [*]` — and, in
- * its tooltip, what it is to the card.
+ * slot of, inputs then output then state, each badge its slot's name over
+ * its type — `offer` over `Offer`, `products` over `DiscountedProduct [*]`
+ * — and, in its tooltip, the slot as written and what it is to the card.
  */
 
 /** The order a card's rows read in, as a behavior's signature does. */
@@ -23,9 +23,13 @@ export const badgeRowsOf = (badges: readonly Badge[]): BadgeRow[] =>
     badges: badges.filter((badge) => badge.relation === relation),
   })).filter(({ badges: row }) => row.length > 0);
 
-/** A badge's words: its slot as written, how many after the type when not exactly one. */
-export const badgeLabelOf = ({ name, typeName, cardinality }: Badge) =>
-  `${name}: ${typeName}${cardinalitySuffixOf(cardinality)}`;
+/** A badge's type, how many after it when not exactly one: its second line. */
+export const badgeTypeOf = ({ typeName, cardinality }: Badge) =>
+  `${typeName}${cardinalitySuffixOf(cardinality)}`;
+
+/** A badge's words: its slot as written, `name: Type [*]`. */
+export const badgeLabelOf = (badge: Badge) =>
+  `${badge.name}: ${badgeTypeOf(badge)}`;
 
 /** What a badge is to its card, for its tooltip: `user: UserId · input 2`. */
 export const badgeTipOf = (badge: Badge) =>
