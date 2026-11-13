@@ -468,6 +468,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       related: related.elements,
       path: pathTo(inHandSet, elementsById),
       badges: graph.badges,
+      slots: exploration.slots,
       onSelect: select,
       onLetGo: () => {
         letGo();
@@ -499,6 +500,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       inHandSet,
       related,
       graph.badges,
+      exploration.slots,
       select,
       letGo,
       drawn,

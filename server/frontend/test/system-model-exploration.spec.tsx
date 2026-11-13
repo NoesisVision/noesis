@@ -763,6 +763,7 @@ describe('the selection', () => {
                 related: new Set([line.id]),
                 path: new Set(),
                 badges: graph.badges,
+                slots: exploration.slots,
                 onSelect: () => {},
                 onLetGo: () => {},
                 drawn: new Set([line.id]),
@@ -1047,6 +1048,7 @@ describe('slots drawn on the cards that hold them', () => {
                   related: new Set([ORDER, PLACE]),
                   path: new Set(),
                   badges: graph.badges,
+                  slots: exploration.slots,
                   onSelect: () => {},
                   onLetGo: () => {},
                   drawn: new Set(graph.elements.map((each) => each.id)),
@@ -1084,10 +1086,15 @@ describe('slots drawn on the cards that hold them', () => {
     const place = render(PLACE, false);
     expect(place).toContain('data-badged="true"');
     expect(place).toMatch(/<ul[^>]*aria-label="input"/);
-    // The badge is no part of the card's button.
-    expect(place).not.toMatch(/<button[^>]*>(?:(?!<\/button>).)*line: Line/s);
+    // The badge is no part of the card's button, but a button of its own
+    // that opens what its type relates to.
+    const card = /<button[^>]*data-part="card"[^>]*>(.*?)<\/button>/s.exec(
+      place,
+    )?.[1];
+    expect(card).toContain('place');
+    expect(card).not.toContain('line: Line');
     expect(place).toMatch(
-      /<li[^>]*data-relation="input"[^>]*data-related="true"[^>]*data-tip="line: Line · input 1"[^>]*>line: Line/,
+      /<li[^>]*><button[^>]*data-relation="input"[^>]*data-related="true"[^>]*data-tip="line: Line · input 1"[^>]*aria-haspopup="dialog"[^>]*aria-expanded="false"[^>]*>line: Line/,
     );
     expect(place).toContain('also on the diagram');
 
@@ -1095,7 +1102,10 @@ describe('slots drawn on the cards that hold them', () => {
     const order = render(ORDER, true);
     expect(order).toMatch(/<ul[^>]*aria-label="state"/);
     expect(order).toContain('lines: Line [*]');
-    expect(order).toContain('id: uuid');
+    // A primitive leads nowhere: its badge is words, not a button.
+    expect(order).toMatch(
+      /<li[^>]*><span[^>]*data-relation="state"[^>]*>id: uuid/,
+    );
     expect(order).toContain(
       `--frame-top:${
         paddingOf(

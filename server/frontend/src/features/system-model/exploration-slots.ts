@@ -145,3 +145,38 @@ export function relationsOfType(
     behaves: exposed.length > 0,
   };
 }
+
+/** A step of a walk through the model's types: a slot, and its behavior when a type's behavior holds it. */
+export type WalkStep = Slot & { behavior?: ExposedBehavior };
+
+/** A step's key among its column's: its relation, its behavior, its name. */
+export const slotKeyOf = (step: WalkStep) =>
+  `${step.relation}|${step.behavior?.id ?? ''}|${step.name}`;
+
+/** One column of a walk: a type, what it relates to, and where the walk went from it. */
+export interface WalkColumn {
+  step: WalkStep;
+  relations: TypeRelations;
+  /** The types walked through to here, this one too: a slot of one of them leads round again. */
+  through: ReadonlySet<string>;
+  /** The key of the slot the walk went on by, if it went on. */
+  next: string | null;
+}
+
+/**
+ * A walk from a slot through the types it leads to, a column for each step:
+ * what each type relates to, and which slot the walk went on by. A walk
+ * may come round to a type it passed through and go on, as far as the
+ * reader takes it.
+ */
+export function walkOf(
+  slots: ModelSlots,
+  path: readonly WalkStep[],
+): WalkColumn[] {
+  return path.map((step, index) => ({
+    step,
+    relations: relationsOfType(slots, step.type),
+    through: new Set(path.slice(0, index + 1).map(({ type }) => type)),
+    next: index + 1 < path.length ? slotKeyOf(path[index + 1]!) : null,
+  }));
+}

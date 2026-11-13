@@ -1,0 +1,192 @@
+/*
+ * The walk through a badge's types: its slot as written, the path as a
+ * dotted line of steps, then a column for each step, side by side and
+ * scrolled across, each its type's rows under state, input and output in
+ * the relations' colours (relationEdges in theme.ts).
+ */
+.explorer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  width: min(620px, calc(100vw - 32px));
+  padding-top: var(--mantine-spacing-xs);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  padding-inline: var(--mantine-spacing-sm);
+}
+
+/* The path, as a developer writes one: steps joined by dots. */
+.path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  margin-inline: var(--mantine-spacing-xs);
+  padding: 4px 6px;
+  border: 1px solid var(--noesis-diagram-card-border);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--noesis-diagram-canvas);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dot {
+  color: var(--mantine-color-dimmed);
+}
+
+.token {
+  padding: 0 6px;
+  border-radius: var(--mantine-radius-xs);
+  background: var(--mantine-primary-color-light);
+  color: var(--mantine-primary-color-light-color);
+  font: inherit;
+}
+
+button.token:hover {
+  background: var(--mantine-primary-color-light-hover);
+}
+
+button.token:focus-visible {
+  outline: var(--noesis-focus-ring);
+  outline-offset: 1px;
+}
+
+.token[aria-current] {
+  font-weight: 600;
+}
+
+.columns {
+  display: flex;
+  border-top: 1px solid var(--noesis-diagram-card-border);
+}
+
+.column {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: 236px;
+  max-height: 320px;
+  padding: 6px;
+  overflow-y: auto;
+  border-inline-end: 1px solid var(--noesis-diagram-card-border);
+
+  &:last-child {
+    border-inline-end: 0;
+  }
+}
+
+.columnHead {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 2px 8px 4px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+}
+
+.groupHead {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 6px 8px 2px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--noesis-diagram-edge-state-word);
+
+  &[data-relation='input'] {
+    color: var(--noesis-diagram-edge-input-word);
+  }
+
+  &[data-relation='output'] {
+    color: var(--noesis-diagram-edge-output-word);
+  }
+}
+
+.none {
+  color: var(--mantine-color-dimmed);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-radius: var(--mantine-radius-sm);
+  font-size: var(--mantine-font-size-sm);
+  white-space: nowrap;
+}
+
+button.row:hover {
+  background: var(--mantine-color-default-hover);
+}
+
+button.row:focus-visible {
+  outline: var(--noesis-focus-ring);
+  outline-offset: -2px;
+}
+
+/* The row the walk went on by, into the next column. */
+.row[aria-current] {
+  background: var(--mantine-primary-color-light);
+}
+
+.go {
+  display: inline-flex;
+  flex: none;
+  justify-content: center;
+  width: 14px;
+  color: var(--mantine-color-dimmed);
+}
+
+.via {
+  color: var(--mantine-color-dimmed);
+}
+
+.name {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+
+/* A type already passed through: on from here, the walk goes round. */
+.round {
+  color: var(--noesis-diagram-edge-output);
+  font-size: var(--mantine-font-size-xs);
+}
+
+.type {
+  margin-inline-start: auto;
+  padding-inline-start: 12px;
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-xs);
+
+  &[data-primitive] {
+    font-family: var(--mantine-font-family-monospace);
+  }
+}

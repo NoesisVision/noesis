@@ -77,7 +77,7 @@ export function ElementNode({
   const shape = holds ? undefined : shapeOf(element.kind, element.pattern);
   const bevelled = shape === 'bevel';
   const { state, dimmed, onSelect } = useSelectionState(element.id);
-  const { badges, selected } = useContext(ExplorationReadingContext);
+  const { badges } = useContext(ExplorationReadingContext);
   const carried = badges.get(element.id) ?? [];
   const badged = carried.length > 0;
   const [menu, setMenu] = useState(false);
@@ -198,7 +198,7 @@ export function ElementNode({
           ) : (
             button
           )}
-          <SlotBadges badges={carried} frame={holds} selected={selected} />
+          <SlotBadges badges={carried} frame={holds} />
           {bevelled && state === 'related' && (
             <BevelRing
               width={width ?? data.placed.width}

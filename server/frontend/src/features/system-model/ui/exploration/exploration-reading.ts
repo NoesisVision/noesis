@@ -3,6 +3,7 @@ import type {
   Badge,
   DrawnRelationKind,
   ExploredElement,
+  ModelSlots,
   Neighbours,
 } from '../../system-model-exploration.ts';
 import type { CanvasPoint } from './place-locally.ts';
@@ -22,6 +23,8 @@ export interface ExplorationReading {
   path: ReadonlySet<string>;
   /** Each card's slots, drawn on it, with slots on cards. */
   badges: ReadonlyMap<string, readonly Badge[]>;
+  /** Every slot of the model, for a badge to walk from its type on. */
+  slots: ModelSlots;
   /** Takes an element in hand alone, or — adding — into the hand or out of it. */
   onSelect: (id: string, adding: boolean) => void;
   /** Lets go of everything in hand, as a click on the empty canvas does. */
@@ -56,6 +59,7 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   related: new Set(),
   path: new Set(),
   badges: new Map(),
+  slots: { of: new Map(), behaviors: new Map() },
   onSelect: () => {},
   onLetGo: () => {},
   drawn: new Set(),
