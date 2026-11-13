@@ -170,28 +170,30 @@ export function SlotExplorer({
         </Text>
       </div>
       <nav className={classes.path} aria-label="Path">
-        {path.map((step, index) => (
-          <span key={index} className={classes.step}>
-            {index > 0 && (
-              <span className={classes.dot} aria-hidden>
-                .
-              </span>
-            )}
-            {index === path.length - 1 ? (
-              <span className={classes.token} aria-current="location">
-                {step.name}
-              </span>
-            ) : (
-              <UnstyledButton
-                className={classes.token}
-                onClick={() => onPath(path.slice(0, index + 1))}
-                aria-label={`Back to ${step.name}: ${step.typeName}`}
-              >
-                {step.name}
-              </UnstyledButton>
-            )}
-          </span>
-        ))}
+        <span className={classes.steps}>
+          {path.map((step, index) => (
+            <span key={index} className={classes.step}>
+              {index > 0 && (
+                <span className={classes.dot} aria-hidden>
+                  .
+                </span>
+              )}
+              {index === path.length - 1 ? (
+                <span className={classes.token} aria-current="location">
+                  {step.name}
+                </span>
+              ) : (
+                <UnstyledButton
+                  className={classes.token}
+                  onClick={() => onPath(path.slice(0, index + 1))}
+                  aria-label={`Back to ${step.name}: ${step.typeName}`}
+                >
+                  {step.name}
+                </UnstyledButton>
+              )}
+            </span>
+          ))}
+        </span>
       </nav>
       <ScrollArea type="auto" scrollbars="x" offsetScrollbars="x">
         <div className={classes.columns} ref={strip}>

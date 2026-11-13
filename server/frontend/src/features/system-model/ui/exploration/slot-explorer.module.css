@@ -23,18 +23,30 @@
  * the rows below are named with what holds them, to win over the unstyled
  * button's own reset, which loads later.
  */
+/*
+ * One line however long the walk: a longer path scrolls across, kept at its
+ * end — the step the walk is at — as a right-to-left box starts at its
+ * right; the steps in it read left to right.
+ */
 .path {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px;
+  overflow-x: auto;
+  direction: rtl;
   margin-inline: var(--mantine-spacing-xs);
+  scrollbar-width: thin;
   padding: 4px 6px;
   border: 1px solid var(--noesis-diagram-card-border);
   border-radius: var(--mantine-radius-sm);
   background: var(--noesis-diagram-canvas);
   font-family: var(--mantine-font-family-monospace);
   font-size: var(--mantine-font-size-xs);
+}
+
+.steps {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  direction: ltr;
+  white-space: nowrap;
 }
 
 .step {
@@ -83,7 +95,8 @@
   flex: none;
   box-sizing: border-box;
   width: 280px;
-  max-height: 320px;
+  /* As tall whatever it holds, so the popup keeps its size from step to step. */
+  height: 320px;
   overflow: hidden auto;
   border-inline-end: 1px solid var(--noesis-diagram-card-border);
   animation: columnOpens 220ms ease-out;
