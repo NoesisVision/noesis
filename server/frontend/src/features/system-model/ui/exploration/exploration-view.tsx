@@ -53,6 +53,7 @@ import {
   removalOf,
 } from '../../system-model-exploration.ts';
 import { designOf } from '../../system-model.model.ts';
+import { recallBadgeLook, rememberBadgeLook } from './badge-look.ts';
 import { CanvasTooltips } from './canvas-tooltips.tsx';
 import { ElementNode, type ExplorationNode } from './element-node.tsx';
 import { edgeOf } from './exploration-edges.ts';
@@ -100,10 +101,13 @@ const STEPS = 100;
 const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) =>
   a.size === b.size && [...a].every((each) => b.has(each));
 
+const NONE: ReadonlySet<string> = new Set();
+
 const sameChoice = (a: ElementChoice, b: ElementChoice) =>
   sameSet(a.shown, b.shown) &&
   sameSet(a.picks.added, b.picks.added) &&
-  sameSet(a.picks.removed, b.picks.removed);
+  sameSet(a.picks.removed, b.picks.removed) &&
+  sameSet(a.picks.bySlot ?? NONE, b.picks.bySlot ?? NONE);
 
 /** The one layout the reader is offered. */
 const ALGORITHM = 'layered';
@@ -157,16 +161,24 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
   const [drawing, setDrawing] = useState<Drawing>({
     direction: opening?.direction ?? 'vertical',
+    // A new diagram draws slots on cards; one left as nodes opens so.
+    slots: opening?.slots ?? 'cards',
     // How the edges were drawn when the diagram was left, as it is restored.
     orthogonal: opened?.edges?.orthogonal ?? true,
     animated: opened?.edges?.animated ?? true,
+    look: recallBadgeLook(),
   });
-  const { direction, orthogonal, animated } = drawing;
+  const { direction, slots, orthogonal, animated, look } = drawing;
+  useEffect(() => rememberBadgeLook(look), [look]);
   // Chosen on the Dev Tools page; the exploration only draws in it.
   const theme = useDiagramTheme();
   const graph = useMemo(
-    () => graphOf(exploration, { hidden, relations, picks }),
-    [exploration, hidden, relations, picks],
+    // The look sets the room each card makes for its badges.
+    () => ({
+      ...graphOf(exploration, { hidden, relations, picks, slots }),
+      look,
+    }),
+    [exploration, hidden, relations, picks, slots, look],
   );
 
   const {
@@ -223,6 +235,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       choice: choiceNow,
       relations: drawnRelations,
       direction: how.direction,
+      slots: how.slots,
       nodes: now.current.nodes.filter(({ data }) => !data.leaving),
     };
     const held = steps.current;
@@ -247,7 +260,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       const changes =
         !sameChoice(step.choice, choiceNow) ||
         !sameSet(step.relations, drawnRelations) ||
-        step.direction !== how.direction;
+        step.direction !== how.direction ||
+        step.slots !== how.slots;
       stepping.current = true;
       restore(step.nodes, changes);
       if (!changes) return;
@@ -256,6 +270,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       setDrawing((was) => ({
         ...was,
         direction: step.direction,
+        slots: step.slots,
       }));
     },
     [restore, modelId],
@@ -363,11 +378,18 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [graph],
   );
   const isShown = useCallback((id: string) => drawn.has(id), [drawn]);
+  // On the diagram, as a card or as badges only: what a card's menu need
+  // not offer to bring in. The picker offers a type drawn as badges only,
+  // to bring out as a card of its own.
+  const present = useMemo(
+    () => new Set([...drawn, ...graph.folded]),
+    [drawn, graph.folded],
+  );
   const onShowAll = useCallback(
-    (ids: readonly string[], shown: boolean) =>
+    (ids: readonly string[], shown: boolean, bySlot = false) =>
       setChoice((current) => {
         const kept = choiceWithin(current, exploration);
-        return { ...kept, picks: pickedAll(kept.picks, ids, shown) };
+        return { ...kept, picks: pickedAll(kept.picks, ids, shown, bySlot) };
       }),
     [exploration],
   );
@@ -398,6 +420,32 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     },
     [drawn],
   );
+  // These cards brought into view, unless all are in sight already, the
+  // panel a lone one is read in not over it.
+  const showInSight = useCallback(
+    (ids: readonly string[], alone: boolean) => {
+      if (flow === null) return;
+      const box = canvas.current?.getBoundingClientRect();
+      const bounds = flow.getNodesBounds([...ids]);
+      const start = flow.flowToScreenPosition(bounds);
+      const end = flow.flowToScreenPosition({
+        x: bounds.x + bounds.width,
+        y: bounds.y + bounds.height,
+      });
+      const inSight =
+        box !== undefined &&
+        start.x >= box.left &&
+        start.y >= box.top &&
+        end.x <= box.right - (alone ? PANEL_ROOM : 0) &&
+        end.y <= box.bottom;
+      if (inSight) return;
+      void flow.fitView({
+        ...focusOn(alone),
+        nodes: ids.map((id) => ({ id })),
+      });
+    },
+    [flow],
+  );
   useEffect(() => {
     const focus = focusAfter.current;
     if (focus === null || gliding || flow === null) return;
@@ -406,26 +454,17 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     const landed = new Set(nodes.map(({ id }) => id));
     if (!ids.every((id) => landed.has(id))) return;
     focusAfter.current = null;
-    const alone = focus.ids.length === 1;
-    const box = canvas.current?.getBoundingClientRect();
-    const bounds = flow.getNodesBounds(ids);
-    const start = flow.flowToScreenPosition(bounds);
-    const end = flow.flowToScreenPosition({
-      x: bounds.x + bounds.width,
-      y: bounds.y + bounds.height,
-    });
-    const inSight =
-      box !== undefined &&
-      start.x >= box.left &&
-      start.y >= box.top &&
-      end.x <= box.right - (alone ? PANEL_ROOM : 0) &&
-      end.y <= box.bottom;
-    if (inSight) return;
-    void flow.fitView({
-      ...focusOn(alone),
-      nodes: ids.map((id) => ({ id })),
-    });
-  }, [gliding, nodes, flow]);
+    showInSight(ids, focus.ids.length === 1);
+  }, [gliding, nodes, flow, showInSight]);
+  // A card already drawn, gone to from elsewhere — a badge naming its type:
+  // in hand alone, and in sight.
+  const goToCard = useCallback(
+    (id: string) => {
+      setSelection([id]);
+      showInSight([id], true);
+    },
+    [showInSight],
+  );
   // A row of the picker, clicked again and again: the element alone, then
   // it and all inside it, then none of them.
   const onPick = useCallback(
@@ -462,12 +501,16 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       selected: inHandSet,
       related: related.elements,
       path: pathTo(inHandSet, elementsById),
+      badges: graph.badges,
+      look,
+      slots: exploration.slots,
+      onGoTo: goToCard,
       onSelect: select,
       onLetGo: () => {
         letGo();
         setQuick(null);
       },
-      drawn,
+      drawn: present,
       neighbours,
       elements: elementsById,
       onShow: (
@@ -476,10 +519,11 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         from: string,
         thenArrange = false,
         at?: CanvasPoint,
+        bySlot = false,
       ) => {
         if (!shown) return remove(ids, from);
         placeBeside(at ?? from, thenArrange ? [from] : []);
-        onShowAll(ids, shown);
+        onShowAll(ids, shown, bySlot);
         bringIn(ids, from);
       },
       onDraw: (relation) =>
@@ -492,9 +536,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [
       inHandSet,
       related,
+      graph.badges,
+      look,
+      exploration.slots,
+      goToCard,
       select,
       letGo,
-      drawn,
+      present,
       neighbours,
       elementsById,
       remove,

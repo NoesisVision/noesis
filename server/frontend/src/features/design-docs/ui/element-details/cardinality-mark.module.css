@@ -1,7 +1,7 @@
 /*
- * The block a type starts with when the slot holds many or may hold none:
+ * The block a type ends with when the slot holds many or may hold none:
  * quiet, light gray with a gray icon, beside text as plain as a signature's.
- * Only on a type's blue tag is it solid blue, filling the tag's left end
+ * Only on a type's blue tag is it solid blue, filling the tag's right end
  * (declaration-box.module.css). Sized by the text it stands before — a
  * square as tall as the line, the icon three quarters of the letters' size
  * — and centred on it.
@@ -14,13 +14,21 @@
   box-sizing: border-box;
   height: 1.45em;
   min-width: 1.45em;
-  margin-right: 0.45em;
+  margin-left: 0.45em;
   padding: 0 0.2em;
   border-radius: 5px;
-  color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1));
-  background: light-dark(
-    var(--mantine-color-gray-1),
-    var(--mantine-color-dark-5)
+  /*
+   * In the colours of what it stands in: quiet gray beside plain text; on a
+   * coloured badge or card, that colour's ink on a deeper tint of it, set
+   * there with these two.
+   */
+  color: var(
+    --cardinality-mark-ink,
+    light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-1))
+  );
+  background: var(
+    --cardinality-mark-fill,
+    light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5))
   );
   vertical-align: middle;
   line-height: 1;

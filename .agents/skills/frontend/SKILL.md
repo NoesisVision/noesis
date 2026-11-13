@@ -203,6 +203,38 @@ in the same change, or the PR says why it is not.
   `useEvenCtrlZoom` (Ctrl and the wheel zoom as gently as Cmd), `elkOf`,
   `HiddenHandle` and `DetailsDock`.
 
+## Cardinality is a mark, never `[*]`
+
+Wherever a type is shown with how many values its slot holds — a property
+in the details, a badge on a diagram card, a row of the slot popup, any
+new place — draw it with `CardinalityMark` (`ui/element-details/cardinality-mark.tsx`,
+re-exported for other features from `features/design-docs/element-reader.ts`):
+the small rounded block with ✱ for many or ? for optional, always **after**
+the type's name — on a type's tag, its right end. Exactly one has no mark.
+
+```tsx
+{typeName}
+{isMarked(cardinality) && <CardinalityMark cardinality={cardinality} />}
+```
+
+Where the type's name is cut short to fit, only the name is: the mark sits
+beside it, outside the truncating span, so it is always whole.
+
+- Never write `[*]` or `[0..1]` after a type in the UI. The bracket form
+  (`cardinalitySuffixOf`) is only for plain text that cannot hold an icon:
+  a `title` or `data-tip` tooltip, a select's options, a commit message.
+- An `aria-label` says it in words, after the type: `products:
+  DiscountedProduct, many` (`markWordOf`). The mark itself carries a hidden
+  `, many` before its icon, for content that is read as it stands.
+- Sizing that estimates a width (a diagram layout) counts the mark as one
+  more glyph block, not as the bracket text.
+- The mark takes the colours of what it stands in. Beside plain text it is
+  quiet gray; inside anything coloured — a relation's badge or slot card,
+  a tag — that thing sets `--cardinality-mark-ink` (its own word colour)
+  and `--cardinality-mark-fill` (a deeper tint of its own line colour), so
+  the mark is blue on blue, green on green, orange on orange. Never a gray
+  block on a coloured badge.
+
 ## Every modal uses `ModalFrame`
 
 A dialog is built from `ModalFrame`, `ModalBody` and `ModalFooter` in

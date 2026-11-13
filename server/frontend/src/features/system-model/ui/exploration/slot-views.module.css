@@ -1,0 +1,203 @@
+/*
+ * The walk's other views: the room they all have, the tree, one type at a
+ * time, and cards nested in cards. Slot cards and their groups are the
+ * columns' own (slot-explorer.module.css); colours are the relations' edge
+ * tokens (relationEdges in theme.ts).
+ */
+
+/* As tall as the path and the columns together, so the popup keeps its size. */
+.area {
+  position: relative;
+  height: calc(320px + 2.4rem);
+  overflow: hidden auto;
+  border-top: 1px solid var(--noesis-diagram-card-border);
+  background: var(--noesis-diagram-canvas);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+/* One at a time sits under the path, as the columns do. */
+.area:has(> .pane) {
+  height: 320px;
+}
+
+.nothing {
+  padding: 2px 6px;
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-xs);
+  list-style: none;
+}
+
+.round {
+  flex: none;
+  color: var(--noesis-diagram-edge-output);
+  font-size: var(--mantine-font-size-xs);
+}
+
+/* ---------- Tree ---------- */
+
+/* The model tree's own (shared/ui/tree), set in from the popup's edges. */
+.tree {
+  padding: 8px 8px 14px;
+}
+
+/* A relation's heading: its word in its colour, its slots on the rails under it. */
+[data-relation] {
+  --slot-line: var(--noesis-diagram-edge-state);
+  --slot-word: var(--noesis-diagram-edge-state-word);
+  /* A cardinality's mark in the relation's colour, as on its cards. */
+  --cardinality-mark-ink: var(--slot-word);
+  --cardinality-mark-fill: color-mix(
+    in srgb,
+    var(--slot-line) 24%,
+    transparent
+  );
+}
+
+[data-relation='input'] {
+  --slot-line: var(--noesis-diagram-edge-input);
+  --slot-word: var(--noesis-diagram-edge-input-word);
+}
+
+[data-relation='output'] {
+  --slot-line: var(--noesis-diagram-edge-output);
+  --slot-word: var(--noesis-diagram-edge-output-word);
+}
+
+.treeHead {
+  color: var(--slot-word);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.treeName {
+  overflow: hidden;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.treeType {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin-inline-start: auto;
+  padding-inline-start: 12px;
+  color: var(--slot-word);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 650;
+
+  [data-leaf] > & {
+    color: var(--mantine-color-dimmed);
+    font-family: var(--mantine-font-family-monospace);
+    font-weight: 500;
+  }
+}
+
+/* ---------- One at a time ---------- */
+
+.pane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px 14px;
+
+  &[data-way='on'] {
+    animation: slideOn 220ms ease-out;
+  }
+
+  &[data-way='back'] {
+    animation: slideBack 220ms ease-out;
+  }
+}
+
+@keyframes slideOn {
+  from {
+    opacity: 0;
+    translate: 40px 0;
+  }
+}
+
+@keyframes slideBack {
+  from {
+    opacity: 0;
+    translate: -40px 0;
+  }
+}
+
+.paneHead {
+  display: flex;
+  flex-direction: column;
+  padding: 0 2px;
+}
+
+.paneType {
+  display: flex;
+  align-items: center;
+  font-size: var(--mantine-font-size-md);
+  font-weight: 600;
+}
+
+/* ---------- Nested cards ---------- */
+
+.nest {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 10px 14px;
+}
+
+/*
+ * A slot whose type leads on is a box: its card at the top, borderless in
+ * the box, and once opened its type's own cards inside, a step in.
+ */
+.box {
+  border: 1px solid color-mix(in srgb, var(--slot-line) 40%, transparent);
+  border-radius: var(--mantine-radius-md);
+  background: color-mix(
+    in srgb,
+    var(--slot-line) 6%,
+    var(--noesis-diagram-card)
+  );
+
+  &[data-open] {
+    box-shadow: var(--noesis-diagram-card-shadow);
+  }
+}
+
+.nest .box > [data-row] {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.box[data-open] > [data-row] [data-expanded] {
+  rotate: 90deg;
+}
+
+.boxInside {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 10px 10px 16px;
+  border-top: 1px dashed color-mix(in srgb, var(--slot-line) 35%, transparent);
+  animation: opens 180ms ease-out;
+}
+
+@keyframes opens {
+  from {
+    opacity: 0;
+    translate: 0 -4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pane,
+  .boxInside {
+    transition-duration: 1ms;
+    animation-duration: 1ms;
+  }
+}

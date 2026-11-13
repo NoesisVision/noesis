@@ -1,0 +1,401 @@
+/*
+ * The walk through a badge's types: its slot as written, the path as a
+ * dotted line of steps, then a column for each step, side by side and
+ * scrolled across, each its type's rows under state, input and output in
+ * the relations' colours (relationEdges in theme.ts).
+ */
+.explorer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-xs);
+  /* Two columns wide, and the line between them; a longer walk scrolls across. */
+  width: min(calc(2 * 280px + 1px), calc(100vw - 32px));
+  padding-top: var(--mantine-spacing-xs);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-inline: var(--mantine-spacing-sm);
+}
+
+/* The type as a card names it, and the way to its own card after it. */
+.title {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  align-self: stretch;
+  min-width: 0;
+}
+
+/* How the walk is drawn, at the title's far end. */
+.views {
+  flex: none;
+  margin-inline-start: auto;
+}
+
+/*
+ * Each view's icon, centred in its segment as the toolbar's direction
+ * icons are: a box of its own, not a glyph on the label's text line.
+ */
+.viewIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+}
+
+.titleType {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+}
+
+/*
+ * The path, as a developer writes one: steps joined by dots. Its steps and
+ * the rows below are named with what holds them, to win over the unstyled
+ * button's own reset, which loads later.
+ */
+/*
+ * One line however long the walk: a longer path scrolls across, kept at its
+ * end — the step the walk is at — as a right-to-left box starts at its
+ * right; the steps in it read left to right.
+ */
+.path {
+  display: flex;
+  overflow-x: auto;
+  direction: rtl;
+  margin-inline: var(--mantine-spacing-xs);
+  scrollbar-width: thin;
+  padding: 4px 6px;
+  border: 1px solid var(--noesis-diagram-card-border);
+  border-radius: var(--mantine-radius-sm);
+  background: var(--noesis-diagram-canvas);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+}
+
+.steps {
+  display: inline-flex;
+  flex: none;
+  /* A short path stands at the left; a long one leaves no room for it. */
+  margin-inline-end: auto;
+  align-items: center;
+  gap: 2px;
+  direction: ltr;
+  white-space: nowrap;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dot {
+  color: var(--mantine-color-dimmed);
+}
+
+.path .token {
+  padding: 0 6px;
+  border-radius: var(--mantine-radius-xs);
+  background: var(--mantine-primary-color-light);
+  color: var(--mantine-primary-color-light-color);
+  font: inherit;
+}
+
+.path button.token:hover {
+  background: var(--mantine-primary-color-light-hover);
+}
+
+.path button.token:focus-visible {
+  outline: var(--noesis-focus-ring);
+  outline-offset: 1px;
+}
+
+.path .token[aria-current] {
+  font-weight: 600;
+}
+
+/*
+ * Where the columns stand, to the popup's edges and under them, where its
+ * scrollbar runs: the columns' own ground, however few stand on it.
+ */
+.strip {
+  border-top: 1px solid var(--noesis-diagram-card-border);
+  background: var(--noesis-diagram-canvas);
+}
+
+.columns {
+  display: flex;
+  min-width: 100%;
+}
+
+/*
+ * A column grows out from the one before it as the walk goes on, and folds
+ * away as the walk leaves it; the first, the badge's own type, is there
+ * from the start. Both are transitions of its width, so one turned round
+ * halfway — the walk coming back to a column folding away, or leaving one
+ * still growing — goes back from where it is. Its body keeps a column's
+ * width all the while, so nothing in it reflows: the column only shows more
+ * or less of it. It is as tall whatever it holds, so the popup keeps its
+ * size from step to step. Its ground is the canvas's, so its cards lift off
+ * it.
+ */
+.column {
+  flex: none;
+  box-sizing: border-box;
+  width: 280px;
+  height: 320px;
+  overflow: hidden;
+  border-inline-end: 1px solid var(--noesis-diagram-card-border);
+  background: var(--noesis-diagram-canvas);
+  opacity: 1;
+  transition:
+    width 220ms ease-out,
+    opacity 220ms ease-out,
+    border-inline-end-width 220ms ease-out;
+
+  &:last-child {
+    border-inline-end: 0;
+  }
+
+  /* Grown out at the walk's end. */
+  &[data-enter='grows'] {
+    @starting-style {
+      width: 0;
+      opacity: 0;
+    }
+  }
+
+  &[data-leaving] {
+    width: 0;
+    opacity: 0;
+    border-inline-end-width: 0;
+    transition-duration: 180ms;
+    transition-timing-function: ease-in;
+  }
+}
+
+/*
+ * Without motion a column still opens and folds, in a moment, so the end
+ * of its folding still comes and takes it off.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .column,
+  .column[data-leaving],
+  .columnBody {
+    transition-duration: 1ms;
+  }
+}
+
+/*
+ * What a column holds scrolls inside it, the room for a scrollbar kept
+ * whether one shows or not, so a card is never under one.
+ */
+.columnBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 280px;
+  height: 100%;
+  padding: 10px 10px 14px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  transition:
+    opacity 180ms ease-out,
+    translate 180ms ease-out;
+
+  /* Swapped in where another stood: it does not move, what it holds fades in. */
+  .column[data-enter='swaps'] & {
+    @starting-style {
+      opacity: 0;
+      translate: 0 4px;
+    }
+  }
+}
+
+.columnHead {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 2px 4px;
+}
+
+/* The slot the walk came in by, over the type it leads to. */
+.columnSlot {
+  overflow: hidden;
+  color: var(--mantine-color-dimmed);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 11px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Each relation in the colours its edge has (relationEdges in theme.ts). */
+.group {
+  --slot-line: var(--noesis-diagram-edge-state);
+  --slot-word: var(--noesis-diagram-edge-state-word);
+  /* A cardinality's mark in the slot card's own colour, a tint deeper. */
+  --cardinality-mark-ink: var(--slot-word);
+  --cardinality-mark-fill: color-mix(
+    in srgb,
+    var(--slot-line) 24%,
+    transparent
+  );
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &[data-relation='input'] {
+    --slot-line: var(--noesis-diagram-edge-input);
+    --slot-word: var(--noesis-diagram-edge-input-word);
+  }
+
+  &[data-relation='output'] {
+    --slot-line: var(--noesis-diagram-edge-output);
+    --slot-word: var(--noesis-diagram-edge-output-word);
+  }
+}
+
+.groupHead {
+  padding-inline: 4px;
+  color: var(--slot-word);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * A slot card, as the badge on the canvas is: tinted in its relation's
+ * colour, its name quiet over its type in bold. Named with its list, to win
+ * over the unstyled button's own reset, which loads later.
+ */
+.rows .row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb, var(--slot-line) 40%, transparent);
+  border-radius: var(--mantine-radius-md);
+  background: color-mix(
+    in srgb,
+    var(--slot-line) 9%,
+    var(--noesis-diagram-card)
+  );
+  color: var(--slot-word);
+  text-align: start;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+
+.rows button.row:hover {
+  border-color: color-mix(in srgb, var(--slot-line) 75%, transparent);
+  transform: translateX(2px);
+}
+
+.rows button.row:focus-visible {
+  outline: var(--noesis-focus-ring);
+  outline-offset: 2px;
+}
+
+/* The slot the walk went on by, into the next column: ringed. */
+.rows .row[aria-current] {
+  border-color: var(--slot-line);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--slot-line) 22%, transparent);
+}
+
+/* A primitive leads nowhere: drawn in outline only. */
+.rows .row[data-leaf] {
+  border-style: dashed;
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rows .row {
+    transition: none;
+  }
+
+  .rows button.row:hover {
+    transform: none;
+  }
+}
+
+.rowWords {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name,
+.typeText {
+  overflow: hidden;
+  min-width: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* A type's line: its name, cut short if it must, then its cardinality's mark. */
+.type,
+.columnType {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.columnType {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+}
+
+.name {
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 15px;
+  opacity: 0.75;
+}
+
+.type {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 650;
+  line-height: 18px;
+
+  .row[data-leaf] & {
+    font-family: var(--mantine-font-family-monospace);
+    font-size: var(--mantine-font-size-xs);
+    font-weight: 500;
+  }
+}
+
+.go {
+  flex: none;
+  opacity: 0.55;
+}
+
+/* A type already passed through: on from here, the walk goes round. */
+.round {
+  flex: none;
+  color: var(--noesis-diagram-edge-output);
+  font-size: var(--mantine-font-size-xs);
+}

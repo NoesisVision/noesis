@@ -1,5 +1,11 @@
 import { type NodeProps, Position, useReactFlow } from '@xyflow/react';
-import { type MouseEvent, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type MouseEvent,
+  useContext,
+  useRef,
+  useState,
+} from 'react';
 import { KindIcon } from '#/features/design-docs/element-reader.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Menu } from '#/shared/design-system/menu.tsx';
@@ -15,10 +21,15 @@ import {
 } from '#/shared/ui/diagram-shapes.tsx';
 import { groupLabelOf, kindWordOf } from '../../system-model-exploration.ts';
 import { type ExplorationNode } from './exploration-node.ts';
-import { useSelectionState } from './exploration-reading.ts';
+import {
+  ExplorationReadingContext,
+  useSelectionState,
+} from './exploration-reading.ts';
+import { paddingOf } from './layout-exploration.ts';
 import { Contains, Remove } from './node-controls.tsx';
 import type { CanvasPoint } from './place-locally.ts';
-import { NODE_MENU, NodeMenuDropdown } from './reach-menu.tsx';
+import { NODE_MENU, NodeMenuDropdown, useHasNodeMenu } from './reach-menu.tsx';
+import { SlotBadges } from './slot-badges.tsx';
 import { CLICK_SLOP, useViewingFromFrame } from './use-viewing-from-frame.ts';
 import classes from './exploration.module.css';
 
@@ -34,7 +45,8 @@ import classes from './exploration.module.css';
  * corner — a frame's way to tidy up what it holds is in that menu; and at
  * the middle of its bottom, a round button for what it contains, the card
  * made taller for it only when it has one. All else it can bring beside it
- * is in its own menu.
+ * is in its own menu. With slots on cards, its slots are badges under its
+ * name, the card — or the frame's top — as tall as they need.
  */
 
 export * from './exploration-node.ts';
@@ -65,7 +77,12 @@ export function ElementNode({
   const shape = holds ? undefined : shapeOf(element.kind, element.pattern);
   const bevelled = shape === 'bevel';
   const { state, dimmed, onSelect } = useSelectionState(element.id);
+  const { badges, look } = useContext(ExplorationReadingContext);
+  const carried = badges.get(element.id) ?? [];
+  const badged = carried.length > 0;
   const [menu, setMenu] = useState(false);
+  // With nothing to offer, a right click opens no menu, as its dots show none.
+  const hasMenu = useHasNodeMenu(element.id, holds);
   // Where a frame was right-clicked, on the canvas.
   const [at, setAt] = useState<CanvasPoint | null>(null);
   const { screenToFlowPosition } = useReactFlow();
@@ -118,7 +135,7 @@ export function ElementNode({
   );
   return (
     // A right click on the card, or a long press, opens its own menu there.
-    <Menu opened={menu} onChange={setMenu} {...NODE_MENU}>
+    <Menu opened={menu && hasMenu} onChange={setMenu} {...NODE_MENU}>
       <Menu.ContextMenu>
         <Box
           onContextMenu={(event: MouseEvent) =>
@@ -136,6 +153,7 @@ export function ElementNode({
           data-state={holds ? state : undefined}
           data-dimmed={dimmed || undefined}
           data-leaving={data.leaving || undefined}
+          data-badged={badged || undefined}
         >
           {/* Where React Flow has an edge start and end; the edge itself
               meets the card wherever the line between them crosses its
@@ -147,6 +165,14 @@ export function ElementNode({
             <Box
               className={classes.frameTop}
               data-part="frame-top"
+              // As tall as its name and its badges (layout-exploration.ts).
+              style={
+                badged
+                  ? ({
+                      '--frame-top': `${paddingOf(element, { badges, look }).top}px`,
+                    } as CSSProperties)
+                  : undefined
+              }
               // Its top is what drags the frame: let go where it was pressed,
               // it was a click. What is on it — its name, menu, crosses —
               // answers for itself; its name is the keyboard's way to the
@@ -174,6 +200,7 @@ export function ElementNode({
           ) : (
             button
           )}
+          <SlotBadges badges={carried} frame={holds} />
           {bevelled && state === 'related' && (
             <BevelRing
               width={width ?? data.placed.width}

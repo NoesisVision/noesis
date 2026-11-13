@@ -151,6 +151,10 @@
           "description": "A diagram card's corners: 12px (DIAGRAM_SHAPE), from `cssVariablesResolver` in `theme.ts`."
         },
         {
+          "name": "--noesis-diagram-pill-radius",
+          "description": "A behavior's pill: 28px (DIAGRAM_SHAPE), half a card's height, so a card of one line has round ends and a taller one rounded corners; from `cssVariablesResolver` in `theme.ts`."
+        },
+        {
           "name": "--noesis-diagram-frame-radius",
           "description": "A diagram frame's corners, rounder than a card's: 16px (DIAGRAM_SHAPE), from `cssVariablesResolver` in `theme.ts`."
         },

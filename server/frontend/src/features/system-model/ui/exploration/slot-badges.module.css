@@ -1,0 +1,337 @@
+/*
+ * A card's badges, laid over the card under its name and what it is — or
+ * under a frame's name — as its corner controls are. Their sizes are the
+ * ones the layout leaves room for (BADGES_TOP, BADGE_LINE and the rest in
+ * layout-exploration.ts): a badge 34px tall — its name over its type — with
+ * 4px under it, a 48px label and 4px after it, 16px in from either side of
+ * the card.
+ *
+ * The rows let a click between the badges through, to the card under them.
+ */
+.badges {
+  position: absolute;
+  top: 50px;
+  inset-inline: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+
+  &[data-frame='true'] {
+    top: 52px;
+  }
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.label {
+  flex: none;
+  width: 48px;
+  margin-inline-end: 4px;
+  color: var(--mantine-color-dimmed);
+  /* Level with the first line of the first badge, its name. */
+  padding-top: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/*
+ * Each relation's badge in the colours its edge has (relationEdges in
+ * theme.ts). Named with its list, to win over the unstyled button's own
+ * reset, which loads later.
+ */
+.list .badge {
+  --badge-line: var(--noesis-diagram-edge-state);
+  --badge-word: var(--noesis-diagram-edge-state-word);
+  /* Its cardinality's mark in the badge's own colour, a tint deeper. */
+  --cardinality-mark-ink: var(--badge-word);
+  --cardinality-mark-fill: color-mix(
+    in srgb,
+    var(--badge-line) 24%,
+    transparent
+  );
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  height: 34px;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--badge-line) 55%, transparent);
+  border-radius: var(--mantine-radius-md);
+  background: color-mix(in srgb, var(--badge-line) 12%, transparent);
+  color: var(--badge-word);
+  text-align: start;
+  pointer-events: auto;
+
+  &[data-relation='input'] {
+    --badge-line: var(--noesis-diagram-edge-input);
+    --badge-word: var(--noesis-diagram-edge-input-word);
+  }
+
+  &[data-relation='output'] {
+    --badge-line: var(--noesis-diagram-edge-output);
+    --badge-word: var(--noesis-diagram-edge-output-word);
+  }
+
+  /* A badge typed by a block opens what its type relates to. */
+  &:is(button) {
+    cursor: pointer;
+  }
+
+  &:is(button):hover {
+    background: color-mix(in srgb, var(--badge-line) 22%, transparent);
+  }
+
+  &:is(button):focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 1px;
+  }
+
+  &[aria-expanded='true'] {
+    border-color: var(--badge-line);
+    background: color-mix(in srgb, var(--badge-line) 22%, transparent);
+  }
+
+  /* Its type in hand: ringed as a card related to the selection is. */
+  &[data-related] {
+    outline: 2px dashed var(--noesis-diagram-related);
+    outline-offset: 1px;
+  }
+}
+
+/* Each line its own: cut short at the badge's edge, never wrapped. */
+.name,
+.typeName {
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* The slot's name, quiet: what it holds is the type under it. */
+.name {
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 14px;
+  opacity: 0.75;
+}
+
+/* Its type, in bold, then its marks, which stay whole as it is cut short. */
+.type {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  max-width: 100%;
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 650;
+  line-height: 15px;
+}
+
+/*
+ * A mark after the type — a card of its own on the diagram (↗), a type to
+ * walk into (a chevron) — in the badge's own colour, faint.
+ */
+.mark {
+  flex: none;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.55;
+}
+
+/*
+ * The other looks a card's badges may take, while they are tried (the
+ * toolbar's Badges switch): the card's signature, as the code declares it,
+ * and one flow of chips. Their sizes are the layout's (CHIP_LINE,
+ * SIGNATURE_LINE, SIGNATURE_BOX and SIGNATURE_CHAR).
+ */
+
+/* Each slot's colours, its relation's edge's (relationEdges in theme.ts). */
+.signature .token,
+.chips .chip {
+  --badge-line: var(--noesis-diagram-edge-state);
+  --badge-word: var(--noesis-diagram-edge-state-word);
+  --cardinality-mark-ink: var(--badge-word);
+  --cardinality-mark-fill: color-mix(
+    in srgb,
+    var(--badge-line) 24%,
+    transparent
+  );
+
+  color: var(--badge-word);
+  pointer-events: auto;
+
+  &[data-relation='input'] {
+    --badge-line: var(--noesis-diagram-edge-input);
+    --badge-word: var(--noesis-diagram-edge-input-word);
+  }
+
+  &[data-relation='output'] {
+    --badge-line: var(--noesis-diagram-edge-output);
+    --badge-word: var(--noesis-diagram-edge-output-word);
+  }
+
+  &:is(button) {
+    cursor: pointer;
+  }
+
+  &:is(button):focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 1px;
+  }
+
+  &[data-related] {
+    outline: 2px dashed var(--noesis-diagram-related);
+    outline-offset: 1px;
+  }
+}
+
+/* The signature: a box of monospace lines, as code is set. */
+.signature {
+  box-sizing: border-box;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 8px;
+  overflow: hidden;
+  border: 1px solid var(--noesis-diagram-card-border);
+  border-radius: var(--mantine-radius-md);
+  background: color-mix(in srgb, var(--noesis-diagram-canvas) 60%, transparent);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 12px;
+}
+
+.signatureLine {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  white-space: pre;
+}
+
+.signatureItem {
+  display: flex;
+  min-width: 0;
+}
+
+.punctuation {
+  color: var(--mantine-color-dimmed);
+  white-space: pre;
+}
+
+.signature .token {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 2px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: inherit;
+  white-space: nowrap;
+
+  &:is(button):hover,
+  &[aria-expanded='true'] {
+    background: color-mix(in srgb, var(--badge-line) 18%, transparent);
+  }
+
+  & .type {
+    font-size: inherit;
+    font-weight: 650;
+    line-height: inherit;
+  }
+
+  & .typeName {
+    text-decoration: underline;
+    text-decoration-color: color-mix(
+      in srgb,
+      var(--badge-line) 50%,
+      transparent
+    );
+    text-underline-offset: 3px;
+  }
+}
+
+.tokenName {
+  opacity: 0.8;
+}
+
+/* The chips: one flow, each slot a line with its relation's letter first. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chips .chip {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  height: 24px;
+  padding: 0 8px 0 3px;
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-sm);
+  background: color-mix(in srgb, var(--badge-line) 13%, transparent);
+  font-size: 12px;
+  white-space: nowrap;
+
+  &:is(button):hover,
+  &[aria-expanded='true'] {
+    border-color: color-mix(in srgb, var(--badge-line) 60%, transparent);
+    background: color-mix(in srgb, var(--badge-line) 22%, transparent);
+  }
+
+  & .type {
+    gap: 3px;
+    min-width: 0;
+  }
+}
+
+.letter {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--badge-line);
+  color: var(--noesis-diagram-card);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.chipName {
+  flex: none;
+  font-weight: 500;
+  opacity: 0.8;
+}

@@ -149,17 +149,17 @@ function OutputType({
   path,
 }: {
   label: string;
-  /** How many of the type it holds, marked before the type, when not exactly one. */
+  /** How many of the type it holds, marked after the type, when not exactly one. */
   cardinality?: MarkedCardinality | undefined;
   path: string | null;
 }) {
   return (
     <ElementTooltip name={label} hint cardinality={cardinality}>
       <ElementLinkOrText path={path} className={classes.output}>
+        <QualifiedName name={label} />
         {cardinality !== undefined && (
           <CardinalityMark cardinality={cardinality} />
         )}
-        <QualifiedName name={label} />
       </ElementLinkOrText>
     </ElementTooltip>
   );

@@ -5,12 +5,12 @@ import type {
   ExplorationGraph,
 } from '../../system-model-exploration.ts';
 import {
-  frameWidthOf,
+  cardSizeOf,
+  frameLeastWidthOf,
   HEIGHT,
-  PADDING,
+  paddingOf,
   type PlacedElement,
   SPACING,
-  widthOf,
 } from './layout-exploration.ts';
 
 /*
@@ -97,7 +97,7 @@ export function workspaceOf(
     if (rect === null || was === undefined) continue;
     const next =
       kidsOf(element.id).length === 0 && was.holds
-        ? { ...rect, width: widthOf(element.name), height: HEIGHT }
+        ? { ...rect, ...cardSizeOf(element, graph) }
         : rect;
     rects.set(element.id, next);
     if (!same(next, rect)) resized.push({ id: element.id, old: rect });
@@ -192,7 +192,7 @@ export function workspaceOf(
     if (old === undefined) return true;
     const element = byId.get(id);
     if (element === undefined) return true;
-    const padding = PADDING;
+    const padding = paddingOf(element, graph);
     let next = old;
     for (const { id: kid } of placedKids(id)) {
       const rect = rects.get(kid);
@@ -204,8 +204,8 @@ export function workspaceOf(
         height: rect.height + padding.top + padding.bottom,
       });
     }
-    if (next.width < frameWidthOf(element.name))
-      next = { ...next, width: frameWidthOf(element.name) };
+    const least = frameLeastWidthOf(element, graph);
+    if (next.width < least) next = { ...next, width: least };
     if (same(next, old)) return true;
     rects.set(id, next);
     return pushAround(id, old) && fit(element.parent);
@@ -229,14 +229,14 @@ export function workspaceOf(
     );
     if (first === undefined) return refit(element.parent);
     const box = others.reduce((all, rect) => union(all, rect), first);
-    const padding = PADDING;
+    const padding = paddingOf(element, graph);
     const x = Math.min(old.x, box.x - padding.left);
     const y = Math.min(old.y, box.y - padding.top);
     const next = {
       x,
       y,
       width: Math.max(
-        frameWidthOf(element.name),
+        frameLeastWidthOf(element, graph),
         box.x + box.width + padding.right - x,
       ),
       height: Math.max(HEIGHT, box.y + box.height + padding.bottom - y),
@@ -278,7 +278,7 @@ export function workspaceOf(
     if (frame === undefined || element === undefined) return true;
     const held = placedKids(id);
     const top = Math.min(...held.map(({ id: kid }) => rects.get(kid)!.y));
-    const gap = top - (frame.y + PADDING.top);
+    const gap = top - (frame.y + paddingOf(element, graph).top);
     if (held.length > 0 && gap > 0)
       for (const { id: kid } of held) move(kid, 0, -gap);
     return true;

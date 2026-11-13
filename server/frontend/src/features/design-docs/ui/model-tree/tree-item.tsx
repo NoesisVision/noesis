@@ -5,14 +5,15 @@ import {
   type MouseEvent,
 } from 'react';
 import { Checkbox } from '#/shared/design-system/checkbox.tsx';
+import { Chevron } from '#/shared/ui/tree/chevron.tsx';
 import { ChangeMark } from './change-mark.tsx';
-import { Chevron } from './chevron.tsx';
 import { DiagramMark } from './diagram-mark.tsx';
 import { KindIcon } from './kind-icon.tsx';
 import { MatchedText } from './matched-text.tsx';
 import type { OutlineNode } from './model-outline.ts';
 import { focusEdge, focusParent, focusSibling } from './row-focus.ts';
 import { useTreeActions, useTreeState } from './tree-store.ts';
+import treeClasses from '#/shared/ui/tree/tree.module.css';
 import classes from './model-tree.module.css';
 
 /*
@@ -173,7 +174,7 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
       data-selected={selected || undefined}
       data-ancestor={(!selected && inPath) || undefined}
       data-context={context || undefined}
-      className={classes.item}
+      className={`${treeClasses.item} ${classes.item}`}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       onKeyDown={onKeyDown}
@@ -184,7 +185,7 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
         id={rowId}
         data-row
         data-drop-target={dropTarget || undefined}
-        className={classes.row}
+        className={`${treeClasses.row} ${classes.row}`}
         draggable={draggable || undefined}
         onDragStart={draggable ? onDragStart : undefined}
         onDragEnd={draggable ? dragEnd : undefined}
@@ -227,7 +228,7 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
           // relation a reader navigates by.
           // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
           role="group"
-          className={classes.group}
+          className={treeClasses.group}
           data-in-path={inPath || undefined}
         >
           {children.map((child) => (

@@ -1,7 +1,10 @@
 import { createContext, useContext } from 'react';
 import type {
+  Badge,
+  BadgeLook,
   DrawnRelationKind,
   ExploredElement,
+  ModelSlots,
   Neighbours,
 } from '../../system-model-exploration.ts';
 import type { CanvasPoint } from './place-locally.ts';
@@ -19,6 +22,14 @@ export interface ExplorationReading {
   related: ReadonlySet<string>;
   /** The frames the selection is drawn inside, out to the outermost: the way to it. */
   path: ReadonlySet<string>;
+  /** Each card's slots, drawn on it, with slots on cards. */
+  badges: ReadonlyMap<string, readonly Badge[]>;
+  /** How the badges are drawn. */
+  look: BadgeLook;
+  /** Every slot of the model, for a badge to walk from its type on. */
+  slots: ModelSlots;
+  /** Takes a card already drawn in hand alone and brings it into sight. */
+  onGoTo: (id: string) => void;
   /** Takes an element in hand alone, or — adding — into the hand or out of it. */
   onSelect: (id: string, adding: boolean) => void;
   /** Lets go of everything in hand, as a click on the empty canvas does. */
@@ -39,6 +50,8 @@ export interface ExplorationReading {
     arrange?: boolean,
     /** Where on the canvas they were asked for, to stand round, if anywhere. */
     at?: CanvasPoint,
+    /** Brought in by following a slot from the card: badges, with slots on cards. */
+    bySlot?: boolean,
   ) => void;
   /** Draws a relation's edges, if they are not drawn already. */
   onDraw: (relation: DrawnRelationKind) => void;
@@ -52,6 +65,10 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   selected: new Set(),
   related: new Set(),
   path: new Set(),
+  badges: new Map(),
+  look: 'labels',
+  slots: { of: new Map(), behaviors: new Map() },
+  onGoTo: () => {},
   onSelect: () => {},
   onLetGo: () => {},
   drawn: new Set(),

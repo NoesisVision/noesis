@@ -6,6 +6,7 @@ import {
   type DrawnRelationKind,
   type RelationKind,
 } from './exploration-relations.ts';
+import type { Slot, SlotRelation } from './exploration-slots.ts';
 import {
   type Exploration,
   type ExploredElement,
@@ -29,16 +30,52 @@ export interface DrawnRelation {
   target: string;
 }
 
+/** A slot as a card carries it, drawn on the card rather than as an edge. */
+export interface Badge extends Slot {
+  /** Its type is a card still on the diagram, kept there for its own sake. */
+  onDiagram: boolean;
+}
+
+/** Where slots are drawn: on the cards that hold them, or as edges to cards of their types. */
+export type SlotDrawing = 'cards' | 'nodes';
+/**
+ * How the badges on a card are drawn: a row per relation under its label,
+ * the card's signature as code is written, or one flow of chips.
+ */
+export type BadgeLook = 'labels' | 'signature' | 'chips';
+
 export interface ExplorationGraph {
   elements: DrawnElement[];
   relations: DrawnRelation[];
+  /** Each drawn element's badges, with slots on cards; none with slots as nodes. */
+  badges: ReadonlyMap<string, readonly Badge[]>;
+  /** What is on the diagram as badges only, with slots on cards: shown, but no card. */
+  folded: ReadonlySet<string>;
+  /** How the badges are drawn, which sets the room a card makes for them; labels when absent. */
+  look?: BadgeLook;
 }
+
+/** The relations that are slots, drawn on cards when slots are. */
+const SLOT_RELATIONS: ReadonlySet<DrawnRelationKind> = new Set<SlotRelation>([
+  'state',
+  'input',
+  'output',
+]);
+const NO_BADGES: ReadonlyMap<string, readonly Badge[]> = new Map();
+const NONE_FOLDED: ReadonlySet<string> = new Set();
 
 /**
  * What is drawn: the elements of the groups shown, with those added one by
  * one and without those removed, each contained by the nearest container
  * still shown, and the relations asked for between them. A relation to a
  * hidden element is left out, not moved elsewhere.
+ *
+ * With slots on cards, the slot relations asked for are not edges but the
+ * badges of the cards that hold them, and a card that is on the diagram
+ * only as a slot's type leaves it: one the reader did not add by name —
+ * only by following a slot from a card, or with its whole kind — joined by
+ * no other relation drawn, with nothing drawn inside it. A type that stays
+ * is still not joined by its slots' edges; its badges say it is there.
  */
 export function graphOf(
   exploration: Exploration,
@@ -46,10 +83,12 @@ export function graphOf(
     hidden,
     relations,
     picks = NO_PICKS,
+    slots = 'nodes',
   }: {
     hidden: ReadonlySet<string>;
     relations: ReadonlySet<RelationKind>;
     picks?: ElementPicks;
+    slots?: SlotDrawing;
   },
 ): ExplorationGraph {
   const byId = byIdOf(exploration.elements);
@@ -96,12 +135,50 @@ export function graphOf(
         });
   }
 
+  const elements = shown.map((element) => ({
+    ...element,
+    parent: nested ? containerOf(element) : null,
+  }));
+  if (slots === 'nodes')
+    return {
+      elements,
+      relations: drawn,
+      badges: NO_BADGES,
+      folded: NONE_FOLDED,
+    };
+
+  // On the diagram for its own sake: added by name, joined by a relation
+  // that is no slot, or drawn round something.
+  const bySlot = picks.bySlot ?? NONE_FOLDED;
+  const kept = new Set([...picks.added].filter((id) => !bySlot.has(id)));
+  for (const relation of drawn)
+    if (!SLOT_RELATIONS.has(relation.kind)) {
+      kept.add(relation.source);
+      kept.add(relation.target);
+    }
+  for (const element of elements)
+    if (element.parent !== null) kept.add(element.parent);
+  const folded = new Set(
+    drawn
+      .filter(
+        ({ kind, target }) => SLOT_RELATIONS.has(kind) && !kept.has(target),
+      )
+      .map(({ target }) => target),
+  );
+  const onCards = elements.filter(({ id }) => !folded.has(id));
+  const onDiagram = new Set(onCards.map(({ id }) => id));
+  const badges = new Map<string, readonly Badge[]>();
+  for (const { id } of onCards) {
+    const carried = (exploration.slots.of.get(id) ?? [])
+      .filter((slot) => relations.has(slot.relation))
+      .map((slot) => ({ ...slot, onDiagram: onDiagram.has(slot.type) }));
+    if (carried.length > 0) badges.set(id, carried);
+  }
   return {
-    elements: shown.map((element) => ({
-      ...element,
-      parent: nested ? containerOf(element) : null,
-    })),
-    relations: drawn,
+    elements: onCards,
+    relations: drawn.filter(({ kind }) => !SLOT_RELATIONS.has(kind)),
+    badges,
+    folded,
   };
 }
 
@@ -121,6 +198,13 @@ export function relatedTo(graph: ExplorationGraph, id: string | null) {
     if (element.id === id && element.parent !== null)
       elements.add(element.parent);
   }
+  // A slot drawn on a card joins the card to its type, when the type has a
+  // card of its own too.
+  for (const [holder, carried] of graph.badges)
+    for (const { type, onDiagram } of carried) {
+      if (type === id) elements.add(holder);
+      if (holder === id && onDiagram) elements.add(type);
+    }
   return { relations, elements };
 }
 

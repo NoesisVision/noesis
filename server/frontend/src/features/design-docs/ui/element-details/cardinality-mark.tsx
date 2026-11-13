@@ -12,16 +12,20 @@ const MARKS = {
 /** The cardinality a slot is marked with: any but exactly one, which goes unmarked. */
 export type MarkedCardinality = keyof typeof MARKS;
 
+/** How a marked cardinality is said, `many` or `optional`; nothing for exactly one. */
+export const markWordOf = (cardinality: string | null | undefined) =>
+  isMarked(cardinality) ? MARKS[cardinality].word : null;
+
 export const isMarked = (
   cardinality: string | null | undefined,
 ): cardinality is MarkedCardinality =>
   cardinality != null && Object.hasOwn(MARKS, cardinality);
 
 /**
- * How many of its type a slot holds, as the start of the type's tag: a
- * solid segment with an asterisk for many, as the model and UML write it,
- * and a question mark for optional, as code writes a value that may be
- * missing. A screen reader hears the word.
+ * How many of its type a slot holds, after the type, as the end of its
+ * tag: a solid segment with an asterisk for many, as the model and UML
+ * write it, and a question mark for optional, as code writes a value that
+ * may be missing. A screen reader hears the word after the type: `, many`.
  */
 export function CardinalityMark({
   cardinality,
@@ -31,8 +35,8 @@ export function CardinalityMark({
   const { word } = MARKS[cardinality];
   return (
     <>
+      <VisuallyHidden>{`, ${word}`}</VisuallyHidden>
       <MarkIcon cardinality={cardinality} />
-      <VisuallyHidden>{`${word}: `}</VisuallyHidden>
     </>
   );
 }
