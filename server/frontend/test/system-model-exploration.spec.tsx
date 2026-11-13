@@ -767,6 +767,7 @@ describe('the selection', () => {
                   related: new Set([line.id]),
                   path: new Set(),
                   badges: graph.badges,
+                  look: 'labels',
                   slots: exploration.slots,
                   onGoTo: () => {},
                   onSelect: () => {},
@@ -1091,18 +1092,18 @@ describe('slots drawn on the cards that hold them', () => {
     const place = element(PLACE);
     // A card with no badges is as it was.
     const bare = draw(['contains']).elements.find(({ id }) => id === PLACE)!;
-    expect(cardSizeOf(bare, new Map())).toEqual({
+    expect(cardSizeOf(bare, { badges: new Map() })).toEqual({
       width: widthOf('place'),
       height: HEIGHT,
     });
     // One row of one badge: a line taller than its name and what it is.
-    const sized = cardSizeOf(place, graph.badges);
+    const sized = cardSizeOf(place, graph);
     expect(sized.height).toBeGreaterThan(HEIGHT);
     expect(sized.width).toBeGreaterThanOrEqual(widthOf('place'));
     // Order holds place, so it is a frame: its top grows for its badges.
-    expect(paddingOf(order, graph.badges).top).toBeGreaterThan(PADDING.top);
-    expect(frameLeastWidthOf(order, graph.badges)).toBeGreaterThan(0);
-    expect(paddingOf(order, new Map())).toEqual(PADDING);
+    expect(paddingOf(order, graph).top).toBeGreaterThan(PADDING.top);
+    expect(frameLeastWidthOf(order, graph)).toBeGreaterThan(0);
+    expect(paddingOf(order, { badges: new Map() })).toEqual(PADDING);
   });
 
   it('draws a card’s badges beside its button, as lists a reader can name', () => {
@@ -1125,6 +1126,7 @@ describe('slots drawn on the cards that hold them', () => {
                   related: new Set([ORDER, PLACE]),
                   path: new Set(),
                   badges: graph.badges,
+                  look: 'labels',
                   slots: exploration.slots,
                   onGoTo: () => {},
                   onSelect: () => {},
@@ -1198,7 +1200,7 @@ describe('slots drawn on the cards that hold them', () => {
       `--frame-top:${
         paddingOf(
           graph.elements.find(({ id }) => id === ORDER)!,
-          graph.badges,
+          graph,
         ).top
       }px`,
     );
@@ -1217,13 +1219,11 @@ describe('slots drawn on the cards that hold them', () => {
       onDiagram: false,
     });
     const order = draw(['contains']).elements.find(({ id }) => id === ORDER)!;
-    const one = cardSizeOf(
-      order,
-      new Map([[ORDER, [slot('recipient', 'Recipient', LINE)]]]),
-    );
-    const row = cardSizeOf(
-      order,
-      new Map([
+    const one = cardSizeOf(order, {
+      badges: new Map([[ORDER, [slot('recipient', 'Recipient', LINE)]]]),
+    });
+    const row = cardSizeOf(order, {
+      badges: new Map([
         [
           ORDER,
           [
@@ -1233,7 +1233,7 @@ describe('slots drawn on the cards that hold them', () => {
           ],
         ],
       ]),
-    );
+    });
     expect(row.width).toBeGreaterThan(one.width);
     expect(row.height).toBe(one.height);
   });
@@ -1250,8 +1250,10 @@ describe('slots drawn on the cards that hold them', () => {
       onDiagram: false,
     }));
     const order = draw(['contains']).elements.find(({ id }) => id === ORDER)!;
-    const one = cardSizeOf(order, new Map([[ORDER, many.slice(0, 1)]]));
-    const all = cardSizeOf(order, new Map([[ORDER, many]]));
+    const one = cardSizeOf(order, {
+      badges: new Map([[ORDER, many.slice(0, 1)]]),
+    });
+    const all = cardSizeOf(order, { badges: new Map([[ORDER, many]]) });
     expect(all.height - one.height).toBeGreaterThanOrEqual(3 * BADGE_LINE);
     expect(all.width).toBeLessThanOrEqual(380);
   });

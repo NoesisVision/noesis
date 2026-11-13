@@ -124,12 +124,12 @@ export function placeLocally(
     if (first !== undefined) {
       // A container round what is already drawn of it.
       const box = others.reduce((all, rect) => union(all, rect), first);
-      const padding = paddingOf(element, graph.badges);
+      const padding = paddingOf(element, graph);
       const rect = {
         x: box.x - padding.left,
         y: box.y - padding.top,
         width: Math.max(
-          frameLeastWidthOf(element, graph.badges),
+          frameLeastWidthOf(element, graph),
           box.width + padding.left + padding.right,
         ),
         height: box.height + padding.top + padding.bottom,
@@ -143,12 +143,12 @@ export function placeLocally(
       rects.set(element.id, rect);
       return fit(parent);
     }
-    const { width, height } = cardSizeOf(element, graph.badges);
+    const { width, height } = cardSizeOf(element, graph);
     if (parent !== null) {
       const container = rects.get(parent);
       const holder = byId.get(parent);
       if (container === undefined || holder === undefined) return false;
-      const padding = paddingOf(holder, graph.badges);
+      const padding = paddingOf(holder, graph);
       const siblings = placedKids(parent)
         .filter(({ id }) => id !== element.id)
         .map(({ id }) => rects.get(id)!);

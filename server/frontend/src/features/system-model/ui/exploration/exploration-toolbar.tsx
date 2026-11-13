@@ -22,7 +22,7 @@ import {
   ToolbarOptions,
   ToolbarPill,
 } from '#/shared/ui/canvas-toolbar.tsx';
-import type { SlotDrawing } from '../../system-model-exploration.ts';
+import type { BadgeLook, SlotDrawing } from '../../system-model-exploration.ts';
 import type { LayoutDirection } from './layout-exploration.ts';
 import classes from './exploration.module.css';
 
@@ -35,6 +35,8 @@ export interface Drawing {
   orthogonal: boolean;
   /** Edges as dashes running towards their target. */
   animated: boolean;
+  /** How the badges are drawn, with slots on cards. */
+  look: BadgeLook;
 }
 
 /** Each way the layout may run, by its arrow; its name for whoever cannot see it. */
@@ -68,6 +70,13 @@ const SLOTS = [
   { value: 'cards', label: 'On cards' },
   { value: 'nodes', label: 'As nodes' },
 ] satisfies { value: SlotDrawing; label: string }[];
+
+/** How the badges are drawn, while the looks are tried. */
+const LOOKS = [
+  { value: 'labels', label: 'Labels' },
+  { value: 'signature', label: 'Signature' },
+  { value: 'chips', label: 'Chips' },
+] satisfies { value: BadgeLook; label: string }[];
 
 /*
  * How the reader draws the exploration — what is drawn is chosen in the
@@ -177,6 +186,19 @@ export function ExplorationToolbar({
           set({ slots: value === 'nodes' ? 'nodes' : 'cards' })
         }
       />
+      {drawing.slots === 'cards' && (
+        <SegmentedControl
+          aria-label="Badges"
+          data={LOOKS}
+          value={drawing.look}
+          onChange={(value) =>
+            set({
+              look:
+                LOOKS.find((look) => look.value === value)?.value ?? 'labels',
+            })
+          }
+        />
+      )}
       <ToolbarOptions
         label="Edges"
         icon={IconRoute}

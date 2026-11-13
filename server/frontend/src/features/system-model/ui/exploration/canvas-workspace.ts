@@ -97,7 +97,7 @@ export function workspaceOf(
     if (rect === null || was === undefined) continue;
     const next =
       kidsOf(element.id).length === 0 && was.holds
-        ? { ...rect, ...cardSizeOf(element, graph.badges) }
+        ? { ...rect, ...cardSizeOf(element, graph) }
         : rect;
     rects.set(element.id, next);
     if (!same(next, rect)) resized.push({ id: element.id, old: rect });
@@ -192,7 +192,7 @@ export function workspaceOf(
     if (old === undefined) return true;
     const element = byId.get(id);
     if (element === undefined) return true;
-    const padding = paddingOf(element, graph.badges);
+    const padding = paddingOf(element, graph);
     let next = old;
     for (const { id: kid } of placedKids(id)) {
       const rect = rects.get(kid);
@@ -204,7 +204,7 @@ export function workspaceOf(
         height: rect.height + padding.top + padding.bottom,
       });
     }
-    const least = frameLeastWidthOf(element, graph.badges);
+    const least = frameLeastWidthOf(element, graph);
     if (next.width < least) next = { ...next, width: least };
     if (same(next, old)) return true;
     rects.set(id, next);
@@ -229,14 +229,14 @@ export function workspaceOf(
     );
     if (first === undefined) return refit(element.parent);
     const box = others.reduce((all, rect) => union(all, rect), first);
-    const padding = paddingOf(element, graph.badges);
+    const padding = paddingOf(element, graph);
     const x = Math.min(old.x, box.x - padding.left);
     const y = Math.min(old.y, box.y - padding.top);
     const next = {
       x,
       y,
       width: Math.max(
-        frameLeastWidthOf(element, graph.badges),
+        frameLeastWidthOf(element, graph),
         box.x + box.width + padding.right - x,
       ),
       height: Math.max(HEIGHT, box.y + box.height + padding.bottom - y),
@@ -278,7 +278,7 @@ export function workspaceOf(
     if (frame === undefined || element === undefined) return true;
     const held = placedKids(id);
     const top = Math.min(...held.map(({ id: kid }) => rects.get(kid)!.y));
-    const gap = top - (frame.y + paddingOf(element, graph.badges).top);
+    const gap = top - (frame.y + paddingOf(element, graph).top);
     if (held.length > 0 && gap > 0)
       for (const { id: kid } of held) move(kid, 0, -gap);
     return true;

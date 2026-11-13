@@ -53,6 +53,7 @@ import {
   removalOf,
 } from '../../system-model-exploration.ts';
 import { designOf } from '../../system-model.model.ts';
+import { recallBadgeLook, rememberBadgeLook } from './badge-look.ts';
 import { CanvasTooltips } from './canvas-tooltips.tsx';
 import { ElementNode, type ExplorationNode } from './element-node.tsx';
 import { edgeOf } from './exploration-edges.ts';
@@ -165,13 +166,19 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     // How the edges were drawn when the diagram was left, as it is restored.
     orthogonal: opened?.edges?.orthogonal ?? true,
     animated: opened?.edges?.animated ?? true,
+    look: recallBadgeLook(),
   });
-  const { direction, slots, orthogonal, animated } = drawing;
+  const { direction, slots, orthogonal, animated, look } = drawing;
+  useEffect(() => rememberBadgeLook(look), [look]);
   // Chosen on the Dev Tools page; the exploration only draws in it.
   const theme = useDiagramTheme();
   const graph = useMemo(
-    () => graphOf(exploration, { hidden, relations, picks, slots }),
-    [exploration, hidden, relations, picks, slots],
+    // The look sets the room each card makes for its badges.
+    () => ({
+      ...graphOf(exploration, { hidden, relations, picks, slots }),
+      look,
+    }),
+    [exploration, hidden, relations, picks, slots, look],
   );
 
   const {
@@ -495,6 +502,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       related: related.elements,
       path: pathTo(inHandSet, elementsById),
       badges: graph.badges,
+      look,
       slots: exploration.slots,
       onGoTo: goToCard,
       onSelect: select,
@@ -529,6 +537,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       inHandSet,
       related,
       graph.badges,
+      look,
       exploration.slots,
       goToCard,
       select,

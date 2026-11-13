@@ -77,7 +77,7 @@ export function ElementNode({
   const shape = holds ? undefined : shapeOf(element.kind, element.pattern);
   const bevelled = shape === 'bevel';
   const { state, dimmed, onSelect } = useSelectionState(element.id);
-  const { badges } = useContext(ExplorationReadingContext);
+  const { badges, look } = useContext(ExplorationReadingContext);
   const carried = badges.get(element.id) ?? [];
   const badged = carried.length > 0;
   const [menu, setMenu] = useState(false);
@@ -169,7 +169,7 @@ export function ElementNode({
               style={
                 badged
                   ? ({
-                      '--frame-top': `${paddingOf(element, badges).top}px`,
+                      '--frame-top': `${paddingOf(element, { badges, look }).top}px`,
                     } as CSSProperties)
                   : undefined
               }
@@ -200,7 +200,7 @@ export function ElementNode({
           ) : (
             button
           )}
-          <SlotBadges badges={carried} frame={holds} />
+          <SlotBadges badges={carried} holder={element.name} frame={holds} />
           {bevelled && state === 'related' && (
             <BevelRing
               width={width ?? data.placed.width}

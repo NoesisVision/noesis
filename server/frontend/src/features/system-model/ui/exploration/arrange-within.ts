@@ -30,10 +30,10 @@ export function arrangeWithin(
   const frame = rects.get(id);
   const element = byId.get(id);
   if (frame === undefined || element === undefined) return null;
-  const padding = paddingOf(element, graph.badges);
+  const padding = paddingOf(element, graph);
   const origin = { x: frame.x + padding.left, y: frame.y + padding.top };
   const at = new Map(inside.map((each) => [each.element.id, each]));
-  let right = frame.x + frameLeastWidthOf(element, graph.badges);
+  let right = frame.x + frameLeastWidthOf(element, graph);
   let bottom = frame.y + HEIGHT;
   const set = (parent: string, from: { x: number; y: number }) => {
     for (const { id: kid } of kidsOf(parent)) {

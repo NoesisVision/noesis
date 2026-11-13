@@ -164,3 +164,174 @@
   font-weight: 500;
   opacity: 0.55;
 }
+
+/*
+ * The other looks a card's badges may take, while they are tried (the
+ * toolbar's Badges switch): the card's signature, as the code declares it,
+ * and one flow of chips. Their sizes are the layout's (CHIP_LINE,
+ * SIGNATURE_LINE, SIGNATURE_BOX and SIGNATURE_CHAR).
+ */
+
+/* Each slot's colours, its relation's edge's (relationEdges in theme.ts). */
+.signature .token,
+.chips .chip {
+  --badge-line: var(--noesis-diagram-edge-state);
+  --badge-word: var(--noesis-diagram-edge-state-word);
+  --cardinality-mark-ink: var(--badge-word);
+  --cardinality-mark-fill: color-mix(
+    in srgb,
+    var(--badge-line) 24%,
+    transparent
+  );
+
+  color: var(--badge-word);
+  pointer-events: auto;
+
+  &[data-relation='input'] {
+    --badge-line: var(--noesis-diagram-edge-input);
+    --badge-word: var(--noesis-diagram-edge-input-word);
+  }
+
+  &[data-relation='output'] {
+    --badge-line: var(--noesis-diagram-edge-output);
+    --badge-word: var(--noesis-diagram-edge-output-word);
+  }
+
+  &:is(button) {
+    cursor: pointer;
+  }
+
+  &:is(button):focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 1px;
+  }
+
+  &[data-related] {
+    outline: 2px dashed var(--noesis-diagram-related);
+    outline-offset: 1px;
+  }
+}
+
+/* The signature: a box of monospace lines, as code is set. */
+.signature {
+  box-sizing: border-box;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 8px;
+  overflow: hidden;
+  border: 1px solid var(--noesis-diagram-card-border);
+  border-radius: var(--mantine-radius-md);
+  background: color-mix(in srgb, var(--noesis-diagram-canvas) 60%, transparent);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 12px;
+}
+
+.signatureLine {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  white-space: pre;
+}
+
+.signatureItem {
+  display: flex;
+  min-width: 0;
+}
+
+.punctuation {
+  color: var(--mantine-color-dimmed);
+  white-space: pre;
+}
+
+.signature .token {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 2px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: inherit;
+  white-space: nowrap;
+
+  &:is(button):hover,
+  &[aria-expanded='true'] {
+    background: color-mix(in srgb, var(--badge-line) 18%, transparent);
+  }
+
+  & .type {
+    font-size: inherit;
+    font-weight: 650;
+    line-height: inherit;
+  }
+
+  & .typeName {
+    text-decoration: underline;
+    text-decoration-color: color-mix(
+      in srgb,
+      var(--badge-line) 50%,
+      transparent
+    );
+    text-underline-offset: 3px;
+  }
+}
+
+.tokenName {
+  opacity: 0.8;
+}
+
+/* The chips: one flow, each slot a line with its relation's letter first. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chips .chip {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  height: 24px;
+  padding: 0 8px 0 3px;
+  border: 1px solid transparent;
+  border-radius: var(--mantine-radius-sm);
+  background: color-mix(in srgb, var(--badge-line) 13%, transparent);
+  font-size: 12px;
+  white-space: nowrap;
+
+  &:is(button):hover,
+  &[aria-expanded='true'] {
+    border-color: color-mix(in srgb, var(--badge-line) 60%, transparent);
+    background: color-mix(in srgb, var(--badge-line) 22%, transparent);
+  }
+
+  & .type {
+    gap: 3px;
+    min-width: 0;
+  }
+}
+
+.letter {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--badge-line);
+  color: var(--noesis-diagram-card);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.chipName {
+  flex: none;
+  font-weight: 500;
+  opacity: 0.8;
+}

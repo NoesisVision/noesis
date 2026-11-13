@@ -8,7 +8,13 @@ import { Popover } from '#/shared/design-system/popover.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import type { Badge, WalkStep } from '../../system-model-exploration.ts';
-import { badgeRowsOf, badgeSaidOf, badgeTipOf } from './badge-rows.ts';
+import {
+  badgeRowsOf,
+  badgeSaidOf,
+  badgeTipOf,
+  chipsOf,
+  signatureLinesOf,
+} from './badge-rows.ts';
 import { ExplorationReadingContext } from './exploration-reading.ts';
 import { SlotExplorer } from './slot-explorer.tsx';
 import {
@@ -32,14 +38,87 @@ import classes from './slot-badges.module.css';
  */
 export function SlotBadges({
   badges,
+  holder,
   frame,
 }: {
   badges: readonly Badge[];
+  /** The name of the card that holds them, which a signature starts with. */
+  holder: string;
   /** Under a frame's name, rather than a card's name and what it is. */
   frame: boolean;
 }) {
-  const { selected, elements } = useContext(ExplorationReadingContext);
+  const { selected, elements, look } = useContext(ExplorationReadingContext);
   if (badges.length === 0) return null;
+  /** A slot, drawn in `className` as `children`: a button where its type leads on. */
+  const slot = (badge: Badge, className: string, children: ReactNode) => {
+    const shared = {
+      className,
+      'data-relation': badge.relation,
+      'data-related': selected.has(badge.type) || undefined,
+      // Said by the canvas's one tooltip, as a card's controls are.
+      'data-tip': badgeTipOf(badge),
+    };
+    return elements.has(badge.type) ? (
+      <Walked badge={badge} {...shared}>
+        {children}
+      </Walked>
+    ) : (
+      <span {...shared}>{children}</span>
+    );
+  };
+  if (look === 'signature')
+    return (
+      <div className={classes.badges} data-part="badges" data-frame={frame}>
+        <div className={classes.signature}>
+          {signatureLinesOf(holder, badges).map((line, at) => (
+            <div key={at} className={classes.signatureLine}>
+              {line.map((part, index) =>
+                typeof part === 'string' ? (
+                  <span key={index} className={classes.punctuation} aria-hidden>
+                    {part}
+                  </span>
+                ) : (
+                  <span key={index} className={classes.signatureItem}>
+                    {slot(
+                      part,
+                      classes.token!,
+                      <>
+                        <span className={classes.tokenName}>{part.name}</span>
+                        <span className={classes.punctuation}>: </span>
+                        <TypeOf badge={part} chevron={false} />
+                      </>,
+                    )}
+                  </span>
+                ),
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  if (look === 'chips')
+    return (
+      <div className={classes.badges} data-part="badges" data-frame={frame}>
+        <ul className={classes.chips} aria-label="Slots">
+          {chipsOf(badges).map((badge) => (
+            <li key={`${badge.holder}#${badge.name}`} className={classes.item}>
+              {slot(
+                badge,
+                classes.chip!,
+                <>
+                  <span className={classes.letter} aria-hidden>
+                    {badge.relation[0]!.toUpperCase()}
+                  </span>
+                  <VisuallyHidden>{badge.relation} </VisuallyHidden>
+                  <span className={classes.chipName}>{badge.name}:</span>
+                  <TypeOf badge={badge} chevron={elements.has(badge.type)} />
+                </>,
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
   return (
     <div className={classes.badges} data-part="badges" data-frame={frame}>
       {badgeRowsOf(badges).map(({ relation, badges: row }) => (
@@ -48,66 +127,60 @@ export function SlotBadges({
             {relation}
           </span>
           <ul className={classes.list} aria-label={relation}>
-            {row.map((badge) => {
-              const shared = {
-                className: classes.badge,
-                'data-relation': relation,
-                'data-related': selected.has(badge.type) || undefined,
-                // Said by the canvas's one tooltip, as a card's controls are.
-                'data-tip': badgeTipOf(badge),
-              };
-              const opens = elements.has(badge.type);
-              const words = (
-                <>
-                  {/* Its name, quiet, over its type, each a line of its
-                      own; read out as the slot is written, `offer: Offer`. */}
-                  <span className={classes.name}>{badge.name}</span>
-                  <VisuallyHidden>: </VisuallyHidden>
-                  <span className={classes.type}>
-                    <span className={classes.typeName}>{badge.typeName}</span>
-                    {/* After the type, whole however short the type is cut. */}
-                    {isMarked(badge.cardinality) && (
-                      <CardinalityMark cardinality={badge.cardinality} />
-                    )}
-                    {badge.onDiagram && (
-                      <>
-                        <span className={classes.mark} aria-hidden>
-                          ↗
-                        </span>
-                        <VisuallyHidden>, also on the diagram</VisuallyHidden>
-                      </>
-                    )}
-                    {/* A type to walk into says so, faintly. */}
-                    {opens && (
-                      <IconChevronDown
-                        className={classes.mark}
-                        size={10}
-                        stroke={2.4}
-                        aria-hidden
-                      />
-                    )}
-                  </span>
-                </>
-              );
-              return (
-                <li
-                  key={`${badge.holder}#${badge.name}`}
-                  className={classes.item}
-                >
-                  {opens ? (
-                    <Walked badge={badge} {...shared}>
-                      {words}
-                    </Walked>
-                  ) : (
-                    <span {...shared}>{words}</span>
-                  )}
-                </li>
-              );
-            })}
+            {row.map((badge) => (
+              <li
+                key={`${badge.holder}#${badge.name}`}
+                className={classes.item}
+              >
+                {slot(
+                  badge,
+                  classes.badge!,
+                  <>
+                    {/* Its name, quiet, over its type, each a line of its
+                        own; read out as the slot is written, `offer: Offer`. */}
+                    <span className={classes.name}>{badge.name}</span>
+                    <VisuallyHidden>: </VisuallyHidden>
+                    <TypeOf badge={badge} chevron={elements.has(badge.type)} />
+                  </>,
+                )}
+              </li>
+            ))}
           </ul>
         </div>
       ))}
     </div>
+  );
+}
+
+/**
+ * A slot's type in bold, then its marks, which stay whole as it is cut
+ * short: its cardinality, a card of its own on the diagram (↗), and a type
+ * to walk into (a chevron), faint.
+ */
+function TypeOf({ badge, chevron }: { badge: Badge; chevron: boolean }) {
+  return (
+    <span className={classes.type}>
+      <span className={classes.typeName}>{badge.typeName}</span>
+      {isMarked(badge.cardinality) && (
+        <CardinalityMark cardinality={badge.cardinality} />
+      )}
+      {badge.onDiagram && (
+        <>
+          <span className={classes.mark} aria-hidden>
+            ↗
+          </span>
+          <VisuallyHidden>, also on the diagram</VisuallyHidden>
+        </>
+      )}
+      {chevron && (
+        <IconChevronDown
+          className={classes.mark}
+          size={10}
+          stroke={2.4}
+          aria-hidden
+        />
+      )}
+    </span>
   );
 }
 

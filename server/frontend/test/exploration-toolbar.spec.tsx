@@ -36,6 +36,7 @@ describe('the exploration toolbar', () => {
   const drawing: Drawing = {
     direction: 'vertical',
     slots: 'cards',
+    look: 'labels',
     orthogonal: true,
     animated: true,
   };

@@ -6,7 +6,13 @@ import type {
   DrawnElement,
   ExplorationGraph,
 } from '../../system-model-exploration.ts';
-import { badgeRowsOf } from './badge-rows.ts';
+import {
+  badgeRowsOf,
+  chipsOf,
+  chipWidthOf,
+  signatureLinesOf,
+  signatureLineWidthOf,
+} from './badge-rows.ts';
 
 /*
  * Where each element of the exploration stands, placed by one of ELK's
@@ -159,39 +165,110 @@ const badgedWidthOf = (least: number, badges: readonly Badge[]) =>
     ),
   );
 
-type Badges = ExplorationGraph['badges'];
-const badgesOf = (badges: Badges, id: string) => badges.get(id) ?? NO_BADGES;
+/** What the sizes of a card's badges are read from: its badges, and how they are drawn. */
+type Carrying = Pick<ExplorationGraph, 'badges' | 'look'>;
+const badgesOf = ({ badges }: Carrying, id: string) =>
+  badges.get(id) ?? NO_BADGES;
 
-/** A card's size: its name and what it is, and room for its badges under them. */
-export function cardSizeOf(element: DrawnElement, badges: Badges) {
-  const carried = badgesOf(badges, element.id);
-  const width = badgedWidthOf(widthOf(element.name), carried);
-  if (carried.length === 0) return { width, height: HEIGHT };
+/** One line of chips: a chip and the gap under it. */
+const CHIP_LINE = 28;
+/** One line of a signature. */
+const SIGNATURE_LINE = 20;
+/** A signature's box round its lines: padding and border, each side. */
+const SIGNATURE_BOX = 9;
+
+/** How many lines a flow of chips takes at a width. */
+function chipLinesOf(badges: readonly Badge[], width: number) {
+  const room = width - 2 * BADGES_INSET;
+  let lines = 0;
+  let used = Infinity;
+  for (const badge of chipsOf(badges)) {
+    const each = Math.min(chipWidthOf(badge), room);
+    if (used + BADGE_GAP + each > room) {
+      lines += 1;
+      used = each;
+    } else used += BADGE_GAP + each;
+  }
+  return lines;
+}
+
+/**
+ * The room a card's badges take, drawn as `look` draws them, under a name
+ * needing `least` across: how wide the card is, and how tall the badges.
+ */
+function badgeBlockOf(
+  element: DrawnElement,
+  least: number,
+  { look = 'labels', ...carrying }: Carrying,
+): { width: number; height: number } {
+  const badges = badgesOf({ ...carrying, look }, element.id);
+  if (badges.length === 0) return { width: least, height: 0 };
+  if (look === 'signature') {
+    const lines = signatureLinesOf(element.name, badges);
+    return {
+      width: Math.max(
+        least,
+        Math.min(
+          MAX_BADGED_WIDTH + 40,
+          2 * BADGES_INSET +
+            2 * SIGNATURE_BOX +
+            Math.max(...lines.map(signatureLineWidthOf)),
+        ),
+      ),
+      height: lines.length * SIGNATURE_LINE + 2 * SIGNATURE_BOX,
+    };
+  }
+  if (look === 'chips') {
+    const width = Math.max(
+      least,
+      Math.min(
+        MAX_BADGED_WIDTH,
+        2 * BADGES_INSET +
+          chipsOf(badges).reduce((all, badge) => all + chipWidthOf(badge), 0) +
+          BADGE_GAP * (badges.length - 1),
+      ),
+    );
+    return {
+      width,
+      height: chipLinesOf(badges, width) * CHIP_LINE - BADGE_GAP,
+    };
+  }
+  const width = badgedWidthOf(least, badges);
   return {
     width,
-    height:
-      BADGES_TOP +
-      badgeLinesOf(carried, width) * BADGE_LINE -
-      BADGE_GAP +
-      BADGES_BOTTOM,
+    height: badgeLinesOf(badges, width) * BADGE_LINE - BADGE_GAP,
   };
 }
 
+/** A card's size: its name and what it is, and room for its badges under them. */
+export function cardSizeOf(element: DrawnElement, carrying: Carrying) {
+  const { width, height } = badgeBlockOf(
+    element,
+    widthOf(element.name),
+    carrying,
+  );
+  if (height === 0) return { width, height: HEIGHT };
+  return { width, height: BADGES_TOP + height + BADGES_BOTTOM };
+}
+
 /** A frame's least width: its name, and its longest row of badges. */
-export const frameLeastWidthOf = (element: DrawnElement, badges: Badges) =>
-  badgedWidthOf(frameWidthOf(element.name), badgesOf(badges, element.id));
+export const frameLeastWidthOf = (element: DrawnElement, carrying: Carrying) =>
+  badgeBlockOf(element, frameWidthOf(element.name), carrying).width;
 
 /** A frame's room round what it holds: at the top, its name and its badges. */
 export function paddingOf(
   element: DrawnElement,
-  badges: Badges,
+  carrying: Carrying,
 ): Readonly<Padding> {
-  const carried = badgesOf(badges, element.id);
-  if (carried.length === 0) return PADDING;
-  const lines = badgeLinesOf(carried, frameLeastWidthOf(element, badges));
+  const { height } = badgeBlockOf(
+    element,
+    frameWidthOf(element.name),
+    carrying,
+  );
+  if (height === 0) return PADDING;
   return {
     ...PADDING,
-    top: FRAME_BADGES_TOP + lines * BADGE_LINE - BADGE_GAP + BADGES_BOTTOM,
+    top: FRAME_BADGES_TOP + height + BADGES_BOTTOM,
   };
 }
 
@@ -237,14 +314,14 @@ export async function layoutExploration(
   const nodeOf = (element: DrawnElement): ElkNode => {
     const inside = children.get(element.id) ?? [];
     return inside.length === 0
-      ? { id: element.id, ...cardSizeOf(element, graph.badges) }
+      ? { id: element.id, ...cardSizeOf(element, graph) }
       : {
           id: element.id,
           layoutOptions: {
             ...optionsOf(algorithm, direction),
-            'elk.padding': elkPaddingOf(paddingOf(element, graph.badges)),
+            'elk.padding': elkPaddingOf(paddingOf(element, graph)),
             'elk.nodeSize.minimum': minimumOf(
-              frameLeastWidthOf(element, graph.badges),
+              frameLeastWidthOf(element, graph),
               HEIGHT,
               direction,
             ),
@@ -283,8 +360,8 @@ export async function layoutExploration(
         holds: (node.children?.length ?? 0) > 0,
         x: node.x ?? 0,
         y: node.y ?? 0,
-        width: node.width ?? cardSizeOf(element, graph.badges).width,
-        height: node.height ?? cardSizeOf(element, graph.badges).height,
+        width: node.width ?? cardSizeOf(element, graph).width,
+        height: node.height ?? cardSizeOf(element, graph).height,
       });
       walk(node.children);
     }
@@ -326,6 +403,7 @@ export async function layoutWithin(
       ),
       badges: graph.badges,
       folded: graph.folded,
+      look: graph.look,
     },
     algorithm,
     direction,

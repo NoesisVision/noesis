@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import type {
   Badge,
+  BadgeLook,
   DrawnRelationKind,
   ExploredElement,
   ModelSlots,
@@ -23,6 +24,8 @@ export interface ExplorationReading {
   path: ReadonlySet<string>;
   /** Each card's slots, drawn on it, with slots on cards. */
   badges: ReadonlyMap<string, readonly Badge[]>;
+  /** How the badges are drawn. */
+  look: BadgeLook;
   /** Every slot of the model, for a badge to walk from its type on. */
   slots: ModelSlots;
   /** Takes a card already drawn in hand alone and brings it into sight. */
@@ -63,6 +66,7 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   related: new Set(),
   path: new Set(),
   badges: new Map(),
+  look: 'labels',
   slots: { of: new Map(), behaviors: new Map() },
   onGoTo: () => {},
   onSelect: () => {},

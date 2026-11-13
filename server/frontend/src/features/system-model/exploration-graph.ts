@@ -38,6 +38,11 @@ export interface Badge extends Slot {
 
 /** Where slots are drawn: on the cards that hold them, or as edges to cards of their types. */
 export type SlotDrawing = 'cards' | 'nodes';
+/**
+ * How the badges on a card are drawn: a row per relation under its label,
+ * the card's signature as code is written, or one flow of chips.
+ */
+export type BadgeLook = 'labels' | 'signature' | 'chips';
 
 export interface ExplorationGraph {
   elements: DrawnElement[];
@@ -46,6 +51,8 @@ export interface ExplorationGraph {
   badges: ReadonlyMap<string, readonly Badge[]>;
   /** What is on the diagram as badges only, with slots on cards: shown, but no card. */
   folded: ReadonlySet<string>;
+  /** How the badges are drawn, which sets the room a card makes for them; labels when absent. */
+  look?: BadgeLook;
 }
 
 /** The relations that are slots, drawn on cards when slots are. */
