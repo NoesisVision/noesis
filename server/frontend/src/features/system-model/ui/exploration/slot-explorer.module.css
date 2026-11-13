@@ -109,11 +109,18 @@
   font-weight: 600;
 }
 
+/*
+ * Where the columns stand, to the popup's edges and under them, where its
+ * scrollbar runs: the columns' own ground, however few stand on it.
+ */
+.strip {
+  border-top: 1px solid var(--noesis-diagram-card-border);
+  background: var(--noesis-diagram-canvas);
+}
+
 .columns {
   display: flex;
-  /* Its line runs the popup's width, however few columns stand on it. */
   min-width: 100%;
-  border-top: 1px solid var(--noesis-diagram-card-border);
 }
 
 /*

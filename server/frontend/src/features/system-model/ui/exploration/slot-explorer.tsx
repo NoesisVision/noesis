@@ -225,7 +225,12 @@ export function SlotExplorer({
           ))}
         </span>
       </nav>
-      <ScrollArea type="auto" scrollbars="x" offsetScrollbars="x">
+      <ScrollArea
+        className={classes.strip}
+        type="auto"
+        scrollbars="x"
+        offsetScrollbars="x"
+      >
         <div className={classes.columns} ref={strip}>
           {/* One list, the columns the walk has and then those it left,
               so a column keeps its element as it goes from one to the other
