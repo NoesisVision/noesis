@@ -10,7 +10,7 @@ plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
     // Parses the build into the Noesis code model: ./gradlew noesisParse writes .noesis/tmp/parser/code-model/java/.
-    id 'vision.noesis.parser' version '0.1.0-SNAPSHOT'
+    id 'vision.noesis.parser' version '0.1.0'
 }
 
 repositories {
