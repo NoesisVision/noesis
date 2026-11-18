@@ -1,5 +1,6 @@
 import { Background, ReactFlow, ViewportPortal } from '@xyflow/react';
 import {
+  type CSSProperties,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -38,9 +39,11 @@ import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
   choiceWithin,
+  detailAt,
   type ElementChoice,
   elementSectionsOf,
   explorationOf,
+  graphInDetail,
   graphOf,
   groupOf,
   hiddenBy,
@@ -107,6 +110,9 @@ const sameChoice = (a: ElementChoice, b: ElementChoice) =>
   sameSet(a.picks.added, b.picks.added) &&
   sameSet(a.picks.removed, b.picks.removed) &&
   sameSet(a.picks.bySlot ?? NONE, b.picks.bySlot ?? NONE);
+
+/** How long going into a card from further off takes. */
+const INTO_MS = 400;
 
 /** The one layout the reader is offered. */
 const ALGORITHM = 'layered';
@@ -288,18 +294,26 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // edges go with it. A card dragged as it is goes over every other,
   // whichever frame it is in, and what it holds over it in turn: raised as a
   // node, not on the page, so the canvas raises what is inside with it.
+  // How much is seen from as far off as the diagram is looked at. Short of
+  // all of it, what is drawn inside a frame is not moved: from that far, a
+  // drag is meant for the frame. It is still the canvas's to leave alone
+  // (`nopan`), as a card it drags is: or a double click on it would zoom
+  // the canvas as well as go into the card.
+  const detail = detailAt(zoom.controls.zoom);
+  const fromAfar = detail !== 'all';
   const visibleNodes = useMemo<ExplorationNode[]>(
     () =>
-      veiled.size === 0 && raised === null
+      veiled.size === 0 && raised === null && !fromAfar
         ? nodes
-        : nodes.map((node) =>
-            veiled.has(groupOf(node.data.placed.element))
-              ? { ...node, hidden: true }
-              : node.id === raised
-                ? { ...node, zIndex: RAISED_Z }
-                : node,
-          ),
-    [nodes, veiled, raised],
+        : nodes.map((node) => {
+            if (veiled.has(groupOf(node.data.placed.element)))
+              return { ...node, hidden: true };
+            if (node.id === raised) return { ...node, zIndex: RAISED_Z };
+            return fromAfar && node.parentId !== undefined
+              ? { ...node, draggable: false, className: 'nopan' }
+              : node;
+          }),
+    [nodes, veiled, raised, fromAfar],
   );
   const scheme = useComputedColorScheme('light');
   const document = useMemo(() => designOf(model), [model]);
@@ -308,7 +322,14 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const selected = selection.at(-1) ?? null;
   const inHandSet = useMemo(() => new Set(selection), [selection]);
   // A card clicked is taken in hand, as on every canvas.
+  // The card last gone into from further off, and when: the second click
+  // of a double click on its name lands once it is closer, and is not a
+  // click to take it in hand.
+  const wentInto = useRef<{ id: string; at: number } | null>(null);
   const select = useCallback((id: string, adding: boolean) => {
+    const into = wentInto.current;
+    if (!adding && into?.id === id && performance.now() - into.at < INTO_MS)
+      return;
     setSelection((held) => selectionAfterClick(held, id, adding));
   }, []);
   const letGo = useCallback(() => setSelection([]), []);
@@ -345,9 +366,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [pickable, picking]);
+  // From further off less is seen, and the relations run between what is
+  // (exploration-detail.ts); the cards stay placed as the whole graph is.
+  const inDetail = useMemo(() => graphInDetail(graph, detail), [graph, detail]);
   const related = useMemo(
-    () => relatedToAll(graph, selection),
-    [graph, selection],
+    () => relatedToAll({ ...graph, relations: inDetail.relations }, selection),
+    [graph, inDetail, selection],
   );
   // Read in the panel only when it is the one card in hand; several are
   // only marked on the diagram.
@@ -450,6 +474,33 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     },
     [showInSight],
   );
+  // From further off a card is gone into, its name clicked or its frame
+  // double-clicked: put in the middle of the canvas and brought closer.
+  // With only modules left, as close as shows the whole of it, filling the
+  // canvas across or down; while blocks are still seen, at its own size.
+  const zoomInto = useCallback(
+    (id: string) => {
+      const now = performance.now();
+      const into = wentInto.current;
+      // The second click of a double click: the first is on its way there,
+      // and the detail it is seen in may have changed under it since.
+      if (into?.id === id && now - into.at < INTO_MS) return;
+      wentInto.current = { id, at: now };
+      if (flow === null) return;
+      if (detail === 'modules')
+        return void flow.fitView({
+          nodes: [{ id }],
+          padding: '24px',
+          duration: INTO_MS,
+        });
+      const { x, y, width, height } = flow.getNodesBounds([id]);
+      void flow.setCenter(x + width / 2, y + height / 2, {
+        zoom: 1,
+        duration: INTO_MS,
+      });
+    },
+    [flow, detail],
+  );
   // A row of the picker, clicked again and again: the element alone, then
   // it and all inside it, then none of them.
   const onPick = useCallback(
@@ -487,8 +538,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       path: pathTo(inHandSet, elementsById),
       badges: graph.badges,
       noOutput: graph.noOutput,
+      unseen: inDetail.unseen,
+      hollow: inDetail.hollow,
       slots: exploration.slots,
       onGoTo: goToCard,
+      detail,
+      onZoomInto: zoomInto,
       onSelect: select,
       onLetGo: () => {
         letGo();
@@ -521,8 +576,11 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       related,
       graph.badges,
       graph.noOutput,
+      inDetail,
       exploration.slots,
       goToCard,
+      detail,
+      zoomInto,
       select,
       letGo,
       present,
@@ -548,7 +606,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         target instanceof Node && canvas.current?.contains(target) === true;
       if (target !== globalThis.document.body && !onCanvas) return;
       const inSight = graph.elements
-        .filter((element) => !veiled.has(groupOf(element)))
+        .filter(
+          (element) =>
+            !veiled.has(groupOf(element)) && !inDetail.unseen.has(element.id),
+        )
         .map(({ id }) => id);
       if (inSight.length === 0) return;
       event.preventDefault();
@@ -556,7 +617,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [graph, veiled]);
+  }, [graph, veiled, inDetail]);
   // Escape lets go of the cards in hand, as on every diagram.
   useLetGoOnEscape(selection.length > 0, letGo);
   // Delete or Backspace takes every card in hand off the diagram, as their
@@ -578,7 +639,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   }, [selection, drawn, remove, letGo]);
   const edges = useMemo(
     () =>
-      graph.relations.map((relation) =>
+      inDetail.relations.map((relation) =>
         edgeOf(relation, {
           orthogonal,
           animated,
@@ -590,7 +651,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                 : 'faded',
         }),
       ),
-    [graph, orthogonal, animated, selection, related],
+    [inDetail, orthogonal, animated, selection, related],
   );
 
   /*
@@ -715,7 +776,22 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     <ChangeMarksContext.Provider value={false}>
       {/* What floats over the canvas, in a portal, is drawn in its theme too. */}
       <DiagramThemeContext.Provider value={theme}>
-        <Stack gap={0} flex={1} className={classes.exploration}>
+        <Stack
+          gap={0}
+          flex={1}
+          className={classes.exploration}
+          // How far off it is looked at from, and the zoom the names are
+          // then sized against, in steps, so the page is not styled anew at
+          // every move.
+          data-detail={detail === 'all' ? undefined : detail}
+          style={
+            detail !== 'all'
+              ? ({
+                  '--canvas-zoom': Math.round(zoom.controls.zoom * 20) / 20,
+                } as CSSProperties)
+              : undefined
+          }
+        >
           {toolbar}
           <Box
             ref={canvas}

@@ -15,9 +15,14 @@ export const CLICK_SLOP = 4;
  * pointer, as the empty canvas does. React Flow keeps both from a node it
  * drags, frames included, though a frame is dragged by its top alone; so
  * they are done here, on the room itself and nothing in it. Clicked, not
- * dragged, the room is the frame's, and takes it in hand.
+ * dragged, the room is the frame's, and takes it in hand. Seen from
+ * further off, a double click goes into the frame instead (`onInto`): it
+ * is put in the middle of the canvas, and brought closer.
  */
-export function useViewingFromFrame(onClick: (adding: boolean) => void) {
+export function useViewingFromFrame(
+  onClick: (adding: boolean) => void,
+  onInto: (() => void) | null,
+) {
   const { getViewport, setViewport } = useReactFlow();
   const store = useStoreApi();
   const onPointerDown = (event: PointerEvent<HTMLElement>) => {
@@ -51,6 +56,7 @@ export function useViewingFromFrame(onClick: (adding: boolean) => void) {
   };
   const onDoubleClick = (event: MouseEvent<HTMLElement>) => {
     if (event.target !== event.currentTarget) return;
+    if (onInto !== null) return onInto();
     const canvas = event.currentTarget.closest('.react-flow');
     if (canvas === null) return;
     const box = canvas.getBoundingClientRect();

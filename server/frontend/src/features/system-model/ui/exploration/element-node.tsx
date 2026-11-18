@@ -77,7 +77,12 @@ export function ElementNode({
   const shape = holds ? undefined : shapeOf(element.kind, element.pattern);
   const bevelled = shape === 'bevel';
   const { state, dimmed, onSelect } = useSelectionState(element.id);
-  const { badges, noOutput } = useContext(ExplorationReadingContext);
+  const { badges, noOutput, unseen, hollow, detail, onZoomInto } = useContext(
+    ExplorationReadingContext,
+  );
+  // From further off its name clicked, or its frame double-clicked, goes
+  // into it: the middle of the canvas, and closer (exploration-view.tsx).
+  const goInto = detail === 'all' ? null : () => onZoomInto(element.id);
   const carried = badges.get(element.id) ?? [];
   // A behavior that gives nothing back has a signature to say so.
   const givesNothing = noOutput.has(element.id);
@@ -91,7 +96,7 @@ export function ElementNode({
   // A frame clicked anywhere, not dragged, is taken in hand: its room here,
   // its top below.
   const select = (adding: boolean) => onSelect(element.id, adding);
-  const viewing = useViewingFromFrame(select);
+  const viewing = useViewingFromFrame(select, goInto);
   const pressedTop = useRef<{ x: number; y: number } | null>(null);
   const [into, outOf] =
     data.direction === 'vertical'
@@ -106,7 +111,13 @@ export function ElementNode({
           {element.name}
         </Text>
       </span>
-      <Text component="span" fz="xs" c="var(--noesis-secondary-text)" truncate>
+      <Text
+        component="span"
+        className={classes.kindLine}
+        fz="xs"
+        c="var(--noesis-secondary-text)"
+        truncate
+      >
         {groupLabelOf(element.pattern ?? element.kind)}
       </Text>
     </>
@@ -126,8 +137,13 @@ export function ElementNode({
       aria-label={withState(`${element.name}, ${kindWordOf(element)}`, state)}
       // What the element is, said by the canvas's one tooltip on hover.
       data-element-tip={addressOf(element.id)}
-      // Ctrl, or Cmd on a Mac, adds it to the hand or takes it out.
-      onClick={(event) => onSelect(element.id, event.ctrlKey || event.metaKey)}
+      // Ctrl, or Cmd on a Mac, adds it to the hand or takes it out. From
+      // further off a plain click goes into it instead, closer.
+      onClick={(event) => {
+        const adding = event.ctrlKey || event.metaKey;
+        if (goInto !== null && !adding) goInto();
+        else onSelect(element.id, adding);
+      }}
     >
       {/* A bevelled card's face, drawn under its name: its edge is the
           card's own layer, as a cut corner cannot carry a border. */}
@@ -156,6 +172,19 @@ export function ElementNode({
           data-dimmed={dimmed || undefined}
           data-leaving={data.leaving || undefined}
           data-badged={badged || undefined}
+          // From further off: out of sight, or a frame left with nothing
+          // seen inside it (exploration-detail.ts).
+          data-unseen={unseen.has(element.id) || undefined}
+          data-hollow={hollow.has(element.id) || undefined}
+          // What its name is sized against from further off
+          // (exploration.module.css): its own length, and the room it has.
+          style={
+            {
+              '--name-length': element.name.length,
+              '--frame-width': width ?? data.placed.width,
+              '--frame-height': height ?? data.placed.height,
+            } as CSSProperties
+          }
         >
           {/* Where React Flow has an edge start and end; the edge itself
               meets the card wherever the line between them crosses its
@@ -179,6 +208,10 @@ export function ElementNode({
               // it was a click. What is on it — its name, menu, crosses —
               // answers for itself; its name is the keyboard's way to the
               // same, so the strip round it is the pointer's alone.
+              // With nothing seen inside it, its top is the whole of it.
+              onDoubleClick={(event) => {
+                if (event.target === event.currentTarget) goInto?.();
+              }}
               onPointerDown={(event) => {
                 pressedTop.current =
                   event.target === event.currentTarget

@@ -786,8 +786,12 @@ describe('the selection', () => {
                   path: new Set(),
                   badges: graph.badges,
                   noOutput: graph.noOutput,
+                  unseen: new Set(),
+                  hollow: new Set(),
                   slots: exploration.slots,
                   onGoTo: () => {},
+                  detail: 'all',
+                  onZoomInto: () => {},
                   onSelect: () => {},
                   onLetGo: () => {},
                   drawn: new Set([line.id]),
@@ -836,6 +840,76 @@ describe('the selection', () => {
     expect(bare).not.toContain('aria-label="More for Line"');
     expect(bare).toContain('aria-label="Remove Line from the view"');
   });
+});
+
+it('marks what is out of sight from further off, and gives each card what its name is sized by', () => {
+  const graph = draw(['contains']);
+  const Node = ElementNode as unknown as (props: {
+    id: string;
+    data: unknown;
+  }) => React.ReactNode;
+  const ORDERS = 'module|shop.orders';
+  const PLACE = 'behavior|shop.orders.Order.place';
+  const render = (id: string, holds: boolean) =>
+    renderToStaticMarkup(
+      <MantineProvider>
+        <ReactFlowProvider>
+          <DesignDocumentContext.Provider value={designOf(model)}>
+            <ExplorationReadingContext.Provider
+              value={{
+                selected: new Set(),
+                related: new Set(),
+                path: new Set(),
+                badges: graph.badges,
+                noOutput: graph.noOutput,
+                unseen: new Set([PLACE]),
+                hollow: new Set([ORDERS]),
+                slots: exploration.slots,
+                onGoTo: () => {},
+                detail: 'all',
+                onZoomInto: () => {},
+                onSelect: () => {},
+                onLetGo: () => {},
+                drawn: new Set(graph.elements.map((each) => each.id)),
+                neighbours: neighboursOf(exploration),
+                elements: new Map(
+                  exploration.elements.map((each) => [each.id, each]),
+                ),
+                onShow: () => {},
+                onDraw: () => {},
+                onArrange: () => {},
+              }}
+            >
+              <Node
+                id={id}
+                data={{
+                  placed: {
+                    element: graph.elements.find((each) => each.id === id)!,
+                    holds,
+                    x: 0,
+                    y: 0,
+                    width: 400,
+                    height: 300,
+                  },
+                  direction: 'vertical',
+                }}
+              />
+            </ExplorationReadingContext.Provider>
+          </DesignDocumentContext.Provider>
+        </ReactFlowProvider>
+      </MantineProvider>,
+    );
+  const holderOf = (html: string) =>
+    /<div[^>]*data-part="(?:holder|container)"[^>]*>/.exec(html)?.[0];
+
+  expect(holderOf(render(PLACE, false))).toContain('data-unseen="true"');
+  const orders = holderOf(render(ORDERS, true));
+  expect(orders).not.toContain('data-unseen');
+  expect(orders).toContain('data-hollow="true"');
+  // `orders` is six letters, in a frame 400 by 300.
+  expect(orders).toContain(
+    '--name-length:6;--frame-width:400;--frame-height:300',
+  );
 });
 
 it('picks from the tree without a tick box on any row', () => {
@@ -1147,8 +1221,12 @@ describe('slots drawn on the cards that hold them', () => {
                   path: new Set(),
                   badges: graph.badges,
                   noOutput: graph.noOutput,
+                  unseen: new Set(),
+                  hollow: new Set(),
                   slots: exploration.slots,
                   onGoTo: () => {},
+                  detail: 'all',
+                  onZoomInto: () => {},
                   onSelect: () => {},
                   onLetGo: () => {},
                   drawn: new Set(graph.elements.map((each) => each.id)),

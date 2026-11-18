@@ -299,10 +299,201 @@
   opacity: var(--noesis-diagram-dimmed);
 }
 
+/*
+ * From further off (data-detail, read from the zoom: exploration-detail.ts)
+ * less is seen. What steps out of sight keeps its place and fades; what a
+ * card carries — its signature, its menu, its cross, the way to what it
+ * contains — goes at the first step, too small by then to read or press.
+ */
+.holder[data-unseen],
+.container[data-unseen],
+.exploration[data-detail] [data-part='badges'],
+.exploration[data-detail] .corner,
+.exploration[data-detail] .contains {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+ * A card not moved from that far off (exploration-view.tsx) is still
+ * pressed and pointed at: the canvas takes the pointer from a node it
+ * neither drags nor selects, in the node's own inline style, hence the
+ * weight here. One out of sight is still a node too, over the frame it is
+ * in, and lets the pointer through to that frame's name.
+ */
+.exploration :global(.react-flow__node:not(.draggable)) {
+  pointer-events: all !important;
+}
+
+.exploration :global(.react-flow__node):has([data-unseen]) {
+  pointer-events: none !important;
+}
+
+/* A relation's word on its line is too small to read by then: the line alone is drawn. */
+.exploration[data-detail] .edge :global(.react-flow__edge-textwrapper) {
+  display: none;
+}
+
+/*
+ * Names from further off, larger so they still read, each sized against
+ * the room it has — its card's or frame's size and its own length are set
+ * on it (element-node.tsx). The corner's controls are gone from beside it,
+ * so it has the width. What each is — `Module` — is left unsaid while the
+ * blocks are still seen, and said again under the names once modules alone
+ * are left, each then read on its own.
+ */
+.exploration[data-detail='blocks'] .kindLine {
+  display: none;
+}
+
+/* How tall a name is at its own size, in a frame's label and on a card: alone, then over what it is. */
+.exploration[data-detail='blocks'] {
+  --label-height: 28;
+  --card-label-height: 19;
+}
+
+.exploration[data-detail='modules'] {
+  --label-height: 44;
+  --card-label-height: 34;
+}
+
+/*
+ * A frame with something still seen inside it: its name in its top, as
+ * large as its top holds, no wider than the frame.
+ */
+.exploration[data-detail] .container {
+  /* About what the name takes at its own size: its icon, letters and padding. */
+  --label-width: calc(var(--name-length) * 8 + 40);
+  --label-scale: max(
+    1,
+    min(
+      calc(54 / var(--label-height)),
+      calc((var(--frame-width) - 12) / var(--label-width))
+    )
+  );
+
+  & .containerLabel {
+    max-width: calc((100% - 12px) / var(--label-scale));
+    transform: scale(var(--label-scale));
+    transform-origin: top left;
+  }
+}
+
+/*
+ * A frame with nothing seen inside it — a block whose behaviors stepped
+ * back, a module left alone — says its name in its middle, the size the
+ * page's own text is whatever the zoom (--canvas-zoom, set on the
+ * exploration), and no larger than the frame holds. The whole of it is
+ * then its top: it is taken from anywhere.
+ */
+.exploration[data-detail] .container[data-hollow] {
+  --label-scale: max(
+    1,
+    min(
+      calc(1.15 / var(--canvas-zoom)),
+      calc((var(--frame-width) - 24) / var(--label-width)),
+      calc((var(--frame-height) - 24) / var(--label-height))
+    )
+  );
+
+  & .frameTop {
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+
+  /* Its name, and what it is under it, about the frame's middle. */
+  & .containerLabel {
+    align-items: center;
+    align-self: center;
+    margin: 0;
+    text-align: center;
+    transform-origin: center;
+  }
+}
+
+/*
+ * A card: its name in its middle, top to bottom, as large as the page's
+ * own text and as the card holds, with the room its controls and its
+ * signature left.
+ */
+.exploration[data-detail] .holder {
+  --label-scale: max(
+    1,
+    min(
+      calc(1.15 / var(--canvas-zoom)),
+      calc((var(--frame-width) - 40) / (var(--name-length) * 8 + 22)),
+      calc((var(--frame-height) - 16) / var(--card-label-height))
+    )
+  );
+
+  & .card {
+    justify-content: center;
+    padding-inline-end: var(--mantine-spacing-xs);
+  }
+
+  &[data-kind='behavior'] .card {
+    padding-inline-end: 18px;
+  }
+
+  & .nameLine,
+  & .kindLine {
+    width: calc(100% / var(--label-scale));
+    transform: scale(var(--label-scale));
+    transform-origin: left center;
+  }
+}
+
+/* A card's name and what it is, each grown from the line between them. */
+.exploration[data-detail='modules'] .holder {
+  & .nameLine {
+    transform-origin: left bottom;
+  }
+
+  & .kindLine {
+    transform-origin: left top;
+  }
+}
+
+/*
+ * What is drawn inside a frame is not moved from that far off
+ * (exploration-view.tsx), and does not say it can be: its name is still
+ * pressed, the rest of its top is not taken.
+ */
+.exploration :global(.react-flow__node:not(.draggable)) .frameTop {
+  cursor: default;
+}
+
+.exploration
+  :global(.react-flow__node:not(.draggable))
+  .frameTop
+  .containerLabel {
+  cursor: pointer;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .holder,
-  .container {
-    transition: opacity 150ms ease;
+  .container,
+  .exploration [data-part='badges'] {
+    transition:
+      opacity 150ms ease,
+      visibility 0s;
+  }
+
+  /* Out of sight only once it has faded. */
+  .holder[data-unseen],
+  .container[data-unseen],
+  .exploration[data-detail] [data-part='badges'] {
+    transition:
+      opacity 150ms ease,
+      visibility 0s 150ms;
+  }
+
+  .exploration .containerLabel,
+  .exploration .card .nameLine,
+  .exploration .card .kindLine {
+    transition: transform 150ms ease;
   }
 }
 

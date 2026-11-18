@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import type {
   Badge,
+  Detail,
   DrawnRelationKind,
   ExploredElement,
   ModelSlots,
@@ -25,10 +26,18 @@ export interface ExplorationReading {
   badges: ReadonlyMap<string, readonly Badge[]>;
   /** The behaviors drawn that give nothing back, which their signatures say. */
   noOutput: ReadonlySet<string>;
+  /** Drawn but out of sight from as far off as the diagram is looked at. */
+  unseen: ReadonlySet<string>;
+  /** The frames with nothing seen inside them, from that far off. */
+  hollow: ReadonlySet<string>;
   /** Every slot of the model, for a badge to walk from its type on. */
   slots: ModelSlots;
   /** Takes a card already drawn in hand alone and brings it into sight. */
   onGoTo: (id: string) => void;
+  /** How much is seen, from as far off as the diagram is looked at. */
+  detail: Detail;
+  /** Puts a card in the middle of the canvas and brings it closer, from further off. */
+  onZoomInto: (id: string) => void;
   /** Takes an element in hand alone, or — adding — into the hand or out of it. */
   onSelect: (id: string, adding: boolean) => void;
   /** Lets go of everything in hand, as a click on the empty canvas does. */
@@ -64,8 +73,12 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   path: new Set(),
   badges: new Map(),
   noOutput: new Set(),
+  unseen: new Set(),
+  hollow: new Set(),
   slots: { of: new Map(), behaviors: new Map() },
   onGoTo: () => {},
+  detail: 'all',
+  onZoomInto: () => {},
   onSelect: () => {},
   onLetGo: () => {},
   drawn: new Set(),
