@@ -108,3 +108,32 @@ export function graphInDetail(
   }
   return { unseen, hollow, relations: [...relations.values()] };
 }
+
+/** A detail short of all of it. */
+type FarDetail = Exclude<Detail, 'all'>;
+
+/** The detail from which each element is out of sight, and each frame left with nothing seen inside it. */
+export interface SteppingBack {
+  unseenFrom: ReadonlyMap<string, FarDetail>;
+  hollowFrom: ReadonlyMap<string, FarDetail>;
+}
+
+/**
+ * What steps back, and from how far off: read once from the graph, so
+ * that coming closer or going further changes nothing a card is told —
+ * only which of its marks the page then goes by.
+ */
+export function steppingBackOf(graph: ExplorationGraph): SteppingBack {
+  const blocks = graphInDetail(graph, 'blocks');
+  const modules = graphInDetail(graph, 'modules');
+  // What is unseen or hollow with blocks still seen stays so further off.
+  const from = (pick: (each: GraphInDetail) => ReadonlySet<string>) =>
+    new Map<string, FarDetail>([
+      ...[...pick(modules)].map((id) => [id, 'modules'] as const),
+      ...[...pick(blocks)].map((id) => [id, 'blocks'] as const),
+    ]);
+  return {
+    unseenFrom: from(({ unseen }) => unseen),
+    hollowFrom: from(({ hollow }) => hollow),
+  };
+}

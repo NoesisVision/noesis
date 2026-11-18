@@ -1,11 +1,11 @@
 import { createContext, useContext } from 'react';
 import type {
   Badge,
-  Detail,
   DrawnRelationKind,
   ExploredElement,
   ModelSlots,
   Neighbours,
+  SteppingBack,
 } from '../../system-model-exploration.ts';
 import type { CanvasPoint } from './place-locally.ts';
 
@@ -26,18 +26,21 @@ export interface ExplorationReading {
   badges: ReadonlyMap<string, readonly Badge[]>;
   /** The behaviors drawn that give nothing back, which their signatures say. */
   noOutput: ReadonlySet<string>;
-  /** Drawn but out of sight from as far off as the diagram is looked at. */
-  unseen: ReadonlySet<string>;
-  /** The frames with nothing seen inside them, from that far off. */
-  hollow: ReadonlySet<string>;
+  /**
+   * From how far off each card is out of sight, and each frame left with
+   * nothing seen inside it. The same whatever the zoom: the page goes by
+   * them as the zoom changes, and no card is drawn again for it.
+   */
+  stepping: SteppingBack;
   /** Every slot of the model, for a badge to walk from its type on. */
   slots: ModelSlots;
   /** Takes a card already drawn in hand alone and brings it into sight. */
   onGoTo: (id: string) => void;
-  /** How much is seen, from as far off as the diagram is looked at. */
-  detail: Detail;
-  /** Puts a card in the middle of the canvas and brings it closer, from further off. */
-  onZoomInto: (id: string) => void;
+  /**
+   * From further off, puts a card in the middle of the canvas and brings
+   * it closer, and says it did; close up it does nothing, and says so.
+   */
+  onInto: (id: string) => boolean;
   /** Takes an element in hand alone, or — adding — into the hand or out of it. */
   onSelect: (id: string, adding: boolean) => void;
   /** Lets go of everything in hand, as a click on the empty canvas does. */
@@ -73,12 +76,10 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   path: new Set(),
   badges: new Map(),
   noOutput: new Set(),
-  unseen: new Set(),
-  hollow: new Set(),
+  stepping: { unseenFrom: new Map(), hollowFrom: new Map() },
   slots: { of: new Map(), behaviors: new Map() },
   onGoTo: () => {},
-  detail: 'all',
-  onZoomInto: () => {},
+  onInto: () => false,
   onSelect: () => {},
   onLetGo: () => {},
   drawn: new Set(),

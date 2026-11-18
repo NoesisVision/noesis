@@ -77,12 +77,12 @@ export function ElementNode({
   const shape = holds ? undefined : shapeOf(element.kind, element.pattern);
   const bevelled = shape === 'bevel';
   const { state, dimmed, onSelect } = useSelectionState(element.id);
-  const { badges, noOutput, unseen, hollow, detail, onZoomInto } = useContext(
+  const { badges, noOutput, stepping, onInto } = useContext(
     ExplorationReadingContext,
   );
   // From further off its name clicked, or its frame double-clicked, goes
   // into it: the middle of the canvas, and closer (exploration-view.tsx).
-  const goInto = detail === 'all' ? null : () => onZoomInto(element.id);
+  const goInto = () => onInto(element.id);
   const carried = badges.get(element.id) ?? [];
   // A behavior that gives nothing back has a signature to say so.
   const givesNothing = noOutput.has(element.id);
@@ -141,8 +141,7 @@ export function ElementNode({
       // further off a plain click goes into it instead, closer.
       onClick={(event) => {
         const adding = event.ctrlKey || event.metaKey;
-        if (goInto !== null && !adding) goInto();
-        else onSelect(element.id, adding);
+        if (adding || !goInto()) onSelect(element.id, adding);
       }}
     >
       {/* A bevelled card's face, drawn under its name: its edge is the
@@ -172,10 +171,12 @@ export function ElementNode({
           data-dimmed={dimmed || undefined}
           data-leaving={data.leaving || undefined}
           data-badged={badged || undefined}
-          // From further off: out of sight, or a frame left with nothing
-          // seen inside it (exploration-detail.ts).
-          data-unseen={unseen.has(element.id) || undefined}
-          data-hollow={hollow.has(element.id) || undefined}
+          // From how far off it is out of sight, or — a frame — left with
+          // nothing seen inside it (exploration-detail.ts); and whether it
+          // is drawn inside a frame, where it is not moved from that far.
+          data-unseen-from={stepping.unseenFrom.get(element.id)}
+          data-hollow-from={stepping.hollowFrom.get(element.id)}
+          data-nested={element.parent !== null || undefined}
           // What its name is sized against from further off
           // (exploration.module.css): its own length, and the room it has.
           style={
@@ -210,7 +211,7 @@ export function ElementNode({
               // same, so the strip round it is the pointer's alone.
               // With nothing seen inside it, its top is the whole of it.
               onDoubleClick={(event) => {
-                if (event.target === event.currentTarget) goInto?.();
+                if (event.target === event.currentTarget) goInto();
               }}
               onPointerDown={(event) => {
                 pressedTop.current =

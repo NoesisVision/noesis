@@ -21,7 +21,7 @@ export const CLICK_SLOP = 4;
  */
 export function useViewingFromFrame(
   onClick: (adding: boolean) => void,
-  onInto: (() => void) | null,
+  onInto: () => boolean,
 ) {
   const { getViewport, setViewport } = useReactFlow();
   const store = useStoreApi();
@@ -56,7 +56,7 @@ export function useViewingFromFrame(
   };
   const onDoubleClick = (event: MouseEvent<HTMLElement>) => {
     if (event.target !== event.currentTarget) return;
-    if (onInto !== null) return onInto();
+    if (onInto()) return;
     const canvas = event.currentTarget.closest('.react-flow');
     if (canvas === null) return;
     const box = canvas.getBoundingClientRect();

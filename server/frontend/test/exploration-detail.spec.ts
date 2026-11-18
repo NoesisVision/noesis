@@ -5,6 +5,7 @@ import {
   type DrawnRelation,
   type ExplorationGraph,
   graphInDetail,
+  steppingBackOf,
 } from '../src/features/system-model/system-model-exploration';
 
 const element = (
@@ -129,5 +130,17 @@ describe('how much of the diagram is seen from how far off', () => {
       'extends:sales->payments',
       'performs:Clerk->alone',
     ]);
+  });
+
+  it('says once from how far off each card steps back, whatever the zoom', () => {
+    const { unseenFrom, hollowFrom } = steppingBackOf(graph);
+    // A behavior in a frame from the first step, a block in a module from the second.
+    expect(unseenFrom.get('place')).toBe('blocks');
+    expect(unseenFrom.get('Order')).toBe('modules');
+    expect(unseenFrom.has('sales')).toBeFalse();
+    // A block left with nothing seen from the first step; a module from the second.
+    expect(hollowFrom.get('Order')).toBe('blocks');
+    expect(hollowFrom.get('orders')).toBe('modules');
+    expect(hollowFrom.has('sales')).toBeFalse();
   });
 });

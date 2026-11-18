@@ -786,12 +786,10 @@ describe('the selection', () => {
                   path: new Set(),
                   badges: graph.badges,
                   noOutput: graph.noOutput,
-                  unseen: new Set(),
-                  hollow: new Set(),
+                  stepping: { unseenFrom: new Map(), hollowFrom: new Map() },
                   slots: exploration.slots,
                   onGoTo: () => {},
-                  detail: 'all',
-                  onZoomInto: () => {},
+                  onInto: () => false,
                   onSelect: () => {},
                   onLetGo: () => {},
                   drawn: new Set([line.id]),
@@ -862,12 +860,13 @@ it('marks what is out of sight from further off, and gives each card what its na
                 path: new Set(),
                 badges: graph.badges,
                 noOutput: graph.noOutput,
-                unseen: new Set([PLACE]),
-                hollow: new Set([ORDERS]),
+                stepping: {
+                  unseenFrom: new Map([[PLACE, 'blocks']]),
+                  hollowFrom: new Map([[ORDERS, 'modules']]),
+                },
                 slots: exploration.slots,
                 onGoTo: () => {},
-                detail: 'all',
-                onZoomInto: () => {},
+                onInto: () => false,
                 onSelect: () => {},
                 onLetGo: () => {},
                 drawn: new Set(graph.elements.map((each) => each.id)),
@@ -902,10 +901,12 @@ it('marks what is out of sight from further off, and gives each card what its na
   const holderOf = (html: string) =>
     /<div[^>]*data-part="(?:holder|container)"[^>]*>/.exec(html)?.[0];
 
-  expect(holderOf(render(PLACE, false))).toContain('data-unseen="true"');
+  expect(holderOf(render(PLACE, false))).toContain('data-unseen-from="blocks"');
+  // Drawn inside a frame: not moved from further off.
+  expect(holderOf(render(PLACE, false))).toContain('data-nested="true"');
   const orders = holderOf(render(ORDERS, true));
-  expect(orders).not.toContain('data-unseen');
-  expect(orders).toContain('data-hollow="true"');
+  expect(orders).not.toContain('data-unseen-from');
+  expect(orders).toContain('data-hollow-from="modules"');
   // `orders` is six letters, in a frame 400 by 300.
   expect(orders).toContain(
     '--name-length:6;--frame-width:400;--frame-height:300',
@@ -1221,12 +1222,10 @@ describe('slots drawn on the cards that hold them', () => {
                   path: new Set(),
                   badges: graph.badges,
                   noOutput: graph.noOutput,
-                  unseen: new Set(),
-                  hollow: new Set(),
+                  stepping: { unseenFrom: new Map(), hollowFrom: new Map() },
                   slots: exploration.slots,
                   onGoTo: () => {},
-                  detail: 'all',
-                  onZoomInto: () => {},
+                  onInto: () => false,
                   onSelect: () => {},
                   onLetGo: () => {},
                   drawn: new Set(graph.elements.map((each) => each.id)),

@@ -301,12 +301,15 @@
 
 /*
  * From further off (data-detail, read from the zoom: exploration-detail.ts)
- * less is seen. What steps out of sight keeps its place and fades; what a
- * card carries — its signature, its menu, its cross, the way to what it
- * contains — goes at the first step, too small by then to read or press.
+ * less is seen. Each card says from how far off it is out of sight
+ * (data-unseen-from), and the page goes by that as the zoom changes, so
+ * crossing from one detail to the next draws no card again. What steps
+ * out of sight keeps its place and fades; what a card carries — its
+ * signature, its menu, its cross, the way to what it contains — goes at
+ * the first step, too small by then to read or press.
  */
-.holder[data-unseen],
-.container[data-unseen],
+.exploration[data-detail] [data-unseen-from='blocks'],
+.exploration[data-detail='modules'] [data-unseen-from='modules'],
 .exploration[data-detail] [data-part='badges'],
 .exploration[data-detail] .corner,
 .exploration[data-detail] .contains {
@@ -316,17 +319,14 @@
 }
 
 /*
- * A card not moved from that far off (exploration-view.tsx) is still
- * pressed and pointed at: the canvas takes the pointer from a node it
- * neither drags nor selects, in the node's own inline style, hence the
- * weight here. One out of sight is still a node too, over the frame it is
- * in, and lets the pointer through to that frame's name.
+ * A card out of sight is still a node of the canvas, over the frame it is
+ * in, and lets the pointer through to that frame's name; over the node's
+ * own inline style, hence the weight.
  */
-.exploration :global(.react-flow__node:not(.draggable)) {
-  pointer-events: all !important;
-}
-
-.exploration :global(.react-flow__node):has([data-unseen]) {
+.exploration[data-detail]
+  :global(.react-flow__node):has([data-unseen-from='blocks']),
+.exploration[data-detail='modules']
+  :global(.react-flow__node):has([data-unseen-from='modules']) {
   pointer-events: none !important;
 }
 
@@ -347,15 +347,22 @@
   display: none;
 }
 
-/* How tall a name is at its own size, in a frame's label and on a card: alone, then over what it is. */
+/*
+ * How tall a name is at its own size, in a frame's label and on a card —
+ * alone, then over what it is — and the most it grows where it has the
+ * room: one size for each detail, read in the middle of its zooms, so
+ * nothing is sized anew while the reader only comes closer or goes further.
+ */
 .exploration[data-detail='blocks'] {
   --label-height: 28;
   --card-label-height: 19;
+  --label-most: 3.2;
 }
 
 .exploration[data-detail='modules'] {
   --label-height: 44;
   --card-label-height: 34;
+  --label-most: 6;
 }
 
 /*
@@ -382,16 +389,16 @@
 
 /*
  * A frame with nothing seen inside it — a block whose behaviors stepped
- * back, a module left alone — says its name in its middle, the size the
- * page's own text is whatever the zoom (--canvas-zoom, set on the
- * exploration), and no larger than the frame holds. The whole of it is
- * then its top: it is taken from anywhere.
+ * back, a module left alone — says its name in its middle, as large as
+ * reads from that far off and no larger than the frame holds. The whole
+ * of it is then its top: it is taken from anywhere.
  */
-.exploration[data-detail] .container[data-hollow] {
+.exploration[data-detail] .container[data-hollow-from='blocks'],
+.exploration[data-detail='modules'] .container[data-hollow-from='modules'] {
   --label-scale: max(
     1,
     min(
-      calc(1.15 / var(--canvas-zoom)),
+      var(--label-most),
       calc((var(--frame-width) - 24) / var(--label-width)),
       calc((var(--frame-height) - 24) / var(--label-height))
     )
@@ -414,15 +421,15 @@
 }
 
 /*
- * A card: its name in its middle, top to bottom, as large as the page's
- * own text and as the card holds, with the room its controls and its
+ * A card: its name in its middle, top to bottom, as large as reads from
+ * that far off and as the card holds, with the room its controls and its
  * signature left.
  */
 .exploration[data-detail] .holder {
   --label-scale: max(
     1,
     min(
-      calc(1.15 / var(--canvas-zoom)),
+      var(--label-most),
       calc((var(--frame-width) - 40) / (var(--name-length) * 8 + 22)),
       calc((var(--frame-height) - 16) / var(--card-label-height))
     )
@@ -461,14 +468,11 @@
  * (exploration-view.tsx), and does not say it can be: its name is still
  * pressed, the rest of its top is not taken.
  */
-.exploration :global(.react-flow__node:not(.draggable)) .frameTop {
+.exploration[data-detail] .container[data-nested] .frameTop {
   cursor: default;
 }
 
-.exploration
-  :global(.react-flow__node:not(.draggable))
-  .frameTop
-  .containerLabel {
+.exploration[data-detail] .container[data-nested] .frameTop .containerLabel {
   cursor: pointer;
 }
 
@@ -482,8 +486,8 @@
   }
 
   /* Out of sight only once it has faded. */
-  .holder[data-unseen],
-  .container[data-unseen],
+  .exploration[data-detail] [data-unseen-from='blocks'],
+  .exploration[data-detail='modules'] [data-unseen-from='modules'],
   .exploration[data-detail] [data-part='badges'] {
     transition:
       opacity 150ms ease,

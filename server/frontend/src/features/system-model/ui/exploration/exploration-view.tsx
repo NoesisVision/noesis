@@ -1,6 +1,5 @@
 import { Background, ReactFlow, ViewportPortal } from '@xyflow/react';
 import {
-  type CSSProperties,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -54,6 +53,7 @@ import {
   type RelationKind,
   relatedToAll,
   removalOf,
+  steppingBackOf,
 } from '../../system-model-exploration.ts';
 import { designOf } from '../../system-model.model.ts';
 import { CanvasTooltips } from './canvas-tooltips.tsx';
@@ -110,6 +110,12 @@ const sameChoice = (a: ElementChoice, b: ElementChoice) =>
   sameSet(a.picks.added, b.picks.added) &&
   sameSet(a.picks.removed, b.picks.removed) &&
   sameSet(a.picks.bySlot ?? NONE, b.picks.bySlot ?? NONE);
+
+/** What a relation joins the selection to, with nothing in hand. */
+const NOTHING_RELATED: ReturnType<typeof relatedToAll> = {
+  relations: new Set(),
+  elements: new Set(),
+};
 
 /** How long going into a card from further off takes. */
 const INTO_MS = 400;
@@ -294,27 +300,48 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // edges go with it. A card dragged as it is goes over every other,
   // whichever frame it is in, and what it holds over it in turn: raised as a
   // node, not on the page, so the canvas raises what is inside with it.
-  // How much is seen from as far off as the diagram is looked at. Short of
-  // all of it, what is drawn inside a frame is not moved: from that far, a
-  // drag is meant for the frame. It is still the canvas's to leave alone
-  // (`nopan`), as a card it drags is: or a double click on it would zoom
-  // the canvas as well as go into the card.
-  const detail = detailAt(zoom.controls.zoom);
-  const fromAfar = detail !== 'all';
   const visibleNodes = useMemo<ExplorationNode[]>(
     () =>
-      veiled.size === 0 && raised === null && !fromAfar
+      veiled.size === 0 && raised === null
         ? nodes
-        : nodes.map((node) => {
-            if (veiled.has(groupOf(node.data.placed.element)))
-              return { ...node, hidden: true };
-            if (node.id === raised) return { ...node, zIndex: RAISED_Z };
-            return fromAfar && node.parentId !== undefined
-              ? { ...node, draggable: false, className: 'nopan' }
-              : node;
-          }),
-    [nodes, veiled, raised, fromAfar],
+        : nodes.map((node) =>
+            veiled.has(groupOf(node.data.placed.element))
+              ? { ...node, hidden: true }
+              : node.id === raised
+                ? { ...node, zIndex: RAISED_Z }
+                : node,
+          ),
+    [nodes, veiled, raised],
   );
+  // How much is seen from as far off as the diagram is looked at
+  // (exploration-detail.ts). Crossing from one detail to the next is kept
+  // cheap: the page goes by an attribute and the marks each card already
+  // carries, and only the relations are drawn anew — no card is.
+  const detail = detailAt(zoom.controls.zoom);
+  const detailNow = useRef(detail);
+  useLayoutEffect(() => {
+    detailNow.current = detail;
+  });
+  // Short of all of it, what is drawn inside a frame is not moved: from
+  // that far, a drag is meant for the frame. The press is kept from the
+  // canvas before it reaches the card, so the card itself is told nothing.
+  useEffect(() => {
+    const room = canvas.current;
+    if (room === null || detail === 'all') return;
+    const hold = (event: Event) => {
+      if (
+        event.target instanceof Element &&
+        event.target.closest('[data-nested]') !== null
+      )
+        event.stopPropagation();
+    };
+    room.addEventListener('mousedown', hold, true);
+    room.addEventListener('touchstart', hold, true);
+    return () => {
+      room.removeEventListener('mousedown', hold, true);
+      room.removeEventListener('touchstart', hold, true);
+    };
+  }, [detail]);
   const scheme = useComputedColorScheme('light');
   const document = useMemo(() => designOf(model), [model]);
   // In hand, in the order taken; the last is the one the panel reads.
@@ -369,8 +396,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // From further off less is seen, and the relations run between what is
   // (exploration-detail.ts); the cards stay placed as the whole graph is.
   const inDetail = useMemo(() => graphInDetail(graph, detail), [graph, detail]);
+  const steppingBack = useMemo(() => steppingBackOf(graph), [graph]);
   const related = useMemo(
-    () => relatedToAll({ ...graph, relations: inDetail.relations }, selection),
+    () =>
+      // With nothing in hand, the same from any distance.
+      selection.length === 0
+        ? NOTHING_RELATED
+        : relatedToAll({ ...graph, relations: inDetail.relations }, selection),
     [graph, inDetail, selection],
   );
   // Read in the panel only when it is the one card in hand; several are
@@ -478,28 +510,31 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // double-clicked: put in the middle of the canvas and brought closer.
   // With only modules left, as close as shows the whole of it, filling the
   // canvas across or down; while blocks are still seen, at its own size.
-  const zoomInto = useCallback(
+  const goInto = useCallback(
     (id: string) => {
       const now = performance.now();
       const into = wentInto.current;
       // The second click of a double click: the first is on its way there,
       // and the detail it is seen in may have changed under it since.
-      if (into?.id === id && now - into.at < INTO_MS) return;
+      if (into?.id === id && now - into.at < INTO_MS) return true;
+      if (detailNow.current === 'all' || flow === null) return false;
       wentInto.current = { id, at: now };
-      if (flow === null) return;
-      if (detail === 'modules')
-        return void flow.fitView({
+      if (detailNow.current === 'modules') {
+        void flow.fitView({
           nodes: [{ id }],
           padding: '24px',
           duration: INTO_MS,
         });
+        return true;
+      }
       const { x, y, width, height } = flow.getNodesBounds([id]);
       void flow.setCenter(x + width / 2, y + height / 2, {
         zoom: 1,
         duration: INTO_MS,
       });
+      return true;
     },
-    [flow, detail],
+    [flow],
   );
   // A row of the picker, clicked again and again: the element alone, then
   // it and all inside it, then none of them.
@@ -538,12 +573,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       path: pathTo(inHandSet, elementsById),
       badges: graph.badges,
       noOutput: graph.noOutput,
-      unseen: inDetail.unseen,
-      hollow: inDetail.hollow,
+      stepping: steppingBack,
       slots: exploration.slots,
       onGoTo: goToCard,
-      detail,
-      onZoomInto: zoomInto,
+      onInto: goInto,
       onSelect: select,
       onLetGo: () => {
         letGo();
@@ -576,11 +609,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       related,
       graph.badges,
       graph.noOutput,
-      inDetail,
+      steppingBack,
       exploration.slots,
       goToCard,
-      detail,
-      zoomInto,
+      goInto,
       select,
       letGo,
       present,
@@ -780,17 +812,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           gap={0}
           flex={1}
           className={classes.exploration}
-          // How far off it is looked at from, and the zoom the names are
-          // then sized against, in steps, so the page is not styled anew at
-          // every move.
+          // How far off it is looked at from: all the page goes by to draw
+          // less of it (exploration.module.css).
           data-detail={detail === 'all' ? undefined : detail}
-          style={
-            detail !== 'all'
-              ? ({
-                  '--canvas-zoom': Math.round(zoom.controls.zoom * 20) / 20,
-                } as CSSProperties)
-              : undefined
-          }
         >
           {toolbar}
           <Box
