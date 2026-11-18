@@ -45,8 +45,8 @@ import classes from './exploration.module.css';
  * corner — a frame's way to tidy up what it holds is in that menu; and at
  * the middle of its bottom, a round button for what it contains, the card
  * made taller for it only when it has one. All else it can bring beside it
- * is in its own menu. With slots on cards, its slots are badges under its
- * name, the card — or the frame's top — as tall as they need.
+ * is in its own menu. Its slots are badges under its name, the card — or
+ * the frame's top — as tall as they need.
  */
 
 export * from './exploration-node.ts';
@@ -77,9 +77,11 @@ export function ElementNode({
   const shape = holds ? undefined : shapeOf(element.kind, element.pattern);
   const bevelled = shape === 'bevel';
   const { state, dimmed, onSelect } = useSelectionState(element.id);
-  const { badges, look } = useContext(ExplorationReadingContext);
+  const { badges, noOutput } = useContext(ExplorationReadingContext);
   const carried = badges.get(element.id) ?? [];
-  const badged = carried.length > 0;
+  // A behavior that gives nothing back has a signature to say so.
+  const givesNothing = noOutput.has(element.id);
+  const badged = carried.length > 0 || givesNothing;
   const [menu, setMenu] = useState(false);
   // With nothing to offer, a right click opens no menu, as its dots show none.
   const hasMenu = useHasNodeMenu(element.id, holds);
@@ -169,7 +171,7 @@ export function ElementNode({
               style={
                 badged
                   ? ({
-                      '--frame-top': `${paddingOf(element, { badges, look }).top}px`,
+                      '--frame-top': `${paddingOf(element, { badges, noOutput }).top}px`,
                     } as CSSProperties)
                   : undefined
               }
@@ -200,7 +202,7 @@ export function ElementNode({
           ) : (
             button
           )}
-          <SlotBadges badges={carried} frame={holds} />
+          <SlotBadges badges={carried} noOutput={givesNothing} frame={holds} />
           {bevelled && state === 'related' && (
             <BevelRing
               width={width ?? data.placed.width}

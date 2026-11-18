@@ -1,7 +1,6 @@
 import { createContext, useContext } from 'react';
 import type {
   Badge,
-  BadgeLook,
   DrawnRelationKind,
   ExploredElement,
   ModelSlots,
@@ -22,10 +21,10 @@ export interface ExplorationReading {
   related: ReadonlySet<string>;
   /** The frames the selection is drawn inside, out to the outermost: the way to it. */
   path: ReadonlySet<string>;
-  /** Each card's slots, drawn on it, with slots on cards. */
+  /** Each card's slots, drawn on it. */
   badges: ReadonlyMap<string, readonly Badge[]>;
-  /** How the badges are drawn. */
-  look: BadgeLook;
+  /** The behaviors drawn that give nothing back, which their signatures say. */
+  noOutput: ReadonlySet<string>;
   /** Every slot of the model, for a badge to walk from its type on. */
   slots: ModelSlots;
   /** Takes a card already drawn in hand alone and brings it into sight. */
@@ -50,15 +49,13 @@ export interface ExplorationReading {
     arrange?: boolean,
     /** Where on the canvas they were asked for, to stand round, if anywhere. */
     at?: CanvasPoint,
-    /** Brought in by following a slot from the card: badges, with slots on cards. */
+    /** Brought in by following a slot from the card: its badges, not cards. */
     bySlot?: boolean,
   ) => void;
   /** Draws a relation's edges, if they are not drawn already. */
   onDraw: (relation: DrawnRelationKind) => void;
   /** Places what a container holds anew, inside it, the rest left standing. */
   onArrange: (id: string) => void;
-  /** Takes a container off the diagram and leaves what it holds where it stands. */
-  onRemoveAlone: (id: string) => void;
 }
 
 export const ExplorationReadingContext = createContext<ExplorationReading>({
@@ -66,7 +63,7 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   related: new Set(),
   path: new Set(),
   badges: new Map(),
-  look: 'labels',
+  noOutput: new Set(),
   slots: { of: new Map(), behaviors: new Map() },
   onGoTo: () => {},
   onSelect: () => {},
@@ -77,20 +74,13 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   onShow: () => {},
   onDraw: () => {},
   onArrange: () => {},
-  onRemoveAlone: () => {},
 });
 
 /** What a card may put on the diagram beside it, or take off it. */
 export function useCardActions() {
-  const {
-    drawn,
-    neighbours,
-    elements,
-    onShow,
-    onDraw,
-    onArrange,
-    onRemoveAlone,
-  } = useContext(ExplorationReadingContext);
+  const { drawn, neighbours, elements, onShow, onDraw, onArrange } = useContext(
+    ExplorationReadingContext,
+  );
   return {
     drawn,
     neighbours,
@@ -98,7 +88,6 @@ export function useCardActions() {
     onShow,
     onDraw,
     onArrange,
-    onRemoveAlone,
   };
 }
 

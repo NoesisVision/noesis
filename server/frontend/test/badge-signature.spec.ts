@@ -4,10 +4,9 @@ import type {
   DrawnElement,
 } from '../src/features/system-model/system-model-exploration';
 import {
-  chipsOf,
-  chipWidthOf,
+  NO_OUTPUT,
   signatureLinesOf,
-} from '../src/features/system-model/ui/exploration/badge-rows';
+} from '../src/features/system-model/ui/exploration/badge-signature';
 import { cardSizeOf } from '../src/features/system-model/ui/exploration/layout-exploration';
 
 const CALCULATE = 'behavior|discounts.DiscountCalculation.calculate';
@@ -37,7 +36,7 @@ const calculate = {
   parent: null,
 } as unknown as DrawnElement;
 
-describe('the looks a card’s badges take', () => {
+describe('a card’s badges, written as its signature', () => {
   it('writes a behavior’s signature without its name, its output by type', () => {
     expect(signatureLinesOf([result, offer, user])).toEqual([
       [
@@ -48,6 +47,18 @@ describe('the looks a card’s badges take', () => {
         ') → ',
         { badge: result, named: false },
       ],
+    ]);
+  });
+
+  it('marks where the output would be on a behavior that gives nothing back', () => {
+    expect(signatureLinesOf([offer], true)).toEqual([
+      ['(', { badge: offer, named: true }, ') → ', NO_OUTPUT],
+    ]);
+    // With no input either, it is still written: `() → void`.
+    expect(signatureLinesOf([], true)).toEqual([['(', ') → ', NO_OUTPUT]]);
+    // One whose output is not known to be missing ends at its bracket.
+    expect(signatureLinesOf([offer])).toEqual([
+      ['(', { badge: offer, named: true }, ')'],
     ]);
   });
 
@@ -69,26 +80,17 @@ describe('the looks a card’s badges take', () => {
     expect(lines.at(-1)).toEqual([') → ', { badge: result, named: false }]);
   });
 
-  it('flows chips inputs first, then output, then state', () => {
-    expect(chipsOf([amounts, result, offer])).toEqual([offer, result, amounts]);
-  });
-
-  it('leaves an output’s name off its chip, and its chip the narrower', () => {
-    const named = { ...result, relation: 'input' as const };
-    expect(chipWidthOf(result)).toBeLessThan(chipWidthOf(named));
-  });
-
-  it('makes each card the room its look draws the badges in', () => {
+  it('makes a card the room its signature takes', () => {
     const badges = new Map([[CALCULATE, [offer, user, result]]]);
-    const labels = cardSizeOf(calculate, { badges });
-    const signature = cardSizeOf(calculate, { badges, look: 'signature' });
-    const chips = cardSizeOf(calculate, { badges, look: 'chips' });
-    // Labels: a row of inputs, a row for the output, 38px a line.
-    expect(labels.height).toBe(50 + 2 * 38 - 4 + 10);
-    // Signature: one line of 20px in a box 9px each side.
-    expect(signature.height).toBe(50 + 20 + 18 + 10);
-    // Chips: lines of 28px, as many as the width wraps them into.
-    expect((chips.height - 50 - 10 + 4) % 28).toBe(0);
-    expect(labels).not.toEqual(signature);
+    // One line of 20px in a box 9px each side, under the card's name.
+    expect(cardSizeOf(calculate, { badges }).height).toBe(50 + 20 + 18 + 10);
+  });
+
+  it('makes a behavior with no slot at all room to say it gives nothing back', () => {
+    const none = { badges: new Map() };
+    expect(cardSizeOf(calculate, none).height).toBe(56);
+    expect(
+      cardSizeOf(calculate, { ...none, noOutput: new Set([CALCULATE]) }).height,
+    ).toBe(50 + 20 + 18 + 10);
   });
 });

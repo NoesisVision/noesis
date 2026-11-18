@@ -3,28 +3,12 @@ import { markWordOf } from '#/features/design-docs/element-reader.ts';
 import type { Badge, SlotRelation } from '../../system-model-exploration.ts';
 
 /*
- * A card's badges as it lays them out: a row for each relation it has a
- * slot of, inputs then output then state, each badge its slot's name over
- * its type — `offer` over `Offer`, `products` over `DiscountedProduct [*]`
- * — and, in its tooltip, the slot as written and what it is to the card.
+ * A card's badges as it writes them: its signature, each slot a badge in
+ * it, and what each badge says of itself — read out, and in its tooltip,
+ * the slot as written and what it is to the card.
  */
 
-/** The order a card's rows read in, as a behavior's signature does. */
-const ROW_ORDER: readonly SlotRelation[] = ['input', 'output', 'state'];
-
-export interface BadgeRow {
-  relation: SlotRelation;
-  badges: readonly Badge[];
-}
-
-/** A card's badges in their rows; a relation with no slot has no row. */
-export const badgeRowsOf = (badges: readonly Badge[]): BadgeRow[] =>
-  ROW_ORDER.map((relation) => ({
-    relation,
-    badges: badges.filter((badge) => badge.relation === relation),
-  })).filter(({ badges: row }) => row.length > 0);
-
-/** A badge's type, how many after it when not exactly one: its second line. */
+/** A badge's type, how many after it when not exactly one. */
 const badgeTypeOf = ({ typeName, cardinality }: Badge) =>
   `${typeName}${cardinalitySuffixOf(cardinality)}`;
 
@@ -45,28 +29,28 @@ export const badgeTipOf = (badge: Badge) =>
       : badge.relation
   }`;
 
-/** A card's badges as one flow of chips: inputs, then output, then state. */
-export const chipsOf = (badges: readonly Badge[]): Badge[] =>
-  badgeRowsOf(badges).flatMap(({ badges: row }) => row);
-
 /*
  * A card's badges as its signature, the way the code declares it, without
  * the name its card already shows: `(offer: Offer, user: UserId) →
  * DiscountedOffer`, its output by type alone, then each field of its state,
  * `name: Type`, on a line of its own. The inputs go on one line while it
  * fits; past that, one to a line, and the output after the closing
- * bracket. The card's layout and its drawing both read the lines from
- * here, so they agree.
+ * bracket. A behavior that gives nothing back says so where its output
+ * would be: `(offer: Offer) → void`. The card's layout and its drawing both
+ * read the lines from here, so they agree.
  */
 
 /** A slot in a signature: named, `offer: Offer`, or an output, by its type alone. */
-export interface SignatureSlot {
+interface SignatureSlot {
   badge: Badge;
   named: boolean;
 }
 
-/** A piece of a signature's line: its punctuation, or a slot. */
-export type SignaturePart = string | SignatureSlot;
+/** Where a behavior's output would be written, when it gives nothing back. */
+export const NO_OUTPUT = Symbol('no output');
+
+/** A piece of a signature's line: its punctuation, a slot, or the mark of no output. */
+export type SignaturePart = string | SignatureSlot | typeof NO_OUTPUT;
 
 /** One character of a signature, in its monospace face (slot-badges.module.css). */
 const SIGNATURE_CHAR = 7.3;
@@ -85,20 +69,25 @@ const signatureSlotWidthOf = ({ badge, named }: SignatureSlot) =>
   (badge.onDiagram ? 13 : 0) +
   4;
 
-/** A line's width: its punctuation in characters, its slots as drawn. */
-export const signatureLineWidthOf = (line: readonly SignaturePart[]) =>
-  Math.ceil(
-    line.reduce(
-      (all, part) =>
-        all +
-        (typeof part === 'string'
-          ? part.length * SIGNATURE_CHAR
-          : signatureSlotWidthOf(part)),
-      0,
-    ),
-  );
+/** The mark of no output: `void`, and the room either side of it. */
+const NO_OUTPUT_WIDTH = 'void'.length * SIGNATURE_CHAR + 4;
 
-export function signatureLinesOf(badges: readonly Badge[]): SignaturePart[][] {
+const signaturePartWidthOf = (part: SignaturePart) => {
+  if (part === NO_OUTPUT) return NO_OUTPUT_WIDTH;
+  return typeof part === 'string'
+    ? part.length * SIGNATURE_CHAR
+    : signatureSlotWidthOf(part);
+};
+
+/** A line's width: its punctuation in characters, its slots and marks as drawn. */
+export const signatureLineWidthOf = (line: readonly SignaturePart[]) =>
+  Math.ceil(line.reduce((all, part) => all + signaturePartWidthOf(part), 0));
+
+export function signatureLinesOf(
+  badges: readonly Badge[],
+  /** A behavior that gives nothing back, to say so after its inputs. */
+  noOutput = false,
+): SignaturePart[][] {
   const of = (relation: SlotRelation) =>
     badges.filter((badge) => badge.relation === relation);
   const inputs = of('input').map((badge) => ({ badge, named: true }));
@@ -106,10 +95,11 @@ export function signatureLinesOf(badges: readonly Badge[]): SignaturePart[][] {
     ...(at === 0 ? [] : [', ']),
     { badge, named: false },
   ]);
+  const given: SignaturePart[] = noOutput ? [NO_OUTPUT] : outputs;
   const gives: SignaturePart[] =
-    outputs.length === 0 ? [')'] : [') → ', ...outputs];
+    given.length === 0 ? [')'] : [') → ', ...given];
   const lines: SignaturePart[][] = [];
-  if (inputs.length + outputs.length > 0) {
+  if (inputs.length + given.length > 0) {
     const one: SignaturePart[] = [
       '(',
       ...inputs.flatMap((slot, at) => (at === 0 ? [slot] : [', ', slot])),
@@ -128,22 +118,3 @@ export function signatureLinesOf(badges: readonly Badge[]): SignaturePart[][] {
   for (const badge of of('state')) lines.push([{ badge, named: true }]);
   return lines;
 }
-
-/**
- * A chip: the relation's letter, `offer:` (an output by its type alone),
- * its type and the marks after it, each 5px from the last (the marks 3px),
- * within its padding and border.
- */
-export const chipWidthOf = (badge: Badge) =>
-  Math.ceil(
-    18 +
-      5 +
-      (badge.relation === 'output' ? 0 : (badge.name.length + 1) * 6.4 + 5) +
-      badge.typeName.length * 6.8 +
-      (badge.cardinality === '1' ? 0 : 22) +
-      (badge.onDiagram ? 13 : 0) +
-      (badge.type.startsWith('primitive|') ? 0 : 13) +
-      16 +
-      // Slack, so a chip measured right to the pixel is not cut short.
-      4,
-  );

@@ -2,7 +2,6 @@ import {
   type ElementChoice,
   RELATIONS,
   type RelationKind,
-  type SlotDrawing,
 } from '../../system-model-exploration.ts';
 import type { ExplorationNode } from './exploration-node.ts';
 import type { LayoutDirection } from './layout-exploration.ts';
@@ -12,8 +11,6 @@ export interface DiagramStep {
   choice: ElementChoice;
   relations: ReadonlySet<RelationKind>;
   direction: LayoutDirection;
-  /** Slots on the cards that hold them, or as edges to cards of their types. */
-  slots: SlotDrawing;
   nodes: ExplorationNode[];
 }
 
@@ -36,7 +33,13 @@ export interface DiagramSteps {
  * day. One model's steps name its elements, so each scanned model keeps its
  * own, and a new scan, with an id of its own, is placed afresh. Only the
  * models last drawn keep theirs: scans come often, and the room is shared.
+ *
+ * Steps kept before slots were always drawn on cards (version 1) are not
+ * read: they hold cards for the types slots name, which are badges now, so
+ * they cannot be put back as they stood. What was drawn is still kept, as
+ * the choice is (exploration-memory.ts), and is placed afresh.
  */
+const VERSION = 2;
 const PREFIX = 'noesis.systemModel.exploration.steps.';
 const keyOf = (modelId: string) => `${PREFIX}${modelId}`;
 /** How many models' diagrams are kept, the latest drawn. */
@@ -76,12 +79,9 @@ function forgetOthers(modelId: string, all: boolean): void {
 interface StoredStep {
   added: string[];
   removed: string[];
-  /** Absent from a step saved before slots could be drawn on cards. */
-  bySlot?: string[];
+  bySlot: string[];
   relations: RelationKind[];
   direction: LayoutDirection;
-  /** Absent from a step saved before slots could be drawn on cards: it was drawn as nodes. */
-  slots?: SlotDrawing;
   nodes: ExplorationNode[];
 }
 
@@ -89,7 +89,6 @@ const storedOf = ({
   choice,
   relations,
   direction,
-  slots,
   nodes,
 }: DiagramStep): StoredStep => ({
   added: [...choice.picks.added],
@@ -97,7 +96,6 @@ const storedOf = ({
   bySlot: [...(choice.picks.bySlot ?? [])],
   relations: [...relations],
   direction,
-  slots,
   nodes,
 });
 
@@ -109,7 +107,7 @@ export function rememberSteps(modelId: string, steps: DiagramSteps): void {
       window.localStorage.setItem(
         keyOf(modelId),
         JSON.stringify({
-          v: 1,
+          v: VERSION,
           savedAt: Date.now(),
           at,
           list: list.map(storedOf),
@@ -155,7 +153,6 @@ export function recallSteps(modelId: string): DiagramSteps | null {
       },
       relations: new Set(step.relations),
       direction: step.direction,
-      slots: step.slots ?? 'nodes',
       nodes: step.nodes,
     })),
   };
@@ -208,15 +205,13 @@ function isStep(value: unknown): value is StoredStep {
   // A step saved with the routes edges once ran is read without them.
   const nodes = field(value, 'nodes');
   const direction = field(value, 'direction');
-  const slots = field(value, 'slots');
   return (
     isNames(field(value, 'added')) &&
     isNames(field(value, 'removed')) &&
-    (field(value, 'bySlot') === undefined || isNames(field(value, 'bySlot'))) &&
+    isNames(field(value, 'bySlot')) &&
     Array.isArray(relations) &&
     relations.every(isRelation) &&
     (direction === 'vertical' || direction === 'horizontal') &&
-    (slots === undefined || slots === 'cards' || slots === 'nodes') &&
     Array.isArray(nodes) &&
     nodes.every(isNode)
   );
@@ -233,7 +228,7 @@ function readStored(
     if (typeof parsed !== 'object' || parsed === null) return null;
     const at = field(parsed, 'at');
     const list = field(parsed, 'list');
-    if (field(parsed, 'v') !== 1 || !isNumber(at)) return null;
+    if (field(parsed, 'v') !== VERSION || !isNumber(at)) return null;
     if (!Array.isArray(list) || !list.every(isStep) || list.length === 0)
       return null;
     const edges = field(parsed, 'edges');

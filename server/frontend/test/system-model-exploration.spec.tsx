@@ -25,10 +25,7 @@ import {
   removalOf,
 } from '../src/features/system-model/system-model-exploration';
 import { designOf } from '../src/features/system-model/system-model.model';
-import {
-  badgeRowsOf,
-  badgeTipOf,
-} from '../src/features/system-model/ui/exploration/badge-rows';
+import { badgeTipOf } from '../src/features/system-model/ui/exploration/badge-signature';
 import { ElementNode } from '../src/features/system-model/ui/exploration/element-node';
 import { ExplorationPicker } from '../src/features/system-model/ui/exploration/exploration-picker';
 import {
@@ -36,13 +33,13 @@ import {
   pathTo,
 } from '../src/features/system-model/ui/exploration/exploration-reading';
 import {
-  BADGE_LINE,
   cardSizeOf,
   frameLeastWidthOf,
   HEIGHT,
   layoutExploration,
   PADDING,
   paddingOf,
+  SIGNATURE_LINE,
   widthOf,
 } from '../src/features/system-model/ui/exploration/layout-exploration';
 import {
@@ -52,6 +49,7 @@ import {
   placeLocally,
   refusingFrames,
 } from '../src/features/system-model/ui/exploration/place-locally';
+import { SlotBadges } from '../src/features/system-model/ui/exploration/slot-badges';
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { borderTowards } from '../src/shared/ui/diagram-canvas/floating-edge';
@@ -180,8 +178,24 @@ const model = contained({
 }) as unknown as SystemModel;
 
 const exploration = explorationOf(model);
-const draw = (relations: RelationKind[], hidden: string[] = []) =>
-  graphOf(exploration, {
+/** The shop, its order also extending its line: a relation drawn as an edge. */
+const extending = explorationOf({
+  ...model,
+  relations: [
+    ...model.relations,
+    {
+      kind: 'extends',
+      from: 'building_block|shop.orders.Order',
+      to: 'building_block|shop.orders.Line',
+    },
+  ],
+} as unknown as SystemModel);
+const draw = (
+  relations: RelationKind[],
+  hidden: string[] = [],
+  from = exploration,
+) =>
+  graphOf(from, {
     hidden: new Set(hidden),
     relations: new Set(relations),
   });
@@ -432,13 +446,12 @@ describe('the exploration of a system model', () => {
   });
 
   it('nests elements in their nearest shown container', () => {
-    const graph = draw(['contains', 'state', 'input'], ['module']);
+    const graph = draw(['contains'], ['module']);
     expect(graph.elements.map(({ id, parent }) => [id, parent])).toEqual([
       ['building_block|shop.orders.Order', null],
       ['building_block|shop.orders.Line', null],
       ['behavior|shop.orders.Order.place', 'building_block|shop.orders.Order'],
     ]);
-    expect(graph.relations.map(({ kind }) => kind)).toEqual(['state', 'input']);
   });
 
   it('draws containment either way round as nesting, never as an edge', () => {
@@ -453,8 +466,10 @@ describe('the exploration of a system model', () => {
   });
 
   it('leaves out a relation to a hidden element rather than moving it', () => {
-    const graph = draw(['state', 'input'], ['value_object']);
-    expect(graph.relations).toEqual([]);
+    expect(draw(['extends'], [], extending).relations).toHaveLength(1);
+    expect(draw(['extends'], ['value_object'], extending).relations).toEqual(
+      [],
+    );
   });
 
   it('draws a call between behaviors as an edge, and reads it from both sides', () => {
@@ -550,30 +565,33 @@ describe('the exploration of a system model', () => {
   });
 
   it('draws no edge between a card and the frame it is drawn inside', () => {
-    // The order's place takes an order: its input is the block it belongs to.
+    // Were the order's place to work with the block it belongs to.
     const own = explorationOf({
       ...model,
       relations: [
         ...model.relations,
-        slot(
-          'has_input',
-          'behavior|shop.orders.Order.place',
-          'order',
-          'building_block|shop.orders.Order',
-        ),
+        {
+          ...slot(
+            'has_state',
+            'behavior|shop.orders.Order.place',
+            'order',
+            'building_block|shop.orders.Order',
+          ),
+          kind: 'has_collaborator',
+        },
       ],
     } as unknown as SystemModel);
     const id =
-      'input:behavior|shop.orders.Order.place->building_block|shop.orders.Order';
+      'collaborator:behavior|shop.orders.Order.place->building_block|shop.orders.Order';
     const nested = graphOf(own, {
       hidden: new Set(),
-      relations: new Set(['contains', 'input']),
+      relations: new Set(['contains', 'collaborator']),
     });
     expect(nested.relations.map(({ id }) => id)).not.toContain(id);
     // Not nested, the two are cards apart, and the edge is drawn.
     const apart = graphOf(own, {
       hidden: new Set(),
-      relations: new Set(['input']),
+      relations: new Set(['collaborator']),
     });
     expect(apart.relations.map(({ id }) => id)).toContain(id);
   });
@@ -650,7 +668,7 @@ describe('placing the exploration', () => {
     if (stubbed) Object.assign(globalThis, { document: {} });
     try {
       return await layoutExploration(
-        draw(['contains', 'state', 'input']),
+        draw(['contains', 'extends'], [], extending),
         algorithm,
         direction,
       );
@@ -676,7 +694,7 @@ describe('placing the exploration', () => {
     expect(order!.width).toBeGreaterThan(behavior!.width);
   });
 
-  it('runs the state edge down or across, as asked', async () => {
+  it('runs an edge down or across, as asked', async () => {
     const at = (placed: Awaited<ReturnType<typeof place>>, id: string) =>
       placed.elements.find(({ element }) => element.id === id)!;
     const down = await place('vertical');
@@ -720,13 +738,13 @@ describe('a floating edge', () => {
 
 describe('the selection', () => {
   it('joins an element to what its drawn relations and its nesting join it to', () => {
-    const graph = draw(['contains', 'state', 'input']);
+    const graph = draw(['contains', 'extends'], [], extending);
     const { relations, elements } = relatedTo(
       graph,
       'building_block|shop.orders.Order',
     );
     expect([...relations]).toEqual([
-      'state:building_block|shop.orders.Order->building_block|shop.orders.Line',
+      'extends:building_block|shop.orders.Order->building_block|shop.orders.Line',
     ]);
     expect([...elements].sort()).toEqual([
       'behavior|shop.orders.Order.place',
@@ -746,7 +764,7 @@ describe('the selection', () => {
   });
 
   it('draws a card as a button that says where it stands to the selection', () => {
-    const graph = draw(['state', 'input']);
+    const graph = draw([]);
     const line = graph.elements.find(
       ({ id }) => id === 'building_block|shop.orders.Line',
     )!;
@@ -767,7 +785,7 @@ describe('the selection', () => {
                   related: new Set([line.id]),
                   path: new Set(),
                   badges: graph.badges,
-                  look: 'labels',
+                  noOutput: graph.noOutput,
                   slots: exploration.slots,
                   onGoTo: () => {},
                   onSelect: () => {},
@@ -780,7 +798,6 @@ describe('the selection', () => {
                   onShow: () => {},
                   onDraw: () => {},
                   onArrange: () => {},
-                  onRemoveAlone: () => {},
                 }}
               >
                 <Node
@@ -906,7 +923,6 @@ describe('slots drawn on the cards that hold them', () => {
       hidden: new Set(),
       relations: new Set(relations),
       picks,
-      slots: 'cards',
     });
   const ids = (graph: ReturnType<typeof onCards>) =>
     graph.elements.map(({ id }) => id);
@@ -925,13 +941,6 @@ describe('slots drawn on the cards that hold them', () => {
       relations: [...model.relations, ...relations],
     } as SystemModel);
 
-  it('draws slots as edges, with no badges, unless asked otherwise', () => {
-    const graph = draw(['contains', 'state', 'input']);
-    expect(ids(graph)).toContain(LINE);
-    expect(kinds(graph)).toEqual(['state', 'input']);
-    expect(graph.badges.size).toBe(0);
-  });
-
   it('takes off a card that is there only as a slot’s type, and its edges', () => {
     const graph = onCards(['contains', 'state', 'input', 'output']);
     expect(ids(graph)).not.toContain(LINE);
@@ -946,6 +955,19 @@ describe('slots drawn on the cards that hold them', () => {
       'state id: uuid 1',
     ]);
     expect(badges(graph, PLACE)).toEqual(['input line: Line 1']);
+  });
+
+  it('tells the behaviors that give nothing back, when their output is asked for', () => {
+    // The order's place takes a line and gives nothing back.
+    const asked = onCards(['contains', 'state', 'input', 'output']);
+    expect([...asked.noOutput]).toEqual([PLACE]);
+    // With outputs not drawn, none is said to be missing.
+    expect(onCards(['contains', 'state', 'input']).noOutput.size).toBe(0);
+    // One that gives something back is not among them.
+    const giving = onCards(['contains', 'input', 'output'], {
+      from: shopWith(slot('has_output', PLACE, 'placed', ORDER)),
+    });
+    expect(giving.noOutput.size).toBe(0);
   });
 
   it('keeps a type the reader added, with no edge to it, and marks its badges', () => {
@@ -1003,7 +1025,6 @@ describe('slots drawn on the cards that hold them', () => {
         hidden: hiddenBy(NOTHING_CHOSEN, exploration),
         relations: new Set(['contains', 'state', 'input']),
         picks,
-        slots: 'cards',
       });
     const byName = [ORDER, PLACE].reduce(
       (picks, id) => picked(picks, id, true),
@@ -1062,13 +1083,12 @@ describe('slots drawn on the cards that hold them', () => {
     });
   });
 
-  it('reads a card’s badges in rows, inputs, output, then state, each saying what it is to the card', () => {
+  it('says in a badge’s tooltip the slot as written, and what it is to the card', () => {
     const graph = onCards(['contains', 'state', 'input']);
-    const rows = badgeRowsOf(graph.badges.get(ORDER) ?? []);
-    expect(rows.map(({ relation }) => relation)).toEqual(['state']);
     const [line] = graph.badges.get(PLACE) ?? [];
     expect(badgeTipOf(line!)).toBe('line: Line · input 1');
-    expect(badgeTipOf(rows[0]!.badges[0]!)).toBe('lines: Line [*] · state');
+    const [lines] = graph.badges.get(ORDER) ?? [];
+    expect(badgeTipOf(lines!)).toBe('lines: Line [*] · state');
   });
 
   it('relates a card to the types its badges name, when they have cards of their own', () => {
@@ -1096,7 +1116,7 @@ describe('slots drawn on the cards that hold them', () => {
       width: widthOf('place'),
       height: HEIGHT,
     });
-    // One row of one badge: a line taller than its name and what it is.
+    // A signature of one line: taller than its name and what it is alone.
     const sized = cardSizeOf(place, graph);
     expect(sized.height).toBeGreaterThan(HEIGHT);
     expect(sized.width).toBeGreaterThanOrEqual(widthOf('place'));
@@ -1106,7 +1126,7 @@ describe('slots drawn on the cards that hold them', () => {
     expect(paddingOf(order, { badges: new Map() })).toEqual(PADDING);
   });
 
-  it('draws a card’s badges beside its button, as lists a reader can name', () => {
+  it('draws a card’s badges beside its button, as its signature', () => {
     const graph = onCards(['contains', 'state', 'input'], {
       picks: picked(NO_PICKS, LINE, true),
     });
@@ -1126,7 +1146,7 @@ describe('slots drawn on the cards that hold them', () => {
                   related: new Set([ORDER, PLACE]),
                   path: new Set(),
                   badges: graph.badges,
-                  look: 'labels',
+                  noOutput: graph.noOutput,
                   slots: exploration.slots,
                   onGoTo: () => {},
                   onSelect: () => {},
@@ -1139,7 +1159,6 @@ describe('slots drawn on the cards that hold them', () => {
                   onShow: () => {},
                   onDraw: () => {},
                   onArrange: () => {},
-                  onRemoveAlone: () => {},
                 }}
               >
                 <Node
@@ -1165,7 +1184,6 @@ describe('slots drawn on the cards that hold them', () => {
 
     const place = render(PLACE, false);
     expect(place).toContain('data-badged="true"');
-    expect(place).toMatch(/<ul[^>]*aria-label="input"/);
     // The badge is no part of the card's button, but a button of its own
     // that opens what its type relates to.
     const card = /<button[^>]*data-part="card"[^>]*>(.*?)<\/button>/s.exec(
@@ -1173,28 +1191,37 @@ describe('slots drawn on the cards that hold them', () => {
     )?.[1];
     expect(card).toContain('place');
     expect(card).not.toContain('Line');
+    // Written as the code declares it: `(line: Line)`, its brackets not
+    // read out, the slot between them.
     expect(place).toMatch(
-      /<li[^>]*><button[^>]*data-relation="input"[^>]*data-related="true"[^>]*data-tip="line: Line · input 1"[^>]*aria-label="line: Line, also on the diagram"[^>]*aria-haspopup="dialog"[^>]*aria-expanded="false"[^>]*>/,
+      /<span aria-hidden="true">\(<\/span><span[^>]*><button[^>]*data-relation="input"[^>]*data-related="true"[^>]*data-tip="line: Line · input 1"[^>]*aria-label="line: Line, also on the diagram"[^>]*aria-haspopup="dialog"[^>]*aria-expanded="false"[^>]*>/,
     );
-    // Its name over its type, each a line, read out as `line: Line`.
     expect(place).toMatch(
       /<span[^>]*>line<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*>Line<\/span>/,
     );
-    // A type to walk into says so with a chevron; one with a card, with ↗.
-    expect(place).toContain('tabler-icon-chevron-down');
+    expect(place).toMatch(
+      /<\/button><\/span><span aria-hidden="true">\)<\/span>/,
+    );
+    // A type with a card of its own says so with ↗.
     expect(place).toMatch(/<span[^>]*>↗<\/span>/);
     expect(place).toContain('also on the diagram');
+    // Its output not asked for, the signature ends at its bracket.
+    expect(place).not.toContain('void');
 
-    // Order holds place: a frame, its top as tall as its name and badges.
+    // Order holds place: a frame, its top as tall as its name and badges,
+    // each field of its state a line of its own.
     const order = render(ORDER, true);
-    expect(order).toMatch(/<ul[^>]*aria-label="state"/);
+    // A frame has one way off the diagram, and it takes what it holds too.
+    expect(order.match(/aria-label="Remove [^"]*"/g)).toEqual([
+      'aria-label="Remove Order and what it holds from the view"',
+    ]);
+    expect(order).toContain('data-tip="Remove group"');
     expect(order).toMatch(
       />lines<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*>Line<\/span><span[^>]*>, many<\/span><span[^>]*data-cardinality="\*"/,
     );
     // A primitive leads nowhere: its badge is words, not a button.
     expect(order).toMatch(
-      // …and no chevron: it opens nothing.
-      /<li[^>]*><span[^>]*data-relation="state"[^>]*><span[^>]*>id<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*>uuid<\/span><\/span><\/span><\/li>/,
+      /<div><span><span[^>]*data-relation="state"[^>]*><span[^>]*>id<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*>uuid<\/span><\/span><\/span><\/span><\/div>/,
     );
     expect(order).toContain(
       `--frame-top:${
@@ -1206,56 +1233,47 @@ describe('slots drawn on the cards that hold them', () => {
     );
   });
 
-  it('gives a row of badges that just fits its card one line, not two', () => {
-    // As qdoc's Notification: a card exactly as wide as its row of badges.
-    const slot = (name: string, typeName: string, type: string) => ({
+  it('writes void where a behavior that gives nothing back would write its output', () => {
+    const drawn = (noOutput: boolean) =>
+      renderToStaticMarkup(
+        <MantineProvider>
+          <SlotBadges badges={[]} noOutput={noOutput} frame={false} />
+        </MantineProvider>,
+      );
+    const html = drawn(true);
+    // `() → void`: the arrow not read out, the word read as it is.
+    expect(html).toMatch(
+      /<span aria-hidden="true">\) → <\/span><span[^>]*data-tip="No output"[^>]*>void<\/span>/,
+    );
+    // With no slot and nothing to say, a card has no signature.
+    expect(drawn(false)).not.toContain('data-part="badges"');
+  });
+
+  it('gives each field of a card’s state a line, and grows no wider than the widest card', () => {
+    const state = (name: string, typeName: string) => ({
       relation: 'state' as const,
       holder: ORDER,
       name,
-      type: type as never,
+      type: 'primitive|string' as never,
       typeName,
       cardinality: '1' as const,
       position: null,
       onDiagram: false,
     });
     const order = draw(['contains']).elements.find(({ id }) => id === ORDER)!;
-    const one = cardSizeOf(order, {
-      badges: new Map([[ORDER, [slot('recipient', 'Recipient', LINE)]]]),
-    });
-    const row = cardSizeOf(order, {
-      badges: new Map([
-        [
-          ORDER,
-          [
-            slot('recipient', 'Recipient', LINE),
-            slot('body', 'string', 'primitive|string'),
-            slot('subject', 'string', 'primitive|string'),
-          ],
-        ],
-      ]),
-    });
-    expect(row.width).toBeGreaterThan(one.width);
-    expect(row.height).toBe(one.height);
-  });
-
-  it('wraps a row of badges too wide for the widest card onto more lines', () => {
-    const many = Array.from({ length: 8 }, (_, index) => ({
-      relation: 'state' as const,
-      holder: ORDER,
-      name: `pieceOfStateNumber${index}`,
-      type: 'primitive|string' as never,
-      typeName: 'string',
-      cardinality: '1' as const,
-      position: null,
-      onDiagram: false,
-    }));
-    const order = draw(['contains']).elements.find(({ id }) => id === ORDER)!;
-    const one = cardSizeOf(order, {
-      badges: new Map([[ORDER, many.slice(0, 1)]]),
-    });
-    const all = cardSizeOf(order, { badges: new Map([[ORDER, many]]) });
-    expect(all.height - one.height).toBeGreaterThanOrEqual(3 * BADGE_LINE);
-    expect(all.width).toBeLessThanOrEqual(380);
+    const sizeOf = (...badges: ReturnType<typeof state>[]) =>
+      cardSizeOf(order, { badges: new Map([[ORDER, badges]]) });
+    const one = sizeOf(state('body', 'string'));
+    const three = sizeOf(
+      state('body', 'string'),
+      state('subject', 'string'),
+      state('recipient', 'string'),
+    );
+    expect(three.height - one.height).toBe(2 * SIGNATURE_LINE);
+    // A line too long for the widest card is cut short there, not wrapped.
+    const long = sizeOf(state('a'.repeat(60), 'AVeryLongTypeNameIndeed'));
+    expect(long.width).toBe(420);
+    expect(long.height).toBe(one.height);
   });
 });
 
@@ -1469,6 +1487,7 @@ describe('placing a change from one card', () => {
     relations: [],
     badges: new Map(),
     folded: new Set<string>(),
+    noOutput: new Set<string>(),
   });
   const apart = (
     a: { x: number; y: number; width: number; height: number },

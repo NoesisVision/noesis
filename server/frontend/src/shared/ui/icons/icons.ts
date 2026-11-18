@@ -41,17 +41,3 @@ export const IconBroom = createReactComponent('outline', 'broom', 'Broom', [
   ['path', { d: 'M10 17l-0.5 4', key: 'svg-3' }],
   ['path', { d: 'M14 17l0.5 4', key: 'svg-4' }],
 ]);
-
-/** A frame holding a card, crossed out: remove it with all it holds. */
-export const IconFrameX = createReactComponent('outline', 'frame-x', 'FrameX', [
-  [
-    'path',
-    {
-      d: 'M13 20h-7a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v7',
-      key: 'svg-0',
-    },
-  ],
-  ['path', { d: 'M8 8h8v5h-8z', key: 'svg-1' }],
-  ['path', { d: 'M17 17l4 4', key: 'svg-2' }],
-  ['path', { d: 'M21 17l-4 4', key: 'svg-3' }],
-]);

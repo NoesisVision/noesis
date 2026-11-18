@@ -11,8 +11,8 @@ export interface ElementPicks {
   removed: ReadonlySet<string>;
   /**
    * Of those added, the ones brought in by following a slot — a state, an
-   * input, an output — from a card: with slots on cards they are its
-   * badges, not cards of their own. Absent from a choice kept from before.
+   * input, an output — from a card: they are its badges, not cards of
+   * their own. Absent from a choice kept from before.
    */
   bySlot?: ReadonlySet<string>;
 }

@@ -136,8 +136,8 @@
   display: flex;
   flex-direction: column;
   align-self: flex-start;
-  /* Clear of the menu and two ways off the diagram in the frame's corner. */
-  max-width: calc(100% - 100px);
+  /* Clear of the menu and the way off the diagram in the frame's corner. */
+  max-width: calc(100% - 76px);
   margin: 6px;
   padding: 4px 8px;
   border-radius: 10px;

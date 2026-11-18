@@ -33,7 +33,7 @@ export function useAdd(
   const { onShow } = useCardActions();
   // Asked for at a point in a frame, what it contains goes round that point,
   // and the frame is left as it is laid out.
-  // Brought in by a slot, they are its badges while slots are on cards.
+  // Brought in by a slot, they are its badges, not cards of their own.
   return (ids: string[]) =>
     at !== null && reach === 'contains'
       ? onShow(ids, true, id, false, at)

@@ -53,7 +53,6 @@ import {
   removalOf,
 } from '../../system-model-exploration.ts';
 import { designOf } from '../../system-model.model.ts';
-import { recallBadgeLook, rememberBadgeLook } from './badge-look.ts';
 import { CanvasTooltips } from './canvas-tooltips.tsx';
 import { ElementNode, type ExplorationNode } from './element-node.tsx';
 import { edgeOf } from './exploration-edges.ts';
@@ -161,24 +160,16 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   );
   const [drawing, setDrawing] = useState<Drawing>({
     direction: opening?.direction ?? 'vertical',
-    // A new diagram draws slots on cards; one left as nodes opens so.
-    slots: opening?.slots ?? 'cards',
     // How the edges were drawn when the diagram was left, as it is restored.
     orthogonal: opened?.edges?.orthogonal ?? true,
     animated: opened?.edges?.animated ?? true,
-    look: recallBadgeLook(),
   });
-  const { direction, slots, orthogonal, animated, look } = drawing;
-  useEffect(() => rememberBadgeLook(look), [look]);
+  const { direction, orthogonal, animated } = drawing;
   // Chosen on the Dev Tools page; the exploration only draws in it.
   const theme = useDiagramTheme();
   const graph = useMemo(
-    // The look sets the room each card makes for its badges.
-    () => ({
-      ...graphOf(exploration, { hidden, relations, picks, slots }),
-      look,
-    }),
-    [exploration, hidden, relations, picks, slots, look],
+    () => graphOf(exploration, { hidden, relations, picks }),
+    [exploration, hidden, relations, picks],
   );
 
   const {
@@ -235,7 +226,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       choice: choiceNow,
       relations: drawnRelations,
       direction: how.direction,
-      slots: how.slots,
       nodes: now.current.nodes.filter(({ data }) => !data.leaving),
     };
     const held = steps.current;
@@ -260,18 +250,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       const changes =
         !sameChoice(step.choice, choiceNow) ||
         !sameSet(step.relations, drawnRelations) ||
-        step.direction !== how.direction ||
-        step.slots !== how.slots;
+        step.direction !== how.direction;
       stepping.current = true;
       restore(step.nodes, changes);
       if (!changes) return;
       setChoice(step.choice);
       setRelations(step.relations);
-      setDrawing((was) => ({
-        ...was,
-        direction: step.direction,
-        slots: step.slots,
-      }));
+      setDrawing((was) => ({ ...was, direction: step.direction }));
     },
     [restore, modelId],
   );
@@ -485,9 +470,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
    * lets go of what went.
    */
   const remove = useCallback(
-    (ids: readonly string[], from: string, alone = false) => {
-      // Alone, a container goes and what it held stays where it stands.
-      const gone = alone ? [...ids] : removalOf(graph, ids);
+    (ids: readonly string[], from: string) => {
+      const gone = removalOf(graph, ids);
       // What stays stands where it is; the container a group leaves keeps
       // its size and its cards their places.
       placeBeside(from);
@@ -502,7 +486,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       related: related.elements,
       path: pathTo(inHandSet, elementsById),
       badges: graph.badges,
-      look,
+      noOutput: graph.noOutput,
       slots: exploration.slots,
       onGoTo: goToCard,
       onSelect: select,
@@ -531,13 +515,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           current.has(relation) ? current : new Set([...current, relation]),
         ),
       onArrange: (id: string) => void arrange(id),
-      onRemoveAlone: (id: string) => remove([id], id, true),
     }),
     [
       inHandSet,
       related,
       graph.badges,
-      look,
+      graph.noOutput,
       exploration.slots,
       goToCard,
       select,

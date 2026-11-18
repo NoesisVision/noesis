@@ -57,7 +57,7 @@ export interface Exploration {
    * the edges do not show it yet.
    */
   cardinalities: ReadonlyMap<string, readonly Cardinality[]>;
-  /** Every slot of the model, primitives included, and what each block exposes: what a card carries when slots are drawn on it. */
+  /** Every slot of the model, primitives included, and what each block exposes: what a card carries as its badges. */
   slots: ModelSlots;
 }
 

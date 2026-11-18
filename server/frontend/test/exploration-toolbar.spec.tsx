@@ -26,30 +26,32 @@ const toolbar = (drawing: Drawing) =>
     </MantineProvider>,
   );
 
-/** The option of the Slots control that is checked, by its value. */
-const checkedSlots = (html: string) => {
-  const group = html.slice(html.indexOf('aria-label="Slots"'));
-  return /<input[^>]*checked=""[^>]*value="(\w+)"/.exec(group)?.[1];
-};
-
 describe('the exploration toolbar', () => {
-  const drawing: Drawing = {
+  const html = toolbar({
     direction: 'vertical',
-    slots: 'cards',
-    look: 'labels',
     orthogonal: true,
     animated: true,
-  };
-
-  it('offers slots on cards or as nodes, for the whole diagram', () => {
-    const html = toolbar(drawing);
-    expect(html).toContain('aria-label="Slots" role="radiogroup"');
-    expect(html).toContain('On cards');
-    expect(html).toContain('As nodes');
   });
 
-  it('shows where slots are drawn now', () => {
-    expect(checkedSlots(toolbar(drawing))).toBe('cards');
-    expect(checkedSlots(toolbar({ ...drawing, slots: 'nodes' }))).toBe('nodes');
+  it('offers which way the layout runs, and no other choice of how slots are drawn', () => {
+    expect(html.match(/role="radiogroup"/g)).toHaveLength(1);
+    expect(html).toContain('aria-label="Direction" role="radiogroup"');
+  });
+
+  it('sets which way the layout runs just before the button that places it', () => {
+    const between = html.slice(
+      html.indexOf('aria-label="Direction"'),
+      html.indexOf('Auto-place'),
+    );
+    expect(between).not.toBe('');
+    // One button between them: Auto-place itself.
+    expect(between.match(/<button/g)).toHaveLength(1);
+  });
+
+  it('keeps placing everything afresh as quiet as the rest of the row', () => {
+    // The button that holds the words itself, not one before it in the row.
+    expect(html).toMatch(
+      /<button[^>]*data-variant="subtle"[^>]*>(?:(?!<button).)*Auto-place/s,
+    );
   });
 });

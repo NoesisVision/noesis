@@ -40,28 +40,30 @@ afterAll(() => {
 const MODEL = '01a15509-0909-725f-8ab8-25ab23fc10d3';
 const KEY = `noesis.systemModel.exploration.steps.${MODEL}`;
 
-const step = (slots: DiagramStep['slots']): DiagramStep => ({
+const step: DiagramStep = {
   choice: { shown: new Set(), picks: { added: new Set(), removed: new Set() } },
   relations: new Set(['contains', 'state', 'input']),
-  direction: 'vertical',
-  slots,
+  direction: 'horizontal',
   nodes: [],
-});
+};
 
 describe('the steps the diagram took, kept on the machine', () => {
-  it('keeps where each step drew its slots', () => {
-    rememberSteps(MODEL, { list: [step('nodes'), step('cards')], at: 1 });
+  it('keeps each step, and the one the diagram stands at', () => {
+    rememberSteps(MODEL, {
+      list: [step, { ...step, direction: 'vertical' }],
+      at: 1,
+    });
     const recalled = recallSteps(MODEL);
-    expect(recalled?.list.map(({ slots }) => slots)).toEqual([
-      'nodes',
-      'cards',
+    expect(recalled?.list.map(({ direction }) => direction)).toEqual([
+      'horizontal',
+      'vertical',
     ]);
     expect(recalled?.at).toBe(1);
   });
 
-  it('keeps which types came by following a slot, and reads none from a step saved before', () => {
+  it('keeps which types came by following a slot', () => {
     const slotted: DiagramStep = {
-      ...step('cards'),
+      ...step,
       choice: {
         shown: new Set(),
         picks: {
@@ -77,7 +79,7 @@ describe('the steps the diagram took, kept on the machine', () => {
     ]).toEqual(['b']);
   });
 
-  it('opens a step saved before slots could be on cards as it was drawn, as nodes', () => {
+  it('forgets steps kept while slots could be drawn as edges to cards of their types', () => {
     storage.setItem(
       KEY,
       JSON.stringify({
@@ -95,18 +97,6 @@ describe('the steps the diagram took, kept on the machine', () => {
         ],
       }),
     );
-    const old = recallSteps(MODEL)?.list[0];
-    expect(old).toMatchObject({ slots: 'nodes', direction: 'horizontal' });
-    expect(old?.choice.picks.bySlot?.size).toBe(0);
-  });
-
-  it('forgets steps that say slots are drawn somewhere it does not know', () => {
-    rememberSteps(MODEL, { list: [step('cards')], at: 0 });
-    const kept = JSON.parse(storage.getItem(KEY) ?? '{}') as {
-      list: Record<string, unknown>[];
-    };
-    kept.list[0]!.slots = 'beside';
-    storage.setItem(KEY, JSON.stringify(kept));
     expect(recallSteps(MODEL)).toBeNull();
   });
 });

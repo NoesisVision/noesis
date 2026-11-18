@@ -6,13 +6,7 @@ import type {
   DrawnElement,
   ExplorationGraph,
 } from '../../system-model-exploration.ts';
-import {
-  badgeRowsOf,
-  chipsOf,
-  chipWidthOf,
-  signatureLinesOf,
-  signatureLineWidthOf,
-} from './badge-rows.ts';
+import { signatureLinesOf, signatureLineWidthOf } from './badge-signature.ts';
 
 /*
  * Where each element of the exploration stands, placed by one of ELK's
@@ -55,8 +49,8 @@ const MAX_WIDTH = 300;
 export const widthOf = (name: string) =>
   Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, name.length * 7.5 + 116));
 
-/** A frame's least width: its name, inset in the frame, and its menu and two ways off the diagram beside it. */
-const frameWidthOf = (name: string) => widthOf(name) + 56;
+/** A frame's least width: its name, inset in the frame, and its menu and the way off the diagram beside it. */
+const frameWidthOf = (name: string) => widthOf(name) + 32;
 
 /**
  * A frame's least size as ELK reads it. Laying out downwards, ELK takes the
@@ -89,154 +83,55 @@ export const PADDING: Readonly<Padding> = {
 
 /*
  * A card that carries badges (slot-badges.module.css): its name and what it
- * is at the top, then its rows of badges, each row a label and as many
- * lines of badges as its width wraps them into. The sizes here are what
- * the stylesheet draws, so ELK leaves each card the room it needs.
+ * is at the top, then its signature in a box, a line of it to a line. The
+ * sizes here are what the stylesheet draws, so ELK leaves each card the
+ * room it needs.
  */
 /** Where a card's badges start, below its name and what it is. */
 const BADGES_TOP = 50;
 /** Where a frame's badges start, below its name. */
 const FRAME_BADGES_TOP = 52;
-/** One line of badges: a badge and the gap under it. */
-export const BADGE_LINE = 38;
-/** Room under a card's last line of badges, clear of its rounded corners. */
+/** Room under a card's badges, clear of its rounded corners. */
 const BADGES_BOTTOM = 10;
-/** A row's label, and the gap after it. */
-const ROW_LABEL = 52;
 /** Room either side of the badges, inside the card. */
 const BADGES_INSET = 16;
-const BADGE_GAP = 4;
-/** About one character of a badge, with its padding and border. */
-/*
- * In whole pixels: a card is made as wide as its row of badges, then its
- * lines counted at that width, and fractions summed in another order could
- * leave a row a hair too wide for the room made for it, and a line empty.
- */
-const badgeWidthOf = (badge: Badge) =>
-  Math.ceil(
-    Math.max(
-      badge.name.length * 6.2,
-      // Its type, in bold, and the marks after it: a card of its own, and
-      // the chevron of a type to walk into — any but a primitive.
-      badge.typeName.length * 6.8 +
-        // Its cardinality's mark, after the type.
-        (badge.cardinality === '1' ? 0 : 22) +
-        (badge.onDiagram ? 13 : 0) +
-        (badge.type.startsWith('primitive|') ? 0 : 13),
-    ) + 20,
-  );
-/** The widest a card grows for its badges before they wrap. */
-const MAX_BADGED_WIDTH = 380;
-const NO_BADGES: readonly Badge[] = [];
-
-/** How many lines a card's badges take at a width: each row wrapped on its own. */
-function badgeLinesOf(badges: readonly Badge[], width: number) {
-  const room = width - 2 * BADGES_INSET - ROW_LABEL;
-  let lines = 0;
-  for (const { badges: row } of badgeRowsOf(badges)) {
-    let used = Infinity;
-    for (const badge of row) {
-      const each = Math.min(badgeWidthOf(badge), room);
-      if (used + BADGE_GAP + each > room) {
-        lines += 1;
-        used = each;
-      } else used += BADGE_GAP + each;
-    }
-  }
-  return lines;
-}
-
-/** As wide as the name needs, and as its longest row of badges would, up to the most. */
-const badgedWidthOf = (least: number, badges: readonly Badge[]) =>
-  Math.max(
-    least,
-    Math.min(
-      MAX_BADGED_WIDTH,
-      Math.max(
-        0,
-        ...badgeRowsOf(badges).map(
-          ({ badges: row }) =>
-            2 * BADGES_INSET +
-            ROW_LABEL +
-            row.reduce((all, badge) => all + badgeWidthOf(badge), 0) +
-            BADGE_GAP * (row.length - 1),
-        ),
-      ),
-    ),
-  );
-
-/** What the sizes of a card's badges are read from: its badges, and how they are drawn. */
-type Carrying = Pick<ExplorationGraph, 'badges' | 'look'>;
-const badgesOf = ({ badges }: Carrying, id: string) =>
-  badges.get(id) ?? NO_BADGES;
-
-/** One line of chips: a chip and the gap under it. */
-const CHIP_LINE = 28;
 /** One line of a signature. */
-const SIGNATURE_LINE = 20;
+export const SIGNATURE_LINE = 20;
 /** A signature's box round its lines: padding and border, each side. */
 const SIGNATURE_BOX = 9;
+/** The widest a card grows for its signature; a line past it is cut short. */
+const MAX_BADGED_WIDTH = 420;
+const NO_BADGES: readonly Badge[] = [];
 
-/** How many lines a flow of chips takes at a width. */
-function chipLinesOf(badges: readonly Badge[], width: number) {
-  const room = width - 2 * BADGES_INSET;
-  let lines = 0;
-  let used = Infinity;
-  for (const badge of chipsOf(badges)) {
-    const each = Math.min(chipWidthOf(badge), room);
-    if (used + BADGE_GAP + each > room) {
-      lines += 1;
-      used = each;
-    } else used += BADGE_GAP + each;
-  }
-  return lines;
-}
+/** What the sizes of a card's badges are read from. */
+type Carrying = Pick<ExplorationGraph, 'badges'> &
+  Partial<Pick<ExplorationGraph, 'noOutput'>>;
 
 /**
- * The room a card's badges take, drawn as `look` draws them, under a name
- * needing `least` across: how wide the card is, and how tall the badges.
+ * The room a card's badges take, under a name needing `least` across: how
+ * wide the card is, and how tall its signature.
  */
 function badgeBlockOf(
   element: DrawnElement,
   least: number,
-  { look = 'labels', ...carrying }: Carrying,
+  { badges, noOutput }: Carrying,
 ): { width: number; height: number } {
-  const badges = badgesOf({ ...carrying, look }, element.id);
-  if (badges.length === 0) return { width: least, height: 0 };
-  if (look === 'signature') {
-    const lines = signatureLinesOf(badges);
-    return {
-      width: Math.max(
-        least,
-        Math.min(
-          MAX_BADGED_WIDTH + 40,
-          2 * BADGES_INSET +
-            2 * SIGNATURE_BOX +
-            Math.max(...lines.map(signatureLineWidthOf)),
-        ),
-      ),
-      height: lines.length * SIGNATURE_LINE + 2 * SIGNATURE_BOX,
-    };
-  }
-  if (look === 'chips') {
-    const width = Math.max(
+  const lines = signatureLinesOf(
+    badges.get(element.id) ?? NO_BADGES,
+    noOutput?.has(element.id),
+  );
+  if (lines.length === 0) return { width: least, height: 0 };
+  return {
+    width: Math.max(
       least,
       Math.min(
         MAX_BADGED_WIDTH,
         2 * BADGES_INSET +
-          chipsOf(badges).reduce((all, badge) => all + chipWidthOf(badge), 0) +
-          BADGE_GAP * (badges.length - 1),
+          2 * SIGNATURE_BOX +
+          Math.max(...lines.map(signatureLineWidthOf)),
       ),
-    );
-    return {
-      width,
-      height: chipLinesOf(badges, width) * CHIP_LINE - BADGE_GAP,
-    };
-  }
-  const width = badgedWidthOf(least, badges);
-  return {
-    width,
-    height: badgeLinesOf(badges, width) * BADGE_LINE - BADGE_GAP,
+    ),
+    height: lines.length * SIGNATURE_LINE + 2 * SIGNATURE_BOX,
   };
 }
 
@@ -403,7 +298,7 @@ export async function layoutWithin(
       ),
       badges: graph.badges,
       folded: graph.folded,
-      look: graph.look,
+      noOutput: graph.noOutput,
     },
     algorithm,
     direction,
