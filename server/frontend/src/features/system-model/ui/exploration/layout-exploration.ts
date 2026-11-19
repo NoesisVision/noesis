@@ -283,30 +283,42 @@ export function setOutInSquare(
   }
 }
 
+/** What a container holds, in the order it is set out in. */
+export type KidsOf = (parent: string | null) => readonly DrawnElement[];
+
+const NO_KIDS: readonly DrawnElement[] = [];
+
+/** What each container holds, the canvas itself under `null`, as the graph lists them. */
+export function childrenOf(
+  graph: Pick<ExplorationGraph, 'elements'>,
+): Map<string | null, DrawnElement[]> {
+  const children = new Map<string | null, DrawnElement[]>();
+  for (const element of graph.elements) {
+    const held = children.get(element.parent);
+    if (held === undefined) children.set(element.parent, [element]);
+    else held.push(element);
+  }
+  return children;
+}
+
 /**
  * Places what is drawn inside `within` — the whole diagram, or one frame's
- * own elements with all they hold: each container's elements in the order
- * of their kinds, set out in a square, the container sized around them.
- * Its own elements are placed from the corner of what they cover.
+ * own elements with all they hold — in the order `kidsOf` gives each
+ * container's elements: set out in a square, the container sized around
+ * them. Its own elements are placed from the corner of what they cover.
  */
-export function layoutExploration(
+export function placedIn(
   graph: ExplorationGraph,
+  kidsOf: KidsOf,
   within: string | null = null,
 ): Placement {
-  const children = new Map<string | null, DrawnElement[]>();
-  for (const element of graph.elements)
-    children.set(element.parent, [
-      ...(children.get(element.parent) ?? []),
-      element,
-    ]);
-
   /** What a container holds, placed inside its padding, each before what it holds itself. */
   const setOut = (
     parent: string | null,
     corner: Readonly<Padding>,
     round: Round,
   ) => {
-    const kids = inPlacingOrder(children.get(parent) ?? []);
+    const kids = kidsOf(parent);
     const sized = kids.map(sizeOf);
     const rows = setOutInSquare(sized, round);
     return {
@@ -334,22 +346,58 @@ export function layoutExploration(
   const sizeOf = (
     element: DrawnElement,
   ): Box & { holds: boolean; inside: PlacedElement[] } => {
-    if ((children.get(element.id) ?? []).length === 0)
+    if (kidsOf(element.id).length === 0)
       return { ...cardSizeOf(element, graph), holds: false, inside: [] };
-    const padding = paddingOf(element, graph);
-    const across = padding.left + padding.right;
-    const down = padding.top + padding.bottom;
-    const least = frameLeastWidthOf(element, graph);
-    const held = setOut(element.id, padding, { across, down, least });
+    const round = roundOf(element);
+    const held = setOut(element.id, paddingOf(element, graph), round);
     return {
-      width: Math.max(least, held.width + across),
-      height: Math.max(HEIGHT, held.height + down),
+      width: Math.max(round.least, held.width + round.across),
+      height: Math.max(HEIGHT, held.height + round.down),
       holds: true,
       inside: held.placed,
     };
   };
 
-  return { elements: setOut(within, NO_PADDING, NOTHING_ROUND).placed };
+  /** What is round what a frame holds: its padding, and how wide it is at least. */
+  const roundOf = (frame: DrawnElement): Round => {
+    const padding = paddingOf(frame, graph);
+    return {
+      across: padding.left + padding.right,
+      down: padding.top + padding.bottom,
+      least: frameLeastWidthOf(frame, graph),
+    };
+  };
+
+  // One frame's own elements are placed from the corner of its room, but
+  // shaped as when the whole diagram is placed: its name and padding counted.
+  const frame =
+    within === null
+      ? undefined
+      : graph.elements.find(({ id }) => id === within);
+  return {
+    elements: setOut(
+      within,
+      NO_PADDING,
+      frame === undefined ? NOTHING_ROUND : roundOf(frame),
+    ).placed,
+  };
+}
+
+/**
+ * Places what is drawn inside `within` with each container's elements in
+ * the order of their kinds (exploration-order.ts).
+ */
+export function layoutExploration(
+  graph: ExplorationGraph,
+  within: string | null = null,
+): Placement {
+  const ordered = new Map(
+    [...childrenOf(graph)].map(([parent, kids]) => [
+      parent,
+      inPlacingOrder(kids),
+    ]),
+  );
+  return placedIn(graph, (parent) => ordered.get(parent) ?? NO_KIDS, within);
 }
 
 const NO_PADDING: Readonly<Padding> = { top: 0, left: 0, bottom: 0, right: 0 };

@@ -28,6 +28,7 @@ import {
   withHandle,
 } from './exploration-nodes.ts';
 import { GLIDE_MS, LEAVING_MS, LIVE_DRAG } from './exploration-timing.ts';
+import { layoutByRelations, QUICK, THOROUGH } from './layout-by-relations.ts';
 import {
   layoutExploration,
   layoutWithin,
@@ -117,8 +118,10 @@ export function usePlacement(
   viewIsTaken: () => boolean = NEVER_TAKEN,
 ) {
   // A big group is dragged as it is, unless dev tools ask for its outline.
+  // And the diagram is placed by its relations, unless they ask for the
+  // placing by kinds alone that came before it.
   const {
-    features: { outlineDragForBigGroups },
+    features: { outlineDragForBigGroups, placeByKinds },
   } = useDevToolsContext();
   const [nodes, setNodes, onNodesMoved] = useNodesState<ExplorationNode>([]);
   const [asked, setAsked] = useState(0);
@@ -476,6 +479,9 @@ export function usePlacement(
   useEffect(() => {
     const was = settled.current;
     if (was !== null && was.graph === graph && was.asked === asked) return;
+    // Asked for by the reader, a placing is worth a moment's search; one the
+    // diagram does itself, as elements are put on it, is not waited for.
+    const askedFor = was !== null && was.asked !== asked;
     const done = (local: boolean) => {
       settled.current = { graph, asked };
       setPlaced({ graph, asked, local });
@@ -515,12 +521,17 @@ export function usePlacement(
     }
 
     try {
-      land(layoutExploration(graph).elements);
+      land(
+        (placeByKinds
+          ? layoutExploration(graph)
+          : layoutByRelations(graph, null, askedFor ? THOROUGH : QUICK)
+        ).elements,
+      );
     } catch (error) {
       setFailure(error instanceof Error ? error.message : String(error));
     }
     done(false);
-  }, [graph, asked, land, landNodes]);
+  }, [graph, asked, land, landNodes, placeByKinds]);
 
   /**
    * What a container holds placed anew inside it, from what is drawn now;
@@ -539,12 +550,14 @@ export function usePlacement(
         standingOf(latest.current.nodes),
         drawn,
         id,
-        layoutWithin(drawn, id),
+        placeByKinds
+          ? layoutWithin(drawn, id)
+          : layoutByRelations(drawn, id).elements,
       );
       if (elements === null) setAsked((count) => count + 1);
       else land(elements);
     },
-    [land],
+    [land, placeByKinds],
   );
 
   // Once a change from a card has landed beside it, the containers it asked

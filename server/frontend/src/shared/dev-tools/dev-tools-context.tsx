@@ -31,6 +31,12 @@ const featuresSchema = z.object({
     .describe(
       "On the system model exploration, with the edges' animation on (the Edges menu), their dashes keep running while a card is dragged. Off, they hold still until the card is let go of, so the dragged card alone moves.",
     ),
+  placeByKinds: z
+    .boolean()
+    .default(false)
+    .describe(
+      'On the system model exploration, the diagram and each frame are set out by kind alone: modules, domain services, application services, factories, the rest, value objects last. Off, they are reordered by their relations, so the edges cross each other and run through cards as little as can be found.',
+    ),
 });
 
 type Features = z.infer<typeof featuresSchema>;
@@ -55,6 +61,7 @@ const INIT_VALUE: DevToolsContextProps = {
   features: {
     outlineDragForBigGroups: false,
     animateEdgesWhileDragging: true,
+    placeByKinds: false,
   },
   setFeatures: noop,
 };
