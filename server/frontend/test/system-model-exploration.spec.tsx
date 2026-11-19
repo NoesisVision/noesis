@@ -52,6 +52,7 @@ import {
 import {
   arrangeWithin,
   landsIn,
+  movedAllTo,
   movedTo,
   placeLocally,
   refusingFrames,
@@ -1957,6 +1958,72 @@ describe('placing a change from one card', () => {
     // which keeps its place and size.
     expect(byId.get('Two')).toMatchObject({ x: 400 - 90, y: 300 - 28 });
     expect(byId.get('Box')).toMatchObject({ x: 100, y: 100, width: 600 });
+  });
+
+  describe('several cards moved together', () => {
+    it('lets each go where it was let go of, as they stood to each other', () => {
+      const [a, b, c] = [element('A'), element('B'), element('C')];
+      const placed = movedAllTo(
+        [at(a, 0, 0), at(b, 200, 0), at(c, 0, 400)],
+        graphOf(a, b, c),
+        [
+          { id: 'A', to: { x: 1000, y: 100 } },
+          { id: 'B', to: { x: 1200, y: 100 } },
+        ],
+      )!;
+      const byId = new Map(placed.map((each) => [each.element.id, each]));
+      expect(byId.get('A')).toMatchObject({ x: 1000, y: 100 });
+      expect(byId.get('B')).toMatchObject({ x: 1200, y: 100 });
+      expect(byId.get('C')).toMatchObject({ x: 0, y: 400 });
+    });
+
+    it('moves what they land on off them, and none of them off each other', () => {
+      const [a, b, c] = [element('A'), element('B'), element('C')];
+      // A and B, side by side as close as cards stand, land over C.
+      const placed = movedAllTo(
+        [at(a, 0, 0), at(b, 182, 0), at(c, 600, 300)],
+        graphOf(a, b, c),
+        [
+          { id: 'A', to: { x: 500, y: 290 } },
+          { id: 'B', to: { x: 682, y: 290 } },
+        ],
+      )!;
+      const byId = new Map(placed.map((each) => [each.element.id, each]));
+      expect(byId.get('A')).toMatchObject({ x: 500, y: 290 });
+      expect(byId.get('B')).toMatchObject({ x: 682, y: 290 });
+      expect(apart(byId.get('C')!, byId.get('A')!)).toBe(true);
+      expect(apart(byId.get('C')!, byId.get('B')!)).toBe(true);
+    });
+
+    it('grows the frame round cards moved in it, and takes what a frame holds with it', () => {
+      const box = element('Box');
+      const [one, two] = [element('One', 'Box'), element('Two', 'Box')];
+      const other = element('Other');
+      const kid = element('Kid', 'Other');
+      const placed = movedAllTo(
+        [
+          at(box, 0, 0, 400, 200, true),
+          at(one, 16, 60),
+          at(two, 200, 60),
+          at(other, 1000, 0, 200, 160, true),
+          at(kid, 16, 60),
+        ],
+        graphOf(box, one, two, other, kid),
+        [
+          // Two cards down inside their frame, and another frame as far.
+          { id: 'One', to: { x: 16, y: 260 } },
+          { id: 'Two', to: { x: 200, y: 260 } },
+          { id: 'Other', to: { x: 1000, y: 200 } },
+        ],
+      )!;
+      const byId = new Map(placed.map((each) => [each.element.id, each]));
+      expect(byId.get('One')).toMatchObject({ x: 16, y: 260 });
+      expect(byId.get('Two')).toMatchObject({ x: 200, y: 260 });
+      expect(byId.get('Box')!.height).toBeGreaterThanOrEqual(260 + 56);
+      // The frame moved, what it holds where it was inside it.
+      expect(byId.get('Other')).toMatchObject({ x: 1000, y: 200 });
+      expect(byId.get('Kid')).toMatchObject({ x: 16, y: 60 });
+    });
   });
 
   describe('dropped in another module', () => {

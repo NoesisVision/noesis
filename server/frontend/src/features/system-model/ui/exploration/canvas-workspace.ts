@@ -125,15 +125,15 @@ export function workspaceOf(
    * Makes way round a card let go of: each card beside it that it now
    * lies on moves off it, the way it mostly lies from it — sideways if
    * further across than up or down, else up or down — and whatever that
-   * one then lies on makes way for it in turn. `kept`, the card let go of,
-   * never moves.
+   * one then lies on makes way for it in turn. `kept`, the cards let go
+   * of, never move.
    */
-  const shove = (id: string, kept: string): boolean => {
+  const shove = (id: string, kept: ReadonlySet<string>): boolean => {
     const self = rects.get(id);
     if (self === undefined) return true;
     const parent = byId.get(id)?.parent ?? null;
     for (const { id: other } of placedKids(parent)) {
-      if (other === id || other === kept) continue;
+      if (other === id || kept.has(other)) continue;
       const rect = rects.get(other);
       if (rect === undefined || !overlaps(self, rect)) continue;
       if (++pushes > PUSHES) return false;
@@ -332,15 +332,23 @@ export type CanvasRect = Rect;
 /*
  * The frames a card may not land in, where they stand on the canvas: those
  * drawn round others that are neither round it nor inside it. A card stays
- * at its own level, so it never goes into another module.
+ * at its own level, so it never goes into another module. A frame moved
+ * `with` it, and what that holds, stands to it as before, so it is no
+ * frame to land in.
  */
 export function refusing(
   workspace: ReturnType<typeof workspaceOf>,
   graph: ExplorationGraph,
   id: string,
+  together: readonly string[] = [],
 ): Rect[] {
   const { rects, placedKids, descendantsOf, ancestorsOf } = workspace;
-  const own = new Set([id, ...descendantsOf(id), ...ancestorsOf(id)]);
+  const own = new Set([
+    id,
+    ...descendantsOf(id),
+    ...ancestorsOf(id),
+    ...together.flatMap((each) => [each, ...descendantsOf(each)]),
+  ]);
   return graph.elements
     .filter(({ id: other }) => !own.has(other) && placedKids(other).length > 0)
     .flatMap(({ id: other }) => {

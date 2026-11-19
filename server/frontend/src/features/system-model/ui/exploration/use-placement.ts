@@ -39,7 +39,7 @@ import {
   arrangeWithin,
   type CanvasRect,
   landsIn,
-  movedTo,
+  movedAllTo,
   refusingFrames,
   type CanvasPoint,
   placeLocally,
@@ -50,6 +50,47 @@ import {
  * what it came from, dropped and glided, dragged, arranged, fitted. One
  * hook, its refs shared by all of it, so it is kept whole.
  */
+
+const NONE_IN_HAND: readonly string[] = [];
+
+/**
+ * The other cards in hand that go where a dragged one goes: none unless it
+ * is in hand itself. A frame round it stays, to be fitted round it once it
+ * is let go of; a card inside it, or inside another that goes, is moved by
+ * what holds it.
+ */
+function alongWith(
+  nodes: ExplorationNode[],
+  dragged: string,
+  inHand: readonly string[],
+): ExplorationNode[] {
+  if (!inHand.includes(dragged)) return [];
+  const byId = byIdOf(nodes);
+  const roundOf = (id: string): string[] => {
+    const parent = byId.get(id)?.parentId;
+    return parent === undefined ? [] : [parent, ...roundOf(parent)];
+  };
+  const stays = new Set(roundOf(dragged));
+  const going = new Set(inHand.filter((id) => !stays.has(id)));
+  return [...going].flatMap((id) => {
+    const node = byId.get(id);
+    if (node === undefined || node.data.leaving === true || id === dragged)
+      return [];
+    return roundOf(id).some((round) => going.has(round)) ? [] : [node];
+  });
+}
+
+/** Where each card going along stands once the dragged one has gone from `start` to `now`. */
+const alongAt = (
+  along: readonly { id: string; start: CanvasPoint; origin: CanvasPoint }[],
+  start: CanvasPoint,
+  now: CanvasPoint,
+) =>
+  along.map(({ id, start: from, origin }) => ({
+    id,
+    origin,
+    at: { x: from.x + now.x - start.x, y: from.y + now.y - start.y },
+  }));
 
 /**
  * The cards where the layout puts them, placed again whenever what is drawn
@@ -70,6 +111,8 @@ export function usePlacement(
   direction: LayoutDirection,
   /** Where the cards stood when the reader last left, to open at. */
   opening: { nodes: ExplorationNode[] } | null,
+  /** The cards in hand: one of them dragged, the rest go with it. */
+  inHand: readonly string[] = NONE_IN_HAND,
 ) {
   // A big group is dragged as it is, unless dev tools ask for its outline.
   const {
@@ -86,9 +129,9 @@ export function usePlacement(
     local: boolean;
   } | null>(null);
   // Read when the graph changes, without placing again when they do.
-  const latest = useRef({ nodes, placed });
+  const latest = useRef({ nodes, placed, inHand });
   useLayoutEffect(() => {
-    latest.current = { nodes, placed };
+    latest.current = { nodes, placed, inHand };
   });
   const local = useRef<LocalChange | null>(null);
   // A card the next placing beside it then arranges inside.
@@ -172,16 +215,21 @@ export function usePlacement(
    * The cards where a card let go of puts them, moved there frame by frame
    * rather than by the page's transition: the edges are drawn from where the
    * canvas has each card, so they follow the cards the whole way and are
-   * never hidden. The card let go of goes on from where it was let go of.
+   * never hidden. Each card let go of goes on from where it was let go of.
    * One that changes frames, or with the reader asking for less motion,
    * goes there at once.
    */
   const dropNodes = useCallback(
-    (next: ExplorationNode[], letGo: { id: string; at: CanvasPoint }) => {
+    (
+      next: ExplorationNode[],
+      letGo: readonly { id: string; at: CanvasPoint }[],
+    ) => {
       stopDropGlide();
       const from = byIdOf(latest.current.nodes);
-      const was = from.get(letGo.id);
-      if (was !== undefined) from.set(letGo.id, { ...was, position: letGo.at });
+      for (const { id, at } of letGo) {
+        const was = from.get(id);
+        if (was !== undefined) from.set(id, { ...was, position: at });
+      }
       // Each with its size measured already, as the canvas draws no edge to
       // a card it has yet to measure: one handed over unmeasured would lose
       // its edges until the page measured it again.
@@ -283,6 +331,12 @@ export function usePlacement(
     start: CanvasPoint;
     /** Moved as it is dragged, with no outline. */
     live: boolean;
+    /**
+     * The other cards in hand that go where it goes, each where it stood
+     * when the drag began, relative to its container, and where on the
+     * canvas that container stands.
+     */
+    along: readonly { id: string; start: CanvasPoint; origin: CanvasPoint }[];
     /** The modules it may not land in, for its outline to say so. */
     refusing: readonly CanvasRect[];
     size: { width: number; height: number };
@@ -299,6 +353,16 @@ export function usePlacement(
       setDragging(true);
       const ids = new Set([node.id, ...descendantsOf(shown, node.id)]);
       const live = !outlineDragForBigGroups || ids.size <= LIVE_DRAG;
+      const along = alongWith(shown, node.id, latest.current.inHand).map(
+        (each) => ({
+          id: each.id,
+          start: each.position,
+          origin:
+            each.parentId === undefined
+              ? { x: 0, y: 0 }
+              : absoluteOf(shown, each.parentId),
+        }),
+      );
       const drawn = latest.current.placed?.graph;
       // Gathered once: the frames do not move while a card is dragged.
       const refusing =
@@ -310,6 +374,7 @@ export function usePlacement(
         origin,
         start: node.position,
         live,
+        along,
         refusing,
         size: {
           width: node.measured?.width ?? node.width ?? 0,
@@ -329,19 +394,35 @@ export function usePlacement(
     },
     [stopDropGlide, outlineDragForBigGroups],
   );
-  const onNodeDrag = useCallback<OnNodeDrag<ExplorationNode>>((_, node) => {
-    const now = holding.current;
-    const shown = outline.current;
-    if (now === null || now.live || shown === null) return;
-    const x = now.origin.x + node.position.x;
-    const y = now.origin.y + node.position.y;
-    shown.style.transform = `translate(${x}px, ${y}px)`;
-    // Over another module the outline says it will not go in: marked on
-    // the page directly, so nothing is drawn again.
-    const refused = landsIn(now.refusing, { x, y, ...now.size });
-    if (refused !== (shown.dataset.refused !== undefined))
-      shown.toggleAttribute('data-refused', refused);
-  }, []);
+  const onNodeDrag = useCallback<OnNodeDrag<ExplorationNode>>(
+    (_, node) => {
+      const now = holding.current;
+      if (now === null) return;
+      if (now.live) {
+        // The rest of the hand goes as far as the card dragged has.
+        if (now.along.length === 0) return;
+        const there = byIdOf(alongAt(now.along, now.start, node.position));
+        setNodes((all) =>
+          all.map((each) => {
+            const at = there.get(each.id)?.at;
+            return at === undefined ? each : { ...each, position: at };
+          }),
+        );
+        return;
+      }
+      const shown = outline.current;
+      if (shown === null) return;
+      const x = now.origin.x + node.position.x;
+      const y = now.origin.y + node.position.y;
+      shown.style.transform = `translate(${x}px, ${y}px)`;
+      // Over another module the outline says it will not go in: marked on
+      // the page directly, so nothing is drawn again.
+      const refused = landsIn(now.refusing, { x, y, ...now.size });
+      if (refused !== (shown.dataset.refused !== undefined))
+        shown.toggleAttribute('data-refused', refused);
+    },
+    [setNodes],
+  );
   const onNodeDragStop = useCallback<OnNodeDrag<ExplorationNode>>(
     (_, node) => {
       const now = holding.current;
@@ -354,23 +435,35 @@ export function usePlacement(
       if (now.start.x === node.position.x && now.start.y === node.position.y)
         return;
       const drawn = latest.current.placed?.graph;
+      // The card dragged and the rest of the hand, each where it was let
+      // go of.
+      const letGo = [
+        { id: node.id, at: node.position, origin: now.origin },
+        ...alongAt(now.along, now.start, node.position),
+      ];
       const elements =
         drawn === undefined
           ? null
-          : movedTo(standingOf(shown), drawn, node.id, {
-              x: now.origin.x + node.position.x,
-              y: now.origin.y + node.position.y,
-            });
+          : movedAllTo(
+              standingOf(shown),
+              drawn,
+              letGo.map(({ id, at, origin }) => ({
+                id,
+                to: { x: origin.x + at.x, y: origin.y + at.y },
+              })),
+            );
       if (elements !== null)
         return dropNodes(
           elements.map((each) => nodeOf(each, direction)),
-          { id: node.id, at: node.position },
+          letGo,
         );
-      // No settling what it pushes: the card alone where it was let go.
+      // No settling what they push: each where it was let go.
+      const there = byIdOf(letGo);
       setNodes((all) =>
-        all.map((each) =>
-          each.id === node.id ? { ...each, position: node.position } : each,
-        ),
+        all.map((each) => {
+          const at = there.get(each.id)?.at;
+          return at === undefined ? each : { ...each, position: at };
+        }),
       );
       setEdits((count) => count + 1);
     },

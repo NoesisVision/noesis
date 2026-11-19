@@ -216,6 +216,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [exploration, hidden, relations, picks],
   );
 
+  // In hand, in the order taken; the last is the one the panel reads. One
+  // of them dragged, the rest go with it (use-placement.ts).
+  const [selection, setSelection] = useState<readonly string[]>([]);
   const {
     nodes,
     placements,
@@ -237,7 +240,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     outline,
     flow,
     setFlow,
-  } = usePlacement(graph, ALGORITHM, direction, opening);
+  } = usePlacement(graph, ALGORITHM, direction, opening, selection);
   const zoom = useCanvasZoom(flow);
   // Where a point of the page is on the canvas, once the canvas is there.
   const toCanvas = useMemo(
@@ -388,8 +391,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   }, [detail]);
   const scheme = useComputedColorScheme('light');
   const document = useMemo(() => designOf(model), [model]);
-  // In hand, in the order taken; the last is the one the panel reads.
-  const [selection, setSelection] = useState<readonly string[]>([]);
   const selected = selection.at(-1) ?? null;
   const inHandSet = useMemo(() => new Set(selection), [selection]);
   // A card clicked is taken in hand, as on every canvas.
