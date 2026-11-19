@@ -22,6 +22,7 @@ import { Text } from '#/shared/design-system/text.tsx';
 import '@xyflow/react/dist/base.css';
 import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { createStore, useStoreValue } from '#/shared/store.ts';
+import { BoxSelect } from '#/shared/ui/diagram-canvas/box-select.tsx';
 import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
 import {
   CANVAS_FLOW,
@@ -31,10 +32,14 @@ import {
   isElsewhere,
   useLetGoOnEscape,
 } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
-import { selectionAfterClick } from '#/shared/ui/diagram-canvas/canvas-selection.ts';
+import {
+  selectionAfterClick,
+  selectionInBox,
+} from '#/shared/ui/diagram-canvas/canvas-selection.ts';
 import { DetailsDock } from '#/shared/ui/diagram-canvas/details-dock.tsx';
 import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
 import { FloatingEdgeView } from '#/shared/ui/diagram-canvas/floating-edge.tsx';
+import type { Rect } from '#/shared/ui/diagram-canvas/geometry.ts';
 import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
@@ -124,6 +129,21 @@ const sameChoice = (a: ElementChoice, b: ElementChoice) =>
 const NOTHING_RELATED: ReturnType<typeof relatedToAll> = {
   relations: new Set(),
   elements: new Set(),
+};
+
+/**
+ * Where a box may be drawn with Shift held, to take cards in hand: from the
+ * empty canvas, or from a frame's own room — never from a card, which is
+ * dragged, or from a control on a frame.
+ */
+const startsBox = (target: Element) => {
+  if (target.closest('.react-flow__pane') === null) return false;
+  const node = target.closest('.react-flow__node');
+  if (node === null) return true;
+  return (
+    node.querySelector('[data-part="container"]') !== null &&
+    target.closest('button, .nodrag') === null
+  );
 };
 
 /** How long going into a card from further off takes. */
@@ -701,6 +721,43 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [graph, veiled, inDetail]);
+  // A box drawn with Shift held takes in hand the cards in sight it touches,
+  // and the frames it takes in whole, in place of what was in hand.
+  const selectBox = useCallback(
+    (box: Rect) => {
+      if (flow === null) return;
+      const from = flow.screenToFlowPosition({ x: box.x, y: box.y });
+      const to = flow.screenToFlowPosition({
+        x: box.x + box.width,
+        y: box.y + box.height,
+      });
+      const cards = now.current.nodes.flatMap((node) => {
+        const { placed, leaving } = node.data;
+        const at = flow.getInternalNode(node.id)?.internals.positionAbsolute;
+        if (leaving === true || at === undefined) return [];
+        if (veiled.has(groupOf(placed.element)) || inDetail.unseen.has(node.id))
+          return [];
+        return [
+          {
+            id: node.id,
+            holds: placed.holds,
+            rect: {
+              ...at,
+              width: node.measured?.width ?? node.width ?? placed.width,
+              height: node.measured?.height ?? node.height ?? placed.height,
+            },
+          },
+        ];
+      });
+      setSelection(
+        selectionInBox(
+          { ...from, width: to.x - from.x, height: to.y - from.y },
+          cards,
+        ),
+      );
+    },
+    [flow, veiled, inDetail],
+  );
   // Escape lets go of the cards in hand, as on every diagram.
   useLetGoOnEscape(selection.length > 0, letGo);
   // Delete or Backspace takes every card in hand off the diagram, as their
@@ -987,6 +1044,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
             taking what room the shortcuts below it leave. */}
             <Box className={classes.side}>{side}</Box>
             {quickAdd}
+            <BoxSelect within={canvas} startsOn={startsBox} onBox={selectBox} />
             {placing && nodes.length === 0 && failure === null && (
               <Text component="output" c="dimmed" p="lg" pos="absolute" top={0}>
                 Placing the elements…
