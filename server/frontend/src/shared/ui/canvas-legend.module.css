@@ -42,3 +42,40 @@
 .body {
   padding: 2px 10px 10px;
 }
+
+/*
+ * One that folds to its icon alone (canvas-legend.tsx): folded, a button of
+ * the icon's size; open, as wide as its canvas says (--legend-width). It
+ * widens and narrows at the pace its body slides open and shut, the title
+ * on one line and cut where the legend ends on the way.
+ */
+.legend[data-folds-to-icon] {
+  width: var(--legend-width);
+  transition: width 200ms ease;
+
+  &[data-icon-alone] {
+    width: 34px;
+  }
+
+  & .title {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* As wide as the open legend holds it, so no line wraps anew on the way. */
+  & .body {
+    width: calc(var(--legend-width) - 2px);
+  }
+}
+
+.legend[data-icon-alone] .head {
+  justify-content: center;
+  padding: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .legend[data-folds-to-icon] {
+    transition: none;
+  }
+}

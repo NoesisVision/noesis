@@ -24,12 +24,13 @@ const SHORTCUTS = [
   },
 ] as const;
 
-/** The keys the exploration answers to, in the canvas's corner. */
+/** The keys the exploration answers to, in the canvas's corner: folded, a keyboard alone. */
 export function ShortcutLegend() {
   return (
     <CanvasLegend
       title="Keyboard shortcuts"
       icon={IconKeyboard}
+      foldsToIcon
       className={classes.legend}
     >
       <dl className={classes.legendList}>

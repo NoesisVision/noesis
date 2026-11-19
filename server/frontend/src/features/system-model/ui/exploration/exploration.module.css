@@ -845,9 +845,11 @@
 }
 
 /* The keys the canvas answers to, in its bottom left corner. */
+/* How wide the shortcuts open; folded, they are their icon alone (canvas-legend.tsx). */
 .legend {
+  --legend-width: 320px;
+
   flex: none;
-  width: 320px;
   margin-top: auto;
 }
 
