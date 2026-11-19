@@ -4,6 +4,7 @@ import { KindIcon } from '#/features/design-docs/element-reader.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Menu } from '#/shared/design-system/menu.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
+import { IconAutoPlace } from '#/shared/ui/icons/icons.ts';
 import {
   CHAIN_DEPTH,
   type ChainReach,
@@ -14,7 +15,7 @@ import {
 } from '../../system-model-exploration.ts';
 import { useCardActions } from './exploration-reading.ts';
 import type { CanvasPoint } from './place-locally.ts';
-import { REACH_ACTION, TIDY_UP } from './reach-words.ts';
+import { AUTO_PLACE, REACH_ACTION } from './reach-words.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import { useLazyOpening } from './use-lazy-opening.ts';
 import { hasNodeMenu, useAdd, useChains, useMissing } from './use-reaches.ts';
@@ -152,7 +153,13 @@ export function NodeMenuDropdown({
       {/* A frame's own first: setting out again what it holds. */}
       {holds && (
         <>
-          <Menu.Item onClick={() => onArrange(id)}>{TIDY_UP}</Menu.Item>
+          <Menu.Item
+            // The toolbar's own, for the whole diagram.
+            leftSection={<IconAutoPlace size={14} stroke={1.8} aria-hidden />}
+            onClick={() => onArrange(id)}
+          >
+            {AUTO_PLACE}
+          </Menu.Item>
           <Menu.Divider />
         </>
       )}
