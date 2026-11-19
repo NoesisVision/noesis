@@ -15,7 +15,9 @@ export const CLICK_SLOP = 4;
  * pointer, as the empty canvas does. React Flow keeps both from a node it
  * drags, frames included, though a frame is dragged by its top alone; so
  * they are done here, on the room itself and nothing in it. Clicked, not
- * dragged, the room is the frame's, and takes it in hand. Seen from
+ * dragged, the room is the frame's, and takes it in hand. Dragged with
+ * Shift held, it does not move the view: that draws a box, as on the empty
+ * canvas. Seen from
  * further off, a double click goes into the frame instead (`onInto`): it
  * is put in the middle of the canvas, and brought closer.
  */
@@ -29,8 +31,12 @@ export function useViewingFromFrame(
     if (event.button !== 0 || event.target !== event.currentTarget) return;
     const room = event.currentTarget;
     const from = { x: event.clientX, y: event.clientY, view: getViewport() };
+    // With Shift held, the drag draws a box over the canvas to take cards in
+    // hand (box-select.tsx): the view stays where it is, and a click is
+    // still the frame's.
+    const boxing = event.shiftKey;
     room.setPointerCapture(event.pointerId);
-    room.dataset.panning = '';
+    if (!boxing) room.dataset.panning = '';
     const move = (to: globalThis.PointerEvent) =>
       void setViewport({
         ...from.view,
@@ -50,7 +56,7 @@ export function useViewingFromFrame(
       room.removeEventListener('pointerup', end);
       room.removeEventListener('pointercancel', end);
     };
-    room.addEventListener('pointermove', move);
+    if (!boxing) room.addEventListener('pointermove', move);
     room.addEventListener('pointerup', end);
     room.addEventListener('pointercancel', end);
   };

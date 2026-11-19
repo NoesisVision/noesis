@@ -5,11 +5,16 @@
  * panel is scaled whole, so nothing in it reflows on the way.
  */
 .dock {
-  /* No taller or wider than the canvas leaves it; the panel scrolls inside. */
+  /*
+   * No taller or wider than the canvas leaves it; the panel scrolls inside.
+   * It stands its own margin from the canvas's top, and ends that far from
+   * its foot — or as far as the canvas says (--details-dock-foot), when
+   * something of its own stands in that corner for the panel to end above.
+   */
   display: flex;
   flex-direction: column;
   max-width: calc(100% - 30px);
-  max-height: calc(100% - 30px);
+  max-height: calc(100% - 15px - var(--details-dock-foot, 15px));
   /* Only what is shown takes the pointer; the canvas behind is the canvas. */
   pointer-events: none;
 }

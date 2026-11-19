@@ -1,0 +1,15 @@
+/*
+ * The box a reader draws over a canvas to take several cards in hand: in the
+ * diagrams' accent (theme.ts), over the cards, and never in the pointer's
+ * way. Placed and sized on the page directly as it is drawn (box-select.tsx).
+ */
+.box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 7;
+  border: 1px solid var(--noesis-diagram-highlight);
+  border-radius: 4px;
+  background: rgb(from var(--noesis-diagram-highlight) r g b / 0.08);
+  pointer-events: none;
+}

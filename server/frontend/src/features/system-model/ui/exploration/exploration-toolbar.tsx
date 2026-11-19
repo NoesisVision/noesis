@@ -5,7 +5,6 @@ import {
   IconArrowsVertical,
   IconChevronDown,
   IconEye,
-  IconLayoutDistributeHorizontal,
   IconRoute,
 } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
@@ -22,6 +21,7 @@ import {
   ToolbarOptions,
   ToolbarPill,
 } from '#/shared/ui/canvas-toolbar.tsx';
+import { IconAutoPlace } from '#/shared/ui/icons/icons.ts';
 import type { LayoutDirection } from './layout-exploration.ts';
 import classes from './exploration.module.css';
 
@@ -181,9 +181,7 @@ export function ExplorationToolbar({
       <Button
         variant="subtle"
         color="gray"
-        leftSection={
-          <IconLayoutDistributeHorizontal size={16} stroke={1.6} aria-hidden />
-        }
+        leftSection={<IconAutoPlace size={16} stroke={1.6} aria-hidden />}
         onClick={onAutoPlace}
       >
         Auto-place

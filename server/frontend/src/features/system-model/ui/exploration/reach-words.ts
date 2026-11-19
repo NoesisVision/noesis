@@ -8,8 +8,12 @@ import { type Reach } from '../../system-model-exploration.ts';
 export const containsLabel = (name: string, count: number) =>
   `Show ${count === 1 ? 'the element' : `the ${count} elements`} ${name} contains`;
 
-/** What the way to tidy up a frame says, in its corner and in its menu. */
-export const TIDY_UP = 'Tidy up inside';
+/** What the way to set out again what a frame holds says, in its menu: the toolbar's word for the whole diagram. */
+export const AUTO_PLACE = 'Auto-place';
+
+/** What the way to a card's parent says, in its menu and beside its cross: "Show parent block". */
+export const showParentLabel = (parent: { kind: string }) =>
+  `Show parent ${parent.kind === 'building_block' ? 'block' : parent.kind.replaceAll('_', ' ')}`;
 
 /** What the card's own menu calls each way, under its "Add" heading. */
 export const REACH_ACTION = {

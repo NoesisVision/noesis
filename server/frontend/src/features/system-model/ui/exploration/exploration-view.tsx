@@ -22,6 +22,7 @@ import { Text } from '#/shared/design-system/text.tsx';
 import '@xyflow/react/dist/base.css';
 import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
 import { createStore, useStoreValue } from '#/shared/store.ts';
+import { BoxSelect } from '#/shared/ui/diagram-canvas/box-select.tsx';
 import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
 import {
   CANVAS_FLOW,
@@ -31,10 +32,14 @@ import {
   isElsewhere,
   useLetGoOnEscape,
 } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
-import { selectionAfterClick } from '#/shared/ui/diagram-canvas/canvas-selection.ts';
+import {
+  selectionAfterClick,
+  selectionInBox,
+} from '#/shared/ui/diagram-canvas/canvas-selection.ts';
 import { DetailsDock } from '#/shared/ui/diagram-canvas/details-dock.tsx';
 import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
 import { FloatingEdgeView } from '#/shared/ui/diagram-canvas/floating-edge.tsx';
+import type { Rect } from '#/shared/ui/diagram-canvas/geometry.ts';
 import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
@@ -48,11 +53,13 @@ import {
   graphOf,
   groupOf,
   hiddenBy,
+  howMuchDrawn,
   kindWordOf,
   MODULES_BELOW,
   neighboursOf,
   NOTHING_CHOSEN,
   pickedAll,
+  pickedIn,
   type RelationKind,
   relatedToAll,
   removalOf,
@@ -122,6 +129,21 @@ const sameChoice = (a: ElementChoice, b: ElementChoice) =>
 const NOTHING_RELATED: ReturnType<typeof relatedToAll> = {
   relations: new Set(),
   elements: new Set(),
+};
+
+/**
+ * Where a box may be drawn with Shift held, to take cards in hand: from the
+ * empty canvas, or from a frame's own room — never from a card, which is
+ * dragged, or from a control on a frame.
+ */
+const startsBox = (target: Element) => {
+  if (target.closest('.react-flow__pane') === null) return false;
+  const node = target.closest('.react-flow__node');
+  if (node === null) return true;
+  return (
+    node.querySelector('[data-part="container"]') !== null &&
+    target.closest('button, .nodrag') === null
+  );
 };
 
 /** How long going into a card from further off takes. */
@@ -194,6 +216,22 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [exploration, hidden, relations, picks],
   );
 
+  // In hand, in the order taken; the last is the one the panel reads. One
+  // of them dragged, the rest go with it (use-placement.ts).
+  const [selection, setSelection] = useState<readonly string[]>([]);
+  // What was just added, to be brought into view once it has landed
+  // (bringIn, below). What the reader added by name — from the picker, or
+  // the canvas's own menu — is gone to, always: put in the middle of the
+  // view, wherever it landed; the placing then leaves the view to that.
+  const focusAfter = useRef<{
+    ids: readonly string[];
+    from: string | null;
+    centred: boolean;
+  } | null>(null);
+  const goingToWhatWasAdded = useCallback(
+    () => focusAfter.current?.centred === true,
+    [],
+  );
   const {
     nodes,
     placements,
@@ -215,7 +253,14 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     outline,
     flow,
     setFlow,
-  } = usePlacement(graph, ALGORITHM, direction, opening);
+  } = usePlacement(
+    graph,
+    ALGORITHM,
+    direction,
+    opening,
+    selection,
+    goingToWhatWasAdded,
+  );
   const zoom = useCanvasZoom(flow);
   // Where a point of the page is on the canvas, once the canvas is there.
   const toCanvas = useMemo(
@@ -340,14 +385,15 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   useLayoutEffect(() => {
     detailNow.current = detail;
   });
-  // Short of all of it, what is drawn inside a frame is not moved: from
-  // that far, a drag is meant for the frame. A module inside another is
-  // itself such a frame, and is moved as one from any distance. The press
-  // is kept from the canvas before it reaches the card, so the card itself
-  // is told nothing.
+  // With modules alone left in sight, what is drawn inside a frame is not
+  // moved: from that far, a drag is meant for the frame. A module inside
+  // another is itself such a frame, and is moved as one from any distance.
+  // The press is kept from the canvas before it reaches the card, so the
+  // card itself is told nothing. While the blocks are still seen, each is
+  // moved as it is from close up: what is in sight is the reader's to move.
   useEffect(() => {
     const room = canvas.current;
-    if (room === null || detail === 'all') return;
+    if (room === null || detail !== 'modules') return;
     const hold = (event: Event) => {
       const nested =
         event.target instanceof Element
@@ -366,8 +412,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   }, [detail]);
   const scheme = useComputedColorScheme('light');
   const document = useMemo(() => designOf(model), [model]);
-  // In hand, in the order taken; the last is the one the panel reads.
-  const [selection, setSelection] = useState<readonly string[]>([]);
   const selected = selection.at(-1) ?? null;
   const inHandSet = useMemo(() => new Set(selection), [selection]);
   // A card clicked is taken in hand, as on every canvas.
@@ -391,7 +435,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // the diagram what is picked from it goes.
   const [quick, setQuick] = useState<{
     spot: QuickAddSpot;
-    at: CanvasPoint;
+    /** Where on the diagram; nowhere yet on a canvas with nothing drawn. */
+    at: CanvasPoint | null;
   } | null>(null);
   const canvas = useRef<HTMLElement>(null);
   // Ctrl and the wheel zoom as gently as on every diagram.
@@ -448,13 +493,20 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     () => new Set([...drawn, ...graph.folded]),
     [drawn, graph.folded],
   );
+  // However an element is put on the diagram — the picker, the canvas's own
+  // menu, a card's — a behavior brings the block it is on with it.
   const onShowAll = useCallback(
     (ids: readonly string[], shown: boolean, bySlot = false) =>
       setChoice((current) => {
         const kept = choiceWithin(current, exploration);
-        return { ...kept, picks: pickedAll(kept.picks, ids, shown, bySlot) };
+        return {
+          ...kept,
+          picks: shown
+            ? pickedIn(kept.picks, ids, elementsById, bySlot)
+            : pickedAll(kept.picks, ids, false),
+        };
       }),
-    [exploration],
+    [exploration, elementsById],
   );
   // What the model holds inside each element, all the way down.
   const insideOf = useMemo(() => {
@@ -466,22 +518,42 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       (kids.get(id) ?? []).flatMap((kid) => [kid, ...all(kid)]);
     return all;
   }, [exploration]);
+  // How much of each element is drawn, with all the model holds inside it:
+  // what its tick in the picker says, and where a click on it goes next
+  // (onPick).
+  const shown = useMemo(
+    () => howMuchDrawn(exploration, drawn),
+    [exploration, drawn],
+  );
+  const shownOf = useCallback((id: string) => shown.get(id) ?? false, [shown]);
   // What was just added — from a card's menu, the picker or the canvas's own
   // menu — with the card it came from, if any: in hand at once, and, once the
   // cards have landed and settled where they go, brought into view — unless
   // all are in sight already, the panel not over a lone one.
-  const focusAfter = useRef<{
-    ids: readonly string[];
-    from: string | null;
-  } | null>(null);
   const bringIn = useCallback(
-    (ids: readonly string[], from: string | null = null) => {
+    (ids: readonly string[], from: string | null = null, centred = false) => {
       const added = ids.filter((id) => !drawn.has(id));
       if (added.length === 0) return;
-      focusAfter.current = { ids: added, from };
+      focusAfter.current = { ids: added, from, centred };
       setSelection(added);
     },
     [drawn],
+  );
+  // These cards put in the middle of the view, gently: as close as they are
+  // looked at from, or at their own size from where they would be out of
+  // sight (exploration-detail.ts) — and from further off only when they do
+  // not fit the view from that close.
+  const showInMiddle = useCallback(
+    (ids: readonly string[]) => {
+      if (flow === null) return;
+      void flow.fitView({
+        nodes: ids.map((id) => ({ id })),
+        padding: '64px',
+        maxZoom: detailAt(flow.getZoom()) === 'all' ? flow.getZoom() : 1,
+        duration: INTO_MS,
+      });
+    },
+    [flow],
   );
   // These cards brought into view, unless all are in sight already, the
   // panel a lone one is read in not over it.
@@ -517,8 +589,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     const landed = new Set(nodes.map(({ id }) => id));
     if (!ids.every((id) => landed.has(id))) return;
     focusAfter.current = null;
-    showInSight(ids, focus.ids.length === 1);
-  }, [gliding, nodes, flow, showInSight]);
+    if (focus.centred) showInMiddle(ids);
+    else showInSight(ids, focus.ids.length === 1);
+  }, [gliding, nodes, flow, showInSight, showInMiddle]);
   // A card already drawn, gone to from elsewhere — a badge naming its type:
   // in hand alone, and in sight.
   const goToCard = useCallback(
@@ -567,10 +640,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       const inside = insideOf(id);
       if (!drawn.has(id)) {
         onShowAll([id], true);
-        bringIn([id]);
+        bringIn([id], null, true);
       } else if (inside.some((each) => !drawn.has(each))) {
         onShowAll([id, ...inside], true);
-        bringIn(inside, id);
+        bringIn(inside, id, true);
       } else onShowAll([id, ...inside], false);
     },
     [insideOf, drawn, onShowAll, bringIn],
@@ -684,6 +757,43 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [graph, veiled, inDetail]);
+  // A box drawn with Shift held takes in hand the cards in sight it touches,
+  // and the frames it takes in whole, in place of what was in hand.
+  const selectBox = useCallback(
+    (box: Rect) => {
+      if (flow === null) return;
+      const from = flow.screenToFlowPosition({ x: box.x, y: box.y });
+      const to = flow.screenToFlowPosition({
+        x: box.x + box.width,
+        y: box.y + box.height,
+      });
+      const cards = now.current.nodes.flatMap((node) => {
+        const { placed, leaving } = node.data;
+        const at = flow.getInternalNode(node.id)?.internals.positionAbsolute;
+        if (leaving === true || at === undefined) return [];
+        if (veiled.has(groupOf(placed.element)) || inDetail.unseen.has(node.id))
+          return [];
+        return [
+          {
+            id: node.id,
+            holds: placed.holds,
+            rect: {
+              ...at,
+              width: node.measured?.width ?? node.width ?? placed.width,
+              height: node.measured?.height ?? node.height ?? placed.height,
+            },
+          },
+        ];
+      });
+      setSelection(
+        selectionInBox(
+          { ...from, width: to.x - from.x, height: to.y - from.y },
+          cards,
+        ),
+      );
+    },
+    [flow, veiled, inDetail],
+  );
   // Escape lets go of the cards in hand, as on every diagram.
   useLetGoOnEscape(selection.length > 0, letGo);
   // Delete or Backspace takes every card in hand off the diagram, as their
@@ -778,13 +888,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         drawn={graph.elements.length}
         total={exploration.elements.length}
         document={document}
-        isShown={isShown}
+        isShown={shownOf}
         onPick={onPick}
         onAddAll={addAll}
         onClear={clear}
       />
     ),
-    [picking, graph, exploration, document, isShown, onPick, addAll, clear],
+    [picking, graph, exploration, document, shownOf, onPick, addAll, clear],
   );
   const closeVisibility = useCallback(() => setSeeing(false), []);
   const side = useMemo(
@@ -814,13 +924,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         isDrawn={isShown}
         onClose={closeQuick}
         onPick={(id) => {
-          const at = quick?.at;
+          const at = quick?.at ?? null;
           setQuick(null);
           // One drawn already is shown, not drawn twice.
           if (drawn.has(id)) return readAlone(id);
-          if (at !== undefined) placeBeside(at);
+          if (at !== null) placeBeside(at);
           onShowAll([id], true);
-          bringIn([id]);
+          bringIn([id], null, true);
         }}
       />
     ),
@@ -881,7 +991,24 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                 The scan found no modules, building blocks or behaviors.
               </Text>
             ) : graph.elements.length === 0 ? (
-              <Box h="100%" className={classes.blank} data-part="blank" />
+              // With nothing drawn a right click asks what to put there too:
+              // there is no diagram yet for it to have a place on.
+              <Box
+                h="100%"
+                className={classes.blank}
+                data-part="blank"
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  const box = event.currentTarget.getBoundingClientRect();
+                  setQuick({
+                    spot: {
+                      left: event.clientX - box.left,
+                      top: event.clientY - box.top,
+                    },
+                    at: null,
+                  });
+                }}
+              />
             ) : (
               <DesignDocumentContext.Provider value={document}>
                 <ExplorationReadingContext.Provider value={reading}>
@@ -970,6 +1097,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
             taking what room the shortcuts below it leave. */}
             <Box className={classes.side}>{side}</Box>
             {quickAdd}
+            <BoxSelect within={canvas} startsOn={startsBox} onBox={selectBox} />
             {placing && nodes.length === 0 && failure === null && (
               <Text component="output" c="dimmed" p="lg" pos="absolute" top={0}>
                 Placing the elements…

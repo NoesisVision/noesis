@@ -225,7 +225,13 @@ describe('a tree that moves rows', () => {
 });
 
 describe('a tree whose rows put their element in a view or take it out', () => {
-  function Toggling({ on }: { on: ReadonlySet<string> }) {
+  function Toggling({
+    on,
+    partly = new Set(),
+  }: {
+    on: ReadonlySet<string>;
+    partly?: ReadonlySet<string>;
+  }) {
     const controller = useModelTree(outlineFixture, {
       selected: null,
       onSelect: nothing,
@@ -238,7 +244,10 @@ describe('a tree whose rows put their element in a view or take it out', () => {
         controller={controller}
         label="Elements found"
         toggling={{
-          isOn: (node) => (node.kind === 'module' ? null : on.has(node.path)),
+          isOn: (node) => {
+            if (partly.has(node.path)) return 'mixed';
+            return node.kind === 'module' ? null : on.has(node.path);
+          },
           onToggle: nothing,
         }}
       />
@@ -264,5 +273,20 @@ describe('a tree whose rows put their element in a view or take it out', () => {
       .find((chunk) => chunk.includes('data-kind="module"'))!;
     expect(module).not.toContain('aria-checked');
     expect(module.split('</span>')[0]).not.toContain('CheckboxIndicator');
+  });
+
+  it('strikes a dash through the box of a row only partly in, and says so', () => {
+    const row = renderToStaticMarkup(
+      <MantineProvider>
+        <Toggling on={new Set()} partly={new Set([first.path])} />
+      </MantineProvider>,
+    )
+      .split('<li')
+      .find((chunk) => chunk.includes(`data-path="${first.path}"`))!;
+    expect(row).toContain('aria-checked="mixed"');
+    // Mantine fills the box as it does a ticked one, and draws a dash in it.
+    expect(row).toMatch(
+      /CheckboxIndicator-indicator[^>]*aria-hidden="true"><svg[^>]*viewBox="0 0 32 6"/,
+    );
   });
 });

@@ -12,6 +12,7 @@ const SHORTCUTS = [
   { keys: ['Right-click'], does: 'On a card, its actions' },
   { keys: ['Double-click'], does: 'Zoom in' },
   { keys: ['Ctrl', '⌘'], does: 'With a click, add a card to the selection' },
+  { keys: ['Shift'], does: 'With a drag, select the cards in the box' },
   { keys: ['Ctrl A', '⌘ A'], does: 'Select every card in sight' },
   { keys: ['Delete', '⌫'], does: 'Remove the selected cards' },
   { keys: ['Ctrl Z', '⌘ Z'], does: 'Undo a step' },
@@ -24,12 +25,13 @@ const SHORTCUTS = [
   },
 ] as const;
 
-/** The keys the exploration answers to, in the canvas's corner. */
+/** The keys the exploration answers to, in the canvas's corner: folded, a keyboard alone. */
 export function ShortcutLegend() {
   return (
     <CanvasLegend
       title="Keyboard shortcuts"
       icon={IconKeyboard}
+      foldsToIcon
       className={classes.legend}
     >
       <dl className={classes.legendList}>

@@ -41,3 +41,70 @@ export const IconBroom = createReactComponent('outline', 'broom', 'Broom', [
   ['path', { d: 'M10 17l-0.5 4', key: 'svg-3' }],
   ['path', { d: 'M14 17l0.5 4', key: 'svg-4' }],
 ]);
+
+/** A card inside a frame: what holds it — its parent block or module. */
+export const IconParentFrame = createReactComponent(
+  'outline',
+  'parent-frame',
+  'ParentFrame',
+  [
+    [
+      'path',
+      {
+        d: 'M6 4h12a3 3 0 0 1 3 3v10a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-10a3 3 0 0 1 3 -3z',
+        key: 'svg-0',
+      },
+    ],
+    [
+      'path',
+      {
+        d: 'M9 10h6a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1 -1.5 1.5h-6a1.5 1.5 0 0 1 -1.5 -1.5v-3a1.5 1.5 0 0 1 1.5 -1.5z',
+        key: 'svg-1',
+      },
+    ],
+  ],
+);
+
+/** Four squares in a tidy two by two, a sparkle in their corner: set this out for me. */
+export const IconAutoPlace = createReactComponent(
+  'outline',
+  'auto-place',
+  'AutoPlace',
+  [
+    [
+      'path',
+      {
+        d: 'M3 9a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1z',
+        key: 'svg-0',
+      },
+    ],
+    [
+      'path',
+      {
+        d: 'M11 9a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1z',
+        key: 'svg-1',
+      },
+    ],
+    [
+      'path',
+      {
+        d: 'M3 17a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1z',
+        key: 'svg-2',
+      },
+    ],
+    [
+      'path',
+      {
+        d: 'M11 17a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v3a1 1 0 0 1 -1 1h-3a1 1 0 0 1 -1 -1z',
+        key: 'svg-3',
+      },
+    ],
+    [
+      'path',
+      {
+        d: 'M17 4.5a2.5 2.5 0 0 1 2.5 2.5a2.5 2.5 0 0 1 2.5 -2.5a2.5 2.5 0 0 1 -2.5 -2.5a2.5 2.5 0 0 1 -2.5 2.5z',
+        key: 'svg-4',
+      },
+    ],
+  ],
+);

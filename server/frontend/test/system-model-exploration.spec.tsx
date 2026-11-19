@@ -13,11 +13,14 @@ import {
   explorationOf,
   graphOf,
   hiddenBy,
+  howMuchDrawn,
   kindWordOf,
   neighboursOf,
   NO_PICKS,
   NOTHING_CHOSEN,
   picked,
+  pickedIn,
+  isOwnSlotReach,
   isSlotReach,
   RELATIONS,
   type RelationKind,
@@ -25,7 +28,6 @@ import {
   removalOf,
 } from '../src/features/system-model/system-model-exploration';
 import { designOf } from '../src/features/system-model/system-model.model';
-import { badgeTipOf } from '../src/features/system-model/ui/exploration/badge-signature';
 import { ElementNode } from '../src/features/system-model/ui/exploration/element-node';
 import { ExplorationPicker } from '../src/features/system-model/ui/exploration/exploration-picker';
 import {
@@ -49,11 +51,13 @@ import {
 import {
   arrangeWithin,
   landsIn,
+  movedAllTo,
   movedTo,
   placeLocally,
   refusingFrames,
 } from '../src/features/system-model/ui/exploration/place-locally';
 import { SlotBadges } from '../src/features/system-model/ui/exploration/slot-badges';
+import { hasNodeMenu } from '../src/features/system-model/ui/exploration/use-reaches';
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { createStore } from '../src/shared/store';
@@ -991,6 +995,48 @@ describe('elements put in or taken out one by one', () => {
     expect([...picks.added]).toEqual([]);
     expect([...picks.removed]).toEqual(['x']);
   });
+
+  describe('a behavior put in', () => {
+    const elements = new Map(
+      exploration.elements.map((each) => [each.id, each]),
+    );
+    const place = 'behavior|shop.orders.Order.place';
+    const order = 'building_block|shop.orders.Order';
+
+    it('brings the block it is on, drawn round it, and nothing further out', () => {
+      const picks = pickedIn(NO_PICKS, [place], elements);
+      expect(picks.added).toEqual(new Set([place, order]));
+      const graph = graphOf(exploration, {
+        hidden: new Set(['module', 'aggregate', 'value_object', 'behavior']),
+        relations: new Set(['contains', 'invokes']),
+        picks,
+      });
+      expect(
+        new Map(graph.elements.map(({ id, parent }) => [id, parent])),
+      ).toEqual(
+        new Map([
+          [order, null],
+          [place, order],
+        ]),
+      );
+    });
+
+    it('brings its block back when the reader had taken it off', () => {
+      const picks = pickedIn(picked(NO_PICKS, order, false), [place], elements);
+      expect(picks.added.has(order)).toBe(true);
+      expect(picks.removed.has(order)).toBe(false);
+    });
+
+    it('brings its block by name, a card of its own, though it came by a slot', () => {
+      const picks = pickedIn(NO_PICKS, [place, order], elements, true);
+      expect(picks.bySlot).toEqual(new Set([place]));
+    });
+
+    it('brings nothing with a block or a module', () => {
+      const picks = pickedIn(NO_PICKS, [order, 'module|shop.orders'], elements);
+      expect(picks.added).toEqual(new Set([order, 'module|shop.orders']));
+    });
+  });
 });
 
 describe('slots drawn on the cards that hold them', () => {
@@ -1165,12 +1211,43 @@ describe('slots drawn on the cards that hold them', () => {
     });
   });
 
-  it('says in a badge’s tooltip the slot as written, and what it is to the card', () => {
-    const graph = onCards(['contains', 'state', 'input']);
-    const [line] = graph.badges.get(PLACE) ?? [];
-    expect(badgeTipOf(line!)).toBe('line: Line · input 1');
-    const [lines] = graph.badges.get(ORDER) ?? [];
-    expect(badgeTipOf(lines!)).toBe('lines: Line [*] · state');
+  describe('a card’s own menu', () => {
+    const elements = new Map(
+      exploration.elements.map((each) => [each.id, each]),
+    );
+    const reading = (...drawn: string[]) => ({
+      drawn: new Set(drawn),
+      neighbours: neighboursOf(exploration),
+      elements,
+    });
+    const ORDER = 'building_block|shop.orders.Order';
+    const PLACE = 'behavior|shop.orders.Order.place';
+
+    it('tells a card’s own slots from the same slots read back from their type', () => {
+      expect(
+        ['hasState', 'hasInput', 'hasOutput'].every((reach) =>
+          isOwnSlotReach(reach as never),
+        ),
+      ).toBeTrue();
+      expect(
+        ['stateOf', 'inputOf', 'outputOf', 'invokes', 'contains'].some(
+          (reach) => isOwnSlotReach(reach as never),
+        ),
+      ).toBeFalse();
+    });
+
+    it('does not offer the types of the card’s own slots: they are its badges', () => {
+      // All the order and its behavior still reach is the line, by a slot.
+      const drawn = reading('module|shop.orders', ORDER, PLACE);
+      expect(hasNodeMenu(ORDER, false, drawn)).toBeFalse();
+      expect(hasNodeMenu(PLACE, false, drawn)).toBeFalse();
+    });
+
+    it('offers, from a type, the cards that hold it in a slot', () => {
+      expect(
+        hasNodeMenu(LINE, false, reading('module|shop.orders', LINE)),
+      ).toBeTrue();
+    });
   });
 
   it('relates a card to the types its badges name, when they have cards of their own', () => {
@@ -1306,7 +1383,7 @@ describe('slots drawn on the cards that hold them', () => {
     // Written as the code declares it: `(line: Line)`, its brackets not
     // read out, the slot between them.
     expect(place).toMatch(
-      /<span aria-hidden="true">\(<\/span><span[^>]*><button[^>]*data-relation="input"[^>]*data-related="true"[^>]*data-tip="line: Line · input 1"[^>]*aria-label="line: Line, also on the diagram"[^>]*aria-haspopup="dialog"[^>]*aria-expanded="false"[^>]*>/,
+      /<span aria-hidden="true">\(<\/span><span[^>]*><button[^>]*data-relation="input"[^>]*data-related="true"[^>]*aria-label="line: Line, also on the diagram"[^>]*aria-haspopup="dialog"[^>]*aria-expanded="false"[^>]*>/,
     );
     expect(place).toMatch(
       /<span[^>]*>line<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*>Line<\/span>/,
@@ -1355,8 +1432,10 @@ describe('slots drawn on the cards that hold them', () => {
     const html = drawn(true);
     // `() → void`: the arrow not read out, the word read as it is.
     expect(html).toMatch(
-      /<span aria-hidden="true">\) → <\/span><span[^>]*data-tip="No output"[^>]*>void<\/span>/,
+      /<span aria-hidden="true">\) → <\/span><span[^>]*>void<\/span>/,
     );
+    // No slot has a tooltip, the word for none neither.
+    expect(html).not.toContain('data-tip');
     // With no slot and nothing to say, a card has no signature.
     expect(drawn(false)).not.toContain('data-part="badges"');
   });
@@ -1451,10 +1530,72 @@ describe('the way into the picker', () => {
     expect(html).not.toContain('aria-label="Add to the exploration"');
   });
 
-  it('adds to a drawn one from the plus at its foot', () => {
+  it('adds to a drawn one from the plus in its corner', () => {
     const html = picker(3);
     expect(html).not.toContain('Start exploration');
     expect(html).toMatch(/<button[^>]*aria-label="Add to the exploration"/);
+  });
+});
+
+describe('a card that stands without what holds it', () => {
+  const ORDER = 'building_block|shop.orders.Order';
+  const PLACE = 'behavior|shop.orders.Order.place';
+  const drawnWith = (...added: string[]) =>
+    graphOf(exploration, {
+      hidden: new Set(['module', 'aggregate', 'value_object', 'behavior']),
+      relations: new Set(['contains']),
+      picks: { added: new Set(added), removed: new Set() },
+    });
+
+  it('is told apart: its parent is in the model, and not on the diagram', () => {
+    // The order's module is not drawn; its behavior's block is.
+    expect([...drawnWith(ORDER, PLACE).parentless]).toEqual([ORDER]);
+    expect([...drawnWith(ORDER, 'module|shop.orders').parentless]).toEqual([
+      'module|shop.orders',
+    ]);
+    // The outermost module has nothing round it to miss.
+    expect(drawnWith('module|shop').parentless.size).toBe(0);
+  });
+
+  it('is left the room for the way to its parent, beside its menu and cross', () => {
+    const graph = drawnWith(ORDER);
+    const order = graph.elements.find(({ id }) => id === ORDER)!;
+    const without = cardSizeOf(order, { badges: graph.badges });
+    expect(cardSizeOf(order, graph).width).toBe(without.width + 24);
+    expect(frameLeastWidthOf(order, graph)).toBe(
+      frameLeastWidthOf(order, { badges: graph.badges }) + 24,
+    );
+  });
+});
+
+describe('how much of an element is drawn, with all inside it', () => {
+  const ORDERS = 'module|shop.orders';
+  const ORDER = 'building_block|shop.orders.Order';
+  const LINE = 'building_block|shop.orders.Line';
+  const PLACE = 'behavior|shop.orders.Order.place';
+  const much = (...drawn: string[]) =>
+    howMuchDrawn(exploration, new Set(drawn));
+
+  it('is all of it, none of it, or only part', () => {
+    expect(much(ORDER, PLACE).get(ORDER)).toBe(true);
+    expect(much().get(ORDER)).toBe(false);
+    // The block without its behavior, and the behavior without its block.
+    expect(much(ORDER).get(ORDER)).toBe('mixed');
+    expect(much(PLACE).get(ORDER)).toBe('mixed');
+  });
+
+  it('is all of an element with nothing inside it, once it is drawn', () => {
+    expect(much(PLACE).get(PLACE)).toBe(true);
+    expect(much(ORDER).get(PLACE)).toBe(false);
+  });
+
+  it('counts what is inside all the way down', () => {
+    // A behavior alone marks every frame round it as partly drawn.
+    expect(much(PLACE).get(ORDERS)).toBe('mixed');
+    expect(much(PLACE).get('module|shop')).toBe('mixed');
+    expect(much(ORDERS, ORDER, LINE, PLACE).get(ORDERS)).toBe(true);
+    // Its own module is not inside it.
+    expect(much(ORDERS, ORDER, LINE, PLACE).get('module|shop')).toBe('mixed');
   });
 });
 
@@ -1600,6 +1741,7 @@ describe('placing a change from one card', () => {
     badges: new Map(),
     folded: new Set<string>(),
     noOutput: new Set<string>(),
+    parentless: new Set<string>(),
   });
   const apart = (
     a: { x: number; y: number; width: number; height: number },
@@ -1841,6 +1983,72 @@ describe('placing a change from one card', () => {
     // which keeps its place and size.
     expect(byId.get('Two')).toMatchObject({ x: 400 - 90, y: 300 - 28 });
     expect(byId.get('Box')).toMatchObject({ x: 100, y: 100, width: 600 });
+  });
+
+  describe('several cards moved together', () => {
+    it('lets each go where it was let go of, as they stood to each other', () => {
+      const [a, b, c] = [element('A'), element('B'), element('C')];
+      const placed = movedAllTo(
+        [at(a, 0, 0), at(b, 200, 0), at(c, 0, 400)],
+        graphOf(a, b, c),
+        [
+          { id: 'A', to: { x: 1000, y: 100 } },
+          { id: 'B', to: { x: 1200, y: 100 } },
+        ],
+      )!;
+      const byId = new Map(placed.map((each) => [each.element.id, each]));
+      expect(byId.get('A')).toMatchObject({ x: 1000, y: 100 });
+      expect(byId.get('B')).toMatchObject({ x: 1200, y: 100 });
+      expect(byId.get('C')).toMatchObject({ x: 0, y: 400 });
+    });
+
+    it('moves what they land on off them, and none of them off each other', () => {
+      const [a, b, c] = [element('A'), element('B'), element('C')];
+      // A and B, side by side as close as cards stand, land over C.
+      const placed = movedAllTo(
+        [at(a, 0, 0), at(b, 182, 0), at(c, 600, 300)],
+        graphOf(a, b, c),
+        [
+          { id: 'A', to: { x: 500, y: 290 } },
+          { id: 'B', to: { x: 682, y: 290 } },
+        ],
+      )!;
+      const byId = new Map(placed.map((each) => [each.element.id, each]));
+      expect(byId.get('A')).toMatchObject({ x: 500, y: 290 });
+      expect(byId.get('B')).toMatchObject({ x: 682, y: 290 });
+      expect(apart(byId.get('C')!, byId.get('A')!)).toBe(true);
+      expect(apart(byId.get('C')!, byId.get('B')!)).toBe(true);
+    });
+
+    it('grows the frame round cards moved in it, and takes what a frame holds with it', () => {
+      const box = element('Box');
+      const [one, two] = [element('One', 'Box'), element('Two', 'Box')];
+      const other = element('Other');
+      const kid = element('Kid', 'Other');
+      const placed = movedAllTo(
+        [
+          at(box, 0, 0, 400, 200, true),
+          at(one, 16, 60),
+          at(two, 200, 60),
+          at(other, 1000, 0, 200, 160, true),
+          at(kid, 16, 60),
+        ],
+        graphOf(box, one, two, other, kid),
+        [
+          // Two cards down inside their frame, and another frame as far.
+          { id: 'One', to: { x: 16, y: 260 } },
+          { id: 'Two', to: { x: 200, y: 260 } },
+          { id: 'Other', to: { x: 1000, y: 200 } },
+        ],
+      )!;
+      const byId = new Map(placed.map((each) => [each.element.id, each]));
+      expect(byId.get('One')).toMatchObject({ x: 16, y: 260 });
+      expect(byId.get('Two')).toMatchObject({ x: 200, y: 260 });
+      expect(byId.get('Box')!.height).toBeGreaterThanOrEqual(260 + 56);
+      // The frame moved, what it holds where it was inside it.
+      expect(byId.get('Other')).toMatchObject({ x: 1000, y: 200 });
+      expect(byId.get('Kid')).toMatchObject({ x: 16, y: 60 });
+    });
   });
 
   describe('dropped in another module', () => {

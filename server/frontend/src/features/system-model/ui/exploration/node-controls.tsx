@@ -3,13 +3,14 @@ import { useState } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Menu } from '#/shared/design-system/menu.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
+import { IconParentFrame } from '#/shared/ui/icons/icons.ts';
 import { type DrawnElement } from '../../system-model-exploration.ts';
 import { useCardActions } from './exploration-reading.ts';
 import { keepInMenu, NodeMenuButton, ReachItems } from './reach-menu.tsx';
-import { containsLabel } from './reach-words.ts';
+import { containsLabel, showParentLabel } from './reach-words.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import { useLazyOpening } from './use-lazy-opening.ts';
-import { useMissing } from './use-reaches.ts';
+import { useAdd, useMissing, useMissingParent } from './use-reaches.ts';
 import classes from './exploration.module.css';
 
 /*
@@ -78,9 +79,10 @@ export function Contains({
 }
 
 /*
- * In the top right corner: the card's own menu, and apart from it the way
- * off the diagram, its cross. A frame's cross takes it with everything
- * inside: what holds something never leaves without it.
+ * In the top right corner: the card's own menu, then the way to its parent
+ * while that is not on the diagram; apart from them the way off the
+ * diagram, its cross. A frame's cross takes it with everything inside: what
+ * holds something never leaves without it.
  */
 export function Remove({
   id,
@@ -92,11 +94,27 @@ export function Remove({
   holds: boolean;
 }) {
   const { onShow } = useCardActions();
+  const parent = useMissingParent(id);
+  const showParent = useAdd(id, 'isPartOf');
   return (
     <div className={`nodrag nopan ${classes.corner}`}>
       {/* Apart from the ways off, so a click meant for it never takes one. */}
       <div className={classes.strip}>
         <NodeMenuButton id={id} name={name} holds={holds} />
+        {parent !== null && (
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="sm"
+            // How the card leaves the room for it (exploration.module.css).
+            data-part="parent"
+            aria-label={`${showParentLabel(parent)} of ${name}, ${parent.name}`}
+            data-tip={`${showParentLabel(parent)} · ${parent.name}`}
+            onClick={() => showParent([parent.id])}
+          >
+            <IconParentFrame size={14} stroke={1.8} aria-hidden />
+          </ActionIcon>
+        )}
       </div>
       <div className={classes.strip}>
         <ActionIcon

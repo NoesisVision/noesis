@@ -44,8 +44,8 @@ export interface TreeSnapshot {
   readonly canDrag: (path: string) => boolean;
   /** The row a dragged one would land in, if dropped now. */
   readonly dropPath: string | null;
-  /** Whether a row's element is in; null for a row with nothing to put in or take out. */
-  readonly toggledOn: (path: string) => boolean | null;
+  /** How much of a row's element is in; null for a row with nothing to put in or take out. */
+  readonly toggledOn: (path: string) => boolean | 'mixed' | null;
   /** Whether a row is shown only to be opened, not picked. */
   readonly isInactive: (path: string) => boolean;
   /** What such a row says beside its name. */

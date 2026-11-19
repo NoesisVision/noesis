@@ -221,6 +221,23 @@
 }
 
 /*
+ * A card that stands without what holds it has the way to that beside its
+ * menu and cross (node-controls.tsx): its name keeps clear of the third
+ * button too, in the room the layout left it (PARENT_ROOM).
+ */
+.exploration .holder:has([data-part='parent']) .card {
+  padding-right: 86px;
+}
+
+.exploration .holder:has([data-part='parent']) .card[data-kind='behavior'] {
+  padding-right: 96px;
+}
+
+.exploration .container:has(> .corner [data-part='parent']) .containerLabel {
+  max-width: calc(100% - 100px);
+}
+
+/*
  * A card carrying badges keeps its name and what it is at the top, its
  * badges under them (slot-badges.module.css); a behavior's menu and cross
  * stay beside its name.
@@ -234,10 +251,14 @@
   top: 28px;
 }
 
-/* Each relation in its own colour (relationEdges in theme.ts), as well as its word. */
+/*
+ * Each relation in its own colour (relationEdges in theme.ts), as well as
+ * its word. From further off its line is that many times as wide
+ * (--edge-weight, below), and its arrow with it.
+ */
 .edge :global(.react-flow__edge-path) {
   stroke: var(--relation-color, var(--noesis-architecture-edge));
-  stroke-width: 1.5px;
+  stroke-width: calc(1.5px * var(--edge-weight, 1));
 }
 
 /*
@@ -246,14 +267,17 @@
  * so the round starts where the last ended.
  */
 .edge:global(.animated) :global(.react-flow__edge-path) {
-  stroke-dasharray: var(--relation-dash, 5px) var(--relation-gap, 5px);
+  /* As much longer as the line is wider, so a dash keeps its shape. */
+  stroke-dasharray: calc(var(--relation-dash, 5px) * var(--edge-weight, 1))
+    calc(var(--relation-gap, 5px) * var(--edge-weight, 1));
   animation: relationDash var(--relation-dash-time, 0.5s) linear infinite;
 }
 
 @keyframes relationDash {
   from {
     stroke-dashoffset: calc(
-      var(--relation-dash, 5px) + var(--relation-gap, 5px)
+      (var(--relation-dash, 5px) + var(--relation-gap, 5px)) *
+        var(--edge-weight, 1)
     );
   }
 
@@ -293,7 +317,7 @@
 /* The selection's own relations stand out; the rest step back. */
 .edge.highlighted :global(.react-flow__edge-path) {
   stroke: var(--edge-highlight, var(--noesis-diagram-highlight));
-  stroke-width: 2.5px;
+  stroke-width: calc(2.5px * var(--edge-weight, 1));
 }
 
 .edge.faded {
@@ -350,6 +374,20 @@
 /* A relation's word on its line is too small to read by then: the line alone is drawn. */
 .exploration[data-detail] .edge :global(.react-flow__edge-textwrapper) {
   display: none;
+}
+
+/*
+ * The line itself would thin out to a hair, so it is drawn bolder: as many
+ * times as wide as close up, one weight for each detail, read near the top
+ * of its zooms, where it is a little bolder than close up, and still a
+ * line at the bottom of them.
+ */
+.exploration[data-detail='blocks'] {
+  --edge-weight: 3;
+}
+
+.exploration[data-detail='modules'] {
+  --edge-weight: 6;
 }
 
 /*
@@ -651,13 +689,33 @@
   text-align: center;
 }
 
-/* Where the picker opens from, at the canvas's foot, plus or no plus. */
+/*
+ * Where the picker opens from, in the canvas's bottom right corner, plus or
+ * no plus. The panel a selection is read in, down the same side, ends above
+ * the plus (details-dock.module.css): the plus's place and size, and the
+ * picker's own distance from it.
+ */
+.exploration {
+  --details-dock-foot: calc(24px + 56px + 16px);
+}
+
 .anchor {
   position: absolute;
+  right: 24px;
   bottom: 24px;
-  left: 50%;
   z-index: 5;
-  transform: translateX(-50%);
+
+  /*
+   * Opened on an empty canvas, the picker is in the canvas's middle: it
+   * opens above this spot, so the spot is half the picker's height, and the
+   * picker's distance from it, below the middle.
+   */
+  &[data-centred] {
+    top: calc(50% + min(560px, 100dvh - 200px) / 2 + 16px);
+    right: auto;
+    bottom: auto;
+    left: 50%;
+  }
 }
 
 .plus {
@@ -824,9 +882,11 @@
 }
 
 /* The keys the canvas answers to, in its bottom left corner. */
+/* How wide the shortcuts open; folded, they are their icon alone (canvas-legend.tsx). */
 .legend {
+  --legend-width: 320px;
+
   flex: none;
-  width: 320px;
   margin-top: auto;
 }
 

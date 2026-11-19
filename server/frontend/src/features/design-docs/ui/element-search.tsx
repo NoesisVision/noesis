@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import type {
+  Ticked,
   TreeInactive,
   TreeToggling,
 } from '#/features/design-docs/ui/model-tree/model-tree.tsx';
@@ -44,18 +45,18 @@ const elementOf = (node: { path: string; elementId: string | null }) =>
  * opens. For a model read as it stands, so nothing in it is a change.
  *
  * Read one of two ways. Ticking: each element's row starts with a tick box
- * saying whether the view draws it; a click on the box, or Enter or Space on
- * the row, puts it in or takes it out, and a click elsewhere on a row does
- * nothing. Picking: no boxes, and a click on an element's row, or Enter on
+ * saying how much of it the view draws — ticked for all of it, a dash for
+ * only part, empty for none; a click on the row or its box, or Enter or
+ * Space on the row, puts it in or takes it out. Picking: no boxes, and a click on an element's row, or Enter on
  * it, picks that element; a group's row only opens and shuts.
  */
 export type ElementSearchProps = {
   document: DesignDocumentInput;
 } & (
   | {
-      /** Whether the view draws an element now. */
-      isShown: (id: string) => boolean;
-      /** Adds the element to the view, or removes it. */
+      /** How much of an element the view draws now: all, none, or — `mixed` — only part. */
+      isShown: (id: string) => Ticked;
+      /** Adds the element to the view — more of it, when only part is in — or removes it. */
       onShow: (id: string, shown: boolean) => void;
       onPick?: never;
       isDrawn?: never;
@@ -125,7 +126,7 @@ export function ElementSearch({
             isOn: (node) =>
               SHOWABLE.has(node.kind) ? isShown(elementOf(node)) : null,
             onToggle: (node) =>
-              onShow(elementOf(node), !isShown(elementOf(node))),
+              onShow(elementOf(node), isShown(elementOf(node)) !== true),
           },
     [isShown, onShow],
   );

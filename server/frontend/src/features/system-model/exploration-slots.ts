@@ -166,6 +166,16 @@ export const isSlotReach = (reach: Reach): boolean => {
   return kind === 'state' || kind === 'input' || kind === 'output';
 };
 
+/**
+ * Whether a way of reaching others goes from a card to the types of its own
+ * slots — its state, its inputs, its output. The card carries those as its
+ * badges already, so there is nothing for it to bring in that way. Read back
+ * from the type — "state of", "input of", "output of" — a slot brings the
+ * cards that hold it, as any other relation does.
+ */
+export const isOwnSlotReach = (reach: Reach): boolean =>
+  reach === 'hasState' || reach === 'hasInput' || reach === 'hasOutput';
+
 /** A slot's key in the tree a walk opens: the steps that lead to it, so the same slot reached another way is another. */
 export const walkKeyOf = (path: readonly WalkStep[], index: number) =>
   path

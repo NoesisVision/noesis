@@ -48,6 +48,11 @@ export interface ExplorationGraph {
    * each says so where its signature would write its output's type.
    */
   noOutput: ReadonlySet<string>;
+  /**
+   * The cards whose container the model holds is not on the diagram: each
+   * has a way to it beside its cross, and the room for that.
+   */
+  parentless: ReadonlySet<string>;
 }
 
 /** The relations that are slots, drawn on the cards that hold them. */
@@ -172,6 +177,13 @@ export function graphOf(
     badges,
     folded,
     noOutput,
+    parentless: new Set(
+      onCards
+        .filter(
+          ({ container }) => container !== null && !isShown.has(container),
+        )
+        .map(({ id }) => id),
+    ),
   };
 }
 
@@ -231,4 +243,39 @@ export function removalOf(
   };
   for (const id of ids) take(id);
   return [...gone];
+}
+
+/** How much of something is drawn: all of it, none of it, or only part. */
+export type HowMuchDrawn = boolean | 'mixed';
+
+/**
+ * How much of each element is drawn, counted with all the model holds
+ * inside it, all the way down. Only part is the element without all inside
+ * it, or some of what is inside without it; an element with nothing inside
+ * is all drawn once it is.
+ */
+export function howMuchDrawn(
+  exploration: Exploration,
+  drawn: ReadonlySet<string>,
+): ReadonlyMap<string, HowMuchDrawn> {
+  const kids = new Map<string, string[]>();
+  for (const { id, container } of exploration.elements)
+    if (container !== null)
+      kids.set(container, [...(kids.get(container) ?? []), id]);
+  const much = new Map<string, HowMuchDrawn>();
+  /** How many an element and all inside it are, and how many of them are drawn. */
+  const count = (id: string): [all: number, drawn: number] => {
+    let all = 1;
+    let on = drawn.has(id) ? 1 : 0;
+    for (const kid of kids.get(id) ?? []) {
+      const [inside, insideOn] = count(kid);
+      all += inside;
+      on += insideOn;
+    }
+    much.set(id, on === 0 ? false : on === all ? true : 'mixed');
+    return [all, on];
+  };
+  for (const { id, container } of exploration.elements)
+    if (container === null) count(id);
+  return much;
 }

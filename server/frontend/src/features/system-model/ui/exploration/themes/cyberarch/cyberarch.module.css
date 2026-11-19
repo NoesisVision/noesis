@@ -390,7 +390,7 @@
 .theme[data-diagram-theme]
   :global(.react-flow__edge)
   :global(.react-flow__edge-path) {
-  stroke-width: 1.5px;
+  stroke-width: calc(1.5px * var(--edge-weight, 1));
   filter: drop-shadow(0 0 3px var(--relation-color, var(--cy-cyan)));
 }
 

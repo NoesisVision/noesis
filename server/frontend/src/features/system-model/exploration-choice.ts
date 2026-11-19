@@ -1,4 +1,8 @@
-import { type Exploration, groupOf } from './exploration.model.ts';
+import {
+  type Exploration,
+  type ExploredElement,
+  groupOf,
+} from './exploration.model.ts';
 
 /*
  * What the reader chose to see: the kinds hidden, and the elements put in
@@ -100,3 +104,25 @@ export const pickedAll = (
   bySlot = false,
 ): ElementPicks =>
   ids.reduce((each, id) => picked(each, id, shown, bySlot), picks);
+
+/**
+ * The picks with several elements put in, and with each behavior the block
+ * it is on: a behavior alone does not say whose it is, so its block comes
+ * with it however it was brought in — by name, from the canvas's own menu,
+ * or by following a relation from a card. The block is put in by name, a
+ * card of its own, even when the behavior came by a slot.
+ */
+export function pickedIn(
+  picks: ElementPicks,
+  ids: readonly string[],
+  elements: ReadonlyMap<string, ExploredElement>,
+  bySlot = false,
+): ElementPicks {
+  const blocks = ids.flatMap((id) => {
+    const element = elements.get(id);
+    return element?.kind === 'behavior' && element.container !== null
+      ? [element.container]
+      : [];
+  });
+  return pickedAll(pickedAll(picks, ids, true, bySlot), blocks, true);
+}

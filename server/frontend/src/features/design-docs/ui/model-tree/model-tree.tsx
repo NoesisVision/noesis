@@ -44,12 +44,19 @@ export interface TreeInactive {
 }
 
 /**
+ * Whether a row's element is in: all of it, none of it or — `mixed` — only
+ * part, as when what is under it is in only partly. Its box is then ticked,
+ * empty, or struck through with a dash.
+ */
+export type Ticked = boolean | 'mixed';
+
+/**
  * Putting a row's element in, or taking it out of, something the tree's owner
  * draws: a tick box before the row's name, and Enter or Space on the row.
  */
 export interface TreeToggling {
-  /** Whether the element is in; null for a row with nothing to put in or take out. */
-  isOn: (node: OutlineNode) => boolean | null;
+  /** How much of the element is in; null for a row with nothing to put in or take out. */
+  isOn: (node: OutlineNode) => Ticked | null;
   onToggle: (node: OutlineNode) => void;
 }
 

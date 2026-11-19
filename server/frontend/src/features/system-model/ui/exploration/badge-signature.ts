@@ -1,33 +1,16 @@
-import { cardinalitySuffixOf } from '#/features/design-docs/cardinality.ts';
 import { markWordOf } from '#/features/design-docs/element-reader.ts';
 import type { Badge, SlotRelation } from '../../system-model-exploration.ts';
 
 /*
  * A card's badges as it writes them: its signature, each slot a badge in
- * it, and what each badge says of itself — read out, and in its tooltip,
- * the slot as written and what it is to the card.
+ * it, and what each badge says of itself when read out.
  */
-
-/** A badge's type, how many after it when not exactly one. */
-const badgeTypeOf = ({ typeName, cardinality }: Badge) =>
-  `${typeName}${cardinalitySuffixOf(cardinality)}`;
 
 /** A badge as it is said: `products: DiscountedProduct, many`. */
 export const badgeSaidOf = (badge: Badge) => {
   const word = markWordOf(badge.cardinality);
   return `${badge.name}: ${badge.typeName}${word === null ? '' : `, ${word}`}`;
 };
-
-/** A badge's words, for its tooltip: its slot as written, `name: Type [*]`. */
-const badgeLabelOf = (badge: Badge) => `${badge.name}: ${badgeTypeOf(badge)}`;
-
-/** What a badge is to its card, for its tooltip: `user: UserId · input 2`. */
-export const badgeTipOf = (badge: Badge) =>
-  `${badgeLabelOf(badge)} · ${
-    badge.relation === 'input' && badge.position !== null
-      ? `input ${badge.position}`
-      : badge.relation
-  }`;
 
 /*
  * A card's badges as its signature, the way the code declares it, without
