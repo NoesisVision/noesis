@@ -2,6 +2,7 @@ import {
   CHAIN_REACHES,
   type ChainReach,
   chainOf,
+  isOwnSlotReach,
   isSlotReach,
   type Reach,
   REACHES,
@@ -24,6 +25,13 @@ interface Reaching {
   missing: { each: Reach; missing: string[] }[] | null;
   chains: { each: ChainReach; missing: string[] }[];
 }
+
+/**
+ * Whether a card offers to bring others in this way. Its own slots' types
+ * it does not: they are its badges already, so the offer would bring
+ * nothing the card does not show — not one by one, not as a chain.
+ */
+const offered = (reach: Reach) => !isOwnSlotReach(reach);
 
 /*
  * Worked out once for each card and kept until what is drawn changes: a
@@ -53,16 +61,20 @@ function reachingOf(id: string, reading: Reading): Reaching {
       missing:
         reach === undefined
           ? null
-          : REACHES.map((each) => ({
-              each,
-              missing: reach[each].filter((other) => !drawn.has(other)),
-            })).filter(({ missing }) => missing.length > 0),
-      chains: CHAIN_REACHES.map((each) => ({
-        each,
-        missing: chainOf(neighbours, elements, id, each).filter(
-          (other) => !drawn.has(other),
-        ),
-      })).filter(({ missing }) => missing.length > 0),
+          : REACHES.filter(offered)
+              .map((each) => ({
+                each,
+                missing: reach[each].filter((other) => !drawn.has(other)),
+              }))
+              .filter(({ missing }) => missing.length > 0),
+      chains: CHAIN_REACHES.filter(offered)
+        .map((each) => ({
+          each,
+          missing: chainOf(neighbours, elements, id, each).filter(
+            (other) => !drawn.has(other),
+          ),
+        }))
+        .filter(({ missing }) => missing.length > 0),
     };
     kept.cards.set(id, card);
   }

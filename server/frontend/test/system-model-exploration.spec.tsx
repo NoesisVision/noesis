@@ -19,6 +19,7 @@ import {
   NOTHING_CHOSEN,
   picked,
   pickedIn,
+  isOwnSlotReach,
   isSlotReach,
   RELATIONS,
   type RelationKind,
@@ -55,6 +56,7 @@ import {
   refusingFrames,
 } from '../src/features/system-model/ui/exploration/place-locally';
 import { SlotBadges } from '../src/features/system-model/ui/exploration/slot-badges';
+import { hasNodeMenu } from '../src/features/system-model/ui/exploration/use-reaches';
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
 import { MantineProvider } from '../src/shared/design-system/provider';
 import { createStore } from '../src/shared/store';
@@ -1205,6 +1207,45 @@ describe('slots drawn on the cards that hold them', () => {
           (reach) => isSlotReach(reach as never),
         ),
       ).toBeFalse();
+    });
+  });
+
+  describe('a card’s own menu', () => {
+    const elements = new Map(
+      exploration.elements.map((each) => [each.id, each]),
+    );
+    const reading = (...drawn: string[]) => ({
+      drawn: new Set(drawn),
+      neighbours: neighboursOf(exploration),
+      elements,
+    });
+    const ORDER = 'building_block|shop.orders.Order';
+    const PLACE = 'behavior|shop.orders.Order.place';
+
+    it('tells a card’s own slots from the same slots read back from their type', () => {
+      expect(
+        ['hasState', 'hasInput', 'hasOutput'].every((reach) =>
+          isOwnSlotReach(reach as never),
+        ),
+      ).toBeTrue();
+      expect(
+        ['stateOf', 'inputOf', 'outputOf', 'invokes', 'contains'].some(
+          (reach) => isOwnSlotReach(reach as never),
+        ),
+      ).toBeFalse();
+    });
+
+    it('does not offer the types of the card’s own slots: they are its badges', () => {
+      // All the order and its behavior still reach is the line, by a slot.
+      const drawn = reading('module|shop.orders', ORDER, PLACE);
+      expect(hasNodeMenu(ORDER, false, drawn)).toBeFalse();
+      expect(hasNodeMenu(PLACE, false, drawn)).toBeFalse();
+    });
+
+    it('offers, from a type, the cards that hold it in a slot', () => {
+      expect(
+        hasNodeMenu(LINE, false, reading('module|shop.orders', LINE)),
+      ).toBeTrue();
     });
   });
 
