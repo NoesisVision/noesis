@@ -100,7 +100,7 @@ import classes from './exploration.module.css';
 /*
  * The scanned model drawn as a diagram: its elements as cards, the relations
  * the scan holds between them as edges, and containment as cards inside
- * cards. The reader picks what is drawn and how it is placed; the layout
+ * cards. The reader picks what is drawn; the layout
  * places it, and the reader may drag a card on from there until the next
  * auto-place puts everything back. A card chosen is read in a panel on the
  * canvas, its relations and what they join it to marked on the diagram;
@@ -148,9 +148,6 @@ const startsBox = (target: Element) => {
 
 /** How long going into a card from further off takes. */
 const INTO_MS = 400;
-
-/** The one layout the reader is offered. */
-const ALGORITHM = 'layered';
 
 /** How large the stylesheet draws names from further off: what the layout left room for. */
 const FAR_NAMES = { '--far-name-scale': FAR_NAME_SCALE } as CSSProperties;
@@ -203,12 +200,11 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       ]),
   );
   const [drawing, setDrawing] = useState<Drawing>({
-    direction: opening?.direction ?? 'vertical',
     // How the edges were drawn when the diagram was left, as it is restored.
     orthogonal: opened?.edges?.orthogonal ?? true,
     animated: opened?.edges?.animated ?? true,
   });
-  const { direction, orthogonal, animated } = drawing;
+  const { orthogonal, animated } = drawing;
   // Chosen on the Dev Tools page; the exploration only draws in it.
   const theme = useDiagramTheme();
   const graph = useMemo(
@@ -253,14 +249,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     outline,
     flow,
     setFlow,
-  } = usePlacement(
-    graph,
-    ALGORITHM,
-    direction,
-    opening,
-    selection,
-    goingToWhatWasAdded,
-  );
+  } = usePlacement(graph, opening, selection, goingToWhatWasAdded);
   const zoom = useCanvasZoom(flow);
   // Where a point of the page is on the canvas, once the canvas is there.
   const toCanvas = useMemo(
@@ -268,7 +257,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [flow],
   );
 
-  // Every step the diagram took — what is drawn, how, and where each card
+  // Every step the diagram took — what is drawn, and where each card
   // stands — once its cards have landed or been moved by hand, to go back
   // through and forward again.
   const steps = useRef<DiagramSteps>(opened ?? { list: [], at: -1 });
@@ -276,9 +265,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     at: opened?.at ?? -1,
     count: opened?.list.length ?? 0,
   });
-  const now = useRef({ stored, relations, drawing, nodes });
+  const now = useRef({ stored, relations, nodes });
   useLayoutEffect(() => {
-    now.current = { stored, relations, drawing, nodes };
+    now.current = { stored, relations, nodes };
   });
   // The step a move back or forward lands on is that step, not a new one;
   // so is the one the diagram opens at.
@@ -289,15 +278,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       stepping.current = false;
       return;
     }
-    const {
-      stored: choiceNow,
-      relations: drawnRelations,
-      drawing: how,
-    } = now.current;
+    const { stored: choiceNow, relations: drawnRelations } = now.current;
     const step: DiagramStep = {
       choice: choiceNow,
       relations: drawnRelations,
-      direction: how.direction,
       nodes: now.current.nodes.filter(({ data }) => !data.leaving),
     };
     const held = steps.current;
@@ -314,21 +298,15 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       steps.current = { ...held, at: held.at + by };
       setStepAt({ at: held.at + by, count: held.list.length });
       rememberSteps(modelId, steps.current);
-      const {
-        stored: choiceNow,
-        relations: drawnRelations,
-        drawing: how,
-      } = now.current;
+      const { stored: choiceNow, relations: drawnRelations } = now.current;
       const changes =
         !sameChoice(step.choice, choiceNow) ||
-        !sameSet(step.relations, drawnRelations) ||
-        step.direction !== how.direction;
+        !sameSet(step.relations, drawnRelations);
       stepping.current = true;
       restore(step.nodes, changes);
       if (!changes) return;
       setChoice(step.choice);
       setRelations(step.relations);
-      setDrawing((was) => ({ ...was, direction: step.direction }));
     },
     [restore, modelId],
   );
@@ -711,7 +689,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         setRelations((current) =>
           current.has(relation) ? current : new Set([...current, relation]),
         ),
-      onArrange: (id: string) => void arrange(id),
+      onArrange: arrange,
     }),
     [
       graph.badges,

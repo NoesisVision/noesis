@@ -6,13 +6,11 @@ import {
 } from '../../system-model-exploration.ts';
 import type { ExplorationNode } from './exploration-node.ts';
 import { nodeOf } from './exploration-nodes.ts';
-import type { LayoutDirection } from './layout-exploration.ts';
 
 /** The diagram as one step left it, enough to put it back as it stood. */
 export interface DiagramStep {
   choice: ElementChoice;
   relations: ReadonlySet<RelationKind>;
-  direction: LayoutDirection;
   nodes: ExplorationNode[];
 }
 
@@ -102,7 +100,6 @@ interface StoredStep {
   removed: string[];
   bySlot: string[];
   relations: RelationKind[];
-  direction: LayoutDirection;
   nodes: StoredNode[];
 }
 
@@ -122,17 +119,11 @@ const storedNodeOf = ({
   parent: placed.element.parent,
 });
 
-const storedOf = ({
-  choice,
-  relations,
-  direction,
-  nodes,
-}: DiagramStep): StoredStep => ({
+const storedOf = ({ choice, relations, nodes }: DiagramStep): StoredStep => ({
   added: [...choice.picks.added],
   removed: [...choice.picks.removed],
   bySlot: [...(choice.picks.bySlot ?? [])],
   relations: [...relations],
-  direction,
   nodes: nodes.map(storedNodeOf),
 });
 
@@ -196,17 +187,11 @@ export function recallSteps(
         },
       },
       relations: new Set(step.relations),
-      direction: step.direction,
       nodes: step.nodes.flatMap(({ id, parent, ...placed }) => {
         const element = elements.get(id);
         return element === undefined
           ? []
-          : [
-              nodeOf(
-                { ...placed, element: { ...element, parent } },
-                step.direction,
-              ),
-            ];
+          : [nodeOf({ ...placed, element: { ...element, parent } })];
       }),
     })),
   };
@@ -250,16 +235,15 @@ function isEdgeLook(value: unknown): value is EdgeLook {
 function isStep(value: unknown): value is StoredStep {
   if (typeof value !== 'object' || value === null) return false;
   const relations = field(value, 'relations');
-  // A step saved with the routes edges once ran is read without them.
+  // A step saved with the routes edges once ran, or the way the layout
+  // once ran, is read without them.
   const nodes = field(value, 'nodes');
-  const direction = field(value, 'direction');
   return (
     isNames(field(value, 'added')) &&
     isNames(field(value, 'removed')) &&
     isNames(field(value, 'bySlot')) &&
     Array.isArray(relations) &&
     relations.every(isRelation) &&
-    (direction === 'vertical' || direction === 'horizontal') &&
     Array.isArray(nodes) &&
     nodes.every(isNode)
   );

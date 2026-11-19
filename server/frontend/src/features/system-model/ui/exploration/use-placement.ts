@@ -29,8 +29,6 @@ import {
 } from './exploration-nodes.ts';
 import { GLIDE_MS, LEAVING_MS, LIVE_DRAG } from './exploration-timing.ts';
 import {
-  type LayoutAlgorithm,
-  type LayoutDirection,
   layoutExploration,
   layoutWithin,
   type PlacedElement,
@@ -108,8 +106,6 @@ interface LocalChange {
 
 export function usePlacement(
   graph: ExplorationGraph,
-  algorithm: LayoutAlgorithm,
-  direction: LayoutDirection,
   /** Where the cards stood when the reader last left, to open at. */
   opening: { nodes: ExplorationNode[] } | null,
   /** The cards in hand: one of them dragged, the rest go with it. */
@@ -128,8 +124,6 @@ export function usePlacement(
   const [asked, setAsked] = useState(0);
   const [placed, setPlaced] = useState<{
     graph: ExplorationGraph;
-    algorithm: LayoutAlgorithm;
-    direction: LayoutDirection;
     asked: number;
     /** Placed beside a card rather than anew, so the view stays where it is. */
     local: boolean;
@@ -294,8 +288,7 @@ export function usePlacement(
     [setNodes, stopDropGlide],
   );
   const land = useCallback(
-    (elements: PlacedElement[], way: LayoutDirection) =>
-      landNodes(elements.map((each) => nodeOf(each, way))),
+    (elements: PlacedElement[]) => landNodes(elements.map(nodeOf)),
     [landNodes],
   );
 
@@ -458,11 +451,7 @@ export function usePlacement(
                 to: { x: origin.x + at.x, y: origin.y + at.y },
               })),
             );
-      if (elements !== null)
-        return dropNodes(
-          elements.map((each) => nodeOf(each, direction)),
-          letGo,
-        );
+      if (elements !== null) return dropNodes(elements.map(nodeOf), letGo);
       // No settling what they push: each where it was let go.
       const there = byIdOf(letGo);
       setNodes((all) =>
@@ -473,7 +462,7 @@ export function usePlacement(
       );
       setEdits((count) => count + 1);
     },
-    [dropNodes, direction, setNodes],
+    [dropNodes, setNodes],
   );
 
   // What was last placed, known at once rather than on the next render: run
@@ -482,24 +471,14 @@ export function usePlacement(
   // diagram opened where it was left is not placed anew over it.
   const settled = useRef<{
     graph: ExplorationGraph;
-    algorithm: LayoutAlgorithm;
-    direction: LayoutDirection;
     asked: number;
   } | null>(null);
   useEffect(() => {
     const was = settled.current;
-    if (
-      was !== null &&
-      was.graph === graph &&
-      was.algorithm === algorithm &&
-      was.direction === direction &&
-      was.asked === asked
-    )
-      return;
-    let current = true;
+    if (was !== null && was.graph === graph && was.asked === asked) return;
     const done = (local: boolean) => {
-      settled.current = { graph, algorithm, direction, asked };
-      setPlaced({ graph, algorithm, direction, asked, local });
+      settled.current = { graph, asked };
+      setPlaced({ graph, asked, local });
     };
 
     // A step gone back to stands as it stood.
@@ -521,8 +500,6 @@ export function usePlacement(
       change !== null &&
       last !== null &&
       last.graph === change.graph &&
-      last.algorithm === algorithm &&
-      last.direction === direction &&
       last.asked === asked
     ) {
       const elements = placeLocally(
@@ -531,35 +508,26 @@ export function usePlacement(
         change.anchor,
       );
       if (elements !== null) {
-        land(elements, direction);
+        land(elements);
         done(true);
         return;
       }
     }
 
-    layoutExploration(graph, algorithm, direction).then(
-      (placement) => {
-        if (!current) return;
-        land(placement.elements, direction);
-        done(false);
-      },
-      (error: unknown) => {
-        if (!current) return;
-        setFailure(error instanceof Error ? error.message : String(error));
-        done(false);
-      },
-    );
-    return () => {
-      current = false;
-    };
-  }, [graph, algorithm, direction, asked, land, landNodes]);
+    try {
+      land(layoutExploration(graph).elements);
+    } catch (error) {
+      setFailure(error instanceof Error ? error.message : String(error));
+    }
+    done(false);
+  }, [graph, asked, land, landNodes]);
 
   /**
    * What a container holds placed anew inside it, from what is drawn now;
    * when that cannot be done without moving the rest, everything anew.
    */
   const arrange = useCallback(
-    async (id: string) => {
+    (id: string) => {
       const drawn = latest.current.placed?.graph;
       // Only a container drawn round others has anything to arrange.
       if (
@@ -567,18 +535,16 @@ export function usePlacement(
         !drawn.elements.some(({ parent }) => parent === id)
       )
         return;
-      const inside = await layoutWithin(drawn, id, algorithm, direction);
-      if (latest.current.placed?.graph !== drawn) return;
       const elements = arrangeWithin(
         standingOf(latest.current.nodes),
         drawn,
         id,
-        inside,
+        layoutWithin(drawn, id),
       );
       if (elements === null) setAsked((count) => count + 1);
-      else land(elements, direction);
+      else land(elements);
     },
-    [algorithm, direction, land],
+    [land],
   );
 
   // Once a change from a card has landed beside it, the containers it asked
@@ -624,11 +590,7 @@ export function usePlacement(
 
   const autoPlace = useCallback(() => setAsked((count) => count + 1), []);
   const placing =
-    placed === null ||
-    placed.graph !== graph ||
-    placed.algorithm !== algorithm ||
-    placed.direction !== direction ||
-    placed.asked !== asked;
+    placed === null || placed.graph !== graph || placed.asked !== asked;
   return {
     nodes,
     placements,

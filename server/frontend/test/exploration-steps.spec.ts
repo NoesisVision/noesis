@@ -56,20 +56,19 @@ const ELEMENTS = new Map(
 const step: DiagramStep = {
   choice: { shown: new Set(), picks: { added: new Set(), removed: new Set() } },
   relations: new Set(['contains', 'state', 'input']),
-  direction: 'horizontal',
   nodes: [],
 };
 
 describe('the steps the diagram took, kept on the machine', () => {
   it('keeps each step, and the one the diagram stands at', () => {
     rememberSteps(MODEL, {
-      list: [step, { ...step, direction: 'vertical' }],
+      list: [step, { ...step, relations: new Set(['contains']) }],
       at: 1,
     });
     const recalled = recallSteps(MODEL, ELEMENTS);
-    expect(recalled?.list.map(({ direction }) => direction)).toEqual([
-      'horizontal',
-      'vertical',
+    expect(recalled?.list.map(({ relations }) => [...relations])).toEqual([
+      ['contains', 'state', 'input'],
+      ['contains'],
     ]);
     expect(recalled?.at).toBe(1);
   });
@@ -79,18 +78,30 @@ describe('the steps the diagram took, kept on the machine', () => {
     const order = { ...ELEMENTS.get(ORDER)!, parent: ORDERS };
     const gone = { ...order, id: 'building_block|shop.orders.Gone' };
     const nodes = [
-      nodeOf(
-        { element: orders, holds: true, x: 10, y: 20, width: 400, height: 300 },
-        'horizontal',
-      ),
-      nodeOf(
-        { element: order, holds: false, x: 16, y: 60, width: 180, height: 56 },
-        'horizontal',
-      ),
-      nodeOf(
-        { element: gone, holds: false, x: 0, y: 0, width: 180, height: 56 },
-        'horizontal',
-      ),
+      nodeOf({
+        element: orders,
+        holds: true,
+        x: 10,
+        y: 20,
+        width: 400,
+        height: 300,
+      }),
+      nodeOf({
+        element: order,
+        holds: false,
+        x: 16,
+        y: 60,
+        width: 180,
+        height: 56,
+      }),
+      nodeOf({
+        element: gone,
+        holds: false,
+        x: 0,
+        y: 0,
+        width: 180,
+        height: 56,
+      }),
     ];
     rememberSteps(MODEL, { list: [{ ...step, nodes }], at: 0 });
     // Kept by id, place and size alone.
@@ -112,7 +123,30 @@ describe('the steps the diagram took, kept on the machine', () => {
       parentId: ORDERS,
     });
     expect(card?.data.placed.element).toEqual(order);
-    expect(card?.data.direction).toBe('horizontal');
+  });
+
+  it('reads a step kept while the layout still ran down or across', () => {
+    storage.setItem(
+      KEY,
+      JSON.stringify({
+        v: 4,
+        savedAt: 1,
+        at: 0,
+        list: [
+          {
+            added: [ORDER],
+            removed: [],
+            bySlot: [],
+            relations: ['contains'],
+            direction: 'horizontal',
+            nodes: [],
+          },
+        ],
+      }),
+    );
+    expect([
+      ...(recallSteps(MODEL, ELEMENTS)?.list[0]?.choice.picks.added ?? []),
+    ]).toEqual([ORDER]);
   });
 
   it('keeps which types came by following a slot', () => {

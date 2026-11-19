@@ -27,25 +27,12 @@ const toolbar = (drawing: Drawing) =>
   );
 
 describe('the exploration toolbar', () => {
-  const html = toolbar({
-    direction: 'vertical',
-    orthogonal: true,
-    animated: true,
-  });
+  const html = toolbar({ orthogonal: true, animated: true });
 
-  it('offers which way the layout runs, and no other choice of how slots are drawn', () => {
-    expect(html.match(/role="radiogroup"/g)).toHaveLength(1);
-    expect(html).toContain('aria-label="Direction" role="radiogroup"');
-  });
-
-  it('sets which way the layout runs just before the button that places it', () => {
-    const between = html.slice(
-      html.indexOf('aria-label="Direction"'),
-      html.indexOf('Auto-place'),
-    );
-    expect(between).not.toBe('');
-    // One button between them: Auto-place itself.
-    expect(between.match(/<button/g)).toHaveLength(1);
+  it('offers no way for the layout to run: one button places everything', () => {
+    expect(html).not.toContain('role="radiogroup"');
+    expect(html).not.toContain('Direction');
+    expect(html.match(/Auto-place/g)).toHaveLength(1);
   });
 
   it('keeps placing everything afresh as quiet as the rest of the row', () => {

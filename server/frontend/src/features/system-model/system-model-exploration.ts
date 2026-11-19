@@ -25,6 +25,7 @@
 export * from './exploration-relations.ts';
 export * from './exploration.model.ts';
 export * from './exploration-sections.ts';
+export * from './exploration-order.ts';
 export * from './exploration-choice.ts';
 export * from './exploration-graph.ts';
 export * from './exploration-detail.ts';
