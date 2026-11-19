@@ -29,16 +29,18 @@ const toolbar = (drawing: Drawing) =>
 describe('the exploration toolbar', () => {
   const html = toolbar({ orthogonal: true, animated: true });
 
-  it('offers no way for the layout to run: one button places everything', () => {
+  it('offers no way for the layout to run: one button reorders everything', () => {
     expect(html).not.toContain('role="radiogroup"');
     expect(html).not.toContain('Direction');
-    expect(html.match(/Auto-place/g)).toHaveLength(1);
+    expect(html.match(/Reorder diagram/g)).toHaveLength(1);
+    // The name it had, and the trial beside it, are gone.
+    expect(html).not.toContain('Auto-place');
   });
 
-  it('keeps placing everything afresh as quiet as the rest of the row', () => {
+  it('keeps reordering everything as quiet as the rest of the row', () => {
     // The button that holds the words itself, not one before it in the row.
     expect(html).toMatch(
-      /<button[^>]*data-variant="subtle"[^>]*>(?:(?!<button).)*Auto-place/s,
+      /<button[^>]*data-variant="subtle"[^>]*>(?:(?!<button).)*Reorder diagram/s,
     );
   });
 });

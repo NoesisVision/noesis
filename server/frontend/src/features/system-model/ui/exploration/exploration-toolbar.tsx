@@ -17,6 +17,7 @@ import {
   ToolbarPill,
 } from '#/shared/ui/canvas-toolbar.tsx';
 import { IconAutoPlace } from '#/shared/ui/icons/icons.ts';
+import { REORDER_DIAGRAM } from './reach-words.ts';
 import classes from './exploration.module.css';
 
 /** How the exploration is drawn, as the reader set it. */
@@ -140,7 +141,7 @@ export function ExplorationToolbar({
         leftSection={<IconAutoPlace size={16} stroke={1.6} aria-hidden />}
         onClick={onAutoPlace}
       >
-        Auto-place
+        {REORDER_DIAGRAM}
       </Button>
     </CanvasToolbar>
   );
