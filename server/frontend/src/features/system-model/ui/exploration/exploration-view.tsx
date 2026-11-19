@@ -53,6 +53,7 @@ import {
   neighboursOf,
   NOTHING_CHOSEN,
   pickedAll,
+  pickedIn,
   type RelationKind,
   relatedToAll,
   removalOf,
@@ -448,13 +449,20 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     () => new Set([...drawn, ...graph.folded]),
     [drawn, graph.folded],
   );
+  // However an element is put on the diagram — the picker, the canvas's own
+  // menu, a card's — a behavior brings the block it is on with it.
   const onShowAll = useCallback(
     (ids: readonly string[], shown: boolean, bySlot = false) =>
       setChoice((current) => {
         const kept = choiceWithin(current, exploration);
-        return { ...kept, picks: pickedAll(kept.picks, ids, shown, bySlot) };
+        return {
+          ...kept,
+          picks: shown
+            ? pickedIn(kept.picks, ids, elementsById, bySlot)
+            : pickedAll(kept.picks, ids, false),
+        };
       }),
-    [exploration],
+    [exploration, elementsById],
   );
   // What the model holds inside each element, all the way down.
   const insideOf = useMemo(() => {

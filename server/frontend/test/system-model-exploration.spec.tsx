@@ -18,6 +18,7 @@ import {
   NO_PICKS,
   NOTHING_CHOSEN,
   picked,
+  pickedIn,
   isSlotReach,
   RELATIONS,
   type RelationKind,
@@ -990,6 +991,48 @@ describe('elements put in or taken out one by one', () => {
     const picks = picked(picked(NO_PICKS, 'x', true), 'x', false);
     expect([...picks.added]).toEqual([]);
     expect([...picks.removed]).toEqual(['x']);
+  });
+
+  describe('a behavior put in', () => {
+    const elements = new Map(
+      exploration.elements.map((each) => [each.id, each]),
+    );
+    const place = 'behavior|shop.orders.Order.place';
+    const order = 'building_block|shop.orders.Order';
+
+    it('brings the block it is on, drawn round it, and nothing further out', () => {
+      const picks = pickedIn(NO_PICKS, [place], elements);
+      expect(picks.added).toEqual(new Set([place, order]));
+      const graph = graphOf(exploration, {
+        hidden: new Set(['module', 'aggregate', 'value_object', 'behavior']),
+        relations: new Set(['contains', 'invokes']),
+        picks,
+      });
+      expect(
+        new Map(graph.elements.map(({ id, parent }) => [id, parent])),
+      ).toEqual(
+        new Map([
+          [order, null],
+          [place, order],
+        ]),
+      );
+    });
+
+    it('brings its block back when the reader had taken it off', () => {
+      const picks = pickedIn(picked(NO_PICKS, order, false), [place], elements);
+      expect(picks.added.has(order)).toBe(true);
+      expect(picks.removed.has(order)).toBe(false);
+    });
+
+    it('brings its block by name, a card of its own, though it came by a slot', () => {
+      const picks = pickedIn(NO_PICKS, [place, order], elements, true);
+      expect(picks.bySlot).toEqual(new Set([place]));
+    });
+
+    it('brings nothing with a block or a module', () => {
+      const picks = pickedIn(NO_PICKS, [order, 'module|shop.orders'], elements);
+      expect(picks.added).toEqual(new Set([order, 'module|shop.orders']));
+    });
   });
 });
 
