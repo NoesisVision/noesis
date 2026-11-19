@@ -29,10 +29,22 @@
   }
 }
 
+/* What the cards' one menu is opened on (card-context-menu.tsx): the canvas, whole. */
+.cards {
+  height: 100%;
+}
+
 /* A leaf element's node: the card fills it. */
 .holder {
   width: 100%;
   height: 100%;
+}
+
+/* Pressed long, a card opens its menu, not the page's way of picking its words. */
+.holder,
+.container {
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 /*
@@ -119,7 +131,7 @@
   flex-direction: column;
   align-items: flex-start;
   box-sizing: border-box;
-  height: 60px;
+  height: var(--frame-top, 60px);
   cursor: grab;
 }
 
@@ -136,8 +148,8 @@
   display: flex;
   flex-direction: column;
   align-self: flex-start;
-  /* Clear of the menu and two ways off the diagram in the frame's corner. */
-  max-width: calc(100% - 100px);
+  /* Clear of the menu and the way off the diagram in the frame's corner. */
+  max-width: calc(100% - 76px);
   margin: 6px;
   padding: 4px 8px;
   border-radius: 10px;
@@ -206,6 +218,20 @@
   top: 50%;
   right: 14px;
   transform: translateY(-50%);
+}
+
+/*
+ * A card carrying badges keeps its name and what it is at the top, its
+ * badges under them (slot-badges.module.css); a behavior's menu and cross
+ * stay beside its name.
+ */
+.exploration .holder[data-badged] .card {
+  justify-content: flex-start;
+  padding-top: 6px;
+}
+
+.holder[data-kind='behavior'][data-badged] .corner {
+  top: 28px;
 }
 
 /* Each relation in its own colour (relationEdges in theme.ts), as well as its word. */
@@ -278,17 +304,261 @@
  * With something in hand, the cards and frames with nothing to do with it
  * step back as their edges do, so what is left reads on its own. A frame's
  * cards are their own nodes: one that matters stays clear in a frame that
- * steps back.
+ * steps back. Drawn from one mark on the diagram — something is in hand —
+ * and each card's own on where it stands to it, so a card with nothing to
+ * do with the selection is told nothing as it changes; weighing no more
+ * than a card's own rules, which is what `:where` is for.
  */
-.holder[data-dimmed],
-.container[data-dimmed] {
+:where(.exploration[data-in-hand]) .holder:not([data-standing]),
+:where(.exploration[data-in-hand]) .container:not([data-standing]) {
   opacity: var(--noesis-diagram-dimmed);
+}
+
+/*
+ * From further off (data-detail, read from the zoom: exploration-detail.ts)
+ * less is seen. Each card says from how far off it is out of sight
+ * (data-unseen-from), and the page goes by that as the zoom changes, so
+ * crossing from one detail to the next draws no card again. What steps
+ * out of sight keeps its place and fades; what a card carries — its
+ * signature, its menu, its cross, the way to what it contains — goes at
+ * the first step, too small by then to read or press. Only that fading is
+ * animated: a name is at its new size and place at once, never seen on
+ * its way there.
+ */
+.exploration[data-detail] [data-unseen-from='blocks'],
+.exploration[data-detail='modules'] [data-unseen-from='modules'],
+.exploration[data-detail] [data-part='badges'],
+.exploration[data-detail] .corner,
+.exploration[data-detail] .contains {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+ * A card out of sight is still a node of the canvas, over the frame it is
+ * in, and lets the pointer through to that frame's name; over the node's
+ * own inline style, hence the weight.
+ */
+.exploration[data-detail]
+  :global(.react-flow__node):has([data-unseen-from='blocks']),
+.exploration[data-detail='modules']
+  :global(.react-flow__node):has([data-unseen-from='modules']) {
+  pointer-events: none !important;
+}
+
+/* A relation's word on its line is too small to read by then: the line alone is drawn. */
+.exploration[data-detail] .edge :global(.react-flow__edge-textwrapper) {
+  display: none;
+}
+
+/*
+ * Names from further off, larger so they still read. The corner's controls
+ * are gone from beside each, so it has the width, and what each is —
+ * `Module` — is left unsaid: its icon says it. While the blocks are still
+ * seen every name is the one size (--far-name-scale, from
+ * layout-exploration.ts, which leaves each card and frame the room for
+ * it). Once modules alone are left each name is read on its own: sized
+ * against the room it has — its frame's size and its own width are set on
+ * it (element-node.tsx).
+ */
+.exploration[data-detail] .kindLine {
+  display: none;
+}
+
+/*
+ * How tall a name is at its own size, in a frame's label and on a card,
+ * and the most it grows where it has the room: one size for each detail,
+ * read in the middle of its zooms, so nothing is sized anew while the
+ * reader only comes closer or goes further.
+ *
+ * Where a name has a node's middle — a card, a frame with nothing seen
+ * inside it — it has it alone: the icon of its kind is a mark in the
+ * node's top left corner, smaller than the name and clear of it. The mark
+ * is still part of the name's line, drawn larger with it, so its size and
+ * how far in from the corner it sits are given at the name's own size.
+ */
+.exploration[data-detail] {
+  --label-height: 26;
+  --card-label-height: 19;
+  --mark-size: 12px;
+  --mark-inset: 4px;
+}
+
+.exploration[data-detail='blocks'] {
+  --label-most: var(--far-name-scale);
+}
+
+.exploration[data-detail='modules'] {
+  --label-most: 6;
+}
+
+/*
+ * A frame with something still seen inside it: its name in its top, as
+ * large as its top holds, no wider than the frame.
+ */
+.exploration[data-detail] .container {
+  /* About what the name takes at its own size: its icon and letters, and its padding. */
+  --label-width: calc(var(--name-width) + 16);
+  --label-scale: max(
+    1,
+    min(
+      var(--label-most),
+      calc(54 / var(--label-height)),
+      calc((var(--frame-width) - 12) / var(--label-width))
+    )
+  );
+
+  & .containerLabel {
+    max-width: calc((100% - 12px) / var(--label-scale));
+    transform: scale(var(--label-scale));
+    transform-origin: top left;
+  }
+}
+
+/*
+ * A frame with nothing seen inside it — a block whose behaviors stepped
+ * back, a module left alone — says its name in its middle, as large as
+ * reads from that far off and no larger than the frame holds, the icon of
+ * its kind in its corner. The whole of it is then its top: it is taken
+ * from anywhere.
+ */
+.exploration[data-detail] .container[data-hollow-from='blocks'],
+.exploration[data-detail='modules'] .container[data-hollow-from='modules'] {
+  --label-scale: max(
+    1,
+    min(
+      var(--label-most),
+      calc((var(--frame-width) - 24) / var(--label-width)),
+      calc((var(--frame-height) - 24) / var(--label-height))
+    )
+  );
+
+  & .frameTop {
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+
+  /* Its name about the frame's middle. */
+  & .containerLabel {
+    align-items: center;
+    align-self: center;
+    margin: 0;
+    text-align: center;
+    transform-origin: center;
+  }
+
+  /*
+   * Its icon in the frame's corner. The label is drawn larger about its
+   * own middle, which is the frame's: the corner is half the frame back
+   * from there, at the label's own size.
+   */
+  & .nameLine > :first-child {
+    position: absolute;
+    top: calc(
+      50% + var(--mark-inset) - var(--frame-height) * 0.5px / var(--label-scale)
+    );
+    left: calc(
+      50% + var(--mark-inset) - var(--frame-width) * 0.5px / var(--label-scale)
+    );
+    width: var(--mark-size);
+    height: var(--mark-size);
+  }
+}
+
+/*
+ * A card: its name in its middle, top to bottom and side to side, as an
+ * emptied frame's is, as large as reads from that far off and as the card
+ * holds, with the room its controls and its signature left; the icon of
+ * its kind in its corner.
+ */
+.exploration[data-detail] .holder {
+  /* From the card's edge to where its name's line starts: its border and padding. */
+  --card-inset: 11px;
+
+  &[data-kind='behavior'] {
+    --card-inset: 19px;
+  }
+
+  --label-scale: max(
+    1,
+    min(
+      var(--label-most),
+      calc((var(--frame-width) - 40) / var(--name-width)),
+      calc((var(--frame-height) - 16) / var(--card-label-height))
+    )
+  );
+
+  & .card {
+    justify-content: center;
+    padding-inline-end: var(--mantine-spacing-xs);
+  }
+
+  &[data-kind='behavior'] .card {
+    padding-inline-end: 18px;
+  }
+
+  /* Its name's line as wide as the card once grown, the name in its middle. */
+  & .nameLine {
+    justify-content: center;
+    width: calc(100% / var(--label-scale));
+    text-align: center;
+    transform: scale(var(--label-scale));
+    transform-origin: left center;
+  }
+
+  /*
+   * Its icon in the card's corner. The line is drawn larger from its left
+   * end, about its own height's middle, which is the card's: the corner
+   * is the card's inset back from that end, and half the card up.
+   */
+  & .nameLine > :first-child {
+    position: absolute;
+    top: calc(
+      50% + var(--mark-inset) - var(--frame-height) * 0.5px / var(--label-scale)
+    );
+    left: calc(var(--mark-inset) - var(--card-inset) / var(--label-scale));
+    width: var(--mark-size);
+    height: var(--mark-size);
+  }
+}
+
+/*
+ * What is drawn inside a frame is not moved from that far off
+ * (exploration-view.tsx), and does not say it can be: its name is still
+ * pressed, the rest of its top is not taken. A module inside another is
+ * the one that still is, and keeps a frame's own cursors.
+ */
+.exploration[data-detail]
+  .container[data-nested]:not([data-kind='module'])
+  .frameTop {
+  cursor: default;
+}
+
+.exploration[data-detail]
+  .container[data-nested]:not([data-kind='module'])
+  .frameTop
+  .containerLabel {
+  cursor: pointer;
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .holder,
-  .container {
-    transition: opacity 150ms ease;
+  .container,
+  .exploration [data-part='badges'] {
+    transition:
+      opacity 250ms ease,
+      visibility 0s;
+  }
+
+  /* Out of sight only once it has faded. */
+  .exploration[data-detail] [data-unseen-from='blocks'],
+  .exploration[data-detail='modules'] [data-unseen-from='modules'],
+  .exploration[data-detail] [data-part='badges'] {
+    transition:
+      opacity 250ms ease,
+      visibility 0s 250ms;
   }
 }
 
@@ -440,9 +710,35 @@
 }
 
 .strip {
+  /* Where the dots' menu hangs, once it is drawn (`.opening`). */
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 2px;
+}
+
+/*
+ * Laid over a card's button once its menu is first asked for
+ * (use-lazy-opening.ts): what the menu hangs on and follows, the button
+ * itself being drawn before there is a menu.
+ */
+.opening,
+.containsSpot {
+  position: absolute;
+  pointer-events: none;
+}
+
+.opening {
+  inset: 0;
+}
+
+/* Over the round plus on the bottom border, where `.contains` puts it. */
+.containsSpot {
+  bottom: -12px;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translateX(-50%);
 }
 
 /* Quiet, as the app's icon buttons are, a light ground only under the

@@ -103,10 +103,10 @@ const signatureOf = (
             {index > 0 && ', '}
             {name}
             {type !== undefined && ': '}
+            {type}
             {cardinality !== undefined && (
               <CardinalityMark cardinality={cardinality} />
             )}
-            {type}
           </Fragment>
         ))}
         )
@@ -316,10 +316,10 @@ function Lines({ label, lines }: { label: string; lines: Line[] | undefined }) {
           {name !== undefined && type !== undefined && ': '}
           {type !== undefined && (
             <span className={classes.type}>
+              {type}
               {cardinality !== undefined && (
                 <CardinalityMark cardinality={cardinality} />
               )}
-              {type}
             </span>
           )}
         </span>

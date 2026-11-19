@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Menu } from '#/shared/design-system/menu.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
-import { IconFrameX } from '#/shared/ui/icons/icons.ts';
 import { type DrawnElement } from '../../system-model-exploration.ts';
 import { useCardActions } from './exploration-reading.ts';
 import { keepInMenu, NodeMenuButton, ReachItems } from './reach-menu.tsx';
 import { containsLabel } from './reach-words.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
+import { useLazyOpening } from './use-lazy-opening.ts';
 import { useMissing } from './use-reaches.ts';
 import classes from './exploration.module.css';
 
@@ -32,48 +32,55 @@ export function Contains({
 }) {
   const { id, name } = element;
   const contains = useMissing(id)?.find(({ each }) => each === 'contains');
-  // Held here, so the button can say so: the menu's own word on it.
+  // Held here, so the button can say so: the menu's own word on it. The
+  // menu itself is drawn once it is first asked for (use-lazy-opening.ts).
   const [open, setOpen] = useState(false);
+  const { mounted, opener } = useLazyOpening(open, setOpen);
   const surface = useThemedSurface('menu', `nowheel ${classes.reachMenu}`);
   if (contains === undefined) return null;
   const { missing } = contains;
   const label = containsLabel(name, missing.length);
   return (
-    <Menu
-      opened={open}
-      onChange={setOpen}
-      position="bottom"
-      shadow="md"
-      withinPortal
-      // The canvas stops a mouse press from reaching the page; a pointer's does.
-      clickOutsideEvents={['pointerdown']}
-    >
-      <Menu.Target>
-        <UnstyledButton
-          className={`nodrag nopan ${classes.contains}`}
-          data-part="contains"
-          data-frame={holds || undefined}
-          data-kind={element.kind}
-          aria-label={label}
-          aria-haspopup="menu"
-          aria-expanded={open}
+    <>
+      <UnstyledButton
+        className={`nodrag nopan ${classes.contains}`}
+        data-part="contains"
+        data-frame={holds || undefined}
+        data-kind={element.kind}
+        aria-label={label}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        {...opener}
+      >
+        <IconPlus size={12} stroke={2.4} aria-hidden />
+      </UnstyledButton>
+      {mounted && (
+        <Menu
+          opened={open}
+          onChange={setOpen}
+          position="bottom"
+          shadow="md"
+          withinPortal
+          // The canvas stops a mouse press from reaching the page; a pointer's does.
+          clickOutsideEvents={['pointerdown']}
         >
-          <IconPlus size={12} stroke={2.4} aria-hidden />
-        </UnstyledButton>
-      </Menu.Target>
-      <Menu.Dropdown {...surface} onContextMenu={keepInMenu}>
-        <Menu.Label>Contains:</Menu.Label>
-        <ReachItems id={id} reach="contains" missing={missing} />
-      </Menu.Dropdown>
-    </Menu>
+          <Menu.Target>
+            <span aria-hidden className={classes.containsSpot} />
+          </Menu.Target>
+          <Menu.Dropdown {...surface} onContextMenu={keepInMenu}>
+            <Menu.Label>Contains:</Menu.Label>
+            <ReachItems id={id} reach="contains" missing={missing} />
+          </Menu.Dropdown>
+        </Menu>
+      )}
+    </>
   );
 }
 
 /*
  * In the top right corner: the card's own menu, and apart from it the way
- * off the diagram — a card's one cross; a frame's two, the cross taking
- * only the frame, what it held staying where it stands, and the frame
- * crossed out taking it with everything inside.
+ * off the diagram, its cross. A frame's cross takes it with everything
+ * inside: what holds something never leaves without it.
  */
 export function Remove({
   id,
@@ -84,7 +91,7 @@ export function Remove({
   name: string;
   holds: boolean;
 }) {
-  const { onShow, onRemoveAlone } = useCardActions();
+  const { onShow } = useCardActions();
   return (
     <div className={`nodrag nopan ${classes.corner}`}>
       {/* Apart from the ways off, so a click meant for it never takes one. */}
@@ -92,19 +99,6 @@ export function Remove({
         <NodeMenuButton id={id} name={name} holds={holds} />
       </div>
       <div className={classes.strip}>
-        {holds && (
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            size="sm"
-            className={classes.remove}
-            aria-label={`Remove ${name} and what it holds from the view`}
-            data-tip="Remove group"
-            onClick={() => onShow([id], false, id)}
-          >
-            <IconFrameX size={14} stroke={1.8} aria-hidden />
-          </ActionIcon>
-        )}
         <ActionIcon
           variant="subtle"
           color="gray"
@@ -112,11 +106,11 @@ export function Remove({
           className={classes.remove}
           aria-label={
             holds
-              ? `Remove only ${name}, keeping what it holds`
+              ? `Remove ${name} and what it holds from the view`
               : `Remove ${name} from the view`
           }
-          data-tip={holds ? 'Remove only this' : 'Remove from the view'}
-          onClick={() => (holds ? onRemoveAlone(id) : onShow([id], false, id))}
+          data-tip={holds ? 'Remove group' : 'Remove from the view'}
+          onClick={() => onShow([id], false, id)}
         >
           <IconX size={14} stroke={1.8} aria-hidden />
         </ActionIcon>

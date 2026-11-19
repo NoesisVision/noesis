@@ -8,6 +8,7 @@ import {
   CHAIN_DEPTH,
   type ChainReach,
   groupLabelOf,
+  isSlotReach,
   type Reach,
   relationOfChain,
 } from '../../system-model-exploration.ts';
@@ -15,7 +16,8 @@ import { useCardActions } from './exploration-reading.ts';
 import type { CanvasPoint } from './place-locally.ts';
 import { REACH_ACTION, TIDY_UP } from './reach-words.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
-import { useAdd, useChains, useMissing } from './use-reaches.ts';
+import { useLazyOpening } from './use-lazy-opening.ts';
+import { hasNodeMenu, useAdd, useChains, useMissing } from './use-reaches.ts';
 import classes from './exploration.module.css';
 
 /*
@@ -112,7 +114,7 @@ function ChainEntry({
     <Menu.Item
       onClick={() => {
         onDraw(relationOfChain(reach));
-        onShow(missing, true, id);
+        onShow(missing, true, id, false, undefined, isSlotReach(reach));
       }}
     >
       {`${REACH_ACTION[reach]}: ${missing.length}`}
@@ -210,6 +212,15 @@ function NodeMenuEntry({
   );
 }
 
+/**
+ * Whether the card's own menu has anything to offer: a frame's setting out
+ * again of what it holds, or others it reaches to bring in. With nothing,
+ * a card shows no dots and opens no menu.
+ */
+function useHasNodeMenu(id: string, holds: boolean) {
+  return hasNodeMenu(id, holds, useCardActions());
+}
+
 /** Where the card's own menu opens: at the pointer, or under its dots. */
 export const NODE_MENU = {
   shadow: 'md',
@@ -219,7 +230,10 @@ export const NODE_MENU = {
   clickOutsideEvents: ['pointerdown'] as string[],
 } as const;
 
-/** The card's dots, in its corner beside the way off: its own menu. */
+/**
+ * The card's dots, in its corner beside the way off: its own menu, drawn
+ * once it is first asked for (use-lazy-opening.ts).
+ */
 export function NodeMenuButton({
   id,
   name,
@@ -230,22 +244,30 @@ export function NodeMenuButton({
   holds: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const { mounted, opener } = useLazyOpening(open, setOpen);
+  if (!useHasNodeMenu(id, holds)) return null;
   return (
-    <Menu opened={open} onChange={setOpen} {...NODE_MENU}>
-      <Menu.Target>
-        <ActionIcon
-          variant="subtle"
-          color="gray"
-          size="sm"
-          aria-label={`More for ${name}`}
-          data-tip="All actions · also on right-click"
-          aria-haspopup="menu"
-          aria-expanded={open}
-        >
-          <IconDots size={14} stroke={1.8} aria-hidden />
-        </ActionIcon>
-      </Menu.Target>
-      <NodeMenuDropdown id={id} name={name} holds={holds} />
-    </Menu>
+    <>
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        size="sm"
+        aria-label={`More for ${name}`}
+        data-tip="All actions · also on right-click"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        {...opener}
+      >
+        <IconDots size={14} stroke={1.8} aria-hidden />
+      </ActionIcon>
+      {mounted && (
+        <Menu opened={open} onChange={setOpen} {...NODE_MENU}>
+          <Menu.Target>
+            <span aria-hidden className={classes.opening} />
+          </Menu.Target>
+          <NodeMenuDropdown id={id} name={name} holds={holds} />
+        </Menu>
+      )}
+    </>
   );
 }

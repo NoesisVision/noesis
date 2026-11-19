@@ -1,5 +1,6 @@
 import { Background, ReactFlow, ViewportPortal } from '@xyflow/react';
 import {
+  type CSSProperties,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -17,9 +18,10 @@ import { Alert } from '#/shared/design-system/alert.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
-import '@xyflow/react/dist/base.css';
 import { Text } from '#/shared/design-system/text.tsx';
+import '@xyflow/react/dist/base.css';
 import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
+import { createStore, useStoreValue } from '#/shared/store.ts';
 import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
 import {
   CANVAS_FLOW,
@@ -38,22 +40,27 @@ import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
   choiceWithin,
+  detailAt,
   type ElementChoice,
   elementSectionsOf,
   explorationOf,
+  graphInDetail,
   graphOf,
   groupOf,
   hiddenBy,
   kindWordOf,
+  MODULES_BELOW,
   neighboursOf,
   NOTHING_CHOSEN,
   pickedAll,
   type RelationKind,
   relatedToAll,
   removalOf,
+  steppingBackOf,
 } from '../../system-model-exploration.ts';
 import { designOf } from '../../system-model.model.ts';
 import { CanvasTooltips } from './canvas-tooltips.tsx';
+import { CardContextMenu } from './card-context-menu.tsx';
 import { ElementNode, type ExplorationNode } from './element-node.tsx';
 import { edgeOf } from './exploration-edges.ts';
 import { recallChoice, rememberChoice } from './exploration-memory.ts';
@@ -61,7 +68,9 @@ import { ExplorationPicker } from './exploration-picker.tsx';
 import {
   type ExplorationReading,
   ExplorationReadingContext,
+  ExplorationSelectionContext,
   pathTo,
+  type SelectionReading,
 } from './exploration-reading.ts';
 import {
   type DiagramStep,
@@ -71,6 +80,7 @@ import {
 } from './exploration-steps.ts';
 import { focusOn, PANEL_ROOM, RAISED_Z } from './exploration-timing.ts';
 import { type Drawing, ExplorationToolbar } from './exploration-toolbar.tsx';
+import { FAR_NAME_SCALE } from './layout-exploration.ts';
 import { type CanvasPoint } from './place-locally.ts';
 import { QuickAdd, type QuickAddSpot } from './quick-add.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
@@ -100,13 +110,28 @@ const STEPS = 100;
 const sameSet = (a: ReadonlySet<string>, b: ReadonlySet<string>) =>
   a.size === b.size && [...a].every((each) => b.has(each));
 
+const NONE: ReadonlySet<string> = new Set();
+
 const sameChoice = (a: ElementChoice, b: ElementChoice) =>
   sameSet(a.shown, b.shown) &&
   sameSet(a.picks.added, b.picks.added) &&
-  sameSet(a.picks.removed, b.picks.removed);
+  sameSet(a.picks.removed, b.picks.removed) &&
+  sameSet(a.picks.bySlot ?? NONE, b.picks.bySlot ?? NONE);
+
+/** What a relation joins the selection to, with nothing in hand. */
+const NOTHING_RELATED: ReturnType<typeof relatedToAll> = {
+  relations: new Set(),
+  elements: new Set(),
+};
+
+/** How long going into a card from further off takes. */
+const INTO_MS = 400;
 
 /** The one layout the reader is offered. */
 const ALGORITHM = 'layered';
+
+/** How large the stylesheet draws names from further off: what the layout left room for. */
+const FAR_NAMES = { '--far-name-scale': FAR_NAME_SCALE } as CSSProperties;
 
 export function ExplorationView({ model }: { model: SystemModel }) {
   const {
@@ -124,7 +149,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // it no longer finds.
   // The steps this model's diagram took, kept on this machine, and the one
   // it was left at, which it opens at again, unplaced.
-  const [opened] = useState(() => recallSteps(model.id));
+  const [opened] = useState(() => recallSteps(model.id, elementsById));
   const opening = opened?.list[opened.at] ?? null;
   const [stored, setChoice] = useState<ElementChoice>(
     () => opening?.choice ?? recallChoice(),
@@ -192,6 +217,11 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     setFlow,
   } = usePlacement(graph, ALGORITHM, direction, opening);
   const zoom = useCanvasZoom(flow);
+  // Where a point of the page is on the canvas, once the canvas is there.
+  const toCanvas = useMemo(
+    () => (flow === null ? null : flow.screenToFlowPosition),
+    [flow],
+  );
 
   // Every step the diagram took — what is drawn, how, and where each card
   // stands — once its cards have landed or been moved by hand, to go back
@@ -253,10 +283,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       if (!changes) return;
       setChoice(step.choice);
       setRelations(step.relations);
-      setDrawing((was) => ({
-        ...was,
-        direction: step.direction,
-      }));
+      setDrawing((was) => ({ ...was, direction: step.direction }));
     },
     [restore, modelId],
   );
@@ -301,6 +328,42 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           ),
     [nodes, veiled, raised],
   );
+  // How much is seen from as far off as the diagram is looked at
+  // (exploration-detail.ts). Crossing from one detail to the next is kept
+  // cheap: the page goes by an attribute and the marks each card already
+  // carries, and only the relations are drawn anew — no card is.
+  // Read from the zoom as one of three words, so the view is drawn again
+  // only as the zoom crosses from one to the next, not with every turn of
+  // the wheel.
+  const detail = useStoreValue(zoom.level, detailAt);
+  const detailNow = useRef(detail);
+  useLayoutEffect(() => {
+    detailNow.current = detail;
+  });
+  // Short of all of it, what is drawn inside a frame is not moved: from
+  // that far, a drag is meant for the frame. A module inside another is
+  // itself such a frame, and is moved as one from any distance. The press
+  // is kept from the canvas before it reaches the card, so the card itself
+  // is told nothing.
+  useEffect(() => {
+    const room = canvas.current;
+    if (room === null || detail === 'all') return;
+    const hold = (event: Event) => {
+      const nested =
+        event.target instanceof Element
+          ? event.target.closest('[data-nested]')
+          : null;
+      if (nested === null || nested.getAttribute('data-kind') === 'module')
+        return;
+      event.stopPropagation();
+    };
+    room.addEventListener('mousedown', hold, true);
+    room.addEventListener('touchstart', hold, true);
+    return () => {
+      room.removeEventListener('mousedown', hold, true);
+      room.removeEventListener('touchstart', hold, true);
+    };
+  }, [detail]);
   const scheme = useComputedColorScheme('light');
   const document = useMemo(() => designOf(model), [model]);
   // In hand, in the order taken; the last is the one the panel reads.
@@ -308,7 +371,14 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const selected = selection.at(-1) ?? null;
   const inHandSet = useMemo(() => new Set(selection), [selection]);
   // A card clicked is taken in hand, as on every canvas.
+  // The card last gone into from further off, and when: the second click
+  // of a double click on its name lands once it is closer, and is not a
+  // click to take it in hand.
+  const wentInto = useRef<{ id: string; at: number } | null>(null);
   const select = useCallback((id: string, adding: boolean) => {
+    const into = wentInto.current;
+    if (!adding && into?.id === id && performance.now() - into.at < INTO_MS)
+      return;
     setSelection((held) => selectionAfterClick(held, id, adding));
   }, []);
   const letGo = useCallback(() => setSelection([]), []);
@@ -345,9 +415,17 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [pickable, picking]);
+  // From further off less is seen, and the relations run between what is
+  // (exploration-detail.ts); the cards stay placed as the whole graph is.
+  const inDetail = useMemo(() => graphInDetail(graph, detail), [graph, detail]);
+  const steppingBack = useMemo(() => steppingBackOf(graph), [graph]);
   const related = useMemo(
-    () => relatedToAll(graph, selection),
-    [graph, selection],
+    () =>
+      // With nothing in hand, the same from any distance.
+      selection.length === 0
+        ? NOTHING_RELATED
+        : relatedToAll({ ...graph, relations: inDetail.relations }, selection),
+    [graph, inDetail, selection],
   );
   // Read in the panel only when it is the one card in hand; several are
   // only marked on the diagram.
@@ -363,11 +441,18 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [graph],
   );
   const isShown = useCallback((id: string) => drawn.has(id), [drawn]);
+  // On the diagram, as a card or as badges only: what a card's menu need
+  // not offer to bring in. The picker offers a type drawn as badges only,
+  // to bring out as a card of its own.
+  const present = useMemo(
+    () => new Set([...drawn, ...graph.folded]),
+    [drawn, graph.folded],
+  );
   const onShowAll = useCallback(
-    (ids: readonly string[], shown: boolean) =>
+    (ids: readonly string[], shown: boolean, bySlot = false) =>
       setChoice((current) => {
         const kept = choiceWithin(current, exploration);
-        return { ...kept, picks: pickedAll(kept.picks, ids, shown) };
+        return { ...kept, picks: pickedAll(kept.picks, ids, shown, bySlot) };
       }),
     [exploration],
   );
@@ -398,6 +483,32 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     },
     [drawn],
   );
+  // These cards brought into view, unless all are in sight already, the
+  // panel a lone one is read in not over it.
+  const showInSight = useCallback(
+    (ids: readonly string[], alone: boolean) => {
+      if (flow === null) return;
+      const box = canvas.current?.getBoundingClientRect();
+      const bounds = flow.getNodesBounds([...ids]);
+      const start = flow.flowToScreenPosition(bounds);
+      const end = flow.flowToScreenPosition({
+        x: bounds.x + bounds.width,
+        y: bounds.y + bounds.height,
+      });
+      const inSight =
+        box !== undefined &&
+        start.x >= box.left &&
+        start.y >= box.top &&
+        end.x <= box.right - (alone ? PANEL_ROOM : 0) &&
+        end.y <= box.bottom;
+      if (inSight) return;
+      void flow.fitView({
+        ...focusOn(alone),
+        nodes: ids.map((id) => ({ id })),
+      });
+    },
+    [flow],
+  );
   useEffect(() => {
     const focus = focusAfter.current;
     if (focus === null || gliding || flow === null) return;
@@ -406,26 +517,49 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     const landed = new Set(nodes.map(({ id }) => id));
     if (!ids.every((id) => landed.has(id))) return;
     focusAfter.current = null;
-    const alone = focus.ids.length === 1;
-    const box = canvas.current?.getBoundingClientRect();
-    const bounds = flow.getNodesBounds(ids);
-    const start = flow.flowToScreenPosition(bounds);
-    const end = flow.flowToScreenPosition({
-      x: bounds.x + bounds.width,
-      y: bounds.y + bounds.height,
-    });
-    const inSight =
-      box !== undefined &&
-      start.x >= box.left &&
-      start.y >= box.top &&
-      end.x <= box.right - (alone ? PANEL_ROOM : 0) &&
-      end.y <= box.bottom;
-    if (inSight) return;
-    void flow.fitView({
-      ...focusOn(alone),
-      nodes: ids.map((id) => ({ id })),
-    });
-  }, [gliding, nodes, flow]);
+    showInSight(ids, focus.ids.length === 1);
+  }, [gliding, nodes, flow, showInSight]);
+  // A card already drawn, gone to from elsewhere — a badge naming its type:
+  // in hand alone, and in sight.
+  const goToCard = useCallback(
+    (id: string) => {
+      setSelection([id]);
+      showInSight([id], true);
+    },
+    [showInSight],
+  );
+  // From further off a card is gone into, its name clicked or its frame
+  // double-clicked: put in the middle of the canvas and brought closer.
+  // With only modules left, as close as shows the whole of it, filling the
+  // canvas across or down — and never so far off that what it holds is
+  // still out of sight; while blocks are still seen, at its own size.
+  const goInto = useCallback(
+    (id: string) => {
+      const now = performance.now();
+      const into = wentInto.current;
+      // The second click of a double click: the first is on its way there,
+      // and the detail it is seen in may have changed under it since.
+      if (into?.id === id && now - into.at < INTO_MS) return true;
+      if (detailNow.current === 'all' || flow === null) return false;
+      wentInto.current = { id, at: now };
+      if (detailNow.current === 'modules') {
+        void flow.fitView({
+          nodes: [{ id }],
+          padding: '24px',
+          duration: INTO_MS,
+          minZoom: MODULES_BELOW,
+        });
+        return true;
+      }
+      const { x, y, width, height } = flow.getNodesBounds([id]);
+      void flow.setCenter(x + width / 2, y + height / 2, {
+        zoom: 1,
+        duration: INTO_MS,
+      });
+      return true;
+    },
+    [flow],
+  );
   // A row of the picker, clicked again and again: the element alone, then
   // it and all inside it, then none of them.
   const onPick = useCallback(
@@ -446,9 +580,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
    * lets go of what went.
    */
   const remove = useCallback(
-    (ids: readonly string[], from: string, alone = false) => {
-      // Alone, a container goes and what it held stays where it stands.
-      const gone = alone ? [...ids] : removalOf(graph, ids);
+    (ids: readonly string[], from: string) => {
+      const gone = removalOf(graph, ids);
       // What stays stands where it is; the container a group leaves keeps
       // its size and its cards their places.
       placeBeside(from);
@@ -457,17 +590,35 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     },
     [graph, placeBeside, onShowAll],
   );
-  const reading = useMemo<ExplorationReading>(
+  // Where each card stands to the selection, read by each for itself
+  // (exploration-reading.ts): a click draws again only the cards it changes.
+  const selectionRead = useMemo<SelectionReading>(
     () => ({
       selected: inHandSet,
       related: related.elements,
       path: pathTo(inHandSet, elementsById),
+    }),
+    [inHandSet, related, elementsById],
+  );
+  const [selectionStore] = useState(() => createStore(selectionRead));
+  useLayoutEffect(
+    () => selectionStore.set(selectionRead),
+    [selectionStore, selectionRead],
+  );
+  const reading = useMemo<ExplorationReading>(
+    () => ({
+      badges: graph.badges,
+      noOutput: graph.noOutput,
+      stepping: steppingBack,
+      slots: exploration.slots,
+      onGoTo: goToCard,
+      onInto: goInto,
       onSelect: select,
       onLetGo: () => {
         letGo();
         setQuick(null);
       },
-      drawn,
+      drawn: present,
       neighbours,
       elements: elementsById,
       onShow: (
@@ -476,10 +627,11 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         from: string,
         thenArrange = false,
         at?: CanvasPoint,
+        bySlot = false,
       ) => {
         if (!shown) return remove(ids, from);
         placeBeside(at ?? from, thenArrange ? [from] : []);
-        onShowAll(ids, shown);
+        onShowAll(ids, shown, bySlot);
         bringIn(ids, from);
       },
       onDraw: (relation) =>
@@ -487,14 +639,17 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           current.has(relation) ? current : new Set([...current, relation]),
         ),
       onArrange: (id: string) => void arrange(id),
-      onRemoveAlone: (id: string) => remove([id], id, true),
     }),
     [
-      inHandSet,
-      related,
+      graph.badges,
+      graph.noOutput,
+      steppingBack,
+      exploration.slots,
+      goToCard,
+      goInto,
       select,
       letGo,
-      drawn,
+      present,
       neighbours,
       elementsById,
       remove,
@@ -517,7 +672,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         target instanceof Node && canvas.current?.contains(target) === true;
       if (target !== globalThis.document.body && !onCanvas) return;
       const inSight = graph.elements
-        .filter((element) => !veiled.has(groupOf(element)))
+        .filter(
+          (element) =>
+            !veiled.has(groupOf(element)) && !inDetail.unseen.has(element.id),
+        )
         .map(({ id }) => id);
       if (inSight.length === 0) return;
       event.preventDefault();
@@ -525,7 +683,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [graph, veiled]);
+  }, [graph, veiled, inDetail]);
   // Escape lets go of the cards in hand, as on every diagram.
   useLetGoOnEscape(selection.length > 0, letGo);
   // Delete or Backspace takes every card in hand off the diagram, as their
@@ -547,7 +705,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   }, [selection, drawn, remove, letGo]);
   const edges = useMemo(
     () =>
-      graph.relations.map((relation) =>
+      inDetail.relations.map((relation) =>
         edgeOf(relation, {
           orthogonal,
           animated,
@@ -559,7 +717,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                 : 'faded',
         }),
       ),
-    [graph, orthogonal, animated, selection, related],
+    [inDetail, orthogonal, animated, selection, related],
   );
 
   /*
@@ -684,7 +842,19 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     <ChangeMarksContext.Provider value={false}>
       {/* What floats over the canvas, in a portal, is drawn in its theme too. */}
       <DiagramThemeContext.Provider value={theme}>
-        <Stack gap={0} flex={1} className={classes.exploration}>
+        <Stack
+          gap={0}
+          flex={1}
+          className={classes.exploration}
+          // How far off it is looked at from: all the page goes by to draw
+          // less of it (exploration.module.css), its names then as large as
+          // the layout left each card and frame the room for.
+          data-detail={detail === 'all' ? undefined : detail}
+          // With something in hand, what has nothing to do with it steps
+          // back: drawn by the page from this, so no such card is told.
+          data-in-hand={selection.length > 0 || undefined}
+          style={FAR_NAMES}
+        >
           {toolbar}
           <Box
             ref={canvas}
@@ -715,76 +885,82 @@ export function ExplorationView({ model }: { model: SystemModel }) {
             ) : (
               <DesignDocumentContext.Provider value={document}>
                 <ExplorationReadingContext.Provider value={reading}>
-                  <ReactFlow
-                    nodes={visibleNodes}
-                    edges={edges}
-                    nodeTypes={NODE_TYPES}
-                    edgeTypes={EDGE_TYPES}
-                    onNodesChange={onNodesChange}
-                    onNodeDragStart={onNodeDragStart}
-                    onNodeDrag={onNodeDrag}
-                    onNodeDragStop={onNodeDragStop}
-                    colorMode={scheme}
-                    fitView
-                    fitViewOptions={FIT}
-                    {...CANVAS_FLOW}
-                    minZoom={0.1}
-                    maxZoom={2}
-                    onInit={(instance) => {
-                      setFlow(instance);
-                      zoom.readZoom(instance);
-                    }}
-                    onMove={zoom.onMove}
-                    onPaneClick={() => {
-                      letGo();
-                      setQuick(null);
-                    }}
-                    // A right click on the empty canvas asks what to put there;
-                    // a double click zooms in, as on any canvas.
-                    onPaneContextMenu={(event) => {
-                      event.preventDefault();
-                      const box = canvas.current?.getBoundingClientRect();
-                      if (flow === null || box === undefined) return;
-                      setQuick({
-                        spot: {
-                          left: event.clientX - box.left,
-                          top: event.clientY - box.top,
-                        },
-                        at: flow.screenToFlowPosition({
-                          x: event.clientX,
-                          y: event.clientY,
-                        }),
-                      });
-                    }}
-                    // Changed on each placement, so the edges fade in anew once
-                    // the cards have moved to where it puts them.
-                    // While a card is dragged, the edges' dashes hold still,
-                    // unless dev tools ask for them to run on.
-                    className={`${
-                      placements % 2 === 0 ? classes.settled : classes.resettled
-                    } ${gliding ? classes.gliding : ''} ${
-                      dragging && !animateEdgesWhileDragging
-                        ? classes.dragging
-                        : ''
-                    }`}
-                  >
-                    {selectionPanel}
-                    {dragged !== null && (
-                      <ViewportPortal>
-                        <div
-                          ref={outline}
-                          aria-hidden
-                          className={classes.outline}
-                          style={{
-                            width: dragged.width,
-                            height: dragged.height,
-                            transform: `translate(${dragged.at.x}px, ${dragged.at.y}px)`,
-                          }}
-                        />
-                      </ViewportPortal>
-                    )}
-                    <Background {...(theme.background ?? DOT_GRID)} />
-                  </ReactFlow>
+                  <ExplorationSelectionContext.Provider value={selectionStore}>
+                    <CardContextMenu toCanvas={toCanvas}>
+                      <ReactFlow
+                        nodes={visibleNodes}
+                        edges={edges}
+                        nodeTypes={NODE_TYPES}
+                        edgeTypes={EDGE_TYPES}
+                        onNodesChange={onNodesChange}
+                        onNodeDragStart={onNodeDragStart}
+                        onNodeDrag={onNodeDrag}
+                        onNodeDragStop={onNodeDragStop}
+                        colorMode={scheme}
+                        fitView
+                        fitViewOptions={FIT}
+                        {...CANVAS_FLOW}
+                        minZoom={0.1}
+                        maxZoom={2}
+                        onInit={(instance) => {
+                          setFlow(instance);
+                          zoom.readZoom(instance);
+                        }}
+                        onMove={zoom.onMove}
+                        onPaneClick={() => {
+                          letGo();
+                          setQuick(null);
+                        }}
+                        // A right click on the empty canvas asks what to put there;
+                        // a double click zooms in, as on any canvas.
+                        onPaneContextMenu={(event) => {
+                          event.preventDefault();
+                          const box = canvas.current?.getBoundingClientRect();
+                          if (flow === null || box === undefined) return;
+                          setQuick({
+                            spot: {
+                              left: event.clientX - box.left,
+                              top: event.clientY - box.top,
+                            },
+                            at: flow.screenToFlowPosition({
+                              x: event.clientX,
+                              y: event.clientY,
+                            }),
+                          });
+                        }}
+                        // Changed on each placement, so the edges fade in anew once
+                        // the cards have moved to where it puts them.
+                        // While a card is dragged, the edges' dashes hold still,
+                        // unless dev tools ask for them to run on.
+                        className={`${
+                          placements % 2 === 0
+                            ? classes.settled
+                            : classes.resettled
+                        } ${gliding ? classes.gliding : ''} ${
+                          dragging && !animateEdgesWhileDragging
+                            ? classes.dragging
+                            : ''
+                        }`}
+                      >
+                        {selectionPanel}
+                        {dragged !== null && (
+                          <ViewportPortal>
+                            <div
+                              ref={outline}
+                              aria-hidden
+                              className={classes.outline}
+                              style={{
+                                width: dragged.width,
+                                height: dragged.height,
+                                transform: `translate(${dragged.at.x}px, ${dragged.at.y}px)`,
+                              }}
+                            />
+                          </ViewportPortal>
+                        )}
+                        <Background {...(theme.background ?? DOT_GRID)} />
+                      </ReactFlow>
+                    </CardContextMenu>
+                  </ExplorationSelectionContext.Provider>
                   <CanvasTooltips within={canvas} dragging={dragging} />
                 </ExplorationReadingContext.Provider>
               </DesignDocumentContext.Provider>

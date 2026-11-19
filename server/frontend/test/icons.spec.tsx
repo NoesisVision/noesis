@@ -5,7 +5,6 @@ import {
   IconBroom,
   IconChevronsDownUp,
   IconChevronsUpDown,
-  IconFrameX,
 } from '../src/shared/ui/icons/icons';
 
 const pathsOf = (svg: string) =>
@@ -22,7 +21,6 @@ describe('icons', () => {
     ['chevrons-up-down', IconChevronsUpDown],
     ['chevrons-down-up', IconChevronsDownUp],
     ['broom', IconBroom],
-    ['frame-x', IconFrameX],
   ] as const)('%s draws what its .svg draws', (name, Icon) => {
     const html = renderToStaticMarkup(<Icon />);
     expect(pathsOf(html)).toEqual(pathsOf(source(name)));

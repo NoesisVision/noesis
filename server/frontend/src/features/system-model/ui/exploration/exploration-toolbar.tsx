@@ -63,8 +63,9 @@ const DIRECTIONS = [
 /*
  * How the reader draws the exploration — what is drawn is chosen in the
  * picker on the canvas, and what shows of it in the visibility panel this
- * opens: steps back and forward, which way the layout runs, how the edges
- * run, placing everything afresh, and — at the far end — how close.
+ * opens: steps back and forward, how the edges run, which way the layout
+ * runs and, beside it, placing everything afresh, and — at the far end —
+ * how close.
  */
 export function ExplorationToolbar({
   canUndo,
@@ -149,16 +150,6 @@ export function ExplorationToolbar({
           </Badge>
         )}
       </Button>
-      <SegmentedControl
-        aria-label="Direction"
-        data={DIRECTIONS}
-        value={drawing.direction}
-        onChange={(value) =>
-          set({
-            direction: value === 'horizontal' ? 'horizontal' : 'vertical',
-          })
-        }
-      />
       <ToolbarOptions
         label="Edges"
         icon={IconRoute}
@@ -177,8 +168,19 @@ export function ExplorationToolbar({
         ]}
       />
       <ToolbarDivider />
+      <SegmentedControl
+        aria-label="Direction"
+        data={DIRECTIONS}
+        value={drawing.direction}
+        onChange={(value) =>
+          set({
+            direction: value === 'horizontal' ? 'horizontal' : 'vertical',
+          })
+        }
+      />
       <Button
-        variant="light"
+        variant="subtle"
+        color="gray"
         leftSection={
           <IconLayoutDistributeHorizontal size={16} stroke={1.6} aria-hidden />
         }

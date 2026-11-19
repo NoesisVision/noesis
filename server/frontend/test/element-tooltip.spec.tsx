@@ -123,10 +123,11 @@ describe('ElementTooltip', () => {
     // The type apart from the name, coloured as a declaration box colours
     // it, and marked with how many it holds, as the box marks it.
     expect(html).toMatch(
-      />amount: <span[^>]*><span data-cardinality="0\.\.1"(.(?!<\/span>))*tabler-icon-question-mark/,
+      />amount: <span[^>]*>Money<span[^>]*>, optional<\/span><span data-cardinality="0\.\.1"[^>]*><svg[^>]*tabler-icon-question-mark/,
     );
-    expect(html).toMatch(/>optional: <\/span>Money<\/span>/);
-    expect(html).toMatch(/>many: <\/span>HoldLine<\/span>/);
+    expect(html).toMatch(
+      />HoldLine<span[^>]*>, many<\/span><span data-cardinality="\*"/,
+    );
     expect(html).not.toMatch(/\[0\.\.1\]|\[\*\]/);
     // What the design removes is not part of what the block is.
     expect(html).not.toContain('legacyId');
@@ -170,12 +171,11 @@ describe('ElementTooltip', () => {
     } satisfies DesignDocumentInput;
     const html = render('pay.Hold', marked);
     expect(html).toMatch(
-      />place\(amount: <span data-cardinality="\*"(.(?!<\/svg>))*tabler-icon-asterisk/,
+      />place\(amount: Money<span[^>]*>, many<\/span><span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
     );
     expect(html).toMatch(
-      />many: <\/span>Money\): <span[^>]*><span data-cardinality="0\.\.1"/,
+      /<\/svg><\/span>\): <span[^>]*>Hold<span[^>]*>, optional<\/span><span data-cardinality="0\.\.1"/,
     );
-    expect(html).toMatch(/>optional: <\/span>Hold<\/span>/);
     expect(html).not.toMatch(/\[\*\]|\[0\.\.1\]/);
   });
 

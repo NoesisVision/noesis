@@ -1,0 +1,175 @@
+/*
+ * A card's badges, laid over the card under its name and what it is — or
+ * under a frame's name — as its corner controls are: the card's signature,
+ * as the code declares it, each slot a badge in it. Its sizes are the ones
+ * the layout leaves room for (BADGES_TOP, SIGNATURE_LINE, SIGNATURE_BOX in
+ * layout-exploration.ts, SIGNATURE_CHAR in badge-signature.ts): lines of
+ * 20px in a box 9px each side, 16px in from either side of the card.
+ *
+ * It lets a click beside the signature through, to the card under it.
+ */
+.badges {
+  position: absolute;
+  top: 50px;
+  inset-inline: 16px;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+
+  &[data-frame='true'] {
+    top: 52px;
+  }
+}
+
+/*
+ * Each slot's badge in the colours its relation's edge has (relationEdges
+ * in theme.ts). Named with its signature, to win over the unstyled
+ * button's own reset, which loads later.
+ */
+.signature .token {
+  --badge-line: var(--noesis-diagram-edge-state);
+  --badge-word: var(--noesis-diagram-edge-state-word);
+  /* Its cardinality's mark in the badge's own colour, a tint deeper. */
+  --cardinality-mark-ink: var(--badge-word);
+  --cardinality-mark-fill: color-mix(
+    in srgb,
+    var(--badge-line) 24%,
+    transparent
+  );
+
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 2px;
+  border-radius: 4px;
+  color: var(--badge-word);
+  font-family: inherit;
+  font-size: inherit;
+  white-space: nowrap;
+  pointer-events: auto;
+
+  &[data-relation='input'] {
+    --badge-line: var(--noesis-diagram-edge-input);
+    --badge-word: var(--noesis-diagram-edge-input-word);
+  }
+
+  &[data-relation='output'] {
+    --badge-line: var(--noesis-diagram-edge-output);
+    --badge-word: var(--noesis-diagram-edge-output-word);
+  }
+
+  /* A badge typed by a block opens what its type relates to. */
+  &:is(button) {
+    cursor: pointer;
+  }
+
+  &:is(button):hover,
+  &[aria-expanded='true'] {
+    background: color-mix(in srgb, var(--badge-line) 18%, transparent);
+  }
+
+  &:is(button):focus-visible {
+    outline: var(--noesis-focus-ring);
+    outline-offset: 1px;
+  }
+
+  /* Its type in hand: ringed as a card related to the selection is. */
+  &[data-related] {
+    outline: 2px dashed var(--noesis-diagram-related);
+    outline-offset: 1px;
+  }
+}
+
+/* The signature: a box of monospace lines, as code is set. */
+.signature {
+  box-sizing: border-box;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 8px;
+  overflow: hidden;
+  border: 1px solid var(--noesis-diagram-card-border);
+  border-radius: var(--mantine-radius-md);
+  background: color-mix(in srgb, var(--noesis-diagram-canvas) 60%, transparent);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 12px;
+}
+
+.signatureLine {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  white-space: pre;
+}
+
+.signatureItem {
+  /* Where a badge's popup hangs, once it is drawn (`.opening`). */
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+/*
+ * Laid over a badge once its popup is first asked for: what the popup
+ * hangs on and follows, the badge itself being drawn before there is one.
+ */
+.opening {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.punctuation {
+  color: var(--mantine-color-dimmed);
+  white-space: pre;
+}
+
+/*
+ * Where a behavior that gives nothing back would write its output's type:
+ * `void`, gray as the signature's punctuation is — it names no slot — and
+ * as wide as the layout counts it (NO_OUTPUT_WIDTH in badge-signature.ts).
+ */
+.noOutput {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 2px;
+  color: var(--mantine-color-dimmed);
+  pointer-events: auto;
+}
+
+/* A slot's name, quieter than the type it holds. */
+.tokenName {
+  opacity: 0.8;
+}
+
+/* Its type, in bold, then its marks, which stay whole as it is cut short. */
+.type {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  max-width: 100%;
+  font-weight: 650;
+}
+
+/* Cut short at the signature's edge, never wrapped; underlined in its badge's colour. */
+.typeName {
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--badge-line) 50%, transparent);
+  text-underline-offset: 3px;
+}
+
+/*
+ * The mark after a type with a card of its own on the diagram (↗), in the
+ * badge's own colour, faint.
+ */
+.mark {
+  flex: none;
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.55;
+}

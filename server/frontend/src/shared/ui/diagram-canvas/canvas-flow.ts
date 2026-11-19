@@ -1,5 +1,6 @@
 import type { FitViewOptions, ReactFlowProps } from '@xyflow/react';
 import { useCallback, useMemo, useState } from 'react';
+import { createStore } from '#/shared/store.ts';
 import { FIT } from './fit.ts';
 
 /*
@@ -29,20 +30,25 @@ interface Zoomable {
  * A canvas's zoom: the scale it is at, read when React Flow starts and as
  * the reader moves, and the props its `ZoomControls` take. `flow` is the
  * canvas's instance, null until it starts.
+ *
+ * The scale is held in a store, not in the canvas's state: it changes with
+ * every turn of the wheel, and only what shows it — the controls' number,
+ * or a canvas that draws differently past some scale (`useStoreValue`) —
+ * is drawn again for it, never the canvas round them.
  */
 export function useCanvasZoom(
   flow: Zoomable | null,
   fit: FitViewOptions = FIT,
 ) {
-  const [zoom, setZoom] = useState(1);
+  const [level] = useState(() => createStore(1));
   /** Call from `onInit`, with the instance. */
   const readZoom = useCallback(
-    (instance: Pick<Zoomable, 'getZoom'>) => setZoom(instance.getZoom()),
-    [],
+    (instance: Pick<Zoomable, 'getZoom'>) => level.set(instance.getZoom()),
+    [level],
   );
   const onMove = useCallback(
-    (_: unknown, viewport: { zoom: number }) => setZoom(viewport.zoom),
-    [],
+    (_: unknown, viewport: { zoom: number }) => level.set(viewport.zoom),
+    [level],
   );
   // The same object while nothing it holds changes, so a view that memoises
   // what it draws round the canvas is not drawn again on every move.
@@ -50,14 +56,16 @@ export function useCanvasZoom(
     () => ({
       readZoom,
       onMove,
+      /** The scale the canvas is at, to read a part of. */
+      level,
       controls: {
-        zoom,
+        zoom: level,
         disabled: flow === null,
         onZoomOut: () => void flow?.zoomOut(),
         onZoomIn: () => void flow?.zoomIn(),
         onFit: () => void flow?.fitView(fit),
       },
     }),
-    [readZoom, onMove, zoom, flow, fit],
+    [readZoom, onMove, level, flow, fit],
   );
 }

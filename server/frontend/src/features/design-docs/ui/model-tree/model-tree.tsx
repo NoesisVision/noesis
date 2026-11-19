@@ -12,7 +12,7 @@ import {
 } from './tree-store.ts';
 import { useChangeColour } from './use-change-colour.ts';
 import type { ModelTreeController } from './use-model-tree.ts';
-import classes from './model-tree.module.css';
+import treeClasses from '#/shared/ui/tree/tree.module.css';
 
 /*
  * A model as a tree: contexts, the modules under them, the building blocks
@@ -247,7 +247,7 @@ export function ModelTree({
   return (
     <TreeStoreContext value={store}>
       <TreeActionsContext value={actions}>
-        <ul role="tree" aria-label={label} className={classes.tree}>
+        <ul role="tree" aria-label={label} className={treeClasses.tree}>
           {roots.map((node) => (
             <TreeItem key={node.path} node={node} />
           ))}

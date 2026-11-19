@@ -489,18 +489,18 @@ describe('ElementDetail', () => {
       kept,
     );
     expect(html).toMatch(
-      />amount: <span data-cardinality="\*"(.(?!<\/pre>))*>many: <\/span>unchanged;</,
+      />amount: (<[^>]+>)*unchanged(<\/[^>]+>)*<span[^>]*>, many<\/span><span data-cardinality="\*"(.(?!<\/pre>))*;/,
     );
   });
 
-  it('reads a property as the field it declares, how many it holds marked before its type', () => {
+  it('reads a property as the field it declares, how many it holds marked after its type', () => {
     const html = show(
       'building_block|pay.Hold#property:amount',
       withProperties,
     );
     expect(html).toContain('Money');
     expect(html).toMatch(
-      /amount: <span data-cardinality="0\.\.1"(.(?!<\/pre>))*>optional: <\/span>(<[^>]+>)*Money(<\/span>)*;/,
+      /amount: (<[^>]+>)*Money(<\/[^>]+>)*<span[^>]*>, optional<\/span><span data-cardinality="0\.\.1"(.(?!<\/pre>))*;/,
     );
     expect(html).not.toContain('[0..1]');
   });
@@ -534,12 +534,12 @@ describe('ElementDetail', () => {
     // row in the tree to open, so it is only text.
     expect(html).toContain('>amount<');
     // Its type by its last segment, as inputs and outputs read one; how many
-    // it holds marks the tag's start, a question mark for optional, said
+    // it holds marks the tag's end, a question mark for optional, said
     // aloud, never as a bracketed suffix.
     expect(html).toMatch(
       /data-cardinality="0\.\.1"(.(?!<\/span>))*tabler-icon-question-mark/,
     );
-    expect(html).toMatch(/>optional: <\/span>(<[^>]+>)*Money</);
+    expect(html).toMatch(/Money(<\/[^>]+>)*<span[^>]*>, optional<\/span>/);
     expect(html).not.toContain('[0..1]');
     expect(html).not.toContain('>pay.Money<');
     expect(html).not.toMatch(/<button[^>]*>(<[^>]+>)*amount</);
@@ -605,16 +605,16 @@ describe('ElementDetail', () => {
         />
       </MantineProvider>,
     );
-    // Many: an asterisk at the tag's start, said aloud; exactly one, unmarked.
+    // Many: an asterisk at the tag's end, said aloud; exactly one, unmarked.
     expect(html).toMatch(
       /data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
     );
-    expect(html).toMatch(/>many: <\/span>(<[^>]+>)*HoldLine</);
+    expect(html).toMatch(/HoldLine(<\/[^>]+>)*<span[^>]*>, many<\/span>/);
     expect(html).not.toContain('[*]');
     expect(html.match(/data-cardinality=/g)).toHaveLength(1);
   });
 
-  it('declares a property with the gray mark before its type, not a suffix', () => {
+  it('declares a property with the gray mark after its type, not a suffix', () => {
     const html = renderToStaticMarkup(
       <MantineProvider>
         <PropertySignatureSection
@@ -629,9 +629,8 @@ describe('ElementDetail', () => {
       </MantineProvider>,
     );
     expect(html).toMatch(
-      /lines:\s*<span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
+      /lines:\s*(<[^>]+>)*HoldLine(<\/[^>]+>)*<span[^>]*>, many<\/span><span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
     );
-    expect(html).toMatch(/>many: <\/span>(<[^>]+>)*HoldLine</);
     expect(html).not.toContain('[*]');
     const one = renderToStaticMarkup(
       <MantineProvider>
@@ -759,9 +758,8 @@ describe('ElementDetail', () => {
     } satisfies DesignDocumentInput;
     const html = show('building_block|pay.Hold', tree, many);
     expect(html).toMatch(
-      /→ <\/span><button[^>]*data-link[^>]*><span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
+      /→ <\/span><button[^>]*data-link[^>]*>(<[^>]+>)*Hold(<\/[^>]+>)*<span[^>]*>, many<\/span><span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
     );
-    expect(html).toMatch(/>many: <\/span>Hold<\/button>/);
     expect(html).not.toContain('[*]');
   });
 

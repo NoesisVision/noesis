@@ -1,0 +1,1901 @@
+<title>Slots on Cards</title>
+<meta name="claude:viewport-fit-sides" content="cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+/>
+<style>
+  /* Layout: a reading column; a live diagram canvas driven by a sticky toolbar, then side-by-side comparisons of badge content and tree content. Trees use the model tree's look (rails with curved elbows). */
+  :root {
+    --page: #f4f6f9;
+    --panel: #ffffff;
+    --fg: #212529;
+    --muted: #868e96;
+    --rule: #e3e7ec;
+    --accent: #1d4ed8;
+    --accent-soft: #dbeafe;
+    --canvas: #f8f9fa;
+    --dots: #dee2e6;
+    --card: #ffffff;
+    --card-border: #dee2e6;
+    --block: rgba(239, 246, 255, 0.6);
+    --block-border: #bfdbfe;
+    --edge-label: #ffffff;
+    --state-line: #60a5fa;
+    --state-word: #1e3a8a;
+    --input-line: #20c997;
+    --input-word: #099268;
+    --output-line: #ff922b;
+    --output-word: #d9480f;
+    --warn: #e8590c;
+    --rail: #dee2e6;
+    --chev: #adb5bd;
+    --row-hover: #f1f3f5;
+    --tree-icon: #868e96;
+    --shadow: 0 1px 3px rgba(16, 24, 40, 0.06);
+    --pop-shadow: 0 8px 24px rgba(16, 24, 40, 0.14);
+    --font:
+      'Raleway', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+      sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --page: #1a1b1e;
+      --panel: #202124;
+      --fg: #c9c9c9;
+      --muted: #8a8a8a;
+      --rule: #34363a;
+      --accent: #93c5fd;
+      --accent-soft: rgba(147, 197, 253, 0.14);
+      --canvas: #242424;
+      --dots: #3b3b3b;
+      --card: #2e2e2e;
+      --card-border: #424242;
+      --block: rgba(20, 20, 20, 0.3);
+      --block-border: #828282;
+      --edge-label: #242424;
+      --state-line: #5a7aa3;
+      --state-word: #bfdbfe;
+      --input-line: #38d9a9;
+      --input-word: #96f2d7;
+      --output-line: #ffa94d;
+      --output-word: #ffd8a8;
+      --warn: #ffa94d;
+      --rail: #424242;
+      --chev: #828282;
+      --row-hover: #2e2e2e;
+      --tree-icon: #828282;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      --pop-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme='dark'] {
+    --page: #1a1b1e;
+    --panel: #202124;
+    --fg: #c9c9c9;
+    --muted: #8a8a8a;
+    --rule: #34363a;
+    --accent: #93c5fd;
+    --accent-soft: rgba(147, 197, 253, 0.14);
+    --canvas: #242424;
+    --dots: #3b3b3b;
+    --card: #2e2e2e;
+    --card-border: #424242;
+    --block: rgba(20, 20, 20, 0.3);
+    --block-border: #828282;
+    --edge-label: #242424;
+    --state-line: #5a7aa3;
+    --state-word: #bfdbfe;
+    --input-line: #38d9a9;
+    --input-word: #96f2d7;
+    --output-line: #ffa94d;
+    --output-word: #ffd8a8;
+    --warn: #ffa94d;
+    --rail: #424242;
+    --chev: #828282;
+    --row-hover: #2e2e2e;
+    --tree-icon: #828282;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --pop-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    color-scheme: dark;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: var(--page);
+    color: var(--fg);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.55;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 0 64px;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0 0 auto;
+    height: env(safe-area-inset-top, 0px);
+    z-index: 10;
+    background: var(--page);
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+    margin: 0;
+    font-weight: 600;
+  }
+  h1 {
+    font-size: 30px;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 21px;
+  }
+  h3 {
+    font-size: 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  p {
+    margin: 0;
+    max-width: 70ch;
+  }
+  .mono {
+    font-family: var(--mono);
+    font-size: 0.86em;
+  }
+  .muted {
+    color: var(--muted);
+  }
+
+  header.intro {
+    padding-top: 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .rel {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .rel.state {
+    color: var(--state-word);
+    background: color-mix(in srgb, var(--state-line) 16%, transparent);
+  }
+  .rel.input {
+    color: var(--input-word);
+    background: color-mix(in srgb, var(--input-line) 16%, transparent);
+  }
+  .rel.output {
+    color: var(--output-word);
+    background: color-mix(in srgb, var(--output-line) 16%, transparent);
+  }
+
+  /* Sticky diagram toolbar */
+  .toolbar {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    padding: 8px 12px;
+    box-shadow: var(--shadow);
+  }
+  .tgroup {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tdiv {
+    width: 1px;
+    align-self: stretch;
+    background: var(--rule);
+  }
+  .seg {
+    display: inline-flex;
+    background: var(--canvas);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 2px;
+  }
+  .seg button {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    padding: 4px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .seg button[aria-pressed='true'] {
+    background: var(--panel);
+    color: var(--fg);
+    box-shadow: var(--shadow);
+  }
+  .iconbtn {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--rule);
+    background: var(--panel);
+    color: var(--fg);
+    border-radius: 10px;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .iconbtn:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .toolbar .label {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .toolbar .steps {
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Panels */
+  section.panel {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 16px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .panel-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 14px;
+  }
+  .tag {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .three {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .three {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .variant {
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+  .variant ul.pc {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 13.5px;
+  }
+  .variant .pc li.plus::marker {
+    content: '+  ';
+    color: var(--input-word);
+    font-weight: 700;
+  }
+  .variant .pc li.minus::marker {
+    content: '–  ';
+    color: var(--warn);
+    font-weight: 700;
+  }
+  .sample {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* Diagram canvas */
+  .scroll {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--rule);
+  }
+  .canvas {
+    background-color: var(--canvas);
+    background-image: radial-gradient(var(--dots) 1px, transparent 1px);
+    background-size: 18px 18px;
+    padding: 20px;
+    min-width: max-content;
+    position: relative;
+  }
+  .mini {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .folded-view {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+  }
+  body[data-slots='nodes'] .folded-view {
+    display: none;
+  }
+  .expanded-view {
+    display: none;
+  }
+  body[data-slots='nodes'] .expanded-view {
+    display: block;
+  }
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* Shapes, as diagram-shapes.tsx draws them */
+  .frame {
+    background: var(--block);
+    border: 1px solid var(--block-border);
+    border-radius: 16px;
+    padding: 10px 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .frame-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .frame-title small {
+    font-weight: 500;
+    color: var(--muted);
+    font-size: 12px;
+    margin-left: 4px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 8px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 190px;
+  }
+  .card.pill {
+    border-radius: 999px;
+    padding: 8px 20px;
+  }
+  .card.pill.tall {
+    border-radius: 22px;
+  }
+  .bevel {
+    --b: 12px;
+    clip-path: polygon(
+      var(--b) 0,
+      calc(100% - var(--b)) 0,
+      100% var(--b),
+      100% calc(100% - var(--b)),
+      calc(100% - var(--b)) 100%,
+      var(--b) 100%,
+      0 calc(100% - var(--b)),
+      0 var(--b)
+    );
+    background: var(--card-border);
+    padding: 1px;
+    min-width: 190px;
+  }
+  .bevel > .face {
+    --b: 11.6px;
+    clip-path: polygon(
+      var(--b) 0,
+      calc(100% - var(--b)) 0,
+      100% var(--b),
+      100% calc(100% - var(--b)),
+      calc(100% - var(--b)) 100%,
+      var(--b) 100%,
+      0 calc(100% - var(--b)),
+      0 var(--b)
+    );
+    background: var(--card);
+    padding: 8px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .bevel.picked {
+    background: var(--accent);
+  }
+  .name {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .kind {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .ico {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .ico.beh {
+    border-radius: 999px;
+  }
+  .ico.vo {
+    transform: rotate(45deg) scale(0.72);
+    border-radius: 2px;
+  }
+  .ico.vo span {
+    transform: rotate(-45deg);
+    display: inline-block;
+  }
+
+  .on-diagram {
+    text-decoration: underline dotted var(--accent);
+    text-underline-offset: 3px;
+  }
+  .on-diagram::after {
+    content: ' ↗';
+    color: var(--accent);
+    font-size: 0.85em;
+  }
+  .dup {
+    outline: 1.5px dashed var(--warn);
+    outline-offset: 2px;
+  }
+  .legend-dup {
+    display: inline-block;
+    width: 18px;
+    height: 12px;
+    outline: 1.5px dashed var(--warn);
+    border-radius: 3px;
+    vertical-align: -1px;
+    margin-right: 4px;
+  }
+
+  /* Typed chips */
+  .chiprows {
+    margin-top: 6px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 8px;
+    align-items: center;
+  }
+  .chiprows .lab {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .chip {
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 1px 9px;
+    border: 1px solid;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .chip.leaf,
+  .chip.static {
+    cursor: default;
+  }
+  .chip .caret {
+    font-size: 9px;
+    opacity: 0.7;
+    transition: transform 0.15s;
+  }
+  .chip[aria-expanded='true'] .caret {
+    transform: rotate(180deg);
+  }
+  .chip.input {
+    color: var(--input-word);
+    border-color: color-mix(in srgb, var(--input-line) 55%, transparent);
+    background: color-mix(in srgb, var(--input-line) 12%, transparent);
+  }
+  .chip.output {
+    color: var(--output-word);
+    border-color: color-mix(in srgb, var(--output-line) 55%, transparent);
+    background: color-mix(in srgb, var(--output-line) 12%, transparent);
+  }
+  .chip.state {
+    color: var(--state-word);
+    border-color: color-mix(in srgb, var(--state-line) 55%, transparent);
+    background: color-mix(in srgb, var(--state-line) 12%, transparent);
+  }
+  .chip[aria-expanded='true'] {
+    box-shadow: 0 0 0 2px var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .chip .pn {
+    font-weight: 500;
+    opacity: 0.85;
+  }
+
+  /* The relation explorer, shared by the three popups: groups headed state / input / output */
+  .nav {
+    font-size: 13.5px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .grp {
+    display: flex;
+    flex-direction: column;
+  }
+  .grp-h {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 8px 2px;
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+  .grp-h.state {
+    color: var(--state-word);
+  }
+  .grp-h.input {
+    color: var(--input-word);
+  }
+  .grp-h.output {
+    color: var(--output-word);
+  }
+  .grp-h .none {
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+  .nrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    text-align: left;
+    font: inherit;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    padding: 4px 8px;
+    border-radius: 8px;
+    min-height: 28px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .nrow:hover {
+    background: var(--row-hover);
+  }
+  .nrow[aria-current='true'] {
+    background: var(--accent-soft);
+  }
+  .nrow.hit {
+    box-shadow: inset 0 0 0 1.5px var(--accent);
+  }
+  .nrow.leaf {
+    cursor: default;
+  }
+  .nrow.leaf:hover {
+    background: transparent;
+  }
+  .nrow .via {
+    color: var(--muted);
+  }
+  .nrow .nm {
+    font-weight: 500;
+  }
+  .nrow .ty {
+    margin-left: auto;
+    padding-left: 14px;
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+  .nrow .ty.prim {
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+  .nrow .loop {
+    font-size: 11px;
+    color: var(--warn);
+  }
+  .nrow .go {
+    width: 14px;
+    flex: none;
+    color: var(--chev);
+    display: inline-flex;
+    justify-content: center;
+  }
+  .nav-head {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 0 4px 6px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav-head .sig {
+    font-family: var(--mono);
+    font-size: 12.5px;
+  }
+  .nav-head .meta {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .nav-body {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  /* A · columns */
+  .cols {
+    display: flex;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    border-top: 1px solid var(--rule);
+  }
+  .col {
+    flex: none;
+    width: 236px;
+    padding: 6px;
+    border-right: 1px solid var(--rule);
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .col:last-child {
+    border-right: 0;
+  }
+  .col-h {
+    padding: 4px 8px 4px;
+    display: flex;
+    flex-direction: column;
+  }
+  .col-h .t {
+    font-weight: 600;
+    font-size: 13px;
+  }
+  .col-h .k {
+    font-size: 11.5px;
+    color: var(--muted);
+  }
+
+  /* B · drill-in */
+  .drill-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 0 2px 6px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .back {
+    font: inherit;
+    font-size: 13px;
+    border: 1px solid var(--rule);
+    background: var(--panel);
+    color: var(--fg);
+    border-radius: 8px;
+    padding: 1px 7px;
+    cursor: pointer;
+    flex: none;
+  }
+  .back:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 2px;
+    font-size: 12.5px;
+    min-width: 0;
+  }
+  .crumb {
+    font: inherit;
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    padding: 1px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .crumb:hover {
+    background: var(--accent-soft);
+  }
+  .crumb.here {
+    color: var(--fg);
+    font-weight: 600;
+    cursor: default;
+    background: transparent;
+  }
+  .crumbs .sep {
+    color: var(--muted);
+  }
+  .drill-title {
+    padding: 6px 8px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .drill-title .t {
+    font-weight: 600;
+  }
+  .drill-title .k {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* C · path */
+  .tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 4px 6px;
+    background: var(--canvas);
+    font-family: var(--mono);
+    font-size: 12.5px;
+  }
+  .tokens:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .tokens .root {
+    color: var(--muted);
+  }
+  .tok {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 6px;
+    padding: 0 6px;
+    border: 0;
+    font: inherit;
+    cursor: pointer;
+  }
+  .tokens .dot {
+    color: var(--muted);
+  }
+  .tokens input {
+    flex: 1;
+    min-width: 90px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    color: var(--fg);
+    padding: 2px 0;
+  }
+  .chain {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 0 4px;
+  }
+  .chain b {
+    color: var(--fg);
+    font-weight: 600;
+  }
+  .hint {
+    font-size: 11.5px;
+    color: var(--muted);
+    padding: 2px 4px 0;
+  }
+  .hint kbd {
+    font-family: var(--mono);
+    font-size: 11px;
+    border: 1px solid var(--rule);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    padding: 0 4px;
+    background: var(--panel);
+  }
+
+  .nav-box {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 10px 8px 8px;
+    min-width: 0;
+  }
+
+  /* The chip's popover */
+  .tree-pop {
+    position: absolute;
+    z-index: 6;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    box-shadow: var(--pop-shadow);
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    padding: 10px 8px 8px;
+  }
+  .tree-pop.wide {
+    width: 620px;
+  }
+
+  /* Today: edges + type cards */
+  .today {
+    position: relative;
+    width: 860px;
+    height: 380px;
+  }
+  .today .n {
+    position: absolute;
+  }
+  .today svg {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+  }
+  .today .edge-label {
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .decided {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+  @media (max-width: 760px) {
+    .decided {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .decided > div {
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .decided p {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  footer {
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .today .flow {
+      animation: run 0.7s linear infinite;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chip .caret,
+    .mtree .chev svg {
+      transition: none;
+    }
+  }
+  @keyframes run {
+    to {
+      stroke-dashoffset: -14;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <h1>Slots on cards</h1>
+    <p>
+      A card carries its <span class="rel state">state</span>,
+      <span class="rel input">input</span> and
+      <span class="rel output">output</span> as badges, and the type cards leave
+      the diagram. Clicking a badge opens a popup that groups what its type
+      relates to <b>by relation</b>: state, input, output.
+    </p>
+    <p>
+      The tree is gone. Below are three popups that let you keep walking from
+      type to type as deep as you like, loops included. A type already on your
+      path is marked <span style="color: var(--warn)">↺</span>, and you can
+      still go into it.
+    </p>
+    <p class="muted" style="font-size: 13.5px">
+      <span class="legend-dup"></span>the same type folded into two cards
+      (UserId).
+      <span class="on-diagram" style="color: var(--fg)">Underlined ↗</span> a
+      type that also keeps its own card (DiscountedOffer, which you added).
+    </p>
+  </header>
+
+  <div class="toolbar" role="toolbar" aria-label="Diagram">
+    <div class="tgroup">
+      <span class="label" id="slots-label">Slots</span>
+      <div class="seg" role="group" aria-labelledby="slots-label">
+        <button type="button" id="mode-cards" aria-pressed="true">
+          On cards
+        </button>
+        <button type="button" id="mode-nodes" aria-pressed="false">
+          As nodes
+        </button>
+      </div>
+      <button
+        type="button"
+        class="iconbtn"
+        id="undo"
+        disabled
+        aria-label="Undo"
+      >
+        ↶
+      </button>
+      <button
+        type="button"
+        class="iconbtn"
+        id="redo"
+        disabled
+        aria-label="Redo"
+      >
+        ↷
+      </button>
+      <span class="steps" id="steps" aria-live="polite"></span>
+    </div>
+    <span class="tdiv" aria-hidden="true"></span>
+    <div class="tgroup">
+      <span class="label" id="badge-label">Badge</span>
+      <div
+        class="seg"
+        role="group"
+        aria-labelledby="badge-label"
+        id="badge-seg"
+      >
+        <button type="button" data-v="type" aria-pressed="false">
+          1 · Type
+        </button>
+        <button type="button" data-v="nametype" aria-pressed="true">
+          2 · Name: Type
+        </button>
+        <button type="button" data-v="name" aria-pressed="false">
+          3 · Name
+        </button>
+      </div>
+    </div>
+    <div class="tgroup">
+      <span class="label" id="pop-label">Popup</span>
+      <div class="seg" role="group" aria-labelledby="pop-label" id="pop-seg">
+        <button type="button" data-v="columns" aria-pressed="true">
+          A · Columns
+        </button>
+        <button type="button" data-v="drill" aria-pressed="false">
+          B · Drill-in
+        </button>
+        <button type="button" data-v="path" aria-pressed="false">
+          C · Path
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <section class="panel" aria-labelledby="h-live">
+    <div class="panel-head">
+      <span class="tag">LIVE</span>
+      <h2 id="h-live">The diagram with slots on cards</h2>
+    </div>
+    <p>
+      Click a badge with a caret ▾ to open the popup picked in the toolbar. A
+      primitive's badge (boolean) has no caret.
+    </p>
+    <div class="scroll">
+      <div class="canvas" id="live">
+        <div class="folded-view" id="live-folded"></div>
+        <div class="expanded-view"><div class="today" data-today></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-pop">
+    <div class="panel-head">
+      <span class="tag">POPUP</span>
+      <h2 id="h-pop">Walking the relations</h2>
+    </div>
+    <p>
+      Each one starts at calculate's
+      <span class="mono">result: DiscountedOffer</span>, already three levels in
+      (<span class="mono">products › discountAmounts</span>) to show depth. All
+      three work: click through, go back, go round the loop through
+      <i>apply</i>.
+    </p>
+    <div class="three">
+      <div class="variant">
+        <h3>
+          <span class="tag">A</span>Columns
+          <span class="tag">CHOSEN · with C's path</span>
+        </h3>
+        <p class="muted" style="font-size: 13.5px">
+          One column per step, as in a file browser. The path stays on screen
+          and you can branch from any column.
+        </p>
+        <div class="nav-box" data-nav-sample="columns" style="padding: 0"></div>
+        <ul class="pc">
+          <li class="plus">
+            Whole path and the siblings at every step in view
+          </li>
+          <li class="plus">Branching off earlier is one click</li>
+          <li class="minus">
+            Wide: the popup scrolls sideways after three columns
+          </li>
+        </ul>
+      </div>
+      <div class="variant">
+        <h3><span class="tag">B</span>Drill-in</h3>
+        <p class="muted" style="font-size: 13.5px">
+          One type at a time. A row goes in, the breadcrumb goes back to any
+          step,
+          <kbd style="font-family: var(--mono); font-size: 11px">⌫</kbd> goes up
+          one.
+        </p>
+        <div class="nav-box" data-nav-sample="drill"></div>
+        <ul class="pc">
+          <li class="plus">Narrow; any depth fits the same popup</li>
+          <li class="plus">The breadcrumb doubles as the path</li>
+          <li class="minus">
+            Only one level visible; siblings of earlier steps are one hop away
+          </li>
+        </ul>
+      </div>
+      <div class="variant">
+        <h3><span class="tag">C</span>Path</h3>
+        <p class="muted" style="font-size: 13.5px">
+          A dotted path you can type, like code. Type to filter the current
+          level,
+          <kbd style="font-family: var(--mono); font-size: 11px">↵</kbd> or
+          <kbd style="font-family: var(--mono); font-size: 11px">.</kbd> to go
+          in, <kbd style="font-family: var(--mono); font-size: 11px">⌫</kbd> to
+          go up.
+        </p>
+        <div class="nav-box" data-nav-sample="path"></div>
+        <ul class="pc">
+          <li class="plus">
+            Fastest with the keyboard: <span class="mono">pro↵dis↵app↵</span>
+          </li>
+          <li class="plus">Path reads like code a developer writes</li>
+          <li class="minus">Least discoverable with a mouse alone</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-badge">
+    <div class="panel-head">
+      <span class="tag">BADGE CONTENT</span>
+      <h2 id="h-badge">What a badge says</h2>
+    </div>
+    <p>
+      All three keep the badge's look and its <i>input</i> / <i>output</i> /
+      <i>state</i> row labels; only the text changes. The tooltip always gives
+      the whole slot: <span class="mono">user: UserId · input 2</span>.
+    </p>
+    <div class="three">
+      <div class="variant">
+        <h3><span class="tag">1</span>Type</h3>
+        <div class="sample">Offer · UserId · DiscountedProduct [*]</div>
+        <div class="scroll">
+          <div class="canvas mini" data-badge-sample="type"></div>
+        </div>
+        <ul class="pc">
+          <li class="plus">Shortest; same word as the type card it replaces</li>
+          <li class="minus">
+            Two inputs of one type look alike until you hover
+          </li>
+        </ul>
+      </div>
+      <div class="variant">
+        <h3>
+          <span class="tag">2</span>Name: Type <span class="tag">CHOSEN</span>
+        </h3>
+        <div class="sample">offer: Offer · user: UserId</div>
+        <div class="scroll">
+          <div class="canvas mini" data-badge-sample="nametype"></div>
+        </div>
+        <ul class="pc">
+          <li class="plus">Nothing hidden; reads like the signature</li>
+          <li class="minus">Widest; long names stretch the card</li>
+        </ul>
+      </div>
+      <div class="variant">
+        <h3><span class="tag">3</span>Name</h3>
+        <div class="sample">offer · user · products [*]</div>
+        <div class="scroll">
+          <div class="canvas mini" data-badge-sample="name"></div>
+        </div>
+        <ul class="pc">
+          <li class="plus">Says each slot's role: offer, user, result</li>
+          <li class="minus">The type only on hover or in the popup</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-today">
+    <div class="panel-head">
+      <span class="tag">AS NODES</span>
+      <h2 id="h-today">Edges to type cards</h2>
+    </div>
+    <p>What <b>As nodes</b> brings back, the way the diagram draws it today.</p>
+    <div class="scroll">
+      <div class="canvas"><div class="today" data-today></div></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-dec">
+    <div class="panel-head">
+      <span class="tag">DECIDED</span>
+      <h2 id="h-dec">Settled earlier</h2>
+    </div>
+    <div class="decided">
+      <div>
+        <h4>The switch</h4>
+        <p>
+          One <b>Slots</b> switch in the toolbar flips the whole diagram. Each
+          flip is one step in the diagram's undo history.
+        </p>
+      </div>
+      <div>
+        <h4>A type on the diagram for its own sake</h4>
+        <p>
+          Its card stays, and the slot's edge is dropped. The badge is marked ↗.
+        </p>
+      </div>
+      <div>
+        <h4>Popup content</h4>
+        <p>
+          By relation: <i>state</i>, then <i>input</i> and <i>output</i> of the
+          type's behaviors, each row naming its behavior (<i>apply ·</i>).
+        </p>
+      </div>
+      <div>
+        <h4>Depth</h4>
+        <p>
+          No limit. A type already on the path is marked ↺ but can still be
+          opened.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      Scope: only the system-model exploration. Badge colours come from the
+      state / input / output edge tokens in <span class="mono">theme.ts</span>.
+    </p>
+  </footer>
+</div>
+
+<div class="tree-pop" id="tree-pop" hidden></div>
+
+<script>
+  (function () {
+    const esc = (s) =>
+      String(s).replace(
+        /[&<>"]/g,
+        (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c],
+      );
+    const mult = (m) => (m && m !== '1' ? ` [${m}]` : '');
+
+    // ---- The model's types (discounts-java scan) ----
+    const TYPES = {
+      Offer: { kind: 'Value object', state: [['products', 'Product', '*']] },
+      Product: { kind: 'Value object', state: [] },
+      UserId: { kind: 'Value object', state: [['id', 'uuid', '1']] },
+      UserStatus: { kind: 'Value object', state: [['vip', 'boolean', '1']] },
+      Conditions: {
+        kind: 'Value object',
+        state: [['userStatus', 'UserStatus', '1']],
+      },
+      DiscountedOffer: {
+        kind: 'Value object',
+        state: [
+          ['offerLevelDiscounts', 'DiscountAmount', '*'],
+          ['products', 'DiscountedProduct', '*'],
+        ],
+      },
+      DiscountedProduct: {
+        kind: 'Value object',
+        state: [['discountAmounts', 'DiscountAmount', '*']],
+      },
+      DiscountAmount: {
+        kind: 'Value object',
+        state: [['appliedDiscount', 'Discount', '1']],
+      },
+      Discount: {
+        kind: 'Domain service',
+        state: [],
+        behaviors: [
+          {
+            name: 'apply',
+            input: [['discountedOffer', 'DiscountedOffer', '1']],
+            output: [['result', 'DiscountedOffer', '1']],
+          },
+        ],
+      },
+      uuid: { kind: 'Primitive', prim: true },
+      boolean: { kind: 'Primitive', prim: true },
+    };
+    const isPrim = (t) => !!(TYPES[t] && TYPES[t].prim);
+    const kindOf = (t) => (TYPES[t] ? TYPES[t].kind : '');
+
+    /** What a type relates to, by relation: its state, then its behaviors' input and output. */
+    function groupsOf(type) {
+      const T = TYPES[type] || {};
+      const item =
+        (word, via) =>
+        ([name, t, m]) => ({ word, via, name, type: t, m });
+      const groups = [
+        { word: 'state', items: (T.state || []).map(item('state')) },
+      ];
+      if ((T.behaviors || []).length) {
+        groups.push({
+          word: 'input',
+          items: T.behaviors.flatMap((b) => b.input.map(item('input', b.name))),
+        });
+        groups.push({
+          word: 'output',
+          items: T.behaviors.flatMap((b) =>
+            b.output.map(item('output', b.name)),
+          ),
+        });
+      }
+      return groups;
+    }
+    const keyOf = (it) => `${it.word}|${it.via || ''}|${it.name}`;
+    const GO =
+      '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>';
+
+    /** The groups of one type as rows; `items` collects them for clicks, by index. */
+    function groupsHtml(type, onPath, current, items, filter, hit) {
+      return groupsOf(type)
+        .map((g) => {
+          let list = g.items;
+          if (filter)
+            list = list.filter((it) =>
+              (it.name + ' ' + it.type + ' ' + (it.via || ''))
+                .toLowerCase()
+                .includes(filter),
+            );
+          if (filter && !list.length) return '';
+          const rows = list
+            .map((it) => {
+              const i = items.push(it) - 1;
+              const prim = isPrim(it.type);
+              const loop = !prim && onPath.includes(it.type);
+              const inner = `<span class="go">${prim ? '' : GO}</span>${it.via ? `<span class="via">${esc(it.via)} ·</span>` : ''}<span class="nm">${esc(it.name)}</span>${loop ? '<span class="loop" title="Already on the path">↺</span>' : ''}<span class="ty ${prim ? 'prim' : ''}">${esc(it.type)}${mult(it.m)}</span>`;
+              const label = `${it.word} ${it.via ? it.via + ' ' : ''}${it.name}: ${it.type}${mult(it.m)}${loop ? ', already on the path' : ''}`;
+              return prim
+                ? `<div class="nrow leaf" aria-label="${esc(label)}">${inner}</div>`
+                : `<button type="button" class="nrow${hit === i ? ' hit' : ''}" data-i="${i}" aria-current="${current === keyOf(it)}" aria-label="${esc(label)}">${inner}</button>`;
+            })
+            .join('');
+          return `<div class="grp" role="group" aria-label="${g.word}"><div class="grp-h ${g.word}">${g.word}${list.length ? '' : '<span class="none">—</span>'}</div>${rows}</div>`;
+        })
+        .join('');
+    }
+
+    /** One popup: a path from the badge's slot, walked as columns, by drilling in, or as a typed path. */
+    function makeNav(host, variant, root, preset) {
+      let path = [root];
+      for (const name of preset || []) {
+        const it = groupsOf(path[path.length - 1].type)
+          .flatMap((g) => g.items)
+          .find((x) => x.name === name);
+        if (it) path.push(it);
+      }
+      let filter = '';
+      const typesTo = (k) => path.slice(0, k + 1).map((p) => p.type);
+      const head = `<div class="nav-head"><span class="sig">${esc(root.name)}: <b>${esc(root.type)}</b>${mult(root.m)}</span><span class="meta">${esc(root.role)} · ${esc(kindOf(root.type))}</span></div>`;
+
+      function render(focusInput) {
+        if (variant === 'columns') {
+          const cols = path.map((p, k) => {
+            const items = [];
+            const body = groupsHtml(
+              p.type,
+              typesTo(k),
+              path[k + 1] ? keyOf(path[k + 1]) : null,
+              items,
+            );
+            return {
+              html: `<div class="col" data-k="${k}"><div class="col-h"><span class="t">${k ? `${esc(p.name)}: ` : ''}${esc(p.type)}${mult(p.m)}</span><span class="k">${esc(kindOf(p.type))}</span></div>${body}</div>`,
+              items,
+            };
+          });
+          // The path as C writes it, without the filter: each step a way back to it.
+          const crumbs = path
+            .map((p, k) =>
+              k === path.length - 1 && k > 0
+                ? `<span class="tok" aria-current="location" style="cursor:default;font-weight:600">${esc(p.name)}</span>`
+                : `<button type="button" class="tok" data-k="${k}" title="Back to ${esc(p.name)}">${esc(p.name)}</button>`,
+            )
+            .join('<span class="dot">.</span>');
+          host.innerHTML = `<div class="nav" style="padding:10px 8px 6px">${head}<nav class="tokens" aria-label="Path">${crumbs}</nav></div><div class="cols">${cols.map((c) => c.html).join('')}</div>`;
+          host.querySelectorAll('.tok[data-k]').forEach((t) =>
+            t.addEventListener('click', (e) => {
+              e.stopPropagation();
+              path = path.slice(0, +t.dataset.k + 1);
+              render();
+            }),
+          );
+          host.querySelectorAll('.col').forEach((col) => {
+            const k = +col.dataset.k;
+            col.addEventListener('click', (e) => {
+              const b = e.target.closest('.nrow[data-i]');
+              if (!b) return;
+              e.stopPropagation();
+              path = path.slice(0, k + 1).concat(cols[k].items[+b.dataset.i]);
+              render();
+              const next = host.querySelector(
+                `.col[data-k="${k + 1}"] .nrow[data-i]`,
+              );
+              if (next && e.detail === 0) next.focus();
+            });
+          });
+          const strip = host.querySelector('.cols');
+          strip.scrollLeft = strip.scrollWidth;
+          return;
+        }
+        const here = path[path.length - 1];
+        const items = [];
+        if (variant === 'drill') {
+          const crumbs = path.map((p, k) => {
+            const text = `${esc(p.name)}: ${esc(p.type)}`;
+            return k === path.length - 1
+              ? `<span class="crumb here" aria-current="location">${text}</span>`
+              : `<button type="button" class="crumb" data-k="${k}">${text}</button>`;
+          });
+          // Long paths keep the first and the last two steps; the rest fold into "…".
+          const shown =
+            crumbs.length > 4
+              ? [
+                  crumbs[0],
+                  `<button type="button" class="crumb" data-k="${path.length - 3}" title="${esc(
+                    path
+                      .slice(1, -2)
+                      .map((p) => p.name)
+                      .join(' › '),
+                  )}">…</button>`,
+                  ...crumbs.slice(-2),
+                ]
+              : crumbs;
+          host.innerHTML = `<div class="nav">${head}<div class="drill-top"><button type="button" class="back" aria-label="Back" ${path.length === 1 ? 'disabled' : ''}>←</button><nav class="crumbs" aria-label="Path">${shown.join('<span class="sep">›</span>')}</nav></div><div class="drill-title"><span class="t">${esc(here.type)}${mult(here.m)}</span><span class="k">${esc(kindOf(here.type))}${path.length > 1 ? ` · step ${path.length - 1}` : ''}</span></div><div class="nav-body">${groupsHtml(here.type, typesTo(path.length - 1), null, items)}</div></div>`;
+          host.querySelector('.back').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (path.length > 1) {
+              path.pop();
+              render();
+            }
+          });
+          host.querySelectorAll('.crumb[data-k]').forEach((c) =>
+            c.addEventListener('click', (e) => {
+              e.stopPropagation();
+              path = path.slice(0, +c.dataset.k + 1);
+              render();
+            }),
+          );
+          host.querySelector('.nav-body').addEventListener('click', (e) => {
+            const b = e.target.closest('.nrow[data-i]');
+            if (!b) return;
+            e.stopPropagation();
+            path.push(items[+b.dataset.i]);
+            render();
+            const first = host.querySelector('.nav-body .nrow[data-i]');
+            if (first && e.detail === 0) first.focus();
+          });
+          host.querySelector('.nav').addEventListener('keydown', (e) => {
+            if (
+              (e.key === 'Backspace' || (e.key === 'ArrowLeft' && e.altKey)) &&
+              path.length > 1
+            ) {
+              e.preventDefault();
+              path.pop();
+              render();
+              const f =
+                host.querySelector('.nav-body .nrow[data-i]') ||
+                host.querySelector('.back');
+              f.focus();
+            }
+          });
+          return;
+        }
+        // C · a typed path
+        const f = filter.toLowerCase();
+        const body = groupsHtml(
+          here.type,
+          typesTo(path.length - 1),
+          null,
+          items,
+          f,
+          f ? 0 : -1,
+        );
+        const toks = path
+          .slice(1)
+          .map(
+            (p, k) =>
+              `<button type="button" class="tok" data-k="${k + 1}" title="Back to ${esc(p.name)}">${esc(p.name)}</button>`,
+          )
+          .join('<span class="dot">.</span>');
+        host.innerHTML = `<div class="nav">${head}<div class="tokens"><span class="root">${esc(root.name)}</span>${path.length > 1 ? '<span class="dot">.</span>' + toks : ''}<span class="dot">.</span><input type="text" aria-label="Filter what ${esc(here.type)} relates to; Enter or dot goes in, Backspace goes up" placeholder="filter ${esc(here.type)}…" value="${esc(filter)}" spellcheck="false" autocomplete="off"></div><div class="chain">${path.map((p, k) => (k === path.length - 1 ? `<b>${esc(p.type)}</b>` : esc(p.type))).join(' › ')}</div><div class="nav-body">${body || '<div class="hint" style="padding:8px">Nothing here matches.</div>'}</div><div class="hint"><kbd>↵</kbd> or <kbd>.</kbd> go into the first match · <kbd>⌫</kbd> on empty goes up</div></div>`;
+        const input = host.querySelector('input');
+        const descend = (it) => {
+          if (!it || isPrim(it.type)) return;
+          path.push(it);
+          filter = '';
+          render(true);
+        };
+        input.addEventListener('input', () => {
+          filter = input.value.replace(/\./g, '');
+          const pos = input.selectionStart;
+          render(true);
+          const i2 = host.querySelector('input');
+          i2.setSelectionRange(pos, pos);
+        });
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === '.') {
+            e.preventDefault();
+            descend(items.find((it) => !isPrim(it.type)));
+          } else if (
+            e.key === 'Backspace' &&
+            input.value === '' &&
+            path.length > 1
+          ) {
+            e.preventDefault();
+            path.pop();
+            render(true);
+          }
+        });
+        host.querySelectorAll('.tok').forEach((t) =>
+          t.addEventListener('click', (e) => {
+            e.stopPropagation();
+            path = path.slice(0, +t.dataset.k + 1);
+            filter = '';
+            render(true);
+          }),
+        );
+        host.querySelector('.nav-body').addEventListener('click', (e) => {
+          const b = e.target.closest('.nrow[data-i]');
+          if (!b) return;
+          e.stopPropagation();
+          descend(items[+b.dataset.i]);
+        });
+        host.querySelector('.tokens').addEventListener('click', (e) => {
+          e.stopPropagation();
+          input.focus();
+        });
+        if (focusInput) input.focus();
+      }
+      render();
+      return {
+        focusFirst() {
+          const el =
+            host.querySelector('input') || host.querySelector('.nrow[data-i]');
+          if (el) el.focus();
+        },
+      };
+    }
+
+    // Samples, three levels in.
+    document.querySelectorAll('[data-nav-sample]').forEach((el) => {
+      el.addEventListener('click', (e) => e.stopPropagation());
+      makeNav(
+        el,
+        el.dataset.navSample,
+        { name: 'result', type: 'DiscountedOffer', m: '1', role: 'Output' },
+        ['products', 'discountAmounts'],
+      );
+    });
+
+    // ---- Badge content, three ways ----
+    function badgeLabel(variant, name, type, m) {
+      if (variant === 'name') return `${esc(name)}${mult(m)}`;
+      if (variant === 'nametype')
+        return `<span class="pn">${esc(name)}:</span> ${esc(type)}${mult(m)}`;
+      return `${esc(type)}${mult(m)}`;
+    }
+    const DUP = new Set(['UserId']);
+    const ON_DIAGRAM = new Set(['DiscountedOffer']);
+    function chip(variant, word, [name, type, m], role, live) {
+      const cls = `chip ${word}${DUP.has(type) ? ' dup' : ''}${live ? '' : ' static'}`;
+      let label = badgeLabel(variant, name, type, m);
+      if (ON_DIAGRAM.has(type))
+        label = `<span class="on-diagram">${label}</span>`;
+      const tip = `${name}: ${type}${mult(m)} · ${role}`;
+      const open = live ? 'button type="button"' : 'span';
+      return `<${open} class="${cls}" title="${esc(tip)}" data-name="${esc(name)}" data-type="${esc(type)}" data-mult="${esc(m)}" data-role="${esc(role)}">${label}</${live ? 'button' : 'span'}>`;
+    }
+    function slotRows(variant, slots, live) {
+      const rows = [];
+      if (slots.input && slots.input.length)
+        rows.push([
+          'input',
+          slots.input.map((s, i) =>
+            chip(variant, 'input', s, `input ${i + 1}`, live),
+          ),
+        ]);
+      if (slots.output && slots.output.length)
+        rows.push([
+          'output',
+          slots.output.map((s) => chip(variant, 'output', s, 'output', live)),
+        ]);
+      if (slots.state && slots.state.length)
+        rows.push([
+          'state',
+          slots.state.map((s) => chip(variant, 'state', s, 'state', live)),
+        ]);
+      return `<div class="chiprows">${rows.map(([w, cs]) => `<span class="lab">${w}</span><span class="chips">${cs.join('')}</span>`).join('')}</div>`;
+    }
+    const SCENE = [
+      {
+        frame: 'DiscountCalculation',
+        kind: 'Service',
+        icon: 'S',
+        beh: 'calculate',
+        input: [
+          ['offer', 'Offer', '1'],
+          ['user', 'UserId', '1'],
+        ],
+        output: [['result', 'DiscountedOffer', '1']],
+      },
+      {
+        frame: 'UserStatusProvider',
+        kind: 'Service',
+        icon: 'S',
+        beh: 'getFor',
+        input: [['userId', 'UserId', '1']],
+        output: [['result', 'UserStatus', '1']],
+      },
+      {
+        frame: 'PotentialDiscount',
+        kind: 'Value object',
+        icon: 'V',
+        beh: 'isApplicableFor',
+        input: [['conditions', 'Conditions', '1']],
+        output: [['result', 'boolean', '1']],
+      },
+    ];
+    const behaviorCard = (variant, s, live) =>
+      `<div class="card pill tall"><div class="name"><span class="ico beh">ƒ</span>${s.beh}</div><div class="kind">Behavior</div>${slotRows(variant, s, live)}</div>`;
+    const pickedCard = (variant, live) =>
+      `<div class="bevel picked"><div class="face"><div class="name"><span class="ico vo"><span>V</span></span>DiscountedOffer</div><div class="kind">Value object</div>${slotRows(variant, { state: TYPES.DiscountedOffer.state }, live)}</div></div>`;
+    document.querySelectorAll('[data-badge-sample]').forEach((el) => {
+      const v = el.dataset.badgeSample;
+      el.innerHTML = behaviorCard(v, SCENE[0], false) + pickedCard(v, false);
+    });
+
+    // ---- The live canvas ----
+    let badgeV = 'nametype';
+    let popV = 'columns';
+    const live = document.getElementById('live-folded');
+    const pop = document.getElementById('tree-pop');
+    pop.addEventListener('click', (e) => e.stopPropagation());
+    let openChip = null;
+
+    function close(returnFocus) {
+      if (!openChip) return;
+      openChip.setAttribute('aria-expanded', 'false');
+      if (returnFocus && document.body.contains(openChip)) openChip.focus();
+      openChip = null;
+      pop.hidden = true;
+    }
+    function openFor(chipEl, viaKeyboard) {
+      if (openChip === chipEl) {
+        close(true);
+        return;
+      }
+      close(false);
+      const { name, type, role } = chipEl.dataset;
+      pop.className = `tree-pop${popV === 'columns' ? ' wide' : ''}`;
+      pop.style.padding = popV === 'columns' ? '0' : '';
+      const nav = makeNav(pop, popV, {
+        name,
+        type,
+        m: chipEl.dataset.mult,
+        role: role[0].toUpperCase() + role.slice(1),
+      });
+      openChip = chipEl;
+      chipEl.setAttribute('aria-expanded', 'true');
+      pop.hidden = false;
+      const r = chipEl.getBoundingClientRect();
+      const maxLeft =
+        window.scrollX +
+        document.documentElement.clientWidth -
+        pop.offsetWidth -
+        16;
+      pop.style.left = `${Math.max(16, Math.min(r.left + window.scrollX, maxLeft))}px`;
+      pop.style.top = `${r.bottom + window.scrollY + 6}px`;
+      if (viaKeyboard || popV === 'path') nav.focusFirst();
+    }
+    function renderLive() {
+      close(false);
+      live.innerHTML = `<div class="stack">${SCENE.map(
+        (s) =>
+          `<div class="frame"><div class="frame-title"><span class="ico">${s.icon}</span>${s.frame}<small>${s.kind}</small></div>${behaviorCard(badgeV, s, true)}</div>`,
+      ).join('')}</div>${pickedCard(badgeV, true)}`;
+      live.querySelectorAll('.chip').forEach((c) => {
+        if (isPrim(c.dataset.type)) {
+          c.classList.add('leaf');
+          c.setAttribute('aria-disabled', 'true');
+          return;
+        }
+        c.setAttribute('aria-expanded', 'false');
+        c.setAttribute('aria-haspopup', 'dialog');
+        c.insertAdjacentHTML(
+          'beforeend',
+          '<span class="caret" aria-hidden="true">▼</span>',
+        );
+        c.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openFor(c, e.detail === 0);
+        });
+      });
+    }
+    function wireSeg(id, set) {
+      const seg = document.getElementById(id);
+      seg.addEventListener('click', (e) => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        seg
+          .querySelectorAll('button')
+          .forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        set(b.dataset.v);
+        renderLive();
+      });
+    }
+    wireSeg('badge-seg', (v) => (badgeV = v));
+    wireSeg('pop-seg', (v) => (popV = v));
+    renderLive();
+    document.addEventListener('click', () => close(false));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') close(true);
+    });
+
+    // ---- As nodes: cards + edges ----
+    const N = {
+      frameA: {
+        x: 0,
+        y: 0,
+        w: 270,
+        h: 156,
+        frame: 'DiscountCalculation',
+        kind: 'Service',
+      },
+      calc: {
+        x: 20,
+        y: 64,
+        w: 230,
+        h: 52,
+        pill: true,
+        name: 'calculate',
+        kind: 'Behavior',
+      },
+      frameB: {
+        x: 0,
+        y: 200,
+        w: 270,
+        h: 156,
+        frame: 'UserStatusProvider',
+        kind: 'Service',
+      },
+      getFor: {
+        x: 20,
+        y: 264,
+        w: 230,
+        h: 52,
+        pill: true,
+        name: 'getFor',
+        kind: 'Behavior',
+      },
+      Offer: { x: 400, y: 0, w: 180, h: 52, vo: true, name: 'Offer' },
+      UserId: { x: 400, y: 100, w: 180, h: 52, vo: true, name: 'UserId' },
+      DiscountedOffer: {
+        x: 400,
+        y: 200,
+        w: 180,
+        h: 52,
+        vo: true,
+        name: 'DiscountedOffer',
+      },
+      UserStatus: {
+        x: 400,
+        y: 304,
+        w: 180,
+        h: 52,
+        vo: true,
+        name: 'UserStatus',
+      },
+      DiscountedProduct: {
+        x: 670,
+        y: 150,
+        w: 180,
+        h: 52,
+        vo: true,
+        name: 'DiscountedProduct',
+      },
+      DiscountAmount: {
+        x: 670,
+        y: 256,
+        w: 180,
+        h: 52,
+        vo: true,
+        name: 'DiscountAmount',
+      },
+    };
+    const E = [
+      ['calc', 'Offer', 'input', 'has input'],
+      ['calc', 'UserId', 'input', 'has input'],
+      ['calc', 'DiscountedOffer', 'output', 'has output'],
+      ['getFor', 'UserId', 'input', 'has input'],
+      ['getFor', 'UserStatus', 'output', 'has output'],
+      ['DiscountedOffer', 'DiscountedProduct', 'state', 'has state'],
+      ['DiscountedOffer', 'DiscountAmount', 'state', 'has state'],
+    ];
+    function cardHtml(n) {
+      if (n.frame)
+        return `<div class="frame" style="width:${n.w}px;height:${n.h}px"><div class="frame-title"><span class="ico">S</span>${esc(n.frame)}<small>${n.kind}</small></div></div>`;
+      if (n.vo)
+        return `<div class="bevel" style="width:${n.w}px"><div class="face"><div class="name"><span class="ico vo"><span>V</span></span>${esc(n.name)}</div><div class="kind">Value object</div></div></div>`;
+      return `<div class="card pill" style="width:${n.w}px"><div class="name"><span class="ico beh">ƒ</span>${esc(n.name)}</div><div class="kind">${n.kind}</div></div>`;
+    }
+    function sceneHtml() {
+      let svg = '<svg width="860" height="380" aria-hidden="true">';
+      for (const [a, b, kind, word] of E) {
+        const s = N[a],
+          t = N[b];
+        const x1 = s.x + s.w,
+          y1 = s.y + s.h / 2,
+          x2 = t.x,
+          y2 = t.y + t.h / 2,
+          dx = (x2 - x1) * 0.5;
+        svg += `<path d="M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}" fill="none" stroke="var(--${kind}-line)" stroke-width="1.6" stroke-dasharray="3 4" class="flow"/>`;
+        svg += `<path d="M${x2 - 7},${y2 - 4} L${x2},${y2} L${x2 - 7},${y2 + 4}" fill="none" stroke="var(--${kind}-line)" stroke-width="1.6"/>`;
+        const mx = (x1 + x2) / 2,
+          my = (y1 + y2) / 2,
+          w = word.length * 6.1 + 12;
+        svg += `<rect x="${mx - w / 2}" y="${my - 9}" width="${w}" height="18" rx="9" fill="var(--edge-label)" stroke="var(--card-border)"/>`;
+        svg += `<text x="${mx}" y="${my + 4}" text-anchor="middle" fill="var(--${kind}-word)" class="edge-label">${word}</text>`;
+      }
+      svg += '</svg>';
+      return (
+        svg +
+        Object.values(N)
+          .map(
+            (n) =>
+              `<div class="n" style="left:${n.x}px;top:${n.y}px">${cardHtml(n)}</div>`,
+          )
+          .join('')
+      );
+    }
+    document.querySelectorAll('[data-today]').forEach((el) => {
+      el.innerHTML = sceneHtml();
+    });
+
+    // ---- The switch: one step per flip, with undo / redo ----
+    const steps = ['cards'];
+    let at = 0;
+    const btnCards = document.getElementById('mode-cards');
+    const btnNodes = document.getElementById('mode-nodes');
+    const undo = document.getElementById('undo');
+    const redo = document.getElementById('redo');
+    const stepsEl = document.getElementById('steps');
+    function renderMode() {
+      const mode = steps[at];
+      close(false);
+      document.body.dataset.slots = mode;
+      btnCards.setAttribute('aria-pressed', String(mode === 'cards'));
+      btnNodes.setAttribute('aria-pressed', String(mode === 'nodes'));
+      undo.disabled = at === 0;
+      redo.disabled = at === steps.length - 1;
+      stepsEl.textContent = `Step ${at + 1} of ${steps.length}`;
+    }
+    function go(mode) {
+      if (steps[at] === mode) return;
+      steps.splice(at + 1);
+      steps.push(mode);
+      at = steps.length - 1;
+      renderMode();
+    }
+    btnCards.addEventListener('click', () => go('cards'));
+    btnNodes.addEventListener('click', () => go('nodes'));
+    undo.addEventListener('click', () => {
+      if (at > 0) {
+        at--;
+        renderMode();
+      }
+    });
+    redo.addEventListener('click', () => {
+      if (at < steps.length - 1) {
+        at++;
+        renderMode();
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return;
+      if (e.target.closest && e.target.closest('input')) return;
+      e.preventDefault();
+      if (e.shiftKey) redo.click();
+      else undo.click();
+    });
+    renderMode();
+  })();
+</script>
