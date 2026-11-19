@@ -48,6 +48,7 @@ import {
   graphOf,
   groupOf,
   hiddenBy,
+  howMuchDrawn,
   kindWordOf,
   MODULES_BELOW,
   neighboursOf,
@@ -474,6 +475,14 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       (kids.get(id) ?? []).flatMap((kid) => [kid, ...all(kid)]);
     return all;
   }, [exploration]);
+  // How much of each element is drawn, with all the model holds inside it:
+  // what its tick in the picker says, and where a click on it goes next
+  // (onPick).
+  const shown = useMemo(
+    () => howMuchDrawn(exploration, drawn),
+    [exploration, drawn],
+  );
+  const shownOf = useCallback((id: string) => shown.get(id) ?? false, [shown]);
   // What was just added — from a card's menu, the picker or the canvas's own
   // menu — with the card it came from, if any: in hand at once, and, once the
   // cards have landed and settled where they go, brought into view — unless
@@ -786,13 +795,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         drawn={graph.elements.length}
         total={exploration.elements.length}
         document={document}
-        isShown={isShown}
+        isShown={shownOf}
         onPick={onPick}
         onAddAll={addAll}
         onClear={clear}
       />
     ),
-    [picking, graph, exploration, document, isShown, onPick, addAll, clear],
+    [picking, graph, exploration, document, shownOf, onPick, addAll, clear],
   );
   const closeVisibility = useCallback(() => setSeeing(false), []);
   const side = useMemo(

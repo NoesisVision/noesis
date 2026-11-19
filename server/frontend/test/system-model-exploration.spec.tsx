@@ -13,6 +13,7 @@ import {
   explorationOf,
   graphOf,
   hiddenBy,
+  howMuchDrawn,
   kindWordOf,
   neighboursOf,
   NO_PICKS,
@@ -1539,6 +1540,37 @@ describe('the way into the picker', () => {
     const html = picker(3);
     expect(html).not.toContain('Start exploration');
     expect(html).toMatch(/<button[^>]*aria-label="Add to the exploration"/);
+  });
+});
+
+describe('how much of an element is drawn, with all inside it', () => {
+  const ORDERS = 'module|shop.orders';
+  const ORDER = 'building_block|shop.orders.Order';
+  const LINE = 'building_block|shop.orders.Line';
+  const PLACE = 'behavior|shop.orders.Order.place';
+  const much = (...drawn: string[]) =>
+    howMuchDrawn(exploration, new Set(drawn));
+
+  it('is all of it, none of it, or only part', () => {
+    expect(much(ORDER, PLACE).get(ORDER)).toBe(true);
+    expect(much().get(ORDER)).toBe(false);
+    // The block without its behavior, and the behavior without its block.
+    expect(much(ORDER).get(ORDER)).toBe('mixed');
+    expect(much(PLACE).get(ORDER)).toBe('mixed');
+  });
+
+  it('is all of an element with nothing inside it, once it is drawn', () => {
+    expect(much(PLACE).get(PLACE)).toBe(true);
+    expect(much(ORDER).get(PLACE)).toBe(false);
+  });
+
+  it('counts what is inside all the way down', () => {
+    // A behavior alone marks every frame round it as partly drawn.
+    expect(much(PLACE).get(ORDERS)).toBe('mixed');
+    expect(much(PLACE).get('module|shop')).toBe('mixed');
+    expect(much(ORDERS, ORDER, LINE, PLACE).get(ORDERS)).toBe(true);
+    // Its own module is not inside it.
+    expect(much(ORDERS, ORDER, LINE, PLACE).get('module|shop')).toBe('mixed');
   });
 });
 

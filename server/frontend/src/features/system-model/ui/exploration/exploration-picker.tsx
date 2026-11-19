@@ -12,6 +12,7 @@ import { ThemeIcon } from '#/shared/design-system/theme-icon.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import type { HowMuchDrawn } from '../../system-model-exploration.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import classes from './exploration.module.css';
 
@@ -22,7 +23,8 @@ export interface ExplorationPickerProps {
   drawn: number;
   total: number;
   document: DesignDocumentInput;
-  isShown: (id: string) => boolean;
+  /** How much of an element is drawn, with all inside it: its row's tick, a dash for only part. */
+  isShown: (id: string) => HowMuchDrawn;
   /** A row clicked: the element alone, then with all inside it, then none. */
   onPick: (id: string) => void;
   /** Draws every element of the model. */

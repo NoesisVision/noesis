@@ -22,8 +22,9 @@ import classes from './model-tree.module.css';
  * A click reads the row; a double click, or a click on the chevron beside the
  * name, opens or shuts it. One tab stop per row either way, and the arrow
  * keys do what the tree pattern says they do. A row that puts its element in
- * or takes it out of a view is checked while it is in: the plus or minus at
- * its end flips it, and so do Enter and Space, in place of reading the row.
+ * or takes it out of a view is checked while it is in — its box ticked, or
+ * struck through with a dash while only part of it is: the box flips it,
+ * and so do Enter and Space, in place of reading the row.
  */
 
 export interface TreeItemProps {
@@ -202,7 +203,8 @@ export const TreeItem = memo(function TreeItem({ node }: TreeItemProps) {
           // stop, checked or not, and Enter or Space on it does the same.
           <Checkbox.Indicator
             size="xs"
-            checked={on}
+            checked={on === true}
+            indeterminate={on === 'mixed'}
             aria-hidden
             className={classes.tick}
             onClick={onFlipClick}
