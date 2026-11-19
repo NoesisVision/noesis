@@ -30,9 +30,11 @@ import {
 import { GLIDE_MS, LEAVING_MS, LIVE_DRAG } from './exploration-timing.ts';
 import { layoutByRelations, QUICK, THOROUGH } from './layout-by-relations.ts';
 import {
+  inGraphOrder,
   layoutExploration,
   layoutWithin,
   type PlacedElement,
+  type Stood,
 } from './layout-exploration.ts';
 import {
   arrangeWithin,
@@ -51,7 +53,26 @@ import {
  */
 
 const NONE_IN_HAND: readonly string[] = [];
-const NEVER_TAKEN = () => false;
+
+/**
+ * Where each card stands now, relative to its container, for a placing to
+ * keep to: those still drawn, and still inside what they were inside.
+ * Nothing when no card stands yet.
+ */
+function stoodIn(
+  graph: ExplorationGraph,
+  nodes: ExplorationNode[],
+): Stood | undefined {
+  const parentOf = new Map(
+    graph.elements.map(({ id, parent }) => [id, parent]),
+  );
+  const stood = new Map(
+    standingOf(nodes)
+      .filter(({ element }) => parentOf.get(element.id) === element.parent)
+      .map(({ element, x, y }) => [element.id, { x, y }]),
+  );
+  return stood.size === 0 ? undefined : stood;
+}
 
 /**
  * The other cards in hand that go where a dragged one goes: none unless it
@@ -94,8 +115,8 @@ const alongAt = (
 
 /**
  * The cards where the layout puts them, placed again whenever what is drawn
- * or how changes, or the reader asks; each placing is fitted to the canvas
- * once it lands.
+ * or how changes, or the reader asks. A placing leaves the view where it
+ * is; only a diagram opened where it was left is fitted to the canvas.
  */
 /** A change made from one card, to be placed beside it, not anew. */
 interface LocalChange {
@@ -111,11 +132,6 @@ export function usePlacement(
   opening: { nodes: ExplorationNode[] } | null,
   /** The cards in hand: one of them dragged, the rest go with it. */
   inHand: readonly string[] = NONE_IN_HAND,
-  /**
-   * Whether the view is about to be taken somewhere itself — to what was
-   * just added: a placing then leaves the view where it is, not fitted.
-   */
-  viewIsTaken: () => boolean = NEVER_TAKEN,
 ) {
   // A big group is dragged as it is, unless dev tools ask for its outline.
   // And the diagram is placed by its relations, unless they ask for the
@@ -128,8 +144,14 @@ export function usePlacement(
   const [placed, setPlaced] = useState<{
     graph: ExplorationGraph;
     asked: number;
-    /** Placed beside a card rather than anew, so the view stays where it is. */
+    /** Placed beside a card rather than anew: what it asked to be arranged then is. */
     local: boolean;
+    /**
+     * Fitted to the canvas once it lands: a diagram opened where it was
+     * left. Any other placing leaves the view where the reader has it —
+     * the cards move, the view does not jump to them.
+     */
+    fit: boolean;
   } | null>(null);
   // Read when the graph changes, without placing again when they do.
   const latest = useRef({ nodes, placed, inHand });
@@ -482,9 +504,9 @@ export function usePlacement(
     // Asked for by the reader, a placing is worth a moment's search; one the
     // diagram does itself, as elements are put on it, is not waited for.
     const askedFor = was !== null && was.asked !== asked;
-    const done = (local: boolean) => {
+    const done = (local: boolean, fit = false) => {
       settled.current = { graph, asked };
-      setPlaced({ graph, asked, local });
+      setPlaced({ graph, asked, local, fit });
     };
 
     // A step gone back to stands as it stood.
@@ -493,7 +515,7 @@ export function usePlacement(
       restoring.current = null;
       local.current = null;
       landNodes(back.nodes);
-      done(!back.fit);
+      done(!back.fit, back.fit);
       return;
     }
 
@@ -521,11 +543,21 @@ export function usePlacement(
     }
 
     try {
+      // Handed over in the graph's own order, as every other placing is, so
+      // each card keeps its place in the page and glides to where it stands.
       land(
-        (placeByKinds
-          ? layoutExploration(graph)
-          : layoutByRelations(graph, null, askedFor ? THOROUGH : QUICK)
-        ).elements,
+        inGraphOrder(
+          graph,
+          (placeByKinds
+            ? layoutExploration(graph)
+            : layoutByRelations(
+                graph,
+                null,
+                askedFor ? THOROUGH : QUICK,
+                stoodIn(graph, latest.current.nodes),
+              )
+          ).elements,
+        ),
       );
     } catch (error) {
       setFailure(error instanceof Error ? error.message : String(error));
@@ -552,7 +584,12 @@ export function usePlacement(
         id,
         placeByKinds
           ? layoutWithin(drawn, id)
-          : layoutByRelations(drawn, id).elements,
+          : layoutByRelations(
+              drawn,
+              id,
+              THOROUGH,
+              stoodIn(drawn, latest.current.nodes),
+            ).elements,
       );
       if (elements === null) setAsked((count) => count + 1);
       else land(elements);
@@ -580,11 +617,10 @@ export function usePlacement(
   }, [placed, arrange]);
 
   useEffect(() => {
-    if (placed === null || placed.local || flow === null) return;
-    if (viewIsTaken()) return;
+    if (placed === null || !placed.fit || flow === null) return;
     const frame = requestAnimationFrame(() => void flow.fitView(FIT));
     return () => cancelAnimationFrame(frame);
-  }, [placed, flow, viewIsTaken]);
+  }, [placed, flow]);
 
   // A card being dragged keeps its place until let go of: only its outline
   // moves.

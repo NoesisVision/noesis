@@ -218,16 +218,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // What was just added, to be brought into view once it has landed
   // (bringIn, below). What the reader added by name — from the picker, or
   // the canvas's own menu — is gone to, always: put in the middle of the
-  // view, wherever it landed; the placing then leaves the view to that.
+  // view, wherever it landed. A placing itself leaves the view where it is.
   const focusAfter = useRef<{
     ids: readonly string[];
     from: string | null;
     centred: boolean;
   } | null>(null);
-  const goingToWhatWasAdded = useCallback(
-    () => focusAfter.current?.centred === true,
-    [],
-  );
   const {
     nodes,
     placements,
@@ -249,7 +245,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     outline,
     flow,
     setFlow,
-  } = usePlacement(graph, opening, selection, goingToWhatWasAdded);
+  } = usePlacement(graph, opening, selection);
   const zoom = useCanvasZoom(flow);
   // Where a point of the page is on the canvas, once the canvas is there.
   const toCanvas = useMemo(

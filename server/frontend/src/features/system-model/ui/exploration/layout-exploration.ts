@@ -9,9 +9,11 @@ import { signatureLinesOf, signatureLineWidthOf } from './badge-signature.ts';
 
 /*
  * Where each element of the exploration stands when the diagram places it:
- * what a container holds is set out in rows, in the order of its kinds
- * (exploration-order.ts), the rows as long as make the whole nearest a
- * square, and the container sized around them. Positions are in the
+ * what a container holds is set out in order — of its kinds
+ * (exploration-order.ts), or the one that tangles its edges least
+ * (layout-by-relations.ts) — each as high up and then as far left as it
+ * can stand, as wide in all as makes the whole nearest a square, and the
+ * container sized around them. Positions are in the
  * canvas's own pixels, a contained element's relative to its container, as
  * React Flow reads them. The relations do not shape where the cards go;
  * the edges are drawn between the cards wherever they then stand.
@@ -228,60 +230,187 @@ interface Round {
 }
 const NOTHING_ROUND: Round = { across: 0, down: 0, least: 0 };
 
-/** The boxes in rows no longer than `limit`, in their order, and the next limit that would set them out otherwise. */
-function rowsWithin(boxes: readonly Box[], limit: number) {
+/**
+ * The boxes set out no wider than `limit`, in their order, in rows: each
+ * row from the left, its boxes level at the top, the next row under the
+ * tallest of them. A row with a tall box in it would leave the room under
+ * its short ones empty, so the box that comes next is tucked in there
+ * instead — under a shorter one, as high as it can stand — when it fits
+ * wholly within the row's height; and so the ones after it, beside or
+ * under it, until one does not fit and starts the next row. Read from the
+ * top, each row from the left and what is tucked into it after, the boxes
+ * are in the order they came in. With it, the next width that would set
+ * them out otherwise.
+ */
+function packedWithin(boxes: readonly Box[], limit: number) {
+  // The line under which everything so far stands, its room round it
+  // counted, from the left: each stretch of it, and how far down it is.
+  let line = [{ from: 0, to: Infinity, down: 0 }];
   const at: { x: number; y: number }[] = [];
-  let x = 0;
-  let y = 0;
-  let tallest = 0;
   let width = 0;
+  let height = 0;
   let next = Infinity;
+  // The row being filled: where it starts, where its next box goes, how
+  // far down its tallest box reaches, and everything tucked into it.
+  let row = { top: 0, along: 0, bottom: 0, under: 0 };
+  let last: { x: number; y: number } | null = null;
   for (const box of boxes) {
-    if (x > 0 && x + box.width > limit) {
-      // Long enough for this box, the row would have taken it.
-      next = Math.min(next, x + box.width);
-      y += tallest + SPACING;
-      x = 0;
-      tallest = 0;
+    let spot: { x: number; y: number } | null = null;
+    // In the row, level with the rest — until something is tucked under
+    // it, which the page reads after it.
+    if (last === null || last.y === row.top) {
+      if (row.along === 0 || row.along + box.width <= limit)
+        spot = { x: row.along, y: row.top };
+      // Wide enough for this box, the row would have taken it.
+      else next = Math.min(next, row.along + box.width);
     }
-    at.push({ x, y });
-    x += box.width + SPACING;
-    tallest = Math.max(tallest, box.height);
-    width = Math.max(width, x - SPACING);
+    // Else tucked into the row: under a shorter box, where it is clear and
+    // fits within the row's height, and comes after the last one as read.
+    if (spot === null && last !== null)
+      for (const { from: x } of line) {
+        if (x + box.width > limit) continue;
+        let clear = 0;
+        for (const { from, to, down } of line)
+          if (from < x + box.width + SPACING && to > x)
+            clear = Math.max(clear, down);
+        const y: number = x > last.x ? Math.max(clear, last.y) : clear;
+        const after = y > last.y || (y === last.y && x > last.x);
+        if (
+          y > row.top &&
+          after &&
+          y + box.height <= row.bottom &&
+          (spot === null || y < spot.y)
+        )
+          spot = { x, y };
+      }
+    // Else it starts the next row, under all of this one.
+    if (spot === null) {
+      row = { top: row.under + SPACING, along: 0, bottom: 0, under: 0 };
+      spot = { x: 0, y: row.top };
+    }
+    at.push(spot);
+    last = spot;
+    const under = spot.y + box.height;
+    if (spot.y === row.top) {
+      row.along = spot.x + box.width + SPACING;
+      row.bottom = Math.max(row.bottom, under);
+    }
+    row.under = Math.max(row.under, under);
+    width = Math.max(width, spot.x + box.width);
+    height = Math.max(height, under);
+    // The line now runs under the box, and the room round it.
+    const from = spot.x;
+    const to = from + box.width + SPACING;
+    line = [
+      ...line.flatMap((stretch) => [
+        ...(stretch.from < from
+          ? [{ ...stretch, to: Math.min(stretch.to, from) }]
+          : []),
+        ...(stretch.to > to
+          ? [{ ...stretch, from: Math.max(stretch.from, to) }]
+          : []),
+      ]),
+      { from, to, down: under + SPACING },
+    ].toSorted((a, b) => a.from - b.from);
   }
-  return { at, width, height: y + tallest, next };
+  return { at, width, height, next };
 }
 
 /**
- * Boxes set out in rows, in their order, each row from the left and the
- * rows one under another: with rows of the length that makes the whole —
- * what is round them counted — fit the smallest square, and of those the
- * one that takes least room. Rows are tried from the shortest, a box to a
- * row, each a little longer than the last, until the whole is wider than
- * it is tall: longer still would only be wider.
+ * How much larger round a container may be for its elements to stay where
+ * they stood: a quarter more, at most.
+ */
+const STAYING_SLACK = 1.25;
+
+/** How many times as wide as it is tall a setting out may be before wider ones are no longer tried. */
+const WIDE_ENOUGH = 2;
+
+/** How much larger round one setting out may be than the smallest and still count as small as it: then the squarer is taken. */
+const AS_SMALL = 1.05;
+
+/**
+ * Boxes set out in their order (`packedWithin`), as wide as makes the
+ * whole — what is round them counted — the smallest round: its width and
+ * its height together, which a box with room left empty in it adds to.
+ * Of those within a twentieth of the smallest, the squarest. Widths are
+ * tried from the narrowest, a box across, each a little wider than the
+ * last, until the whole is twice as wide as tall.
+ *
+ * Told how many boxes each setting out would move from where they stood
+ * (`movedOf`), it keeps to the one that moves fewest, while that is no
+ * more than a quarter larger round: adding one box does not send every
+ * other somewhere else.
  */
 export function setOutInSquare(
   boxes: readonly Box[],
   round: Round = NOTHING_ROUND,
+  movedOf?: (at: readonly { x: number; y: number }[]) => number,
 ) {
   let limit = Math.max(0, ...boxes.map(({ width }) => width));
-  let best: ReturnType<typeof rowsWithin> | null = null;
-  let bestSide = Infinity;
-  let bestRoom = Infinity;
+  const tried: {
+    rows: ReturnType<typeof packedWithin>;
+    /** Its width and its height together. */
+    around: number;
+    /** Its longer side: the square it fits. */
+    side: number;
+    room: number;
+  }[] = [];
   for (;;) {
-    const rows = rowsWithin(boxes, limit);
+    const rows = packedWithin(boxes, limit);
     const width = Math.max(round.least, rows.width + round.across);
     const height = rows.height + round.down;
-    const side = Math.max(width, height);
-    if (side < bestSide || (side === bestSide && width * height < bestRoom)) {
-      best = rows;
-      bestSide = side;
-      bestRoom = width * height;
-    }
-    if (rows.next === Infinity || width >= height) return best ?? rows;
+    tried.push({
+      rows,
+      around: width + height,
+      side: Math.max(width, height),
+      room: width * height,
+    });
+    // By the boxes' own width: a frame wider than they need is no reason
+    // to stop short of the width that would fill it.
+    const across = rows.width + round.across;
+    if (rows.next === Infinity || across >= height * WIDE_ENOUGH) break;
     limit = rows.next;
   }
+  const least = Math.min(...tried.map(({ around }) => around));
+  const best = (a: (typeof tried)[number], b: (typeof tried)[number]) => {
+    const [small, alsoSmall] = [a, b].map(
+      ({ around }) => around <= least * AS_SMALL,
+    );
+    if (small !== alsoSmall) return small ? -1 : 1;
+    return small
+      ? a.side - b.side || a.room - b.room
+      : a.around - b.around || a.room - b.room;
+  };
+  if (movedOf === undefined) return tried.toSorted(best)[0]!.rows;
+  return tried
+    .filter(({ around }) => around <= least * STAYING_SLACK)
+    .map((each) => ({ ...each, moved: movedOf(each.rows.at) }))
+    .toSorted((a, b) => a.moved - b.moved || best(a, b))[0]!.rows;
 }
+
+/**
+ * Where each element stood before a placing, relative to its container: a
+ * new placing keeps to it where it can (see `setOutInSquare`, and
+ * layout-by-relations.ts).
+ */
+export type Stood = ReadonlyMap<string, { x: number; y: number }>;
+
+/** How far off where it stood an element may be placed and still be where it was. */
+const STAYS_WITHIN = 0.5;
+
+/** Whether an element placed here is where it stood; one that stood nowhere has not moved. */
+export const staysAt = (
+  stood: Stood,
+  id: string,
+  x: number,
+  y: number,
+): boolean => {
+  const was = stood.get(id);
+  return (
+    was === undefined ||
+    (Math.abs(was.x - x) <= STAYS_WITHIN && Math.abs(was.y - y) <= STAYS_WITHIN)
+  );
+};
 
 /** What a container holds, in the order it is set out in. */
 export type KidsOf = (parent: string | null) => readonly DrawnElement[];
@@ -306,11 +435,14 @@ export function childrenOf(
  * own elements with all they hold — in the order `kidsOf` gives each
  * container's elements: set out in a square, the container sized around
  * them. Its own elements are placed from the corner of what they cover.
+ * Given where the elements `stood`, each container keeps its rows as they
+ * were where it can.
  */
 export function placedIn(
   graph: ExplorationGraph,
   kidsOf: KidsOf,
   within: string | null = null,
+  stood?: Stood,
 ): Placement {
   /** What a container holds, placed inside its padding, each before what it holds itself. */
   const setOut = (
@@ -320,7 +452,31 @@ export function placedIn(
   ) => {
     const kids = kidsOf(parent);
     const sized = kids.map(sizeOf);
-    const rows = setOutInSquare(sized, round);
+    // Where they stood is from their container's corner; a frame's own
+    // elements, placed from the corner of its room, stood inside its padding.
+    const from =
+      parent === within && frame !== undefined
+        ? paddingOf(frame, graph)
+        : corner;
+    const rows = setOutInSquare(
+      sized,
+      round,
+      stood === undefined
+        ? undefined
+        : (at) =>
+            kids.reduce(
+              (moved, { id }, each) =>
+                staysAt(
+                  stood,
+                  id,
+                  from.left + at[each]!.x,
+                  from.top + at[each]!.y,
+                )
+                  ? moved
+                  : moved + 1,
+              0,
+            ),
+    );
     return {
       width: rows.width,
       height: rows.height,
@@ -381,6 +537,32 @@ export function placedIn(
       frame === undefined ? NOTHING_ROUND : roundOf(frame),
     ).placed,
   };
+}
+
+/**
+ * Placed elements in the order the graph lists them, each container before
+ * what it holds: the one order the canvas is handed its cards in, however
+ * they were set out. A card handed over in another place in the list is
+ * taken out of the page and put back, which starts its entrance again and
+ * cuts short its glide to where it now stands — it would blink there
+ * rather than move.
+ */
+export function inGraphOrder(
+  graph: Pick<ExplorationGraph, 'elements'>,
+  placed: readonly PlacedElement[],
+): PlacedElement[] {
+  const byId = new Map(placed.map((each) => [each.element.id, each]));
+  const children = childrenOf(graph);
+  const out: PlacedElement[] = [];
+  const walk = (parent: string | null) => {
+    for (const { id } of children.get(parent) ?? NO_KIDS) {
+      const one = byId.get(id);
+      if (one !== undefined) out.push(one);
+      walk(id);
+    }
+  };
+  walk(null);
+  return out;
 }
 
 /**

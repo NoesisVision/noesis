@@ -11,6 +11,7 @@ import {
   layoutExploration,
   type PlacedElement,
   SPACING,
+  type Stood,
 } from '../src/features/system-model/ui/exploration/layout-exploration';
 
 const card = (id: string, parent: string | null = null): DrawnElement => ({
@@ -198,5 +199,111 @@ describe('placing the exploration by its relations', () => {
       'C',
       'D',
     ]);
+  });
+});
+
+describe('placing again what was placed before', () => {
+  /** Where a placing left each, relative to its container: what the next one is given. */
+  const stoodIn = (placed: readonly PlacedElement[]): Stood =>
+    new Map(placed.map(({ element, x, y }) => [element.id, { x, y }]));
+  const movedBetween = (
+    before: readonly PlacedElement[],
+    after: readonly PlacedElement[],
+  ) => {
+    const was = stoodIn(before);
+    return after
+      .filter(({ element, x, y }) => {
+        const at = was.get(element.id);
+        return at !== undefined && (at.x !== x || at.y !== y);
+      })
+      .map(({ element }) => element.id);
+  };
+  const again = (graph: ExplorationGraph, before: readonly PlacedElement[]) =>
+    layoutByRelations(graph, null, undefined, stoodIn(before)).elements;
+
+  it('moves nothing when nothing has changed', () => {
+    const names = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const graph = graphOf(
+      names.map((name) => card(name)),
+      [
+        ['A', 'D'],
+        ['B', 'E'],
+        ['C', 'F'],
+        ['A', 'F'],
+      ],
+    );
+    const first = layoutByRelations(graph).elements;
+    expect(again(graph, first)).toEqual(first);
+  });
+
+  it('does not move a card only to shorten an edge', () => {
+    // Two by two, A reaches D along the diagonal: through nothing, across nothing.
+    const graph = graphOf(
+      [card('A'), card('B'), card('C'), card('D')],
+      [['A', 'D']],
+    );
+    const stood = layoutExploration(graph).elements;
+    // Placed from nothing, the two would be set side by side.
+    expect(movedBetween(stood, layoutByRelations(graph).elements)).not.toEqual(
+      [],
+    );
+    expect(movedBetween(stood, again(graph, stood))).toEqual([]);
+  });
+
+  it('moves two cards, and no more, to uncross two edges', () => {
+    const graph = graphOf(
+      [card('A'), card('B'), card('C'), card('D')],
+      [
+        ['A', 'D'],
+        ['B', 'C'],
+      ],
+    );
+    const stood = layoutExploration(graph).elements;
+    const placed = again(graph, stood);
+    expect(tangleOf(graph, placed).crossings).toBe(0);
+    expect(movedBetween(stood, placed)).toHaveLength(2);
+  });
+
+  it('sets a card just put on the diagram after the rest, which stay', () => {
+    const before = graphOf([card('A'), card('B'), card('C')], [['A', 'B']]);
+    const stood = layoutByRelations(before).elements;
+    const graph = graphOf(
+      [card('New'), card('A'), card('B'), card('C')],
+      [['A', 'B']],
+    );
+    const placed = again(graph, stood);
+    expect(movedBetween(stood, placed)).toEqual([]);
+    // Last in the order they are set out in.
+    expect(placed.at(-1)?.element.id).toBe('New');
+  });
+
+  it('sets a card put back into the gap it left, so none of the rest moves', () => {
+    const names = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const graph = graphOf(
+      names.map((name) => card(name)),
+      [],
+    );
+    const whole = layoutByRelations(graph).elements;
+    // B taken off: the rest stand as they stood, a gap where it was.
+    const without = whole.filter(({ element }) => element.id !== 'B');
+    const placed = again(graph, without);
+    expect(movedBetween(without, placed)).toEqual([]);
+    expect(placed.find(({ element }) => element.id === 'B')).toMatchObject(
+      whole.find(({ element }) => element.id === 'B')!,
+    );
+  });
+
+  it('keeps one frame’s elements where they stood, as the whole diagram’s', () => {
+    const frame = card('Frame');
+    const held = ['A', 'B', 'C', 'D'].map((name) => card(name, 'Frame'));
+    const graph = graphOf([frame, ...held], [['A', 'D']]);
+    const stood = stoodIn(layoutExploration(graph).elements);
+    const inside = layoutByRelations(graph, 'Frame', undefined, stood).elements;
+    // From the corner of the frame's room: where they stood, less its padding.
+    const padding = { left: 16, top: 60 };
+    for (const { element, x, y } of inside)
+      expect({ x: x + padding.left, y: y + padding.top }).toEqual(
+        stood.get(element.id)!,
+      );
   });
 });
