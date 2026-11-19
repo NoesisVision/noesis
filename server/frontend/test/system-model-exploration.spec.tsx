@@ -28,7 +28,6 @@ import {
   removalOf,
 } from '../src/features/system-model/system-model-exploration';
 import { designOf } from '../src/features/system-model/system-model.model';
-import { badgeTipOf } from '../src/features/system-model/ui/exploration/badge-signature';
 import { ElementNode } from '../src/features/system-model/ui/exploration/element-node';
 import { ExplorationPicker } from '../src/features/system-model/ui/exploration/exploration-picker';
 import {
@@ -1251,14 +1250,6 @@ describe('slots drawn on the cards that hold them', () => {
     });
   });
 
-  it('says in a badge’s tooltip the slot as written, and what it is to the card', () => {
-    const graph = onCards(['contains', 'state', 'input']);
-    const [line] = graph.badges.get(PLACE) ?? [];
-    expect(badgeTipOf(line!)).toBe('line: Line · input 1');
-    const [lines] = graph.badges.get(ORDER) ?? [];
-    expect(badgeTipOf(lines!)).toBe('lines: Line [*] · state');
-  });
-
   it('relates a card to the types its badges name, when they have cards of their own', () => {
     const graph = onCards(['contains', 'state', 'input'], {
       picks: picked(NO_PICKS, LINE, true),
@@ -1392,7 +1383,7 @@ describe('slots drawn on the cards that hold them', () => {
     // Written as the code declares it: `(line: Line)`, its brackets not
     // read out, the slot between them.
     expect(place).toMatch(
-      /<span aria-hidden="true">\(<\/span><span[^>]*><button[^>]*data-relation="input"[^>]*data-related="true"[^>]*data-tip="line: Line · input 1"[^>]*aria-label="line: Line, also on the diagram"[^>]*aria-haspopup="dialog"[^>]*aria-expanded="false"[^>]*>/,
+      /<span aria-hidden="true">\(<\/span><span[^>]*><button[^>]*data-relation="input"[^>]*data-related="true"[^>]*aria-label="line: Line, also on the diagram"[^>]*aria-haspopup="dialog"[^>]*aria-expanded="false"[^>]*>/,
     );
     expect(place).toMatch(
       /<span[^>]*>line<\/span><span[^>]*>: <\/span><span[^>]*><span[^>]*>Line<\/span>/,
@@ -1441,8 +1432,10 @@ describe('slots drawn on the cards that hold them', () => {
     const html = drawn(true);
     // `() → void`: the arrow not read out, the word read as it is.
     expect(html).toMatch(
-      /<span aria-hidden="true">\) → <\/span><span[^>]*data-tip="No output"[^>]*>void<\/span>/,
+      /<span aria-hidden="true">\) → <\/span><span[^>]*>void<\/span>/,
     );
+    // No slot has a tooltip, the word for none neither.
+    expect(html).not.toContain('data-tip');
     // With no slot and nothing to say, a card has no signature.
     expect(drawn(false)).not.toContain('data-part="badges"');
   });

@@ -7,12 +7,7 @@ import { Popover } from '#/shared/design-system/popover.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import type { Badge } from '../../system-model-exploration.ts';
-import {
-  badgeSaidOf,
-  badgeTipOf,
-  NO_OUTPUT,
-  signatureLinesOf,
-} from './badge-signature.ts';
+import { badgeSaidOf, NO_OUTPUT, signatureLinesOf } from './badge-signature.ts';
 import {
   ExplorationReadingContext,
   useSelectedAmong,
@@ -34,7 +29,8 @@ import classes from './slot-badges.module.css';
  * button that opens the tree of what that type relates to (see
  * `SlotExplorer`); one typed by a primitive leads nowhere and is words.
  * They sit beside the card's own button, over it, never inside it: a
- * button holds no other.
+ * button holds no other. None has a tooltip: a slot is read as it is
+ * written, and a tooltip over each would be in the way of the signature.
  */
 export function SlotBadges({
   badges,
@@ -58,8 +54,6 @@ export function SlotBadges({
       className,
       'data-relation': badge.relation,
       'data-related': selected.has(badge.type) || undefined,
-      // Said by the canvas's one tooltip, as a card's controls are.
-      'data-tip': badgeTipOf(badge),
     };
     return elements.has(badge.type) ? (
       <Walked badge={badge} {...shared}>
@@ -80,12 +74,7 @@ export function SlotBadges({
                   {part}
                 </span>
               ) : part === NO_OUTPUT ? (
-                <span
-                  key={index}
-                  className={classes.noOutput}
-                  // Said by the canvas's one tooltip, as a badge is.
-                  data-tip="No output"
-                >
+                <span key={index} className={classes.noOutput}>
                   void
                 </span>
               ) : (
@@ -152,7 +141,6 @@ function Walked({
   className: string;
   'data-relation': string;
   'data-related': true | undefined;
-  'data-tip': string;
 }) {
   const { slots, elements, onGoTo } = useContext(ExplorationReadingContext);
   const [opened, setOpened] = useState(false);
