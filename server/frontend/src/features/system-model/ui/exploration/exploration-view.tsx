@@ -1,5 +1,6 @@
 import { Background, ReactFlow, ViewportPortal } from '@xyflow/react';
 import {
+  type CSSProperties,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -47,6 +48,7 @@ import {
   groupOf,
   hiddenBy,
   kindWordOf,
+  MODULES_BELOW,
   neighboursOf,
   NOTHING_CHOSEN,
   pickedAll,
@@ -74,6 +76,7 @@ import {
 } from './exploration-steps.ts';
 import { focusOn, PANEL_ROOM, RAISED_Z } from './exploration-timing.ts';
 import { type Drawing, ExplorationToolbar } from './exploration-toolbar.tsx';
+import { FAR_NAME_SCALE } from './layout-exploration.ts';
 import { type CanvasPoint } from './place-locally.ts';
 import { QuickAdd, type QuickAddSpot } from './quick-add.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
@@ -122,6 +125,9 @@ const INTO_MS = 400;
 
 /** The one layout the reader is offered. */
 const ALGORITHM = 'layered';
+
+/** How large the stylesheet draws names from further off: what the layout left room for. */
+const FAR_NAMES = { '--far-name-scale': FAR_NAME_SCALE } as CSSProperties;
 
 export function ExplorationView({ model }: { model: SystemModel }) {
   const {
@@ -509,7 +515,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // From further off a card is gone into, its name clicked or its frame
   // double-clicked: put in the middle of the canvas and brought closer.
   // With only modules left, as close as shows the whole of it, filling the
-  // canvas across or down; while blocks are still seen, at its own size.
+  // canvas across or down — and never so far off that what it holds is
+  // still out of sight; while blocks are still seen, at its own size.
   const goInto = useCallback(
     (id: string) => {
       const now = performance.now();
@@ -524,6 +531,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           nodes: [{ id }],
           padding: '24px',
           duration: INTO_MS,
+          minZoom: MODULES_BELOW,
         });
         return true;
       }
@@ -813,8 +821,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           flex={1}
           className={classes.exploration}
           // How far off it is looked at from: all the page goes by to draw
-          // less of it (exploration.module.css).
+          // less of it (exploration.module.css), its names then as large as
+          // the layout left each card and frame the room for.
           data-detail={detail === 'all' ? undefined : detail}
+          style={FAR_NAMES}
         >
           {toolbar}
           <Box

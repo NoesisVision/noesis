@@ -34,9 +34,11 @@ import {
 } from '../src/features/system-model/ui/exploration/exploration-reading';
 import {
   cardSizeOf,
+  FAR_NAME_SCALE,
   frameLeastWidthOf,
   HEIGHT,
   layoutExploration,
+  nameWidthOf,
   PADDING,
   paddingOf,
   SIGNATURE_LINE,
@@ -907,9 +909,9 @@ it('marks what is out of sight from further off, and gives each card what its na
   const orders = holderOf(render(ORDERS, true));
   expect(orders).not.toContain('data-unseen-from');
   expect(orders).toContain('data-hollow-from="modules"');
-  // `orders` is six letters, in a frame 400 by 300.
+  // Its name's width, in a frame 400 by 300.
   expect(orders).toContain(
-    '--name-length:6;--frame-width:400;--frame-height:300',
+    `--name-width:${nameWidthOf('orders')};--frame-width:400;--frame-height:300`,
   );
 });
 
@@ -1199,6 +1201,29 @@ describe('slots drawn on the cards that hold them', () => {
     expect(paddingOf(order, graph).top).toBeGreaterThan(PADDING.top);
     expect(frameLeastWidthOf(order, graph)).toBeGreaterThan(0);
     expect(paddingOf(order, { badges: new Map() })).toEqual(PADDING);
+  });
+
+  it('leaves a card and a frame the width of their names as drawn from further off', () => {
+    const none = { badges: new Map() };
+    const place = draw(['contains']).elements.find(({ id }) => id === PLACE)!;
+    const long = 'PreparationEventPublisher';
+    const far = nameWidthOf(long) * FAR_NAME_SCALE;
+    // Close up the name alone would leave it narrower.
+    expect(far).toBeGreaterThan(widthOf(long));
+    const block = { ...place, name: long, kind: 'building_block' as const };
+    expect(cardSizeOf(block, none).width).toBeGreaterThan(far);
+    expect(frameLeastWidthOf(block, none)).toBeGreaterThan(far);
+    // A behavior in a frame is out of sight by then, and stays as it was;
+    // one standing on its own is still seen.
+    const behavior = { ...place, name: long, kind: 'behavior' as const };
+    expect(cardSizeOf({ ...behavior, parent: ORDER }, none).width).toBe(
+      widthOf(long),
+    );
+    expect(cardSizeOf({ ...behavior, parent: null }, none).width).toBe(
+      cardSizeOf(block, none).width,
+    );
+    // Wide letters take more than narrow ones.
+    expect(nameWidthOf('WWWW')).toBeGreaterThan(nameWidthOf('iiii'));
   });
 
   it('draws a card’s badges beside its button, as its signature', () => {

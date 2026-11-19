@@ -25,7 +25,7 @@ import {
   ExplorationReadingContext,
   useSelectionState,
 } from './exploration-reading.ts';
-import { paddingOf } from './layout-exploration.ts';
+import { nameWidthOf, paddingOf } from './layout-exploration.ts';
 import { Contains, Remove } from './node-controls.tsx';
 import type { CanvasPoint } from './place-locally.ts';
 import { NODE_MENU, NodeMenuDropdown, useHasNodeMenu } from './reach-menu.tsx';
@@ -178,10 +178,10 @@ export function ElementNode({
           data-hollow-from={stepping.hollowFrom.get(element.id)}
           data-nested={element.parent !== null || undefined}
           // What its name is sized against from further off
-          // (exploration.module.css): its own length, and the room it has.
+          // (exploration.module.css): its own width, and the room it has.
           style={
             {
-              '--name-length': element.name.length,
+              '--name-width': nameWidthOf(element.name),
               '--frame-width': width ?? data.placed.width,
               '--frame-height': height ?? data.placed.height,
             } as CSSProperties

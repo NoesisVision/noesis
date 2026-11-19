@@ -306,7 +306,9 @@
  * crossing from one detail to the next draws no card again. What steps
  * out of sight keeps its place and fades; what a card carries — its
  * signature, its menu, its cross, the way to what it contains — goes at
- * the first step, too small by then to read or press.
+ * the first step, too small by then to read or press. Only that fading is
+ * animated: a name is at its new size and place at once, never seen on
+ * its way there.
  */
 .exploration[data-detail] [data-unseen-from='blocks'],
 .exploration[data-detail='modules'] [data-unseen-from='modules'],
@@ -336,12 +338,14 @@
 }
 
 /*
- * Names from further off, larger so they still read, each sized against
- * the room it has — its card's or frame's size and its own length are set
- * on it (element-node.tsx). The corner's controls are gone from beside it,
- * so it has the width. What each is — `Module` — is left unsaid while the
- * blocks are still seen, and said again under the names once modules alone
- * are left, each then read on its own.
+ * Names from further off, larger so they still read. The corner's controls
+ * are gone from beside each, so it has the width. While the blocks are
+ * still seen every name is the one size (--far-name-scale, from
+ * layout-exploration.ts, which leaves each card and frame the room for
+ * it), and what each is — `Module` — is left unsaid. Once modules alone
+ * are left each name is read on its own: sized against the room it has —
+ * its frame's size and its own width are set on it (element-node.tsx) —
+ * with what it is under it again.
  */
 .exploration[data-detail='blocks'] .kindLine {
   display: none;
@@ -354,9 +358,9 @@
  * nothing is sized anew while the reader only comes closer or goes further.
  */
 .exploration[data-detail='blocks'] {
-  --label-height: 28;
+  --label-height: 26;
   --card-label-height: 19;
-  --label-most: 3.2;
+  --label-most: var(--far-name-scale);
 }
 
 .exploration[data-detail='modules'] {
@@ -370,11 +374,12 @@
  * large as its top holds, no wider than the frame.
  */
 .exploration[data-detail] .container {
-  /* About what the name takes at its own size: its icon, letters and padding. */
-  --label-width: calc(var(--name-length) * 8 + 40);
+  /* About what the name takes at its own size: its icon and letters, and its padding. */
+  --label-width: calc(var(--name-width) + 16);
   --label-scale: max(
     1,
     min(
+      var(--label-most),
       calc(54 / var(--label-height)),
       calc((var(--frame-width) - 12) / var(--label-width))
     )
@@ -430,7 +435,7 @@
     1,
     min(
       var(--label-most),
-      calc((var(--frame-width) - 40) / (var(--name-length) * 8 + 22)),
+      calc((var(--frame-width) - 40) / var(--name-width)),
       calc((var(--frame-height) - 16) / var(--card-label-height))
     )
   );
@@ -481,7 +486,7 @@
   .container,
   .exploration [data-part='badges'] {
     transition:
-      opacity 150ms ease,
+      opacity 250ms ease,
       visibility 0s;
   }
 
@@ -490,14 +495,8 @@
   .exploration[data-detail='modules'] [data-unseen-from='modules'],
   .exploration[data-detail] [data-part='badges'] {
     transition:
-      opacity 150ms ease,
-      visibility 0s 150ms;
-  }
-
-  .exploration .containerLabel,
-  .exploration .card .nameLine,
-  .exploration .card .kindLine {
-    transition: transform 150ms ease;
+      opacity 250ms ease,
+      visibility 0s 250ms;
   }
 }
 

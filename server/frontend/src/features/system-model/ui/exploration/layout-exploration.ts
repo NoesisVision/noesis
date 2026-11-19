@@ -1,10 +1,11 @@
 import type { ElkNode, LayoutOptions } from 'elkjs/lib/elk.bundled.js';
 import { byIdOf } from '#/shared/collections.ts';
 import { elkOf } from '#/shared/ui/diagram-canvas/elk.ts';
-import type {
-  Badge,
-  DrawnElement,
-  ExplorationGraph,
+import {
+  type Badge,
+  type DrawnElement,
+  type ExplorationGraph,
+  stepsBackFirst,
 } from '../../system-model-exploration.ts';
 import { signatureLinesOf, signatureLineWidthOf } from './badge-signature.ts';
 
@@ -49,8 +50,54 @@ const MAX_WIDTH = 300;
 export const widthOf = (name: string) =>
   Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, name.length * 7.5 + 116));
 
-/** A frame's least width: its name, inset in the frame, and its menu and the way off the diagram beside it. */
-const frameWidthOf = (name: string) => widthOf(name) + 32;
+/*
+ * From further off, with the behaviors in frames out of sight, a name is
+ * drawn larger, and the same size on every card and frame
+ * (exploration.module.css), so each is at least as wide as its name then
+ * takes — close up too, as nothing is placed anew on the way.
+ */
+/** How many times its own size a name is drawn at from further off. */
+export const FAR_NAME_SCALE = 2;
+/** Round a card's name from further off: the card's padding, a pill's the most. */
+const FAR_CARD_INSET = 44;
+/** Round a frame's name from further off, in its top or its middle. */
+const FAR_FRAME_INSET = 24;
+/** A frame's name is a button: its padding, either side. */
+const FRAME_LABEL_PADDING = 16;
+
+/** About one letter of a name, as wide as the diagram's type draws it. */
+const letterWidthOf = (letter: string) => {
+  if (/[MWmw]/.test(letter)) return 13.5;
+  if (/[Iijlftr .]/.test(letter)) return 5.2;
+  return /[A-Z]/.test(letter) ? 10 : 8.6;
+};
+
+/** About what a name takes at its own size, with the icon of its kind before it. */
+export const nameWidthOf = (name: string) => {
+  let width = 22;
+  for (const letter of name) width += letterWidthOf(letter);
+  return Math.ceil(width);
+};
+
+/** A card's least width: its name close up and, unless it is out of sight by then, from further off. */
+const cardWidthOf = (element: DrawnElement) =>
+  Math.max(
+    widthOf(element.name),
+    stepsBackFirst(element)
+      ? 0
+      : FAR_CARD_INSET + nameWidthOf(element.name) * FAR_NAME_SCALE,
+  );
+
+/**
+ * A frame's least width: its name, inset in the frame, and its menu and the
+ * way off the diagram beside it; or its name alone from further off.
+ */
+const frameWidthOf = (name: string) =>
+  Math.max(
+    widthOf(name) + 32,
+    FAR_FRAME_INSET +
+      (nameWidthOf(name) + FRAME_LABEL_PADDING) * FAR_NAME_SCALE,
+  );
 
 /**
  * A frame's least size as ELK reads it. Laying out downwards, ELK takes the
@@ -139,7 +186,7 @@ function badgeBlockOf(
 export function cardSizeOf(element: DrawnElement, carrying: Carrying) {
   const { width, height } = badgeBlockOf(
     element,
-    widthOf(element.name),
+    cardWidthOf(element),
     carrying,
   );
   if (height === 0) return { width, height: HEIGHT };
@@ -194,10 +241,15 @@ function optionsOf(
   }
 }
 
+/**
+ * Places what is drawn inside `within` — the whole diagram, or one frame's
+ * own elements with all they hold.
+ */
 export async function layoutExploration(
   graph: ExplorationGraph,
   algorithm: LayoutAlgorithm,
   direction: LayoutDirection,
+  within: string | null = null,
 ): Promise<Placement> {
   const children = new Map<string | null, DrawnElement[]>();
   for (const element of graph.elements)
@@ -236,7 +288,7 @@ export async function layoutExploration(
       'elk.spacing.componentComponent': '48',
       ...optionsOf(algorithm, direction),
     },
-    children: (children.get(null) ?? []).map(nodeOf),
+    children: (children.get(within) ?? []).map(nodeOf),
     edges: graph.relations.map(({ id, source, target }) => ({
       id,
       sources: [source],
@@ -288,11 +340,7 @@ export async function layoutWithin(
   gather(id);
   const { elements } = await layoutExploration(
     {
-      elements: graph.elements
-        .filter((element) => inside.has(element.id))
-        .map((element) =>
-          element.parent === id ? { ...element, parent: null } : element,
-        ),
+      elements: graph.elements.filter((element) => inside.has(element.id)),
       relations: graph.relations.filter(
         ({ source, target }) => inside.has(source) && inside.has(target),
       ),
@@ -302,12 +350,13 @@ export async function layoutWithin(
     },
     algorithm,
     direction,
+    id,
   );
-  const top = elements.filter(({ element }) => element.parent === null);
+  const top = elements.filter(({ element }) => element.parent === id);
   const left = Math.min(...top.map(({ x }) => x));
   const up = Math.min(...top.map(({ y }) => y));
   return elements.map((each) =>
-    each.element.parent === null
+    each.element.parent === id
       ? { ...each, x: each.x - left, y: each.y - up }
       : each,
   );

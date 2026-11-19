@@ -22,7 +22,7 @@ export type Detail = 'all' | 'blocks' | 'modules';
 /** The zoom below which behaviors step out of sight. */
 const BLOCKS_BELOW = 0.5;
 /** The zoom below which all that a module holds does. */
-const MODULES_BELOW = 0.25;
+export const MODULES_BELOW = 0.25;
 
 export const detailAt = (zoom: number): Detail => {
   if (zoom < MODULES_BELOW) return 'modules';
@@ -42,10 +42,16 @@ export interface GraphInDetail {
 const NONE: ReadonlySet<string> = new Set();
 
 /**
+ * Whether an element is the first to step out of sight: a behavior drawn
+ * inside a frame. One standing on its own has nowhere to step back into.
+ */
+export const stepsBackFirst = ({ kind, parent }: DrawnElement) =>
+  kind === 'behavior' && parent !== null;
+
+/**
  * What a detail shows of the graph. Short of all of it, a behavior drawn
- * inside a frame is unseen — one standing on its own has nowhere to step
- * back into — and, with only modules left, so is all a module holds but
- * the modules inside it. Each relation then runs from what is still seen
+ * inside a frame is unseen and, with only modules left, so is all a module
+ * holds but the modules inside it. Each relation then runs from what is still seen
  * of each of its ends — the end itself, or the nearest frame round it in
  * sight: a behavior's block, then a block's module; once a kind for each
  * pair, and not at all between ends that come to the same frame, or to one
@@ -71,10 +77,9 @@ export function graphInDetail(
   const unseen = new Set<string>();
   for (const element of graph.elements) {
     const [, ...round] = outwardsFrom(element.id);
-    const inFrame = round.length > 0;
     const inModule = round.some(({ kind }) => kind === 'module');
     if (
-      (element.kind === 'behavior' && inFrame) ||
+      stepsBackFirst(element) ||
       (detail === 'modules' && element.kind !== 'module' && inModule)
     )
       unseen.add(element.id);

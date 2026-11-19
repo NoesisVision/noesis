@@ -37,9 +37,11 @@ export interface DiagramSteps {
  * Steps kept before slots were always drawn on cards (version 1) are not
  * read: they hold cards for the types slots name, which are badges now, so
  * they cannot be put back as they stood. What was drawn is still kept, as
- * the choice is (exploration-memory.ts), and is placed afresh.
+ * the choice is (exploration-memory.ts), and is placed afresh. So are the
+ * steps kept before cards were as wide as their names from further off
+ * (version 2): their cards are too narrow for them.
  */
-const VERSION = 2;
+const VERSION = 3;
 const PREFIX = 'noesis.systemModel.exploration.steps.';
 const keyOf = (modelId: string) => `${PREFIX}${modelId}`;
 /** How many models' diagrams are kept, the latest drawn. */
