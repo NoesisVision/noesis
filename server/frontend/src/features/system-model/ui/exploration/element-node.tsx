@@ -102,10 +102,6 @@ const ElementCard = memo(function ElementCard({
   const select = (adding: boolean) => onSelect(element.id, adding);
   const viewing = useViewingFromFrame(select, goInto);
   const pressedTop = useRef<{ x: number; y: number } | null>(null);
-  const [into, outOf] =
-    data.direction === 'vertical'
-      ? [Position.Top, Position.Bottom]
-      : [Position.Left, Position.Right];
   const label = (
     <>
       {/* Its kind as the model's tree draws it, before its name. */}
@@ -186,7 +182,7 @@ const ElementCard = memo(function ElementCard({
       {/* Where React Flow has an edge start and end; the edge itself
               meets the card wherever the line between them crosses its
               border (shared/ui/diagram-canvas/floating-edge.tsx). */}
-      <HiddenHandle type="target" position={into} />
+      <HiddenHandle type="target" position={Position.Top} />
       {/* A frame is taken by its top, where its name is: the rest is
               room for what it holds. */}
       {holds ? (
@@ -241,7 +237,7 @@ const ElementCard = memo(function ElementCard({
       )}
       <Contains element={element} holds={holds} />
       <Remove id={element.id} name={element.name} holds={holds} />
-      <HiddenHandle type="source" position={outOf} />
+      <HiddenHandle type="source" position={Position.Bottom} />
     </Box>
   );
 });

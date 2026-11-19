@@ -1,8 +1,6 @@
 import {
   IconArrowBackUp,
   IconArrowForwardUp,
-  IconArrowsHorizontal,
-  IconArrowsVertical,
   IconChevronDown,
   IconEye,
   IconRoute,
@@ -10,11 +8,8 @@ import {
 import type { ReactNode } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Badge } from '#/shared/design-system/badge.tsx';
-import { Box } from '#/shared/design-system/box.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
-import { SegmentedControl } from '#/shared/design-system/segmented-control.tsx';
 import { Tooltip } from '#/shared/design-system/tooltip.tsx';
-import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import {
   CanvasToolbar,
   ToolbarDivider,
@@ -22,50 +17,22 @@ import {
   ToolbarPill,
 } from '#/shared/ui/canvas-toolbar.tsx';
 import { IconAutoPlace } from '#/shared/ui/icons/icons.ts';
-import type { LayoutDirection } from './layout-exploration.ts';
+import { REORDER_DIAGRAM } from './reach-words.ts';
 import classes from './exploration.module.css';
 
 /** How the exploration is drawn, as the reader set it. */
 export interface Drawing {
-  direction: LayoutDirection;
   /** Edges at right angles rather than in curves. */
   orthogonal: boolean;
   /** Edges as dashes running towards their target. */
   animated: boolean;
 }
 
-/** Each way the layout may run, by its arrow; its name for whoever cannot see it. */
-const DIRECTIONS = [
-  {
-    value: 'vertical',
-    label: (
-      <Tooltip label="Vertical" openDelay={300}>
-        <Box component="span" className={classes.segmentIcon}>
-          <IconArrowsVertical size={16} stroke={1.6} aria-hidden />
-          <VisuallyHidden>Vertical</VisuallyHidden>
-        </Box>
-      </Tooltip>
-    ),
-  },
-  {
-    value: 'horizontal',
-    label: (
-      <Tooltip label="Horizontal" openDelay={300}>
-        <Box component="span" className={classes.segmentIcon}>
-          <IconArrowsHorizontal size={16} stroke={1.6} aria-hidden />
-          <VisuallyHidden>Horizontal</VisuallyHidden>
-        </Box>
-      </Tooltip>
-    ),
-  },
-] satisfies { value: LayoutDirection; label: ReactNode }[];
-
 /*
  * How the reader draws the exploration — what is drawn is chosen in the
  * picker on the canvas, and what shows of it in the visibility panel this
- * opens: steps back and forward, how the edges run, which way the layout
- * runs and, beside it, placing everything afresh, and — at the far end —
- * how close.
+ * opens: steps back and forward, how the edges run, placing everything
+ * afresh, and — at the far end — how close.
  */
 export function ExplorationToolbar({
   canUndo,
@@ -168,23 +135,13 @@ export function ExplorationToolbar({
         ]}
       />
       <ToolbarDivider />
-      <SegmentedControl
-        aria-label="Direction"
-        data={DIRECTIONS}
-        value={drawing.direction}
-        onChange={(value) =>
-          set({
-            direction: value === 'horizontal' ? 'horizontal' : 'vertical',
-          })
-        }
-      />
       <Button
         variant="subtle"
         color="gray"
         leftSection={<IconAutoPlace size={16} stroke={1.6} aria-hidden />}
         onClick={onAutoPlace}
       >
-        Auto-place
+        {REORDER_DIAGRAM}
       </Button>
     </CanvasToolbar>
   );

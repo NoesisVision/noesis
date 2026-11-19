@@ -13,13 +13,6 @@
   background-color: var(--mantine-color-body);
 }
 
-/* An arrow alone in a segment, centred in it. */
-.segmentIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 /* The visibility panel's chevron turns up while the panel is open. */
 .chevron {
   transition: transform 0.15s ease;

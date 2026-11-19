@@ -13,6 +13,7 @@ import {
   explorationOf,
   graphOf,
   hiddenBy,
+  inPlacingOrder,
   howMuchDrawn,
   kindWordOf,
   neighboursOf,
@@ -20,6 +21,7 @@ import {
   NOTHING_CHOSEN,
   picked,
   pickedIn,
+  PLACING_ORDER,
   isOwnSlotReach,
   isSlotReach,
   RELATIONS,
@@ -42,10 +44,12 @@ import {
   frameLeastWidthOf,
   HEIGHT,
   layoutExploration,
+  setOutInSquare,
   nameWidthOf,
   PADDING,
   paddingOf,
   SIGNATURE_LINE,
+  SPACING,
   widthOf,
 } from '../src/features/system-model/ui/exploration/layout-exploration';
 import {
@@ -667,56 +671,143 @@ it('lays out every relation and every kind in the visibility panel', () => {
 });
 
 describe('placing the exploration', () => {
-  /* ELK runs in a worker where `self` is and `document` is not, as under
-     Bun; a page has a document, so it lays out in place, as here. */
-  const place = async (
-    direction: 'vertical' | 'horizontal',
-    algorithm: 'layered' | 'tree' | 'force' | 'compact' = 'layered',
-  ) => {
-    const stubbed = !('document' in globalThis);
-    if (stubbed) Object.assign(globalThis, { document: {} });
-    try {
-      return await layoutExploration(
-        draw(['contains', 'extends'], [], extending),
-        algorithm,
-        direction,
-      );
-    } finally {
-      if (stubbed) Reflect.deleteProperty(globalThis, 'document');
-    }
-  };
   const ORDER = 'building_block|shop.orders.Order';
   const LINE = 'building_block|shop.orders.Line';
   const PLACE = 'behavior|shop.orders.Order.place';
+  const { elements } = layoutExploration(
+    draw(['contains', 'extends'], [], extending),
+  );
+  const at = (id: string) => elements.find(({ element }) => element.id === id)!;
 
-  it('puts a container before what it holds, sized around it', async () => {
-    const { elements } = await place('vertical');
+  it('puts a container before what it holds, sized around it', () => {
     const ids = elements.map(({ element }) => element.id);
     expect(ids.indexOf('module|shop')).toBeLessThan(
       ids.indexOf('module|shop.orders'),
     );
     expect(ids.indexOf(ORDER)).toBeLessThan(ids.indexOf(PLACE));
-    const order = elements.find(({ element }) => element.id === ORDER);
-    const behavior = elements.find(({ element }) => element.id === PLACE);
-    expect(order?.holds).toBe(true);
-    expect(behavior?.holds).toBe(false);
-    expect(order!.width).toBeGreaterThan(behavior!.width);
+    expect(at(ORDER).holds).toBe(true);
+    expect(at(PLACE).holds).toBe(false);
+    expect(at(ORDER).width).toBeGreaterThan(at(PLACE).width);
+    // Inside its padding, clear of the frame's name.
+    expect(at(PLACE)).toMatchObject({ x: PADDING.left, y: PADDING.top });
+    expect(at(ORDER).height).toBe(
+      PADDING.top + at(PLACE).height + PADDING.bottom,
+    );
   });
 
-  it('runs an edge down or across, as asked', async () => {
-    const at = (placed: Awaited<ReturnType<typeof place>>, id: string) =>
-      placed.elements.find(({ element }) => element.id === id)!;
-    const down = await place('vertical');
-    const across = await place('horizontal');
-    expect(at(down, LINE).y).toBeGreaterThan(at(down, ORDER).y);
-    expect(at(across, LINE).x).toBeGreaterThan(at(across, ORDER).x);
+  it('sets a value object out after the rest of what its module holds', () => {
+    const [order, line] = [at(ORDER), at(LINE)];
+    // After it in its row, or in a row under it.
+    expect(line.y > order.y || (line.y === order.y && line.x > order.x)).toBe(
+      true,
+    );
+    // And neither on the other.
+    expect(
+      line.x >= order.x + order.width || line.y >= order.y + order.height,
+    ).toBe(true);
   });
 
-  it('places with every algorithm', async () => {
-    for (const algorithm of ['tree', 'force', 'compact'] as const) {
-      const { elements } = await place('vertical', algorithm);
-      expect(elements).toHaveLength(5);
-    }
+  describe('in the order of what each is, said in one place', () => {
+    const one = (id: string, pattern: string | null, kind = 'building_block') =>
+      ({ id, kind, name: id, pattern, container: null, parent: null }) as never;
+    const scrambled = [
+      one('Price', 'value_object'),
+      one('OrderFactory', 'factory'),
+      one('Order', 'aggregate'),
+      one('PlaceOrder', 'application_service'),
+      one('orders', null, 'module'),
+      one('Orders', 'repository'),
+      one('Pricing', 'domain_service'),
+      one('Money', 'value_object'),
+    ];
+
+    it('names the order: modules, services, factories, the rest, value objects', () => {
+      expect([...PLACING_ORDER]).toEqual([
+        'module',
+        'domain_service',
+        'application_service',
+        'factory',
+        'rest',
+        'value_object',
+      ]);
+    });
+
+    it('sorts by it, those of one rank as they came', () => {
+      expect(
+        inPlacingOrder(scrambled).map(({ id }: { id: string }) => id),
+      ).toEqual([
+        'orders',
+        'Pricing',
+        'PlaceOrder',
+        'OrderFactory',
+        'Order',
+        'Orders',
+        'Price',
+        'Money',
+      ]);
+    });
+
+    it('places them so, row after row', () => {
+      const placed = layoutExploration({
+        elements: scrambled,
+        relations: [],
+        badges: new Map(),
+        folded: new Set(),
+        noOutput: new Set(),
+        parentless: new Set(),
+      }).elements;
+      const read = placed
+        .toSorted((a, b) => a.y - b.y || a.x - b.x)
+        .map(({ element }) => element.id);
+      expect(read).toEqual([
+        'orders',
+        'Pricing',
+        'PlaceOrder',
+        'OrderFactory',
+        'Order',
+        'Orders',
+        'Price',
+        'Money',
+      ]);
+    });
+  });
+
+  describe('in a square', () => {
+    const boxes = (count: number, width = 100, height = 100) =>
+      Array.from({ length: count }, () => ({ width, height }));
+    const rowsOf = (at: readonly { x: number; y: number }[]) =>
+      new Set(at.map(({ y }) => y)).size;
+
+    it('sets nine alike out three to a row', () => {
+      const rows = setOutInSquare(boxes(9));
+      expect(rowsOf(rows.at)).toBe(3);
+      expect(rows.width).toBe(rows.height);
+      // In their order, each row from the left.
+      expect(rows.at.slice(0, 4)).toEqual([
+        { x: 0, y: 0 },
+        { x: 100 + SPACING, y: 0 },
+        { x: 2 * (100 + SPACING), y: 0 },
+        { x: 0, y: 100 + SPACING },
+      ]);
+    });
+
+    it('gives wide cards more rows, tall ones fewer', () => {
+      expect(rowsOf(setOutInSquare(boxes(6, 200, 56)).at)).toBe(3);
+      expect(rowsOf(setOutInSquare(boxes(6, 56, 200)).at)).toBe(2);
+    });
+
+    it('counts what is round them: a frame’s name over its rows', () => {
+      // Four alike are two by two; under 600 of a frame's top, all in a row.
+      expect(rowsOf(setOutInSquare(boxes(4)).at)).toBe(2);
+      expect(
+        rowsOf(setOutInSquare(boxes(4), { across: 0, down: 600, least: 0 }).at),
+      ).toBe(1);
+    });
+
+    it('sets one out where it is, and none nowhere', () => {
+      expect(setOutInSquare(boxes(1)).at).toEqual([{ x: 0, y: 0 }]);
+      expect(setOutInSquare([])).toMatchObject({ at: [], width: 0, height: 0 });
+    });
   });
 });
 
@@ -826,7 +917,6 @@ describe('the selection', () => {
                         width: 150,
                         height: 52,
                       },
-                      direction: 'vertical',
                     }}
                   />
                 </ExplorationSelectionContext.Provider>
@@ -901,7 +991,6 @@ it('marks what is out of sight from further off, and gives each card what its na
                     width: 400,
                     height: 300,
                   },
-                  direction: 'vertical',
                 }}
               />
             </ExplorationReadingContext.Provider>
@@ -1360,7 +1449,6 @@ describe('slots drawn on the cards that hold them', () => {
                         width: 220,
                         height: 90,
                       },
-                      direction: 'vertical',
                     }}
                   />
                 </ExplorationSelectionContext.Provider>
@@ -1911,8 +1999,8 @@ describe('placing a change from one card', () => {
         at(made, 16, 60, 300, 56),
         at(repository, 595, 72, 352, 250, true),
         at(saved, 16, 60, 216, 56),
-        // Just right of the repository: in its way once it moves.
-        at(beyond, 960, 72, 150, 56),
+        // Right of the repository: in its way once it moves.
+        at(beyond, 1100, 72, 150, 56),
       ],
       graphOf(orders, invoicing, factory, made, repository, saved, beyond),
       'Factory',
@@ -1933,7 +2021,7 @@ describe('placing a change from one card', () => {
     expect(on('Repository').x).toBeGreaterThan(595);
     expect(on('Repository').y).toBe(72);
     // And what the repository then reached went on before it.
-    expect(on('Beyond').x).toBeGreaterThan(960);
+    expect(on('Beyond').x).toBeGreaterThan(1100);
     for (const [a, b] of [
       ['Factory', 'Invoicing'],
       ['Factory', 'Repository'],

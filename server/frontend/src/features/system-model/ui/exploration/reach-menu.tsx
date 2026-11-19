@@ -15,7 +15,7 @@ import {
 } from '../../system-model-exploration.ts';
 import { useCardActions } from './exploration-reading.ts';
 import type { CanvasPoint } from './place-locally.ts';
-import { AUTO_PLACE, REACH_ACTION, showParentLabel } from './reach-words.ts';
+import { REACH_ACTION, reorderLabel, showParentLabel } from './reach-words.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import { useLazyOpening } from './use-lazy-opening.ts';
 import {
@@ -129,6 +129,9 @@ function ChainEntry({
   );
 }
 
+/** A frame the model no longer holds: still said, never seen. */
+const REORDER_FALLBACK = 'Reorder';
+
 /*
  * The card's own menu, from a right click on it or its dots: a frame's
  * setting out again of what it holds; the way to its parent, when that is
@@ -170,7 +173,7 @@ export function NodeMenuDropdown({
             leftSection={<IconAutoPlace size={14} stroke={1.8} aria-hidden />}
             onClick={() => onArrange(id)}
           >
-            {AUTO_PLACE}
+            {element === undefined ? REORDER_FALLBACK : reorderLabel(element)}
           </Menu.Item>
         </>
       )}

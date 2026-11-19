@@ -1,10 +1,7 @@
 import { byIdOf } from '#/shared/collections.ts';
 import '@xyflow/react/dist/base.css';
 import { type ExplorationNode } from './element-node.tsx';
-import {
-  type LayoutDirection,
-  type PlacedElement,
-} from './layout-exploration.ts';
+import { type PlacedElement } from './layout-exploration.ts';
 import { type CanvasPoint } from './place-locally.ts';
 import classes from './exploration.module.css';
 
@@ -29,7 +26,6 @@ export const standsAsBefore = (was: ExplorationNode, node: ExplorationNode) =>
   was.width === node.width &&
   was.height === node.height &&
   was.parentId === node.parentId &&
-  was.data.direction === node.data.direction &&
   was.data.placed.holds === node.data.placed.holds &&
   was.data.placed.element === node.data.placed.element &&
   was.dragHandle === node.dragHandle;
@@ -78,10 +74,7 @@ export const withHandle = (node: ExplorationNode): ExplorationNode =>
         dragHandle: node.data.placed.holds ? FRAME_HANDLE : undefined,
       };
 
-export function nodeOf(
-  placed: PlacedElement,
-  direction: LayoutDirection,
-): ExplorationNode {
+export function nodeOf(placed: PlacedElement): ExplorationNode {
   const { element } = placed;
   return {
     id: element.id,
@@ -93,6 +86,6 @@ export function nodeOf(
     ...(element.parent === null ? {} : { parentId: element.parent }),
     // A frame is dragged by its top alone; a card, from anywhere on it.
     ...(placed.holds ? { dragHandle: FRAME_HANDLE } : {}),
-    data: { placed, direction },
+    data: { placed },
   };
 }

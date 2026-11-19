@@ -1,27 +1,21 @@
-import type { ElkNode, LayoutOptions } from 'elkjs/lib/elk.bundled.js';
-import { byIdOf } from '#/shared/collections.ts';
-import { elkOf } from '#/shared/ui/diagram-canvas/elk.ts';
 import {
   type Badge,
   type DrawnElement,
   type ExplorationGraph,
+  inPlacingOrder,
   stepsBackFirst,
 } from '../../system-model-exploration.ts';
 import { signatureLinesOf, signatureLineWidthOf } from './badge-signature.ts';
 
 /*
- * Where each element of the exploration stands, placed by one of ELK's
- * algorithms, a container sized around what it holds. Positions are in the
+ * Where each element of the exploration stands when the diagram places it:
+ * what a container holds is set out in rows, in the order of its kinds
+ * (exploration-order.ts), the rows as long as make the whole nearest a
+ * square, and the container sized around them. Positions are in the
  * canvas's own pixels, a contained element's relative to its container, as
- * React Flow reads them. The relations shape where the cards go; the edges
- * themselves are drawn between the cards wherever they then stand.
- *
- * ELK is large, so it is loaded the first time something is placed.
+ * React Flow reads them. The relations do not shape where the cards go;
+ * the edges are drawn between the cards wherever they then stand.
  */
-
-export type LayoutDirection = 'vertical' | 'horizontal';
-
-export type LayoutAlgorithm = 'layered' | 'tree' | 'force' | 'compact';
 
 export interface Placement {
   /** Containers before what they hold, as React Flow needs a parent first. */
@@ -100,17 +94,6 @@ const frameWidthOf = (name: string) =>
   );
 
 /**
- * A frame's least size as ELK reads it. Laying out downwards, ELK takes the
- * pair the other way round — width for height — so it is given so.
- */
-const minimumOf = (
-  width: number,
-  height: number,
-  direction: LayoutDirection,
-) =>
-  direction === 'vertical' ? `(${height},${width})` : `(${width},${height})`;
-
-/**
  * Room at the top of a container for its name, and round what it holds;
  * at the bottom enough that the plus on a card's border there and the one
  * on the container's own stand apart.
@@ -131,8 +114,8 @@ export const PADDING: Readonly<Padding> = {
 /*
  * A card that carries badges (slot-badges.module.css): its name and what it
  * is at the top, then its signature in a box, a line of it to a line. The
- * sizes here are what the stylesheet draws, so ELK leaves each card the
- * room it needs.
+ * sizes here are what the stylesheet draws, so the layout leaves each card
+ * the room it needs.
  */
 /** Where a card's badges start, below its name and what it is. */
 const BADGES_TOP = 50;
@@ -223,151 +206,208 @@ export function paddingOf(
   };
 }
 
-const elkPaddingOf = ({ top, left, bottom, right }: Readonly<Padding>) =>
-  `[top=${top},left=${left},bottom=${bottom},right=${right}]`;
-/** The room between two cards side by side. */
-export const SPACING = 32;
+/**
+ * The room between two cards side by side, and between two rows of them:
+ * wide enough for the edges that run between them to be told apart. A card
+ * placed beside another, or moved off one, keeps the same room
+ * (place-locally.ts, canvas-workspace.ts).
+ */
+export const SPACING = 96;
 
-function optionsOf(
-  algorithm: LayoutAlgorithm,
-  direction: LayoutDirection,
-): LayoutOptions {
-  const flow = { 'elk.direction': direction === 'vertical' ? 'DOWN' : 'RIGHT' };
-  switch (algorithm) {
-    case 'layered':
-      return {
-        ...flow,
-        'elk.algorithm': 'layered',
-        'elk.edgeRouting': 'ORTHOGONAL',
-        'elk.layered.spacing.nodeNodeBetweenLayers': '64',
-      };
-    case 'tree':
-      return { ...flow, 'elk.algorithm': 'mrtree' };
-    case 'force':
-      return { 'elk.algorithm': 'force', 'elk.spacing.nodeNode': '64' };
-    case 'compact':
-      return { 'elk.algorithm': 'rectpacking' };
+/** A box to be set out: a card, or a frame with all it holds. */
+interface Box {
+  width: number;
+  height: number;
+}
+
+/** What is round the boxes set out: a frame's padding, and its least width. */
+interface Round {
+  across: number;
+  down: number;
+  least: number;
+}
+const NOTHING_ROUND: Round = { across: 0, down: 0, least: 0 };
+
+/** The boxes in rows no longer than `limit`, in their order, and the next limit that would set them out otherwise. */
+function rowsWithin(boxes: readonly Box[], limit: number) {
+  const at: { x: number; y: number }[] = [];
+  let x = 0;
+  let y = 0;
+  let tallest = 0;
+  let width = 0;
+  let next = Infinity;
+  for (const box of boxes) {
+    if (x > 0 && x + box.width > limit) {
+      // Long enough for this box, the row would have taken it.
+      next = Math.min(next, x + box.width);
+      y += tallest + SPACING;
+      x = 0;
+      tallest = 0;
+    }
+    at.push({ x, y });
+    x += box.width + SPACING;
+    tallest = Math.max(tallest, box.height);
+    width = Math.max(width, x - SPACING);
   }
+  return { at, width, height: y + tallest, next };
+}
+
+/**
+ * Boxes set out in rows, in their order, each row from the left and the
+ * rows one under another: with rows of the length that makes the whole —
+ * what is round them counted — fit the smallest square, and of those the
+ * one that takes least room. Rows are tried from the shortest, a box to a
+ * row, each a little longer than the last, until the whole is wider than
+ * it is tall: longer still would only be wider.
+ */
+export function setOutInSquare(
+  boxes: readonly Box[],
+  round: Round = NOTHING_ROUND,
+) {
+  let limit = Math.max(0, ...boxes.map(({ width }) => width));
+  let best: ReturnType<typeof rowsWithin> | null = null;
+  let bestSide = Infinity;
+  let bestRoom = Infinity;
+  for (;;) {
+    const rows = rowsWithin(boxes, limit);
+    const width = Math.max(round.least, rows.width + round.across);
+    const height = rows.height + round.down;
+    const side = Math.max(width, height);
+    if (side < bestSide || (side === bestSide && width * height < bestRoom)) {
+      best = rows;
+      bestSide = side;
+      bestRoom = width * height;
+    }
+    if (rows.next === Infinity || width >= height) return best ?? rows;
+    limit = rows.next;
+  }
+}
+
+/** What a container holds, in the order it is set out in. */
+export type KidsOf = (parent: string | null) => readonly DrawnElement[];
+
+const NO_KIDS: readonly DrawnElement[] = [];
+
+/** What each container holds, the canvas itself under `null`, as the graph lists them. */
+export function childrenOf(
+  graph: Pick<ExplorationGraph, 'elements'>,
+): Map<string | null, DrawnElement[]> {
+  const children = new Map<string | null, DrawnElement[]>();
+  for (const element of graph.elements) {
+    const held = children.get(element.parent);
+    if (held === undefined) children.set(element.parent, [element]);
+    else held.push(element);
+  }
+  return children;
 }
 
 /**
  * Places what is drawn inside `within` — the whole diagram, or one frame's
- * own elements with all they hold.
+ * own elements with all they hold — in the order `kidsOf` gives each
+ * container's elements: set out in a square, the container sized around
+ * them. Its own elements are placed from the corner of what they cover.
  */
-export async function layoutExploration(
+export function placedIn(
   graph: ExplorationGraph,
-  algorithm: LayoutAlgorithm,
-  direction: LayoutDirection,
+  kidsOf: KidsOf,
   within: string | null = null,
-): Promise<Placement> {
-  const children = new Map<string | null, DrawnElement[]>();
-  for (const element of graph.elements)
-    children.set(element.parent, [
-      ...(children.get(element.parent) ?? []),
-      element,
-    ]);
-
-  const nodeOf = (element: DrawnElement): ElkNode => {
-    const inside = children.get(element.id) ?? [];
-    return inside.length === 0
-      ? { id: element.id, ...cardSizeOf(element, graph) }
-      : {
-          id: element.id,
-          layoutOptions: {
-            ...optionsOf(algorithm, direction),
-            'elk.padding': elkPaddingOf(paddingOf(element, graph)),
-            'elk.nodeSize.minimum': minimumOf(
-              frameLeastWidthOf(element, graph),
-              HEIGHT,
-              direction,
-            ),
-            'elk.nodeSize.constraints': 'MINIMUM_SIZE',
+): Placement {
+  /** What a container holds, placed inside its padding, each before what it holds itself. */
+  const setOut = (
+    parent: string | null,
+    corner: Readonly<Padding>,
+    round: Round,
+  ) => {
+    const kids = kidsOf(parent);
+    const sized = kids.map(sizeOf);
+    const rows = setOutInSquare(sized, round);
+    return {
+      width: rows.width,
+      height: rows.height,
+      placed: kids.flatMap((element, at): PlacedElement[] => {
+        const { width, height, holds, inside } = sized[at]!;
+        const spot = rows.at[at]!;
+        return [
+          {
+            element,
+            holds,
+            x: corner.left + spot.x,
+            y: corner.top + spot.y,
+            width,
+            height,
           },
-          children: inside.map(nodeOf),
-        };
+          ...inside,
+        ];
+      }),
+    };
   };
 
-  const placed = await (
-    await elkOf()
-  ).layout({
-    id: 'root',
-    layoutOptions: {
-      'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
-      'elk.spacing.nodeNode': String(SPACING),
-      'elk.spacing.componentComponent': '48',
-      ...optionsOf(algorithm, direction),
-    },
-    children: (children.get(within) ?? []).map(nodeOf),
-    edges: graph.relations.map(({ id, source, target }) => ({
-      id,
-      sources: [source],
-      targets: [target],
-    })),
-  });
-
-  const byId = byIdOf(graph.elements);
-  const out: PlacedElement[] = [];
-  const walk = (nodes: ElkNode[] = []) => {
-    for (const node of nodes) {
-      const element = byId.get(node.id);
-      if (element === undefined) continue;
-      out.push({
-        element,
-        holds: (node.children?.length ?? 0) > 0,
-        x: node.x ?? 0,
-        y: node.y ?? 0,
-        width: node.width ?? cardSizeOf(element, graph).width,
-        height: node.height ?? cardSizeOf(element, graph).height,
-      });
-      walk(node.children);
-    }
+  /** A card's size, or a frame's round all it holds, with those placed inside it. */
+  const sizeOf = (
+    element: DrawnElement,
+  ): Box & { holds: boolean; inside: PlacedElement[] } => {
+    if (kidsOf(element.id).length === 0)
+      return { ...cardSizeOf(element, graph), holds: false, inside: [] };
+    const round = roundOf(element);
+    const held = setOut(element.id, paddingOf(element, graph), round);
+    return {
+      width: Math.max(round.least, held.width + round.across),
+      height: Math.max(HEIGHT, held.height + round.down),
+      holds: true,
+      inside: held.placed,
+    };
   };
-  walk(placed.children);
-  return { elements: out };
+
+  /** What is round what a frame holds: its padding, and how wide it is at least. */
+  const roundOf = (frame: DrawnElement): Round => {
+    const padding = paddingOf(frame, graph);
+    return {
+      across: padding.left + padding.right,
+      down: padding.top + padding.bottom,
+      least: frameLeastWidthOf(frame, graph),
+    };
+  };
+
+  // One frame's own elements are placed from the corner of its room, but
+  // shaped as when the whole diagram is placed: its name and padding counted.
+  const frame =
+    within === null
+      ? undefined
+      : graph.elements.find(({ id }) => id === within);
+  return {
+    elements: setOut(
+      within,
+      NO_PADDING,
+      frame === undefined ? NOTHING_ROUND : roundOf(frame),
+    ).placed,
+  };
 }
 
 /**
- * What one container holds, placed as though nothing else were drawn: its
- * own elements at the top, anything they hold inside them, and the
- * relations among them. Positions of its own elements are from the corner
- * of what they cover, as a container's room for them starts.
+ * Places what is drawn inside `within` with each container's elements in
+ * the order of their kinds (exploration-order.ts).
  */
-export async function layoutWithin(
+export function layoutExploration(
+  graph: ExplorationGraph,
+  within: string | null = null,
+): Placement {
+  const ordered = new Map(
+    [...childrenOf(graph)].map(([parent, kids]) => [
+      parent,
+      inPlacingOrder(kids),
+    ]),
+  );
+  return placedIn(graph, (parent) => ordered.get(parent) ?? NO_KIDS, within);
+}
+
+const NO_PADDING: Readonly<Padding> = { top: 0, left: 0, bottom: 0, right: 0 };
+
+/**
+ * What one container holds, placed as though nothing else were drawn: its
+ * own elements from the corner of its room for them, anything they hold
+ * inside them.
+ */
+export const layoutWithin = (
   graph: ExplorationGraph,
   id: string,
-  algorithm: LayoutAlgorithm,
-  direction: LayoutDirection,
-): Promise<PlacedElement[]> {
-  const inside = new Set<string>();
-  const gather = (parent: string) => {
-    for (const element of graph.elements)
-      if (element.parent === parent && !inside.has(element.id)) {
-        inside.add(element.id);
-        gather(element.id);
-      }
-  };
-  gather(id);
-  const { elements } = await layoutExploration(
-    {
-      elements: graph.elements.filter((element) => inside.has(element.id)),
-      relations: graph.relations.filter(
-        ({ source, target }) => inside.has(source) && inside.has(target),
-      ),
-      badges: graph.badges,
-      folded: graph.folded,
-      noOutput: graph.noOutput,
-      parentless: graph.parentless,
-    },
-    algorithm,
-    direction,
-    id,
-  );
-  const top = elements.filter(({ element }) => element.parent === id);
-  const left = Math.min(...top.map(({ x }) => x));
-  const up = Math.min(...top.map(({ y }) => y));
-  return elements.map((each) =>
-    each.element.parent === id
-      ? { ...each, x: each.x - left, y: each.y - up }
-      : each,
-  );
-}
+): PlacedElement[] => layoutExploration(graph, id).elements;
