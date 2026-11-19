@@ -35,9 +35,11 @@ export interface ExplorationPickerProps {
 
 /*
  * What the exploration draws, chosen in one place: the model's tree, each
- * element ticked in or out. It opens from a button in the middle of an empty canvas,
- * or from the plus at the canvas's foot once something is drawn, and opens
- * above that plus either way.
+ * element ticked in or out — a dash in its box while only part of it and
+ * what is inside it is drawn. It opens from a button in the middle of an
+ * empty canvas, or from the plus in the canvas's bottom right corner once
+ * something is drawn, and opens above that plus either way, from the
+ * corner inwards.
  */
 export function ExplorationPicker({
   opened,
@@ -91,8 +93,11 @@ export function ExplorationPicker({
       <Popover
         opened={opened}
         onChange={onOpened}
-        position="top"
+        position="top-end"
         offset={16}
+        // The picker's own width (exploration.module.css): the popover would
+        // else set it as wide as its longest line.
+        width="min(480px, calc(100vw - 32px))"
         shadow="xl"
         trapFocus
         returnFocus
@@ -104,7 +109,6 @@ export function ExplorationPicker({
             {!empty && (
               <ActionIcon
                 size={56}
-                radius="xl"
                 variant="filled"
                 color={opened ? 'dark' : undefined}
                 aria-label={opened ? 'Close' : 'Add to the exploration'}
@@ -137,41 +141,43 @@ export function ExplorationPicker({
             isShown={isShown}
             onShow={(id) => onPick(id)}
           />
-          <Group
-            gap="md"
-            wrap="nowrap"
-            px="md"
-            py={10}
-            className={classes.pickerFoot}
-          >
-            <Text fz="xs" c="var(--noesis-secondary-text)" flex={1}>
+          {/* At the picker's width the hint has a line of its own, over the count and the buttons. */}
+          <Stack gap={8} px="md" py={10} className={classes.pickerFoot}>
+            <Text fz="xs" c="var(--noesis-secondary-text)">
               Click once to draw an element, again for all inside it, once more
               to take them off.
             </Text>
-            <Text component="output" fz="sm" className={classes.drawnCount}>
-              <b>{drawn}</b>
-              {` of ${total} drawn`}
-            </Text>
-            <Button
-              size="xs"
-              variant="default"
-              disabled={drawn === total}
-              onClick={onAddAll}
-            >
-              Add all
-            </Button>
-            <Button
-              size="xs"
-              variant="default"
-              disabled={empty}
-              onClick={onClear}
-            >
-              Clear
-            </Button>
-            <Button size="xs" onClick={() => onOpened(false)}>
-              Done
-            </Button>
-          </Group>
+            <Group gap="xs" wrap="nowrap">
+              <Text
+                component="output"
+                fz="sm"
+                flex={1}
+                className={classes.drawnCount}
+              >
+                <b>{drawn}</b>
+                {` of ${total} drawn`}
+              </Text>
+              <Button
+                size="xs"
+                variant="default"
+                disabled={drawn === total}
+                onClick={onAddAll}
+              >
+                Add all
+              </Button>
+              <Button
+                size="xs"
+                variant="default"
+                disabled={empty}
+                onClick={onClear}
+              >
+                Clear
+              </Button>
+              <Button size="xs" onClick={() => onOpened(false)}>
+                Done
+              </Button>
+            </Group>
+          </Stack>
         </Popover.Dropdown>
       </Popover>
     </>

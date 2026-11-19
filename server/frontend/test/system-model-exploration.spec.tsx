@@ -1536,7 +1536,7 @@ describe('the way into the picker', () => {
     expect(html).not.toContain('aria-label="Add to the exploration"');
   });
 
-  it('adds to a drawn one from the plus at its foot', () => {
+  it('adds to a drawn one from the plus in its corner', () => {
     const html = picker(3);
     expect(html).not.toContain('Start exploration');
     expect(html).toMatch(/<button[^>]*aria-label="Add to the exploration"/);

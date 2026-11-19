@@ -672,13 +672,21 @@
   text-align: center;
 }
 
-/* Where the picker opens from, at the canvas's foot, plus or no plus. */
+/*
+ * Where the picker opens from, in the canvas's bottom right corner, plus or
+ * no plus. The panel a selection is read in, down the same side, ends above
+ * the plus (details-dock.module.css): the plus's place and size, and the
+ * picker's own distance from it.
+ */
+.exploration {
+  --details-dock-foot: calc(24px + 56px + 16px);
+}
+
 .anchor {
   position: absolute;
+  right: 24px;
   bottom: 24px;
-  left: 50%;
   z-index: 5;
-  transform: translateX(-50%);
 }
 
 .plus {
