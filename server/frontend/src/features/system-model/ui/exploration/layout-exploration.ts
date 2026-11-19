@@ -540,6 +540,32 @@ export function placedIn(
 }
 
 /**
+ * Placed elements in the order the graph lists them, each container before
+ * what it holds: the one order the canvas is handed its cards in, however
+ * they were set out. A card handed over in another place in the list is
+ * taken out of the page and put back, which starts its entrance again and
+ * cuts short its glide to where it now stands — it would blink there
+ * rather than move.
+ */
+export function inGraphOrder(
+  graph: Pick<ExplorationGraph, 'elements'>,
+  placed: readonly PlacedElement[],
+): PlacedElement[] {
+  const byId = new Map(placed.map((each) => [each.element.id, each]));
+  const children = childrenOf(graph);
+  const out: PlacedElement[] = [];
+  const walk = (parent: string | null) => {
+    for (const { id } of children.get(parent) ?? NO_KIDS) {
+      const one = byId.get(id);
+      if (one !== undefined) out.push(one);
+      walk(id);
+    }
+  };
+  walk(null);
+  return out;
+}
+
+/**
  * Places what is drawn inside `within` with each container's elements in
  * the order of their kinds (exploration-order.ts).
  */

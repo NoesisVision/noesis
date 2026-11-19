@@ -43,6 +43,7 @@ import {
   FAR_NAME_SCALE,
   frameLeastWidthOf,
   HEIGHT,
+  inGraphOrder,
   layoutExploration,
   setOutInSquare,
   nameWidthOf,
@@ -770,6 +771,27 @@ describe('placing the exploration', () => {
         'Money',
       ]);
     });
+  });
+
+  it('hands the cards over in the graph’s own order, however they were set out', () => {
+    const graph = draw(['contains', 'extends'], [], extending);
+    const ids = (placed: readonly { element: { id: string } }[]) =>
+      placed.map(({ element }) => element.id);
+    // Set out with the value object first, then put back in order.
+    const scrambled = layoutExploration(graph).elements.toReversed();
+    const ordered = inGraphOrder(graph, scrambled);
+    expect(ids(ordered).toSorted()).toEqual(ids(scrambled).toSorted());
+    // Each container before what it holds, siblings as the graph lists them.
+    expect(ids(ordered).indexOf('module|shop')).toBeLessThan(
+      ids(ordered).indexOf('module|shop.orders'),
+    );
+    expect(ids(ordered).indexOf(ORDER)).toBeLessThan(
+      ids(ordered).indexOf(PLACE),
+    );
+    expect(ids(inGraphOrder(graph, ordered))).toEqual(ids(ordered));
+    expect(ids(inGraphOrder(graph, layoutExploration(graph).elements))).toEqual(
+      ids(ordered),
+    );
   });
 
   describe('in a square', () => {

@@ -30,6 +30,7 @@ import {
 import { GLIDE_MS, LEAVING_MS, LIVE_DRAG } from './exploration-timing.ts';
 import { layoutByRelations, QUICK, THOROUGH } from './layout-by-relations.ts';
 import {
+  inGraphOrder,
   layoutExploration,
   layoutWithin,
   type PlacedElement,
@@ -542,16 +543,21 @@ export function usePlacement(
     }
 
     try {
+      // Handed over in the graph's own order, as every other placing is, so
+      // each card keeps its place in the page and glides to where it stands.
       land(
-        (placeByKinds
-          ? layoutExploration(graph)
-          : layoutByRelations(
-              graph,
-              null,
-              askedFor ? THOROUGH : QUICK,
-              stoodIn(graph, latest.current.nodes),
-            )
-        ).elements,
+        inGraphOrder(
+          graph,
+          (placeByKinds
+            ? layoutExploration(graph)
+            : layoutByRelations(
+                graph,
+                null,
+                askedFor ? THOROUGH : QUICK,
+                stoodIn(graph, latest.current.nodes),
+              )
+          ).elements,
+        ),
       );
     } catch (error) {
       setFailure(error instanceof Error ? error.message : String(error));
