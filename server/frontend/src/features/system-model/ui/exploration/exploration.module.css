@@ -221,6 +221,23 @@
 }
 
 /*
+ * A card that stands without what holds it has the way to that beside its
+ * menu and cross (node-controls.tsx): its name keeps clear of the third
+ * button too, in the room the layout left it (PARENT_ROOM).
+ */
+.exploration .holder:has([data-part='parent']) .card {
+  padding-right: 86px;
+}
+
+.exploration .holder:has([data-part='parent']) .card[data-kind='behavior'] {
+  padding-right: 96px;
+}
+
+.exploration .container:has(> .corner [data-part='parent']) .containerLabel {
+  max-width: calc(100% - 100px);
+}
+
+/*
  * A card carrying badges keeps its name and what it is at the top, its
  * badges under them (slot-badges.module.css); a behavior's menu and cross
  * stay beside its name.

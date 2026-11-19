@@ -86,6 +86,15 @@ export function useMissing(id: string) {
   return reachingOf(id, useCardActions()).missing;
 }
 
+/** The element that holds this one, when it is not on the diagram; null when it is, or nothing holds it. */
+export function useMissingParent(id: string) {
+  const reading = useCardActions();
+  const [parent] =
+    reachingOf(id, reading).missing?.find(({ each }) => each === 'isPartOf')
+      ?.missing ?? [];
+  return parent === undefined ? null : (reading.elements.get(parent) ?? null);
+}
+
 /**
  * Whether a card's own menu has anything to offer: a frame's setting out
  * again of what it holds, or others it reaches to bring in.

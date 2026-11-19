@@ -6,6 +6,7 @@ import {
   IconBroom,
   IconChevronsDownUp,
   IconChevronsUpDown,
+  IconParentFrame,
 } from '../src/shared/ui/icons/icons';
 
 const pathsOf = (svg: string) =>
@@ -22,6 +23,7 @@ describe('icons', () => {
     ['chevrons-up-down', IconChevronsUpDown],
     ['chevrons-down-up', IconChevronsDownUp],
     ['broom', IconBroom],
+    ['parent-frame', IconParentFrame],
     ['auto-place', IconAutoPlace],
   ] as const)('%s draws what its .svg draws', (name, Icon) => {
     const html = renderToStaticMarkup(<Icon />);

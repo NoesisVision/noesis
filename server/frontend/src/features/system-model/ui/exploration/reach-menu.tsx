@@ -4,7 +4,7 @@ import { KindIcon } from '#/features/design-docs/element-reader.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Menu } from '#/shared/design-system/menu.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
-import { IconAutoPlace } from '#/shared/ui/icons/icons.ts';
+import { IconAutoPlace, IconParentFrame } from '#/shared/ui/icons/icons.ts';
 import {
   CHAIN_DEPTH,
   type ChainReach,
@@ -15,10 +15,16 @@ import {
 } from '../../system-model-exploration.ts';
 import { useCardActions } from './exploration-reading.ts';
 import type { CanvasPoint } from './place-locally.ts';
-import { AUTO_PLACE, REACH_ACTION } from './reach-words.ts';
+import { AUTO_PLACE, REACH_ACTION, showParentLabel } from './reach-words.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import { useLazyOpening } from './use-lazy-opening.ts';
-import { hasNodeMenu, useAdd, useChains, useMissing } from './use-reaches.ts';
+import {
+  hasNodeMenu,
+  useAdd,
+  useChains,
+  useMissing,
+  useMissingParent,
+} from './use-reaches.ts';
 import classes from './exploration.module.css';
 
 /*
@@ -124,9 +130,10 @@ function ChainEntry({
 }
 
 /*
- * The card's own menu, from a right click on it or its dots: each way it
- * reaches others not yet drawn, opening onto them as its button's menu
- * does; its one parent, brought at once.
+ * The card's own menu, from a right click on it or its dots: a frame's
+ * setting out again of what it holds; the way to its parent, when that is
+ * not on the diagram, set apart between two rules; then each way it reaches
+ * others not yet drawn, opening onto them as its button's menu does.
  */
 export function NodeMenuDropdown({
   id,
@@ -141,7 +148,12 @@ export function NodeMenuDropdown({
   at?: CanvasPoint | null;
 }) {
   const { onArrange, elements } = useCardActions();
-  const missing = useMissing(id) ?? [];
+  // Its parent has a place of its own in the menu, above the rest.
+  const missing = (useMissing(id) ?? []).filter(
+    ({ each }) => each !== 'isPartOf',
+  );
+  const parent = useMissingParent(id);
+  const showParent = useAdd(id, 'isPartOf');
   const chains = useChains(id);
   const element = elements.get(id);
   const surface = useThemedSurface('menu', `nowheel ${classes.nodeMenu}`);
@@ -149,10 +161,10 @@ export function NodeMenuDropdown({
     <Menu.Dropdown {...surface} onContextMenu={keepInMenu}>
       {/* Whose menu it is, set apart from what it offers. */}
       <Menu.Label className={classes.nodeMenuTitle}>{name}</Menu.Label>
-      <Menu.Divider />
       {/* A frame's own first: setting out again what it holds. */}
       {holds && (
         <>
+          <Menu.Divider />
           <Menu.Item
             // The toolbar's own, for the whole diagram.
             leftSection={<IconAutoPlace size={14} stroke={1.8} aria-hidden />}
@@ -160,10 +172,25 @@ export function NodeMenuDropdown({
           >
             {AUTO_PLACE}
           </Menu.Item>
-          <Menu.Divider />
         </>
       )}
-      <Menu.Label>Add</Menu.Label>
+      {/* The way to what holds it, a rule above it and one below. */}
+      {parent !== null && (
+        <>
+          <Menu.Divider />
+          <Menu.Item
+            leftSection={<IconParentFrame size={14} stroke={1.8} aria-hidden />}
+            onClick={() => showParent([parent.id])}
+          >
+            {showParentLabel(parent)}
+          </Menu.Item>
+        </>
+      )}
+      <Menu.Divider />
+      {/* With only chains to follow, there is no "Add" with nothing under it. */}
+      {(missing.length > 0 || chains.length === 0) && (
+        <Menu.Label>Add</Menu.Label>
+      )}
       {missing.length === 0 && chains.length === 0 && (
         <Menu.Item disabled>Nothing more to add</Menu.Item>
       )}
@@ -173,7 +200,7 @@ export function NodeMenuDropdown({
       {/* Each way followed through all it reaches, up to the next of its type. */}
       {chains.length > 0 && element !== undefined && (
         <>
-          <Menu.Divider />
+          {missing.length > 0 && <Menu.Divider />}
           <Menu.Label>
             {`Follow up to the next ${groupLabelOf(element.pattern ?? element.kind)}, ${CHAIN_DEPTH} steps at most`}
           </Menu.Label>
@@ -197,14 +224,7 @@ function NodeMenuEntry({
   missing: string[];
   at: CanvasPoint | null;
 }) {
-  const add = useAdd(id, reach, at);
   const surface = useThemedSurface('menu', `nowheel ${classes.reachMenu}`);
-  if (reach === 'isPartOf' && missing.length === 1)
-    return (
-      <Menu.Item onClick={() => add(missing)}>
-        {`${REACH_ACTION[reach]}: 1`}
-      </Menu.Item>
-    );
   return (
     <Menu.Sub>
       <Menu.Sub.Target>

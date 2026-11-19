@@ -48,6 +48,11 @@ export interface ExplorationGraph {
    * each says so where its signature would write its output's type.
    */
   noOutput: ReadonlySet<string>;
+  /**
+   * The cards whose container the model holds is not on the diagram: each
+   * has a way to it beside its cross, and the room for that.
+   */
+  parentless: ReadonlySet<string>;
 }
 
 /** The relations that are slots, drawn on the cards that hold them. */
@@ -172,6 +177,13 @@ export function graphOf(
     badges,
     folded,
     noOutput,
+    parentless: new Set(
+      onCards
+        .filter(
+          ({ container }) => container !== null && !isShown.has(container),
+        )
+        .map(({ id }) => id),
+    ),
   };
 }
 

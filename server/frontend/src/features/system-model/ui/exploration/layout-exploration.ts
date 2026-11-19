@@ -150,9 +150,14 @@ const SIGNATURE_BOX = 9;
 const MAX_BADGED_WIDTH = 420;
 const NO_BADGES: readonly Badge[] = [];
 
-/** What the sizes of a card's badges are read from. */
+/** What the sizes of a card's badges are read from, and whether it stands without what holds it. */
 type Carrying = Pick<ExplorationGraph, 'badges'> &
-  Partial<Pick<ExplorationGraph, 'noOutput'>>;
+  Partial<Pick<ExplorationGraph, 'noOutput' | 'parentless'>>;
+
+/** The way to a card's parent, beside its menu and cross: a third button, and its gap. */
+const PARENT_ROOM = 24;
+const parentRoomOf = (element: DrawnElement, { parentless }: Carrying) =>
+  parentless?.has(element.id) === true ? PARENT_ROOM : 0;
 
 /**
  * The room a card's badges take, under a name needing `least` across: how
@@ -186,7 +191,7 @@ function badgeBlockOf(
 export function cardSizeOf(element: DrawnElement, carrying: Carrying) {
   const { width, height } = badgeBlockOf(
     element,
-    cardWidthOf(element),
+    cardWidthOf(element) + parentRoomOf(element, carrying),
     carrying,
   );
   if (height === 0) return { width, height: HEIGHT };
@@ -195,7 +200,11 @@ export function cardSizeOf(element: DrawnElement, carrying: Carrying) {
 
 /** A frame's least width: its name, and its longest row of badges. */
 export const frameLeastWidthOf = (element: DrawnElement, carrying: Carrying) =>
-  badgeBlockOf(element, frameWidthOf(element.name), carrying).width;
+  badgeBlockOf(
+    element,
+    frameWidthOf(element.name) + parentRoomOf(element, carrying),
+    carrying,
+  ).width;
 
 /** A frame's room round what it holds: at the top, its name and its badges. */
 export function paddingOf(
@@ -347,6 +356,7 @@ export async function layoutWithin(
       badges: graph.badges,
       folded: graph.folded,
       noOutput: graph.noOutput,
+      parentless: graph.parentless,
     },
     algorithm,
     direction,

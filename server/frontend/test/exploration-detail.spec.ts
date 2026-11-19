@@ -58,6 +58,7 @@ const graph: ExplorationGraph = {
   badges: new Map(),
   folded: new Set(),
   noOutput: new Set(),
+  parentless: new Set(),
 };
 const lines = (detail: Parameters<typeof graphInDetail>[1]) =>
   graphInDetail(graph, detail).relations.map(({ id }) => id);

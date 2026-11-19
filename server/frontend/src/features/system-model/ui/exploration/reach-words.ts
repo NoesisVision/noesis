@@ -11,6 +11,10 @@ export const containsLabel = (name: string, count: number) =>
 /** What the way to set out again what a frame holds says, in its menu: the toolbar's word for the whole diagram. */
 export const AUTO_PLACE = 'Auto-place';
 
+/** What the way to a card's parent says, in its menu and beside its cross: "Show parent block". */
+export const showParentLabel = (parent: { kind: string }) =>
+  `Show parent ${parent.kind === 'building_block' ? 'block' : parent.kind.replaceAll('_', ' ')}`;
+
 /** What the card's own menu calls each way, under its "Add" heading. */
 export const REACH_ACTION = {
   contains: 'Contains',

@@ -1537,6 +1537,37 @@ describe('the way into the picker', () => {
   });
 });
 
+describe('a card that stands without what holds it', () => {
+  const ORDER = 'building_block|shop.orders.Order';
+  const PLACE = 'behavior|shop.orders.Order.place';
+  const drawnWith = (...added: string[]) =>
+    graphOf(exploration, {
+      hidden: new Set(['module', 'aggregate', 'value_object', 'behavior']),
+      relations: new Set(['contains']),
+      picks: { added: new Set(added), removed: new Set() },
+    });
+
+  it('is told apart: its parent is in the model, and not on the diagram', () => {
+    // The order's module is not drawn; its behavior's block is.
+    expect([...drawnWith(ORDER, PLACE).parentless]).toEqual([ORDER]);
+    expect([...drawnWith(ORDER, 'module|shop.orders').parentless]).toEqual([
+      'module|shop.orders',
+    ]);
+    // The outermost module has nothing round it to miss.
+    expect(drawnWith('module|shop').parentless.size).toBe(0);
+  });
+
+  it('is left the room for the way to its parent, beside its menu and cross', () => {
+    const graph = drawnWith(ORDER);
+    const order = graph.elements.find(({ id }) => id === ORDER)!;
+    const without = cardSizeOf(order, { badges: graph.badges });
+    expect(cardSizeOf(order, graph).width).toBe(without.width + 24);
+    expect(frameLeastWidthOf(order, graph)).toBe(
+      frameLeastWidthOf(order, { badges: graph.badges }) + 24,
+    );
+  });
+});
+
 describe('how much of an element is drawn, with all inside it', () => {
   const ORDERS = 'module|shop.orders';
   const ORDER = 'building_block|shop.orders.Order';
@@ -1710,6 +1741,7 @@ describe('placing a change from one card', () => {
     badges: new Map(),
     folded: new Set<string>(),
     noOutput: new Set<string>(),
+    parentless: new Set<string>(),
   });
   const apart = (
     a: { x: number; y: number; width: number; height: number },
