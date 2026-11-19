@@ -1,5 +1,5 @@
 import { IconAffiliate, IconPlus, IconX } from '@tabler/icons-react';
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { ElementSearch } from '#/features/design-docs/element-reader.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
@@ -37,9 +37,10 @@ export interface ExplorationPickerProps {
  * What the exploration draws, chosen in one place: the model's tree, each
  * element ticked in or out — a dash in its box while only part of it and
  * what is inside it is drawn. It opens from a button in the middle of an
- * empty canvas, or from the plus in the canvas's bottom right corner once
- * something is drawn, and opens above that plus either way, from the
- * corner inwards.
+ * empty canvas, in the middle of that canvas, and stays there until it is
+ * shut, though what is picked in it is drawn behind it. Once something is
+ * drawn it opens from the plus in the canvas's bottom right corner, above
+ * that plus, from the corner inwards.
  */
 export function ExplorationPicker({
   opened,
@@ -53,6 +54,15 @@ export function ExplorationPicker({
   onClear,
 }: ExplorationPickerProps) {
   const empty = drawn === 0;
+  // Opened on an empty canvas, it is in the canvas's middle for as long as
+  // it is open, and until it has faded once shut: the first element picked
+  // would else send it to the corner under the reader's hand.
+  const [centred, setCentred] = useState(false);
+  const [wasOpened, setWasOpened] = useState(opened);
+  if (opened !== wasOpened) {
+    setWasOpened(opened);
+    if (opened) setCentred(empty);
+  }
   const title = useId();
   const surface = useThemedSurface('picker', `nowheel nopan ${classes.picker}`);
   return (
@@ -93,8 +103,9 @@ export function ExplorationPicker({
       <Popover
         opened={opened}
         onChange={onOpened}
-        position="top-end"
+        position={centred ? 'top' : 'top-end'}
         offset={16}
+        onExitTransitionEnd={() => setCentred(false)}
         // The picker's own width (exploration.module.css): the popover would
         // else set it as wide as its longest line.
         width="min(480px, calc(100vw - 32px))"
@@ -105,8 +116,9 @@ export function ExplorationPicker({
         clickOutsideEvents={['pointerdown']}
       >
         <Popover.Target>
-          <Box className={classes.anchor}>
-            {!empty && (
+          <Box className={classes.anchor} data-centred={centred || undefined}>
+            {/* The plus is the corner's: with the picker in the middle, it waits. */}
+            {!empty && !centred && (
               <ActionIcon
                 size={56}
                 variant="filled"

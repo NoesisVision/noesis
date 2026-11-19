@@ -687,6 +687,18 @@
   right: 24px;
   bottom: 24px;
   z-index: 5;
+
+  /*
+   * Opened on an empty canvas, the picker is in the canvas's middle: it
+   * opens above this spot, so the spot is half the picker's height, and the
+   * picker's distance from it, below the middle.
+   */
+  &[data-centred] {
+    top: calc(50% + min(560px, 100dvh - 200px) / 2 + 16px);
+    right: auto;
+    bottom: auto;
+    left: 50%;
+  }
 }
 
 .plus {
