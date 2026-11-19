@@ -4,11 +4,22 @@
  * (relationEdges in theme.ts).
  */
 
-/* As tall whatever is opened in it, so the popup keeps its size. */
+/*
+ * As tall as what is opened in it, up to a height it then scrolls inside.
+ * It is the popup's foot, so its lower corners are rounded as the popup's
+ * are, a border's width inside them: square, its ground would cover the
+ * popup's rounded border there.
+ */
 .area {
   position: relative;
-  height: 360px;
+  max-height: 360px;
   overflow: hidden auto;
+  border-end-start-radius: calc(
+    var(--popover-radius, var(--mantine-radius-default)) - 1px
+  );
+  border-end-end-radius: calc(
+    var(--popover-radius, var(--mantine-radius-default)) - 1px
+  );
   border-top: 1px solid var(--noesis-diagram-card-border);
   background: var(--noesis-diagram-canvas);
   scrollbar-gutter: stable;
