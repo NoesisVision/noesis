@@ -153,37 +153,9 @@ export function relationsOfType(
 /** A step of a walk through the model's types: a slot, and its behavior when a type's behavior holds it. */
 export type WalkStep = Slot & { behavior?: ExposedBehavior };
 
-/** A step's key among its column's: its relation, its behavior, its name. */
-export const slotKeyOf = (step: WalkStep) =>
+/** A step's key among its type's slots: its relation, its behavior, its name. */
+const slotKeyOf = (step: WalkStep) =>
   `${step.relation}|${step.behavior?.id ?? ''}|${step.name}`;
-
-/** One column of a walk: a type, what it relates to, and where the walk went from it. */
-export interface WalkColumn {
-  step: WalkStep;
-  relations: TypeRelations;
-  /** The types walked through to here, this one too: a slot of one of them leads round again. */
-  through: ReadonlySet<string>;
-  /** The key of the slot the walk went on by, if it went on. */
-  next: string | null;
-}
-
-/**
- * A walk from a slot through the types it leads to, a column for each step:
- * what each type relates to, and which slot the walk went on by. A walk
- * may come round to a type it passed through and go on, as far as the
- * reader takes it.
- */
-export function walkOf(
-  slots: ModelSlots,
-  path: readonly WalkStep[],
-): WalkColumn[] {
-  return path.map((step, index) => ({
-    step,
-    relations: relationsOfType(slots, step.type),
-    through: new Set(path.slice(0, index + 1).map(({ type }) => type)),
-    next: index + 1 < path.length ? slotKeyOf(path[index + 1]!) : null,
-  }));
-}
 
 /** Whether a way of reaching others from a card follows a slot: a state, an input, an output, either way. */
 export const isSlotReach = (reach: Reach): boolean => {
@@ -194,50 +166,9 @@ export const isSlotReach = (reach: Reach): boolean => {
   return kind === 'state' || kind === 'input' || kind === 'output';
 };
 
-/** A column's key in a walk: the steps that lead to it, so a column keeps its key while the walk keeps its way to it. */
+/** A slot's key in the tree a walk opens: the steps that lead to it, so the same slot reached another way is another. */
 export const walkKeyOf = (path: readonly WalkStep[], index: number) =>
   path
     .slice(0, index + 1)
     .map(slotKeyOf)
     .join(' › ');
-
-/** How a walk's columns change as it goes on, goes back or turns off. */
-export interface WalkChange {
-  /** The columns of the walk before past the end of the walk after: they fold away. */
-  folds: number[];
-  /**
-   * How each column new to the walk after comes in, by its key: grown out at
-   * the end, or in place of the column that stood there, at once, so the
-   * columns around it stand still.
-   */
-  enters: ReadonlyMap<string, 'grows' | 'swaps'>;
-}
-
-/**
- * What changes from the walk before to the walk after. Only a change in how
- * many columns there are moves anything: one past the end grows or folds;
- * one taken by another slot is swapped where it stands. `foldingAt` is where
- * columns are still folding away, which a new one takes the place of too.
- */
-export function walkChange(
-  before: readonly WalkStep[],
-  after: readonly WalkStep[],
-  foldingAt: ReadonlySet<number> = new Set(),
-): WalkChange {
-  const was = new Set(before.map((_, index) => walkKeyOf(before, index)));
-  const enters = new Map<string, 'grows' | 'swaps'>();
-  after.forEach((_, index) => {
-    const key = walkKeyOf(after, index);
-    if (was.has(key)) return;
-    enters.set(
-      key,
-      index < before.length || foldingAt.has(index) ? 'swaps' : 'grows',
-    );
-  });
-  return {
-    folds: before
-      .map((_, index) => index)
-      .filter((index) => index >= after.length),
-    enters,
-  };
-}

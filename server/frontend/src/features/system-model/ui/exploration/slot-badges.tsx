@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useContext, useState } from 'react';
+import { type ReactNode, useContext, useState } from 'react';
 import {
   CardinalityMark,
   isMarked,
@@ -6,7 +6,7 @@ import {
 import { Popover } from '#/shared/design-system/popover.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
-import type { Badge, WalkStep } from '../../system-model-exploration.ts';
+import type { Badge } from '../../system-model-exploration.ts';
 import {
   badgeSaidOf,
   badgeTipOf,
@@ -18,11 +18,6 @@ import {
   useSelectedAmong,
 } from './exploration-reading.ts';
 import { SlotExplorer } from './slot-explorer.tsx';
-import {
-  recallSlotView,
-  rememberSlotView,
-  type SlotView,
-} from './slot-view.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import { useLazyOpening } from './use-lazy-opening.ts';
 import classes from './slot-badges.module.css';
@@ -36,7 +31,7 @@ import classes from './slot-badges.module.css';
  * would be, as code does: `(offer: Offer) → void`.
  * A badge whose type is still on the diagram is marked so; one whose type
  * is in hand is drawn as related to it. A badge typed by a block is a
- * button that opens the walk through what that type relates to (see
+ * button that opens the tree of what that type relates to (see
  * `SlotExplorer`); one typed by a primitive leads nowhere and is words.
  * They sit beside the card's own button, over it, never inside it: a
  * button holds no other.
@@ -146,7 +141,7 @@ function TypeOf({ badge }: { badge: Badge }) {
   );
 }
 
-/** A badge that opens the walk from its type, starting afresh each time. */
+/** A badge that opens the tree of its type, shut afresh each time. */
 function Walked({
   badge,
   children,
@@ -160,20 +155,10 @@ function Walked({
   'data-tip': string;
 }) {
   const { slots, elements, onGoTo } = useContext(ExplorationReadingContext);
-  const [path, setPath] = useState<readonly WalkStep[] | null>(null);
-  // How the walk is drawn: as the reader last chose this session.
-  const [view, setView] = useState<SlotView>('columns');
+  const [opened, setOpened] = useState(false);
   const surface = useThemedSurface('slot-explorer');
-  const opened = path !== null;
-  // The walk's popup is drawn once it is first asked for (use-lazy-opening.ts).
-  const open = useCallback(
-    (now: boolean) => {
-      if (now) setView(recallSlotView());
-      setPath(now ? [badge] : null);
-    },
-    [badge],
-  );
-  const { mounted, opener } = useLazyOpening(opened, open);
+  // The popup is drawn once it is first asked for (use-lazy-opening.ts).
+  const { mounted, opener } = useLazyOpening(opened, setOpened);
   return (
     <>
       <UnstyledButton
@@ -192,7 +177,7 @@ function Walked({
         <Popover
           opened={opened}
           onChange={(now) => {
-            if (!now) setPath(null);
+            if (!now) setOpened(false);
           }}
           position="bottom-start"
           offset={4}
@@ -210,21 +195,16 @@ function Walked({
             aria-label={`What ${badge.typeName} relates to`}
             {...surface}
           >
-            {path !== null && (
+            {/* Drawn while open alone, so each opening is a tree shut afresh. */}
+            {opened && (
               <SlotExplorer
-                path={path}
-                onPath={setPath}
-                view={view}
-                onView={(next) => {
-                  setView(next);
-                  rememberSlotView(next);
-                }}
+                root={badge}
                 slots={slots}
                 elements={elements}
                 onGoTo={
                   badge.onDiagram
                     ? () => {
-                        setPath(null);
+                        setOpened(false);
                         onGoTo(badge.type);
                       }
                     : undefined

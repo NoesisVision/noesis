@@ -1,0 +1,90 @@
+/*
+ * The tree in a badge's popup: its room, and what it adds to the model
+ * tree's own rows (shared/ui/tree). Colours are the relations' edge tokens
+ * (relationEdges in theme.ts).
+ */
+
+/* As tall whatever is opened in it, so the popup keeps its size. */
+.area {
+  position: relative;
+  height: 360px;
+  overflow: hidden auto;
+  border-top: 1px solid var(--noesis-diagram-card-border);
+  background: var(--noesis-diagram-canvas);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.nothing {
+  padding: 2px 6px;
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-xs);
+  list-style: none;
+}
+
+.round {
+  flex: none;
+  color: var(--noesis-diagram-edge-output);
+  font-size: var(--mantine-font-size-xs);
+}
+
+/* The model tree's own (shared/ui/tree), set in from the popup's edges. */
+.tree {
+  padding: 8px 8px 14px;
+}
+
+/* A relation's heading: its word in its colour, its slots on the rails under it. */
+[data-relation] {
+  --slot-line: var(--noesis-diagram-edge-state);
+  --slot-word: var(--noesis-diagram-edge-state-word);
+  /* A cardinality's mark in the relation's colour, as on its cards. */
+  --cardinality-mark-ink: var(--slot-word);
+  --cardinality-mark-fill: color-mix(
+    in srgb,
+    var(--slot-line) 24%,
+    transparent
+  );
+}
+
+[data-relation='input'] {
+  --slot-line: var(--noesis-diagram-edge-input);
+  --slot-word: var(--noesis-diagram-edge-input-word);
+}
+
+[data-relation='output'] {
+  --slot-line: var(--noesis-diagram-edge-output);
+  --slot-word: var(--noesis-diagram-edge-output-word);
+}
+
+.treeHead {
+  color: var(--slot-word);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.treeName {
+  overflow: hidden;
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.treeType {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin-inline-start: auto;
+  padding-inline-start: 12px;
+  color: var(--slot-word);
+  font-size: var(--mantine-font-size-xs);
+  font-weight: 650;
+
+  [data-leaf] > & {
+    color: var(--mantine-color-dimmed);
+    font-family: var(--mantine-font-family-monospace);
+    font-weight: 500;
+  }
+}
