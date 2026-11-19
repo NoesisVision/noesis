@@ -385,14 +385,15 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   useLayoutEffect(() => {
     detailNow.current = detail;
   });
-  // Short of all of it, what is drawn inside a frame is not moved: from
-  // that far, a drag is meant for the frame. A module inside another is
-  // itself such a frame, and is moved as one from any distance. The press
-  // is kept from the canvas before it reaches the card, so the card itself
-  // is told nothing.
+  // With modules alone left in sight, what is drawn inside a frame is not
+  // moved: from that far, a drag is meant for the frame. A module inside
+  // another is itself such a frame, and is moved as one from any distance.
+  // The press is kept from the canvas before it reaches the card, so the
+  // card itself is told nothing. While the blocks are still seen, each is
+  // moved as it is from close up: what is in sight is the reader's to move.
   useEffect(() => {
     const room = canvas.current;
-    if (room === null || detail === 'all') return;
+    if (room === null || detail !== 'modules') return;
     const hold = (event: Event) => {
       const nested =
         event.target instanceof Element
