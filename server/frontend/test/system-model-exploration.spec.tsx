@@ -797,10 +797,10 @@ describe('placing the exploration', () => {
     });
 
     it('counts what is round them: a frame’s name over its rows', () => {
-      // Four alike are two by two; under 300 of a frame's top, all in a row.
+      // Four alike are two by two; under 600 of a frame's top, all in a row.
       expect(rowsOf(setOutInSquare(boxes(4)).at)).toBe(2);
       expect(
-        rowsOf(setOutInSquare(boxes(4), { across: 0, down: 300, least: 0 }).at),
+        rowsOf(setOutInSquare(boxes(4), { across: 0, down: 600, least: 0 }).at),
       ).toBe(1);
     });
 
@@ -1999,8 +1999,8 @@ describe('placing a change from one card', () => {
         at(made, 16, 60, 300, 56),
         at(repository, 595, 72, 352, 250, true),
         at(saved, 16, 60, 216, 56),
-        // Just right of the repository: in its way once it moves.
-        at(beyond, 960, 72, 150, 56),
+        // Right of the repository: in its way once it moves.
+        at(beyond, 1100, 72, 150, 56),
       ],
       graphOf(orders, invoicing, factory, made, repository, saved, beyond),
       'Factory',
@@ -2021,7 +2021,7 @@ describe('placing a change from one card', () => {
     expect(on('Repository').x).toBeGreaterThan(595);
     expect(on('Repository').y).toBe(72);
     // And what the repository then reached went on before it.
-    expect(on('Beyond').x).toBeGreaterThan(960);
+    expect(on('Beyond').x).toBeGreaterThan(1100);
     for (const [a, b] of [
       ['Factory', 'Invoicing'],
       ['Factory', 'Repository'],

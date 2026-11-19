@@ -19,8 +19,12 @@ import {
  * so it is kept whole, never spread over free functions.
  */
 
-/** How close two cards may come without one standing on the other. */
-const MARGIN = SPACING / 2;
+/**
+ * How close two cards may come without one standing on the other: nearer
+ * than the room a placing leaves between them, so a reader may still set
+ * two side by side by hand.
+ */
+const MARGIN = 16;
 
 /** How many pushes one change may take before it is placed anew instead. */
 const PUSHES = 500;

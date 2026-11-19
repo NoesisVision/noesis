@@ -206,8 +206,13 @@ export function paddingOf(
   };
 }
 
-/** The room between two cards side by side, and between two rows of them. */
-export const SPACING = 32;
+/**
+ * The room between two cards side by side, and between two rows of them:
+ * wide enough for the edges that run between them to be told apart. A card
+ * placed beside another, or moved off one, keeps the same room
+ * (place-locally.ts, canvas-workspace.ts).
+ */
+export const SPACING = 96;
 
 /** A box to be set out: a card, or a frame with all it holds. */
 interface Box {
