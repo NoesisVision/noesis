@@ -354,33 +354,42 @@
 
 /*
  * Names from further off, larger so they still read. The corner's controls
- * are gone from beside each, so it has the width. While the blocks are
- * still seen every name is the one size (--far-name-scale, from
+ * are gone from beside each, so it has the width, and what each is —
+ * `Module` — is left unsaid: its icon says it. While the blocks are still
+ * seen every name is the one size (--far-name-scale, from
  * layout-exploration.ts, which leaves each card and frame the room for
- * it), and what each is — `Module` — is left unsaid. Once modules alone
- * are left each name is read on its own: sized against the room it has —
- * its frame's size and its own width are set on it (element-node.tsx) —
- * with what it is under it again.
+ * it). Once modules alone are left each name is read on its own: sized
+ * against the room it has — its frame's size and its own width are set on
+ * it (element-node.tsx).
  */
-.exploration[data-detail='blocks'] .kindLine {
+.exploration[data-detail] .kindLine {
   display: none;
 }
 
 /*
- * How tall a name is at its own size, in a frame's label and on a card —
- * alone, then over what it is — and the most it grows where it has the
- * room: one size for each detail, read in the middle of its zooms, so
- * nothing is sized anew while the reader only comes closer or goes further.
+ * How tall a name is at its own size, in a frame's label and on a card,
+ * and the most it grows where it has the room: one size for each detail,
+ * read in the middle of its zooms, so nothing is sized anew while the
+ * reader only comes closer or goes further.
+ *
+ * Where a name has a node's middle — a card, a frame with nothing seen
+ * inside it — it has it alone: the icon of its kind is a mark in the
+ * node's top left corner, smaller than the name and clear of it. The mark
+ * is still part of the name's line, drawn larger with it, so its size and
+ * how far in from the corner it sits are given at the name's own size.
  */
-.exploration[data-detail='blocks'] {
+.exploration[data-detail] {
   --label-height: 26;
   --card-label-height: 19;
+  --mark-size: 12px;
+  --mark-inset: 4px;
+}
+
+.exploration[data-detail='blocks'] {
   --label-most: var(--far-name-scale);
 }
 
 .exploration[data-detail='modules'] {
-  --label-height: 44;
-  --card-label-height: 34;
   --label-most: 6;
 }
 
@@ -410,8 +419,9 @@
 /*
  * A frame with nothing seen inside it — a block whose behaviors stepped
  * back, a module left alone — says its name in its middle, as large as
- * reads from that far off and no larger than the frame holds. The whole
- * of it is then its top: it is taken from anywhere.
+ * reads from that far off and no larger than the frame holds, the icon of
+ * its kind in its corner. The whole of it is then its top: it is taken
+ * from anywhere.
  */
 .exploration[data-detail] .container[data-hollow-from='blocks'],
 .exploration[data-detail='modules'] .container[data-hollow-from='modules'] {
@@ -430,7 +440,7 @@
     height: 100%;
   }
 
-  /* Its name, and what it is under it, about the frame's middle. */
+  /* Its name about the frame's middle. */
   & .containerLabel {
     align-items: center;
     align-self: center;
@@ -438,14 +448,39 @@
     text-align: center;
     transform-origin: center;
   }
+
+  /*
+   * Its icon in the frame's corner. The label is drawn larger about its
+   * own middle, which is the frame's: the corner is half the frame back
+   * from there, at the label's own size.
+   */
+  & .nameLine > :first-child {
+    position: absolute;
+    top: calc(
+      50% + var(--mark-inset) - var(--frame-height) * 0.5px / var(--label-scale)
+    );
+    left: calc(
+      50% + var(--mark-inset) - var(--frame-width) * 0.5px / var(--label-scale)
+    );
+    width: var(--mark-size);
+    height: var(--mark-size);
+  }
 }
 
 /*
- * A card: its name in its middle, top to bottom, as large as reads from
- * that far off and as the card holds, with the room its controls and its
- * signature left.
+ * A card: its name in its middle, top to bottom and side to side, as an
+ * emptied frame's is, as large as reads from that far off and as the card
+ * holds, with the room its controls and its signature left; the icon of
+ * its kind in its corner.
  */
 .exploration[data-detail] .holder {
+  /* From the card's edge to where its name's line starts: its border and padding. */
+  --card-inset: 11px;
+
+  &[data-kind='behavior'] {
+    --card-inset: 19px;
+  }
+
   --label-scale: max(
     1,
     min(
@@ -464,22 +499,28 @@
     padding-inline-end: 18px;
   }
 
-  & .nameLine,
-  & .kindLine {
+  /* Its name's line as wide as the card once grown, the name in its middle. */
+  & .nameLine {
+    justify-content: center;
     width: calc(100% / var(--label-scale));
+    text-align: center;
     transform: scale(var(--label-scale));
     transform-origin: left center;
   }
-}
 
-/* A card's name and what it is, each grown from the line between them. */
-.exploration[data-detail='modules'] .holder {
-  & .nameLine {
-    transform-origin: left bottom;
-  }
-
-  & .kindLine {
-    transform-origin: left top;
+  /*
+   * Its icon in the card's corner. The line is drawn larger from its left
+   * end, about its own height's middle, which is the card's: the corner
+   * is the card's inset back from that end, and half the card up.
+   */
+  & .nameLine > :first-child {
+    position: absolute;
+    top: calc(
+      50% + var(--mark-inset) - var(--frame-height) * 0.5px / var(--label-scale)
+    );
+    left: calc(var(--mark-inset) - var(--card-inset) / var(--label-scale));
+    width: var(--mark-size);
+    height: var(--mark-size);
   }
 }
 
