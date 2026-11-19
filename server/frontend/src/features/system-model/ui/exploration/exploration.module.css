@@ -527,13 +527,19 @@
 /*
  * What is drawn inside a frame is not moved from that far off
  * (exploration-view.tsx), and does not say it can be: its name is still
- * pressed, the rest of its top is not taken.
+ * pressed, the rest of its top is not taken. A module inside another is
+ * the one that still is, and keeps a frame's own cursors.
  */
-.exploration[data-detail] .container[data-nested] .frameTop {
+.exploration[data-detail]
+  .container[data-nested]:not([data-kind='module'])
+  .frameTop {
   cursor: default;
 }
 
-.exploration[data-detail] .container[data-nested] .frameTop .containerLabel {
+.exploration[data-detail]
+  .container[data-nested]:not([data-kind='module'])
+  .frameTop
+  .containerLabel {
   cursor: pointer;
 }
 

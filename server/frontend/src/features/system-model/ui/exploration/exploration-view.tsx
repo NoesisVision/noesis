@@ -341,17 +341,21 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     detailNow.current = detail;
   });
   // Short of all of it, what is drawn inside a frame is not moved: from
-  // that far, a drag is meant for the frame. The press is kept from the
-  // canvas before it reaches the card, so the card itself is told nothing.
+  // that far, a drag is meant for the frame. A module inside another is
+  // itself such a frame, and is moved as one from any distance. The press
+  // is kept from the canvas before it reaches the card, so the card itself
+  // is told nothing.
   useEffect(() => {
     const room = canvas.current;
     if (room === null || detail === 'all') return;
     const hold = (event: Event) => {
-      if (
-        event.target instanceof Element &&
-        event.target.closest('[data-nested]') !== null
-      )
-        event.stopPropagation();
+      const nested =
+        event.target instanceof Element
+          ? event.target.closest('[data-nested]')
+          : null;
+      if (nested === null || nested.getAttribute('data-kind') === 'module')
+        return;
+      event.stopPropagation();
     };
     room.addEventListener('mousedown', hold, true);
     room.addEventListener('touchstart', hold, true);
