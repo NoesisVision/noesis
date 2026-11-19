@@ -219,6 +219,19 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // In hand, in the order taken; the last is the one the panel reads. One
   // of them dragged, the rest go with it (use-placement.ts).
   const [selection, setSelection] = useState<readonly string[]>([]);
+  // What was just added, to be brought into view once it has landed
+  // (bringIn, below). What the reader added by name — from the picker, or
+  // the canvas's own menu — is gone to, always: put in the middle of the
+  // view, wherever it landed; the placing then leaves the view to that.
+  const focusAfter = useRef<{
+    ids: readonly string[];
+    from: string | null;
+    centred: boolean;
+  } | null>(null);
+  const goingToWhatWasAdded = useCallback(
+    () => focusAfter.current?.centred === true,
+    [],
+  );
   const {
     nodes,
     placements,
@@ -240,7 +253,14 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     outline,
     flow,
     setFlow,
-  } = usePlacement(graph, ALGORITHM, direction, opening, selection);
+  } = usePlacement(
+    graph,
+    ALGORITHM,
+    direction,
+    opening,
+    selection,
+    goingToWhatWasAdded,
+  );
   const zoom = useCanvasZoom(flow);
   // Where a point of the page is on the canvas, once the canvas is there.
   const toCanvas = useMemo(
@@ -414,7 +434,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // the diagram what is picked from it goes.
   const [quick, setQuick] = useState<{
     spot: QuickAddSpot;
-    at: CanvasPoint;
+    /** Where on the diagram; nowhere yet on a canvas with nothing drawn. */
+    at: CanvasPoint | null;
   } | null>(null);
   const canvas = useRef<HTMLElement>(null);
   // Ctrl and the wheel zoom as gently as on every diagram.
@@ -508,18 +529,30 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // menu — with the card it came from, if any: in hand at once, and, once the
   // cards have landed and settled where they go, brought into view — unless
   // all are in sight already, the panel not over a lone one.
-  const focusAfter = useRef<{
-    ids: readonly string[];
-    from: string | null;
-  } | null>(null);
   const bringIn = useCallback(
-    (ids: readonly string[], from: string | null = null) => {
+    (ids: readonly string[], from: string | null = null, centred = false) => {
       const added = ids.filter((id) => !drawn.has(id));
       if (added.length === 0) return;
-      focusAfter.current = { ids: added, from };
+      focusAfter.current = { ids: added, from, centred };
       setSelection(added);
     },
     [drawn],
+  );
+  // These cards put in the middle of the view, gently: as close as they are
+  // looked at from, or at their own size from where they would be out of
+  // sight (exploration-detail.ts) — and from further off only when they do
+  // not fit the view from that close.
+  const showInMiddle = useCallback(
+    (ids: readonly string[]) => {
+      if (flow === null) return;
+      void flow.fitView({
+        nodes: ids.map((id) => ({ id })),
+        padding: '64px',
+        maxZoom: detailAt(flow.getZoom()) === 'all' ? flow.getZoom() : 1,
+        duration: INTO_MS,
+      });
+    },
+    [flow],
   );
   // These cards brought into view, unless all are in sight already, the
   // panel a lone one is read in not over it.
@@ -555,8 +588,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     const landed = new Set(nodes.map(({ id }) => id));
     if (!ids.every((id) => landed.has(id))) return;
     focusAfter.current = null;
-    showInSight(ids, focus.ids.length === 1);
-  }, [gliding, nodes, flow, showInSight]);
+    if (focus.centred) showInMiddle(ids);
+    else showInSight(ids, focus.ids.length === 1);
+  }, [gliding, nodes, flow, showInSight, showInMiddle]);
   // A card already drawn, gone to from elsewhere — a badge naming its type:
   // in hand alone, and in sight.
   const goToCard = useCallback(
@@ -605,10 +639,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       const inside = insideOf(id);
       if (!drawn.has(id)) {
         onShowAll([id], true);
-        bringIn([id]);
+        bringIn([id], null, true);
       } else if (inside.some((each) => !drawn.has(each))) {
         onShowAll([id, ...inside], true);
-        bringIn(inside, id);
+        bringIn(inside, id, true);
       } else onShowAll([id, ...inside], false);
     },
     [insideOf, drawn, onShowAll, bringIn],
@@ -889,13 +923,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         isDrawn={isShown}
         onClose={closeQuick}
         onPick={(id) => {
-          const at = quick?.at;
+          const at = quick?.at ?? null;
           setQuick(null);
           // One drawn already is shown, not drawn twice.
           if (drawn.has(id)) return readAlone(id);
-          if (at !== undefined) placeBeside(at);
+          if (at !== null) placeBeside(at);
           onShowAll([id], true);
-          bringIn([id]);
+          bringIn([id], null, true);
         }}
       />
     ),
@@ -956,7 +990,24 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                 The scan found no modules, building blocks or behaviors.
               </Text>
             ) : graph.elements.length === 0 ? (
-              <Box h="100%" className={classes.blank} data-part="blank" />
+              // With nothing drawn a right click asks what to put there too:
+              // there is no diagram yet for it to have a place on.
+              <Box
+                h="100%"
+                className={classes.blank}
+                data-part="blank"
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  const box = event.currentTarget.getBoundingClientRect();
+                  setQuick({
+                    spot: {
+                      left: event.clientX - box.left,
+                      top: event.clientY - box.top,
+                    },
+                    at: null,
+                  });
+                }}
+              />
             ) : (
               <DesignDocumentContext.Provider value={document}>
                 <ExplorationReadingContext.Provider value={reading}>

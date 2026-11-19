@@ -52,6 +52,7 @@ import {
  */
 
 const NONE_IN_HAND: readonly string[] = [];
+const NEVER_TAKEN = () => false;
 
 /**
  * The other cards in hand that go where a dragged one goes: none unless it
@@ -113,6 +114,11 @@ export function usePlacement(
   opening: { nodes: ExplorationNode[] } | null,
   /** The cards in hand: one of them dragged, the rest go with it. */
   inHand: readonly string[] = NONE_IN_HAND,
+  /**
+   * Whether the view is about to be taken somewhere itself — to what was
+   * just added: a placing then leaves the view where it is, not fitted.
+   */
+  viewIsTaken: () => boolean = NEVER_TAKEN,
 ) {
   // A big group is dragged as it is, unless dev tools ask for its outline.
   const {
@@ -596,9 +602,10 @@ export function usePlacement(
 
   useEffect(() => {
     if (placed === null || placed.local || flow === null) return;
+    if (viewIsTaken()) return;
     const frame = requestAnimationFrame(() => void flow.fitView(FIT));
     return () => cancelAnimationFrame(frame);
-  }, [placed, flow]);
+  }, [placed, flow, viewIsTaken]);
 
   // A card being dragged keeps its place until let go of: only its outline
   // moves.
