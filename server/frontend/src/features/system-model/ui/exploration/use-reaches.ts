@@ -1,5 +1,6 @@
 import {
   CHAIN_REACHES,
+  type ChainReach,
   chainOf,
   isSlotReach,
   type Reach,
@@ -13,15 +14,73 @@ import type { CanvasPoint } from './place-locally.ts';
  * that can be followed from it.
  */
 
+type Reading = Pick<
+  ReturnType<typeof useCardActions>,
+  'drawn' | 'neighbours' | 'elements'
+>;
+
+/** What one card still reaches: by each way it does, and by each chain followed. */
+interface Reaching {
+  missing: { each: Reach; missing: string[] }[] | null;
+  chains: { each: ChainReach; missing: string[] }[];
+}
+
+/*
+ * Worked out once for each card and kept until what is drawn changes: a
+ * card asks for it wherever it shows a way to bring others in — its dots,
+ * its plus, its menu — each time it is drawn.
+ */
+const known = new WeakMap<
+  ReadonlySet<string>,
+  { reading: Reading; cards: Map<string, Reaching> }
+>();
+
+function reachingOf(id: string, reading: Reading): Reaching {
+  const { drawn, neighbours, elements } = reading;
+  let kept = known.get(drawn);
+  if (
+    kept === undefined ||
+    kept.reading.neighbours !== neighbours ||
+    kept.reading.elements !== elements
+  ) {
+    kept = { reading, cards: new Map() };
+    known.set(drawn, kept);
+  }
+  let card = kept.cards.get(id);
+  if (card === undefined) {
+    const reach = neighbours.get(id);
+    card = {
+      missing:
+        reach === undefined
+          ? null
+          : REACHES.map((each) => ({
+              each,
+              missing: reach[each].filter((other) => !drawn.has(other)),
+            })).filter(({ missing }) => missing.length > 0),
+      chains: CHAIN_REACHES.map((each) => ({
+        each,
+        missing: chainOf(neighbours, elements, id, each).filter(
+          (other) => !drawn.has(other),
+        ),
+      })).filter(({ missing }) => missing.length > 0),
+    };
+    kept.cards.set(id, card);
+  }
+  return card;
+}
+
 /** What the element still reaches that is not drawn, by each way it does. */
 export function useMissing(id: string) {
-  const { drawn, neighbours } = useCardActions();
-  const reach = neighbours.get(id);
-  if (reach === undefined) return null;
-  return REACHES.map((each) => ({
-    each,
-    missing: reach[each].filter((other) => !drawn.has(other)),
-  })).filter(({ missing }) => missing.length > 0);
+  return reachingOf(id, useCardActions()).missing;
+}
+
+/**
+ * Whether a card's own menu has anything to offer: a frame's setting out
+ * again of what it holds, or others it reaches to bring in.
+ */
+export function hasNodeMenu(id: string, holds: boolean, reading: Reading) {
+  const { missing, chains } = reachingOf(id, reading);
+  return holds || (missing?.length ?? 0) > 0 || chains.length > 0;
 }
 
 /** Puts others on the diagram beside the card; what it contains, arranged inside it. */
@@ -49,11 +108,5 @@ export function useAdd(
 
 /** What each way reaches step after step, up to its own type or the depth, that is not drawn. */
 export function useChains(id: string) {
-  const { drawn, neighbours, elements } = useCardActions();
-  return CHAIN_REACHES.map((each) => ({
-    each,
-    missing: chainOf(neighbours, elements, id, each).filter(
-      (other) => !drawn.has(other),
-    ),
-  })).filter(({ missing }) => missing.length > 0);
+  return reachingOf(id, useCardActions()).chains;
 }

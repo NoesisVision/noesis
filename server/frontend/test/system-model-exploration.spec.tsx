@@ -30,7 +30,9 @@ import { ElementNode } from '../src/features/system-model/ui/exploration/element
 import { ExplorationPicker } from '../src/features/system-model/ui/exploration/exploration-picker';
 import {
   ExplorationReadingContext,
+  ExplorationSelectionContext,
   pathTo,
+  type SelectionReading,
 } from '../src/features/system-model/ui/exploration/exploration-reading';
 import {
   cardSizeOf,
@@ -54,6 +56,7 @@ import {
 import { SlotBadges } from '../src/features/system-model/ui/exploration/slot-badges';
 import { VisibilityPanel } from '../src/features/system-model/ui/exploration/visibility-panel';
 import { MantineProvider } from '../src/shared/design-system/provider';
+import { createStore } from '../src/shared/store';
 import { borderTowards } from '../src/shared/ui/diagram-canvas/floating-edge';
 
 const source = { path: 'X.java', startLine: null, endLine: null };
@@ -783,9 +786,6 @@ describe('the selection', () => {
             <DesignDocumentContext.Provider value={designOf(model)}>
               <ExplorationReadingContext.Provider
                 value={{
-                  selected: new Set(['building_block|shop.orders.Order']),
-                  related: new Set([line.id]),
-                  path: new Set(),
                   badges: graph.badges,
                   noOutput: graph.noOutput,
                   stepping: { unseenFrom: new Map(), hollowFrom: new Map() },
@@ -804,20 +804,28 @@ describe('the selection', () => {
                   onArrange: () => {},
                 }}
               >
-                <Node
-                  id={line.id}
-                  data={{
-                    placed: {
-                      element: line,
-                      holds: false,
-                      x: 0,
-                      y: 0,
-                      width: 150,
-                      height: 52,
-                    },
-                    direction: 'vertical',
-                  }}
-                />
+                <ExplorationSelectionContext.Provider
+                  value={createStore<SelectionReading>({
+                    selected: new Set(['building_block|shop.orders.Order']),
+                    related: new Set([line.id]),
+                    path: new Set(),
+                  })}
+                >
+                  <Node
+                    id={line.id}
+                    data={{
+                      placed: {
+                        element: line,
+                        holds: false,
+                        x: 0,
+                        y: 0,
+                        width: 150,
+                        height: 52,
+                      },
+                      direction: 'vertical',
+                    }}
+                  />
+                </ExplorationSelectionContext.Provider>
               </ExplorationReadingContext.Provider>
             </DesignDocumentContext.Provider>
           </ReactFlowProvider>
@@ -857,9 +865,6 @@ it('marks what is out of sight from further off, and gives each card what its na
           <DesignDocumentContext.Provider value={designOf(model)}>
             <ExplorationReadingContext.Provider
               value={{
-                selected: new Set(),
-                related: new Set(),
-                path: new Set(),
                 badges: graph.badges,
                 noOutput: graph.noOutput,
                 stepping: {
@@ -1242,9 +1247,6 @@ describe('slots drawn on the cards that hold them', () => {
             <DesignDocumentContext.Provider value={designOf(model)}>
               <ExplorationReadingContext.Provider
                 value={{
-                  selected: new Set([LINE]),
-                  related: new Set([ORDER, PLACE]),
-                  path: new Set(),
                   badges: graph.badges,
                   noOutput: graph.noOutput,
                   stepping: { unseenFrom: new Map(), hollowFrom: new Map() },
@@ -1263,20 +1265,28 @@ describe('slots drawn on the cards that hold them', () => {
                   onArrange: () => {},
                 }}
               >
-                <Node
-                  id={id}
-                  data={{
-                    placed: {
-                      element,
-                      holds,
-                      x: 0,
-                      y: 0,
-                      width: 220,
-                      height: 90,
-                    },
-                    direction: 'vertical',
-                  }}
-                />
+                <ExplorationSelectionContext.Provider
+                  value={createStore<SelectionReading>({
+                    selected: new Set([LINE]),
+                    related: new Set([ORDER, PLACE]),
+                    path: new Set(),
+                  })}
+                >
+                  <Node
+                    id={id}
+                    data={{
+                      placed: {
+                        element,
+                        holds,
+                        x: 0,
+                        y: 0,
+                        width: 220,
+                        height: 90,
+                      },
+                      direction: 'vertical',
+                    }}
+                  />
+                </ExplorationSelectionContext.Provider>
               </ExplorationReadingContext.Provider>
             </DesignDocumentContext.Provider>
           </ReactFlowProvider>

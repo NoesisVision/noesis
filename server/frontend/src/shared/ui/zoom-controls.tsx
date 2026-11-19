@@ -8,11 +8,38 @@ import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
+import { type Store, useStoreValue } from '#/shared/store.ts';
 import classes from './zoom-controls.module.css';
 
 const ICON_SIZE = { md: 16, lg: 20 } as const;
 /** Snug beside a small canvas's buttons; the theme's step beside a large one's. */
 const GAP = { md: 4, lg: 'xs' } as const;
+
+/** A scale as it stands, or one that changes and is followed. */
+type Zoom = number | Pick<Store<number>, 'get' | 'subscribe'>;
+
+const STILL = { subscribe: () => () => {} };
+
+/**
+ * How far in the canvas is, as a percentage. A scale that changes is
+ * followed here alone, so the buttons round it — and the canvas — are not
+ * drawn again as it does.
+ */
+function Level({ zoom, large }: { zoom: Zoom; large: boolean }) {
+  const scale = useStoreValue(
+    typeof zoom === 'number' ? { ...STILL, get: () => zoom } : zoom,
+    (value) => Math.round(value * 100),
+  );
+  return (
+    <Text
+      component="output"
+      size={large ? 'sm' : 'xs'}
+      className={classes.level}
+    >
+      {`${scale}%`}
+    </Text>
+  );
+}
 
 /**
  * The buttons a canvas is zoomed with, the same wherever one is drawn: out,
@@ -30,7 +57,7 @@ export function ZoomControls({
   quiet = false,
 }: {
   /** The scale the canvas is at; 1 is the size it was drawn. */
-  zoom: number;
+  zoom: Zoom;
   onZoomOut: () => void;
   onZoomIn: () => void;
   onFit: () => void;
@@ -72,13 +99,7 @@ export function ZoomControls({
       >
         <IconZoomOut {...icon} />
       </ActionIcon>
-      <Text
-        component="output"
-        size={size === 'lg' ? 'sm' : 'xs'}
-        className={classes.level}
-      >
-        {`${Math.round(zoom * 100)}%`}
-      </Text>
+      <Level zoom={zoom} large={size === 'lg'} />
       <ActionIcon
         {...button}
         aria-label="Zoom in"

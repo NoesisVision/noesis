@@ -1,9 +1,11 @@
 import {
   type ElementChoice,
+  type ExploredElement,
   RELATIONS,
   type RelationKind,
 } from '../../system-model-exploration.ts';
 import type { ExplorationNode } from './exploration-node.ts';
+import { nodeOf } from './exploration-nodes.ts';
 import type { LayoutDirection } from './layout-exploration.ts';
 
 /** The diagram as one step left it, enough to put it back as it stood. */
@@ -39,9 +41,10 @@ export interface DiagramSteps {
  * they cannot be put back as they stood. What was drawn is still kept, as
  * the choice is (exploration-memory.ts), and is placed afresh. So are the
  * steps kept before cards were as wide as their names from further off
- * (version 2): their cards are too narrow for them.
+ * (version 2): their cards are too narrow for them. Until version 4 a
+ * step kept each card whole, its element with it, ten times the size.
  */
-const VERSION = 3;
+const VERSION = 4;
 const PREFIX = 'noesis.systemModel.exploration.steps.';
 const keyOf = (modelId: string) => `${PREFIX}${modelId}`;
 /** How many models' diagrams are kept, the latest drawn. */
@@ -78,14 +81,46 @@ function forgetOthers(modelId: string, all: boolean): void {
     window.localStorage.removeItem(key);
 }
 
+/**
+ * A card as it is kept: which element it is, where it stands, how large,
+ * and what it is drawn inside. Not the element itself: the model holds
+ * that, and a step of every card with its element is soon most of what
+ * the machine has room for, written anew each time a card is let go of.
+ */
+interface StoredNode {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  holds: boolean;
+  parent: string | null;
+}
+
 interface StoredStep {
   added: string[];
   removed: string[];
   bySlot: string[];
   relations: RelationKind[];
   direction: LayoutDirection;
-  nodes: ExplorationNode[];
+  nodes: StoredNode[];
 }
+
+const storedNodeOf = ({
+  id,
+  position,
+  width,
+  height,
+  data: { placed },
+}: ExplorationNode): StoredNode => ({
+  id,
+  x: position.x,
+  y: position.y,
+  width: width ?? placed.width,
+  height: height ?? placed.height,
+  holds: placed.holds,
+  parent: placed.element.parent,
+});
 
 const storedOf = ({
   choice,
@@ -98,7 +133,7 @@ const storedOf = ({
   bySlot: [...(choice.picks.bySlot ?? [])],
   relations: [...relations],
   direction,
-  nodes,
+  nodes: nodes.map(storedNodeOf),
 });
 
 export function rememberSteps(modelId: string, steps: DiagramSteps): void {
@@ -138,7 +173,14 @@ export function rememberSteps(modelId: string, steps: DiagramSteps): void {
   }
 }
 
-export function recallSteps(modelId: string): DiagramSteps | null {
+/**
+ * The steps kept for a model, each card built again from the model's own
+ * element; a card whose element the model no longer holds is left out.
+ */
+export function recallSteps(
+  modelId: string,
+  elements: ReadonlyMap<string, ExploredElement>,
+): DiagramSteps | null {
   const stored = readStored(modelId);
   if (stored === null) return null;
   return {
@@ -155,7 +197,17 @@ export function recallSteps(modelId: string): DiagramSteps | null {
       },
       relations: new Set(step.relations),
       direction: step.direction,
-      nodes: step.nodes,
+      nodes: step.nodes.flatMap(({ id, parent, ...placed }) => {
+        const element = elements.get(id);
+        return element === undefined
+          ? []
+          : [
+              nodeOf(
+                { ...placed, element: { ...element, parent } },
+                step.direction,
+              ),
+            ];
+      }),
     })),
   };
 }
@@ -172,23 +224,17 @@ const isNumber = (value: unknown): value is number =>
 const field = (value: object, name: string): unknown =>
   Reflect.get(value, name);
 
-/** A node as React Flow was given it: an id, a place, and its element. */
-function isNode(value: unknown): value is ExplorationNode {
+/** A card as it is kept: its element's id, its place and its size. */
+function isNode(value: unknown): value is StoredNode {
   if (typeof value !== 'object' || value === null) return false;
-  const position = field(value, 'position');
-  const data = field(value, 'data');
-  if (typeof position !== 'object' || position === null) return false;
-  if (typeof data !== 'object' || data === null) return false;
-  const placed = field(data, 'placed');
-  if (typeof placed !== 'object' || placed === null) return false;
-  const element = field(placed, 'element');
+  const parent = field(value, 'parent');
   return (
     typeof field(value, 'id') === 'string' &&
-    isNumber(field(position, 'x')) &&
-    isNumber(field(position, 'y')) &&
-    typeof element === 'object' &&
-    element !== null &&
-    typeof field(element, 'id') === 'string'
+    ['x', 'y', 'width', 'height'].every((each) =>
+      isNumber(field(value, each)),
+    ) &&
+    typeof field(value, 'holds') === 'boolean' &&
+    (parent === null || typeof parent === 'string')
   );
 }
 

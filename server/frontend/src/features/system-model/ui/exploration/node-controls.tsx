@@ -8,6 +8,7 @@ import { useCardActions } from './exploration-reading.ts';
 import { keepInMenu, NodeMenuButton, ReachItems } from './reach-menu.tsx';
 import { containsLabel } from './reach-words.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
+import { useLazyOpening } from './use-lazy-opening.ts';
 import { useMissing } from './use-reaches.ts';
 import classes from './exploration.module.css';
 
@@ -31,40 +32,48 @@ export function Contains({
 }) {
   const { id, name } = element;
   const contains = useMissing(id)?.find(({ each }) => each === 'contains');
-  // Held here, so the button can say so: the menu's own word on it.
+  // Held here, so the button can say so: the menu's own word on it. The
+  // menu itself is drawn once it is first asked for (use-lazy-opening.ts).
   const [open, setOpen] = useState(false);
+  const { mounted, opener } = useLazyOpening(open, setOpen);
   const surface = useThemedSurface('menu', `nowheel ${classes.reachMenu}`);
   if (contains === undefined) return null;
   const { missing } = contains;
   const label = containsLabel(name, missing.length);
   return (
-    <Menu
-      opened={open}
-      onChange={setOpen}
-      position="bottom"
-      shadow="md"
-      withinPortal
-      // The canvas stops a mouse press from reaching the page; a pointer's does.
-      clickOutsideEvents={['pointerdown']}
-    >
-      <Menu.Target>
-        <UnstyledButton
-          className={`nodrag nopan ${classes.contains}`}
-          data-part="contains"
-          data-frame={holds || undefined}
-          data-kind={element.kind}
-          aria-label={label}
-          aria-haspopup="menu"
-          aria-expanded={open}
+    <>
+      <UnstyledButton
+        className={`nodrag nopan ${classes.contains}`}
+        data-part="contains"
+        data-frame={holds || undefined}
+        data-kind={element.kind}
+        aria-label={label}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        {...opener}
+      >
+        <IconPlus size={12} stroke={2.4} aria-hidden />
+      </UnstyledButton>
+      {mounted && (
+        <Menu
+          opened={open}
+          onChange={setOpen}
+          position="bottom"
+          shadow="md"
+          withinPortal
+          // The canvas stops a mouse press from reaching the page; a pointer's does.
+          clickOutsideEvents={['pointerdown']}
         >
-          <IconPlus size={12} stroke={2.4} aria-hidden />
-        </UnstyledButton>
-      </Menu.Target>
-      <Menu.Dropdown {...surface} onContextMenu={keepInMenu}>
-        <Menu.Label>Contains:</Menu.Label>
-        <ReachItems id={id} reach="contains" missing={missing} />
-      </Menu.Dropdown>
-    </Menu>
+          <Menu.Target>
+            <span aria-hidden className={classes.containsSpot} />
+          </Menu.Target>
+          <Menu.Dropdown {...surface} onContextMenu={keepInMenu}>
+            <Menu.Label>Contains:</Menu.Label>
+            <ReachItems id={id} reach="contains" missing={missing} />
+          </Menu.Dropdown>
+        </Menu>
+      )}
+    </>
   );
 }
 

@@ -1,4 +1,4 @@
-import { type ReactNode, useContext, useState } from 'react';
+import { type ReactNode, useCallback, useContext, useState } from 'react';
 import {
   CardinalityMark,
   isMarked,
@@ -13,7 +13,10 @@ import {
   NO_OUTPUT,
   signatureLinesOf,
 } from './badge-signature.ts';
-import { ExplorationReadingContext } from './exploration-reading.ts';
+import {
+  ExplorationReadingContext,
+  useSelectedAmong,
+} from './exploration-reading.ts';
 import { SlotExplorer } from './slot-explorer.tsx';
 import {
   recallSlotView,
@@ -21,6 +24,7 @@ import {
   type SlotView,
 } from './slot-view.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
+import { useLazyOpening } from './use-lazy-opening.ts';
 import classes from './slot-badges.module.css';
 
 /*
@@ -48,7 +52,9 @@ export function SlotBadges({
   /** Under a frame's name, rather than a card's name and what it is. */
   frame: boolean;
 }) {
-  const { selected, elements } = useContext(ExplorationReadingContext);
+  const { elements } = useContext(ExplorationReadingContext);
+  // A badge whose type is in hand says so; read for these badges alone.
+  const selected = useSelectedAmong(badges.map(({ type }) => type));
   const lines = signatureLinesOf(badges, noOutput);
   if (lines.length === 0) return null;
   /** A slot, drawn in `className` as `children`: a button where its type leads on. */
@@ -159,64 +165,75 @@ function Walked({
   const [view, setView] = useState<SlotView>('columns');
   const surface = useThemedSurface('slot-explorer');
   const opened = path !== null;
+  // The walk's popup is drawn once it is first asked for (use-lazy-opening.ts).
+  const open = useCallback(
+    (now: boolean) => {
+      if (now) setView(recallSlotView());
+      setPath(now ? [badge] : null);
+    },
+    [badge],
+  );
+  const { mounted, opener } = useLazyOpening(opened, open);
   return (
-    <Popover
-      opened={opened}
-      onChange={(open) => {
-        if (!open) setPath(null);
-      }}
-      position="bottom-start"
-      offset={4}
-      shadow="md"
-      trapFocus
-      returnFocus
-      // The canvas stops a mouse press from reaching the page; a pointer's does.
-      clickOutsideEvents={['pointerdown']}
-    >
-      <Popover.Target>
-        <UnstyledButton
-          {...shared}
-          // A press on it is for the badge, not a drag or pan of the canvas.
-          className={`nodrag nopan ${shared.className}`}
-          // Named as the slot is written, an output's name with it.
-          aria-label={`${badgeSaidOf(badge)}${badge.onDiagram ? ', also on the diagram' : ''}`}
-          aria-haspopup="dialog"
-          aria-expanded={opened}
-          onClick={() => {
-            if (!opened) setView(recallSlotView());
-            setPath(opened ? null : [badge]);
-          }}
-        >
-          {children}
-        </UnstyledButton>
-      </Popover.Target>
-      <Popover.Dropdown
-        p={0}
-        aria-label={`What ${badge.typeName} relates to`}
-        {...surface}
+    <>
+      <UnstyledButton
+        {...shared}
+        // A press on it is for the badge, not a drag or pan of the canvas.
+        className={`nodrag nopan ${shared.className}`}
+        // Named as the slot is written, an output's name with it.
+        aria-label={`${badgeSaidOf(badge)}${badge.onDiagram ? ', also on the diagram' : ''}`}
+        aria-haspopup="dialog"
+        aria-expanded={opened}
+        {...opener}
       >
-        {path !== null && (
-          <SlotExplorer
-            path={path}
-            onPath={setPath}
-            view={view}
-            onView={(next) => {
-              setView(next);
-              rememberSlotView(next);
-            }}
-            slots={slots}
-            elements={elements}
-            onGoTo={
-              badge.onDiagram
-                ? () => {
-                    setPath(null);
-                    onGoTo(badge.type);
-                  }
-                : undefined
-            }
-          />
-        )}
-      </Popover.Dropdown>
-    </Popover>
+        {children}
+      </UnstyledButton>
+      {mounted && (
+        <Popover
+          opened={opened}
+          onChange={(now) => {
+            if (!now) setPath(null);
+          }}
+          position="bottom-start"
+          offset={4}
+          shadow="md"
+          trapFocus
+          returnFocus
+          // The canvas stops a mouse press from reaching the page; a pointer's does.
+          clickOutsideEvents={['pointerdown']}
+        >
+          <Popover.Target>
+            <span aria-hidden className={classes.opening} />
+          </Popover.Target>
+          <Popover.Dropdown
+            p={0}
+            aria-label={`What ${badge.typeName} relates to`}
+            {...surface}
+          >
+            {path !== null && (
+              <SlotExplorer
+                path={path}
+                onPath={setPath}
+                view={view}
+                onView={(next) => {
+                  setView(next);
+                  rememberSlotView(next);
+                }}
+                slots={slots}
+                elements={elements}
+                onGoTo={
+                  badge.onDiagram
+                    ? () => {
+                        setPath(null);
+                        onGoTo(badge.type);
+                      }
+                    : undefined
+                }
+              />
+            )}
+          </Popover.Dropdown>
+        </Popover>
+      )}
+    </>
   );
 }

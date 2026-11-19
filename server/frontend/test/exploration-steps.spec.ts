@@ -1,4 +1,5 @@
 import { afterAll, beforeEach, describe, expect, it } from 'bun:test';
+import { nodeOf } from '../src/features/system-model/ui/exploration/exploration-nodes';
 import {
   type DiagramStep,
   recallSteps,
@@ -40,6 +41,18 @@ afterAll(() => {
 const MODEL = '01a15509-0909-725f-8ab8-25ab23fc10d3';
 const KEY = `noesis.systemModel.exploration.steps.${MODEL}`;
 
+const ORDERS = 'module|shop.orders';
+const ORDER = 'building_block|shop.orders.Order';
+/** What the model holds: the steps keep only which of these each card is. */
+const ELEMENTS = new Map(
+  (
+    [
+      { id: ORDERS, kind: 'module', name: 'orders', container: null },
+      { id: ORDER, kind: 'building_block', name: 'Order', container: ORDERS },
+    ] as const
+  ).map((each) => [each.id, { ...each, pattern: null }]),
+);
+
 const step: DiagramStep = {
   choice: { shown: new Set(), picks: { added: new Set(), removed: new Set() } },
   relations: new Set(['contains', 'state', 'input']),
@@ -53,12 +66,53 @@ describe('the steps the diagram took, kept on the machine', () => {
       list: [step, { ...step, direction: 'vertical' }],
       at: 1,
     });
-    const recalled = recallSteps(MODEL);
+    const recalled = recallSteps(MODEL, ELEMENTS);
     expect(recalled?.list.map(({ direction }) => direction)).toEqual([
       'horizontal',
       'vertical',
     ]);
     expect(recalled?.at).toBe(1);
+  });
+
+  it('keeps where each card stands, not its element, and builds the card again from the model', () => {
+    const orders = { ...ELEMENTS.get(ORDERS)!, parent: null };
+    const order = { ...ELEMENTS.get(ORDER)!, parent: ORDERS };
+    const gone = { ...order, id: 'building_block|shop.orders.Gone' };
+    const nodes = [
+      nodeOf(
+        { element: orders, holds: true, x: 10, y: 20, width: 400, height: 300 },
+        'horizontal',
+      ),
+      nodeOf(
+        { element: order, holds: false, x: 16, y: 60, width: 180, height: 56 },
+        'horizontal',
+      ),
+      nodeOf(
+        { element: gone, holds: false, x: 0, y: 0, width: 180, height: 56 },
+        'horizontal',
+      ),
+    ];
+    rememberSteps(MODEL, { list: [{ ...step, nodes }], at: 0 });
+    // Kept by id, place and size alone.
+    const kept = storage.getItem(KEY)!;
+    expect(kept).toContain(`"id":"${ORDER}"`);
+    expect(kept).not.toContain('"name"');
+    // Built again as they stood; one the model no longer holds is left out.
+    const recalled = recallSteps(MODEL, ELEMENTS)?.list[0]?.nodes ?? [];
+    expect(recalled.map(({ id }) => id)).toEqual([ORDERS, ORDER]);
+    const [frame, card] = recalled;
+    expect(frame).toMatchObject({
+      position: { x: 10, y: 20 },
+      width: 400,
+      height: 300,
+    });
+    expect(frame?.data.placed.holds).toBe(true);
+    expect(card).toMatchObject({
+      position: { x: 16, y: 60 },
+      parentId: ORDERS,
+    });
+    expect(card?.data.placed.element).toEqual(order);
+    expect(card?.data.direction).toBe('horizontal');
   });
 
   it('keeps which types came by following a slot', () => {
@@ -75,7 +129,7 @@ describe('the steps the diagram took, kept on the machine', () => {
     };
     rememberSteps(MODEL, { list: [slotted], at: 0 });
     expect([
-      ...(recallSteps(MODEL)?.list[0]?.choice.picks.bySlot ?? []),
+      ...(recallSteps(MODEL, ELEMENTS)?.list[0]?.choice.picks.bySlot ?? []),
     ]).toEqual(['b']);
   });
 
@@ -97,6 +151,6 @@ describe('the steps the diagram took, kept on the machine', () => {
         ],
       }),
     );
-    expect(recallSteps(MODEL)).toBeNull();
+    expect(recallSteps(MODEL, ELEMENTS)).toBeNull();
   });
 });

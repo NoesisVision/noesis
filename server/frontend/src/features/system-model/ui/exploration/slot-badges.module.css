@@ -102,8 +102,20 @@
 }
 
 .signatureItem {
+  /* Where a badge's popup hangs, once it is drawn (`.opening`). */
+  position: relative;
   display: flex;
   min-width: 0;
+}
+
+/*
+ * Laid over a badge once its popup is first asked for: what the popup
+ * hangs on and follows, the badge itself being drawn before there is one.
+ */
+.opening {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .punctuation {

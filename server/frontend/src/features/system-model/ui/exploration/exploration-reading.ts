@@ -1,4 +1,5 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
+import { createStore, type Store, useStoreValue } from '#/shared/store.ts';
 import type {
   Badge,
   DrawnRelationKind,
@@ -10,18 +11,39 @@ import type {
 import type { CanvasPoint } from './place-locally.ts';
 
 /*
- * What a card shows of the selection, and what it can put on the diagram.
- * A node holds only where its card stands, so selecting one does not hand
- * React Flow every node anew to measure; the rest reaches the cards through
- * context instead.
+ * What a card reads of the diagram, and what it can put on it. A node
+ * holds only where its card stands, so selecting one does not hand React
+ * Flow every node anew to measure; the rest reaches the cards from here.
+ *
+ * What the cards all read alike — the slots, what is drawn, the ways to
+ * change it — comes through context, and changes only as the diagram does.
+ * The selection changes with every click, and to each card differently, so
+ * it is held in a store, where a card reads only where it stands itself
+ * and is drawn again only when that changes.
  */
-export interface ExplorationReading {
+
+/** The selection, as the cards read it. */
+export interface SelectionReading {
   /** Every element in hand; more than one when picked with Ctrl or Cmd. */
   selected: ReadonlySet<string>;
   /** The elements a relation drawn from or to the selection joins it to. */
   related: ReadonlySet<string>;
   /** The frames the selection is drawn inside, out to the outermost: the way to it. */
   path: ReadonlySet<string>;
+}
+
+const NO_SELECTION: SelectionReading = {
+  selected: new Set(),
+  related: new Set(),
+  path: new Set(),
+};
+
+/** The selection the cards under it stand to; nothing in hand, until given one. */
+export const ExplorationSelectionContext = createContext<
+  Store<SelectionReading>
+>(createStore(NO_SELECTION));
+
+export interface ExplorationReading {
   /** Each card's slots, drawn on it. */
   badges: ReadonlyMap<string, readonly Badge[]>;
   /** The behaviors drawn that give nothing back, which their signatures say. */
@@ -71,9 +93,6 @@ export interface ExplorationReading {
 }
 
 export const ExplorationReadingContext = createContext<ExplorationReading>({
-  selected: new Set(),
-  related: new Set(),
-  path: new Set(),
   badges: new Map(),
   noOutput: new Set(),
   stepping: { unseenFrom: new Map(), hollowFrom: new Map() },
@@ -105,26 +124,40 @@ export function useCardActions() {
   };
 }
 
-/**
- * Where a card stands to the selection: in hand, joined to it, a frame on
- * the way to it, or none of these.
- */
-export function useSelectionState(id: string) {
-  const { selected, related, path, onSelect, onLetGo } = useContext(
-    ExplorationReadingContext,
-  );
+/** Where one element stands to the selection, as one word, if anywhere. */
+const standingOf = (
+  { selected, related, path }: SelectionReading,
+  id: string,
+): 'selected' | 'path' | 'related' | undefined => {
+  if (selected.has(id)) return 'selected';
   // A frame the selection is drawn in reads as the way to it, though what
   // holds an element is also a relation of it.
-  const state = selected.has(id)
-    ? ('selected' as const)
-    : path.has(id)
-      ? ('path' as const)
-      : related.has(id)
-        ? ('related' as const)
-        : undefined;
-  // With something in hand, what has nothing to do with it steps back.
-  const dimmed = selected.size > 0 && state === undefined;
-  return { state, dimmed, onSelect, onLetGo };
+  if (path.has(id)) return 'path';
+  return related.has(id) ? 'related' : undefined;
+};
+
+/**
+ * Where a card stands to the selection: in hand, joined to it, a frame on
+ * the way to it, or none of these. Read for this card alone, so it is
+ * drawn again only when where it stands changes. That what has nothing to
+ * do with the selection steps back is the page's to draw, from the mark on
+ * the whole diagram that something is in hand (exploration.module.css):
+ * taking a card in hand then draws again only the cards it has to do with.
+ */
+export function useSelectionState(id: string) {
+  const selection = useContext(ExplorationSelectionContext);
+  const { onSelect, onLetGo } = useContext(ExplorationReadingContext);
+  const state = useStoreValue(selection, (now) => standingOf(now, id));
+  return { state, onSelect, onLetGo };
+}
+
+/** Which of these elements are in hand: the same set until that changes. */
+export function useSelectedAmong(ids: readonly string[]): ReadonlySet<string> {
+  const selection = useContext(ExplorationSelectionContext);
+  const held = useStoreValue(selection, ({ selected }) =>
+    selected.size === 0 ? '' : ids.filter((id) => selected.has(id)).join('\n'),
+  );
+  return useMemo(() => new Set(held === '' ? [] : held.split('\n')), [held]);
 }
 
 /** The frames each element in `ids` is drawn inside, out to the outermost. */

@@ -29,10 +29,22 @@
   }
 }
 
+/* What the cards' one menu is opened on (card-context-menu.tsx): the canvas, whole. */
+.cards {
+  height: 100%;
+}
+
 /* A leaf element's node: the card fills it. */
 .holder {
   width: 100%;
   height: 100%;
+}
+
+/* Pressed long, a card opens its menu, not the page's way of picking its words. */
+.holder,
+.container {
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 /*
@@ -292,10 +304,13 @@
  * With something in hand, the cards and frames with nothing to do with it
  * step back as their edges do, so what is left reads on its own. A frame's
  * cards are their own nodes: one that matters stays clear in a frame that
- * steps back.
+ * steps back. Drawn from one mark on the diagram — something is in hand —
+ * and each card's own on where it stands to it, so a card with nothing to
+ * do with the selection is told nothing as it changes; weighing no more
+ * than a card's own rules, which is what `:where` is for.
  */
-.holder[data-dimmed],
-.container[data-dimmed] {
+:where(.exploration[data-in-hand]) .holder:not([data-standing]),
+:where(.exploration[data-in-hand]) .container:not([data-standing]) {
   opacity: var(--noesis-diagram-dimmed);
 }
 
@@ -648,9 +663,35 @@
 }
 
 .strip {
+  /* Where the dots' menu hangs, once it is drawn (`.opening`). */
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 2px;
+}
+
+/*
+ * Laid over a card's button once its menu is first asked for
+ * (use-lazy-opening.ts): what the menu hangs on and follows, the button
+ * itself being drawn before there is a menu.
+ */
+.opening,
+.containsSpot {
+  position: absolute;
+  pointer-events: none;
+}
+
+.opening {
+  inset: 0;
+}
+
+/* Over the round plus on the bottom border, where `.contains` puts it. */
+.containsSpot {
+  bottom: -12px;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translateX(-50%);
 }
 
 /* Quiet, as the app's icon buttons are, a light ground only under the

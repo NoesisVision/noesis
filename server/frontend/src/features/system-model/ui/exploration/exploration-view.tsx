@@ -18,9 +18,10 @@ import { Alert } from '#/shared/design-system/alert.tsx';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
 import { Stack } from '#/shared/design-system/stack.tsx';
-import '@xyflow/react/dist/base.css';
 import { Text } from '#/shared/design-system/text.tsx';
+import '@xyflow/react/dist/base.css';
 import { useDevToolsContext } from '#/shared/dev-tools/dev-tools-context.tsx';
+import { createStore, useStoreValue } from '#/shared/store.ts';
 import { DOT_GRID } from '#/shared/ui/diagram-canvas/canvas-background.ts';
 import {
   CANVAS_FLOW,
@@ -59,6 +60,7 @@ import {
 } from '../../system-model-exploration.ts';
 import { designOf } from '../../system-model.model.ts';
 import { CanvasTooltips } from './canvas-tooltips.tsx';
+import { CardContextMenu } from './card-context-menu.tsx';
 import { ElementNode, type ExplorationNode } from './element-node.tsx';
 import { edgeOf } from './exploration-edges.ts';
 import { recallChoice, rememberChoice } from './exploration-memory.ts';
@@ -66,7 +68,9 @@ import { ExplorationPicker } from './exploration-picker.tsx';
 import {
   type ExplorationReading,
   ExplorationReadingContext,
+  ExplorationSelectionContext,
   pathTo,
+  type SelectionReading,
 } from './exploration-reading.ts';
 import {
   type DiagramStep,
@@ -145,7 +149,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // it no longer finds.
   // The steps this model's diagram took, kept on this machine, and the one
   // it was left at, which it opens at again, unplaced.
-  const [opened] = useState(() => recallSteps(model.id));
+  const [opened] = useState(() => recallSteps(model.id, elementsById));
   const opening = opened?.list[opened.at] ?? null;
   const [stored, setChoice] = useState<ElementChoice>(
     () => opening?.choice ?? recallChoice(),
@@ -213,6 +217,11 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     setFlow,
   } = usePlacement(graph, ALGORITHM, direction, opening);
   const zoom = useCanvasZoom(flow);
+  // Where a point of the page is on the canvas, once the canvas is there.
+  const toCanvas = useMemo(
+    () => (flow === null ? null : flow.screenToFlowPosition),
+    [flow],
+  );
 
   // Every step the diagram took — what is drawn, how, and where each card
   // stands — once its cards have landed or been moved by hand, to go back
@@ -323,7 +332,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // (exploration-detail.ts). Crossing from one detail to the next is kept
   // cheap: the page goes by an attribute and the marks each card already
   // carries, and only the relations are drawn anew — no card is.
-  const detail = detailAt(zoom.controls.zoom);
+  // Read from the zoom as one of three words, so the view is drawn again
+  // only as the zoom crosses from one to the next, not with every turn of
+  // the wheel.
+  const detail = useStoreValue(zoom.level, detailAt);
   const detailNow = useRef(detail);
   useLayoutEffect(() => {
     detailNow.current = detail;
@@ -574,11 +586,23 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     },
     [graph, placeBeside, onShowAll],
   );
-  const reading = useMemo<ExplorationReading>(
+  // Where each card stands to the selection, read by each for itself
+  // (exploration-reading.ts): a click draws again only the cards it changes.
+  const selectionRead = useMemo<SelectionReading>(
     () => ({
       selected: inHandSet,
       related: related.elements,
       path: pathTo(inHandSet, elementsById),
+    }),
+    [inHandSet, related, elementsById],
+  );
+  const [selectionStore] = useState(() => createStore(selectionRead));
+  useLayoutEffect(
+    () => selectionStore.set(selectionRead),
+    [selectionStore, selectionRead],
+  );
+  const reading = useMemo<ExplorationReading>(
+    () => ({
       badges: graph.badges,
       noOutput: graph.noOutput,
       stepping: steppingBack,
@@ -613,8 +637,6 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       onArrange: (id: string) => void arrange(id),
     }),
     [
-      inHandSet,
-      related,
       graph.badges,
       graph.noOutput,
       steppingBack,
@@ -824,6 +846,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           // less of it (exploration.module.css), its names then as large as
           // the layout left each card and frame the room for.
           data-detail={detail === 'all' ? undefined : detail}
+          // With something in hand, what has nothing to do with it steps
+          // back: drawn by the page from this, so no such card is told.
+          data-in-hand={selection.length > 0 || undefined}
           style={FAR_NAMES}
         >
           {toolbar}
@@ -856,76 +881,82 @@ export function ExplorationView({ model }: { model: SystemModel }) {
             ) : (
               <DesignDocumentContext.Provider value={document}>
                 <ExplorationReadingContext.Provider value={reading}>
-                  <ReactFlow
-                    nodes={visibleNodes}
-                    edges={edges}
-                    nodeTypes={NODE_TYPES}
-                    edgeTypes={EDGE_TYPES}
-                    onNodesChange={onNodesChange}
-                    onNodeDragStart={onNodeDragStart}
-                    onNodeDrag={onNodeDrag}
-                    onNodeDragStop={onNodeDragStop}
-                    colorMode={scheme}
-                    fitView
-                    fitViewOptions={FIT}
-                    {...CANVAS_FLOW}
-                    minZoom={0.1}
-                    maxZoom={2}
-                    onInit={(instance) => {
-                      setFlow(instance);
-                      zoom.readZoom(instance);
-                    }}
-                    onMove={zoom.onMove}
-                    onPaneClick={() => {
-                      letGo();
-                      setQuick(null);
-                    }}
-                    // A right click on the empty canvas asks what to put there;
-                    // a double click zooms in, as on any canvas.
-                    onPaneContextMenu={(event) => {
-                      event.preventDefault();
-                      const box = canvas.current?.getBoundingClientRect();
-                      if (flow === null || box === undefined) return;
-                      setQuick({
-                        spot: {
-                          left: event.clientX - box.left,
-                          top: event.clientY - box.top,
-                        },
-                        at: flow.screenToFlowPosition({
-                          x: event.clientX,
-                          y: event.clientY,
-                        }),
-                      });
-                    }}
-                    // Changed on each placement, so the edges fade in anew once
-                    // the cards have moved to where it puts them.
-                    // While a card is dragged, the edges' dashes hold still,
-                    // unless dev tools ask for them to run on.
-                    className={`${
-                      placements % 2 === 0 ? classes.settled : classes.resettled
-                    } ${gliding ? classes.gliding : ''} ${
-                      dragging && !animateEdgesWhileDragging
-                        ? classes.dragging
-                        : ''
-                    }`}
-                  >
-                    {selectionPanel}
-                    {dragged !== null && (
-                      <ViewportPortal>
-                        <div
-                          ref={outline}
-                          aria-hidden
-                          className={classes.outline}
-                          style={{
-                            width: dragged.width,
-                            height: dragged.height,
-                            transform: `translate(${dragged.at.x}px, ${dragged.at.y}px)`,
-                          }}
-                        />
-                      </ViewportPortal>
-                    )}
-                    <Background {...(theme.background ?? DOT_GRID)} />
-                  </ReactFlow>
+                  <ExplorationSelectionContext.Provider value={selectionStore}>
+                    <CardContextMenu toCanvas={toCanvas}>
+                      <ReactFlow
+                        nodes={visibleNodes}
+                        edges={edges}
+                        nodeTypes={NODE_TYPES}
+                        edgeTypes={EDGE_TYPES}
+                        onNodesChange={onNodesChange}
+                        onNodeDragStart={onNodeDragStart}
+                        onNodeDrag={onNodeDrag}
+                        onNodeDragStop={onNodeDragStop}
+                        colorMode={scheme}
+                        fitView
+                        fitViewOptions={FIT}
+                        {...CANVAS_FLOW}
+                        minZoom={0.1}
+                        maxZoom={2}
+                        onInit={(instance) => {
+                          setFlow(instance);
+                          zoom.readZoom(instance);
+                        }}
+                        onMove={zoom.onMove}
+                        onPaneClick={() => {
+                          letGo();
+                          setQuick(null);
+                        }}
+                        // A right click on the empty canvas asks what to put there;
+                        // a double click zooms in, as on any canvas.
+                        onPaneContextMenu={(event) => {
+                          event.preventDefault();
+                          const box = canvas.current?.getBoundingClientRect();
+                          if (flow === null || box === undefined) return;
+                          setQuick({
+                            spot: {
+                              left: event.clientX - box.left,
+                              top: event.clientY - box.top,
+                            },
+                            at: flow.screenToFlowPosition({
+                              x: event.clientX,
+                              y: event.clientY,
+                            }),
+                          });
+                        }}
+                        // Changed on each placement, so the edges fade in anew once
+                        // the cards have moved to where it puts them.
+                        // While a card is dragged, the edges' dashes hold still,
+                        // unless dev tools ask for them to run on.
+                        className={`${
+                          placements % 2 === 0
+                            ? classes.settled
+                            : classes.resettled
+                        } ${gliding ? classes.gliding : ''} ${
+                          dragging && !animateEdgesWhileDragging
+                            ? classes.dragging
+                            : ''
+                        }`}
+                      >
+                        {selectionPanel}
+                        {dragged !== null && (
+                          <ViewportPortal>
+                            <div
+                              ref={outline}
+                              aria-hidden
+                              className={classes.outline}
+                              style={{
+                                width: dragged.width,
+                                height: dragged.height,
+                                transform: `translate(${dragged.at.x}px, ${dragged.at.y}px)`,
+                              }}
+                            />
+                          </ViewportPortal>
+                        )}
+                        <Background {...(theme.background ?? DOT_GRID)} />
+                      </ReactFlow>
+                    </CardContextMenu>
+                  </ExplorationSelectionContext.Provider>
                   <CanvasTooltips within={canvas} dragging={dragging} />
                 </ExplorationReadingContext.Provider>
               </DesignDocumentContext.Provider>
