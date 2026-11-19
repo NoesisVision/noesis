@@ -796,12 +796,106 @@ describe('placing the exploration', () => {
       expect(rowsOf(setOutInSquare(boxes(6, 56, 200)).at)).toBe(2);
     });
 
-    it('counts what is round them: a frame’s name over its rows', () => {
-      // Four alike are two by two; under 600 of a frame's top, all in a row.
+    it('counts what is round them: under a frame’s long name, across it', () => {
+      // Four alike are two by two; in a frame 700 wide at least, all in a row.
       expect(rowsOf(setOutInSquare(boxes(4)).at)).toBe(2);
       expect(
-        rowsOf(setOutInSquare(boxes(4), { across: 0, down: 600, least: 0 }).at),
+        rowsOf(setOutInSquare(boxes(4), { across: 0, down: 0, least: 700 }).at),
       ).toBe(1);
+    });
+
+    it('lets a short box stand under a short one beside a tall one', () => {
+      // A small module, a large one beside it, and another small one: under
+      // the first, not in a row of its own below the large one.
+      const rows = setOutInSquare([
+        { width: 200, height: 180 },
+        { width: 600, height: 540 },
+        { width: 90, height: 120 },
+      ]);
+      expect(rows.at).toEqual([
+        { x: 0, y: 0 },
+        { x: 200 + SPACING, y: 0 },
+        { x: 0, y: 180 + SPACING },
+      ]);
+      // As tall as the large one alone.
+      expect(rows.height).toBe(540);
+    });
+
+    it('never sets a box before the one that came before it, as the page is read', () => {
+      // Uneven widths and heights: read from the top, each row from the
+      // left, the boxes are in the order they came in.
+      const mixed = [
+        { width: 180, height: 56 },
+        { width: 192, height: 140 },
+        { width: 246, height: 56 },
+        { width: 274, height: 200 },
+        { width: 180, height: 56 },
+        { width: 182, height: 90 },
+        { width: 180, height: 56 },
+        { width: 184, height: 56 },
+      ];
+      for (const boxes of [mixed, mixed.toReversed()]) {
+        const { at } = setOutInSquare(boxes);
+        for (let each = 1; each < at.length; each++) {
+          const [before, here] = [at[each - 1]!, at[each]!];
+          expect(
+            here.y > before.y || (here.y === before.y && here.x > before.x),
+          ).toBe(true);
+        }
+        // And none on another, or nearer it than the room between two.
+        for (let one = 0; one < at.length; one++)
+          for (let other = one + 1; other < at.length; other++) {
+            const [a, b] = [
+              { ...at[one]!, ...boxes[one]! },
+              { ...at[other]!, ...boxes[other]! },
+            ];
+            expect(
+              a.x + a.width + SPACING <= b.x ||
+                b.x + b.width + SPACING <= a.x ||
+                a.y + a.height + SPACING <= b.y ||
+                b.y + b.height + SPACING <= a.y,
+            ).toBe(true);
+          }
+      }
+    });
+
+    describe('told where the boxes stood', () => {
+      /** How many of the first boxes a setting out moves from one under another. */
+      const fromOneColumn =
+        (stood: number, height = 56) =>
+        (at: readonly { x: number; y: number }[]) =>
+          at
+            .slice(0, stood)
+            .filter(
+              ({ x, y }, each) => x !== 0 || y !== each * (height + SPACING),
+            ).length;
+
+      it('keeps their rows when one more would make another shape a little squarer', () => {
+        // Four wide cards are squarest two by two; three stood in a column.
+        expect(rowsOf(setOutInSquare(boxes(4, 200, 56)).at)).toBe(2);
+        const rows = setOutInSquare(
+          boxes(4, 200, 56),
+          undefined,
+          fromOneColumn(3),
+        );
+        expect(rowsOf(rows.at)).toBe(4);
+        expect(fromOneColumn(3)(rows.at)).toBe(0);
+      });
+
+      it('gives their rows up once keeping them is a quarter larger round', () => {
+        // Eight in a column are 200 by 1120; two across, 496 by 512.
+        const rows = setOutInSquare(
+          boxes(8, 200, 56),
+          undefined,
+          fromOneColumn(7),
+        );
+        expect(rowsOf(rows.at)).toBe(4);
+      });
+
+      it('sets them out as squarely as ever where none stood', () => {
+        const rows = setOutInSquare(boxes(4, 200, 56), undefined, () => 0);
+        expect(rowsOf(rows.at)).toBe(2);
+      });
     });
 
     it('sets one out where it is, and none nowhere', () => {

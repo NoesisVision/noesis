@@ -5,9 +5,12 @@ import {
 } from '../../system-model-exploration.ts';
 import {
   childrenOf,
+  paddingOf,
   type PlacedElement,
   type Placement,
   placedIn,
+  staysAt,
+  type Stood,
 } from './layout-exploration.ts';
 
 /*
@@ -22,6 +25,12 @@ import {
  * side, then tries each two elements of a container in each other's place,
  * the whole diagram placed anew and read each time, and keeps a change that
  * tangles it less; until none does, or its time is up.
+ *
+ * A diagram placed before is not placed from nothing. The search starts
+ * from the order the elements stand in, what is new set after them, and
+ * counts each element it would move against a change: one is moved to
+ * take an edge out of a card or uncross two, never only to shorten one. A
+ * placing asked for again, with nothing changed, moves nothing.
  */
 
 /** How the edges of a placing tangle. */
@@ -38,6 +47,11 @@ export interface Tangle {
 const THROUGH = 10;
 const CROSSING = 6;
 const LENGTH = 1 / 1000;
+/**
+ * What moving one element from where it stood costs: less than a crossing
+ * it clears, more than any edge it only shortens.
+ */
+const MOVED = 1.5;
 
 const weighOf = ({ through, crossings, length }: Tangle) =>
   through * THROUGH + crossings * CROSSING + length * LENGTH;
@@ -260,6 +274,46 @@ function sideBySide(
   return out;
 }
 
+/**
+ * How near in height two elements stood to have stood in one row. Placed
+ * by the diagram, an element stands exactly where the one before it left
+ * it; set by hand, two in a row are seldom level.
+ */
+const AS_PLACED = 0.5;
+const BY_HAND = 28;
+
+/**
+ * A container's elements in the order they stood in — from the top, those
+ * level with each other from the left; what stood nowhere — just put on
+ * the diagram — after them, in the order of its kind. Null when none of
+ * them stood anywhere.
+ */
+function asTheyStood(
+  kids: readonly DrawnElement[],
+  stood: Stood,
+  level: number,
+): DrawnElement[] | null {
+  const there = kids
+    .flatMap((kid) => {
+      const at = stood.get(kid.id);
+      return at === undefined ? [] : [{ kid, ...at }];
+    })
+    .toSorted((a, b) => a.y - b.y || a.x - b.x);
+  if (there.length === 0) return null;
+  const rows: (typeof there)[] = [];
+  for (const each of there) {
+    const row = rows.at(-1);
+    if (row !== undefined && each.y - row[0]!.y <= level) row.push(each);
+    else rows.push([each]);
+  }
+  return [
+    ...rows.flatMap((row) =>
+      row.toSorted((a, b) => a.x - b.x).map(({ kid }) => kid),
+    ),
+    ...inPlacingOrder(kids.filter(({ id }) => !stood.has(id))),
+  ];
+}
+
 /** How long the search may go on, and how many placings it may try. */
 export interface SearchLimit {
   ms: number;
@@ -299,41 +353,110 @@ function insideOf(graph: ExplorationGraph, frame: string): ExplorationGraph {
  * order that tangles its edges least (see the head of this file). A frame
  * is untangled for the relations among what it holds; those that leave it
  * are not read. With nothing joined there is nothing to untangle, and the
- * elements are in the order of their kinds.
+ * elements are in the order of their kinds — or, given where they `stood`,
+ * in the order they stood in.
  */
 export function layoutByRelations(
   graph: ExplorationGraph,
   within: string | null = null,
   limit: SearchLimit = THOROUGH,
+  stood?: Stood,
 ): Placement {
   const read = within === null ? graph : insideOf(graph, within);
   const joins = joinsOf(read);
-  const order = new Map(
-    [...childrenOf(read)].map(([parent, kids]) => [
-      parent,
-      sideBySide(kids, joins),
-    ]),
-  );
+  /** Each container's elements as they stood, read that strictly; else what is joined side by side. */
+  const orderBy = (level: number) =>
+    new Map(
+      [...childrenOf(read)].map(([parent, kids]) => [
+        parent,
+        (stood === undefined ? null : asTheyStood(kids, stood, level)) ??
+          sideBySide(kids, joins),
+      ]),
+    );
+  let order = orderBy(AS_PLACED);
   const kidsOf = (parent: string | null) => order.get(parent) ?? NO_KIDS;
   const reader = tangleReaderOf(read);
-  let best = placedIn(graph, kidsOf, within);
-  if (!reader.joined) return best;
-  let least = weighOf(reader.read(best.elements));
+
+  // A frame's own elements are placed from the corner of its room; they
+  // stood inside its padding.
+  const frame =
+    within === null
+      ? undefined
+      : graph.elements.find(({ id }) => id === within);
+  const room = frame === undefined ? null : paddingOf(frame, graph);
+  /** How many elements a placing moves from where they stood. */
+  const movedIn = (placed: readonly PlacedElement[]) => {
+    if (stood === undefined) return 0;
+    let moved = 0;
+    for (const { element, x, y } of placed) {
+      const own = room !== null && element.parent === within;
+      if (
+        !staysAt(
+          stood,
+          element.id,
+          x + (own ? room.left : 0),
+          y + (own ? room.top : 0),
+        )
+      )
+        moved++;
+    }
+    return moved;
+  };
+  const weigh = (placed: readonly PlacedElement[]) =>
+    weighOf(reader.read(placed)) + movedIn(placed) * MOVED;
+
+  // Cards set by hand are seldom level: read as rows, their order may put
+  // more of them back where they stand than read to the pixel.
+  if (stood !== undefined) {
+    const strictly = movedIn(placedIn(graph, kidsOf, within, stood).elements);
+    const placedOrder = order;
+    order = orderBy(BY_HAND);
+    if (movedIn(placedIn(graph, kidsOf, within, stood).elements) >= strictly)
+      order = placedOrder;
+  }
+
   const until = performance.now() + limit.ms;
   let tries = 0;
+  const outOfTime = () => ++tries > limit.tries || performance.now() > until;
+
+  // What is new among elements that stood is tried in each place among
+  // them, and set where the whole then moves and tangles least — into the
+  // gap one taken off left, where there is one; else after the rest.
+  if (stood !== undefined)
+    for (const kids of order.values()) {
+      const fresh = kids.filter(({ id }) => !stood.has(id));
+      if (fresh.length === kids.length) continue;
+      for (const one of fresh) {
+        kids.splice(kids.indexOf(one), 1);
+        let lightest = Infinity;
+        let place = kids.length;
+        // From the end, which an equal place further in does not better.
+        for (let at = kids.length; at >= 0 && !outOfTime(); at--) {
+          kids.splice(at, 0, one);
+          const weight = weigh(placedIn(graph, kidsOf, within, stood).elements);
+          if (weight < lightest - 1e-9) [lightest, place] = [weight, at];
+          kids.splice(at, 1);
+        }
+        kids.splice(place, 0, one);
+      }
+    }
+
+  let best = placedIn(graph, kidsOf, within, stood);
+  if (!reader.joined) return best;
+  let least = weigh(best.elements);
   for (let better = true; better;) {
     better = false;
     for (const kids of order.values())
       for (let one = 0; one < kids.length - 1; one++)
         for (let other = one + 1; other < kids.length; other++) {
-          if (++tries > limit.tries || performance.now() > until) return best;
+          if (outOfTime()) return best;
           // Each in the other's place.
           [kids[one], kids[other]] = [kids[other]!, kids[one]!];
-          const placed = placedIn(graph, kidsOf, within);
-          const weigh = weighOf(reader.read(placed.elements));
-          if (weigh < least - 1e-9) {
+          const placed = placedIn(graph, kidsOf, within, stood);
+          const weight = weigh(placed.elements);
+          if (weight < least - 1e-9) {
             best = placed;
-            least = weigh;
+            least = weight;
             better = true;
           } else [kids[one], kids[other]] = [kids[other]!, kids[one]!];
         }

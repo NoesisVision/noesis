@@ -33,6 +33,7 @@ import {
   layoutExploration,
   layoutWithin,
   type PlacedElement,
+  type Stood,
 } from './layout-exploration.ts';
 import {
   arrangeWithin,
@@ -51,6 +52,26 @@ import {
  */
 
 const NONE_IN_HAND: readonly string[] = [];
+
+/**
+ * Where each card stands now, relative to its container, for a placing to
+ * keep to: those still drawn, and still inside what they were inside.
+ * Nothing when no card stands yet.
+ */
+function stoodIn(
+  graph: ExplorationGraph,
+  nodes: ExplorationNode[],
+): Stood | undefined {
+  const parentOf = new Map(
+    graph.elements.map(({ id, parent }) => [id, parent]),
+  );
+  const stood = new Map(
+    standingOf(nodes)
+      .filter(({ element }) => parentOf.get(element.id) === element.parent)
+      .map(({ element, x, y }) => [element.id, { x, y }]),
+  );
+  return stood.size === 0 ? undefined : stood;
+}
 const NEVER_TAKEN = () => false;
 
 /**
@@ -524,7 +545,12 @@ export function usePlacement(
       land(
         (placeByKinds
           ? layoutExploration(graph)
-          : layoutByRelations(graph, null, askedFor ? THOROUGH : QUICK)
+          : layoutByRelations(
+              graph,
+              null,
+              askedFor ? THOROUGH : QUICK,
+              stoodIn(graph, latest.current.nodes),
+            )
         ).elements,
       );
     } catch (error) {
@@ -552,7 +578,12 @@ export function usePlacement(
         id,
         placeByKinds
           ? layoutWithin(drawn, id)
-          : layoutByRelations(drawn, id).elements,
+          : layoutByRelations(
+              drawn,
+              id,
+              THOROUGH,
+              stoodIn(drawn, latest.current.nodes),
+            ).elements,
       );
       if (elements === null) setAsked((count) => count + 1);
       else land(elements);
