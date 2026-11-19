@@ -757,8 +757,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [graph, veiled, inDetail]);
-  // A box drawn with Shift held takes in hand the cards in sight it touches,
-  // and the frames it takes in whole, in place of what was in hand.
+  // A box drawn with Shift held takes in hand the cards and frames in sight
+  // it touches — all but a frame it is drawn inside — in place of what was
+  // in hand.
   const selectBox = useCallback(
     (box: Rect) => {
       if (flow === null) return;

@@ -40,16 +40,17 @@ const takesIn = (box: Rect, rect: Rect) =>
   rect.y + rect.height <= box.y + box.height;
 
 /**
- * What a box drawn on the canvas takes in hand: each card it touches, and
- * each frame it takes in whole. A frame it only touches is the one it was
- * drawn in, or across, to reach the cards inside — not what was meant.
+ * What a box drawn on the canvas takes in hand: each card and each frame it
+ * touches, however little of it. The one frame left out is a frame the box
+ * is drawn inside, whole: that is where the box is, not what it is drawn
+ * over.
  */
 export const selectionInBox = (
   box: Rect,
   cards: readonly BoxedCard[],
 ): string[] =>
   cards
-    .filter(({ rect, holds }) =>
-      holds ? takesIn(box, rect) : touches(box, rect),
+    .filter(
+      ({ rect, holds }) => touches(box, rect) && !(holds && takesIn(rect, box)),
     )
     .map(({ id }) => id);
