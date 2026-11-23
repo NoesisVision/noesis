@@ -28,10 +28,29 @@
   }
 }
 
-/* The tile alone, as the folded rail's way into the picker. */
+/*
+ * The tile alone, as the folded rail's way into the picker: its initials
+ * in its colour and nothing round them, so it does not read as the page in
+ * hand beside the rail's links; lit, as the card's head is, only under the
+ * pointer or while its menu is open.
+ */
 .tileButton.tileButton {
   display: flex;
   border-radius: 11px;
+  transition: background-color 100ms ease;
+
+  & .tile {
+    background: none;
+    box-shadow: none;
+  }
+
+  &:hover,
+  &[data-expanded] {
+    background-color: light-dark(
+      var(--mantine-color-gray-0),
+      var(--mantine-color-dark-6)
+    );
+  }
 
   &:focus-visible {
     outline: var(--noesis-focus-ring);
