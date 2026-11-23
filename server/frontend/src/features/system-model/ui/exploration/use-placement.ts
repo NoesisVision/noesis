@@ -124,6 +124,8 @@ interface LocalChange {
   anchor: string | CanvasPoint;
   /** The graph drawn when it was asked, so it holds for the next change only. */
   graph: ExplorationGraph | null;
+  /** Every card at the size it is drawn at now: what it carries changed. */
+  asSized: boolean;
 }
 
 export function usePlacement(
@@ -161,17 +163,33 @@ export function usePlacement(
   const local = useRef<LocalChange | null>(null);
   // A card the next placing beside it then arranges inside.
   const arrangeAfter = useRef<readonly string[]>([]);
-  /** Asks that the next change be placed beside this card, then these containers arranged. */
+  /**
+   * Asks that the next change be placed beside this card, then these
+   * containers arranged; `asSized`, with every card sized anew for what it
+   * now carries.
+   */
   const placeBeside = useCallback(
-    (anchor: string | CanvasPoint, thenArrange: readonly string[] = []) => {
-      local.current = { anchor, graph: latest.current.placed?.graph ?? null };
+    (
+      anchor: string | CanvasPoint,
+      thenArrange: readonly string[] = [],
+      asSized = false,
+    ) => {
+      local.current = {
+        anchor,
+        graph: latest.current.placed?.graph ?? null,
+        asSized,
+      };
       arrangeAfter.current = thenArrange;
     },
     [],
   );
   const [failure, setFailure] = useState<string | null>(null);
-  // How many placements have landed, so the edges fade in again on each.
+  // How many placements have landed; and how many of them moved a card or
+  // brought one, so the edges fade in again on each of those — drawn where
+  // the cards end up, they show once the cards are there. A placing that
+  // moves none leaves the edges as they are.
   const [placements, setPlacements] = useState(0);
+  const [moves, setMoves] = useState(0);
   const [flow, setFlow] = useState<ReactFlowInstance<
     ExplorationNode,
     FloatingEdge
@@ -212,6 +230,18 @@ export function usePlacement(
   const landNodes = useCallback(
     (next: ExplorationNode[]) => {
       stopDropGlide();
+      const stood = byIdOf(latest.current.nodes);
+      const moving = next.some((node) => {
+        const was = stood.get(node.id);
+        return (
+          was === undefined ||
+          was.data.leaving === true ||
+          was.parentId !== node.parentId ||
+          was.position.x !== node.position.x ||
+          was.position.y !== node.position.y
+        );
+      });
+      if (moving) setMoves((count) => count + 1);
       // A card taken off stays a moment, fading, before it is gone.
       setNodes((shown) => {
         const kept = new Set(next.map(({ id }) => id));
@@ -534,6 +564,7 @@ export function usePlacement(
         standingOf(latest.current.nodes),
         graph,
         change.anchor,
+        { asSized: change.asSized },
       );
       if (elements !== null) {
         land(elements);
@@ -643,6 +674,7 @@ export function usePlacement(
   return {
     nodes,
     placements,
+    moves,
     onNodesChange,
     placing,
     failure,

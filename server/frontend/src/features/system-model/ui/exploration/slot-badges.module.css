@@ -1,23 +1,23 @@
 /*
- * A card's badges, laid over the card under its name and what it is — or
- * under a frame's name — as its corner controls are: the card's signature,
+ * A card's badges, laid over the card under its name — or under a
+ * frame's name — as its corner controls are: the card's signature,
  * as the code declares it, each slot a badge in it. Its sizes are the ones
  * the layout leaves room for (BADGES_TOP, SIGNATURE_LINE, SIGNATURE_BOX in
  * layout-exploration.ts, SIGNATURE_CHAR in badge-signature.ts): lines of
  * 20px in a box 9px each side, 16px in from either side of the card.
  *
- * It lets a click beside the signature through, to the card under it.
+ * It lets a click through to the card under it, all but its slots.
  */
 .badges {
   position: absolute;
-  top: 50px;
+  top: 32px;
   inset-inline: 16px;
   display: flex;
   flex-direction: column;
   pointer-events: none;
 
   &[data-frame='true'] {
-    top: 52px;
+    top: 36px;
   }
 }
 
@@ -29,13 +29,8 @@
 .signature .token {
   --badge-line: var(--noesis-diagram-edge-state);
   --badge-word: var(--noesis-diagram-edge-state-word);
-  /* Its cardinality's mark in the badge's own colour, a tint deeper. */
+  /* Its cardinality's mark in the badge's own colour. */
   --cardinality-mark-ink: var(--badge-word);
-  --cardinality-mark-fill: color-mix(
-    in srgb,
-    var(--badge-line) 24%,
-    transparent
-  );
 
   display: inline-flex;
   align-items: center;
@@ -80,11 +75,9 @@
   }
 }
 
-/* The signature: a box of monospace lines, as code is set. */
+/* The signature: a box of monospace lines, as code is set, as wide as the card has room for. */
 .signature {
   box-sizing: border-box;
-  align-self: flex-start;
-  max-width: 100%;
   padding: 8px;
   overflow: hidden;
   border: 1px solid var(--noesis-diagram-card-border);
@@ -146,6 +139,11 @@
 .type {
   display: flex;
   gap: 3px;
+
+  /* Its cardinality's mark close after the type's name (cardinality-mark.module.css). */
+  & > [data-cardinality] {
+    margin-left: -2px;
+  }
   align-items: center;
   max-width: 100%;
   font-weight: 650;

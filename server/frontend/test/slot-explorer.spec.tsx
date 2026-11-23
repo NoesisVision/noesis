@@ -133,7 +133,7 @@ describe('the tree of what a type relates to', () => {
   it('draws a slot as its name and its type, many as a mark', () => {
     const html = explorer(round[0]!);
     expect(html).toMatch(
-      />products<\/span><span[^>]*><span[^>]*>DiscountedProduct<\/span><span[^>]*>, many<\/span><span[^>]*data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/s,
+      />products<\/span><span[^>]*><span[^>]*>DiscountedProduct<\/span><span[^>]*>, many<\/span><span[^>]*data-cardinality="\*"[^>]*><span[^>]*>\[\]</s,
     );
     // Many is its mark, never `[*]` written after the type.
     expect(html).not.toContain('[*]');

@@ -9,14 +9,15 @@ const ELEMENT_DELAY = 600;
 /** What the canvas's tooltip says, and over what it stands. */
 type Tip =
   | { kind: 'plain'; label: string; rect: DOMRect }
-  | { kind: 'element'; name: string; rect: DOMRect };
+  | { kind: 'element'; name: string; what: string | undefined; rect: DOMRect };
 
 const TIPPED = '[data-tip], [data-element-tip]';
 
 /*
  * The canvas's one tooltip, for every card on it: a button names its own in
- * `data-tip`, and a card's element in `data-element-tip`, said after a rest
- * — a pointer crosses cards on its way about the canvas. A card then holds
+ * `data-tip`, and a card's element in `data-element-tip` — with its kind in
+ * a word in `data-element-kind` — said after a rest: a pointer crosses
+ * cards on its way about the canvas. A card then holds
  * no tooltip of its own, so drawing it again is cheap, and the canvas
  * listens once for all of them. It opens on hover or focus, and shuts when
  * the pointer leaves, presses, scrolls or opens a menu, and for as long as
@@ -66,11 +67,13 @@ export function CanvasTooltips({
           rect: target.getBoundingClientRect(),
         });
       const name = target.getAttribute('data-element-tip') ?? '';
+      const what = target.getAttribute('data-element-kind') ?? undefined;
       timer = setTimeout(
         () =>
           setTip({
             kind: 'element',
             name,
+            what,
             rect: target.getBoundingClientRect(),
           }),
         ELEMENT_DELAY,
@@ -116,7 +119,15 @@ export function CanvasTooltips({
       {anchor}
     </Tooltip>
   ) : (
-    <ElementTooltip name={tip.name} opened openDelay={0} tooltipProps={surface}>
+    <ElementTooltip
+      name={tip.name}
+      kind={tip.what}
+      // Drawn inside what holds it, the card shows where it sits.
+      placed={false}
+      opened
+      openDelay={0}
+      tooltipProps={surface}
+    >
       {anchor}
     </ElementTooltip>
   );

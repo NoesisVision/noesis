@@ -1,13 +1,11 @@
 import { type FitViewOptions } from '@xyflow/react';
 import '@xyflow/react/dist/base.css';
+import { DOCK_ROOM } from '#/shared/ui/diagram-canvas/centre-on.ts';
 
 /*
  * How fast the exploration moves, and the room it leaves: the glide of a
  * card dropped, the fade of one leaving, the room kept for the side panel.
  */
-
-/** What the panel a card in hand is read in covers of the canvas, from its right: 360px, 16px in, and a gap. */
-export const PANEL_ROOM = 420;
 
 /**
  * Brought into view, what a card has just added and the card it came from:
@@ -15,7 +13,7 @@ export const PANEL_ROOM = 420;
  * read in the panel on the right — clear of that panel.
  */
 export const focusOn = (alone: boolean): FitViewOptions => ({
-  padding: alone ? { x: '64px', y: '64px', right: `${PANEL_ROOM}px` } : '64px',
+  padding: alone ? { x: '64px', y: '64px', right: `${DOCK_ROOM}px` } : '64px',
   maxZoom: 1,
   duration: 400,
 });

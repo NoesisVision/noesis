@@ -9,6 +9,7 @@ import {
   type TypeRelations,
   type WalkStep,
 } from '../../system-model-exploration.ts';
+import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import classes from './slot-explorer.module.css';
 
 /*
@@ -42,14 +43,22 @@ export const slotNameOf = (step: WalkStep) =>
 export const slotLabelOf = (step: WalkStep, round: boolean) =>
   `${step.relation} ${step.behavior === undefined ? '' : `${step.behavior.name} `}${step.name}: ${typeSaidOf(step)}${round ? ', already on the path' : ''}`;
 
-/** A step's type as it is drawn: its name, then its cardinality's mark. */
+/**
+ * A step's type as it is drawn: its name, then its cardinality's mark,
+ * which says what it means on hover — nothing else in the popup does.
+ */
 export function TypeWords({ step }: { step: WalkStep }) {
+  const surface = useThemedSurface('tooltip');
   return (
     <>
       {/* Its name is what a short line cuts; the mark stays whole. */}
       <span className={classes.typeText}>{step.typeName}</span>
       {isMarked(step.cardinality) && (
-        <CardinalityMark cardinality={step.cardinality} />
+        <CardinalityMark
+          cardinality={step.cardinality}
+          tip
+          tooltipProps={surface}
+        />
       )}
     </>
   );

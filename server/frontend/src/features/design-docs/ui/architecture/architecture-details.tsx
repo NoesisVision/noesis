@@ -159,7 +159,7 @@ function bodyOf({
           // An element no card draws is called by what it is.
           (drawn && KINDS[drawn.kind].name) ?? kindLabelOf(kindOf(subject.id)),
         title: drawn?.label ?? node?.name ?? nameOf(subject.id),
-        address: subject.id,
+        // Where it sits the diagram shows, as on the exploration.
         content: (
           <ElementFindings
             id={subject.id}

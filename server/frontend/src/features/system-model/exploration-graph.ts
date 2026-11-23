@@ -53,7 +53,29 @@ export interface ExplorationGraph {
    * has a way to it beside its cross, and the room for that.
    */
   parentless: ReadonlySet<string>;
+  /**
+   * The cards with slots the reader hid on them: each has a way to show
+   * them again beside its menu, and the room for that.
+   */
+  slotsHiddenOn?: ReadonlySet<string>;
 }
+
+/**
+ * A card's slots shown or hidden together, card by card: its state, or
+ * its input and output — its signature — as one.
+ */
+export type SlotGroup = 'state' | 'signature';
+
+/** The cards whose slots of each group the reader hid. */
+export type SlotsHidden = Readonly<Record<SlotGroup, ReadonlySet<string>>>;
+
+export const NO_SLOTS_HIDDEN: SlotsHidden = {
+  state: new Set(),
+  signature: new Set(),
+};
+
+const slotGroupOf = (relation: SlotRelation): SlotGroup =>
+  relation === 'state' ? 'state' : 'signature';
 
 /** The relations that are slots, drawn on the cards that hold them. */
 const SLOT_RELATIONS: ReadonlySet<DrawnRelationKind> = new Set<SlotRelation>([
@@ -70,8 +92,9 @@ const NONE_BY_SLOT: ReadonlySet<string> = new Set();
  * hidden element is left out, not moved elsewhere.
  *
  * The slot relations asked for are not edges but the badges of the cards
- * that hold them, and a card that is on the diagram only as a slot's type
- * leaves it: one the reader did not add by name — only by following a slot
+ * that hold them — but for those the reader hid on a card (`slotsHidden`),
+ * which are no more drawn from it than a relation not asked for — and a
+ * card that is on the diagram only as a slot's type leaves it: one the reader did not add by name — only by following a slot
  * from a card, or with its whole kind — joined by no other relation drawn,
  * with nothing drawn inside it. A type that stays is still not joined by
  * its slots' edges; its badges say it is there.
@@ -82,10 +105,12 @@ export function graphOf(
     hidden,
     relations,
     picks = NO_PICKS,
+    slotsHidden = NO_SLOTS_HIDDEN,
   }: {
     hidden: ReadonlySet<string>;
     relations: ReadonlySet<RelationKind>;
     picks?: ElementPicks;
+    slotsHidden?: SlotsHidden;
   },
 ): ExplorationGraph {
   const byId = byIdOf(exploration.elements);
@@ -119,11 +144,20 @@ export function graphOf(
   const apart = (one: string, other: string) =>
     !nested || (!inside(one, other) && !inside(other, one));
 
+  /** A slot of the card hid on it: drawn no more than one not asked for. */
+  const hid = (kind: DrawnRelationKind, holder: string) =>
+    SLOT_RELATIONS.has(kind) &&
+    slotsHidden[slotGroupOf(kind as SlotRelation)].has(holder);
   const drawn: DrawnRelation[] = [];
   for (const { kind } of DRAWN_RELATIONS) {
     if (!relations.has(kind)) continue;
     for (const [source, target] of exploration.edges[kind])
-      if (isShown.has(source) && isShown.has(target) && apart(source, target))
+      if (
+        isShown.has(source) &&
+        isShown.has(target) &&
+        apart(source, target) &&
+        !hid(kind, source)
+      )
         drawn.push({
           id: drawnIdOf(kind, source, target),
           kind,
@@ -161,14 +195,14 @@ export function graphOf(
   for (const { id, kind } of onCards) {
     const held = exploration.slots.of.get(id) ?? [];
     const carried = held
-      .filter((slot) => relations.has(slot.relation))
+      .filter(
+        (slot) =>
+          relations.has(slot.relation) &&
+          !slotsHidden[slotGroupOf(slot.relation)].has(id),
+      )
       .map((slot) => ({ ...slot, onDiagram: onDiagram.has(slot.type) }));
     if (carried.length > 0) badges.set(id, carried);
-    if (
-      kind === 'behavior' &&
-      relations.has('output') &&
-      !held.some(({ relation }) => relation === 'output')
-    )
+    if (saysNoOutput(kind, held, relations) && !slotsHidden.signature.has(id))
       noOutput.add(id);
   }
   return {
@@ -177,6 +211,14 @@ export function graphOf(
     badges,
     folded,
     noOutput,
+    slotsHiddenOn: new Set(
+      onCards
+        .filter(
+          ({ id }) =>
+            slotsHidden.state.has(id) || slotsHidden.signature.has(id),
+        )
+        .map(({ id }) => id),
+    ),
     parentless: new Set(
       onCards
         .filter(
@@ -185,6 +227,41 @@ export function graphOf(
         .map(({ id }) => id),
     ),
   };
+}
+
+/** A behavior that gives nothing back, its output asked for: its signature says so. */
+const saysNoOutput = (
+  kind: ExploredElement['kind'],
+  held: readonly Slot[],
+  relations: ReadonlySet<RelationKind>,
+) =>
+  kind === 'behavior' &&
+  relations.has('output') &&
+  !held.some(({ relation }) => relation === 'output');
+
+/**
+ * The groups of slots each card would carry, of the relations asked for,
+ * whether or not the reader hid them on it: what its menu offers to show
+ * or hide.
+ */
+export function slotGroupsOf(
+  exploration: Exploration,
+  elements: readonly DrawnElement[],
+  relations: ReadonlySet<RelationKind>,
+): ReadonlyMap<string, readonly SlotGroup[]> {
+  const groups = new Map<string, readonly SlotGroup[]>();
+  for (const { id, kind } of elements) {
+    const held = exploration.slots.of.get(id) ?? [];
+    const has = (group: SlotGroup) =>
+      held.some(
+        (slot) =>
+          slotGroupOf(slot.relation) === group && relations.has(slot.relation),
+      ) ||
+      (group === 'signature' && saysNoOutput(kind, held, relations));
+    const carried = (['state', 'signature'] as const).filter(has);
+    if (carried.length > 0) groups.set(id, carried);
+  }
+  return groups;
 }
 
 /** The relations drawn from or to an element, and what they join it to. */

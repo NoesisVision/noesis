@@ -58,8 +58,11 @@ export function edgeOf(
     labelStyle: {
       '--relation-color': EDGE_WORD[relation.kind],
     } as CSSProperties,
-    // The selection's relations are drawn over the rest.
-    zIndex: highlight === 'highlighted' ? 1 : 0,
+    // Over the cards and frames that stand as deep as its ends, and under
+    // what is drawn inside those: React Flow adds how deep its ends stand,
+    // and draws a node over an edge that stands as high. The selection's
+    // relations are drawn over the rest by coming last (exploration-view.tsx).
+    zIndex: 1,
     // A small pill on the line, its word in the relation's colour
     // (exploration.module.css draws the rest).
     labelBgPadding: [7, 3],

@@ -178,13 +178,18 @@ const shapeOf = (doc: DesignDocumentInput, address: string): Shape | null => {
  * behaviors, a module's building blocks. Descriptions stay in the panel;
  * this is the outline at a glance. An element the document does not shape
  * gets its address alone, and a name with nothing to cut and nothing to say
- * gets no tooltip at all.
+ * gets no tooltip at all. Over something that does not say what kind of
+ * element it is — a diagram's card, which shows its icon alone — the
+ * tooltip says it in a word, before where the element sits; over a card
+ * drawn inside what holds it, where it sits is left unsaid (`placed`).
  *
  * `name` is the element's qualified name, `a.b.C` or `name: a.b.C`; the
  * child is what the tooltip opens over, so it must take a ref.
  */
 export function ElementTooltip({
   name,
+  kind,
+  placed = true,
   shown = shortLabel(name),
   hint,
   disabled = false,
@@ -195,6 +200,10 @@ export function ElementTooltip({
   children,
 }: {
   name: string;
+  /** What kind of element it is, in a word, where the child does not say. */
+  kind?: string | undefined;
+  /** Whether it says where the element sits; not where the child shows it already. */
+  placed?: boolean;
   /**
    * How many of the named type a slot holds, when not exactly one: said
    * under the name with its mark, so even a primitive gets a tooltip.
@@ -226,7 +235,12 @@ export function ElementTooltip({
   const doc = useDesignDocument();
   const address = qualifiedOf(name);
   const shape = doc === null ? null : shapeOf(doc, address);
-  if (shape === null && shown === name.trim() && cardinality === undefined) {
+  if (
+    shape === null &&
+    shown === name.trim() &&
+    cardinality === undefined &&
+    kind === undefined
+  ) {
     return children;
   }
   return (
@@ -237,7 +251,13 @@ export function ElementTooltip({
       disabled={disabled}
       opened={opened}
       label={
-        <Details address={address} shape={shape} cardinality={cardinality} />
+        <Details
+          address={address}
+          kind={kind}
+          placed={placed}
+          shape={shape}
+          cardinality={cardinality}
+        />
       }
     >
       {hint
@@ -251,16 +271,25 @@ export function ElementTooltip({
 
 function Details({
   address,
+  kind,
+  placed,
   shape,
   cardinality,
 }: {
   address: string;
+  kind: string | undefined;
+  placed: boolean;
   shape: Shape | null;
   cardinality: MarkedCardinality | undefined;
 }) {
   return (
     <span className={classes.details}>
-      <Address address={address} cardinality={cardinality} />
+      <Address
+        address={address}
+        kind={kind}
+        placed={placed}
+        cardinality={cardinality}
+      />
       <Lines label="Behaviors" lines={shape?.behaviors} />
       <Lines label="Properties" lines={shape?.properties} />
       <Lines label="Input" lines={shape?.input} />
@@ -272,17 +301,23 @@ function Details({
 
 /**
  * The element's address, read as a heading: its name — and after it, for a
- * slot that holds many or may hold none, its mark and word — over where it
- * sits, small and gray. A root module has no place to say.
+ * slot that holds many or may hold none, its mark and word — over what
+ * kind of element it is, where that is given, and where it sits, small and
+ * gray. A root module has no place to say.
  */
 function Address({
   address,
+  kind,
+  placed,
   cardinality,
 }: {
   address: string;
+  kind: string | undefined;
+  placed: boolean;
   cardinality: MarkedCardinality | undefined;
 }) {
   const dot = address.lastIndexOf('.');
+  const place = placed && dot !== -1 ? address.slice(0, dot) : null;
   return (
     <span className={classes.address}>
       <span className={classes.heading}>
@@ -291,8 +326,12 @@ function Address({
           <CardinalityNote cardinality={cardinality} />
         )}
       </span>
-      {dot !== -1 && (
-        <span className={classes.place}>{address.slice(0, dot)}</span>
+      {(kind !== undefined || place !== null) && (
+        <span className={classes.place}>
+          {kind}
+          {kind !== undefined && place !== null && ' · '}
+          {place}
+        </span>
       )}
     </span>
   );

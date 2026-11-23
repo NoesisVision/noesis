@@ -62,6 +62,13 @@ const same = (a: Rect, b: Rect) =>
 export function workspaceOf(
   previous: readonly PlacedElement[],
   graph: ExplorationGraph,
+  {
+    /**
+     * Every card at the size it is drawn at now — what it carries may have
+     * changed — its top left corner where it stood.
+     */
+    asSized = false,
+  }: { asSized?: boolean } = {},
 ) {
   const before = new Map(previous.map((each) => [each.element.id, each]));
   const absolute = new Map<string, Rect>();
@@ -92,19 +99,23 @@ export function workspaceOf(
   const kidsOf = (id: string | null) => children.get(id) ?? [];
 
   // What stays keeps its place on the canvas; a container left holding
-  // nothing is a card again, settled once all is known.
+  // nothing is a card again, and a card now drawn round others a frame
+  // round them, settled once all is known.
   const rects = new Map<string, Rect>();
   const resized: { id: string; old: Rect }[] = [];
+  const framed: string[] = [];
   for (const element of graph.elements) {
     const rect = absoluteOf(element.id);
     const was = before.get(element.id);
     if (rect === null || was === undefined) continue;
+    const holds = kidsOf(element.id).length > 0;
     const next =
-      kidsOf(element.id).length === 0 && was.holds
+      !holds && (was.holds || asSized)
         ? { ...rect, ...cardSizeOf(element, graph) }
         : rect;
     rects.set(element.id, next);
     if (!same(next, rect)) resized.push({ id: element.id, old: rect });
+    if (holds && !was.holds) framed.push(element.id);
   }
 
   const placedKids = (id: string | null) =>
@@ -262,14 +273,22 @@ export function workspaceOf(
     )
       leftBehind.add(element.parent);
 
-  /** What changed size as it stood moves the rest aside; false if it cannot. */
+  /**
+   * A card now a frame is drawn round what it holds, raised together to
+   * the top of its room, the innermost first; then what changed size as
+   * it stood moves the rest aside. False if it cannot.
+   */
   const settle = () =>
+    [...framed]
+      .sort((a, b) => ancestorsOf(b).length - ancestorsOf(a).length)
+      .every((id) => lift(id) && refit(id)) &&
     resized.every(
       ({ id, old }) =>
         fit(kidsOf(id).length > 0 ? id : null) &&
         pushAround(id, old) &&
         fit(byId.get(id)?.parent ?? null),
-    ) && [...leftBehind].every((id) => lift(id) && refit(id));
+    ) &&
+    [...leftBehind].every((id) => lift(id) && refit(id));
 
   /**
    * What a container still holds raised together to the top of its room,

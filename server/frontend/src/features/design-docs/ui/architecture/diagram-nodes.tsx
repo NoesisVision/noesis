@@ -195,9 +195,10 @@ export function DomainCoreNode({
 }
 
 /**
- * What the element a card stands for is, on hover over it: its address and
- * its outline, as the model's tooltips say it. An actor or an adapter is no
- * element of the design, and says nothing more than its card.
+ * What the element a card stands for is, on hover over it: its name and
+ * its outline, as the model's tooltips say it — where it sits the diagram
+ * shows, as on the exploration. An actor or an adapter is no element of the
+ * design, and says nothing more than its card.
  */
 function Details({
   id,
@@ -209,7 +210,9 @@ function Details({
   return id === null ? (
     children
   ) : (
-    <ElementTooltip name={addressOf(id)}>{children}</ElementTooltip>
+    <ElementTooltip name={addressOf(id)} placed={false}>
+      {children}
+    </ElementTooltip>
   );
 }
 

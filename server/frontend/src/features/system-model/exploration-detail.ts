@@ -7,19 +7,20 @@ import type {
 import { drawnIdOf } from './exploration-relations.ts';
 
 /*
- * How much of the diagram is seen at the zoom it is looked at from. Close
+ * How much of the diagram is read at the zoom it is looked at from. Close
  * up, all of it. From further off the behaviors drawn inside a frame step
- * out of sight, and their relations move up to the blocks that hold them;
+ * back — still drawn where they stand, dimmed, no longer read or taken in
+ * hand — and their relations move up to the blocks that hold them;
  * further off still, so does everything else a module holds, and the
- * modules alone are left, with the relations between them. Nothing is
- * placed anew on the way: what is unseen keeps its place, and is back as
- * the reader comes closer.
+ * modules alone are left to read, with the relations between them. Nothing
+ * is placed anew on the way: what has stepped back keeps its place, and is
+ * back as the reader comes closer.
  */
 
 /** All that is drawn; without the behaviors in frames; or modules without what they hold. */
 export type Detail = 'all' | 'blocks' | 'modules';
 
-/** The zoom below which behaviors step out of sight. */
+/** The zoom below which behaviors step back. */
 const BLOCKS_BELOW = 0.5;
 /** The zoom below which all that a module holds does. */
 export const MODULES_BELOW = 0.25;
@@ -31,18 +32,18 @@ export const detailAt = (zoom: number): Detail => {
 
 /** The graph as one detail shows it. */
 export interface GraphInDetail {
-  /** Drawn, in their places, but out of sight. */
-  unseen: ReadonlySet<string>;
-  /** The frames with nothing seen inside them. */
+  /** Drawn, in their places, but stepped back: dimmed, and not taken in hand. */
+  steppedBack: ReadonlySet<string>;
+  /** The frames that hold only what has stepped back. */
   hollow: ReadonlySet<string>;
-  /** The relations as they are drawn: each end moved up to what is seen of it. */
+  /** The relations as they are drawn: each end moved up to what has not stepped back of it. */
   relations: DrawnRelation[];
 }
 
 const NONE: ReadonlySet<string> = new Set();
 
 /**
- * Whether an element is the first to step out of sight: a behavior drawn
+ * Whether an element is the first to step back: a behavior drawn
  * inside a frame. One standing on its own has nowhere to step back into.
  */
 export const stepsBackFirst = ({ kind, parent }: DrawnElement) =>
@@ -50,10 +51,10 @@ export const stepsBackFirst = ({ kind, parent }: DrawnElement) =>
 
 /**
  * What a detail shows of the graph. Short of all of it, a behavior drawn
- * inside a frame is unseen and, with only modules left, so is all a module
- * holds but the modules inside it. Each relation then runs from what is still seen
- * of each of its ends — the end itself, or the nearest frame round it in
- * sight: a behavior's block, then a block's module; once a kind for each
+ * inside a frame has stepped back and, with only modules left, so has all
+ * a module holds but the modules inside it. Each relation then runs from
+ * what has not stepped back of each of its ends — the end itself, or the
+ * nearest frame round it: a behavior's block, then a block's module; once a kind for each
  * pair, and not at all between ends that come to the same frame, or to one
  * inside the other.
  */
@@ -62,7 +63,7 @@ export function graphInDetail(
   detail: Detail,
 ): GraphInDetail {
   if (detail === 'all')
-    return { unseen: NONE, hollow: NONE, relations: graph.relations };
+    return { steppedBack: NONE, hollow: NONE, relations: graph.relations };
   const byId = byIdOf(graph.elements);
   /** An element and each frame round it, from the inside out. */
   const outwardsFrom = (id: string): DrawnElement[] => {
@@ -74,7 +75,7 @@ export function graphInDetail(
     return way;
   };
 
-  const unseen = new Set<string>();
+  const steppedBack = new Set<string>();
   for (const element of graph.elements) {
     const [, ...round] = outwardsFrom(element.id);
     const inModule = round.some(({ kind }) => kind === 'module');
@@ -82,7 +83,7 @@ export function graphInDetail(
       stepsBackFirst(element) ||
       (detail === 'modules' && element.kind !== 'module' && inModule)
     )
-      unseen.add(element.id);
+      steppedBack.add(element.id);
   }
 
   const holding = new Set<string>();
@@ -90,13 +91,13 @@ export function graphInDetail(
   for (const { id, parent } of graph.elements) {
     if (parent === null) continue;
     holding.add(parent);
-    if (!unseen.has(id)) holdingSeen.add(parent);
+    if (!steppedBack.has(id)) holdingSeen.add(parent);
   }
   const hollow = new Set([...holding].filter((id) => !holdingSeen.has(id)));
 
-  /** Where a relation's end is drawn: the end, or the nearest frame round it in sight. */
+  /** Where a relation's end is drawn: the end, or the nearest frame round it that has not stepped back. */
   const endOf = (id: string): string | undefined =>
-    outwardsFrom(id).find((each) => !unseen.has(each.id))?.id;
+    outwardsFrom(id).find((each) => !steppedBack.has(each.id))?.id;
   const inside = (id: string, around: string) =>
     outwardsFrom(id).some((each) => each.id === around);
 
@@ -111,15 +112,15 @@ export function graphInDetail(
     if (!relations.has(id))
       relations.set(id, { id, kind, source: from, target: to });
   }
-  return { unseen, hollow, relations: [...relations.values()] };
+  return { steppedBack, hollow, relations: [...relations.values()] };
 }
 
 /** A detail short of all of it. */
 type FarDetail = Exclude<Detail, 'all'>;
 
-/** The detail from which each element is out of sight, and each frame left with nothing seen inside it. */
+/** The detail from which each element has stepped back, and each frame holds only what has. */
 export interface SteppingBack {
-  unseenFrom: ReadonlyMap<string, FarDetail>;
+  steppedBackFrom: ReadonlyMap<string, FarDetail>;
   hollowFrom: ReadonlyMap<string, FarDetail>;
 }
 
@@ -131,14 +132,14 @@ export interface SteppingBack {
 export function steppingBackOf(graph: ExplorationGraph): SteppingBack {
   const blocks = graphInDetail(graph, 'blocks');
   const modules = graphInDetail(graph, 'modules');
-  // What is unseen or hollow with blocks still seen stays so further off.
+  // What has stepped back, or is hollow, with blocks still read stays so further off.
   const from = (pick: (each: GraphInDetail) => ReadonlySet<string>) =>
     new Map<string, FarDetail>([
       ...[...pick(modules)].map((id) => [id, 'modules'] as const),
       ...[...pick(blocks)].map((id) => [id, 'blocks'] as const),
     ]);
   return {
-    unseenFrom: from(({ unseen }) => unseen),
+    steppedBackFrom: from(({ steppedBack }) => steppedBack),
     hollowFrom: from(({ hollow }) => hollow),
   };
 }

@@ -3,6 +3,7 @@ import {
   type ExploredElement,
   RELATIONS,
   type RelationKind,
+  type SlotsHidden,
 } from '../../system-model-exploration.ts';
 import type { ExplorationNode } from './exploration-node.ts';
 import { nodeOf } from './exploration-nodes.ts';
@@ -11,6 +12,8 @@ import { nodeOf } from './exploration-nodes.ts';
 export interface DiagramStep {
   choice: ElementChoice;
   relations: ReadonlySet<RelationKind>;
+  /** The groups of slots the reader hid, card by card. */
+  slotsHidden: SlotsHidden;
   nodes: ExplorationNode[];
 }
 
@@ -40,9 +43,12 @@ export interface DiagramSteps {
  * the choice is (exploration-memory.ts), and is placed afresh. So are the
  * steps kept before cards were as wide as their names from further off
  * (version 2): their cards are too narrow for them. Until version 4 a
- * step kept each card whole, its element with it, ten times the size.
+ * step kept each card whole, its element with it, ten times the size. And
+ * the steps kept before a module's top was as tall as its larger name, and
+ * a card as tall as its name and signature alone (version 4), stand
+ * where the name would lie over them.
  */
-const VERSION = 4;
+const VERSION = 5;
 const PREFIX = 'noesis.systemModel.exploration.steps.';
 const keyOf = (modelId: string) => `${PREFIX}${modelId}`;
 /** How many models' diagrams are kept, the latest drawn. */
@@ -100,6 +106,9 @@ interface StoredStep {
   removed: string[];
   bySlot: string[];
   relations: RelationKind[];
+  /** Absent from a step kept before slots could be hidden card by card. */
+  hiddenState?: string[];
+  hiddenSignature?: string[];
   nodes: StoredNode[];
 }
 
@@ -119,11 +128,18 @@ const storedNodeOf = ({
   parent: placed.element.parent,
 });
 
-const storedOf = ({ choice, relations, nodes }: DiagramStep): StoredStep => ({
+const storedOf = ({
+  choice,
+  relations,
+  slotsHidden,
+  nodes,
+}: DiagramStep): StoredStep => ({
   added: [...choice.picks.added],
   removed: [...choice.picks.removed],
   bySlot: [...(choice.picks.bySlot ?? [])],
   relations: [...relations],
+  hiddenState: [...slotsHidden.state],
+  hiddenSignature: [...slotsHidden.signature],
   nodes: nodes.map(storedNodeOf),
 });
 
@@ -174,6 +190,10 @@ export function recallSteps(
 ): DiagramSteps | null {
   const stored = readStored(modelId);
   if (stored === null) return null;
+  // Kept while containment could be switched off: a step that drew no card
+  // inside another cannot be put back as it stood, so all are placed afresh.
+  if (stored.list.some(({ relations }) => !relations.includes('contains')))
+    return null;
   return {
     at: stored.at,
     edges: stored.edges,
@@ -187,6 +207,10 @@ export function recallSteps(
         },
       },
       relations: new Set(step.relations),
+      slotsHidden: {
+        state: new Set(step.hiddenState),
+        signature: new Set(step.hiddenSignature),
+      },
       nodes: step.nodes.flatMap(({ id, parent, ...placed }) => {
         const element = elements.get(id);
         return element === undefined
@@ -238,10 +262,16 @@ function isStep(value: unknown): value is StoredStep {
   // A step saved with the routes edges once ran, or the way the layout
   // once ran, is read without them.
   const nodes = field(value, 'nodes');
+  const namesOrNone = (name: string) => {
+    const names = field(value, name);
+    return names === undefined || isNames(names);
+  };
   return (
     isNames(field(value, 'added')) &&
     isNames(field(value, 'removed')) &&
     isNames(field(value, 'bySlot')) &&
+    namesOrNone('hiddenState') &&
+    namesOrNone('hiddenSignature') &&
     Array.isArray(relations) &&
     relations.every(isRelation) &&
     Array.isArray(nodes) &&

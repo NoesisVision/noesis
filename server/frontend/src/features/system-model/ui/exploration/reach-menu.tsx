@@ -1,4 +1,4 @@
-import { IconDots, IconPlus } from '@tabler/icons-react';
+import { IconDots, IconEye, IconEyeOff, IconPlus } from '@tabler/icons-react';
 import { type MouseEvent, useState } from 'react';
 import { KindIcon } from '#/features/design-docs/element-reader.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
@@ -15,7 +15,12 @@ import {
 } from '../../system-model-exploration.ts';
 import { useCardActions } from './exploration-reading.ts';
 import type { CanvasPoint } from './place-locally.ts';
-import { REACH_ACTION, reorderLabel, showParentLabel } from './reach-words.ts';
+import {
+  REACH_ACTION,
+  reorderLabel,
+  showParentLabel,
+  SLOT_GROUP_WORD,
+} from './reach-words.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import { useLazyOpening } from './use-lazy-opening.ts';
 import {
@@ -134,9 +139,10 @@ const REORDER_FALLBACK = 'Reorder';
 
 /*
  * The card's own menu, from a right click on it or its dots: a frame's
- * setting out again of what it holds; the way to its parent, when that is
- * not on the diagram, set apart between two rules; then each way it reaches
- * others not yet drawn, opening onto them as its button's menu does.
+ * setting out again of what it holds; its state, and its input and output
+ * as one, each to show on it or hide; the way to its parent, when that is
+ * not on the diagram, set apart between two rules; then each way it
+ * reaches others not yet drawn, opening onto them as its button's menu does.
  */
 export function NodeMenuDropdown({
   id,
@@ -150,7 +156,9 @@ export function NodeMenuDropdown({
   /** Where on the canvas a frame was right-clicked, for what it contains to go. */
   at?: CanvasPoint | null;
 }) {
-  const { onArrange, elements } = useCardActions();
+  const { onArrange, elements, slotGroups, slotsHidden, onToggleSlots } =
+    useCardActions();
+  const groups = slotGroups.get(id) ?? [];
   // Its parent has a place of its own in the menu, above the rest.
   const missing = (useMissing(id) ?? []).filter(
     ({ each }) => each !== 'isPartOf',
@@ -175,6 +183,25 @@ export function NodeMenuDropdown({
           >
             {element === undefined ? REORDER_FALLBACK : reorderLabel(element)}
           </Menu.Item>
+        </>
+      )}
+      {/* What it carries on it, each group to show or hide. */}
+      {groups.length > 0 && (
+        <>
+          <Menu.Divider />
+          {groups.map((group) => {
+            const hidden = slotsHidden[group].has(id);
+            const Icon = hidden ? IconEye : IconEyeOff;
+            return (
+              <Menu.Item
+                key={group}
+                leftSection={<Icon size={14} stroke={1.8} aria-hidden />}
+                onClick={() => onToggleSlots(id, group)}
+              >
+                {`${hidden ? 'Show' : 'Hide'} ${SLOT_GROUP_WORD[group]}`}
+              </Menu.Item>
+            );
+          })}
         </>
       )}
       {/* The way to what holds it, a rule above it and one below. */}

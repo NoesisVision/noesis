@@ -89,8 +89,7 @@
 
 /*
  * A type that ends with a cardinality mark (cardinality-mark.tsx): the
- * mark centred on the name beside it; in a tag, filling the tag's right
- * end, flush with its edge and radius.
+ * mark centred on the name beside it; in a tag, at the tag's right end.
  */
 .box .name[data-marked] {
   display: inline-flex;
@@ -104,23 +103,14 @@
   overflow: hidden;
 
   /*
-   * On the blue tag, the mark is the tag's own end, set apart: in the light,
-   * solid brand blue with the icon white; in the dark, the tag's blue a
-   * shade darker — a little black over the tag behind it — the icon in the
-   * tag's own pale ink.
+   * On the blue tag, the mark in the tag's own ink, with no ground of its
+   * own, close after the type's name — `Recipient[]`, `Money?` — and the
+   * tag's own room after it (cardinality-mark.module.css).
    */
   & [data-cardinality] {
     height: auto;
-    border-radius: 0;
-    margin-left: 7px;
-    color: light-dark(
-      var(--mantine-color-white),
-      var(--mantine-color-brand-light-color)
-    );
-    background: light-dark(
-      var(--mantine-color-brand-filled),
-      color-mix(in srgb, var(--mantine-color-black) 14%, transparent)
-    );
+    margin-inline: 1px 7px;
+    color: inherit;
   }
 }
 

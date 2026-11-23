@@ -7,8 +7,9 @@ import { ElementBody } from './element-body.tsx';
 
 /**
  * One element of a model read on a canvas, as the architecture's panel reads
- * one: what it is, its name and address, then its body as the model reads
- * it. For a model read as it stands, so nothing in it is a change.
+ * one: what it is and its name — where it sits the canvas shows, drawn
+ * inside what holds it — then its body as the model reads it. For a model
+ * read as it stands, so nothing in it is a change.
  */
 export function ElementPanel({
   id,
@@ -45,7 +46,6 @@ export function ElementPanel({
       glance
       eyebrow={eyebrow}
       title={title}
-      address={id}
     >
       <ElementBody id={id} document={document} modelTree={modelTree} />
     </DetailsPanel>

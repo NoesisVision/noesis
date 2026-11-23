@@ -10,6 +10,7 @@ import {
   ruleItems,
   propertyItems,
 } from '../src/features/design-docs/ui/element-details/change-list-items';
+import { ChangeMarksContext } from '../src/features/design-docs/ui/element-details/change-marks-context';
 import { DesignDocumentContext } from '../src/features/design-docs/ui/element-details/design-document-context';
 import { ElementDetail } from '../src/features/design-docs/ui/element-details/element-detail';
 import { ElementNavigationContext } from '../src/features/design-docs/ui/element-details/element-navigation';
@@ -289,7 +290,7 @@ const show = (
 };
 
 /** A behavior the tree has no row for, read on its own. */
-const behavior = () => {
+const behavior = (marked = true) => {
   const place = node({
     path: 'behavior|pay.Hold.place',
     kind: 'behavior',
@@ -298,13 +299,15 @@ const behavior = () => {
   });
   return renderToStaticMarkup(
     <MantineProvider>
-      <ElementDetail
-        node={place}
-        path={[place]}
-        document={document}
-        onSelect={() => {}}
-        tree={tree}
-      />
+      <ChangeMarksContext.Provider value={marked}>
+        <ElementDetail
+          node={place}
+          path={[place]}
+          document={document}
+          onSelect={() => {}}
+          tree={tree}
+        />
+      </ChangeMarksContext.Provider>
     </MantineProvider>,
   );
 };
@@ -605,10 +608,8 @@ describe('ElementDetail', () => {
         />
       </MantineProvider>,
     );
-    // Many: an asterisk at the tag's end, said aloud; exactly one, unmarked.
-    expect(html).toMatch(
-      /data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
-    );
+    // Many: `[]` at the tag's end, said aloud; exactly one, unmarked.
+    expect(html).toMatch(/data-cardinality="\*"[^>]*><span[^>]*>\[\]</);
     expect(html).toMatch(/HoldLine(<\/[^>]+>)*<span[^>]*>, many<\/span>/);
     expect(html).not.toContain('[*]');
     expect(html.match(/data-cardinality=/g)).toHaveLength(1);
@@ -629,7 +630,7 @@ describe('ElementDetail', () => {
       </MantineProvider>,
     );
     expect(html).toMatch(
-      /lines:\s*(<[^>]+>)*HoldLine(<\/[^>]+>)*<span[^>]*>, many<\/span><span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
+      /lines:\s*(<[^>]+>)*HoldLine(<\/[^>]+>)*<span[^>]*>, many<\/span><span data-cardinality="\*"[^>]*><span[^>]*>\[\]</,
     );
     expect(html).not.toContain('[*]');
     const one = renderToStaticMarkup(
@@ -758,7 +759,7 @@ describe('ElementDetail', () => {
     } satisfies DesignDocumentInput;
     const html = show('building_block|pay.Hold', tree, many);
     expect(html).toMatch(
-      /→ <\/span><button[^>]*data-link[^>]*>(<[^>]+>)*Hold(<\/[^>]+>)*<span[^>]*>, many<\/span><span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
+      /→ <\/span><button[^>]*data-link[^>]*>(<[^>]+>)*Hold(<\/[^>]+>)*<span[^>]*>, many<\/span><span data-cardinality="\*"[^>]*><span[^>]*>\[\]</,
     );
     expect(html).not.toContain('[*]');
   });
@@ -837,6 +838,15 @@ describe('ElementDetail', () => {
     expect(html).toContain('>amount<');
     expect(html).toContain('>Money<');
     expect(html).toContain('>Hold<');
+  });
+
+  it("reads a model's behavior, with no change to mark, as its signature", () => {
+    const html = behavior(false);
+    expect(html.match(/>Input \/ Output</g)).toHaveLength(1);
+    // As its block's Behaviors list writes it: no boxes, no captions.
+    expect(html).not.toContain('>Inputs · 1<');
+    expect(html).toMatch(/<code[^>]*>(<[^>]+>)*\(<\/span>(<[^>]+>)*amount: /);
+    expect(html).toMatch(/> → <\/span>(<[^>]+>)*Hold</);
   });
 
   it('points a rule at the scenarios that cover it', () => {

@@ -20,15 +20,17 @@ import {
 } from './exploration-reading.ts';
 import { nameWidthOf, paddingOf } from './layout-exploration.ts';
 import { Contains, Remove } from './node-controls.tsx';
+import { hiddenSlotsWord, SLOT_GROUPS } from './reach-words.ts';
 import { SlotBadges } from './slot-badges.tsx';
 import { CLICK_SLOP, useViewingFromFrame } from './use-viewing-from-frame.ts';
 import classes from './exploration.module.css';
 
 /*
- * What React Flow draws for an element: a card with its name and what it
- * is, or — when others are drawn inside it — a frame with both at its top.
- * The card, or the frame's name, is a button that selects the element, and
- * hovered or focused says what the element is, as the model's tooltips do.
+ * What React Flow draws for an element: a card with its name, the icon of
+ * its kind before it, or — when others are drawn inside it — a frame with
+ * both at its top. The card, or the frame's name, is a button that selects
+ * the element, and hovered or focused says what the element is — its kind
+ * in a word, which the card leaves to its icon — as the model's tooltips do.
  * Its tooltips are the canvas's one (see `CanvasTooltips`), each button
  * naming its own in `data-tip`, so a card holds none of its own.
  * Edges come in where the layout's flow does and leave the other side.
@@ -87,9 +89,12 @@ const ElementCard = memo(function ElementCard({
   const shape = holds ? undefined : shapeOf(element.kind, element.pattern);
   const bevelled = shape === 'bevel';
   const { state, onSelect } = useSelectionState(element.id);
-  const { badges, noOutput, stepping, onInto } = useContext(
+  const { badges, noOutput, stepping, onInto, slotsHidden } = useContext(
     ExplorationReadingContext,
   );
+  // The groups of its slots the reader hid on it, said in its name for a
+  // reader who cannot see the way to show them in its corner.
+  const hid = SLOT_GROUPS.filter((group) => slotsHidden[group].has(element.id));
   // From further off its name clicked, or its frame double-clicked, goes
   // into it: the middle of the canvas, and closer (exploration-view.tsx).
   const goInto = () => onInto(element.id);
@@ -102,25 +107,21 @@ const ElementCard = memo(function ElementCard({
   const select = (adding: boolean) => onSelect(element.id, adding);
   const viewing = useViewingFromFrame(select, goInto);
   const pressedTop = useRef<{ x: number; y: number } | null>(null);
+  // Its kind as the model's tree draws it, before its name: cut short
+  // where it runs out of room, but for a behavior's, which never is.
   const label = (
-    <>
-      {/* Its kind as the model's tree draws it, before its name. */}
-      <span className={classes.nameLine}>
-        <KindIcon kind={element.kind} pattern={element.pattern} size={16} />
-        <Text component="span" fz="sm" fw={600} truncate>
-          {element.name}
-        </Text>
-      </span>
+    <span className={classes.nameLine}>
+      <KindIcon kind={element.kind} pattern={element.pattern} size={16} />
       <Text
         component="span"
-        className={classes.kindLine}
-        fz="xs"
-        c="var(--noesis-secondary-text)"
-        truncate
+        className={classes.name}
+        fz="sm"
+        fw={600}
+        truncate={element.kind !== 'behavior'}
       >
-        {groupLabelOf(element.pattern ?? element.kind)}
+        {element.name}
       </Text>
-    </>
+    </span>
   );
   const button = (
     <UnstyledButton
@@ -134,9 +135,14 @@ const ElementCard = memo(function ElementCard({
       data-pattern={element.pattern}
       data-state={holds ? undefined : state}
       aria-pressed={state === 'selected'}
-      aria-label={withState(`${element.name}, ${kindWordOf(element)}`, state)}
-      // What the element is, said by the canvas's one tooltip on hover.
+      aria-label={withState(
+        `${element.name}, ${kindWordOf(element)}${hid.length > 0 ? `, ${hiddenSlotsWord(hid)} hidden` : ''}`,
+        state,
+      )}
+      // What the element is, said by the canvas's one tooltip on hover:
+      // where it sits, and its kind in a word.
       data-element-tip={addressOf(element.id)}
+      data-element-kind={groupLabelOf(element.pattern ?? element.kind)}
       // Ctrl, or Cmd on a Mac, adds it to the hand or takes it out. From
       // further off a plain click goes into it instead, closer.
       onClick={(event) => {
@@ -163,10 +169,10 @@ const ElementCard = memo(function ElementCard({
       data-standing={state}
       data-leaving={data.leaving || undefined}
       data-badged={badged || undefined}
-      // From how far off it is out of sight, or — a frame — left with
-      // nothing seen inside it (exploration-detail.ts); and whether it
-      // is drawn inside a frame, where it is not moved from that far.
-      data-unseen-from={stepping.unseenFrom.get(element.id)}
+      // From how far off it steps back, or — a frame — holds only what
+      // has (exploration-detail.ts); and whether it is drawn inside a
+      // frame, where it is not moved from that far.
+      data-stepped-back-from={stepping.steppedBackFrom.get(element.id)}
       data-hollow-from={stepping.hollowFrom.get(element.id)}
       data-nested={element.parent !== null || undefined}
       // What its name is sized against from further off
@@ -201,7 +207,7 @@ const ElementCard = memo(function ElementCard({
           // it was a click. What is on it — its name, menu, crosses —
           // answers for itself; its name is the keyboard's way to the
           // same, so the strip round it is the pointer's alone.
-          // With nothing seen inside it, its top is the whole of it.
+          // A module with only what stepped back inside it is all top.
           onDoubleClick={(event) => {
             if (event.target === event.currentTarget) goInto();
           }}

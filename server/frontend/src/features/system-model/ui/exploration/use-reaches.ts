@@ -17,7 +17,7 @@ import type { CanvasPoint } from './place-locally.ts';
 
 type Reading = Pick<
   ReturnType<typeof useCardActions>,
-  'drawn' | 'neighbours' | 'elements'
+  'drawn' | 'neighbours' | 'elements' | 'slotGroups'
 >;
 
 /** What one card still reaches: by each way it does, and by each chain followed. */
@@ -97,11 +97,17 @@ export function useMissingParent(id: string) {
 
 /**
  * Whether a card's own menu has anything to offer: a frame's setting out
- * again of what it holds, or others it reaches to bring in.
+ * again of what it holds, slots of its own to show or hide, or others it
+ * reaches to bring in.
  */
 export function hasNodeMenu(id: string, holds: boolean, reading: Reading) {
   const { missing, chains } = reachingOf(id, reading);
-  return holds || (missing?.length ?? 0) > 0 || chains.length > 0;
+  return (
+    holds ||
+    (missing?.length ?? 0) > 0 ||
+    chains.length > 0 ||
+    reading.slotGroups.has(id)
+  );
 }
 
 /** Puts others on the diagram beside the card; what it contains, arranged inside it. */

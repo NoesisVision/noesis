@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { CardinalityMark } from '../src/features/design-docs/ui/element-details/cardinality-mark';
 import { DesignDocumentContext } from '../src/features/design-docs/ui/element-details/design-document-context';
 import { ElementTooltip } from '../src/features/design-docs/ui/element-details/element-tooltip';
 import { MantineProvider } from '../src/shared/design-system/provider';
@@ -112,6 +113,21 @@ const render = (name: string, doc: DesignDocumentInput | null = document) =>
     </MantineProvider>,
   );
 
+describe('CardinalityMark', () => {
+  it('says what it means on hover where asked, and only there', () => {
+    const mark = (tip: boolean) =>
+      renderToStaticMarkup(
+        <MantineProvider theme={theme}>
+          <CardinalityMark cardinality="*" tip={tip} />
+        </MantineProvider>,
+      );
+    expect(mark(true)).toContain('Many · holds any number of these');
+    expect(mark(false)).not.toContain('role="tooltip"');
+    // Heard after the type, either way.
+    expect(mark(false)).toContain(', many');
+  });
+});
+
 describe('ElementTooltip', () => {
   it("lists a block's properties under its full address", () => {
     const html = render('hold: pay.Hold');
@@ -171,10 +187,10 @@ describe('ElementTooltip', () => {
     } satisfies DesignDocumentInput;
     const html = render('pay.Hold', marked);
     expect(html).toMatch(
-      />place\(amount: Money<span[^>]*>, many<\/span><span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
+      />place\(amount: Money<span[^>]*>, many<\/span><span data-cardinality="\*"[^>]*><span[^>]*>\[\]</,
     );
     expect(html).toMatch(
-      /<\/svg><\/span>\): <span[^>]*>Hold<span[^>]*>, optional<\/span><span data-cardinality="0\.\.1"/,
+      />\[\]<\/span><\/span>\): <span[^>]*>Hold<span[^>]*>, optional<\/span><span data-cardinality="0\.\.1"/,
     );
     expect(html).not.toMatch(/\[\*\]|\[0\.\.1\]/);
   });
@@ -249,9 +265,9 @@ describe('ElementTooltip', () => {
     const many = tooltip('pay.HoldLine', '*');
     // After the name, on its line: the mark and its word, nothing longer.
     expect(many).toMatch(
-      />HoldLine<\/span><span[^>]*><span data-cardinality="\*"[^>]*><svg[^>]*tabler-icon-asterisk/,
+      />HoldLine<\/span><span[^>]*><span data-cardinality="\*"[^>]*><span[^>]*>\[\]</,
     );
-    expect(many).toMatch(/<\/svg><\/span><span[^>]*>Many<\/span>/);
+    expect(many).toMatch(/>\[\]<\/span><\/span><span[^>]*>Many<\/span>/);
     expect(many).not.toContain('holds any number');
     const optional = tooltip('string', '0..1');
     expect(optional).toContain('role="tooltip"');
@@ -264,5 +280,37 @@ describe('ElementTooltip', () => {
     const html = render('integer');
     expect(html).not.toContain('role="tooltip"');
     expect(html).toContain('>a whole card<');
+  });
+
+  it('says what kind of element it is before where it sits, over a card that leaves it to its icon', () => {
+    const tooltip = (name: string) =>
+      renderToStaticMarkup(
+        <MantineProvider theme={theme}>
+          <DesignDocumentContext.Provider value={null}>
+            <ElementTooltip name={name} kind="Value Object">
+              <div className="target">a whole card</div>
+            </ElementTooltip>
+          </DesignDocumentContext.Provider>
+        </MantineProvider>,
+      );
+    expect(tooltip('pay.Hold')).toMatch(
+      />Hold<\/span><\/span><span[^>]*>Value Object · pay</,
+    );
+    // A root module has no place to say, and still its kind.
+    const root = tooltip('pay');
+    expect(root).toContain('role="tooltip"');
+    expect(root).toMatch(/>pay<\/span><\/span><span[^>]*>Value Object</);
+    // Over a card drawn inside what holds it, its kind alone.
+    const unplaced = renderToStaticMarkup(
+      <MantineProvider theme={theme}>
+        <DesignDocumentContext.Provider value={null}>
+          <ElementTooltip name="pay.Hold" kind="Value Object" placed={false}>
+            <div className="target">a whole card</div>
+          </ElementTooltip>
+        </DesignDocumentContext.Provider>
+      </MantineProvider>,
+    );
+    expect(unplaced).toMatch(/>Hold<\/span><\/span><span[^>]*>Value Object</);
+    expect(unplaced).not.toContain('Value Object · pay');
   });
 });

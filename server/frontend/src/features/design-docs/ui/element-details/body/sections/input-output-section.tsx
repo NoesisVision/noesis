@@ -4,7 +4,9 @@ import { Divider } from '#/shared/design-system/divider.tsx';
 import { Grid } from '#/shared/design-system/grid.tsx';
 import type { PartOwner } from '../../../../design-doc-edit.ts';
 import type { ChangeListItem } from '../../change-list-items.ts';
+import { useChangeMarks } from '../../change-marks-context.ts';
 import { type ElementRef, partOwnerOf } from '../../element-ref.ts';
+import { SignatureCard } from './behaviors-section.tsx';
 import { DetailSection } from './detail-section.tsx';
 import { WritableDeclarationBox } from './writable-declaration-box.tsx';
 import canvas from './canvas.module.css';
@@ -21,6 +23,8 @@ interface InputOutputSectionProps {
  * in the order it declares them, a dashed seam, and what it returns, each a
  * `DeclarationBox` as a block's properties are. Inputs that outgrow the
  * panel run on to the next row; the seam and the outputs stay beside them.
+ * A model read as it stands, with no change to mark on either side, has it
+ * as its signature instead, as its block's Behaviors list writes it.
  */
 export function InputOutputSection({
   element,
@@ -28,6 +32,12 @@ export function InputOutputSection({
   output,
 }: InputOutputSectionProps) {
   const owner = partOwnerOf(element);
+  if (!useChangeMarks())
+    return (
+      <DetailSection title="Input / Output" icon={<IconArrowsExchange />}>
+        <SignatureCard inputs={input} outputs={output} />
+      </DetailSection>
+    );
   return (
     <DetailSection title="Input / Output" icon={<IconArrowsExchange />}>
       <Grid

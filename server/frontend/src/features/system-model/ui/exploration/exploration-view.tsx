@@ -36,6 +36,7 @@ import {
   selectionAfterClick,
   selectionInBox,
 } from '#/shared/ui/diagram-canvas/canvas-selection.ts';
+import { centreOn, DOCK_ROOM } from '#/shared/ui/diagram-canvas/centre-on.ts';
 import { DetailsDock } from '#/shared/ui/diagram-canvas/details-dock.tsx';
 import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
 import { FloatingEdgeView } from '#/shared/ui/diagram-canvas/floating-edge.tsx';
@@ -57,12 +58,16 @@ import {
   kindWordOf,
   MODULES_BELOW,
   neighboursOf,
+  NO_SLOTS_HIDDEN,
   NOTHING_CHOSEN,
   pickedAll,
   pickedIn,
   type RelationKind,
   relatedToAll,
   removalOf,
+  type SlotGroup,
+  slotGroupsOf,
+  type SlotsHidden,
   steppingBackOf,
 } from '../../system-model-exploration.ts';
 import { designOf } from '../../system-model.model.ts';
@@ -85,9 +90,13 @@ import {
   recallSteps,
   rememberSteps,
 } from './exploration-steps.ts';
-import { focusOn, PANEL_ROOM, RAISED_Z } from './exploration-timing.ts';
+import { focusOn, RAISED_Z } from './exploration-timing.ts';
 import { type Drawing, ExplorationToolbar } from './exploration-toolbar.tsx';
-import { FAR_NAME_SCALE } from './layout-exploration.ts';
+import {
+  FAR_NAME_SCALE,
+  MODULE_NAME_SCALE,
+  MODULE_TOP,
+} from './layout-exploration.ts';
 import { type CanvasPoint } from './place-locally.ts';
 import { QuickAdd, type QuickAddSpot } from './quick-add.tsx';
 import { ShortcutLegend } from './shortcut-legend.tsx';
@@ -125,6 +134,9 @@ const sameChoice = (a: ElementChoice, b: ElementChoice) =>
   sameSet(a.picks.removed, b.picks.removed) &&
   sameSet(a.picks.bySlot ?? NONE, b.picks.bySlot ?? NONE);
 
+const sameSlotsHidden = (a: SlotsHidden, b: SlotsHidden) =>
+  sameSet(a.state, b.state) && sameSet(a.signature, b.signature);
+
 /** What a relation joins the selection to, with nothing in hand. */
 const NOTHING_RELATED: ReturnType<typeof relatedToAll> = {
   relations: new Set(),
@@ -149,8 +161,12 @@ const startsBox = (target: Element) => {
 /** How long going into a card from further off takes. */
 const INTO_MS = 400;
 
-/** How large the stylesheet draws names from further off: what the layout left room for. */
-const FAR_NAMES = { '--far-name-scale': FAR_NAME_SCALE } as CSSProperties;
+/** How large the stylesheet draws names from further off, and a module's among them: what the layout left room for. */
+const NAME_SCALES = {
+  '--far-name-scale': FAR_NAME_SCALE,
+  '--module-name-scale': MODULE_NAME_SCALE,
+  '--module-top': MODULE_TOP,
+} as CSSProperties;
 
 export function ExplorationView({ model }: { model: SystemModel }) {
   const {
@@ -207,9 +223,17 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const { orthogonal, animated } = drawing;
   // Chosen on the Dev Tools page; the exploration only draws in it.
   const theme = useDiagramTheme();
+  // The groups of slots the reader hid, card by card.
+  const [slotsHidden, setSlotsHidden] = useState<SlotsHidden>(
+    () => opening?.slotsHidden ?? NO_SLOTS_HIDDEN,
+  );
   const graph = useMemo(
-    () => graphOf(exploration, { hidden, relations, picks }),
-    [exploration, hidden, relations, picks],
+    () => graphOf(exploration, { hidden, relations, picks, slotsHidden }),
+    [exploration, hidden, relations, picks, slotsHidden],
+  );
+  const slotGroups = useMemo(
+    () => slotGroupsOf(exploration, graph.elements, relations),
+    [exploration, graph, relations],
   );
 
   // In hand, in the order taken; the last is the one the panel reads. One
@@ -227,6 +251,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const {
     nodes,
     placements,
+    moves,
     onNodesChange,
     placing,
     failure,
@@ -261,9 +286,9 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     at: opened?.at ?? -1,
     count: opened?.list.length ?? 0,
   });
-  const now = useRef({ stored, relations, nodes });
+  const now = useRef({ stored, relations, slotsHidden, nodes });
   useLayoutEffect(() => {
-    now.current = { stored, relations, nodes };
+    now.current = { stored, relations, slotsHidden, nodes };
   });
   // The step a move back or forward lands on is that step, not a new one;
   // so is the one the diagram opens at.
@@ -274,10 +299,15 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       stepping.current = false;
       return;
     }
-    const { stored: choiceNow, relations: drawnRelations } = now.current;
+    const {
+      stored: choiceNow,
+      relations: drawnRelations,
+      slotsHidden: hiddenNow,
+    } = now.current;
     const step: DiagramStep = {
       choice: choiceNow,
       relations: drawnRelations,
+      slotsHidden: hiddenNow,
       nodes: now.current.nodes.filter(({ data }) => !data.leaving),
     };
     const held = steps.current;
@@ -294,15 +324,21 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       steps.current = { ...held, at: held.at + by };
       setStepAt({ at: held.at + by, count: held.list.length });
       rememberSteps(modelId, steps.current);
-      const { stored: choiceNow, relations: drawnRelations } = now.current;
+      const {
+        stored: choiceNow,
+        relations: drawnRelations,
+        slotsHidden: hiddenNow,
+      } = now.current;
       const changes =
         !sameChoice(step.choice, choiceNow) ||
-        !sameSet(step.relations, drawnRelations);
+        !sameSet(step.relations, drawnRelations) ||
+        !sameSlotsHidden(step.slotsHidden, hiddenNow);
       stepping.current = true;
       restore(step.nodes, changes);
       if (!changes) return;
       setChoice(step.choice);
       setRelations(step.relations);
+      setSlotsHidden(step.slotsHidden);
     },
     [restore, modelId],
   );
@@ -404,6 +440,15 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // where a button opens it again. Kept so as the hand changes.
   const [folded, setFolded] = useState(false);
   const readAlone = useCallback((id: string) => setSelection([id]), []);
+  // A link in the details panel: read alone and, drawn, in the middle of
+  // the canvas, as on every diagram.
+  const readFromPanel = useCallback(
+    (id: string) => {
+      setSelection([id]);
+      if (flow !== null) centreOn(flow, [id]);
+    },
+    [flow],
+  );
   const [picking, setPicking] = useState(false);
   // A right click on the empty canvas: where the menu opens, and where on
   // the diagram what is picked from it goes.
@@ -545,7 +590,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         box !== undefined &&
         start.x >= box.left &&
         start.y >= box.top &&
-        end.x <= box.right - (alone ? PANEL_ROOM : 0) &&
+        end.x <= box.right - (alone ? DOCK_ROOM : 0) &&
         end.y <= box.bottom;
       if (inSight) return;
       void flow.fitView({
@@ -579,7 +624,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // double-clicked: put in the middle of the canvas and brought closer.
   // With only modules left, as close as shows the whole of it, filling the
   // canvas across or down — and never so far off that what it holds is
-  // still out of sight; while blocks are still seen, at its own size.
+  // still stepped back; while blocks are still read, at its own size.
   const goInto = useCallback(
     (id: string) => {
       const now = performance.now();
@@ -681,11 +726,31 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         onShowAll(ids, shown, bySlot);
         bringIn(ids, from);
       },
+      // Input and output are drawn as one, as the Visibility panel has them.
       onDraw: (relation) =>
-        setRelations((current) =>
-          current.has(relation) ? current : new Set([...current, relation]),
-        ),
+        setRelations((current) => {
+          const both: readonly RelationKind[] =
+            relation === 'input' || relation === 'output'
+              ? ['input', 'output']
+              : [relation];
+          return both.every((each) => current.has(each))
+            ? current
+            : new Set([...current, ...both]);
+        }),
       onArrange: arrange,
+      slotGroups,
+      slotsHidden,
+      // A card's own slots shown or hidden: it is sized anew where it
+      // stands, and the rest make way or stay (Reorder diagram is the
+      // reader's to ask for).
+      onToggleSlots: (id: string, group: SlotGroup) => {
+        placeBeside(id, [], true);
+        setSlotsHidden((now) => {
+          const cards = new Set(now[group]);
+          if (!cards.delete(id)) cards.add(id);
+          return { ...now, [group]: cards };
+        });
+      },
     }),
     [
       graph.badges,
@@ -704,6 +769,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       onShowAll,
       bringIn,
       arrange,
+      slotGroups,
+      slotsHidden,
     ],
   );
   // Ctrl+A, or Cmd+A on a Mac, takes every card in sight in hand, from the
@@ -721,7 +788,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       const inSight = graph.elements
         .filter(
           (element) =>
-            !veiled.has(groupOf(element)) && !inDetail.unseen.has(element.id),
+            !veiled.has(groupOf(element)) &&
+            !inDetail.steppedBack.has(element.id),
         )
         .map(({ id }) => id);
       if (inSight.length === 0) return;
@@ -746,7 +814,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         const { placed, leaving } = node.data;
         const at = flow.getInternalNode(node.id)?.internals.positionAbsolute;
         if (leaving === true || at === undefined) return [];
-        if (veiled.has(groupOf(placed.element)) || inDetail.unseen.has(node.id))
+        if (
+          veiled.has(groupOf(placed.element)) ||
+          inDetail.steppedBack.has(node.id)
+        )
           return [];
         return [
           {
@@ -788,22 +859,30 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [selection, drawn, remove, letGo]);
-  const edges = useMemo(
-    () =>
-      inDetail.relations.map((relation) =>
-        edgeOf(relation, {
-          orthogonal,
-          animated,
-          highlight:
-            selection.length === 0
-              ? undefined
-              : related.relations.has(relation.id)
-                ? 'highlighted'
-                : 'faded',
-        }),
-      ),
-    [inDetail, orthogonal, animated, selection, related],
-  );
+  const edges = useMemo(() => {
+    const own = ({ id }: { id: string }) => related.relations.has(id);
+    // The selection's relations last, so drawn over the rest: every edge
+    // stands as high as the next (exploration-edges.ts).
+    const relations =
+      selection.length === 0
+        ? inDetail.relations
+        : [
+            ...inDetail.relations.filter((each) => !own(each)),
+            ...inDetail.relations.filter(own),
+          ];
+    return relations.map((relation) =>
+      edgeOf(relation, {
+        orthogonal,
+        animated,
+        highlight:
+          selection.length === 0
+            ? undefined
+            : own(relation)
+              ? 'highlighted'
+              : 'faded',
+      }),
+    );
+  }, [inDetail, orthogonal, animated, selection, related]);
 
   /*
    * What lies round the canvas is made once for what it shows, so a card
@@ -842,12 +921,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
             document={document}
             eyebrow={kindWordOf(inHand)}
             title={inHand.name}
-            onSelectElement={readAlone}
+            onSelectElement={readFromPanel}
             onMinimize={() => setFolded(true)}
           />
         </DetailsDock>
       ),
-    [inHand, document, readAlone, folded],
+    [inHand, document, readFromPanel, folded],
   );
   const addAll = useCallback(() => {
     const all = exploration.elements.map(({ id }) => id);
@@ -872,13 +951,30 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     [picking, graph, exploration, document, shownOf, onPick, addAll, clear],
   );
   const closeVisibility = useCallback(() => setSeeing(false), []);
+  // Relations shown or hidden leave the cards where they stand: each sized
+  // for what it now carries, a card now drawn round others a frame round
+  // them, and what comes beside what is in view. The reader places the
+  // whole anew when they ask (Reorder diagram).
+  const showRelations = useCallback(
+    (next: ReadonlySet<RelationKind>) => {
+      const box = canvas.current?.getBoundingClientRect();
+      if (box !== undefined && toCanvas !== null)
+        placeBeside(
+          toCanvas({ x: box.x + box.width / 2, y: box.y + box.height / 2 }),
+          [],
+          true,
+        );
+      setRelations(next);
+    },
+    [toCanvas, placeBeside],
+  );
   const side = useMemo(
     () => (
       <>
         {seeing && (
           <VisibilityPanel
             relations={relations}
-            onRelations={setRelations}
+            onRelations={showRelations}
             sections={sections}
             veiled={veiled}
             onVeil={setVeiled}
@@ -888,7 +984,16 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         {pickable && failure === null && <ShortcutLegend />}
       </>
     ),
-    [seeing, relations, sections, veiled, closeVisibility, pickable, failure],
+    [
+      seeing,
+      relations,
+      showRelations,
+      sections,
+      veiled,
+      closeVisibility,
+      pickable,
+      failure,
+    ],
   );
   const closeQuick = useCallback(() => setQuick(null), []);
   const quickAdd = useMemo(
@@ -938,7 +1043,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           // With something in hand, what has nothing to do with it steps
           // back: drawn by the page from this, so no such card is told.
           data-in-hand={selection.length > 0 || undefined}
-          style={FAR_NAMES}
+          style={NAME_SCALES}
         >
           {toolbar}
           <Box
@@ -1030,14 +1135,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
                             }),
                           });
                         }}
-                        // Changed on each placement, so the edges fade in anew once
-                        // the cards have moved to where it puts them.
+                        // Changed on each placement that moves a card, so the edges
+                        // fade in anew once the cards are where it puts them.
                         // While a card is dragged, the edges' dashes hold still,
                         // unless dev tools ask for them to run on.
                         className={`${
-                          placements % 2 === 0
-                            ? classes.settled
-                            : classes.resettled
+                          moves % 2 === 0 ? classes.settled : classes.resettled
                         } ${gliding ? classes.gliding : ''} ${
                           dragging && !animateEdgesWhileDragging
                             ? classes.dragging
