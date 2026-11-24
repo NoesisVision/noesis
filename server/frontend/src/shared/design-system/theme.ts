@@ -129,6 +129,12 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       // it steps back to this, a card or a frame, and a line further still.
       '--noesis-diagram-dimmed': '0.3',
       '--noesis-diagram-edge-dimmed': '0.2',
+      // What a design does to an element, on its card: the colours the
+      // change marks and badges take everywhere (CHANGE_COLOUR), filled, so
+      // a mark and an edge read in either scheme.
+      '--noesis-diagram-change-added': 'var(--mantine-color-green-filled)',
+      '--noesis-diagram-change-modified': 'var(--mantine-color-cyan-filled)',
+      '--noesis-diagram-change-removed': 'var(--mantine-color-red-filled)',
       // Their shapes (DIAGRAM_SHAPE), and a card's lift, more under the pointer.
       '--noesis-diagram-card-radius': `${DIAGRAM_SHAPE.cardRadius}px`,
       '--noesis-diagram-pill-radius': `${DIAGRAM_SHAPE.pillRadius}px`,
@@ -172,12 +178,6 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       '--noesis-diagram-related': brand[3],
       // The selection's own relations, drawn over the rest.
       '--noesis-diagram-highlight': brand[6],
-      // What a design does to an element, on its card: the colours the
-      // change marks and badges take everywhere (CHANGE_COLOUR), filled, so
-      // a mark and an edge read in either scheme.
-      '--noesis-diagram-change-added': 'var(--mantine-color-green-filled)',
-      '--noesis-diagram-change-modified': 'var(--mantine-color-cyan-filled)',
-      '--noesis-diagram-change-removed': 'var(--mantine-color-red-filled)',
       // A relation's word sits on a small pill; the pill of the selection's
       // own in its tint. Each kind's own look is in RELATION_EDGES.
       ...edges.light,
