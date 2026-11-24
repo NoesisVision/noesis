@@ -191,7 +191,7 @@ export interface ExplorationViewProps {
 }
 
 /** A design document drawn among the model it changes. */
-export interface ExploredDesign {
+interface ExploredDesign {
   document: DesignDocumentInput;
   /** What it does to each element it names. */
   changes: ReadonlyMap<string, OutlineChange>;

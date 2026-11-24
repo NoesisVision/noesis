@@ -260,10 +260,7 @@
           "author": "agent"
         },
         "needs": {
-          "value": [
-            "rain-discount",
-            "further-weather-discounts"
-          ],
+          "value": ["rain-discount", "further-weather-discounts"],
           "author": "agent"
         }
       },
@@ -282,9 +279,7 @@
           "author": "agent"
         },
         "needs": {
-          "value": [
-            "rain-discount"
-          ],
+          "value": ["rain-discount"],
           "author": "agent"
         }
       },
@@ -303,9 +298,7 @@
           "author": "agent"
         },
         "needs": {
-          "value": [
-            "rain-discount"
-          ],
+          "value": ["rain-discount"],
           "author": "agent"
         }
       },
@@ -324,9 +317,7 @@
           "author": "agent"
         },
         "needs": {
-          "value": [
-            "pricing-without-weather"
-          ],
+          "value": ["pricing-without-weather"],
           "author": "agent"
         }
       },
@@ -345,9 +336,7 @@
           "author": "agent"
         },
         "needs": {
-          "value": [
-            "rain-discount"
-          ],
+          "value": ["rain-discount"],
           "author": "agent"
         }
       },
@@ -366,9 +355,7 @@
           "author": "agent"
         },
         "needs": {
-          "value": [
-            "pricing-without-weather"
-          ],
+          "value": ["pricing-without-weather"],
           "author": "agent"
         }
       },
