@@ -290,7 +290,7 @@ const show = (
 };
 
 /** A behavior the tree has no row for, read on its own. */
-const behavior = (marked = true) => {
+const behavior = (marked = true, doc: DesignDocumentInput = document) => {
   const place = node({
     path: 'behavior|pay.Hold.place',
     kind: 'behavior',
@@ -303,7 +303,7 @@ const behavior = (marked = true) => {
         <ElementDetail
           node={place}
           path={[place]}
-          document={document}
+          document={doc}
           onSelect={() => {}}
           tree={tree}
         />
@@ -736,7 +736,7 @@ describe('ElementDetail', () => {
     expect(html).toMatch(/<button[^>]*>place<\/button>/);
     // Each input by its name and its type, read short.
     expect(html).toMatch(
-      />\(<\/span><span[^>]*>amount: <span[^>]*>Money<\/span><\/span><span[^>]*>\)</,
+      />\(<\/span><span[^>]*>(<[^>]+>)*amount(<\/[^>]+>)*: <span[^>]*>Money<\/span><\/span><span[^>]*>\)</,
     );
     // What it gives back opens its type's row, as its name opens its own.
     expect(html).toMatch(/→ <\/span><button[^>]*data-link[^>]*>Hold<\/button>/);
@@ -828,24 +828,51 @@ describe('ElementDetail', () => {
     expect(scenariosOf(voucher, document)).toEqual([]);
   });
 
-  it("reads a behavior's input and output as one section", () => {
+  it("reads a design's behavior as its signature, as the model's is", () => {
     const html = behavior();
     expect(html.match(/>Input \/ Output</g)).toHaveLength(1);
-    // Each side a list, named by its caption.
-    expect(html).toMatch(/<ul aria-labelledby="[^"]+"/);
-    expect(html).toContain('>Inputs · 1<');
-    expect(html).toContain('>Outputs · 1<');
-    expect(html).toContain('>amount<');
-    expect(html).toContain('>Money<');
-    expect(html).toContain('>Hold<');
+    // As its block's Behaviors list writes it: no boxes, no captions.
+    expect(html).not.toContain('>Inputs · 1<');
+    expect(html).not.toMatch(/<ul aria-labelledby="[^"]+"/);
+    expect(html).toMatch(
+      /<code[^>]*>(<[^>]+>)*\(<\/span>(<[^>]+>)*amount(<\/[^>]+>)*: (<[^>]+>)*Money/,
+    );
+    expect(html).toMatch(/> → <\/span>(<[^>]+>)*Hold</);
+  });
+
+  it('keeps an input the design removes in the signature, struck', () => {
+    const removing = {
+      ...document,
+      relations: {
+        ...document.relations,
+        added: document.relations.added.filter(
+          (relation) => relation.kind !== 'has_input',
+        ),
+        removed: [
+          {
+            kind: 'has_input' as const,
+            from: 'behavior|pay.Hold.place',
+            name: 'amount',
+            to: 'building_block|pay.Money',
+          },
+        ],
+      },
+    } satisfies DesignDocumentInput;
+    const html = behavior(true, removing);
+    expect(html).toMatch(
+      /<span[^>]*data-removed="true"[^>]*>(<[^>]+>)*amount(<\/[^>]+>)*: /,
+    );
+    // What it still gives back is not struck.
+    expect(html).toMatch(/> → <\/span><button[^>]*>(<[^>]+>)*Hold</);
   });
 
   it("reads a model's behavior, with no change to mark, as its signature", () => {
     const html = behavior(false);
     expect(html.match(/>Input \/ Output</g)).toHaveLength(1);
-    // As its block's Behaviors list writes it: no boxes, no captions.
     expect(html).not.toContain('>Inputs · 1<');
-    expect(html).toMatch(/<code[^>]*>(<[^>]+>)*\(<\/span>(<[^>]+>)*amount: /);
+    expect(html).toMatch(
+      /<code[^>]*>(<[^>]+>)*\(<\/span>(<[^>]+>)*amount(<\/[^>]+>)*: /,
+    );
     expect(html).toMatch(/> → <\/span>(<[^>]+>)*Hold</);
   });
 
