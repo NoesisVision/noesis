@@ -1,4 +1,5 @@
 import {
+  IconAffiliate,
   IconBinaryTree2,
   IconFileDescription,
   IconHexagons,
@@ -19,13 +20,14 @@ export const DESIGN_DOCS_TONE = 'violet' satisfies PageTone;
 
 /**
  * The ways a design document is read: as its overview, as a model, as
- * requirements, as hexagons.
+ * requirements, as hexagons, and explored as a diagram among what it touches.
  */
 export const DESIGN_DOC_VIEWS = [
   'overview',
   'model',
   'requirements',
   'architecture',
+  'exploration',
 ] as const;
 export type DesignDocViewName = (typeof DESIGN_DOC_VIEWS)[number];
 
@@ -41,6 +43,7 @@ export const DESIGN_DOC_VIEW_ICONS = {
   model: IconBinaryTree2,
   requirements: IconTarget,
   architecture: IconHexagons,
+  exploration: IconAffiliate,
 } as const satisfies Record<DesignDocViewName, unknown>;
 
 export const isDesignDocView = (value: unknown): value is DesignDocViewName =>

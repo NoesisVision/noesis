@@ -1,10 +1,11 @@
 import { IconBolt } from '@tabler/icons-react';
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { KindIcon } from '#/features/design-docs/ui/model-tree/kind-icon.tsx';
 import type { OutlineNode } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import { VisuallyHidden } from '#/shared/design-system/visually-hidden.tsx';
 import { QualifiedName } from '#/shared/ui/qualified-name.tsx';
 import type { DesignedBehaviorInput } from '#backend/app/design-docs/design-doc.ts';
+import type { PartOwner } from '../../../../design-doc-edit.ts';
 import { valueOf } from '../../../../design-doc-field.ts';
 import {
   CardinalityMark,
@@ -21,6 +22,7 @@ import type { ElementRef } from '../../element-ref.ts';
 import { ElementTooltip } from '../../element-tooltip.tsx';
 import { MarkdownReading } from '../../markdown-reading.tsx';
 import { DetailSection } from './detail-section.tsx';
+import { WritableDeclarationName } from './writable-declaration-box.tsx';
 import classes from './behaviors-section.module.css';
 
 interface BehaviorsSectionProps {
@@ -112,50 +114,76 @@ function BehaviorShape({ behavior }: { behavior: DesignedBehaviorInput }) {
 /**
  * What a behavior takes and gives on a card of its own, as its block's
  * Behaviors list writes it beside its name: for the behavior's own page,
- * whose name and definition are its heading already.
+ * whose name and definition are its heading already. Read wherever the
+ * behavior is — the model as it stands, a design, a card on a canvas —
+ * and, in a design, what it removes is struck rather than left out, and an
+ * input it adds is named in place.
  */
 export function SignatureCard({
   inputs,
   outputs,
+  owner = null,
 }: {
   inputs: readonly ChangeListItem[];
   outputs: readonly ChangeListItem[];
+  /** The behavior, where its inputs may be written; none where they are only read. */
+  owner?: PartOwner | null;
 }) {
   return (
     <div className={`${classes.behavior} ${classes.alone}`}>
       <code className={classes.code}>
         <span className={classes.shape}>
-          <Shape inputs={inputs} outputs={outputs} />
+          <Shape inputs={inputs} outputs={outputs} owner={owner} struck />
         </span>
       </code>
     </div>
   );
 }
 
-/** `(a, b) → C`: the inputs by name, the output by its type's last segment; each says what its type is on hover. */
+/**
+ * `(a: A, b: B) → C`: the inputs by name and type, the output by its type's
+ * last segment; each type says what it is on hover. What the design removes
+ * is left out of a block's list, and struck on the behavior's own page.
+ */
 function Shape({
   inputs: allInputs,
   outputs: allOutputs,
+  owner = null,
+  struck = false,
 }: {
   inputs: readonly ChangeListItem[];
   outputs: readonly ChangeListItem[];
+  owner?: PartOwner | null;
+  /** Keeps what the design removes in the signature, struck. */
+  struck?: boolean;
 }) {
-  const kept = ({ change }: { change: string }) => change !== 'removed';
+  const kept = ({ change }: { change: string }) =>
+    struck || change !== 'removed';
   const inputs = allInputs.filter(kept);
   const outputs = allOutputs.filter(kept);
+  const removed = (change: string) => change === 'removed' || undefined;
   return (
     <>
       <span className={classes.punctuation}>(</span>
-      {inputs.map(({ name, label, type, cardinality, path }, index) => (
-        <Fragment key={label}>
+      {inputs.map((item, index) => (
+        <Fragment key={`${item.change}:${item.label}`}>
           {index > 0 && <span className={classes.punctuation}>, </span>}
           {/* By name, and on hover what its type is: `name: a.b.C`. */}
-          <span className={classes.punctuation}>
-            {name ?? label}:{' '}
+          <span
+            className={classes.punctuation}
+            data-removed={removed(item.change)}
+          >
+            <WritableDeclarationName
+              item={item}
+              kind="parameter"
+              owner={owner}
+              className={classes.inputName}
+            />
+            {': '}
             <OutputType
-              label={type ?? name ?? 'unknown'}
-              cardinality={cardinality}
-              path={path}
+              label={item.type ?? item.name ?? 'unknown'}
+              cardinality={item.cardinality}
+              path={item.path}
             />
           </span>
         </Fragment>
@@ -164,20 +192,33 @@ function Shape({
       {outputs.length > 0 && (
         <>
           <span className={classes.punctuation}> → </span>
-          {outputs.map(({ label, type, cardinality, path }, index) => (
-            <Fragment key={label}>
+          {outputs.map(({ change, label, type, cardinality, path }, index) => (
+            <Fragment key={`${change}:${label}`}>
               {index > 0 && <span className={classes.punctuation}>, </span>}
-              <OutputType
-                label={type ?? label}
-                cardinality={cardinality}
-                path={path}
-              />
+              <Struck removed={change === 'removed'}>
+                <OutputType
+                  label={type ?? label}
+                  cardinality={cardinality}
+                  path={path}
+                />
+              </Struck>
             </Fragment>
           ))}
         </>
       )}
     </>
   );
+}
+
+/** What the design removes, struck; anything else as it is, with nothing round it. */
+function Struck({
+  removed,
+  children,
+}: {
+  removed: boolean;
+  children: ReactNode;
+}) {
+  return removed ? <span data-removed>{children}</span> : children;
 }
 
 /**

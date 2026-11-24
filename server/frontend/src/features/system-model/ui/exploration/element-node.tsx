@@ -1,6 +1,6 @@
 import { type NodeProps, Position } from '@xyflow/react';
 import { type CSSProperties, memo, useContext, useRef } from 'react';
-import { KindIcon } from '#/features/design-docs/element-reader.ts';
+import { ChangeMark, KindIcon } from '#/features/design-docs/element-reader.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { UnstyledButton } from '#/shared/design-system/unstyled-button.tsx';
@@ -89,9 +89,10 @@ const ElementCard = memo(function ElementCard({
   const shape = holds ? undefined : shapeOf(element.kind, element.pattern);
   const bevelled = shape === 'bevel';
   const { state, onSelect } = useSelectionState(element.id);
-  const { badges, noOutput, stepping, onInto, slotsHidden } = useContext(
-    ExplorationReadingContext,
-  );
+  const { badges, changes, noOutput, stepping, onInto, slotsHidden } =
+    useContext(ExplorationReadingContext);
+  // What a design drawn among the model does to it; nothing, on the model's own.
+  const change = changes.get(element.id);
   // The groups of its slots the reader hid on it, said in its name for a
   // reader who cannot see the way to show them in its corner.
   const hid = SLOT_GROUPS.filter((group) => slotsHidden[group].has(element.id));
@@ -111,7 +112,18 @@ const ElementCard = memo(function ElementCard({
   // where it runs out of room, but for a behavior's, which never is.
   const label = (
     <span className={classes.nameLine}>
-      <KindIcon kind={element.kind} pattern={element.pattern} size={16} />
+      {change === undefined ? (
+        <KindIcon kind={element.kind} pattern={element.pattern} size={16} />
+      ) : (
+        // The model tree's mark on the icon, in the change's colour: its
+        // shape says which change as well.
+        <ChangeMark
+          change={change}
+          color={`var(--noesis-diagram-change-${change})`}
+        >
+          <KindIcon kind={element.kind} pattern={element.pattern} size={16} />
+        </ChangeMark>
+      )}
       <Text
         component="span"
         className={classes.name}
@@ -136,7 +148,7 @@ const ElementCard = memo(function ElementCard({
       data-state={holds ? undefined : state}
       aria-pressed={state === 'selected'}
       aria-label={withState(
-        `${element.name}, ${kindWordOf(element)}${hid.length > 0 ? `, ${hiddenSlotsWord(hid)} hidden` : ''}`,
+        `${element.name}, ${kindWordOf(element)}${change === undefined ? '' : `, ${change}`}${hid.length > 0 ? `, ${hiddenSlotsWord(hid)} hidden` : ''}`,
         state,
       )}
       // What the element is, said by the canvas's one tooltip on hover:
@@ -164,6 +176,9 @@ const ElementCard = memo(function ElementCard({
       data-kind={element.kind}
       data-pattern={element.pattern}
       data-state={holds ? state : undefined}
+      // What a design does to it: an edge in the change's colour, and a
+      // removed one faded (exploration.module.css).
+      data-change={change}
       // Where it stands to the selection; with none, it steps back
       // while something is in hand (exploration.module.css).
       data-standing={state}

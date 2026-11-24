@@ -59,6 +59,11 @@ export function ArchitectureDetails(props: ArchitectureDetailsProps) {
       onMinimize={onMinimize}
       eyebrow={body.eyebrow}
       title={body.title}
+      change={
+        subject.kind === 'element'
+          ? modelTree.byPath.get(subject.id)?.change
+          : undefined
+      }
       address={body.address}
     >
       {body.content}

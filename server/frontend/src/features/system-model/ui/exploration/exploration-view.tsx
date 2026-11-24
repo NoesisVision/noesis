@@ -12,6 +12,7 @@ import {
   ChangeMarksContext,
   DesignDocumentContext,
   ElementPanel,
+  type OutlineChange,
 } from '#/features/design-docs/element-reader.ts';
 import { byIdOf } from '#/shared/collections.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
@@ -43,6 +44,7 @@ import { FloatingEdgeView } from '#/shared/ui/diagram-canvas/floating-edge.tsx';
 import type { Rect } from '#/shared/ui/diagram-canvas/geometry.ts';
 import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
+import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
   choiceWithin,
@@ -74,7 +76,7 @@ import { designOf } from '../../system-model.model.ts';
 import { CanvasTooltips } from './canvas-tooltips.tsx';
 import { CardContextMenu } from './card-context-menu.tsx';
 import { ElementNode, type ExplorationNode } from './element-node.tsx';
-import { edgeOf } from './exploration-edges.ts';
+import { depthsOf, edgeHeightOver, edgeOf } from './exploration-edges.ts';
 import { recallChoice, rememberChoice } from './exploration-memory.ts';
 import { ExplorationPicker } from './exploration-picker.tsx';
 import {
@@ -168,12 +170,47 @@ const NAME_SCALES = {
   '--module-top': MODULE_TOP,
 } as CSSProperties;
 
-export function ExplorationView({ model }: { model: SystemModel }) {
+export interface ExplorationViewProps {
+  model: SystemModel;
+  /**
+   * Whose diagram this is: its steps are kept under it. The scan's own id
+   * unless given, so each scan is placed afresh.
+   */
+  diagramId?: string;
+  /**
+   * What the diagram opens on when it has no steps kept. Absent, it opens on
+   * what the reader last chose in any scan's diagram, and keeps their choice
+   * for the next; given, it keeps nothing apart from its steps.
+   */
+  opensOn?: ElementChoice;
+  /**
+   * The design drawn among the model, when it is one: its cards say what it
+   * does to them, and an element it speaks of is read from it.
+   */
+  design?: ExploredDesign;
+}
+
+/** A design document drawn among the model it changes. */
+interface ExploredDesign {
+  document: DesignDocumentInput;
+  /** What it does to each element it names. */
+  changes: ReadonlyMap<string, OutlineChange>;
+  /** The elements it speaks of, read from it rather than from the model. */
+  designed: ReadonlySet<string>;
+}
+
+const NO_CHANGES: ReadonlyMap<string, OutlineChange> = new Map();
+
+export function ExplorationView({
+  model,
+  diagramId = model.id,
+  opensOn,
+  design,
+}: ExplorationViewProps) {
   const {
     features: { animateEdgesWhileDragging },
   } = useDevToolsContext();
   const exploration = useMemo(() => explorationOf(model), [model]);
-  const modelId = model.id;
   const neighbours = useMemo(() => neighboursOf(exploration), [exploration]);
   const elementsById = useMemo(
     () => byIdOf(exploration.elements),
@@ -184,16 +221,19 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // it no longer finds.
   // The steps this model's diagram took, kept on this machine, and the one
   // it was left at, which it opens at again, unplaced.
-  const [opened] = useState(() => recallSteps(model.id, elementsById));
+  const [opened] = useState(() => recallSteps(diagramId, elementsById));
   const opening = opened?.list[opened.at] ?? null;
   const [stored, setChoice] = useState<ElementChoice>(
-    () => opening?.choice ?? recallChoice(),
+    () => opening?.choice ?? opensOn ?? recallChoice(),
   );
   const choice = useMemo(
     () => choiceWithin(stored, exploration),
     [stored, exploration],
   );
-  useEffect(() => rememberChoice(choice), [choice]);
+  const keepsChoice = opensOn === undefined;
+  useEffect(() => {
+    if (keepsChoice) rememberChoice(choice);
+  }, [choice, keepsChoice]);
   const { picks } = choice;
   const hidden = useMemo(
     () => hiddenBy(choice, exploration),
@@ -314,8 +354,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     const list = [...held.list.slice(0, held.at + 1), step].slice(-STEPS);
     steps.current = { ...held, list, at: list.length - 1 };
     setStepAt({ at: list.length - 1, count: list.length });
-    rememberSteps(modelId, steps.current);
-  }, [placements, edits, modelId]);
+    rememberSteps(diagramId, steps.current);
+  }, [placements, edits, diagramId]);
   const goTo = useCallback(
     (by: -1 | 1) => {
       const held = steps.current;
@@ -323,7 +363,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       if (step === undefined) return;
       steps.current = { ...held, at: held.at + by };
       setStepAt({ at: held.at + by, count: held.list.length });
-      rememberSteps(modelId, steps.current);
+      rememberSteps(diagramId, steps.current);
       const {
         stored: choiceNow,
         relations: drawnRelations,
@@ -340,13 +380,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       setRelations(step.relations);
       setSlotsHidden(step.slotsHidden);
     },
-    [restore, modelId],
+    [restore, diagramId],
   );
   // How the edges are drawn, kept with the steps, so a reload draws them so.
   useEffect(() => {
     steps.current = { ...steps.current, edges: { orthogonal, animated } };
-    rememberSteps(modelId, steps.current);
-  }, [orthogonal, animated, modelId]);
+    rememberSteps(diagramId, steps.current);
+  }, [orthogonal, animated, diagramId]);
   const undo = useCallback(() => goTo(-1), [goTo]);
   const redo = useCallback(() => goTo(1), [goTo]);
   // Ctrl+Z, or Cmd+Z on a Mac, goes back a step; with Shift, or Ctrl+Y,
@@ -700,6 +740,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   const reading = useMemo<ExplorationReading>(
     () => ({
       badges: graph.badges,
+      changes: design?.changes ?? NO_CHANGES,
       noOutput: graph.noOutput,
       stepping: steppingBack,
       slots: exploration.slots,
@@ -754,6 +795,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     }),
     [
       graph.badges,
+      design?.changes,
       graph.noOutput,
       steppingBack,
       exploration.slots,
@@ -859,6 +901,10 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [selection, drawn, remove, letGo]);
+  // How deep each card stands, so every edge is drawn over every card,
+  // however deep (exploration-edges.ts).
+  const depthOf = useMemo(() => depthsOf(graph.elements), [graph]);
+  const deepest = useMemo(() => Math.max(0, ...depthOf.values()), [depthOf]);
   const edges = useMemo(() => {
     const own = ({ id }: { id: string }) => related.relations.has(id);
     // The selection's relations last, so drawn over the rest: every edge
@@ -880,14 +926,29 @@ export function ExplorationView({ model }: { model: SystemModel }) {
             : own(relation)
               ? 'highlighted'
               : 'faded',
+        zIndex: edgeHeightOver(relation, depthOf, deepest),
       }),
     );
-  }, [inDetail, orthogonal, animated, selection, related]);
+  }, [inDetail, orthogonal, animated, selection, related, depthOf, deepest]);
 
   /*
    * What lies round the canvas is made once for what it shows, so a card
    * dragged, which draws the view again on each move, draws none of it.
    */
+  // A design drawn among the model, drawn as it opened: what the model was
+  // brought in round it goes, and what of it was taken off comes back. A
+  // step like any other, so Undo brings the rest back.
+  const onlyDesign = useMemo(() => {
+    if (design === undefined || opensOn === undefined) return undefined;
+    const designAlone = choiceWithin(opensOn, exploration);
+    return {
+      drawn: sameChoice(choice, designAlone),
+      onShow: () => {
+        setChoice(designAlone);
+        setSelection([]);
+      },
+    };
+  }, [design, opensOn, exploration, choice]);
   const toolbar = useMemo(
     () => (
       <ExplorationToolbar
@@ -901,11 +962,12 @@ export function ExplorationView({ model }: { model: SystemModel }) {
         drawing={drawing}
         onDrawing={setDrawing}
         onAutoPlace={autoPlace}
+        onlyDesign={onlyDesign}
       >
         <ZoomControls quiet {...zoom.controls} />
       </ExplorationToolbar>
     ),
-    [stepAt, undo, redo, seeing, veiled, drawing, autoPlace, zoom],
+    [stepAt, undo, redo, seeing, veiled, drawing, autoPlace, onlyDesign, zoom],
   );
   const selectionPanel = useMemo(
     () =>
@@ -915,10 +977,11 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           onUnfold={() => setFolded(false)}
           subject={inHand.name}
         >
-          <ElementPanel
+          <InHandPanel
             key={inHand.id}
             id={inHand.id}
-            document={document}
+            model={document}
+            design={design}
             eyebrow={kindWordOf(inHand)}
             title={inHand.name}
             onSelectElement={readFromPanel}
@@ -926,7 +989,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           />
         </DetailsDock>
       ),
-    [inHand, document, readFromPanel, folded],
+    [inHand, document, design, readFromPanel, folded],
   );
   const addAll = useCallback(() => {
     const all = exploration.elements.map(({ id }) => id);
@@ -1184,6 +1247,41 @@ export function ExplorationView({ model }: { model: SystemModel }) {
           </Box>
         </Stack>
       </DiagramThemeContext.Provider>
+    </ChangeMarksContext.Provider>
+  );
+}
+
+/**
+ * The element in hand, read where it is written: from the design, with what
+ * it does to it, when the design speaks of it; else from the model as it
+ * stands, nothing on it marked.
+ */
+function InHandPanel({
+  id,
+  model,
+  design,
+  ...panel
+}: {
+  id: string;
+  model: DesignDocumentInput;
+  design: ExploredDesign | undefined;
+  eyebrow: string;
+  title: string;
+  onSelectElement: (id: string) => void;
+  onMinimize: () => void;
+}) {
+  const fromDesign = design?.designed.has(id) === true;
+  const document = fromDesign ? design.document : model;
+  return (
+    <ChangeMarksContext.Provider value={fromDesign}>
+      <DesignDocumentContext.Provider value={document}>
+        <ElementPanel
+          id={id}
+          document={document}
+          marked={fromDesign}
+          {...panel}
+        />
+      </DesignDocumentContext.Provider>
     </ChangeMarksContext.Provider>
   );
 }

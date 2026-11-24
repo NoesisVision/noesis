@@ -46,8 +46,8 @@ export function WritableDeclarationBox({
   // The name is the declaration's key, with no writer of its own: marked
   // only where a human made the whole declaration.
   const whole = nameFieldsOf(designed);
-  const named = kind !== 'result';
-  if (writable === null || item.key === undefined || !named)
+  // An output has no name of its own to write.
+  if (writable === null || item.key === undefined || kind === 'result')
     return (
       <DeclarationBox
         item={item}
@@ -59,19 +59,12 @@ export function WritableDeclarationBox({
     );
   return (
     <Component className={classes.box} data-output={output || undefined}>
-      {writable.state === 'added' ? (
-        <InlineText
-          label="Name"
-          human={writtenByHuman(whole)}
-          value={item.key}
-          className={clsx(classes.name, humanText(whole))}
-          onSave={(name) => writable.save({ name })}
-        />
-      ) : (
-        <WrittenBy fields={whole}>
-          <span className={classes.name}>{item.name ?? item.key}</span>
-        </WrittenBy>
-      )}
+      <WritableDeclarationName
+        item={item}
+        kind={kind}
+        owner={owner}
+        className={classes.name}
+      />
       {item.type !== undefined && (
         <DeclarationType
           type={item.type}
@@ -81,5 +74,53 @@ export function WritableDeclarationBox({
         />
       )}
     </Component>
+  );
+}
+
+/**
+ * A declaration's name with what may be written of it written in place:
+ * renamed while the design adds it, else read, marked where a human wrote
+ * it. Read alone where the design may not be written. An output has none.
+ */
+export function WritableDeclarationName({
+  item,
+  kind,
+  owner,
+  className,
+}: {
+  item: ChangeListItem;
+  kind: 'property' | 'parameter';
+  owner: PartOwner | null;
+  className?: string;
+}) {
+  const ref =
+    owner === null || item.key === undefined
+      ? null
+      : { kind, id: item.key, owner };
+  const writable = useWritableUnit(ref);
+  const doc = useDesignDocument();
+  const designed = doc === null || ref === null ? null : unitOf(doc, ref);
+  // The name is the declaration's key, with no writer of its own: marked
+  // only where a human made the whole declaration.
+  const whole = nameFieldsOf(designed);
+  const name = item.name ?? item.key ?? item.label;
+  if (writable === null || item.key === undefined)
+    return (
+      <WrittenBy fields={whole}>
+        <span className={className}>{name}</span>
+      </WrittenBy>
+    );
+  return writable.state === 'added' ? (
+    <InlineText
+      label="Name"
+      human={writtenByHuman(whole)}
+      value={item.key}
+      className={clsx(className, humanText(whole))}
+      onSave={(next) => writable.save({ name: next })}
+    />
+  ) : (
+    <WrittenBy fields={whole}>
+      <span className={className}>{name}</span>
+    </WrittenBy>
   );
 }

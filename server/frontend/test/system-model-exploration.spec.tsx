@@ -987,6 +987,77 @@ describe('the selection', () => {
     ]);
   });
 
+  it('marks a card with what a design does to it, and no card of the model', () => {
+    const graph = draw([]);
+    const line = graph.elements.find(
+      ({ id }) => id === 'building_block|shop.orders.Line',
+    )!;
+    const Node = ElementNode as unknown as (props: {
+      id: string;
+      data: unknown;
+    }) => React.ReactNode;
+    const render = (changes: ReadonlyMap<string, 'added' | 'removed'>) =>
+      renderToStaticMarkup(
+        <MantineProvider>
+          <ReactFlowProvider>
+            <DesignDocumentContext.Provider value={designOf(model)}>
+              <ExplorationReadingContext.Provider
+                value={{
+                  badges: graph.badges,
+                  changes,
+                  noOutput: graph.noOutput,
+                  stepping: {
+                    steppedBackFrom: new Map(),
+                    hollowFrom: new Map(),
+                  },
+                  slots: exploration.slots,
+                  onGoTo: () => {},
+                  onInto: () => false,
+                  onSelect: () => {},
+                  onLetGo: () => {},
+                  drawn: new Set([line.id]),
+                  neighbours: neighboursOf(exploration),
+                  elements: new Map(
+                    exploration.elements.map((each) => [each.id, each]),
+                  ),
+                  onShow: () => {},
+                  onDraw: () => {},
+                  onArrange: () => {},
+                  slotGroups: new Map(),
+                  slotsHidden: NO_SLOTS_HIDDEN,
+                  onToggleSlots: () => {},
+                }}
+              >
+                <Node
+                  id={line.id}
+                  data={{
+                    placed: {
+                      element: line,
+                      holds: false,
+                      x: 0,
+                      y: 0,
+                      width: 150,
+                      height: 52,
+                    },
+                  }}
+                />
+              </ExplorationReadingContext.Provider>
+            </DesignDocumentContext.Provider>
+          </ReactFlowProvider>
+        </MantineProvider>,
+      );
+    const unmarked = render(new Map());
+    expect(unmarked).not.toContain('data-change');
+    expect(unmarked).not.toMatch(/aria-label="Line,[^"]*added/);
+    const added = render(new Map([[line.id, 'added']]));
+    expect(added).toMatch(/data-part="holder"[^>]*data-change="added"/);
+    expect(added).toMatch(/aria-label="Line, [^"]*, added"/);
+    expect(added).toContain('var(--noesis-diagram-change-added)');
+    expect(render(new Map([[line.id, 'removed']]))).toMatch(
+      /aria-label="Line, [^"]*, removed"/,
+    );
+  });
+
   it('draws a card as a button that says where it stands to the selection', () => {
     const graph = draw([]);
     const line = graph.elements.find(
@@ -1006,6 +1077,7 @@ describe('the selection', () => {
               <ExplorationReadingContext.Provider
                 value={{
                   badges: graph.badges,
+                  changes: new Map(),
                   noOutput: graph.noOutput,
                   stepping: {
                     steppedBackFrom: new Map(),
@@ -1097,6 +1169,7 @@ it('marks what steps back from further off, and gives each card what its name is
             <ExplorationReadingContext.Provider
               value={{
                 badges: graph.badges,
+                changes: new Map(),
                 noOutput: graph.noOutput,
                 stepping: {
                   steppedBackFrom: new Map([[PLACE, 'blocks']]),
@@ -1636,6 +1709,7 @@ describe('slots drawn on the cards that hold them', () => {
               <ExplorationReadingContext.Provider
                 value={{
                   badges: graph.badges,
+                  changes: new Map(),
                   noOutput: graph.noOutput,
                   stepping: {
                     steppedBackFrom: new Map(),

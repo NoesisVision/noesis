@@ -156,3 +156,31 @@
 [data-glance] .definition {
   padding-left: 28px;
 }
+
+/* What the design removes, on the behavior's own page: struck, as its box was. */
+.code [data-removed] {
+  text-decoration: line-through;
+}
+
+/*
+ * An input's name, written in place where the design adds it: in the
+ * line's own type, not a button's. Its pencil and figure keep no room at
+ * its end, which would open a gap before the colon; shown on hover, they
+ * stand over its end, clear of the line. Being written, its edge takes
+ * room of its own rather than lying over the brackets and colon round it.
+ */
+.code .inputName {
+  font: inherit;
+  padding-inline-end: 0;
+
+  & > [data-count] {
+    top: 0;
+    right: -6px;
+    translate: 50% -85%;
+  }
+
+  &[contenteditable] {
+    margin: -3px 2px;
+    padding: 2px 4px;
+  }
+}

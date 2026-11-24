@@ -7,6 +7,7 @@ import { ArchitectureView } from './architecture/architecture-view.tsx';
 import { DesignDocOverview } from './design-doc-overview.tsx';
 import { DesignDocSurface } from './design-doc-surface.tsx';
 import { DesignDocWorkbench } from './design-doc-workbench.tsx';
+import { DesignDocExploration } from './exploration/design-doc-exploration.tsx';
 import { RequirementsView } from './requirements/requirements-view.tsx';
 import { UnitEditor } from './unit-editor/unit-editor.tsx';
 import type { ViewPlace } from './view-place.ts';
@@ -15,7 +16,7 @@ import { ViewSwitch } from './view-switch.tsx';
 export interface DesignDocDetailProps {
   changeId: string;
   id: string;
-  /** Whether the document is read as its overview, a model, requirements or hexagons. */
+  /** Whether the document is read as its overview, a model, requirements, hexagons or explored. */
   view: DesignDocViewName;
   onView: (view: DesignDocViewName) => void;
   /** Opens the view a link in the overview names, on what it names. */
@@ -70,6 +71,12 @@ export function DesignDocDetail({
           />
         ) : view === 'architecture' ? (
           <ArchitectureView key={id} detail={document.data} {...architecture} />
+        ) : view === 'exploration' ? (
+          <DesignDocExploration
+            key={id}
+            changeId={changeId}
+            detail={document.data}
+          />
         ) : (
           <DesignDocWorkbench key={id} detail={document.data} {...model} />
         )}

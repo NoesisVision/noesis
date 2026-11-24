@@ -8,8 +8,9 @@ import { ElementBody } from './element-body.tsx';
 /**
  * One element of a model read on a canvas, as the architecture's panel reads
  * one: what it is and its name — where it sits the canvas shows, drawn
- * inside what holds it — then its body as the model reads it. For a model
- * read as it stands, so nothing in it is a change.
+ * inside what holds it — then its body as the model reads it. A model read
+ * as it stands has nothing in it that is a change; a design, marked, says
+ * what it does to each element.
  */
 export function ElementPanel({
   id,
@@ -18,9 +19,12 @@ export function ElementPanel({
   title,
   onSelectElement,
   onMinimize,
+  marked = false,
 }: {
   id: string;
   document: DesignDocumentInput;
+  /** Whether what the document does to each element is said; a model read as it stands says nothing. */
+  marked?: boolean;
   eyebrow: string;
   title: string;
   onSelectElement: (id: string) => void;
@@ -30,12 +34,14 @@ export function ElementPanel({
   const modelTree = useMemo(
     () =>
       outlineTree(
-        outlineOf(document).map((node) => ({
-          ...node,
-          change: 'unchanged' as const,
-        })),
+        marked
+          ? outlineOf(document)
+          : outlineOf(document).map((node) => ({
+              ...node,
+              change: 'unchanged' as const,
+            })),
       ),
-    [document],
+    [document, marked],
   );
   return (
     <DetailsPanel
@@ -46,6 +52,7 @@ export function ElementPanel({
       glance
       eyebrow={eyebrow}
       title={title}
+      change={modelTree.byPath.get(id)?.change}
     >
       <ElementBody id={id} document={document} modelTree={modelTree} />
     </DetailsPanel>

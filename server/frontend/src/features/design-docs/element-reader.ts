@@ -5,6 +5,8 @@ export {
   markWordOf,
 } from './ui/element-details/cardinality-mark.tsx';
 export { ChangeMarksContext } from './ui/element-details/change-marks-context.ts';
+export { ChangeMark } from './ui/model-tree/change-mark.tsx';
+export type { OutlineChange } from './ui/model-tree/model-outline.ts';
 export { ElementPanel } from './ui/architecture/element-panel.tsx';
 export { DesignDocumentContext } from './ui/element-details/design-document-context.ts';
 export { ElementTooltip } from './ui/element-details/element-tooltip.tsx';

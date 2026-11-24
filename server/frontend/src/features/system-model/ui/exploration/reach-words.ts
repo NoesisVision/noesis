@@ -15,6 +15,9 @@ const shortKindOf = (kind: string) =>
 /** What setting everything out again says, on the toolbar. */
 export const REORDER_DIAGRAM = 'Reorder diagram';
 
+/** What drawing a design alone again says, on the toolbar: without the model brought in round it. */
+export const ONLY_THE_DESIGN = 'Only the design';
+
 /** What setting out again what a frame holds says, in its menu: "Reorder module". */
 export const reorderLabel = (frame: { kind: string }) =>
   `Reorder ${shortKindOf(frame.kind)}`;

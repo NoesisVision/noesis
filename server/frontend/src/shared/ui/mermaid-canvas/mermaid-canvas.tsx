@@ -11,6 +11,7 @@ import {
   Panel,
   ReactFlow,
   type ReactFlowInstance,
+  ReactFlowProvider,
   useKeyPress,
 } from '@xyflow/react';
 import { clsx } from 'clsx';
@@ -407,132 +408,136 @@ export function MermaidCanvas({
         }}
       >
         <Markers id={markers} />
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={NODE_TYPES}
-          edgeTypes={EDGE_TYPES}
-          colorMode={scheme}
-          fitView
-          fitViewOptions={fit}
-          minZoom={0.2}
-          maxZoom={3}
-          nodesDraggable={false}
-          {...CANVAS_FLOW}
-          // Inline, the wheel scrolls the page; a pinch, or Ctrl/Cmd and the
-          // wheel, zooms. Full screen, the wheel zooms.
-          zoomOnScroll={wheelZooms}
-          preventScrolling={wheelZooms}
-          zoomOnPinch
-          panOnDrag
-          onPaneClick={letGo}
-          onInit={(instance) => {
-            setFlow(instance as unknown as ReactFlowInstance);
-            zoom.readZoom(instance);
-          }}
-          onMove={zoom.onMove}
-        >
-          <Background {...DOT_GRID} />
-          <Panel position="top-right" className={classes.corner}>
-            <Box className={classes.toolbar}>
-              {steps.length > 0 && (
-                <>
+        {/* A diagram of its own wherever it is drawn: inside another
+            canvas's panel it would otherwise draw into that canvas. */}
+        <ReactFlowProvider>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={NODE_TYPES}
+            edgeTypes={EDGE_TYPES}
+            colorMode={scheme}
+            fitView
+            fitViewOptions={fit}
+            minZoom={0.2}
+            maxZoom={3}
+            nodesDraggable={false}
+            {...CANVAS_FLOW}
+            // Inline, the wheel scrolls the page; a pinch, or Ctrl/Cmd and the
+            // wheel, zooms. Full screen, the wheel zooms.
+            zoomOnScroll={wheelZooms}
+            preventScrolling={wheelZooms}
+            zoomOnPinch
+            panOnDrag
+            onPaneClick={letGo}
+            onInit={(instance) => {
+              setFlow(instance as unknown as ReactFlowInstance);
+              zoom.readZoom(instance);
+            }}
+            onMove={zoom.onMove}
+          >
+            <Background {...DOT_GRID} />
+            <Panel position="top-right" className={classes.corner}>
+              <Box className={classes.toolbar}>
+                {steps.length > 0 && (
+                  <>
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      size="lg"
+                      aria-label={playing ? 'Pause' : 'Play the steps'}
+                      title={playing ? 'Pause' : 'Play the steps'}
+                      onClick={() => (playing ? setPlaying(false) : play())}
+                    >
+                      {playing ? (
+                        <IconPlayerPause size={18} stroke={1.6} aria-hidden />
+                      ) : (
+                        <IconPlayerPlay size={18} stroke={1.6} aria-hidden />
+                      )}
+                    </ActionIcon>
+                    {step !== null && (
+                      <>
+                        <ActionIcon
+                          variant="subtle"
+                          color="gray"
+                          size="lg"
+                          aria-label="Back to step 1"
+                          title="Back to step 1"
+                          disabled={step === 0}
+                          // Playing, it plays on from the start; paused, it waits there.
+                          onClick={() => setStep(0)}
+                        >
+                          <IconPlayerSkipBack
+                            size={18}
+                            stroke={1.6}
+                            aria-hidden
+                          />
+                        </ActionIcon>
+                        <ActionIcon
+                          variant="subtle"
+                          color="gray"
+                          size="lg"
+                          aria-label="Previous step"
+                          title="Previous step"
+                          disabled={step === 0}
+                          onClick={() => goTo(step - 1)}
+                        >
+                          <IconPlayerTrackPrev
+                            size={18}
+                            stroke={1.6}
+                            aria-hidden
+                          />
+                        </ActionIcon>
+                        <ActionIcon
+                          variant="subtle"
+                          color="gray"
+                          size="lg"
+                          aria-label="Next step"
+                          title="Next step"
+                          disabled={step === last}
+                          onClick={() => goTo(step + 1)}
+                        >
+                          <IconPlayerTrackNext
+                            size={18}
+                            stroke={1.6}
+                            aria-hidden
+                          />
+                        </ActionIcon>
+                        <Text
+                          component="span"
+                          size="xs"
+                          className={classes.count}
+                        >
+                          {step + 1} / {steps.length}
+                        </Text>
+                      </>
+                    )}
+                    <span className={classes.divider} aria-hidden />
+                  </>
+                )}
+                <ZoomControls quiet {...zoom.controls} />
+                {onFullScreen !== undefined && (
                   <ActionIcon
                     variant="subtle"
                     color="gray"
                     size="lg"
-                    aria-label={playing ? 'Pause' : 'Play the steps'}
-                    title={playing ? 'Pause' : 'Play the steps'}
-                    onClick={() => (playing ? setPlaying(false) : play())}
+                    aria-label="Open diagram full screen"
+                    title="Open diagram full screen"
+                    onClick={onFullScreen}
                   >
-                    {playing ? (
-                      <IconPlayerPause size={18} stroke={1.6} aria-hidden />
-                    ) : (
-                      <IconPlayerPlay size={18} stroke={1.6} aria-hidden />
-                    )}
+                    <IconMaximize size={18} stroke={1.6} aria-hidden />
                   </ActionIcon>
-                  {step !== null && (
-                    <>
-                      <ActionIcon
-                        variant="subtle"
-                        color="gray"
-                        size="lg"
-                        aria-label="Back to step 1"
-                        title="Back to step 1"
-                        disabled={step === 0}
-                        // Playing, it plays on from the start; paused, it waits there.
-                        onClick={() => setStep(0)}
-                      >
-                        <IconPlayerSkipBack
-                          size={18}
-                          stroke={1.6}
-                          aria-hidden
-                        />
-                      </ActionIcon>
-                      <ActionIcon
-                        variant="subtle"
-                        color="gray"
-                        size="lg"
-                        aria-label="Previous step"
-                        title="Previous step"
-                        disabled={step === 0}
-                        onClick={() => goTo(step - 1)}
-                      >
-                        <IconPlayerTrackPrev
-                          size={18}
-                          stroke={1.6}
-                          aria-hidden
-                        />
-                      </ActionIcon>
-                      <ActionIcon
-                        variant="subtle"
-                        color="gray"
-                        size="lg"
-                        aria-label="Next step"
-                        title="Next step"
-                        disabled={step === last}
-                        onClick={() => goTo(step + 1)}
-                      >
-                        <IconPlayerTrackNext
-                          size={18}
-                          stroke={1.6}
-                          aria-hidden
-                        />
-                      </ActionIcon>
-                      <Text
-                        component="span"
-                        size="xs"
-                        className={classes.count}
-                      >
-                        {step + 1} / {steps.length}
-                      </Text>
-                    </>
-                  )}
-                  <span className={classes.divider} aria-hidden />
-                </>
-              )}
-              <ZoomControls quiet {...zoom.controls} />
-              {onFullScreen !== undefined && (
-                <ActionIcon
-                  variant="subtle"
-                  color="gray"
-                  size="lg"
-                  aria-label="Open diagram full screen"
-                  title="Open diagram full screen"
-                  onClick={onFullScreen}
-                >
-                  <IconMaximize size={18} stroke={1.6} aria-hidden />
-                </ActionIcon>
-              )}
-            </Box>
-            {/* The step's words under the controls, said as it changes. */}
-            <Box className={classes.caption} aria-live="polite">
-              {step !== null &&
-                (graph.lines.find((line) => line.id === steps[step])?.label ??
-                  `Step ${step + 1}`)}
-            </Box>
-          </Panel>
-        </ReactFlow>
+                )}
+              </Box>
+              {/* The step's words under the controls, said as it changes. */}
+              <Box className={classes.caption} aria-live="polite">
+                {step !== null &&
+                  (graph.lines.find((line) => line.id === steps[step])?.label ??
+                    `Step ${step + 1}`)}
+              </Box>
+            </Panel>
+          </ReactFlow>
+        </ReactFlowProvider>
       </Box>
     </ReadingContext.Provider>
   );

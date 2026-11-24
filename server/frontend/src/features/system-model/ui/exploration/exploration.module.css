@@ -1152,3 +1152,98 @@
   font-size: var(--mantine-font-size-sm);
   font-weight: 700;
 }
+
+/*
+ * What a design drawn among the model does to an element (data-change): a
+ * card filled with a faint wash of the change's colour and edged a shade
+ * stronger, read at a glance from any zoom; the mark on its icon says
+ * which change by its shape too. A bevelled card takes both on its face and
+ * its edge, which keep to its cut corners. A frame is not filled — it would
+ * wash everything it holds, the model brought in round the design too — so
+ * its edge alone is in the colour. Selected, related or on the way to the
+ * selection, a card keeps the edge that says so; its fill stays. A card the
+ * design leaves alone, and every card of the model as it stands, has none.
+ */
+.holder[data-change='added'],
+.container[data-change='added'] {
+  --change: var(--noesis-diagram-change-added);
+  --change-ink: var(--noesis-diagram-change-added-ink);
+}
+
+.holder[data-change='modified'],
+.container[data-change='modified'] {
+  --change: var(--noesis-diagram-change-modified);
+  --change-ink: var(--noesis-diagram-change-modified-ink);
+}
+
+.holder[data-change='removed'],
+.container[data-change='removed'] {
+  --change: var(--noesis-diagram-change-removed);
+  --change-ink: var(--noesis-diagram-change-removed-ink);
+}
+
+.holder[data-change] {
+  --change-fill: color-mix(
+    in srgb,
+    var(--change) var(--noesis-diagram-change-fill),
+    var(--noesis-diagram-card)
+  );
+  --change-edge: color-mix(
+    in srgb,
+    var(--change) var(--noesis-diagram-change-edge),
+    var(--noesis-diagram-card-border)
+  );
+}
+
+.exploration .holder[data-change] .card {
+  /* A bevelled card's face and edge (diagram-shapes.module.css). */
+  --shape-fill: var(--change-fill);
+  --shape-edge: var(--change-edge);
+
+  /* Any other card's own box, which a bevelled one leaves bare. */
+  &:not([data-shape='bevel']) {
+    background-color: var(--change-fill);
+  }
+
+  &:not([data-shape='bevel'], [data-state]) {
+    border-color: var(--change-edge);
+  }
+}
+
+.exploration .container[data-change]:not([data-state]) {
+  border-color: var(--change);
+}
+
+/*
+ * The icons on a changed card, gray on any other, in its change's colour:
+ * its kind's icon — but for a command's, an event's or a query's, which
+ * have colours of their own — its menu and its way off the diagram, and
+ * the button for what it contains. A shade that holds on the fill what the
+ * gray holds on a plain card (theme.ts). A frame's own, never those of the
+ * cards drawn inside it.
+ */
+.exploration .holder[data-change] > .card .nameLine svg:not([data-tone]),
+.exploration .container[data-change] > .frameTop .nameLine svg:not([data-tone]),
+.exploration :is(.holder, .container)[data-change] > .corner button,
+.exploration :is(.holder, .container)[data-change] > .contains {
+  color: var(--change-ink);
+}
+
+/* The mark's ring in the colour of what it sits on: the card's fill. */
+.exploration .holder[data-change] .nameLine {
+  --change-ring: var(--change-fill);
+}
+
+/*
+ * What the design removes stays, to be seen going: faded, its name struck.
+ * In hand, it is read in full.
+ */
+.holder[data-change='removed'] > .card:not([data-state='selected']),
+.container[data-change='removed']:not([data-state='selected']) > .frameTop {
+  opacity: 0.5;
+}
+
+.holder[data-change='removed'] > .card .name,
+.container[data-change='removed'] > .frameTop .name {
+  text-decoration: line-through;
+}
