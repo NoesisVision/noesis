@@ -172,6 +172,12 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       '--noesis-diagram-related': brand[3],
       // The selection's own relations, drawn over the rest.
       '--noesis-diagram-highlight': brand[6],
+      // What a design does to an element, on its card: the colours the
+      // change marks and badges take everywhere (CHANGE_COLOUR), filled, so
+      // a mark and an edge read in either scheme.
+      '--noesis-diagram-change-added': 'var(--mantine-color-green-filled)',
+      '--noesis-diagram-change-modified': 'var(--mantine-color-cyan-filled)',
+      '--noesis-diagram-change-removed': 'var(--mantine-color-red-filled)',
       // A relation's word sits on a small pill; the pill of the selection's
       // own in its tint. Each kind's own look is in RELATION_EDGES.
       ...edges.light,

@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo } from 'react';
+import type { OutlineChange } from '#/features/design-docs/element-reader.ts';
 import { createStore, type Store, useStoreValue } from '#/shared/store.ts';
 import type {
   Badge,
@@ -48,6 +49,12 @@ export const ExplorationSelectionContext = createContext<
 export interface ExplorationReading {
   /** Each card's slots, drawn on it. */
   badges: ReadonlyMap<string, readonly Badge[]>;
+  /**
+   * What a design drawn among the model does to each element it names; an
+   * element it leaves alone, and every one of a model read as it stands,
+   * is absent.
+   */
+  changes: ReadonlyMap<string, OutlineChange>;
   /** The behaviors drawn that give nothing back, which their signatures say. */
   noOutput: ReadonlySet<string>;
   /**
@@ -102,6 +109,7 @@ export interface ExplorationReading {
 
 export const ExplorationReadingContext = createContext<ExplorationReading>({
   badges: new Map(),
+  changes: new Map(),
   noOutput: new Set(),
   stepping: { steppedBackFrom: new Map(), hollowFrom: new Map() },
   slots: { of: new Map(), behaviors: new Map() },

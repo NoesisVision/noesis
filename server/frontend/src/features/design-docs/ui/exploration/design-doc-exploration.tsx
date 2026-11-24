@@ -62,12 +62,22 @@ function OverlaidExploration({
   // starting the diagram again.
   const overlay = useMemo(() => overlayOf(model, document), [model, document]);
   // What it opens on is read once: a diagram with steps kept opens on those.
-  const [opensOn] = useState(() => opensOnOf(document, overlay));
+  const [opensOn] = useState(() => opensOnOf(overlay));
+  // Its cards say what it does to them, and what it speaks of is read from it.
+  const design = useMemo(
+    () => ({
+      document,
+      changes: overlay.changes,
+      designed: overlay.designed,
+    }),
+    [document, overlay],
+  );
   return (
     <ExplorationView
       model={overlay.model}
       diagramId={`design-doc.${changeId}.${document.id}`}
       opensOn={opensOn}
+      design={design}
     />
   );
 }

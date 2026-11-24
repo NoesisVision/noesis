@@ -1152,3 +1152,57 @@
   font-size: var(--mantine-font-size-sm);
   font-weight: 700;
 }
+
+/*
+ * What a design drawn among the model does to an element (data-change): an
+ * edge down the card's left side in the change's colour, read from any
+ * zoom, frames included; the mark on its icon says which change by its
+ * shape too. Drawn as the card's own background, so it keeps to the card's
+ * corners — a bevelled card's on its face, which keeps to the cut ones —
+ * and leaves the shadows the hover and the selection take alone. A card
+ * the design leaves alone, and every card of the model as it stands, has
+ * none.
+ */
+.holder[data-change='added'],
+.container[data-change='added'] {
+  --change: var(--noesis-diagram-change-added);
+}
+
+.holder[data-change='modified'],
+.container[data-change='modified'] {
+  --change: var(--noesis-diagram-change-modified);
+}
+
+.holder[data-change='removed'],
+.container[data-change='removed'] {
+  --change: var(--noesis-diagram-change-removed);
+}
+
+.exploration .holder[data-change] .card:not([data-shape='bevel']),
+.exploration .holder[data-change] .card [data-part='face'],
+.exploration .container[data-change] {
+  background-image: linear-gradient(
+    to right,
+    var(--change) var(--noesis-diagram-change-edge, 4px),
+    transparent var(--noesis-diagram-change-edge, 4px)
+  );
+}
+
+/* The mark's ring in the colour of what it sits on, the card. */
+.exploration [data-change] .nameLine {
+  --change-ring: var(--noesis-diagram-card);
+}
+
+/*
+ * What the design removes stays, to be seen going: faded, its name struck.
+ * In hand, it is read in full.
+ */
+.holder[data-change='removed'] > .card:not([data-state='selected']),
+.container[data-change='removed']:not([data-state='selected']) > .frameTop {
+  opacity: 0.5;
+}
+
+.holder[data-change='removed'] > .card .name,
+.container[data-change='removed'] > .frameTop .name {
+  text-decoration: line-through;
+}

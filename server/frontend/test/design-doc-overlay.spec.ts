@@ -157,9 +157,30 @@ describe('A design laid over the model', () => {
   });
 });
 
+describe('What a design speaks of', () => {
+  it('is every card it names, and nothing it leaves alone', () => {
+    const { designed } = overlayOf(model, design);
+    for (const id of [WEATHER, GET_CURRENT, CONDITIONS, WEATHER_MODULE])
+      expect(designed.has(id)).toBe(true);
+    expect(designed.has(DISCOUNT)).toBe(false);
+  });
+
+  it('takes in what a changed relation hangs from, never a rule', () => {
+    const { designed } = overlayOf(
+      model,
+      designOf({
+        relations: {
+          added: [{ kind: 'extends', from: DISCOUNT, to: CONDITIONS }],
+        },
+      }),
+    );
+    expect([...designed]).toEqual([DISCOUNT]);
+  });
+});
+
 describe('What the exploration of a design opens on', () => {
   const overlay = overlayOf(model, design);
-  const { added } = opensOnOf(design, overlay).picks;
+  const { added } = opensOnOf(overlay).picks;
 
   it('draws every element the design names, and what holds it', () => {
     for (const id of [WEATHER, GET_CURRENT, PROVIDER, CONDITIONS, CALCULATION])
@@ -173,18 +194,20 @@ describe('What the exploration of a design opens on', () => {
 
   it('draws the element a changed relation hangs from', () => {
     const { picks } = opensOnOf(
-      designOf({
-        relations: {
-          added: [
-            {
-              kind: 'extends',
-              from: DISCOUNT,
-              to: CONDITIONS,
-            },
-          ],
-        },
-      }),
-      overlayOf(model, designOf({})),
+      overlayOf(
+        model,
+        designOf({
+          relations: {
+            added: [
+              {
+                kind: 'extends',
+                from: DISCOUNT,
+                to: CONDITIONS,
+              },
+            ],
+          },
+        }),
+      ),
     );
     expect(picks.added.has(DISCOUNT)).toBe(true);
     expect(picks.added.has(CONDITIONS)).toBe(false);

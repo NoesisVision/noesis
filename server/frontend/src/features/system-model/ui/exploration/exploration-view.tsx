@@ -12,6 +12,7 @@ import {
   ChangeMarksContext,
   DesignDocumentContext,
   ElementPanel,
+  type OutlineChange,
 } from '#/features/design-docs/element-reader.ts';
 import { byIdOf } from '#/shared/collections.ts';
 import { Alert } from '#/shared/design-system/alert.tsx';
@@ -43,6 +44,7 @@ import { FloatingEdgeView } from '#/shared/ui/diagram-canvas/floating-edge.tsx';
 import type { Rect } from '#/shared/ui/diagram-canvas/geometry.ts';
 import { useEvenCtrlZoom } from '#/shared/ui/diagram-canvas/use-even-ctrl-zoom.ts';
 import { ZoomControls } from '#/shared/ui/zoom-controls.tsx';
+import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
 import type { SystemModel } from '#backend/app/system-model/system-model.ts';
 import {
   choiceWithin,
@@ -181,12 +183,29 @@ export interface ExplorationViewProps {
    * for the next; given, it keeps nothing apart from its steps.
    */
   opensOn?: ElementChoice;
+  /**
+   * The design drawn among the model, when it is one: its cards say what it
+   * does to them, and an element it speaks of is read from it.
+   */
+  design?: ExploredDesign;
 }
+
+/** A design document drawn among the model it changes. */
+export interface ExploredDesign {
+  document: DesignDocumentInput;
+  /** What it does to each element it names. */
+  changes: ReadonlyMap<string, OutlineChange>;
+  /** The elements it speaks of, read from it rather than from the model. */
+  designed: ReadonlySet<string>;
+}
+
+const NO_CHANGES: ReadonlyMap<string, OutlineChange> = new Map();
 
 export function ExplorationView({
   model,
   diagramId = model.id,
   opensOn,
+  design,
 }: ExplorationViewProps) {
   const {
     features: { animateEdgesWhileDragging },
@@ -721,6 +740,7 @@ export function ExplorationView({
   const reading = useMemo<ExplorationReading>(
     () => ({
       badges: graph.badges,
+      changes: design?.changes ?? NO_CHANGES,
       noOutput: graph.noOutput,
       stepping: steppingBack,
       slots: exploration.slots,
@@ -775,6 +795,7 @@ export function ExplorationView({
     }),
     [
       graph.badges,
+      design?.changes,
       graph.noOutput,
       steppingBack,
       exploration.slots,
@@ -936,10 +957,11 @@ export function ExplorationView({
           onUnfold={() => setFolded(false)}
           subject={inHand.name}
         >
-          <ElementPanel
+          <InHandPanel
             key={inHand.id}
             id={inHand.id}
-            document={document}
+            model={document}
+            design={design}
             eyebrow={kindWordOf(inHand)}
             title={inHand.name}
             onSelectElement={readFromPanel}
@@ -947,7 +969,7 @@ export function ExplorationView({
           />
         </DetailsDock>
       ),
-    [inHand, document, readFromPanel, folded],
+    [inHand, document, design, readFromPanel, folded],
   );
   const addAll = useCallback(() => {
     const all = exploration.elements.map(({ id }) => id);
@@ -1205,6 +1227,41 @@ export function ExplorationView({
           </Box>
         </Stack>
       </DiagramThemeContext.Provider>
+    </ChangeMarksContext.Provider>
+  );
+}
+
+/**
+ * The element in hand, read where it is written: from the design, with what
+ * it does to it, when the design speaks of it; else from the model as it
+ * stands, nothing on it marked.
+ */
+function InHandPanel({
+  id,
+  model,
+  design,
+  ...panel
+}: {
+  id: string;
+  model: DesignDocumentInput;
+  design: ExploredDesign | undefined;
+  eyebrow: string;
+  title: string;
+  onSelectElement: (id: string) => void;
+  onMinimize: () => void;
+}) {
+  const fromDesign = design?.designed.has(id) === true;
+  const document = fromDesign ? design.document : model;
+  return (
+    <ChangeMarksContext.Provider value={fromDesign}>
+      <DesignDocumentContext.Provider value={document}>
+        <ElementPanel
+          id={id}
+          document={document}
+          marked={fromDesign}
+          {...panel}
+        />
+      </DesignDocumentContext.Provider>
     </ChangeMarksContext.Provider>
   );
 }

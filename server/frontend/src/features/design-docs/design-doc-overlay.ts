@@ -15,11 +15,7 @@ import type {
   SourceLocation,
   SystemModel,
 } from '#backend/app/system-model/system-model.ts';
-import {
-  type ChangeSetInput,
-  changed,
-  pointingRelations,
-} from './change-set.ts';
+import { type ChangeSetInput, changed } from './change-set.ts';
 import { type DesignDocFieldInput, valueOf } from './design-doc-field.ts';
 import {
   CONTAINING_RELATION,
@@ -47,6 +43,12 @@ export interface DesignOverlay {
   model: SystemModel;
   /** What the design does to each element it names; an element it leaves alone is absent. */
   changes: ReadonlyMap<string, OutlineChange>;
+  /**
+   * The elements drawn as cards that the design speaks of: those it adds,
+   * modifies or removes, and those a relation it changes hangs from. Read
+   * from the design, where the rest is read from the model.
+   */
+  designed: ReadonlySet<string>;
 }
 
 /** Where an element the design adds was found: nowhere yet. */
@@ -188,6 +190,15 @@ function mergedRelations(
   ];
 }
 
+/** The elements an exploration draws, as cards. */
+const CARD_KINDS: ReadonlySet<string> = new Set([
+  'module',
+  'building_block',
+  'behavior',
+  'actor',
+  'manual_process',
+]);
+
 export function overlayOf(
   model: SystemModel,
   doc: DesignDocumentInput,
@@ -309,7 +320,26 @@ export function overlayOf(
     } as Relation);
   }
 
+  // What the design speaks of, drawn as cards: what it names, and what a
+  // relation it changes hangs from.
+  const cards = new Set<string>(
+    [...held, ...actors, ...manualProcesses].map((each) =>
+      typeof each === 'string' ? each : each.id,
+    ),
+  );
+  const owners = [
+    ...(doc.relations?.added ?? []),
+    ...(doc.relations?.modified ?? []),
+    ...(doc.relations?.removed ?? []),
+  ].map(({ from }) => from);
+  const designed = new Set(
+    [...changes.keys(), ...owners].filter(
+      (id) => cards.has(id) && CARD_KINDS.has(kindOf(id)),
+    ),
+  );
+
   return {
+    designed,
     model: {
       ...model,
       modules,
@@ -325,49 +355,22 @@ export function overlayOf(
   };
 }
 
-/** The elements an exploration draws, as cards. */
-const CARD_KINDS: ReadonlySet<string> = new Set([
-  'module',
-  'building_block',
-  'behavior',
-  'actor',
-  'manual_process',
-]);
-
 /**
- * What the exploration of a design opens on: every element it adds,
- * modifies or removes, every element one of its relations hangs from, and
- * the modules and blocks that hold them, so a behavior is drawn on its
+ * What the exploration of a design opens on: every element it speaks of,
+ * and the modules and blocks that hold them, so a behavior is drawn on its
  * block. Nothing else of the model: the reader brings that in.
  */
-export function opensOnOf(
-  doc: DesignDocumentInput,
-  overlay: DesignOverlay,
-): ElementChoice {
-  const { model, changes } = overlay;
+export function opensOnOf({ model, designed }: DesignOverlay): ElementChoice {
   const held = new Set<string>(
-    [
-      ...model.modules,
-      ...model.buildingBlocks,
-      ...model.behaviors,
-      ...model.actors,
-      ...model.manualProcesses,
-    ].map(({ id }) => id),
-  );
-  const owners = [
-    ...pointingRelations(doc),
-    ...(doc.relations?.modified ?? []),
-  ].map(({ from }) => from);
-  const touched = [...changes.keys(), ...owners].filter(
-    (id) => held.has(id) && CARD_KINDS.has(kindOf(id)),
+    [...model.modules, ...model.buildingBlocks, ...model.behaviors].map(
+      ({ id }) => id,
+    ),
   );
   const added = new Set<string>();
-  for (const id of touched)
-    for (
-      let at: string | null = id;
-      at !== null && held.has(at);
-      at = parentOf(at)
-    )
+  for (const id of designed) {
+    added.add(id);
+    for (let at = parentOf(id); at !== null && held.has(at); at = parentOf(at))
       added.add(at);
+  }
   return { shown: new Set(), picks: { ...NO_PICKS, added } };
 }
