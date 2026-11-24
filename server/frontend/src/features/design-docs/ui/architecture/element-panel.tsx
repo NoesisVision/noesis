@@ -52,6 +52,7 @@ export function ElementPanel({
       glance
       eyebrow={eyebrow}
       title={title}
+      change={modelTree.byPath.get(id)?.change}
     >
       <ElementBody id={id} document={document} modelTree={modelTree} />
     </DetailsPanel>

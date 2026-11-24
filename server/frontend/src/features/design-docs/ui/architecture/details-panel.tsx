@@ -1,5 +1,6 @@
 import { IconArrowsDiagonalMinimize2 } from '@tabler/icons-react';
 import { type ReactNode, useMemo } from 'react';
+import type { OutlineChange } from '#/features/design-docs/ui/model-tree/model-outline.ts';
 import type { OutlineTree } from '#/features/design-docs/ui/model-tree/outline-tree.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Group } from '#/shared/design-system/group.tsx';
@@ -7,6 +8,7 @@ import { Stack } from '#/shared/design-system/stack.tsx';
 import { Text } from '#/shared/design-system/text.tsx';
 import { Title } from '#/shared/design-system/title.tsx';
 import type { DesignDocumentInput } from '#backend/app/design-docs/design-doc.ts';
+import { ChangeBadge } from '../element-details/change-badge.tsx';
 import { DesignDocumentContext } from '../element-details/design-document-context.ts';
 import { ElementNavigationContext } from '../element-details/element-navigation.ts';
 import { GlanceReadingContext } from '../element-details/glance-reading.ts';
@@ -23,12 +25,18 @@ export interface DetailsPanelProps {
   onMinimize?: () => void;
   eyebrow: string;
   title: string;
+  /**
+   * What the design does to the element read, said beside what it is; none
+   * for anything else, or where the page marks no changes.
+   */
+  change?: OutlineChange;
   address?: string;
   children: ReactNode;
 }
 
 /*
- * The frame a selection is read in on a canvas: what it is and its name,
+ * The frame a selection is read in on a canvas: what it is, what the design
+ * does to it, and its name,
  * stuck to the top with the way to put it aside, where it sits, then what it
  * says. It has no close button: the selection is let go of on the canvas.
  * A type named in it is opened as a card is.
@@ -44,6 +52,7 @@ export function DetailsPanel({
   onMinimize,
   eyebrow,
   title,
+  change = 'unchanged',
   address,
   children,
 }: DetailsPanelProps) {
@@ -69,16 +78,22 @@ export function DetailsPanel({
               className={classes.head}
             >
               <Stack gap={2} flex={1} miw={0}>
-                <Text
-                  component="span"
-                  fz={11}
-                  fw={600}
-                  lts="0.06em"
-                  tt="uppercase"
-                  c="var(--noesis-secondary-text)"
-                >
-                  {eyebrow}
-                </Text>
+                {/* What it is, and what the design does to it, as the
+                    model's panel badges it. */}
+                <Group gap={6} wrap="nowrap" miw={0}>
+                  <Text
+                    component="span"
+                    fz={11}
+                    fw={600}
+                    lts="0.06em"
+                    tt="uppercase"
+                    c="var(--noesis-secondary-text)"
+                    truncate
+                  >
+                    {eyebrow}
+                  </Text>
+                  <ChangeBadge change={change} />
+                </Group>
                 <Title order={2} size="h4" className={classes.wraps}>
                   {title}
                 </Title>
