@@ -1154,14 +1154,15 @@
 }
 
 /*
- * What a design drawn among the model does to an element (data-change): an
- * edge down the card's left side in the change's colour, read from any
- * zoom, frames included; the mark on its icon says which change by its
- * shape too. Drawn as the card's own background, so it keeps to the card's
- * corners — a bevelled card's on its face, which keeps to the cut ones —
- * and leaves the shadows the hover and the selection take alone. A card
- * the design leaves alone, and every card of the model as it stands, has
- * none.
+ * What a design drawn among the model does to an element (data-change): a
+ * card filled with a faint wash of the change's colour and edged a shade
+ * stronger, read at a glance from any zoom; the mark on its icon says
+ * which change by its shape too. A bevelled card takes both on its face and
+ * its edge, which keep to its cut corners. A frame is not filled — it would
+ * wash everything it holds, the model brought in round the design too — so
+ * its edge alone is in the colour. Selected, related or on the way to the
+ * selection, a card keeps the edge that says so; its fill stays. A card the
+ * design leaves alone, and every card of the model as it stands, has none.
  */
 .holder[data-change='added'],
 .container[data-change='added'] {
@@ -1178,19 +1179,41 @@
   --change: var(--noesis-diagram-change-removed);
 }
 
-.exploration .holder[data-change] .card:not([data-shape='bevel']),
-.exploration .holder[data-change] .card [data-part='face'],
-.exploration .container[data-change] {
-  background-image: linear-gradient(
-    to right,
-    var(--change) var(--noesis-diagram-change-edge, 4px),
-    transparent var(--noesis-diagram-change-edge, 4px)
+.holder[data-change] {
+  --change-fill: color-mix(
+    in srgb,
+    var(--change) var(--noesis-diagram-change-fill),
+    var(--noesis-diagram-card)
+  );
+  --change-edge: color-mix(
+    in srgb,
+    var(--change) var(--noesis-diagram-change-edge),
+    var(--noesis-diagram-card-border)
   );
 }
 
-/* The mark's ring in the colour of what it sits on, the card. */
-.exploration [data-change] .nameLine {
-  --change-ring: var(--noesis-diagram-card);
+.exploration .holder[data-change] .card {
+  /* A bevelled card's face and edge (diagram-shapes.module.css). */
+  --shape-fill: var(--change-fill);
+  --shape-edge: var(--change-edge);
+
+  /* Any other card's own box, which a bevelled one leaves bare. */
+  &:not([data-shape='bevel']) {
+    background-color: var(--change-fill);
+  }
+
+  &:not([data-shape='bevel'], [data-state]) {
+    border-color: var(--change-edge);
+  }
+}
+
+.exploration .container[data-change]:not([data-state]) {
+  border-color: var(--change);
+}
+
+/* The mark's ring in the colour of what it sits on: the card's fill. */
+.exploration .holder[data-change] .nameLine {
+  --change-ring: var(--change-fill);
 }
 
 /*

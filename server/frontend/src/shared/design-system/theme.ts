@@ -131,10 +131,13 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       '--noesis-diagram-edge-dimmed': '0.2',
       // What a design does to an element, on its card: the colours the
       // change marks and badges take everywhere (CHANGE_COLOUR), filled, so
-      // a mark and an edge read in either scheme.
+      // a mark, a fill and an edge read in either scheme; and how much of
+      // the colour a card's fill and its edge take.
       '--noesis-diagram-change-added': 'var(--mantine-color-green-filled)',
       '--noesis-diagram-change-modified': 'var(--mantine-color-cyan-filled)',
       '--noesis-diagram-change-removed': 'var(--mantine-color-red-filled)',
+      '--noesis-diagram-change-fill': '14%',
+      '--noesis-diagram-change-edge': '45%',
       // Their shapes (DIAGRAM_SHAPE), and a card's lift, more under the pointer.
       '--noesis-diagram-card-radius': `${DIAGRAM_SHAPE.cardRadius}px`,
       '--noesis-diagram-pill-radius': `${DIAGRAM_SHAPE.pillRadius}px`,
