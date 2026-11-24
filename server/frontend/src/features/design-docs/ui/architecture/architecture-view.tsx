@@ -131,6 +131,16 @@ export function ArchitectureView({
   // The details minimized: shrunk into their corner, where a button opens
   // them again. Kept so as the selection changes.
   const [folded, setFolded] = useState(false);
+  // A link in the details: its element read, and — drawn — brought to the
+  // middle of the canvas, as on every diagram.
+  const [centred, setCentred] = useState<{ id: string } | null>(null);
+  const selectFromDetails = useCallback(
+    (id: string) => {
+      selectElement(id);
+      setCentred({ id });
+    },
+    [selectElement],
+  );
   const details: ArchitectureDetailsProps | null =
     subject === null
       ? null
@@ -140,7 +150,7 @@ export function ArchitectureView({
           document: doc,
           modelTree,
           cards,
-          onSelectElement: selectElement,
+          onSelectElement: selectFromDetails,
           // No close button: the selection is let go of on the canvas, by a
           // click on it or Escape, as on the exploration.
           onMinimize: () => setFolded(true),
@@ -160,6 +170,7 @@ export function ArchitectureView({
             layout={drawn}
             focus={focus}
             onSelectElement={selectElement}
+            centred={centred}
             onClear={
               subject === null ? undefined : () => onSelect('', 'detail')
             }

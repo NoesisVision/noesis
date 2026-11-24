@@ -1,4 +1,4 @@
-import { type Reach } from '../../system-model-exploration.ts';
+import { type Reach, type SlotGroup } from '../../system-model-exploration.ts';
 
 /*
  * What a card's menu calls each way it reaches others.
@@ -22,6 +22,22 @@ export const reorderLabel = (frame: { kind: string }) =>
 /** What the way to a card's parent says, in its menu and beside its cross: "Show parent block". */
 export const showParentLabel = (parent: { kind: string }) =>
   `Show parent ${shortKindOf(parent.kind)}`;
+
+/** A card's groups of slots, in the order they are named. */
+export const SLOT_GROUPS = [
+  'state',
+  'signature',
+] as const satisfies readonly SlotGroup[];
+
+/** What a group of a card's slots is called, where it is shown or hidden. */
+export const SLOT_GROUP_WORD: Record<SlotGroup, string> = {
+  state: 'state',
+  signature: 'input and output',
+};
+
+/** What a card with slots hidden on it says of them: "state, input and output". */
+export const hiddenSlotsWord = (groups: readonly SlotGroup[]) =>
+  groups.map((group) => SLOT_GROUP_WORD[group]).join(', ');
 
 /** What the card's own menu calls each way, under its "Add" heading. */
 export const REACH_ACTION = {

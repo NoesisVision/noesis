@@ -50,11 +50,6 @@
   --slot-word: var(--noesis-diagram-edge-state-word);
   /* A cardinality's mark in the relation's colour, as on its cards. */
   --cardinality-mark-ink: var(--slot-word);
-  --cardinality-mark-fill: color-mix(
-    in srgb,
-    var(--slot-line) 24%,
-    transparent
-  );
 }
 
 [data-relation='input'] {

@@ -12,7 +12,23 @@ import classes from './exploration.module.css';
 /*
  * The relations the exploration draws, each a checkbox, all in sight. One
  * the scan holds nothing for stays in the list, switched off, and says so.
+ * What an element contains is always drawn inside it, so containment —
+ * read either way round, Contains or Is part of — is not one to switch;
+ * and a behavior's input and output are its signature, switched as one,
+ * as a card's own menu has them.
  */
+interface Row {
+  kinds: readonly RelationKind[];
+  label: string;
+}
+const ROWS: readonly Row[] = RELATIONS.flatMap(({ kind, label }): Row[] => {
+  if (kind === 'contains' || kind === 'isPartOf' || kind === 'output')
+    return [];
+  if (kind === 'input')
+    return [{ kinds: ['input', 'output'], label: 'Input and output' }];
+  return [{ kinds: [kind], label }];
+});
+
 export function RelationList({
   shown,
   onShow,
@@ -35,19 +51,20 @@ export function RelationList({
         Relations
       </Text>
       <Stack gap={0} py={6}>
-        {RELATIONS.map(({ kind, label }) => (
+        {ROWS.map(({ kinds, label }) => (
           <Checkbox
-            key={kind}
+            key={label}
             px="sm"
             py={7}
             size="xs"
             className={classes.row}
             label={label}
-            checked={shown.has(kind)}
+            checked={kinds.some((kind) => shown.has(kind))}
             onChange={(event) => {
               const next = new Set(shown);
-              if (event.currentTarget.checked) next.add(kind);
-              else next.delete(kind);
+              for (const kind of kinds)
+                if (event.currentTarget.checked) next.add(kind);
+                else next.delete(kind);
               onShow(next);
             }}
           />

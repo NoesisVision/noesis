@@ -40,6 +40,8 @@ export function placeLocally(
   graph: ExplorationGraph,
   /** The card the change came from, or the point it was asked for at. */
   anchor: string | CanvasPoint,
+  /** Every card at the size it is drawn at now (workspaceOf). */
+  { asSized = false }: { asSized?: boolean } = {},
 ): PlacedElement[] | null {
   const {
     rects,
@@ -50,7 +52,7 @@ export function placeLocally(
     fit,
     settle,
     placed,
-  } = workspaceOf(previous, graph);
+  } = workspaceOf(previous, graph, { asSized });
   if (!settle()) return null;
   const point = typeof anchor === 'string' ? null : anchor;
   const card = typeof anchor === 'string' ? anchor : null;

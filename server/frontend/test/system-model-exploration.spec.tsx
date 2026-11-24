@@ -6,6 +6,7 @@ import {
   DesignDocumentContext,
   ElementSearch,
 } from '../src/features/design-docs/element-reader';
+import { ElementPanel } from '../src/features/design-docs/ui/architecture/element-panel';
 import {
   chainOf,
   choiceWithin,
@@ -18,9 +19,11 @@ import {
   kindWordOf,
   neighboursOf,
   NO_PICKS,
+  NO_SLOTS_HIDDEN,
   NOTHING_CHOSEN,
   picked,
   pickedIn,
+  slotGroupsOf,
   PLACING_ORDER,
   isOwnSlotReach,
   isSlotReach,
@@ -41,6 +44,7 @@ import {
 import {
   cardSizeOf,
   FAR_NAME_SCALE,
+  MODULE_NAME_SCALE,
   frameLeastWidthOf,
   HEIGHT,
   inGraphOrder,
@@ -655,12 +659,16 @@ it('lays out every relation and every kind in the visibility panel', () => {
   );
   expect(html).toMatch(/<h2[^>]*>Visibility<\/h2>/);
   expect(html).toContain('aria-label="Close the visibility panel"');
+  // What an element contains is always drawn inside it: not to switch,
+  // either way round.
+  expect(html).not.toContain('>Contains<');
+  expect(html).not.toContain('>Is part of<');
+  // Input and output, a behavior's signature, are one to switch.
+  expect(html).not.toContain('>Input<');
+  expect(html).not.toContain('>Output<');
   for (const label of [
-    'Contains',
-    'Is part of',
     'State',
-    'Input',
-    'Output',
+    'Input and output',
     'Extends',
     'Invokes',
     'Performs',
@@ -999,7 +1007,10 @@ describe('the selection', () => {
                 value={{
                   badges: graph.badges,
                   noOutput: graph.noOutput,
-                  stepping: { unseenFrom: new Map(), hollowFrom: new Map() },
+                  stepping: {
+                    steppedBackFrom: new Map(),
+                    hollowFrom: new Map(),
+                  },
                   slots: exploration.slots,
                   onGoTo: () => {},
                   onInto: () => false,
@@ -1013,6 +1024,9 @@ describe('the selection', () => {
                   onShow: () => {},
                   onDraw: () => {},
                   onArrange: () => {},
+                  slotGroups: new Map(),
+                  slotsHidden: NO_SLOTS_HIDDEN,
+                  onToggleSlots: () => {},
                 }}
               >
                 <ExplorationSelectionContext.Provider
@@ -1046,6 +1060,9 @@ describe('the selection', () => {
     expect(html).toContain(
       'aria-label="Line, Building Block · Value Object, related to the selection"',
     );
+    // What it is is its icon's to say on the card, and the tooltip's in a word.
+    expect(html).toContain('data-element-kind="Value Object"');
+    expect(html).not.toContain('>Value Object<');
     expect(html).toContain('aria-pressed="false"');
     // Its buttons are there whether or not it is in hand.
     expect(html).toContain('aria-label="More for Line"');
@@ -1060,7 +1077,7 @@ describe('the selection', () => {
   });
 });
 
-it('marks what is out of sight from further off, and gives each card what its name is sized by', () => {
+it('marks what steps back from further off, and gives each card what its name is sized by', () => {
   const graph = draw(['contains']);
   const Node = ElementNode as unknown as (props: {
     id: string;
@@ -1068,7 +1085,11 @@ it('marks what is out of sight from further off, and gives each card what its na
   }) => React.ReactNode;
   const ORDERS = 'module|shop.orders';
   const PLACE = 'behavior|shop.orders.Order.place';
-  const render = (id: string, holds: boolean) =>
+  const render = (
+    id: string,
+    holds: boolean,
+    slotsHidden: typeof NO_SLOTS_HIDDEN = NO_SLOTS_HIDDEN,
+  ) =>
     renderToStaticMarkup(
       <MantineProvider>
         <ReactFlowProvider>
@@ -1078,7 +1099,7 @@ it('marks what is out of sight from further off, and gives each card what its na
                 badges: graph.badges,
                 noOutput: graph.noOutput,
                 stepping: {
-                  unseenFrom: new Map([[PLACE, 'blocks']]),
+                  steppedBackFrom: new Map([[PLACE, 'blocks']]),
                   hollowFrom: new Map([[ORDERS, 'modules']]),
                 },
                 slots: exploration.slots,
@@ -1094,6 +1115,9 @@ it('marks what is out of sight from further off, and gives each card what its na
                 onShow: () => {},
                 onDraw: () => {},
                 onArrange: () => {},
+                slotGroups: new Map(),
+                slotsHidden,
+                onToggleSlots: () => {},
               }}
             >
               <Node
@@ -1117,16 +1141,28 @@ it('marks what is out of sight from further off, and gives each card what its na
   const holderOf = (html: string) =>
     /<div[^>]*data-part="(?:holder|container)"[^>]*>/.exec(html)?.[0];
 
-  expect(holderOf(render(PLACE, false))).toContain('data-unseen-from="blocks"');
+  expect(holderOf(render(PLACE, false))).toContain(
+    'data-stepped-back-from="blocks"',
+  );
   // Drawn inside a frame: not moved from further off.
   expect(holderOf(render(PLACE, false))).toContain('data-nested="true"');
   const orders = holderOf(render(ORDERS, true));
-  expect(orders).not.toContain('data-unseen-from');
+  expect(orders).not.toContain('data-stepped-back-from');
   expect(orders).toContain('data-hollow-from="modules"');
   // Its name's width, in a frame 400 by 300.
   expect(orders).toContain(
     `--name-width:${nameWidthOf('orders')};--frame-width:400;--frame-height:300`,
   );
+  // With slots hidden on it, a mark after its name says so, and shows them.
+  expect(render(PLACE, false)).not.toContain('data-part="slots-hidden"');
+  const hid = render(PLACE, false, {
+    state: new Set(),
+    signature: new Set([PLACE]),
+  });
+  expect(hid).toMatch(
+    /data-part="slots-hidden"[^>]*data-tip="Show input and output"/,
+  );
+  expect(hid).toContain('input and output hidden"');
 });
 
 it('picks from the tree without a tick box on any row', () => {
@@ -1250,12 +1286,17 @@ describe('slots drawn on the cards that hold them', () => {
   const PLACE = 'behavior|shop.orders.Order.place';
   const onCards = (
     relations: RelationKind[],
-    { from = exploration, picks = NO_PICKS } = {},
+    {
+      from = exploration,
+      picks = NO_PICKS,
+      slotsHidden = NO_SLOTS_HIDDEN,
+    } = {},
   ) =>
     graphOf(from, {
       hidden: new Set(),
       relations: new Set(relations),
       picks,
+      slotsHidden,
     });
   const ids = (graph: ReturnType<typeof onCards>) =>
     graph.elements.map(({ id }) => id);
@@ -1273,6 +1314,30 @@ describe('slots drawn on the cards that hold them', () => {
       ...model,
       relations: [...model.relations, ...relations],
     } as SystemModel);
+
+  it('hides a card’s state, or its input and output as one, on that card alone', () => {
+    const all: RelationKind[] = ['contains', 'state', 'input', 'output'];
+    const graph = onCards(all, {
+      slotsHidden: { state: new Set([ORDER]), signature: new Set([PLACE]) },
+    });
+    expect(badges(graph, ORDER)).toEqual([]);
+    expect(badges(graph, PLACE)).toEqual([]);
+    expect(graph.noOutput.has(PLACE)).toBeFalse();
+    // Its menu still offers each to show again, and nothing it has not got.
+    const groups = slotGroupsOf(exploration, graph.elements, new Set(all));
+    expect(groups.get(ORDER)).toEqual(['state']);
+    expect(groups.get(PLACE)).toEqual(['signature']);
+    // A group not asked for is not the card's to show.
+    expect(
+      slotGroupsOf(exploration, graph.elements, new Set(['contains'])).has(
+        ORDER,
+      ),
+    ).toBeFalse();
+    // Hidden on the card, a slot is no more drawn than one not asked for:
+    // the type it alone kept off the diagram is a card again.
+    expect(ids(graph)).toContain(LINE);
+    expect(ids(onCards(all))).not.toContain(LINE);
+  });
 
   it('takes off a card that is there only as a slot’s type, and its edges', () => {
     const graph = onCards(['contains', 'state', 'input', 'output']);
@@ -1424,6 +1489,7 @@ describe('slots drawn on the cards that hold them', () => {
       drawn: new Set(drawn),
       neighbours: neighboursOf(exploration),
       elements,
+      slotGroups: new Map(),
     });
     const ORDER = 'building_block|shop.orders.Order';
     const PLACE = 'behavior|shop.orders.Order.place';
@@ -1446,6 +1512,16 @@ describe('slots drawn on the cards that hold them', () => {
       const drawn = reading('module|shop.orders', ORDER, PLACE);
       expect(hasNodeMenu(ORDER, false, drawn)).toBeFalse();
       expect(hasNodeMenu(PLACE, false, drawn)).toBeFalse();
+    });
+
+    it('offers a card with slots of its own to show or hide them', () => {
+      const drawn = reading('module|shop.orders', ORDER, PLACE);
+      expect(
+        hasNodeMenu(ORDER, false, {
+          ...drawn,
+          slotGroups: new Map([[ORDER, ['state']]]),
+        }),
+      ).toBeTrue();
     });
 
     it('offers, from a type, the cards that hold it in a slot', () => {
@@ -1500,12 +1576,42 @@ describe('slots drawn on the cards that hold them', () => {
     const block = { ...place, name: long, kind: 'building_block' as const };
     expect(cardSizeOf(block, none).width).toBeGreaterThan(far);
     expect(frameLeastWidthOf(block, none)).toBeGreaterThan(far);
-    // A behavior in a frame is out of sight by then, and stays as it was;
-    // one standing on its own is still seen.
-    const behavior = { ...place, name: long, kind: 'behavior' as const };
-    expect(cardSizeOf({ ...behavior, parent: ORDER }, none).width).toBe(
-      widthOf(long),
+    // A module's name is half as large again as a block's: its frame is
+    // as wide as the name then takes from further off, and its top as tall.
+    const moduleOf = (name: string) =>
+      frameLeastWidthOf({ ...place, name, kind: 'module' as const }, none);
+    for (const name of ['catalog', 'payments', long])
+      expect(moduleOf(name)).toBeGreaterThan(
+        (nameWidthOf(name) + 16) * FAR_NAME_SCALE * MODULE_NAME_SCALE,
+      );
+    expect(
+      paddingOf({ ...place, kind: 'module' as const }, none).top,
+    ).toBeGreaterThanOrEqual(6 + 26 * FAR_NAME_SCALE * MODULE_NAME_SCALE);
+    expect(moduleOf('catalog')).toBeGreaterThan(
+      frameLeastWidthOf(
+        { ...place, name: 'catalog', kind: 'building_block' as const },
+        none,
+      ),
     );
+    // A behavior in a frame has stepped back by then: its card is as wide
+    // as its whole name close up, past the widest a card is for its name
+    // alone; one standing on its own is as wide as from further off.
+    const behavior = { ...place, name: long, kind: 'behavior' as const };
+    expect(
+      cardSizeOf({ ...behavior, parent: ORDER }, none).width,
+    ).toBeGreaterThan(widthOf(long));
+    expect(cardSizeOf({ ...behavior, parent: ORDER }, none).width).toBeLessThan(
+      far,
+    );
+    // However long, it is never cut short.
+    const longer = { ...behavior, parent: ORDER, name: `${long}${long}` };
+    expect(cardSizeOf(longer, none).width).toBeGreaterThan(
+      nameWidthOf(longer.name),
+    );
+    // A card with slots hidden on it has room for the way to show them.
+    expect(
+      cardSizeOf(longer, { ...none, slotsHiddenOn: new Set([PLACE]) }).width,
+    ).toBe(cardSizeOf(longer, none).width + 24);
     expect(cardSizeOf({ ...behavior, parent: null }, none).width).toBe(
       cardSizeOf(block, none).width,
     );
@@ -1531,7 +1637,10 @@ describe('slots drawn on the cards that hold them', () => {
                 value={{
                   badges: graph.badges,
                   noOutput: graph.noOutput,
-                  stepping: { unseenFrom: new Map(), hollowFrom: new Map() },
+                  stepping: {
+                    steppedBackFrom: new Map(),
+                    hollowFrom: new Map(),
+                  },
                   slots: exploration.slots,
                   onGoTo: () => {},
                   onInto: () => false,
@@ -1545,6 +1654,9 @@ describe('slots drawn on the cards that hold them', () => {
                   onShow: () => {},
                   onDraw: () => {},
                   onArrange: () => {},
+                  slotGroups: new Map(),
+                  slotsHidden: NO_SLOTS_HIDDEN,
+                  onToggleSlots: () => {},
                 }}
               >
                 <ExplorationSelectionContext.Provider
@@ -1708,6 +1820,24 @@ describe('what the reader chose to draw', () => {
     ]);
     expect([...choice.picks.removed]).toEqual([]);
   });
+});
+
+it('reads what is in hand without where it sits, which the canvas shows', () => {
+  const ORDER = 'building_block|shop.orders.Order';
+  const html = renderToStaticMarkup(
+    <MantineProvider>
+      <ElementPanel
+        id={ORDER}
+        document={designOf(model)}
+        eyebrow="Building Block"
+        title="Order"
+        onSelectElement={() => {}}
+      />
+    </MantineProvider>,
+  );
+  expect(html).toMatch(/<h2[^>]*>Order<\/h2>/);
+  expect(html).not.toContain('shop.orders.Order<');
+  expect(html).not.toContain('>shop.orders<');
 });
 
 describe('the way into the picker', () => {
@@ -2014,6 +2144,47 @@ describe('placing a change from one card', () => {
     expect(Math.hypot(added.x - 24, added.y - 60)).toBeLessThan(300);
     expect(frame.width).toBeLessThan(600);
     expect(frame.height).toBeLessThan(400);
+  });
+
+  it('draws a card now drawn round others as a frame round them, where the card stood', () => {
+    // Containment shown again: Box stood as a card, Kid under it, as far
+    // in as it stood inside Box.
+    const box = element('Box');
+    const kid = element('Kid', 'Box');
+    const next = element('Next');
+    const placed = placeLocally(
+      [at(box, 0, 0), at({ ...kid, parent: null }, 16, 400), at(next, 600, 0)],
+      graphOf(box, kid, next),
+      { x: 0, y: 0 },
+    )!;
+    const byId = new Map(placed.map((each) => [each.element.id, each]));
+    const frame = byId.get('Box')!;
+    expect(frame).toMatchObject({ holds: true, x: 0, y: 0 });
+    // What it holds raised to the top of its room, and nothing moved.
+    expect(byId.get('Kid')).toMatchObject({ x: 16, y: 60 });
+    expect(frame.height).toBe(60 + 56 + 40);
+    expect(byId.get('Next')).toMatchObject({ x: 600, y: 0 });
+  });
+
+  it('sizes every card anew for what it now carries, its corner where it stood', () => {
+    const [a, b] = [element('A'), element('B')];
+    const graph = graphOf(a, b);
+    const placed = placeLocally(
+      [at(a, 0, 0, 150, 200), at(b, 400, 0)],
+      graph,
+      { x: 0, y: 0 },
+      { asSized: true },
+    )!;
+    expect(
+      placed.map(({ x, y, width, height }) => [x, y, width, height]),
+    ).toEqual([
+      [0, 0, cardSizeOf(a, graph).width, HEIGHT],
+      [400, 0, cardSizeOf(b, graph).width, HEIGHT],
+    ]);
+    // Unasked, they keep the sizes they had.
+    expect(
+      placeLocally([at(a, 0, 0, 150, 200)], graphOf(a), { x: 0, y: 0 })![0],
+    ).toMatchObject({ width: 150, height: 200 });
   });
 
   it('moves a card asked for where another stands to beside it', () => {

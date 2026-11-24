@@ -63,8 +63,8 @@ const graph: ExplorationGraph = {
 const lines = (detail: Parameters<typeof graphInDetail>[1]) =>
   graphInDetail(graph, detail).relations.map(({ id }) => id);
 
-describe('how much of the diagram is seen from how far off', () => {
-  it('sees all of it close up, less below half, modules alone below a quarter', () => {
+describe('how much of the diagram is read from how far off', () => {
+  it('reads all of it close up, less below half, modules alone below a quarter', () => {
     expect([1, 0.5, 0.49, 0.25, 0.24, 0.1].map(detailAt)).toEqual([
       'all',
       'all',
@@ -77,21 +77,21 @@ describe('how much of the diagram is seen from how far off', () => {
 
   it('leaves all of it as it is drawn, close up', () => {
     const all = graphInDetail(graph, 'all');
-    expect(all.unseen.size).toBe(0);
+    expect(all.steppedBack.size).toBe(0);
     expect(all.hollow.size).toBe(0);
     expect(all.relations).toBe(graph.relations);
   });
 
-  it('takes the behaviors drawn inside a frame out of sight first, not one standing alone', () => {
-    const { unseen, hollow } = graphInDetail(graph, 'blocks');
-    expect([...unseen].sort()).toEqual(['pay', 'place', 'run']);
-    // The blocks that held only behaviors have nothing seen inside them.
+  it('steps the behaviors drawn inside a frame back first, not one standing alone', () => {
+    const { steppedBack, hollow } = graphInDetail(graph, 'blocks');
+    expect([...steppedBack].sort()).toEqual(['pay', 'place', 'run']);
+    // The blocks that held only behaviors hold only what stepped back.
     expect([...hollow].sort()).toEqual(['Loose', 'Order', 'Payments']);
   });
 
   it('then all a module holds but the modules inside it', () => {
-    const { unseen, hollow } = graphInDetail(graph, 'modules');
-    expect([...unseen].sort()).toEqual([
+    const { steppedBack, hollow } = graphInDetail(graph, 'modules');
+    expect([...steppedBack].sort()).toEqual([
       'Catalog',
       'Order',
       'Payments',
@@ -104,11 +104,11 @@ describe('how much of the diagram is seen from how far off', () => {
     expect(['orders', 'payments'].every((id) => hollow.has(id))).toBeTrue();
     // What stands in no module stays.
     expect(
-      ['Clerk', 'Loose', 'alone'].some((id) => unseen.has(id)),
+      ['Clerk', 'Loose', 'alone'].some((id) => steppedBack.has(id)),
     ).toBeFalse();
   });
 
-  it('runs a hidden behavior’s relations from its block, and leaves the blocks’ own', () => {
+  it('runs a stepped-back behavior’s relations from its block, and leaves the blocks’ own', () => {
     expect(lines('blocks')).toEqual([
       'invokes:Order->Payments',
       'invokes:Order->Loose',
@@ -124,7 +124,7 @@ describe('how much of the diagram is seen from how far off', () => {
   it('runs every relation between modules once they alone are left, once a kind', () => {
     expect(lines('modules')).toEqual([
       'invokes:orders->payments',
-      // In no module, Loose is still seen: the line ends on it.
+      // In no module, Loose has not stepped back: the line ends on it.
       'invokes:orders->Loose',
       'collaborator:orders->payments',
       // Order and Catalog are both in sales, orders inside it: not drawn.
@@ -134,12 +134,12 @@ describe('how much of the diagram is seen from how far off', () => {
   });
 
   it('says once from how far off each card steps back, whatever the zoom', () => {
-    const { unseenFrom, hollowFrom } = steppingBackOf(graph);
+    const { steppedBackFrom, hollowFrom } = steppingBackOf(graph);
     // A behavior in a frame from the first step, a block in a module from the second.
-    expect(unseenFrom.get('place')).toBe('blocks');
-    expect(unseenFrom.get('Order')).toBe('modules');
-    expect(unseenFrom.has('sales')).toBeFalse();
-    // A block left with nothing seen from the first step; a module from the second.
+    expect(steppedBackFrom.get('place')).toBe('blocks');
+    expect(steppedBackFrom.get('Order')).toBe('modules');
+    expect(steppedBackFrom.has('sales')).toBeFalse();
+    // A block holds only what stepped back from the first step; a module from the second.
     expect(hollowFrom.get('Order')).toBe('blocks');
     expect(hollowFrom.get('orders')).toBe('modules');
     expect(hollowFrom.has('sales')).toBeFalse();

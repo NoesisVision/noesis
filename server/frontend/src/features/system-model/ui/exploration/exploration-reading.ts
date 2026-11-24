@@ -6,6 +6,8 @@ import type {
   ExploredElement,
   ModelSlots,
   Neighbours,
+  SlotGroup,
+  SlotsHidden,
   SteppingBack,
 } from '../../system-model-exploration.ts';
 import type { CanvasPoint } from './place-locally.ts';
@@ -49,8 +51,8 @@ export interface ExplorationReading {
   /** The behaviors drawn that give nothing back, which their signatures say. */
   noOutput: ReadonlySet<string>;
   /**
-   * From how far off each card is out of sight, and each frame left with
-   * nothing seen inside it. The same whatever the zoom: the page goes by
+   * From how far off each card steps back, and each frame holds only
+   * what has. The same whatever the zoom: the page goes by
    * them as the zoom changes, and no card is drawn again for it.
    */
   stepping: SteppingBack;
@@ -90,12 +92,18 @@ export interface ExplorationReading {
   onDraw: (relation: DrawnRelationKind) => void;
   /** Places what a container holds anew, inside it, the rest left standing. */
   onArrange: (id: string) => void;
+  /** The groups of slots each card carries, shown or hidden: what its menu offers. */
+  slotGroups: ReadonlyMap<string, readonly SlotGroup[]>;
+  /** The cards whose slots of each group the reader hid. */
+  slotsHidden: SlotsHidden;
+  /** Shows a group of a card's slots on it again, or hides it. */
+  onToggleSlots: (id: string, group: SlotGroup) => void;
 }
 
 export const ExplorationReadingContext = createContext<ExplorationReading>({
   badges: new Map(),
   noOutput: new Set(),
-  stepping: { unseenFrom: new Map(), hollowFrom: new Map() },
+  stepping: { steppedBackFrom: new Map(), hollowFrom: new Map() },
   slots: { of: new Map(), behaviors: new Map() },
   onGoTo: () => {},
   onInto: () => false,
@@ -107,13 +115,24 @@ export const ExplorationReadingContext = createContext<ExplorationReading>({
   onShow: () => {},
   onDraw: () => {},
   onArrange: () => {},
+  slotGroups: new Map(),
+  slotsHidden: { state: new Set(), signature: new Set() },
+  onToggleSlots: () => {},
 });
 
 /** What a card may put on the diagram beside it, or take off it. */
 export function useCardActions() {
-  const { drawn, neighbours, elements, onShow, onDraw, onArrange } = useContext(
-    ExplorationReadingContext,
-  );
+  const {
+    drawn,
+    neighbours,
+    elements,
+    onShow,
+    onDraw,
+    onArrange,
+    slotGroups,
+    slotsHidden,
+    onToggleSlots,
+  } = useContext(ExplorationReadingContext);
   return {
     drawn,
     neighbours,
@@ -121,6 +140,9 @@ export function useCardActions() {
     onShow,
     onDraw,
     onArrange,
+    slotGroups,
+    slotsHidden,
+    onToggleSlots,
   };
 }
 

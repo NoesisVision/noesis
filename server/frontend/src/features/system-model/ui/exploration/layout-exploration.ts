@@ -35,8 +35,9 @@ export interface PlacedElement {
 }
 
 /**
- * A card's height, whatever its name: its name and what it is. The way to
- * what it contains sits on its border, so it needs no room of its own.
+ * A card's height, whatever its name: its name, and room for it at the
+ * size it is drawn from further off (FAR_NAME_SCALE). The way to what it
+ * contains sits on its border, so it needs no room of its own.
  */
 export const HEIGHT = 56;
 /** Wide enough for a short name beside the card's menu and cross. */
@@ -47,7 +48,7 @@ export const widthOf = (name: string) =>
   Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, name.length * 7.5 + 116));
 
 /*
- * From further off, with the behaviors in frames out of sight, a name is
+ * From further off, with the behaviors in frames stepped back, a name is
  * drawn larger, and the same size on every card and frame
  * (exploration.module.css), so each is at least as wide as its name then
  * takes — close up too, as nothing is placed anew on the way.
@@ -60,6 +61,12 @@ const FAR_CARD_INSET = 44;
 const FAR_FRAME_INSET = 24;
 /** A frame's name is a button: its padding, either side. */
 const FRAME_LABEL_PADDING = 16;
+/**
+ * How many times a block's name a module's is drawn at, close up and while
+ * the blocks are still read: a module is told from what it holds by the
+ * size of its name too. The stylesheet draws it so (--module-name-scale).
+ */
+export const MODULE_NAME_SCALE = 1.5;
 
 /** About one letter of a name, as wide as the diagram's type draws it. */
 const letterWidthOf = (letter: string) => {
@@ -75,10 +82,23 @@ export const nameWidthOf = (name: string) => {
   return Math.ceil(width);
 };
 
-/** A card's least width: its name close up and, unless it is out of sight by then, from further off. */
+/**
+ * Round a behavior's name close up: its pill's padding, the menu and cross
+ * beside the name, and its edge. A behavior's name is never cut short, so
+ * its card is as wide as its name takes, however long.
+ */
+const BEHAVIOR_INSET = 18 + 72 + 2;
+
+/**
+ * A card's least width: its name close up — a behavior's whole — and,
+ * unless it has stepped back by then, from further off.
+ */
 const cardWidthOf = (element: DrawnElement) =>
   Math.max(
     widthOf(element.name),
+    element.kind === 'behavior'
+      ? BEHAVIOR_INSET + nameWidthOf(element.name)
+      : 0,
     stepsBackFirst(element)
       ? 0
       : FAR_CARD_INSET + nameWidthOf(element.name) * FAR_NAME_SCALE,
@@ -86,13 +106,16 @@ const cardWidthOf = (element: DrawnElement) =>
 
 /**
  * A frame's least width: its name, inset in the frame, and its menu and the
- * way off the diagram beside it; or its name alone from further off.
+ * way off the diagram beside it; or its name alone from further off — a
+ * module's that much larger again, which leaves it its width close up too.
  */
-const frameWidthOf = (name: string) =>
+const frameWidthOf = ({ name, kind }: Pick<DrawnElement, 'name' | 'kind'>) =>
   Math.max(
     widthOf(name) + 32,
     FAR_FRAME_INSET +
-      (nameWidthOf(name) + FRAME_LABEL_PADDING) * FAR_NAME_SCALE,
+      (nameWidthOf(name) + FRAME_LABEL_PADDING) *
+        FAR_NAME_SCALE *
+        (kind === 'module' ? MODULE_NAME_SCALE : 1),
   );
 
 /**
@@ -112,17 +135,26 @@ export const PADDING: Readonly<Padding> = {
   bottom: 40,
   right: 16,
 };
+/**
+ * The room at a module's top: its name is drawn larger than a block's
+ * (MODULE_NAME_SCALE), and from further off larger again (FAR_NAME_SCALE),
+ * so its top is taller: the whole of the name's button then — 30px at its
+ * own size, 6px in from the frame's edge — and a little clear under it.
+ * The stylesheet draws it so (--module-top).
+ */
+export const MODULE_TOP = 104;
+const MODULE_PADDING: Readonly<Padding> = { ...PADDING, top: MODULE_TOP };
 
 /*
- * A card that carries badges (slot-badges.module.css): its name and what it
- * is at the top, then its signature in a box, a line of it to a line. The
+ * A card that carries badges (slot-badges.module.css): its name at the
+ * top, then its signature in a box, a line of it to a line. The
  * sizes here are what the stylesheet draws, so the layout leaves each card
  * the room it needs.
  */
-/** Where a card's badges start, below its name and what it is. */
-const BADGES_TOP = 50;
+/** Where a card's badges start, below its name. */
+const BADGES_TOP = 32;
 /** Where a frame's badges start, below its name. */
-const FRAME_BADGES_TOP = 52;
+const FRAME_BADGES_TOP = 36;
 /** Room under a card's badges, clear of its rounded corners. */
 const BADGES_BOTTOM = 10;
 /** Room either side of the badges, inside the card. */
@@ -135,14 +167,24 @@ const SIGNATURE_BOX = 9;
 const MAX_BADGED_WIDTH = 420;
 const NO_BADGES: readonly Badge[] = [];
 
-/** What the sizes of a card's badges are read from, and whether it stands without what holds it. */
+/**
+ * What the sizes of a card's badges are read from, whether it stands
+ * without what holds it, and whether slots are hidden on it.
+ */
 type Carrying = Pick<ExplorationGraph, 'badges'> &
-  Partial<Pick<ExplorationGraph, 'noOutput' | 'parentless'>>;
+  Partial<Pick<ExplorationGraph, 'noOutput' | 'parentless' | 'slotsHiddenOn'>>;
 
-/** The way to a card's parent, beside its menu and cross: a third button, and its gap. */
-const PARENT_ROOM = 24;
-const parentRoomOf = (element: DrawnElement, { parentless }: Carrying) =>
-  parentless?.has(element.id) === true ? PARENT_ROOM : 0;
+/**
+ * A button more beside a card's menu and cross, and its gap: the way to its
+ * parent, the way to show again the slots hidden on it.
+ */
+const BUTTON_ROOM = 24;
+const buttonRoomOf = (
+  element: DrawnElement,
+  { parentless, slotsHiddenOn }: Carrying,
+) =>
+  (parentless?.has(element.id) === true ? BUTTON_ROOM : 0) +
+  (slotsHiddenOn?.has(element.id) === true ? BUTTON_ROOM : 0);
 
 /**
  * The room a card's badges take, under a name needing `least` across: how
@@ -172,11 +214,11 @@ function badgeBlockOf(
   };
 }
 
-/** A card's size: its name and what it is, and room for its badges under them. */
+/** A card's size: its name, and room for its badges under it. */
 export function cardSizeOf(element: DrawnElement, carrying: Carrying) {
   const { width, height } = badgeBlockOf(
     element,
-    cardWidthOf(element) + parentRoomOf(element, carrying),
+    cardWidthOf(element) + buttonRoomOf(element, carrying),
     carrying,
   );
   if (height === 0) return { width, height: HEIGHT };
@@ -187,7 +229,7 @@ export function cardSizeOf(element: DrawnElement, carrying: Carrying) {
 export const frameLeastWidthOf = (element: DrawnElement, carrying: Carrying) =>
   badgeBlockOf(
     element,
-    frameWidthOf(element.name) + parentRoomOf(element, carrying),
+    frameWidthOf(element) + buttonRoomOf(element, carrying),
     carrying,
   ).width;
 
@@ -196,14 +238,11 @@ export function paddingOf(
   element: DrawnElement,
   carrying: Carrying,
 ): Readonly<Padding> {
-  const { height } = badgeBlockOf(
-    element,
-    frameWidthOf(element.name),
-    carrying,
-  );
-  if (height === 0) return PADDING;
+  const { height } = badgeBlockOf(element, frameWidthOf(element), carrying);
+  const round = element.kind === 'module' ? MODULE_PADDING : PADDING;
+  if (height === 0) return round;
   return {
-    ...PADDING,
+    ...round,
     top: FRAME_BADGES_TOP + height + BADGES_BOTTOM,
   };
 }

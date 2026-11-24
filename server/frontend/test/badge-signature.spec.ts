@@ -83,7 +83,7 @@ describe('a card’s badges, written as its signature', () => {
   it('makes a card the room its signature takes', () => {
     const badges = new Map([[CALCULATE, [offer, user, result]]]);
     // One line of 20px in a box 9px each side, under the card's name.
-    expect(cardSizeOf(calculate, { badges }).height).toBe(50 + 20 + 18 + 10);
+    expect(cardSizeOf(calculate, { badges }).height).toBe(32 + 20 + 18 + 10);
   });
 
   it('makes a behavior with no slot at all room to say it gives nothing back', () => {
@@ -91,6 +91,6 @@ describe('a card’s badges, written as its signature', () => {
     expect(cardSizeOf(calculate, none).height).toBe(56);
     expect(
       cardSizeOf(calculate, { ...none, noOutput: new Set([CALCULATE]) }).height,
-    ).toBe(50 + 20 + 18 + 10);
+    ).toBe(32 + 20 + 18 + 10);
   });
 });

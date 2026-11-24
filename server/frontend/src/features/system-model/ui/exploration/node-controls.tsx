@@ -1,4 +1,4 @@
-import { IconPlus, IconX } from '@tabler/icons-react';
+import { IconEyeOff, IconPlus, IconX } from '@tabler/icons-react';
 import { useState } from 'react';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Menu } from '#/shared/design-system/menu.tsx';
@@ -7,7 +7,12 @@ import { IconParentFrame } from '#/shared/ui/icons/icons.ts';
 import { type DrawnElement } from '../../system-model-exploration.ts';
 import { useCardActions } from './exploration-reading.ts';
 import { keepInMenu, NodeMenuButton, ReachItems } from './reach-menu.tsx';
-import { containsLabel, showParentLabel } from './reach-words.ts';
+import {
+  containsLabel,
+  hiddenSlotsWord,
+  showParentLabel,
+  SLOT_GROUPS,
+} from './reach-words.ts';
 import { useThemedSurface } from './themes/diagram-theme-context.ts';
 import { useLazyOpening } from './use-lazy-opening.ts';
 import { useAdd, useMissing, useMissingParent } from './use-reaches.ts';
@@ -79,9 +84,10 @@ export function Contains({
 }
 
 /*
- * In the top right corner: the card's own menu, then the way to its parent
- * while that is not on the diagram; apart from them the way off the
- * diagram, its cross. A frame's cross takes it with everything inside: what
+ * In the top right corner: the way to show again the slots hidden on the
+ * card, while any are; its own menu; then the way to its parent while that
+ * is not on the diagram; apart from them the way off the diagram, its
+ * cross. A frame's cross takes it with everything inside: what
  * holds something never leaves without it.
  */
 export function Remove({
@@ -93,13 +99,30 @@ export function Remove({
   name: string;
   holds: boolean;
 }) {
-  const { onShow } = useCardActions();
+  const { onShow, slotsHidden, onToggleSlots } = useCardActions();
   const parent = useMissingParent(id);
   const showParent = useAdd(id, 'isPartOf');
+  const hid = SLOT_GROUPS.filter((group) => slotsHidden[group].has(id));
   return (
     <div className={`nodrag nopan ${classes.corner}`}>
       {/* Apart from the ways off, so a click meant for it never takes one. */}
       <div className={classes.strip}>
+        {hid.length > 0 && (
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="sm"
+            // How the card leaves the room for it (exploration.module.css).
+            data-part="slots-hidden"
+            aria-label={`Show ${hiddenSlotsWord(hid)} of ${name}`}
+            data-tip={`Show ${hiddenSlotsWord(hid)}`}
+            onClick={() => {
+              for (const group of hid) onToggleSlots(id, group);
+            }}
+          >
+            <IconEyeOff size={14} stroke={1.8} aria-hidden />
+          </ActionIcon>
+        )}
         <NodeMenuButton id={id} name={name} holds={holds} />
         {parent !== null && (
           <ActionIcon

@@ -41,7 +41,7 @@
 }
 
 /*
- * A leaf element: its name over what it is, as a button — a white card,
+ * A leaf element: its name, as a button — a white card,
  * softly rounded and only just lifted off the canvas, as the app's cards are;
  * a behavior's edge dashed. Named with its exploration, to win over the
  * unstyled button's own reset, which loads later.
@@ -68,8 +68,7 @@
 }
 
 .exploration .card {
-  /* Its name and what it is at the top, clear of the menu and cross beside them. */
-  justify-content: flex-start;
+  /* Its name in its middle, clear of the menu and cross beside it. */
   padding: 8px 62px 8px var(--mantine-spacing-xs);
 
   /* Its shape, its lift and its rings are every diagram's (diagram-shapes);
@@ -161,6 +160,28 @@
 }
 
 /*
+ * A module's name is half as large again as a block's or a card's, so a
+ * module is told from what it holds by its name too (--module-name-scale:
+ * MODULE_NAME_SCALE in layout-exploration.ts, which leaves its frame the
+ * width, and its top the height: --module-top, MODULE_TOP). Drawn larger
+ * from its corner, its icon with it, as every name is from further off,
+ * where the size it is drawn at is the detail's own.
+ */
+.exploration .container[data-kind='module'] {
+  --label-scale: var(--module-name-scale);
+}
+
+.container[data-kind='module'] > .frameTop {
+  height: var(--frame-top, calc(var(--module-top) * 1px));
+}
+
+.exploration .container[data-kind='module'] .containerLabel {
+  max-width: calc((100% - 76px) / var(--label-scale));
+  transform: scale(var(--label-scale));
+  transform-origin: top left;
+}
+
+/*
  * The selection, as the design's tree marks it, in the page's accent: the
  * element in hand lifted with a ring of the accent round it and its icon in
  * the accent; each element a relation joins to it with a dashed ring of a
@@ -208,15 +229,19 @@
 }
 
 .holder[data-kind='behavior'] .corner {
-  top: 50%;
   right: 14px;
+}
+
+/* A card of its name alone: its menu and cross beside it, in its middle. */
+.holder:not([data-badged]) .corner {
+  top: 50%;
   transform: translateY(-50%);
 }
 
 /*
  * A card that stands without what holds it has the way to that beside its
  * menu and cross (node-controls.tsx): its name keeps clear of the third
- * button too, in the room the layout left it (PARENT_ROOM).
+ * button too, in the room the layout left it (BUTTON_ROOM).
  */
 .exploration .holder:has([data-part='parent']) .card {
   padding-right: 86px;
@@ -230,10 +255,56 @@
   max-width: calc(100% - 100px);
 }
 
+.exploration:not([data-detail])
+  .container[data-kind='module']:has(> .corner [data-part='parent'])
+  .containerLabel {
+  max-width: calc((100% - 100px) / var(--label-scale));
+}
+
 /*
- * A card carrying badges keeps its name and what it is at the top, its
- * badges under them (slot-badges.module.css); a behavior's menu and cross
- * stay beside its name.
+ * So too, a card with slots hidden on it beside the way to show them again
+ * — and beside both that and the way to its parent, one button further.
+ */
+.exploration .holder:has([data-part='slots-hidden']) .card {
+  padding-right: 86px;
+}
+
+.exploration
+  .holder:has([data-part='slots-hidden'])
+  .card[data-kind='behavior'] {
+  padding-right: 96px;
+}
+
+.exploration
+  .container:has(> .corner [data-part='slots-hidden'])
+  .containerLabel {
+  max-width: calc(100% - 100px);
+}
+
+.exploration
+  .holder:has([data-part='parent']):has([data-part='slots-hidden'])
+  .card {
+  padding-right: 110px;
+}
+
+.exploration
+  .holder:has([data-part='parent']):has([data-part='slots-hidden'])
+  .card[data-kind='behavior'] {
+  padding-right: 120px;
+}
+
+.exploration
+  .container:has(> .corner [data-part='parent']):has(
+    > .corner [data-part='slots-hidden']
+  )
+  .containerLabel {
+  max-width: calc(100% - 124px);
+}
+
+/*
+ * A card carrying badges keeps its name at the top, its badges under it
+ * (slot-badges.module.css), its menu and cross beside its name — a
+ * behavior's a little lower, clear of its rounded corner.
  */
 .exploration .holder[data-badged] .card {
   justify-content: flex-start;
@@ -241,7 +312,7 @@
 }
 
 .holder[data-kind='behavior'][data-badged] .corner {
-  top: 28px;
+  top: 6px;
 }
 
 /*
@@ -333,17 +404,22 @@
 
 /*
  * From further off (data-detail, read from the zoom: exploration-detail.ts)
- * less is seen. Each card says from how far off it is out of sight
- * (data-unseen-from), and the page goes by that as the zoom changes, so
- * crossing from one detail to the next draws no card again. What steps
- * out of sight keeps its place and fades; what a card carries — its
- * signature, its menu, its cross, the way to what it contains — goes at
- * the first step, too small by then to read or press. Only that fading is
- * animated: a name is at its new size and place at once, never seen on
- * its way there.
+ * less is read. Each card says from how far off it steps back
+ * (data-stepped-back-from), and the page goes by that as the zoom changes,
+ * so crossing from one detail to the next draws no card again. What steps
+ * back keeps its place and dims, as what has nothing to do with a
+ * selection does: still seen where it stands, in the frame that is read
+ * in its place, and not pressed. What a card carries — its signature, its
+ * menu, its cross, the way to what it contains — goes at the first step,
+ * too small by then to read or press. Only that fading is animated: a
+ * name is at its new size and place at once, never seen on its way there.
  */
-.exploration[data-detail] [data-unseen-from='blocks'],
-.exploration[data-detail='modules'] [data-unseen-from='modules'],
+.exploration[data-detail] [data-stepped-back-from='blocks'],
+.exploration[data-detail='modules'] [data-stepped-back-from='modules'] {
+  opacity: var(--noesis-diagram-dimmed);
+  pointer-events: none;
+}
+
 .exploration[data-detail] [data-part='badges'],
 .exploration[data-detail] .corner,
 .exploration[data-detail] .contains {
@@ -353,14 +429,14 @@
 }
 
 /*
- * A card out of sight is still a node of the canvas, over the frame it is
- * in, and lets the pointer through to that frame's name; over the node's
- * own inline style, hence the weight.
+ * A card stepped back is still a node of the canvas, over the frame it is
+ * in, and lets the pointer through to that frame; over the node's own
+ * inline style, hence the weight.
  */
 .exploration[data-detail]
-  :global(.react-flow__node):has([data-unseen-from='blocks']),
+  :global(.react-flow__node):has([data-stepped-back-from='blocks']),
 .exploration[data-detail='modules']
-  :global(.react-flow__node):has([data-unseen-from='modules']) {
+  :global(.react-flow__node):has([data-stepped-back-from='modules']) {
   pointer-events: none !important;
 }
 
@@ -385,35 +461,27 @@
 
 /*
  * Names from further off, larger so they still read. The corner's controls
- * are gone from beside each, so it has the width, and what each is —
- * `Module` — is left unsaid: its icon says it. While the blocks are still
- * seen every name is the one size (--far-name-scale, from
+ * are gone from beside each, so it has the width. While the blocks are still
+ * read every name is the one size (--far-name-scale, from
  * layout-exploration.ts, which leaves each card and frame the room for
- * it). Once modules alone are left each name is read on its own: sized
- * against the room it has — its frame's size and its own width are set on
- * it (element-node.tsx).
- */
-.exploration[data-detail] .kindLine {
-  display: none;
-}
-
-/*
+ * it). Once modules alone are left each of their names is read on its
+ * own: sized against the room it has — its frame's size and its own width
+ * are set on it (element-node.tsx).
+ *
  * How tall a name is at its own size, in a frame's label and on a card,
  * and the most it grows where it has the room: one size for each detail,
  * read in the middle of its zooms, so nothing is sized anew while the
  * reader only comes closer or goes further.
- *
- * Where a name has a node's middle — a card, a frame with nothing seen
- * inside it — it has it alone: the icon of its kind is a mark in the
- * node's top left corner, smaller than the name and clear of it. The mark
- * is still part of the name's line, drawn larger with it, so its size and
- * how far in from the corner it sits are given at the name's own size.
  */
 .exploration[data-detail] {
   --label-height: 26;
   --card-label-height: 19;
-  --mark-size: 12px;
-  --mark-inset: 4px;
+  /* What a frame's top holds of its name, in from its edge: a module's is taller. */
+  --top-room: 54;
+}
+
+.exploration[data-detail] .container[data-kind='module'] {
+  --top-room: calc(var(--module-top) - 6);
 }
 
 .exploration[data-detail='blocks'] {
@@ -424,9 +492,19 @@
   --label-most: 6;
 }
 
+/* While the blocks are still read, a module's name is half as large again as theirs. */
+.exploration[data-detail='blocks'] .container[data-kind='module'] {
+  --label-most: calc(var(--far-name-scale) * var(--module-name-scale));
+}
+
+/* Stepped back, a name keeps the size it had while it was still read. */
+.exploration[data-detail='modules'] [data-stepped-back-from] {
+  --label-most: var(--far-name-scale);
+}
+
 /*
- * A frame with something still seen inside it: its name in its top, as
- * large as its top holds, no wider than the frame.
+ * A frame: its name in its top, over what it holds, as large as its top
+ * holds, no wider than the frame.
  */
 .exploration[data-detail] .container {
   /* About what the name takes at its own size: its icon and letters, and its padding. */
@@ -435,7 +513,7 @@
     1,
     min(
       var(--label-most),
-      calc(54 / var(--label-height)),
+      calc(var(--top-room) / var(--label-height)),
       calc((var(--frame-width) - 12) / var(--label-width))
     )
   );
@@ -448,14 +526,34 @@
 }
 
 /*
- * A frame with nothing seen inside it — a block whose behaviors stepped
- * back, a module left alone — says its name in its middle, as large as
- * reads from that far off and no larger than the frame holds, the icon of
- * its kind in its corner. The whole of it is then its top: it is taken
- * from anywhere.
+ * A module with only what stepped back inside it says its name in its
+ * middle, over them, the icon of its kind before it, as large as reads
+ * from that far off and no larger than the frame holds. The whole of it
+ * is then its top: it is taken from anywhere. A block whose behaviors
+ * stepped back keeps its name in its top, clear of them.
+ *
+ * What it holds are nodes of their own, drawn over their frame, and would
+ * lie over its name: so the module is lifted over them — over a card that
+ * is dragged too (RAISED_Z), and over the node's own inline style, hence
+ * the weight — and its ground left clear, for them to be seen through it.
+ * The edges, which run between modules by then, are lifted with it: an
+ * edge is drawn over what stands as deep as its ends (exploration-edges.ts).
  */
-.exploration[data-detail] .container[data-hollow-from='blocks'],
-.exploration[data-detail='modules'] .container[data-hollow-from='modules'] {
+.exploration[data-detail='modules']
+  :global(.react-flow__node):has(
+    > .container[data-kind='module'][data-hollow-from]
+  ) {
+  z-index: 3000 !important;
+}
+
+.exploration[data-detail='modules'] :global(.react-flow__edges) > svg {
+  z-index: 3001 !important;
+}
+
+.exploration[data-detail='modules']
+  .container[data-kind='module'][data-hollow-from] {
+  background: none;
+
   --label-scale: max(
     1,
     min(
@@ -479,39 +577,37 @@
     text-align: center;
     transform-origin: center;
   }
+}
 
-  /*
-   * Its icon in the frame's corner. The label is drawn larger about its
-   * own middle, which is the frame's: the corner is half the frame back
-   * from there, at the label's own size.
-   */
-  & .nameLine > :first-child {
+/*
+ * A module that stands in no other and still shows modules inside it has
+ * its name above its frame, as large as theirs grow: its top holds it no
+ * larger than a card's, too small to read beside them.
+ */
+.exploration[data-detail='modules']
+  .container[data-kind='module']:not([data-nested]):not([data-hollow-from]) {
+  --label-scale: max(
+    1,
+    min(var(--label-most), calc(var(--frame-width) / var(--label-width)))
+  );
+
+  & .containerLabel {
     position: absolute;
-    top: calc(
-      50% + var(--mark-inset) - var(--frame-height) * 0.5px / var(--label-scale)
-    );
-    left: calc(
-      50% + var(--mark-inset) - var(--frame-width) * 0.5px / var(--label-scale)
-    );
-    width: var(--mark-size);
-    height: var(--mark-size);
+    bottom: 100%;
+    left: 0;
+    max-width: calc(100% / var(--label-scale));
+    margin: 0 0 6px;
+    padding: 0 2px;
+    transform-origin: bottom left;
   }
 }
 
 /*
- * A card: its name in its middle, top to bottom and side to side, as an
- * emptied frame's is, as large as reads from that far off and as the card
- * holds, with the room its controls and its signature left; the icon of
- * its kind in its corner.
+ * A card: its name in its middle, top to bottom and side to side, the
+ * icon of its kind before it, as large as reads from that far off and as
+ * the card holds, with the room its controls and its signature left.
  */
 .exploration[data-detail] .holder {
-  /* From the card's edge to where its name's line starts: its border and padding. */
-  --card-inset: 11px;
-
-  &[data-kind='behavior'] {
-    --card-inset: 19px;
-  }
-
   --label-scale: max(
     1,
     min(
@@ -530,28 +626,13 @@
     padding-inline-end: 18px;
   }
 
-  /* Its name's line as wide as the card once grown, the name in its middle. */
+  /* Its name's line as wide as the card once grown, icon and name in its middle. */
   & .nameLine {
     justify-content: center;
     width: calc(100% / var(--label-scale));
     text-align: center;
     transform: scale(var(--label-scale));
     transform-origin: left center;
-  }
-
-  /*
-   * Its icon in the card's corner. The line is drawn larger from its left
-   * end, about its own height's middle, which is the card's: the corner
-   * is the card's inset back from that end, and half the card up.
-   */
-  & .nameLine > :first-child {
-    position: absolute;
-    top: calc(
-      50% + var(--mark-inset) - var(--frame-height) * 0.5px / var(--label-scale)
-    );
-    left: calc(var(--mark-inset) - var(--card-inset) / var(--label-scale));
-    width: var(--mark-size);
-    height: var(--mark-size);
   }
 }
 
@@ -584,8 +665,6 @@
   }
 
   /* Out of sight only once it has faded. */
-  .exploration[data-detail] [data-unseen-from='blocks'],
-  .exploration[data-detail='modules'] [data-unseen-from='modules'],
   .exploration[data-detail] [data-part='badges'] {
     transition:
       opacity 250ms ease,
@@ -919,6 +998,16 @@
   & > :first-child {
     flex: none;
   }
+}
+
+/*
+ * A behavior's name is never cut short: its card is as wide as the name
+ * takes (BEHAVIOR_INSET in layout-exploration.ts), so it stays on one line
+ * whole.
+ */
+.card[data-kind='behavior'] .name {
+  flex: none;
+  white-space: nowrap;
 }
 
 /* Where a double click asked for an element: a point the menu opens from. */

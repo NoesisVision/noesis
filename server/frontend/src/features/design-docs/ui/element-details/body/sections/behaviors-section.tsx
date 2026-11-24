@@ -10,7 +10,11 @@ import {
   CardinalityMark,
   type MarkedCardinality,
 } from '../../cardinality-mark.tsx';
-import { parameterItems, resultItems } from '../../change-list-items.ts';
+import {
+  type ChangeListItem,
+  parameterItems,
+  resultItems,
+} from '../../change-list-items.ts';
 import { useDesignDocument } from '../../design-document-context.ts';
 import { ElementLinkOrText } from '../../element-link-or-text.tsx';
 import type { ElementRef } from '../../element-ref.ts';
@@ -51,7 +55,7 @@ export function BehaviorsSection({ behaviors }: BehaviorsSectionProps) {
                 <BehaviorName node={node} />
                 {behavior !== null && (
                   <span className={classes.shape}>
-                    <Shape behavior={behavior} />
+                    <BehaviorShape behavior={behavior} />
                   </span>
                 )}
               </code>
@@ -94,14 +98,51 @@ function BehaviorName({ node }: { node: OutlineNode }) {
   );
 }
 
-/** `(a, b) → C`: the inputs by name, the output by its type's last segment; each says what its type is on hover. */
-function Shape({ behavior }: { behavior: DesignedBehaviorInput }) {
+/** A behavior's shape, from what the document says it takes and gives. */
+function BehaviorShape({ behavior }: { behavior: DesignedBehaviorInput }) {
   const doc = useDesignDocument();
+  return (
+    <Shape
+      inputs={doc === null ? [] : parameterItems(doc, behavior.id)}
+      outputs={doc === null ? [] : resultItems(doc, behavior.id)}
+    />
+  );
+}
+
+/**
+ * What a behavior takes and gives on a card of its own, as its block's
+ * Behaviors list writes it beside its name: for the behavior's own page,
+ * whose name and definition are its heading already.
+ */
+export function SignatureCard({
+  inputs,
+  outputs,
+}: {
+  inputs: readonly ChangeListItem[];
+  outputs: readonly ChangeListItem[];
+}) {
+  return (
+    <div className={`${classes.behavior} ${classes.alone}`}>
+      <code className={classes.code}>
+        <span className={classes.shape}>
+          <Shape inputs={inputs} outputs={outputs} />
+        </span>
+      </code>
+    </div>
+  );
+}
+
+/** `(a, b) → C`: the inputs by name, the output by its type's last segment; each says what its type is on hover. */
+function Shape({
+  inputs: allInputs,
+  outputs: allOutputs,
+}: {
+  inputs: readonly ChangeListItem[];
+  outputs: readonly ChangeListItem[];
+}) {
   const kept = ({ change }: { change: string }) => change !== 'removed';
-  const inputs =
-    doc === null ? [] : parameterItems(doc, behavior.id).filter(kept);
-  const outputs =
-    doc === null ? [] : resultItems(doc, behavior.id).filter(kept);
+  const inputs = allInputs.filter(kept);
+  const outputs = allOutputs.filter(kept);
   return (
     <>
       <span className={classes.punctuation}>(</span>

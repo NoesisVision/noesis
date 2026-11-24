@@ -56,10 +56,34 @@ const ELEMENTS = new Map(
 const step: DiagramStep = {
   choice: { shown: new Set(), picks: { added: new Set(), removed: new Set() } },
   relations: new Set(['contains', 'state', 'input']),
+  slotsHidden: { state: new Set(), signature: new Set() },
   nodes: [],
 };
 
 describe('the steps the diagram took, kept on the machine', () => {
+  it('keeps the slots hidden on each card', () => {
+    rememberSteps(MODEL, {
+      list: [
+        {
+          ...step,
+          slotsHidden: { state: new Set([ORDER]), signature: new Set(['b']) },
+        },
+      ],
+      at: 0,
+    });
+    const hidden = recallSteps(MODEL, ELEMENTS)?.list[0]?.slotsHidden;
+    expect([...(hidden?.state ?? [])]).toEqual([ORDER]);
+    expect([...(hidden?.signature ?? [])]).toEqual(['b']);
+  });
+
+  it('places afresh steps kept while containment could be switched off', () => {
+    rememberSteps(MODEL, {
+      list: [step, { ...step, relations: new Set(['state']) }],
+      at: 0,
+    });
+    expect(recallSteps(MODEL, ELEMENTS)).toBeNull();
+  });
+
   it('keeps each step, and the one the diagram stands at', () => {
     rememberSteps(MODEL, {
       list: [step, { ...step, relations: new Set(['contains']) }],
@@ -129,7 +153,7 @@ describe('the steps the diagram took, kept on the machine', () => {
     storage.setItem(
       KEY,
       JSON.stringify({
-        v: 4,
+        v: 5,
         savedAt: 1,
         at: 0,
         list: [

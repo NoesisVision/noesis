@@ -61,6 +61,12 @@
   line-height: 1.5;
 }
 
+/* A signature on a card of its own, with no icon beside it to line up with. */
+.alone .code {
+  min-height: 0;
+  padding-top: 0;
+}
+
 /* What it takes and gives, wrapping inside itself once it fills a line. */
 .shape {
   min-width: 0;

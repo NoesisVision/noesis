@@ -5,7 +5,7 @@ import {
   type ReactFlowInstance,
 } from '@xyflow/react';
 import { clsx } from 'clsx';
-import { type ReactNode, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { useChangeColour } from '#/features/design-docs/ui/model-tree/use-change-colour.ts';
 import { Box } from '#/shared/design-system/box.tsx';
 import { useComputedColorScheme } from '#/shared/design-system/color-scheme.ts';
@@ -18,6 +18,7 @@ import {
   useCanvasZoom,
 } from '#/shared/ui/diagram-canvas/canvas-flow.ts';
 import { useLetGoOnEscape } from '#/shared/ui/diagram-canvas/canvas-keys.ts';
+import { centreOn } from '#/shared/ui/diagram-canvas/centre-on.ts';
 import { FIT } from '#/shared/ui/diagram-canvas/fit.ts';
 import {
   type FloatingEdge,
@@ -49,10 +50,11 @@ import {
   HexagonNode,
 } from './diagram-nodes.tsx';
 import { DiagramToolbar, type Overlays } from './diagram-toolbar.tsx';
-import type {
-  ArchitectureLayout,
-  LaidOutEdge,
-  LaidOutNode,
+import {
+  type ArchitectureLayout,
+  hexagonId,
+  type LaidOutEdge,
+  type LaidOutNode,
 } from './layout-architecture.ts';
 import classes from './architecture-diagram.module.css';
 
@@ -73,6 +75,11 @@ export interface ArchitectureDiagramProps {
   onClear?: () => void;
   /** The `DetailsDock` the selection is read in, on the canvas beside the cards it outlines; none with nothing in hand. */
   selection?: ReactNode;
+  /**
+   * An element a link in the details asked for, to bring to the middle of
+   * the canvas when it is drawn; a new object for each time it is asked.
+   */
+  centred?: { id: string } | null;
   /** The building block types the hexagons hold, the ones to be left out, and the way to change them. */
   types: TypeRing[];
   hiddenTypes: ReadonlySet<string>;
@@ -95,6 +102,7 @@ export function ArchitectureDiagram({
   onSelectElement,
   onClear,
   selection = null,
+  centred = null,
   types,
   hiddenTypes,
   onHideTypes,
@@ -145,6 +153,13 @@ export function ArchitectureDiagram({
     [layout],
   );
   const clear = useMemo(() => clearOf(focus, layout.nodes), [focus, layout]);
+  // Asked for from the details: its card in the middle of the canvas — a
+  // behavior's block's when the behavior has none, a module's hexagon.
+  useEffect(() => {
+    if (centred === null || flow === null) return;
+    const drawn = new Set(layout.nodes.map(({ id }) => id));
+    centreOn(flow, [cardIdOf(centred.id, drawn), hexagonId(centred.id)]);
+  }, [centred, flow, layout]);
   const reading = useMemo<DiagramReading>(
     () => ({
       focus,
