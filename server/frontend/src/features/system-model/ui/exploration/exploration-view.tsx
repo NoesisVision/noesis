@@ -168,12 +168,30 @@ const NAME_SCALES = {
   '--module-top': MODULE_TOP,
 } as CSSProperties;
 
-export function ExplorationView({ model }: { model: SystemModel }) {
+export interface ExplorationViewProps {
+  model: SystemModel;
+  /**
+   * Whose diagram this is: its steps are kept under it. The scan's own id
+   * unless given, so each scan is placed afresh.
+   */
+  diagramId?: string;
+  /**
+   * What the diagram opens on when it has no steps kept. Absent, it opens on
+   * what the reader last chose in any scan's diagram, and keeps their choice
+   * for the next; given, it keeps nothing apart from its steps.
+   */
+  opensOn?: ElementChoice;
+}
+
+export function ExplorationView({
+  model,
+  diagramId = model.id,
+  opensOn,
+}: ExplorationViewProps) {
   const {
     features: { animateEdgesWhileDragging },
   } = useDevToolsContext();
   const exploration = useMemo(() => explorationOf(model), [model]);
-  const modelId = model.id;
   const neighbours = useMemo(() => neighboursOf(exploration), [exploration]);
   const elementsById = useMemo(
     () => byIdOf(exploration.elements),
@@ -184,16 +202,19 @@ export function ExplorationView({ model }: { model: SystemModel }) {
   // it no longer finds.
   // The steps this model's diagram took, kept on this machine, and the one
   // it was left at, which it opens at again, unplaced.
-  const [opened] = useState(() => recallSteps(model.id, elementsById));
+  const [opened] = useState(() => recallSteps(diagramId, elementsById));
   const opening = opened?.list[opened.at] ?? null;
   const [stored, setChoice] = useState<ElementChoice>(
-    () => opening?.choice ?? recallChoice(),
+    () => opening?.choice ?? opensOn ?? recallChoice(),
   );
   const choice = useMemo(
     () => choiceWithin(stored, exploration),
     [stored, exploration],
   );
-  useEffect(() => rememberChoice(choice), [choice]);
+  const keepsChoice = opensOn === undefined;
+  useEffect(() => {
+    if (keepsChoice) rememberChoice(choice);
+  }, [choice, keepsChoice]);
   const { picks } = choice;
   const hidden = useMemo(
     () => hiddenBy(choice, exploration),
@@ -314,8 +335,8 @@ export function ExplorationView({ model }: { model: SystemModel }) {
     const list = [...held.list.slice(0, held.at + 1), step].slice(-STEPS);
     steps.current = { ...held, list, at: list.length - 1 };
     setStepAt({ at: list.length - 1, count: list.length });
-    rememberSteps(modelId, steps.current);
-  }, [placements, edits, modelId]);
+    rememberSteps(diagramId, steps.current);
+  }, [placements, edits, diagramId]);
   const goTo = useCallback(
     (by: -1 | 1) => {
       const held = steps.current;
@@ -323,7 +344,7 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       if (step === undefined) return;
       steps.current = { ...held, at: held.at + by };
       setStepAt({ at: held.at + by, count: held.list.length });
-      rememberSteps(modelId, steps.current);
+      rememberSteps(diagramId, steps.current);
       const {
         stored: choiceNow,
         relations: drawnRelations,
@@ -340,13 +361,13 @@ export function ExplorationView({ model }: { model: SystemModel }) {
       setRelations(step.relations);
       setSlotsHidden(step.slotsHidden);
     },
-    [restore, modelId],
+    [restore, diagramId],
   );
   // How the edges are drawn, kept with the steps, so a reload draws them so.
   useEffect(() => {
     steps.current = { ...steps.current, edges: { orthogonal, animated } };
-    rememberSteps(modelId, steps.current);
-  }, [orthogonal, animated, modelId]);
+    rememberSteps(diagramId, steps.current);
+  }, [orthogonal, animated, diagramId]);
   const undo = useCallback(() => goTo(-1), [goTo]);
   const redo = useCallback(() => goTo(1), [goTo]);
   // Ctrl+Z, or Cmd+Z on a Mac, goes back a step; with Shift, or Ctrl+Y,

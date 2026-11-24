@@ -33,9 +33,10 @@ export interface DiagramSteps {
 /*
  * The steps kept on the machine, as the choice of what to draw is, so the
  * diagram opens as it was last seen — after a reload, in a new tab, another
- * day. One model's steps name its elements, so each scanned model keeps its
- * own, and a new scan, with an id of its own, is placed afresh. Only the
- * models last drawn keep theirs: scans come often, and the room is shared.
+ * day. One diagram's steps name its elements, so each keeps its own: a
+ * scanned model's, under the scan's id, so a new scan is placed afresh, or a
+ * design document's, under an id of its own. Only the diagrams last drawn
+ * keep theirs: scans come often, and the room is shared.
  *
  * Steps kept before slots were always drawn on cards (version 1) are not
  * read: they hold cards for the types slots name, which are badges now, so
@@ -50,9 +51,9 @@ export interface DiagramSteps {
  */
 const VERSION = 5;
 const PREFIX = 'noesis.systemModel.exploration.steps.';
-const keyOf = (modelId: string) => `${PREFIX}${modelId}`;
-/** How many models' diagrams are kept, the latest drawn. */
-const MODELS_KEPT = 5;
+const keyOf = (diagramId: string) => `${PREFIX}${diagramId}`;
+/** How many diagrams are kept, the latest drawn. */
+const DIAGRAMS_KEPT = 5;
 
 /** When each kept diagram was last saved, by its key. */
 function keptDiagrams(): { key: string; savedAt: number }[] {
@@ -77,11 +78,11 @@ function keptDiagrams(): { key: string; savedAt: number }[] {
 }
 
 /** Forgets every diagram but this model's and, unless `all`, the latest others. */
-function forgetOthers(modelId: string, all: boolean): void {
+function forgetOthers(diagramId: string, all: boolean): void {
   const others = keptDiagrams()
-    .filter(({ key }) => key !== keyOf(modelId))
+    .filter(({ key }) => key !== keyOf(diagramId))
     .sort((a, b) => b.savedAt - a.savedAt);
-  for (const { key } of others.slice(all ? 0 : MODELS_KEPT - 1))
+  for (const { key } of others.slice(all ? 0 : DIAGRAMS_KEPT - 1))
     window.localStorage.removeItem(key);
 }
 
@@ -143,13 +144,13 @@ const storedOf = ({
   nodes: nodes.map(storedNodeOf),
 });
 
-export function rememberSteps(modelId: string, steps: DiagramSteps): void {
+export function rememberSteps(diagramId: string, steps: DiagramSteps): void {
   let { list, at } = steps;
   let room = false;
   while (list.length > 0) {
     try {
       window.localStorage.setItem(
-        keyOf(modelId),
+        keyOf(diagramId),
         JSON.stringify({
           v: VERSION,
           savedAt: Date.now(),
@@ -158,7 +159,7 @@ export function rememberSteps(modelId: string, steps: DiagramSteps): void {
           edges: steps.edges,
         }),
       );
-      forgetOthers(modelId, false);
+      forgetOthers(diagramId, false);
       return;
     } catch {
       // With no room, other models' diagrams go first, then this one's
@@ -166,7 +167,7 @@ export function rememberSteps(modelId: string, steps: DiagramSteps): void {
       if (!room) {
         room = true;
         try {
-          forgetOthers(modelId, true);
+          forgetOthers(diagramId, true);
         } catch {
           // Storage unavailable: the steps are kept no further.
           return;
@@ -185,10 +186,10 @@ export function rememberSteps(modelId: string, steps: DiagramSteps): void {
  * element; a card whose element the model no longer holds is left out.
  */
 export function recallSteps(
-  modelId: string,
+  diagramId: string,
   elements: ReadonlyMap<string, ExploredElement>,
 ): DiagramSteps | null {
-  const stored = readStored(modelId);
+  const stored = readStored(diagramId);
   if (stored === null) return null;
   // Kept while containment could be switched off: a step that drew no card
   // inside another cannot be put back as it stood, so all are placed afresh.
@@ -281,10 +282,10 @@ function isStep(value: unknown): value is StoredStep {
 
 /** The one throwing call, kept to itself: unreadable is the same as absent. */
 function readStored(
-  modelId: string,
+  diagramId: string,
 ): { at: number; list: StoredStep[]; edges?: EdgeLook } | null {
   try {
-    const stored = window.localStorage.getItem(keyOf(modelId));
+    const stored = window.localStorage.getItem(keyOf(diagramId));
     if (stored === null) return null;
     const parsed: unknown = JSON.parse(stored);
     if (typeof parsed !== 'object' || parsed === null) return null;
