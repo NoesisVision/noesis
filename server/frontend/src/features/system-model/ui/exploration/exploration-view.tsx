@@ -930,6 +930,20 @@ export function ExplorationView({
    * What lies round the canvas is made once for what it shows, so a card
    * dragged, which draws the view again on each move, draws none of it.
    */
+  // A design drawn among the model, drawn as it opened: what the model was
+  // brought in round it goes, and what of it was taken off comes back. A
+  // step like any other, so Undo brings the rest back.
+  const onlyDesign = useMemo(() => {
+    if (design === undefined || opensOn === undefined) return undefined;
+    const designAlone = choiceWithin(opensOn, exploration);
+    return {
+      drawn: sameChoice(choice, designAlone),
+      onShow: () => {
+        setChoice(designAlone);
+        setSelection([]);
+      },
+    };
+  }, [design, opensOn, exploration, choice]);
   const toolbar = useMemo(
     () => (
       <ExplorationToolbar
@@ -943,11 +957,12 @@ export function ExplorationView({
         drawing={drawing}
         onDrawing={setDrawing}
         onAutoPlace={autoPlace}
+        onlyDesign={onlyDesign}
       >
         <ZoomControls quiet {...zoom.controls} />
       </ExplorationToolbar>
     ),
-    [stepAt, undo, redo, seeing, veiled, drawing, autoPlace, zoom],
+    [stepAt, undo, redo, seeing, veiled, drawing, autoPlace, onlyDesign, zoom],
   );
   const selectionPanel = useMemo(
     () =>

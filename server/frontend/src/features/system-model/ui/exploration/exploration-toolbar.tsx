@@ -6,6 +6,7 @@ import {
   IconRoute,
 } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
+import { DesignDocsIcon } from '#/features/design-docs/design-docs.model.ts';
 import { ActionIcon } from '#/shared/design-system/action-icon.tsx';
 import { Badge } from '#/shared/design-system/badge.tsx';
 import { Button } from '#/shared/design-system/button.tsx';
@@ -17,7 +18,7 @@ import {
   ToolbarPill,
 } from '#/shared/ui/canvas-toolbar.tsx';
 import { IconAutoPlace } from '#/shared/ui/icons/icons.ts';
-import { REORDER_DIAGRAM } from './reach-words.ts';
+import { ONLY_THE_DESIGN, REORDER_DIAGRAM } from './reach-words.ts';
 import classes from './exploration.module.css';
 
 /** How the exploration is drawn, as the reader set it. */
@@ -32,7 +33,8 @@ export interface Drawing {
  * How the reader draws the exploration — what is drawn is chosen in the
  * picker on the canvas, and what shows of it in the visibility panel this
  * opens: steps back and forward, how the edges run, placing everything
- * afresh, and — at the far end — how close.
+ * afresh, for a design drawn among the model going back to the design
+ * alone, and — at the far end — how close.
  */
 export function ExplorationToolbar({
   canUndo,
@@ -45,6 +47,7 @@ export function ExplorationToolbar({
   drawing,
   onDrawing,
   onAutoPlace,
+  onlyDesign,
   children,
 }: {
   /** Whether there is a step to go back to, or forward to again. */
@@ -60,6 +63,12 @@ export function ExplorationToolbar({
   drawing: Drawing;
   onDrawing: (drawing: Drawing) => void;
   onAutoPlace: () => void;
+  /**
+   * Draws a design drawn among the model as it opens: what the design
+   * speaks of and what holds it, nothing it was brought in beside. Absent
+   * on the model's own exploration; `drawn` when that is all there is.
+   */
+  onlyDesign?: { onShow: () => void; drawn: boolean };
   /** The zoom controls, at the row's far end. */
   children: ReactNode;
 }) {
@@ -143,6 +152,17 @@ export function ExplorationToolbar({
       >
         {REORDER_DIAGRAM}
       </Button>
+      {onlyDesign !== undefined && (
+        <Button
+          variant="subtle"
+          color="gray"
+          leftSection={<DesignDocsIcon size={16} stroke={1.6} aria-hidden />}
+          disabled={onlyDesign.drawn}
+          onClick={onlyDesign.onShow}
+        >
+          {ONLY_THE_DESIGN}
+        </Button>
+      )}
     </CanvasToolbar>
   );
 }
