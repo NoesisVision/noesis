@@ -76,7 +76,7 @@ import { designOf } from '../../system-model.model.ts';
 import { CanvasTooltips } from './canvas-tooltips.tsx';
 import { CardContextMenu } from './card-context-menu.tsx';
 import { ElementNode, type ExplorationNode } from './element-node.tsx';
-import { edgeOf } from './exploration-edges.ts';
+import { depthsOf, edgeHeightOver, edgeOf } from './exploration-edges.ts';
 import { recallChoice, rememberChoice } from './exploration-memory.ts';
 import { ExplorationPicker } from './exploration-picker.tsx';
 import {
@@ -901,6 +901,10 @@ export function ExplorationView({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [selection, drawn, remove, letGo]);
+  // How deep each card stands, so every edge is drawn over every card,
+  // however deep (exploration-edges.ts).
+  const depthOf = useMemo(() => depthsOf(graph.elements), [graph]);
+  const deepest = useMemo(() => Math.max(0, ...depthOf.values()), [depthOf]);
   const edges = useMemo(() => {
     const own = ({ id }: { id: string }) => related.relations.has(id);
     // The selection's relations last, so drawn over the rest: every edge
@@ -922,9 +926,10 @@ export function ExplorationView({
             : own(relation)
               ? 'highlighted'
               : 'faded',
+        zIndex: edgeHeightOver(relation, depthOf, deepest),
       }),
     );
-  }, [inDetail, orthogonal, animated, selection, related]);
+  }, [inDetail, orthogonal, animated, selection, related, depthOf, deepest]);
 
   /*
    * What lies round the canvas is made once for what it shows, so a card
