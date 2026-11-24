@@ -167,6 +167,12 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       '--noesis-diagram-frame-title-hover': alpha(current.white, 0.9),
       '--noesis-diagram-ring-label': brand[8],
       '--noesis-diagram-card': current.white,
+      // The icons on a changed card, in its change's colour: a shade dark
+      // enough to hold on the card's tinted fill at least the contrast the
+      // gray ones hold on a plain card (3.3:1).
+      '--noesis-diagram-change-added-ink': 'var(--mantine-color-green-9)',
+      '--noesis-diagram-change-modified-ink': 'var(--mantine-color-cyan-8)',
+      '--noesis-diagram-change-removed-ink': 'var(--mantine-color-red-8)',
       '--noesis-diagram-card-border': gray[3],
       '--noesis-diagram-card-border-hover': gray[4],
       '--noesis-diagram-module': alpha(brand[0], 0.4),
@@ -217,6 +223,11 @@ export const cssVariablesResolver: CSSVariablesResolver = (current) => {
       '--noesis-diagram-frame-title-hover': dark[5],
       '--noesis-diagram-ring-label': dark[1],
       '--noesis-diagram-card': dark[6],
+      // Light enough on the dark tinted fill to hold the gray icons'
+      // contrast on a plain card (4.1:1).
+      '--noesis-diagram-change-added-ink': 'var(--mantine-color-green-5)',
+      '--noesis-diagram-change-modified-ink': 'var(--mantine-color-cyan-5)',
+      '--noesis-diagram-change-removed-ink': 'var(--mantine-color-red-5)',
       '--noesis-diagram-card-border': dark[4],
       '--noesis-diagram-card-border-hover': dark[3],
       '--noesis-diagram-module': alpha(dark[9], 0.3),
